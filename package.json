@@ -1,0 +1,325 @@
+{
+  "name": "@flowstack-ui/atom",
+  "version": "0.1.0",
+  "description": "Headless accessible React primitives for Flowstack Atom.",
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "keywords": [
+    "flowstack-ui",
+    "atom",
+    "react",
+    "headless",
+    "accessibility",
+    "primitives"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flowstack-ui/atom.git"
+  },
+  "bugs": {
+    "url": "https://github.com/flowstack-ui/atom/issues"
+  },
+  "homepage": "https://github.com/flowstack-ui/atom#readme",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./accordion": {
+      "types": "./dist/accordion.d.ts",
+      "default": "./dist/accordion.js"
+    },
+    "./alert-dialog": {
+      "types": "./dist/alert-dialog.d.ts",
+      "default": "./dist/alert-dialog.js"
+    },
+    "./app-bar": {
+      "types": "./dist/app-bar.d.ts",
+      "default": "./dist/app-bar.js"
+    },
+    "./aspect-ratio": {
+      "types": "./dist/aspect-ratio.d.ts",
+      "default": "./dist/aspect-ratio.js"
+    },
+    "./combobox": {
+      "types": "./dist/combobox.d.ts",
+      "default": "./dist/combobox.js"
+    },
+    "./avatar": {
+      "types": "./dist/avatar.d.ts",
+      "default": "./dist/avatar.js"
+    },
+    "./badge": {
+      "types": "./dist/badge.d.ts",
+      "default": "./dist/badge.js"
+    },
+    "./breadcrumb": {
+      "types": "./dist/breadcrumb.d.ts",
+      "default": "./dist/breadcrumb.js"
+    },
+    "./bottom-navigation": {
+      "types": "./dist/bottom-navigation.d.ts",
+      "default": "./dist/bottom-navigation.js"
+    },
+    "./button": {
+      "types": "./dist/button.d.ts",
+      "default": "./dist/button.js"
+    },
+    "./checkbox": {
+      "types": "./dist/checkbox.d.ts",
+      "default": "./dist/checkbox.js"
+    },
+    "./checkbox-group": {
+      "types": "./dist/checkbox-group.d.ts",
+      "default": "./dist/checkbox-group.js"
+    },
+    "./collapsible": {
+      "types": "./dist/collapsible.d.ts",
+      "default": "./dist/collapsible.js"
+    },
+    "./collection": {
+      "types": "./dist/collection.d.ts",
+      "default": "./dist/collection.js"
+    },
+    "./context-menu": {
+      "types": "./dist/context-menu.d.ts",
+      "default": "./dist/context-menu.js"
+    },
+    "./data-grid": {
+      "types": "./dist/data-grid.d.ts",
+      "default": "./dist/data-grid.js"
+    },
+    "./dialog": {
+      "types": "./dist/dialog.d.ts",
+      "default": "./dist/dialog.js"
+    },
+    "./divider": {
+      "types": "./dist/divider.d.ts",
+      "default": "./dist/divider.js"
+    },
+    "./direction": {
+      "types": "./dist/direction.d.ts",
+      "default": "./dist/direction.js"
+    },
+    "./drawer": {
+      "types": "./dist/drawer.d.ts",
+      "default": "./dist/drawer.js"
+    },
+    "./dropdown-menu": {
+      "types": "./dist/dropdown-menu.d.ts",
+      "default": "./dist/dropdown-menu.js"
+    },
+    "./field": {
+      "types": "./dist/field.d.ts",
+      "default": "./dist/field.js"
+    },
+    "./fieldset": {
+      "types": "./dist/fieldset.d.ts",
+      "default": "./dist/fieldset.js"
+    },
+    "./feed": {
+      "types": "./dist/feed.d.ts",
+      "default": "./dist/feed.js"
+    },
+    "./file-upload": {
+      "types": "./dist/file-upload.d.ts",
+      "default": "./dist/file-upload.js"
+    },
+    "./form": {
+      "types": "./dist/form.d.ts",
+      "default": "./dist/form.js"
+    },
+    "./hooks": {
+      "types": "./dist/hooks.d.ts",
+      "default": "./dist/hooks.js"
+    },
+    "./hover-card": {
+      "types": "./dist/hover-card.d.ts",
+      "default": "./dist/hover-card.js"
+    },
+    "./input": {
+      "types": "./dist/input.d.ts",
+      "default": "./dist/input.js"
+    },
+    "./label": {
+      "types": "./dist/label.d.ts",
+      "default": "./dist/label.js"
+    },
+    "./list": {
+      "types": "./dist/list.d.ts",
+      "default": "./dist/list.js"
+    },
+    "./listbox": {
+      "types": "./dist/listbox.d.ts",
+      "default": "./dist/listbox.js"
+    },
+    "./menu": {
+      "types": "./dist/menu.d.ts",
+      "default": "./dist/menu.js"
+    },
+    "./menubar": {
+      "types": "./dist/menubar.d.ts",
+      "default": "./dist/menubar.js"
+    },
+    "./modal": {
+      "types": "./dist/modal.d.ts",
+      "default": "./dist/modal.js"
+    },
+    "./navigation-menu": {
+      "types": "./dist/navigation-menu.d.ts",
+      "default": "./dist/navigation-menu.js"
+    },
+    "./nav-list": {
+      "types": "./dist/nav-list.d.ts",
+      "default": "./dist/nav-list.js"
+    },
+    "./number-input": {
+      "types": "./dist/number-input.d.ts",
+      "default": "./dist/number-input.js"
+    },
+    "./otp-field": {
+      "types": "./dist/otp-field.d.ts",
+      "default": "./dist/otp-field.js"
+    },
+    "./password-toggle-field": {
+      "types": "./dist/password-toggle-field.d.ts",
+      "default": "./dist/password-toggle-field.js"
+    },
+    "./pagination": {
+      "types": "./dist/pagination.d.ts",
+      "default": "./dist/pagination.js"
+    },
+    "./popover": {
+      "types": "./dist/popover.d.ts",
+      "default": "./dist/popover.js"
+    },
+    "./portal": {
+      "types": "./dist/portal.d.ts",
+      "default": "./dist/portal.js"
+    },
+    "./pressable": {
+      "types": "./dist/pressable.d.ts",
+      "default": "./dist/pressable.js"
+    },
+    "./progress": {
+      "types": "./dist/progress.d.ts",
+      "default": "./dist/progress.js"
+    },
+    "./radio-group": {
+      "types": "./dist/radio-group.d.ts",
+      "default": "./dist/radio-group.js"
+    },
+    "./rating": {
+      "types": "./dist/rating.d.ts",
+      "default": "./dist/rating.js"
+    },
+    "./scroll-area": {
+      "types": "./dist/scroll-area.d.ts",
+      "default": "./dist/scroll-area.js"
+    },
+    "./skip-link": {
+      "types": "./dist/skip-link.d.ts",
+      "default": "./dist/skip-link.js"
+    },
+    "./select": {
+      "types": "./dist/select.d.ts",
+      "default": "./dist/select.js"
+    },
+    "./sidebar": {
+      "types": "./dist/sidebar.d.ts",
+      "default": "./dist/sidebar.js"
+    },
+    "./slider": {
+      "types": "./dist/slider.d.ts",
+      "default": "./dist/slider.js"
+    },
+    "./switch": {
+      "types": "./dist/switch.d.ts",
+      "default": "./dist/switch.js"
+    },
+    "./swipeable-item": {
+      "types": "./dist/swipeable-item.d.ts",
+      "default": "./dist/swipeable-item.js"
+    },
+    "./tabs": {
+      "types": "./dist/tabs.d.ts",
+      "default": "./dist/tabs.js"
+    },
+    "./table": {
+      "types": "./dist/table.d.ts",
+      "default": "./dist/table.js"
+    },
+    "./tree": {
+      "types": "./dist/tree.d.ts",
+      "default": "./dist/tree.js"
+    },
+    "./tree-grid": {
+      "types": "./dist/tree-grid.d.ts",
+      "default": "./dist/tree-grid.js"
+    },
+    "./textarea": {
+      "types": "./dist/textarea.d.ts",
+      "default": "./dist/textarea.js"
+    },
+    "./toggle": {
+      "types": "./dist/toggle.d.ts",
+      "default": "./dist/toggle.js"
+    },
+    "./toggle-group": {
+      "types": "./dist/toggle-group.d.ts",
+      "default": "./dist/toggle-group.js"
+    },
+    "./toast": {
+      "types": "./dist/toast.d.ts",
+      "default": "./dist/toast.js"
+    },
+    "./toolbar": {
+      "types": "./dist/toolbar.d.ts",
+      "default": "./dist/toolbar.js"
+    },
+    "./tooltip": {
+      "types": "./dist/tooltip.d.ts",
+      "default": "./dist/tooltip.js"
+    },
+    "./virtualizer": {
+      "types": "./dist/virtualizer.d.ts",
+      "default": "./dist/virtualizer.js"
+    },
+    "./visually-hidden": {
+      "types": "./dist/visually-hidden.d.ts",
+      "default": "./dist/visually-hidden.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "node scripts/clean-dist.mjs && tsc -p tsconfig.build.json && node scripts/prepare-dist.mjs",
+    "dev": "tsc -p tsconfig.build.json --watch",
+    "typecheck": "tsc -p tsconfig.build.json --noEmit",
+    "test": "npm run build && node --test test/*.test.mjs test/primitives/*.test.mjs",
+    "pack:check": "npm pack --dry-run",
+    "release:check": "npm run test && npm run build && npm run pack:check",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "dependencies": {
+    "@floating-ui/react": "^0.27.19"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.13",
+    "@types/react-dom": "^19.2.3",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "typescript": "^5.9.3"
+  }
+}

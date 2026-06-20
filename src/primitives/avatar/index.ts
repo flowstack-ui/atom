@@ -1,0 +1,12 @@
+export { AvatarFallback } from "./AvatarFallback.js";
+export type { AvatarFallbackProps } from "./AvatarFallback.js";
+export { AvatarGroupRoot } from "./AvatarGroupRoot.js";
+export type { AvatarGroupRootProps } from "./AvatarGroupRoot.js";
+export { AvatarImage } from "./AvatarImage.js";
+export type { AvatarImageProps } from "./AvatarImage.js";
+export { AvatarRoot } from "./AvatarRoot.js";
+export type { AvatarRootProps } from "./AvatarRoot.js";
+export { AvatarContext, useAvatarContext } from "./context.js";
+export type { AvatarContextValue } from "./context.js";
+export { useImageLoadingStatus } from "./useImageLoadingStatus.js";
+export type { ImageLoadingStatus } from "./useImageLoadingStatus.js";

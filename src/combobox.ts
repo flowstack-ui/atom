@@ -1,0 +1,67 @@
+"use client";
+
+import {
+  ComboboxClear,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxGroup,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxLabel,
+  ComboboxListbox,
+  ComboboxLoading,
+  ComboboxPortal,
+  ComboboxRoot,
+} from "./primitives/combobox/index.js";
+
+export {
+  ComboboxClear,
+  ComboboxContent,
+  ComboboxContextProvider,
+  ComboboxEmpty,
+  ComboboxGroup,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxLabel,
+  ComboboxListbox,
+  ComboboxLoading,
+  ComboboxPortal,
+  ComboboxRoot,
+  filterComboboxOptions,
+  getComboboxOptionLabel,
+  getNextComboboxValue,
+  groupComboboxOptions,
+  useComboboxContext,
+} from "./primitives/combobox/index.js";
+export type {
+  ComboboxClearProps,
+  ComboboxContentProps,
+  ComboboxContextValue,
+  ComboboxEmptyProps,
+  ComboboxFilter,
+  ComboboxGroupProps,
+  ComboboxInputProps,
+  ComboboxItemEntry,
+  ComboboxItemProps,
+  ComboboxLabelProps,
+  ComboboxListboxProps,
+  ComboboxLoadingProps,
+  ComboboxOption,
+  ComboboxOptionGroup,
+  ComboboxPortalProps,
+  ComboboxRootProps,
+} from "./primitives/combobox/index.js";
+
+export const Combobox = {
+  Root: ComboboxRoot,
+  Input: ComboboxInput,
+  Clear: ComboboxClear,
+  Portal: ComboboxPortal,
+  Content: ComboboxContent,
+  Listbox: ComboboxListbox,
+  Group: ComboboxGroup,
+  Label: ComboboxLabel,
+  Item: ComboboxItem,
+  Empty: ComboboxEmpty,
+  Loading: ComboboxLoading,
+} as const;

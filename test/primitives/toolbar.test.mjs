@@ -1,0 +1,136 @@
+import {
+  assert,
+  packageRoot,
+  readFile,
+  test,
+  React,
+  renderToStaticMarkup,
+} from "../test-utils.mjs";
+
+import {
+  Toolbar,
+  ToolbarButton,
+  ToolbarLink,
+  ToolbarRoot,
+  ToolbarSeparator,
+  ToolbarToggleGroup,
+  ToolbarToggleItem,
+} from "../../dist/index.js";
+
+test("Toolbar primitives render toolbar roles and focusable items", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      ToolbarRoot,
+      { ariaLabel: "Editor tools", className: "toolbar-class" },
+      React.createElement(
+        ToolbarButton,
+        {
+          id: "bold-toolbar-button",
+          ariaLabel: "Bold",
+          className: "button-class",
+          "data-testid": "toolbar-button",
+          title: "Bold",
+        },
+        "B",
+      ),
+      React.createElement(ToolbarLink, { href: "/docs", className: "link-class" }, "Docs"),
+      React.createElement(ToolbarLink, { href: "/admin", disabled: true }, "Admin"),
+      React.createElement(ToolbarSeparator, { className: "separator-class" }),
+    ),
+  );
+
+  assert.match(html, /^<div/);
+  assert.match(html, /role="toolbar"/);
+  assert.match(html, /aria-label="Editor tools"/);
+  assert.match(html, /aria-orientation="horizontal"/);
+  assert.match(html, /data-slot="toolbar"/);
+  assert.match(html, /class="toolbar-class"/);
+  assert.match(html, /data-slot="toolbar-button"/);
+  assert.match(html, /id="bold-toolbar-button"/);
+  assert.match(html, /title="Bold"/);
+  assert.match(html, /data-testid="toolbar-button"/);
+  assert.match(html, /aria-label="Bold"/);
+  assert.match(html, /class="button-class"/);
+  assert.match(html, /data-slot="toolbar-link"/);
+  assert.match(html, /href="\/docs"/);
+  assert.match(html, /class="link-class"/);
+  assert.match(html, /href="\/admin"/);
+  assert.match(html, /aria-disabled="true"/);
+  assert.match(html, /data-disabled=""/);
+  assert.match(html, /data-slot="toolbar-separator"/);
+  assert.match(html, /role="separator"/);
+});
+
+test("Toolbar toggle group renders pressed item state", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      ToolbarRoot,
+      { ariaLabel: "Text tools" },
+      React.createElement(
+        ToolbarToggleGroup,
+        { defaultValue: "bold", ariaLabel: "Formatting" },
+        React.createElement(
+          ToolbarToggleItem,
+          {
+            id: "bold-toolbar-toggle",
+            value: "bold",
+            title: "Bold",
+            "data-testid": "toolbar-toggle-item",
+          },
+          "B",
+        ),
+        React.createElement(ToolbarToggleItem, { value: "italic" }, "I"),
+      ),
+    ),
+  );
+
+  assert.match(html, /data-slot="toolbar-toggle-group"/);
+  assert.match(html, /role="group"/);
+  assert.match(html, /aria-label="Formatting"/);
+  assert.match(html, /aria-pressed="true"/);
+  assert.match(html, /id="bold-toolbar-toggle"/);
+  assert.match(html, /title="Bold"/);
+  assert.match(html, /data-testid="toolbar-toggle-item"/);
+  assert.match(html, /data-state="on"/);
+  assert.match(html, /data-value="bold"/);
+  assert.match(html, /aria-pressed="false"/);
+  assert.match(html, /data-state="off"/);
+  assert.match(html, /data-value="italic"/);
+});
+
+test("Toolbar toggle group supports multiple selected values", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      ToolbarRoot,
+      { ariaLabel: "Text tools" },
+      React.createElement(
+        ToolbarToggleGroup,
+        {
+          type: "multiple",
+          defaultValue: ["bold", "italic"],
+          ariaLabel: "Formatting",
+        },
+        React.createElement(ToolbarToggleItem, { value: "bold" }, "B"),
+        React.createElement(ToolbarToggleItem, { value: "italic" }, "I"),
+        React.createElement(ToolbarToggleItem, { value: "underline" }, "U"),
+      ),
+    ),
+  );
+
+  assert.equal((html.match(/aria-pressed="true"/g) ?? []).length, 2);
+  assert.equal((html.match(/aria-pressed="false"/g) ?? []).length, 1);
+  assert.match(html, /data-state="on" data-value="bold"/);
+  assert.match(html, /data-state="on" data-value="italic"/);
+  assert.match(html, /data-state="off" data-value="underline"/);
+});
+
+test("ToolbarRoot source uses Collection for DOM-ordered item registration", async () => {
+  const source = await readFile(
+    new URL("src/primitives/toolbar/ToolbarRoot.tsx", packageRoot),
+    "utf8",
+  );
+
+  assert.match(source, /useCollection<string, HTMLElement>\(\)/);
+  assert.match(source, /registerCollectionItem/);
+  assert.doesNotMatch(source, /compareDocumentPosition/);
+});

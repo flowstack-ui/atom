@@ -1,0 +1,118 @@
+# Tree
+
+Headless hierarchical tree primitives for expandable one-dimensional navigation and selection.
+
+## Features
+
+- Implements WAI-ARIA `tree`, `treeitem`, and `group` roles.
+- Supports controlled and uncontrolled selection.
+- Supports controlled and uncontrolled expansion.
+- Supports single and multiple selection.
+- Supports typeahead, roving active item, disabled items, Field context, and form submission.
+- Supports nested groups with automatic levels.
+
+## Import
+
+```tsx
+import { Tree } from "@flowstack-ui/atom";
+```
+
+## Anatomy
+
+```tsx
+<Tree.Root>
+  <Tree.Item>
+    <Tree.ItemText />
+    <Tree.Group>
+      <Tree.Item />
+    </Tree.Group>
+  </Tree.Item>
+</Tree.Root>
+```
+
+## API Reference
+
+### Root
+
+Contains tree items and owns selection/expansion state.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `value` | `string \| string[] \| null` | - |
+| `defaultValue` | `string \| string[] \| null` | `null` or `[]` |
+| `onValueChange` | `(value) => void` | - |
+| `expandedValue` | `string[]` | - |
+| `defaultExpandedValue` | `string[]` | `[]` |
+| `onExpandedValueChange` | `(value: string[]) => void` | - |
+| `multiple` | `boolean` | `false` |
+| `disabled` | `boolean` | Field value |
+| `readOnly` | `boolean` | Field value |
+| `required` | `boolean` | Field value |
+| `invalid` | `boolean` | Field value |
+| `orientation` | `"vertical" \| "horizontal"` | `"vertical"` |
+| `loop` | `boolean` | `true` |
+
+### Item
+
+Renders one tree item.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `value` | `string` | required |
+| `label` | `string` | - |
+| `disabled` | `boolean` | `false` |
+| `expandable` | `boolean` | `false` |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"tree-item"` |
+| `[data-state]` | `"expanded" \| "collapsed"` |
+| `[data-selected]` | Present when selected |
+| `[data-active]` | Present when active |
+| `[data-disabled]` | Present when disabled |
+
+### ItemText
+
+Labels a tree item and registers text for typeahead.
+
+### Group
+
+Contains child tree items.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `forceMount` | `boolean` | `false` |
+
+## Examples
+
+### Expandable Branch
+
+```tsx
+<Tree.Root defaultExpandedValue={["components"]}>
+  <Tree.Item value="components" expandable>
+    <Tree.ItemText>Components</Tree.ItemText>
+    <Tree.Group>
+      <Tree.Item value="button">Button</Tree.Item>
+    </Tree.Group>
+  </Tree.Item>
+</Tree.Root>
+```
+
+## Accessibility
+
+Implements the WAI-ARIA tree pattern with root focus and `aria-activedescendant`.
+
+| Key | Description |
+| --- | --- |
+| `ArrowDown` / `ArrowUp` | Moves between visible items |
+| `ArrowRight` | Expands a collapsed item or moves to its first child |
+| `ArrowLeft` | Collapses an expanded item or moves to its parent |
+| `Home` / `End` | Moves to first or last visible item |
+| `Enter` / `Space` | Selects the item and toggles expansion when expandable |
+| Printable character | Typeahead search |
+
+## Changelog
+
+See [CHANGELOG.md](./CHANGELOG.md).
