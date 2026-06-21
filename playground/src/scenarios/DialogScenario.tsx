@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog } from "@flowstack-ui/atom";
+import { Dialog } from "@flowstack-ui/atom/dialog";
 
 export function DialogScenario() {
   const [controlled, setControlled] = useState(false);

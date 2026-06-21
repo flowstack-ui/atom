@@ -10,6 +10,24 @@ export type ElementInspector = {
   rows: InspectorRow[];
 };
 
+const observedAttributes = [
+  "aria-controls",
+  "aria-describedby",
+  "aria-disabled",
+  "aria-expanded",
+  "aria-hidden",
+  "aria-labelledby",
+  "aria-modal",
+  "data-disabled",
+  "data-positioned",
+  "data-state",
+  "data-slot",
+  "disabled",
+  "hidden",
+  "role",
+  "tabindex",
+];
+
 function formatElement(element: Element | null): string {
   if (!element) return "None";
 
@@ -74,42 +92,62 @@ export function useElementInspector(): ElementInspector {
   }, []);
 
   useEffect(() => {
-    const observer = new MutationObserver(() => {
-      setRevision((currentRevision) => currentRevision + 1);
-    });
-
-    if (rootRef.current) {
-      observer.observe(rootRef.current, {
-        attributes: true,
-        childList: true,
-        subtree: true,
+    let frame = 0;
+    const scheduleRevision = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        setRevision((currentRevision) => currentRevision + 1);
       });
-    }
-
-    observer.observe(document.body, {
+    };
+    const observer = new MutationObserver(() => {
+      scheduleRevision();
+    });
+    const portalObserver = new MutationObserver(() => {
+      observer.disconnect();
+      observeTargets();
+      scheduleRevision();
+    });
+    const observeOptions: MutationObserverInit = {
       attributes: true,
       childList: true,
       subtree: true,
-      attributeFilter: [
-        "aria-controls",
-        "aria-describedby",
-        "aria-disabled",
-        "aria-expanded",
-        "aria-hidden",
-        "aria-labelledby",
-        "aria-modal",
-        "data-disabled",
-        "data-positioned",
-        "data-state",
-        "data-slot",
-        "disabled",
-        "hidden",
-        "role",
-        "tabindex",
-      ],
+      attributeFilter: observedAttributes,
+    };
+    const observeTargets = () => {
+      if (rootRef.current) {
+        observer.observe(rootRef.current, observeOptions);
+      }
+
+      document.querySelectorAll("[data-playground-inspect]").forEach((element) => {
+        observer.observe(element, observeOptions);
+      });
+    };
+
+    observeTargets();
+    portalObserver.observe(document.body, {
+      childList: true,
+      subtree: false,
     });
 
-    return () => observer.disconnect();
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      portalObserver.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    const syncInspector = () => {
+      const activeElement = document.activeElement;
+      setFocusedElement(
+        isInspectable(rootRef.current, activeElement) ? activeElement : null,
+      );
+      setRevision((currentRevision) => currentRevision + 1);
+    };
+
+    const frame = requestAnimationFrame(syncInspector);
+
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   const rows = useMemo<InspectorRow[]>(() => {
