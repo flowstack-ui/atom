@@ -1,6 +1,8 @@
 import { useState } from "react";
 import "./styles.css";
 import packageInfo from "../../package.json";
+import { useElementInspector } from "./inspector";
+import { DialogScenario } from "./scenarios/DialogScenario";
 
 type Scenario = {
   id: string;
@@ -94,6 +96,7 @@ export function App() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [activeScenarioId, setActiveScenarioId] = useState("dialog");
   const activeScenario = getScenario(activeScenarioId);
+  const inspector = useElementInspector();
 
   return (
     <div className="app-shell">
@@ -162,8 +165,8 @@ export function App() {
             <div className="card-header">
               <h2>Canvas</h2>
             </div>
-            <div className="canvas">
-              <p>{activeScenario.label} scenario goes here.</p>
+            <div className="canvas" ref={inspector.rootRef}>
+              <ScenarioCanvas scenarioId={activeScenario.id} label={activeScenario.label} />
             </div>
           </article>
 
@@ -171,11 +174,7 @@ export function App() {
             <div className="card-header">
               <h2>Controls</h2>
             </div>
-            <div className="toolbar-row" aria-label="Scenario controls">
-              <button type="button">Controlled</button>
-              <button type="button">Disabled</button>
-              <button type="button">RTL</button>
-            </div>
+            <ScenarioControls scenarioId={activeScenario.id} />
           </article>
 
           <article className="scenario-card inspector-card">
@@ -183,22 +182,46 @@ export function App() {
               <h2>Inspector</h2>
             </div>
             <dl className="inspector-list">
-              <div>
-                <dt>Focused</dt>
-                <dd>None</dd>
-              </div>
-              <div>
-                <dt>Selected</dt>
-                <dd>None</dd>
-              </div>
-              <div>
-                <dt>State</dt>
-                <dd>Ready</dd>
-              </div>
+              {inspector.rows.map((row) => (
+                <div key={row.label}>
+                  <dt>{row.label}</dt>
+                  <dd title={row.value}>{row.value}</dd>
+                </div>
+              ))}
             </dl>
           </article>
         </section>
       </main>
+    </div>
+  );
+}
+
+function ScenarioCanvas({ scenarioId, label }: { scenarioId: string; label: string }) {
+  if (scenarioId === "dialog") {
+    return <DialogScenario />;
+  }
+
+  return (
+    <p className="placeholder-card">
+      {label} scenario goes here.
+    </p>
+  );
+}
+
+function ScenarioControls({ scenarioId }: { scenarioId: string }) {
+  if (scenarioId === "dialog") {
+    return (
+      <p className="controls-note">
+        Dialog controls live inside the canvas so they can be inspected with the component.
+      </p>
+    );
+  }
+
+  return (
+    <div className="toolbar-row" aria-label="Scenario controls">
+      <button type="button">Controlled</button>
+      <button type="button">Disabled</button>
+      <button type="button">RTL</button>
     </div>
   );
 }

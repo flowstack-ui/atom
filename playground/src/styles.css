@@ -245,6 +245,7 @@ h2 {
 
 .canvas {
   display: grid;
+  gap: 18px;
   min-height: 420px;
   place-items: center;
   border-radius: 0 0 8px 8px;
@@ -256,7 +257,7 @@ h2 {
   padding: 28px;
 }
 
-.canvas p {
+.placeholder-card {
   max-width: 280px;
   border: 1px solid #d4dbe4;
   border-radius: 8px;
@@ -267,6 +268,165 @@ h2 {
   line-height: 1.45;
   text-align: center;
   box-shadow: 0 8px 24px rgba(28, 36, 48, 0.08);
+}
+
+.control-strip {
+  display: flex;
+  max-width: 520px;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.control-strip label,
+.control-strip button {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #c8d0da;
+  border-radius: 6px;
+  background: #ffffff;
+  padding: 0 10px;
+  color: #293544;
+  font-size: 13px;
+  line-height: 1;
+  box-shadow: 0 1px 2px rgba(21, 29, 39, 0.05);
+}
+
+.control-strip input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+}
+
+.control-strip button {
+  background: #152131;
+  color: #ffffff;
+}
+
+.dialog-stage {
+  display: grid;
+  place-items: center;
+  gap: 18px;
+}
+
+.atom-button {
+  min-height: 36px;
+  border: 1px solid #182232;
+  border-radius: 6px;
+  background: #182232;
+  padding: 0 13px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.atom-button:hover {
+  background: #26364a;
+}
+
+.atom-button:disabled,
+.atom-button[data-disabled] {
+  border-color: #c9d0d9;
+  background: #e6eaf0;
+  color: #778393;
+}
+
+.atom-button.secondary {
+  border-color: #c2cad5;
+  background: #ffffff;
+  color: #26313e;
+}
+
+.atom-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: rgba(24, 32, 42, 0.42);
+}
+
+.atom-dialog-content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 31;
+  display: grid;
+  width: min(420px, calc(100vw - 32px));
+  gap: 14px;
+  transform: translate(-50%, -50%);
+  border: 1px solid #b9c2ce;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 18px;
+  box-shadow: 0 28px 70px rgba(12, 18, 26, 0.28), 0 6px 18px rgba(12, 18, 26, 0.14);
+}
+
+.atom-dialog-content:focus {
+  outline: 3px solid rgba(57, 120, 216, 0.26);
+  outline-offset: 2px;
+}
+
+.atom-dialog-content h2 {
+  color: #121a24;
+  font-size: 19px;
+  font-weight: 720;
+}
+
+.atom-dialog-content p {
+  color: #536171;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.dialog-form-row {
+  display: grid;
+  gap: 6px;
+}
+
+.dialog-form-row label {
+  color: #384554;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.dialog-form-row input,
+.dialog-form-row select {
+  min-height: 36px;
+  border: 1px solid #c8d0da;
+  border-radius: 6px;
+  background: #ffffff;
+  padding: 0 10px;
+  color: #1f2a36;
+}
+
+.dialog-form-row input:focus,
+.dialog-form-row select:focus {
+  border-color: #3978d8;
+  outline: 3px solid rgba(57, 120, 216, 0.18);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.scenario-note {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 12px;
+  color: #4d5b6b;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+}
+
+.scenario-note span {
+  color: #24303d;
+  font-weight: 700;
 }
 
 .toolbar-row {
@@ -287,6 +447,13 @@ h2 {
 
 .toolbar-row button:hover {
   background: #ffffff;
+}
+
+.controls-note {
+  padding: 13px;
+  color: #536171;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .inspector-list {
