@@ -62,6 +62,9 @@ Top toolbar
   Navigation
     Tabs
     Accordion
+  Data
+    Table
+    Tree
   Utilities
     Portal
     VisuallyHidden
