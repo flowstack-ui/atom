@@ -1,8 +1,8 @@
 node_modules/
 dist/
+playground/dist/
 *.tgz
 *.tsbuildinfo
 .DS_Store
 .env
 .env.*
-
