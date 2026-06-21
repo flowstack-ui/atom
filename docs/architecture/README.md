@@ -47,4 +47,3 @@ Direct part exports are also available for advanced composition and migration.
 - `README.md` explains package-level usage.
 - `docs/guides/` explains public package behavior.
 - `docs/components/` stores component-facing docs and changelogs.
-- `.dev-notes/` stores internal implementation practice and decisions.

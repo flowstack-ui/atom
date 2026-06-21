@@ -304,7 +304,7 @@
     "dev": "tsc -p tsconfig.build.json --watch",
     "typecheck": "tsc -p tsconfig.build.json --noEmit",
     "test": "npm run build && node --test test/*.test.mjs test/primitives/*.test.mjs",
-    "pack:check": "npm pack --dry-run",
+    "pack:check": "npm_config_cache=/tmp/atom-ui-npm-cache npm pack --dry-run",
     "release:check": "npm run test && npm run build && npm run pack:check",
     "prepublishOnly": "npm run build"
   },

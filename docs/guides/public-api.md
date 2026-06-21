@@ -45,7 +45,6 @@ The following are not public package API:
 
 - files under `src/primitives/**`
 - files under `src/utils/**`, except `Portal` through `@flowstack-ui/atom/portal`
-- files under `.dev-notes/**`
 - tests
 - internal helper functions that are not exported from a public subpath
 

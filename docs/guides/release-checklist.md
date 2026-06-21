@@ -38,10 +38,11 @@ Use this checklist before publishing `@flowstack-ui/atom`.
 
 ## Last Dry Run
 
-Last verified: 2026-06-20
+Last verified: 2026-06-21
 
 - `npm run test`
 - `npm run build`
 - `git diff --check`
-- `node test/exports.test.mjs`
-- `npm_config_cache=/private/tmp/atom-ui-npm-cache npm pack --dry-run`
+- export target check from `package.json`
+- `npm_config_cache=/tmp/atom-ui-npm-cache npm pack --dry-run`
+- packed tarball root, subpath, and TypeScript declaration smoke test

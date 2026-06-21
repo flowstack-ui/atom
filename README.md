@@ -226,9 +226,7 @@ intentionally outside Atom.
 - Public package docs live in `docs/`.
 - Component docs live in `docs/components/`.
 - Architecture docs live in `docs/architecture/`.
-- Internal architecture notes live in `.dev-notes/`.
-- Release checks live in `.dev-notes/workflows/release-check.md` and
-  `docs/guides/release-checklist.md`.
+- Release checks live in `docs/guides/release-checklist.md`.
 
 ## Development
 

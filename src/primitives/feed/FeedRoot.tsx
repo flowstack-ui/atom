@@ -88,11 +88,10 @@ export const FeedRoot = forwardRef<HTMLElement, FeedRootProps>(
       ).filter((element) => !feed.contains(element));
 
       if (direction === "before") {
-        const previousElement = focusableElements
-          .filter((element) =>
-            Boolean(element.compareDocumentPosition(feed) & Node.DOCUMENT_POSITION_FOLLOWING),
-          )
-          .at(-1);
+        const previousElements = focusableElements.filter((element) =>
+          Boolean(element.compareDocumentPosition(feed) & Node.DOCUMENT_POSITION_FOLLOWING),
+        );
+        const previousElement = previousElements[previousElements.length - 1];
         previousElement?.focus({ preventScroll: true });
         return;
       }
