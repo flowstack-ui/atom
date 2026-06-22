@@ -132,7 +132,7 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
         </PartGroup>
         <PartGroup
           open={openGroups.Portal}
-          summary={state.parts.portalParent}
+          summary={state.parts.portalParent === "None" ? "none" : state.parts.portalParent}
           title="Portal"
           onToggle={toggleGroup}
         >
@@ -142,7 +142,7 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
         </PartGroup>
         <PartGroup
           open={openGroups.Overlay}
-          summary={state.parts.overlayExists === "Yes" ? state.parts.overlayState : "not mounted"}
+          summary={state.parts.overlayExists === "Yes" ? state.parts.overlayState : "none"}
           title="Overlay"
           onToggle={toggleGroup}
         >
@@ -151,7 +151,7 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
         </PartGroup>
         <PartGroup
           open={openGroups.Content}
-          summary={state.parts.contentExists === "Yes" ? state.parts.contentState : "not mounted"}
+          summary={state.parts.contentExists === "Yes" ? state.parts.contentState : "none"}
           title="Content"
           onToggle={toggleGroup}
         >
@@ -167,7 +167,7 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
         </PartGroup>
         <PartGroup
           open={openGroups.Title}
-          summary={state.parts.titleExists === "Yes" ? state.parts.titleId : "not mounted"}
+          summary={state.parts.titleExists === "Yes" ? state.parts.titleId : "none"}
           title="Title"
           onToggle={toggleGroup}
         >
@@ -180,7 +180,7 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
           summary={
             state.parts.descriptionExists === "Yes"
               ? state.parts.descriptionId
-              : "not mounted"
+              : "none"
           }
           title="Description"
           onToggle={toggleGroup}
