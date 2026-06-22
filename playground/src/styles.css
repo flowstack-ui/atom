@@ -476,6 +476,55 @@ h2 {
   font-size: 12px;
 }
 
+.parts-panel {
+  display: grid;
+  gap: 8px;
+}
+
+.parts-panel h3 {
+  margin: 0;
+  color: #283442;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.parts-grid {
+  display: grid;
+  max-height: 230px;
+  gap: 1px;
+  margin: 0;
+  overflow: auto;
+  border: 1px solid #dde3ea;
+  border-radius: 7px;
+  background: #dde3ea;
+}
+
+.parts-grid div {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  gap: 8px;
+  min-height: 30px;
+  align-items: start;
+  background: #ffffff;
+  padding: 7px 9px;
+}
+
+.parts-grid dt {
+  color: #667282;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.parts-grid dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #24303d;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .event-log {
   display: grid;
   gap: 8px;

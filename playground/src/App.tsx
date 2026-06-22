@@ -211,6 +211,7 @@ function ScenarioCanvas({
       <DialogScenarioCanvas
         state={dialogScenario.state}
         onOpenChange={dialogScenario.handleOpenChange}
+        onControlledOpen={() => dialogScenario.actions.setControlledOpen(true)}
         onControlledClose={() => dialogScenario.actions.setControlledOpen(false)}
       />
     );

@@ -7,10 +7,12 @@ import type {
 export function DialogScenarioCanvas({
   state,
   onOpenChange,
+  onControlledOpen,
   onControlledClose,
 }: {
   state: DialogScenarioState;
   onOpenChange: (open: boolean, reason?: string) => void;
+  onControlledOpen: () => void;
   onControlledClose: () => void;
 }) {
   const rootProps = state.controlled
@@ -32,12 +34,14 @@ export function DialogScenarioCanvas({
         closeOnEscape={state.closeOnEscape}
         closeOnBackdropClick={state.closeOnBackdropClick}
       >
-        <Dialog.Trigger className="atom-button">Open dialog</Dialog.Trigger>
+        {state.controlled ? null : (
+          <Dialog.Trigger className="atom-button">Open dialog</Dialog.Trigger>
+        )}
         {state.controlled ? (
           <button
             className="atom-button secondary"
             type="button"
-            onClick={() => onOpenChange(true)}
+            onClick={onControlledOpen}
           >
             Open controlled
           </button>
@@ -124,14 +128,6 @@ export function DialogScenarioControls({
           label="Use ariaLabel"
           onChange={actions.setUseAriaLabel}
         />
-        {state.controlled ? (
-          <button
-            type="button"
-            onClick={() => actions.setControlledOpen(!state.open)}
-          >
-            {state.open ? "Close" : "Open"}
-          </button>
-        ) : null}
       </div>
 
       <dl className="state-grid" aria-label="Dialog state">
@@ -149,6 +145,25 @@ export function DialogScenarioControls({
         </div>
       </dl>
 
+      <div className="parts-panel">
+        <h3>Parts</h3>
+        <dl className="parts-grid" aria-label="Dialog parts">
+          <PartRow label="Trigger state" value={state.parts.triggerState} />
+          <PartRow label="Trigger controls" value={state.parts.triggerControls} />
+          <PartRow label="Content exists" value={state.parts.contentExists} />
+          <PartRow label="Content id" value={state.parts.contentId} />
+          <PartRow label="Controls match" value={state.parts.controlsMatch} />
+          <PartRow label="Content state" value={state.parts.contentState} />
+          <PartRow label="Content hidden" value={state.parts.contentHidden} />
+          <PartRow label="aria-label" value={state.parts.contentAriaLabel} />
+          <PartRow label="aria-labelledby" value={state.parts.contentLabelledBy} />
+          <PartRow label="Overlay exists" value={state.parts.overlayExists} />
+          <PartRow label="Overlay state" value={state.parts.overlayState} />
+          <PartRow label="Portal parent" value={state.parts.portalParent} />
+          <PartRow label="Inside canvas" value={state.parts.inCanvas} />
+        </dl>
+      </div>
+
       <div className="event-log">
         <div className="event-log-header">
           <h3>Log</h3>
@@ -160,6 +175,15 @@ export function DialogScenarioControls({
           ))}
         </ol>
       </div>
+    </div>
+  );
+}
+
+function PartRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt>{label}</dt>
+      <dd>{value}</dd>
     </div>
   );
 }
