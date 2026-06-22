@@ -130,7 +130,6 @@ export function useDialogScenario() {
     requestAnimationFrame(() => {
       const activeElement = document.activeElement;
       addLog(`focus stayed inside dialog: ${content.contains(activeElement) ? "yes" : "no"}`);
-      focusFirstDialogElement(content);
     });
   };
 
@@ -356,11 +355,6 @@ function getFocusLabel(element: HTMLElement) {
   if (text) return text.toLowerCase();
 
   return element.getAttribute("data-slot") ?? element.tagName.toLowerCase();
-}
-
-function focusFirstDialogElement(content: HTMLElement) {
-  const firstFocusable = content.querySelector<HTMLElement>(focusableSelector);
-  (firstFocusable ?? content).focus({ preventScroll: true });
 }
 
 const focusableSelector = [
