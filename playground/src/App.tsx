@@ -155,17 +155,6 @@ export function App() {
         </section>
 
         <section className="scenario-grid">
-          <article className="scenario-card">
-            <div className="card-header">
-              <h2>Try</h2>
-            </div>
-            <ul className="check-list">
-              {activeScenario.checks.map((check) => (
-                <li key={check}>{check}</li>
-              ))}
-            </ul>
-          </article>
-
           <article className="scenario-card canvas-card">
             <div className="card-header">
               <h2>Canvas</h2>

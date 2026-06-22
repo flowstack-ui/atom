@@ -177,7 +177,6 @@ h2 {
   display: grid;
   grid-template-columns: minmax(220px, 0.72fr) minmax(420px, 1.7fr) minmax(240px, 0.85fr);
   grid-template-areas:
-    "try canvas inspector"
     "controls canvas inspector";
   gap: 14px;
   align-items: start;
@@ -188,10 +187,6 @@ h2 {
   border-radius: 8px;
   background: #ffffff;
   box-shadow: 0 1px 2px rgba(22, 30, 40, 0.06);
-}
-
-.scenario-card:first-child {
-  grid-area: try;
 }
 
 .canvas-card {
