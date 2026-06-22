@@ -161,6 +161,16 @@ export function App() {
         </section>
 
         <section className="scenario-grid">
+          <article className="scenario-card controls-card">
+            <div className="card-header">
+              <h2>Anatomy</h2>
+            </div>
+            <ScenarioAnatomy
+              dialogScenario={dialogScenario}
+              scenarioId={activeScenario.id}
+            />
+          </article>
+
           <article className="scenario-card canvas-card">
             <div className="card-header">
               <h2>Canvas</h2>
@@ -176,16 +186,6 @@ export function App() {
                 label={activeScenario.label}
               />
             </div>
-          </article>
-
-          <article className="scenario-card controls-card">
-            <div className="card-header">
-              <h2>Anatomy</h2>
-            </div>
-            <ScenarioAnatomy
-              dialogScenario={dialogScenario}
-              scenarioId={activeScenario.id}
-            />
           </article>
 
           <div className="right-column">
