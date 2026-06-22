@@ -208,7 +208,11 @@ export function DialogScenarioLog({
           <button type="button" onClick={actions.clearLog}>Clear</button>
         </div>
         <ol>
-          {state.log.map((entry) => (
+          {state.log.length === 0 ? (
+            <li className="empty-log-row">
+              <span>no events</span>
+            </li>
+          ) : state.log.map((entry) => (
             <li key={entry.id}>
               <time>{entry.time}</time>
               <span>{entry.text}</span>

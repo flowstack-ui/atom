@@ -586,6 +586,11 @@ h2 {
   border-bottom: 0;
 }
 
+.event-log .empty-log-row {
+  display: block;
+  color: #6b7787;
+}
+
 .event-log time {
   color: #667282;
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;

@@ -66,9 +66,7 @@ export function useDialogScenario() {
   const [closeOnEscape, setCloseOnEscape] = useState(true);
   const [closeOnBackdropClick, setCloseOnBackdropClick] = useState(true);
   const [useAriaLabel, setUseAriaLabel] = useState(false);
-  const [log, setLog] = useState<DialogLogEntry[]>([
-    { id: 1, text: "ready", time: getLogTime() },
-  ]);
+  const [log, setLog] = useState<DialogLogEntry[]>([]);
   const parts = getDialogPartsSnapshot(revision);
 
   const addLog = (text: string) => {
@@ -142,7 +140,7 @@ export function useDialogScenario() {
     setCloseOnBackdropClick,
     setUseAriaLabel,
     setControlledOpen,
-    clearLog: () => setLog([{ id: nextLogId.current++, text: "log cleared", time: getLogTime() }]),
+    clearLog: () => setLog([]),
   };
 
   return { state, actions, handleOpenChange };
