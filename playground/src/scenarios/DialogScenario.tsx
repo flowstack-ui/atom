@@ -209,7 +209,10 @@ export function DialogScenarioLog({
         </div>
         <ol>
           {state.log.map((entry) => (
-            <li key={entry.id}>{entry.text}</li>
+            <li key={entry.id}>
+              <time>{entry.time}</time>
+              <span>{entry.text}</span>
+            </li>
           ))}
         </ol>
       </div>

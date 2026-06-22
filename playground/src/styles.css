@@ -565,7 +565,6 @@ h2 {
 .event-log ol {
   display: grid;
   max-height: 142px;
-  gap: 6px;
   margin: 0;
   overflow: auto;
   padding: 0;
@@ -573,13 +572,28 @@ h2 {
 }
 
 .event-log li {
-  border: 1px solid #e1e6ed;
-  border-radius: 6px;
-  background: #fbfcfd;
-  padding: 7px 8px;
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  gap: 10px;
+  border-bottom: 1px solid #edf0f4;
+  padding: 8px 0;
   color: #394657;
   font-size: 12px;
   line-height: 1.35;
+}
+
+.event-log li:last-child {
+  border-bottom: 0;
+}
+
+.event-log time {
+  color: #667282;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+.event-log span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .inspector-tabs {

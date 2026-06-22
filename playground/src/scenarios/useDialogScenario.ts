@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 export type DialogLogEntry = {
   id: number;
   text: string;
+  time: string;
 };
 
 export type DialogScenarioState = {
@@ -66,25 +67,25 @@ export function useDialogScenario() {
   const [closeOnBackdropClick, setCloseOnBackdropClick] = useState(true);
   const [useAriaLabel, setUseAriaLabel] = useState(false);
   const [log, setLog] = useState<DialogLogEntry[]>([
-    { id: 1, text: "Ready" },
+    { id: 1, text: "ready", time: getLogTime() },
   ]);
   const parts = getDialogPartsSnapshot(revision);
 
   const addLog = (text: string) => {
     setLog((currentLog) => [
-      { id: nextLogId.current++, text },
+      { id: nextLogId.current++, text, time: getLogTime() },
       ...currentLog,
     ].slice(0, 8));
   };
 
   const setControlledOpen = (nextOpen: boolean) => {
     setOpen(nextOpen);
-    addLog(`${nextOpen ? "Opened" : "Closed"} by external control`);
+    addLog(`${nextOpen ? "opened" : "closed"} by external control`);
   };
 
   const handleOpenChange = (nextOpen: boolean, reason?: string) => {
     setOpen(nextOpen);
-    addLog(reason ? `Closed by ${reason}` : "Opened from trigger");
+    addLog(reason ? `closed by ${reason}` : "opened from trigger");
   };
 
   useEffect(() => {
@@ -141,10 +142,18 @@ export function useDialogScenario() {
     setCloseOnBackdropClick,
     setUseAriaLabel,
     setControlledOpen,
-    clearLog: () => setLog([{ id: nextLogId.current++, text: "Log cleared" }]),
+    clearLog: () => setLog([{ id: nextLogId.current++, text: "log cleared", time: getLogTime() }]),
   };
 
   return { state, actions, handleOpenChange };
+}
+
+function getLogTime() {
+  return new Intl.DateTimeFormat(undefined, {
+    hour: "2-digit",
+    hour12: false,
+    minute: "2-digit",
+  }).format(new Date());
 }
 
 function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
