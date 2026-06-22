@@ -110,12 +110,12 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
           onToggle={toggleGroup}
         >
           <PartRow label="Mode" value={state.controlled ? "controlled" : "uncontrolled"} />
-          <PartRow label="Disabled" value={state.disabled ? "Yes" : "No"} />
-          <PartRow label="Keep mounted" value={state.keepMounted ? "Yes" : "No"} />
-          <PartRow label="Escape closes" value={state.closeOnEscape ? "Yes" : "No"} />
+          <PartRow label="Disabled" value={state.disabled ? "yes" : "no"} />
+          <PartRow label="Keep mounted" value={state.keepMounted ? "yes" : "no"} />
+          <PartRow label="Escape closes" value={state.closeOnEscape ? "yes" : "no"} />
           <PartRow
             label="Backdrop closes"
-            value={state.closeOnBackdropClick ? "Yes" : "No"}
+            value={state.closeOnBackdropClick ? "yes" : "no"}
           />
         </PartGroup>
         <PartGroup
@@ -132,7 +132,7 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
         </PartGroup>
         <PartGroup
           open={openGroups.Portal}
-          summary={state.parts.portalParent === "None" ? "none" : state.parts.portalParent}
+          summary={state.parts.portalParent}
           title="Portal"
           onToggle={toggleGroup}
         >
@@ -142,7 +142,7 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
         </PartGroup>
         <PartGroup
           open={openGroups.Overlay}
-          summary={state.parts.overlayExists === "Yes" ? state.parts.overlayState : "none"}
+          summary={state.parts.overlayExists === "yes" ? state.parts.overlayState : "none"}
           title="Overlay"
           onToggle={toggleGroup}
         >
@@ -151,7 +151,7 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
         </PartGroup>
         <PartGroup
           open={openGroups.Content}
-          summary={state.parts.contentExists === "Yes" ? state.parts.contentState : "none"}
+          summary={state.parts.contentExists === "yes" ? state.parts.contentState : "none"}
           title="Content"
           onToggle={toggleGroup}
         >
@@ -167,7 +167,7 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
         </PartGroup>
         <PartGroup
           open={openGroups.Title}
-          summary={state.parts.titleExists === "Yes" ? state.parts.titleId : "none"}
+          summary={state.parts.titleExists === "yes" ? state.parts.titleId : "none"}
           title="Title"
           onToggle={toggleGroup}
         >
@@ -178,7 +178,7 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
         <PartGroup
           open={openGroups.Description}
           summary={
-            state.parts.descriptionExists === "Yes"
+            state.parts.descriptionExists === "yes"
               ? state.parts.descriptionId
               : "none"
           }

@@ -160,71 +160,71 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
   const title = document.querySelector("[data-slot='dialog-title']");
   const description = document.querySelector("[data-slot='dialog-description']");
   const canvas = document.querySelector(".canvas");
-  const triggerControls = trigger?.getAttribute("aria-controls") ?? "None";
-  const contentId = content?.id || "None";
-  const labelledBy = content?.getAttribute("aria-labelledby") ?? "None";
-  const describedBy = content?.getAttribute("aria-describedby") ?? "None";
-  const titleId = title?.id || "None";
-  const descriptionId = description?.id || "None";
+  const triggerControls = trigger?.getAttribute("aria-controls") ?? "none";
+  const contentId = content?.id || "none";
+  const labelledBy = content?.getAttribute("aria-labelledby") ?? "none";
+  const describedBy = content?.getAttribute("aria-describedby") ?? "none";
+  const titleId = title?.id || "none";
+  const descriptionId = description?.id || "none";
   const contentParent = content?.parentElement;
 
   return {
-    triggerExists: trigger ? "Yes" : "No",
-    triggerState: trigger?.getAttribute("data-state") ?? "None",
+    triggerExists: trigger ? "yes" : "no",
+    triggerState: trigger?.getAttribute("data-state") ?? "none",
     triggerControls,
     triggerDisabled: trigger?.hasAttribute("disabled") || trigger?.hasAttribute("data-disabled")
-      ? "Yes"
-      : "No",
-    contentExists: content ? "Yes" : "No",
+      ? "yes"
+      : "no",
+    contentExists: content ? "yes" : "no",
     contentId,
-    contentRole: content?.getAttribute("role") ?? "None",
-    contentState: content?.getAttribute("data-state") ?? "None",
-    contentHidden: content?.closest("[hidden]") || content?.hasAttribute("hidden") ? "Yes" : "No",
-    contentAriaModal: content?.getAttribute("aria-modal") ?? "None",
-    contentAriaLabel: content?.getAttribute("aria-label") ?? "None",
+    contentRole: content?.getAttribute("role") ?? "none",
+    contentState: content?.getAttribute("data-state") ?? "none",
+    contentHidden: content?.closest("[hidden]") || content?.hasAttribute("hidden") ? "yes" : "no",
+    contentAriaModal: content?.getAttribute("aria-modal") ?? "none",
+    contentAriaLabel: content?.getAttribute("aria-label") ?? "none",
     contentLabelledBy: labelledBy,
     contentDescribedBy: describedBy,
-    controlsMatch: triggerControls !== "None" && triggerControls === contentId ? "Yes" : "No",
-    overlayExists: overlay ? "Yes" : "No",
-    overlayState: overlay?.getAttribute("data-state") ?? "None",
+    controlsMatch: triggerControls !== "none" && triggerControls === contentId ? "yes" : "no",
+    overlayExists: overlay ? "yes" : "no",
+    overlayState: overlay?.getAttribute("data-state") ?? "none",
     portalParent: contentParent
       ? contentParent === document.body
         ? "body"
         : contentParent.tagName.toLowerCase()
-      : "None",
-    inCanvas: content && canvas?.contains(content) ? "Yes" : "No",
-    titleExists: title ? "Yes" : "No",
+      : "none",
+    inCanvas: content && canvas?.contains(content) ? "yes" : "no",
+    titleExists: title ? "yes" : "no",
     titleId,
-    titleMatches: labelledBy !== "None" && labelledBy === titleId ? "Yes" : "No",
-    descriptionExists: description ? "Yes" : "No",
+    titleMatches: labelledBy !== "none" && labelledBy === titleId ? "yes" : "no",
+    descriptionExists: description ? "yes" : "no",
     descriptionId,
-    descriptionMatches: describedBy !== "None" && describedBy === descriptionId ? "Yes" : "No",
+    descriptionMatches: describedBy !== "none" && describedBy === descriptionId ? "yes" : "no",
   };
 }
 
 const emptyDialogPartsSnapshot: DialogPartsSnapshot = {
-  triggerExists: "No",
-  triggerState: "None",
-  triggerControls: "None",
-  triggerDisabled: "No",
-  contentExists: "No",
-  contentId: "None",
-  contentRole: "None",
-  contentState: "None",
-  contentHidden: "No",
-  contentAriaModal: "None",
-  contentAriaLabel: "None",
-  contentLabelledBy: "None",
-  contentDescribedBy: "None",
-  controlsMatch: "No",
-  overlayExists: "No",
-  overlayState: "None",
-  portalParent: "None",
-  inCanvas: "No",
-  titleExists: "No",
-  titleId: "None",
-  titleMatches: "No",
-  descriptionExists: "No",
-  descriptionId: "None",
-  descriptionMatches: "No",
+  triggerExists: "no",
+  triggerState: "none",
+  triggerControls: "none",
+  triggerDisabled: "no",
+  contentExists: "no",
+  contentId: "none",
+  contentRole: "none",
+  contentState: "none",
+  contentHidden: "no",
+  contentAriaModal: "none",
+  contentAriaLabel: "none",
+  contentLabelledBy: "none",
+  contentDescribedBy: "none",
+  controlsMatch: "no",
+  overlayExists: "no",
+  overlayState: "none",
+  portalParent: "none",
+  inCanvas: "no",
+  titleExists: "no",
+  titleId: "none",
+  titleMatches: "no",
+  descriptionExists: "no",
+  descriptionId: "none",
+  descriptionMatches: "no",
 };

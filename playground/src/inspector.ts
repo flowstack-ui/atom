@@ -29,7 +29,7 @@ const observedAttributes = [
 ];
 
 function formatElement(element: Element | null): string {
-  if (!element) return "None";
+  if (!element) return "none";
 
   const id = element.id ? `#${element.id}` : "";
   const slot = element.getAttribute("data-slot");
@@ -39,18 +39,18 @@ function formatElement(element: Element | null): string {
 }
 
 function getAttributes(element: Element | null, prefix: string): string {
-  if (!element) return "None";
+  if (!element) return "none";
 
   const attrs = Array.from(element.attributes)
     .filter((attribute) => attribute.name.startsWith(prefix))
     .map((attribute) => `${attribute.name}="${attribute.value}"`);
 
-  return attrs.length > 0 ? attrs.join(" ") : "None";
+  return attrs.length > 0 ? attrs.join(" ") : "none";
 }
 
 function getBooleanAttribute(element: Element | null, name: string): string {
-  if (!element) return "None";
-  return element.hasAttribute(name) ? "Yes" : "No";
+  if (!element) return "none";
+  return element.hasAttribute(name) ? "yes" : "no";
 }
 
 function isInspectable(root: HTMLDivElement | null, element: Element | null): boolean {
@@ -156,13 +156,13 @@ export function useElementInspector(): ElementInspector {
     return [
       { label: "Focused", value: formatElement(focusedElement) },
       { label: "Selected", value: formatElement(selectedElement) },
-      { label: "Tag", value: target ? target.tagName.toLowerCase() : "None" },
-      { label: "Role", value: target?.getAttribute("role") ?? "None" },
+      { label: "Tag", value: target ? target.tagName.toLowerCase() : "none" },
+      { label: "Role", value: target?.getAttribute("role") ?? "none" },
       { label: "ARIA", value: getAttributes(target, "aria-") },
       { label: "Data", value: getAttributes(target, "data-") },
       { label: "Disabled", value: getBooleanAttribute(target, "disabled") },
       { label: "Hidden", value: getBooleanAttribute(target, "hidden") },
-      { label: "Tabindex", value: target?.getAttribute("tabindex") ?? "None" },
+      { label: "Tabindex", value: target?.getAttribute("tabindex") ?? "none" },
     ];
   }, [focusedElement, selectedElement, revision]);
 
