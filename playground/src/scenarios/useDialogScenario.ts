@@ -6,6 +6,8 @@ export type DialogLogEntry = {
   time: string;
 };
 
+export type DialogCompositionMode = "default" | "asChild" | "render";
+
 export type DialogScenarioState = {
   controlled: boolean;
   disabled: boolean;
@@ -13,6 +15,8 @@ export type DialogScenarioState = {
   closeOnEscape: boolean;
   closeOnBackdropClick: boolean;
   useAriaLabel: boolean;
+  triggerComposition: DialogCompositionMode;
+  closeComposition: DialogCompositionMode;
   open: boolean;
   log: DialogLogEntry[];
   parts: DialogPartsSnapshot;
@@ -20,11 +24,19 @@ export type DialogScenarioState = {
 
 export type DialogPartsSnapshot = {
   triggerExists: string;
+  triggerTag: string;
+  triggerRole: string;
+  triggerTabIndex: string;
   triggerState: string;
   triggerControls: string;
   triggerHasPopup: string;
   triggerExpanded: string;
   triggerDisabled: string;
+  closeExists: string;
+  closeCount: string;
+  closeTag: string;
+  closeRole: string;
+  closeTabIndex: string;
   contentExists: string;
   contentId: string;
   contentRole: string;
@@ -56,6 +68,8 @@ export type DialogScenarioActions = {
   setCloseOnEscape: (value: boolean) => void;
   setCloseOnBackdropClick: (value: boolean) => void;
   setUseAriaLabel: (value: boolean) => void;
+  setTriggerComposition: (value: DialogCompositionMode) => void;
+  setCloseComposition: (value: DialogCompositionMode) => void;
   setControlledOpen: (value: boolean) => void;
   testDisabledTriggerKey: (key: "Enter" | " ") => void;
   testFocusEscape: () => void;
@@ -72,6 +86,10 @@ export function useDialogScenario() {
   const [closeOnEscape, setCloseOnEscape] = useState(true);
   const [closeOnBackdropClick, setCloseOnBackdropClick] = useState(true);
   const [useAriaLabel, setUseAriaLabel] = useState(false);
+  const [triggerComposition, setTriggerComposition] =
+    useState<DialogCompositionMode>("default");
+  const [closeComposition, setCloseComposition] =
+    useState<DialogCompositionMode>("default");
   const [log, setLog] = useState<DialogLogEntry[]>([]);
   const parts = getDialogPartsSnapshot(revision);
 
@@ -89,7 +107,16 @@ export function useDialogScenario() {
 
   const handleOpenChange = (nextOpen: boolean, reason?: string) => {
     setOpen(nextOpen);
-    addLog(reason ? `closed by ${reason}` : "opened from trigger");
+    if (!reason) {
+      addLog(triggerComposition === "default"
+        ? "opened from trigger"
+        : `opened from ${triggerComposition} trigger`);
+      return;
+    }
+
+    addLog(reason === "closeClick" && closeComposition !== "default"
+      ? `closed by ${reason} (${closeComposition} close)`
+      : `closed by ${reason}`);
   };
 
   const testDisabledTriggerKey = (key: "Enter" | " ") => {
@@ -224,6 +251,8 @@ export function useDialogScenario() {
     closeOnEscape,
     closeOnBackdropClick,
     useAriaLabel,
+    triggerComposition,
+    closeComposition,
     open,
     log,
     parts,
@@ -236,6 +265,8 @@ export function useDialogScenario() {
     setCloseOnEscape,
     setCloseOnBackdropClick,
     setUseAriaLabel,
+    setTriggerComposition,
+    setCloseComposition,
     setControlledOpen,
     testDisabledTriggerKey,
     testFocusEscape,
@@ -261,6 +292,8 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
   }
 
   const trigger = document.querySelector("[data-slot='dialog-trigger']");
+  const closeControls = Array.from(document.querySelectorAll("[data-slot='dialog-close']"));
+  const close = closeControls[0];
   const content = document.querySelector("[data-slot='dialog-content']");
   const overlay = document.querySelector("[data-slot='dialog-overlay']");
   const title = document.querySelector("[data-slot='dialog-title']");
@@ -276,6 +309,9 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
 
   return {
     triggerExists: trigger ? "yes" : "no",
+    triggerTag: trigger?.tagName.toLowerCase() ?? "none",
+    triggerRole: trigger?.getAttribute("role") ?? "none",
+    triggerTabIndex: trigger?.getAttribute("tabindex") ?? "none",
     triggerState: trigger?.getAttribute("data-state") ?? "none",
     triggerControls,
     triggerHasPopup: trigger?.getAttribute("aria-haspopup") ?? "none",
@@ -283,6 +319,11 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
     triggerDisabled: trigger?.hasAttribute("disabled") || trigger?.hasAttribute("data-disabled")
       ? "yes"
       : "no",
+    closeExists: close ? "yes" : "no",
+    closeCount: String(closeControls.length),
+    closeTag: close?.tagName.toLowerCase() ?? "none",
+    closeRole: close?.getAttribute("role") ?? "none",
+    closeTabIndex: close?.getAttribute("tabindex") ?? "none",
     contentExists: content ? "yes" : "no",
     contentId,
     contentRole: content?.getAttribute("role") ?? "none",
@@ -318,11 +359,19 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
 
 const emptyDialogPartsSnapshot: DialogPartsSnapshot = {
   triggerExists: "no",
+  triggerTag: "none",
+  triggerRole: "none",
+  triggerTabIndex: "none",
   triggerState: "none",
   triggerControls: "none",
   triggerHasPopup: "none",
   triggerExpanded: "none",
   triggerDisabled: "no",
+  closeExists: "no",
+  closeCount: "0",
+  closeTag: "none",
+  closeRole: "none",
+  closeTabIndex: "none",
   contentExists: "no",
   contentId: "none",
   contentRole: "none",

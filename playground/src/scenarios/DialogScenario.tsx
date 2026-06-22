@@ -1,7 +1,8 @@
 import { Dialog } from "@flowstack-ui/atom/dialog";
 import { useState } from "react";
-import type { ReactNode } from "react";
+import type { HTMLAttributes, ReactNode, RefAttributes } from "react";
 import type {
+  DialogCompositionMode,
   DialogScenarioActions,
   DialogScenarioState,
 } from "./useDialogScenario";
@@ -46,7 +47,7 @@ export function DialogScenarioCanvas({
         closeOnEscape={state.closeOnEscape}
         closeOnBackdropClick={state.closeOnBackdropClick}
       >
-        <Dialog.Trigger className="atom-button">Open dialog</Dialog.Trigger>
+        <DialogTriggerExample mode={state.triggerComposition} />
         {state.disabled && !state.open ? (
           <div className="dialog-probes" aria-label="Disabled trigger probes">
             <button type="button" onClick={() => actions.testDisabledTriggerKey("Enter")}>
@@ -105,8 +106,15 @@ export function DialogScenarioCanvas({
                   Close controlled
                 </button>
               ) : null}
-              <Dialog.Close className="atom-button secondary">Cancel</Dialog.Close>
-              <Dialog.Close className="atom-button">Save</Dialog.Close>
+              <DialogCloseExample
+                className="atom-button secondary"
+                mode={state.closeComposition}
+              >
+                Cancel
+              </DialogCloseExample>
+              <DialogCloseExample className="atom-button" mode={state.closeComposition}>
+                Save
+              </DialogCloseExample>
             </div>
           </Dialog.Content>
         </Dialog.Portal>
@@ -152,12 +160,29 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
           onToggle={toggleGroup}
         >
           <PartRow label="Exists" value={state.parts.triggerExists} />
+          <PartRow label="Composition" value={state.triggerComposition} />
+          <PartRow label="tag" value={state.parts.triggerTag} />
+          <PartRow label="role" value={state.parts.triggerRole} />
+          <PartRow label="tabindex attr" value={state.parts.triggerTabIndex} />
           <PartRow label="data-state" value={state.parts.triggerState} />
           <PartRow label="aria-controls" value={state.parts.triggerControls} />
           <PartRow label="aria-haspopup" value={state.parts.triggerHasPopup} />
           <PartRow label="aria-expanded" value={state.parts.triggerExpanded} />
           <PartRow label="Controls match" value={state.parts.controlsMatch} />
           <PartRow label="Disabled" value={state.parts.triggerDisabled} />
+        </PartGroup>
+        <PartGroup
+          open={openGroups.Close}
+          summary={state.closeComposition}
+          title="Close"
+          onToggle={toggleGroup}
+        >
+          <PartRow label="Exists" value={state.parts.closeExists} />
+          <PartRow label="Composition" value={state.closeComposition} />
+          <PartRow label="Count" value={state.parts.closeCount} />
+          <PartRow label="tag" value={state.parts.closeTag} />
+          <PartRow label="role" value={state.parts.closeRole} />
+          <PartRow label="tabindex attr" value={state.parts.closeTabIndex} />
         </PartGroup>
         <PartGroup
           open={openGroups.Portal}
@@ -294,6 +319,16 @@ export function DialogScenarioToolbar({
         label="Use ariaLabel"
         onChange={actions.setUseAriaLabel}
       />
+      <SelectControl
+        label="Trigger"
+        value={state.triggerComposition}
+        onChange={actions.setTriggerComposition}
+      />
+      <SelectControl
+        label="Close"
+        value={state.closeComposition}
+        onChange={actions.setCloseComposition}
+      />
     </div>
   );
 }
@@ -355,5 +390,91 @@ function ToggleControl({
       />
       {label}
     </label>
+  );
+}
+
+function SelectControl({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: DialogCompositionMode;
+  onChange: (value: DialogCompositionMode) => void;
+}) {
+  return (
+    <label className="select-control">
+      <span>{label}</span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value as DialogCompositionMode)}
+      >
+        <option value="default">default</option>
+        <option value="asChild">asChild</option>
+        <option value="render">render</option>
+      </select>
+    </label>
+  );
+}
+
+function DialogTriggerExample({ mode }: { mode: DialogCompositionMode }) {
+  if (mode === "asChild") {
+    return (
+      <Dialog.Trigger className="atom-button" asChild>
+        <span className="composition-control">Open dialog</span>
+      </Dialog.Trigger>
+    );
+  }
+
+  if (mode === "render") {
+    return (
+      <Dialog.Trigger className="atom-button" render={renderCompositionControl}>
+        Open dialog
+      </Dialog.Trigger>
+    );
+  }
+
+  return <Dialog.Trigger className="atom-button">Open dialog</Dialog.Trigger>;
+}
+
+function DialogCloseExample({
+  children,
+  className,
+  mode,
+}: {
+  children: ReactNode;
+  className: string;
+  mode: DialogCompositionMode;
+}) {
+  if (mode === "asChild") {
+    return (
+      <Dialog.Close className={className} asChild>
+        <span className="composition-control">{children}</span>
+      </Dialog.Close>
+    );
+  }
+
+  if (mode === "render") {
+    return (
+      <Dialog.Close className={className} render={renderCompositionControl}>
+        {children}
+      </Dialog.Close>
+    );
+  }
+
+  return <Dialog.Close className={className}>{children}</Dialog.Close>;
+}
+
+function renderCompositionControl(props: Record<string, unknown>) {
+  const { className, children, ...elementProps } = props as HTMLAttributes<HTMLSpanElement> &
+    RefAttributes<HTMLSpanElement>;
+
+  return (
+    <span
+      {...elementProps}
+      className={["composition-control", className].filter(Boolean).join(" ")}
+    >
+      {children}
+    </span>
   );
 }
