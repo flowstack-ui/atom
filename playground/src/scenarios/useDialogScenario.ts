@@ -22,11 +22,14 @@ export type DialogPartsSnapshot = {
   triggerExists: string;
   triggerState: string;
   triggerControls: string;
+  triggerHasPopup: string;
+  triggerExpanded: string;
   triggerDisabled: string;
   contentExists: string;
   contentId: string;
   contentRole: string;
   contentState: string;
+  contentPositioned: string;
   contentHidden: string;
   contentAriaModal: string;
   contentAriaLabel: string;
@@ -38,6 +41,7 @@ export type DialogPartsSnapshot = {
   portalParent: string;
   inCanvas: string;
   titleExists: string;
+  titleTag: string;
   titleId: string;
   titleMatches: string;
   descriptionExists: string;
@@ -53,11 +57,16 @@ export type DialogScenarioActions = {
   setCloseOnBackdropClick: (value: boolean) => void;
   setUseAriaLabel: (value: boolean) => void;
   setControlledOpen: (value: boolean) => void;
+  testDisabledTriggerKey: (key: "Enter" | " ") => void;
+  testFocusEscape: () => void;
   clearLog: () => void;
 };
 
 export function useDialogScenario() {
   const nextLogId = useRef(2);
+  const focusPathRef = useRef<string[]>([]);
+  const loggedFocusLoopsRef = useRef<Record<string, boolean>>({});
+  const lastTabDirectionRef = useRef<"forward" | "backward" | null>(null);
   const [revision, setRevision] = useState(0);
   const [controlled, setControlled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -86,6 +95,47 @@ export function useDialogScenario() {
     addLog(reason ? `closed by ${reason}` : "opened from trigger");
   };
 
+  const testDisabledTriggerKey = (key: "Enter" | " ") => {
+    const trigger = document.querySelector<HTMLElement>("[data-slot='dialog-trigger']");
+    if (!trigger) {
+      addLog("disabled trigger probe failed: no trigger");
+      return;
+    }
+
+    trigger.dispatchEvent(new KeyboardEvent("keydown", {
+      bubbles: true,
+      cancelable: true,
+      key,
+    }));
+
+    requestAnimationFrame(() => {
+      const content = document.querySelector("[data-slot='dialog-content']");
+      const stayedClosed = !content || content.getAttribute("data-state") === "closed";
+      addLog(
+        stayedClosed
+          ? `disabled trigger blocked ${key === " " ? "Space" : "Enter"}`
+          : `disabled trigger opened with ${key === " " ? "Space" : "Enter"}`,
+      );
+    });
+  };
+
+  const testFocusEscape = () => {
+    const behindButton = document.querySelector<HTMLButtonElement>("[data-dialog-behind]");
+    const content = document.querySelector<HTMLElement>("[data-slot='dialog-content']");
+
+    if (!behindButton || !content) {
+      addLog("focus escape probe skipped");
+      return;
+    }
+
+    behindButton.focus();
+
+    requestAnimationFrame(() => {
+      const activeElement = document.activeElement;
+      addLog(content.contains(activeElement) ? "focus stayed inside dialog" : "focus escaped dialog");
+    });
+  };
+
   useEffect(() => {
     let frame = 0;
     const updateRevision = () => {
@@ -102,6 +152,8 @@ export function useDialogScenario() {
       subtree: true,
       attributeFilter: [
         "aria-controls",
+        "aria-expanded",
+        "aria-haspopup",
         "aria-hidden",
         "aria-label",
         "aria-labelledby",
@@ -119,6 +171,59 @@ export function useDialogScenario() {
       observer.disconnect();
     };
   }, []);
+
+  useEffect(() => {
+    if (!open) {
+      focusPathRef.current = [];
+      loggedFocusLoopsRef.current = {};
+      lastTabDirectionRef.current = null;
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Tab") {
+        lastTabDirectionRef.current = event.shiftKey ? "backward" : "forward";
+      }
+    };
+
+    const handleFocusIn = (event: FocusEvent) => {
+      const content = document.querySelector("[data-slot='dialog-content']");
+      const target = event.target instanceof HTMLElement ? event.target : null;
+
+      if (!content || !target || !content.contains(target)) {
+        return;
+      }
+
+      const label = getFocusLabel(target);
+      const path = focusPathRef.current;
+
+      if (path[path.length - 1] !== label) {
+        path.push(label);
+      }
+
+      const direction = lastTabDirectionRef.current;
+      if (!direction || loggedFocusLoopsRef.current[direction] || path.length < 4) {
+        return;
+      }
+
+      const firstIndex = path.findIndex((item, index) => index < path.length - 1 && item === label);
+      if (firstIndex === -1) {
+        return;
+      }
+
+      const loopPath = path.slice(firstIndex);
+      loggedFocusLoopsRef.current[direction] = true;
+      addLog(`focus looped ${direction}: ${loopPath.join(direction === "backward" ? " <- " : " -> ")}`);
+    };
+
+    document.addEventListener("keydown", handleKeyDown, true);
+    document.addEventListener("focusin", handleFocusIn);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown, true);
+      document.removeEventListener("focusin", handleFocusIn);
+    };
+  }, [open]);
 
   const state: DialogScenarioState = {
     controlled,
@@ -140,6 +245,8 @@ export function useDialogScenario() {
     setCloseOnBackdropClick,
     setUseAriaLabel,
     setControlledOpen,
+    testDisabledTriggerKey,
+    testFocusEscape,
     clearLog: () => setLog([]),
   };
 
@@ -179,6 +286,8 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
     triggerExists: trigger ? "yes" : "no",
     triggerState: trigger?.getAttribute("data-state") ?? "none",
     triggerControls,
+    triggerHasPopup: trigger?.getAttribute("aria-haspopup") ?? "none",
+    triggerExpanded: trigger?.getAttribute("aria-expanded") ?? "none",
     triggerDisabled: trigger?.hasAttribute("disabled") || trigger?.hasAttribute("data-disabled")
       ? "yes"
       : "no",
@@ -186,6 +295,7 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
     contentId,
     contentRole: content?.getAttribute("role") ?? "none",
     contentState: content?.getAttribute("data-state") ?? "none",
+    contentPositioned: content?.getAttribute("data-positioned") ?? "none",
     contentHidden: content?.closest("[hidden]") || content?.hasAttribute("hidden") ? "yes" : "no",
     contentAriaModal: content?.getAttribute("aria-modal") ?? "none",
     contentAriaLabel: content?.getAttribute("aria-label") ?? "none",
@@ -201,6 +311,7 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
       : "none",
     inCanvas: content && canvas?.contains(content) ? "yes" : "no",
     titleExists: title ? "yes" : "no",
+    titleTag: title?.tagName.toLowerCase() ?? "none",
     titleId,
     titleMatches: labelledBy !== "none" && labelledBy === titleId ? "yes" : "no",
     descriptionExists: description ? "yes" : "no",
@@ -213,11 +324,14 @@ const emptyDialogPartsSnapshot: DialogPartsSnapshot = {
   triggerExists: "no",
   triggerState: "none",
   triggerControls: "none",
+  triggerHasPopup: "none",
+  triggerExpanded: "none",
   triggerDisabled: "no",
   contentExists: "no",
   contentId: "none",
   contentRole: "none",
   contentState: "none",
+  contentPositioned: "none",
   contentHidden: "no",
   contentAriaModal: "none",
   contentAriaLabel: "none",
@@ -229,9 +343,20 @@ const emptyDialogPartsSnapshot: DialogPartsSnapshot = {
   portalParent: "none",
   inCanvas: "no",
   titleExists: "no",
+  titleTag: "none",
   titleId: "none",
   titleMatches: "no",
   descriptionExists: "no",
   descriptionId: "none",
   descriptionMatches: "no",
 };
+
+function getFocusLabel(element: HTMLElement) {
+  if (element.id === "dialog-name") return "name";
+  if (element.id === "dialog-mode") return "mode";
+
+  const text = element.textContent?.trim();
+  if (text) return text.toLowerCase();
+
+  return element.getAttribute("data-slot") ?? element.tagName.toLowerCase();
+}

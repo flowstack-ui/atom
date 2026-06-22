@@ -330,6 +330,16 @@ h2 {
   gap: 10px;
 }
 
+.behind-dialog-button {
+  min-height: 30px;
+  border: 1px dashed #aeb8c4;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0 10px;
+  color: #657182;
+  font-size: 12px;
+}
+
 .atom-button {
   min-height: 36px;
   border: 1px solid #182232;

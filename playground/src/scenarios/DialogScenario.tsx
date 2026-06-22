@@ -29,6 +29,14 @@ export function DialogScenarioCanvas({
 
   return (
     <div className="dialog-stage">
+      <button
+        className="behind-dialog-button"
+        data-dialog-behind
+        tabIndex={-1}
+        type="button"
+      >
+        Behind dialog
+      </button>
       <Dialog.Root
         {...rootProps}
         disabled={state.disabled}
@@ -127,6 +135,8 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
           <PartRow label="Exists" value={state.parts.triggerExists} />
           <PartRow label="data-state" value={state.parts.triggerState} />
           <PartRow label="aria-controls" value={state.parts.triggerControls} />
+          <PartRow label="aria-haspopup" value={state.parts.triggerHasPopup} />
+          <PartRow label="aria-expanded" value={state.parts.triggerExpanded} />
           <PartRow label="Controls match" value={state.parts.controlsMatch} />
           <PartRow label="Disabled" value={state.parts.triggerDisabled} />
         </PartGroup>
@@ -159,6 +169,7 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
           <PartRow label="id" value={state.parts.contentId} />
           <PartRow label="role" value={state.parts.contentRole} />
           <PartRow label="data-state" value={state.parts.contentState} />
+          <PartRow label="data-positioned" value={state.parts.contentPositioned} />
           <PartRow label="Hidden" value={state.parts.contentHidden} />
           <PartRow label="aria-modal" value={state.parts.contentAriaModal} />
           <PartRow label="aria-label" value={state.parts.contentAriaLabel} />
@@ -172,6 +183,7 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
           onToggle={toggleGroup}
         >
           <PartRow label="Exists" value={state.parts.titleExists} />
+          <PartRow label="tag" value={state.parts.titleTag} />
           <PartRow label="id" value={state.parts.titleId} />
           <PartRow label="Matches label" value={state.parts.titleMatches} />
         </PartGroup>
@@ -263,6 +275,21 @@ export function DialogScenarioToolbar({
         label="Use ariaLabel"
         onChange={actions.setUseAriaLabel}
       />
+      {state.disabled && !state.open ? (
+        <>
+          <button type="button" onClick={() => actions.testDisabledTriggerKey("Enter")}>
+            Test Enter
+          </button>
+          <button type="button" onClick={() => actions.testDisabledTriggerKey(" ")}>
+            Test Space
+          </button>
+        </>
+      ) : null}
+      {state.open ? (
+        <button type="button" onClick={actions.testFocusEscape}>
+          Test focus escape
+        </button>
+      ) : null}
     </div>
   );
 }

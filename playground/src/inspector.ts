@@ -16,6 +16,7 @@ const observedAttributes = [
   "aria-describedby",
   "aria-disabled",
   "aria-expanded",
+  "aria-haspopup",
   "aria-hidden",
   "aria-labelledby",
   "aria-modal",
