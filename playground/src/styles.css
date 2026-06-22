@@ -473,6 +473,11 @@ h2 {
   background: #f8fafc;
 }
 
+.part-group-trigger:focus-visible {
+  outline: 2px solid #72a2f8;
+  outline-offset: -3px;
+}
+
 .part-group-trigger[aria-expanded="true"] {
   border-bottom-color: #e5eaf0;
   border-radius: 7px 7px 0 0;
