@@ -64,9 +64,6 @@ export type DialogScenarioActions = {
 
 export function useDialogScenario() {
   const nextLogId = useRef(2);
-  const focusPathRef = useRef<string[]>([]);
-  const loggedFocusLoopsRef = useRef<Record<string, boolean>>({});
-  const lastTabDirectionRef = useRef<"forward" | "backward" | null>(null);
   const [revision, setRevision] = useState(0);
   const [controlled, setControlled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -132,7 +129,7 @@ export function useDialogScenario() {
 
     requestAnimationFrame(() => {
       const activeElement = document.activeElement;
-      addLog(content.contains(activeElement) ? "focus stayed inside dialog" : "focus escaped dialog");
+      addLog(`focus stayed inside dialog: ${content.contains(activeElement) ? "yes" : "no"}`);
     });
   };
 
@@ -173,55 +170,65 @@ export function useDialogScenario() {
   }, []);
 
   useEffect(() => {
-    if (!open) {
-      focusPathRef.current = [];
-      loggedFocusLoopsRef.current = {};
-      lastTabDirectionRef.current = null;
-      return;
-    }
+    if (!open) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Tab") {
-        lastTabDirectionRef.current = event.shiftKey ? "backward" : "forward";
-      }
-    };
-
-    const handleFocusIn = (event: FocusEvent) => {
+      if (event.key !== "Tab") return;
       const content = document.querySelector("[data-slot='dialog-content']");
-      const target = event.target instanceof HTMLElement ? event.target : null;
+      const activeElement = document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
 
-      if (!content || !target || !content.contains(target)) {
+      if (!content || !activeElement || !content.contains(activeElement)) {
         return;
       }
 
-      const label = getFocusLabel(target);
-      const path = focusPathRef.current;
-
-      if (path[path.length - 1] !== label) {
-        path.push(label);
-      }
-
-      const direction = lastTabDirectionRef.current;
-      if (!direction || loggedFocusLoopsRef.current[direction] || path.length < 4) {
+      const focusableElements = Array.from(
+        content.querySelectorAll<HTMLElement>(focusableSelector),
+      );
+      if (focusableElements.length === 0) {
         return;
       }
 
-      const firstIndex = path.findIndex((item, index) => index < path.length - 1 && item === label);
-      if (firstIndex === -1) {
-        return;
-      }
+      const currentIndex = focusableElements.indexOf(activeElement);
+      const direction = event.shiftKey ? "backward" : "forward";
+      const nextIndex = direction === "backward"
+        ? currentIndex <= 0
+          ? focusableElements.length - 1
+          : currentIndex - 1
+        : currentIndex === -1 || currentIndex >= focusableElements.length - 1
+          ? 0
+          : currentIndex + 1;
+      const currentLabel = getFocusLabel(activeElement);
+      const nextLabel = getFocusLabel(focusableElements[nextIndex]);
+      const looped = direction === "backward"
+        ? currentIndex <= 0
+        : currentIndex >= focusableElements.length - 1;
 
-      const loopPath = path.slice(firstIndex);
-      loggedFocusLoopsRef.current[direction] = true;
-      addLog(`focus looped ${direction}: ${loopPath.join(direction === "backward" ? " <- " : " -> ")}`);
+      requestAnimationFrame(() => {
+        const actualElement = document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
+        const actualLabel = actualElement && content.contains(actualElement)
+          ? getFocusLabel(actualElement)
+          : "outside";
+
+        addLog(
+          looped
+            ? `focus looped ${direction}: ${currentLabel}${direction === "backward" ? " <- " : " -> "}${actualLabel}`
+            : `focus moved ${direction}: ${currentLabel}${direction === "backward" ? " <- " : " -> "}${actualLabel}`,
+        );
+
+        if (actualLabel !== nextLabel) {
+          addLog(`focus expected ${direction}: ${nextLabel}`);
+        }
+      });
     };
 
     document.addEventListener("keydown", handleKeyDown, true);
-    document.addEventListener("focusin", handleFocusIn);
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown, true);
-      document.removeEventListener("focusin", handleFocusIn);
     };
   }, [open]);
 
@@ -295,7 +302,11 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
     contentId,
     contentRole: content?.getAttribute("role") ?? "none",
     contentState: content?.getAttribute("data-state") ?? "none",
-    contentPositioned: content?.getAttribute("data-positioned") ?? "none",
+    contentPositioned: content
+      ? content.hasAttribute("data-positioned")
+        ? "yes"
+        : "no"
+      : "none",
     contentHidden: content?.closest("[hidden]") || content?.hasAttribute("hidden") ? "yes" : "no",
     contentAriaModal: content?.getAttribute("aria-modal") ?? "none",
     contentAriaLabel: content?.getAttribute("aria-label") ?? "none",
@@ -360,3 +371,12 @@ function getFocusLabel(element: HTMLElement) {
 
   return element.getAttribute("data-slot") ?? element.tagName.toLowerCase();
 }
+
+const focusableSelector = [
+  "a[href]",
+  "button:not([disabled])",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  '[tabindex]:not([tabindex="-1"])',
+].join(", ");

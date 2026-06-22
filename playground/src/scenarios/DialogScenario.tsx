@@ -8,11 +8,13 @@ import type {
 
 export function DialogScenarioCanvas({
   state,
+  actions,
   onOpenChange,
   onControlledOpen,
   onControlledClose,
 }: {
   state: DialogScenarioState;
+  actions: DialogScenarioActions;
   onOpenChange: (open: boolean, reason?: string) => void;
   onControlledOpen: () => void;
   onControlledClose: () => void;
@@ -45,6 +47,16 @@ export function DialogScenarioCanvas({
         closeOnBackdropClick={state.closeOnBackdropClick}
       >
         <Dialog.Trigger className="atom-button">Open dialog</Dialog.Trigger>
+        {state.disabled && !state.open ? (
+          <div className="dialog-probes" aria-label="Disabled trigger probes">
+            <button type="button" onClick={() => actions.testDisabledTriggerKey("Enter")}>
+              Test Enter
+            </button>
+            <button type="button" onClick={() => actions.testDisabledTriggerKey(" ")}>
+              Test Space
+            </button>
+          </div>
+        ) : null}
         {state.controlled ? (
           <button
             className="atom-button secondary"
@@ -77,6 +89,13 @@ export function DialogScenarioCanvas({
               </select>
             </div>
             <div className="dialog-actions">
+              <button
+                className="atom-button secondary"
+                type="button"
+                onClick={actions.testFocusEscape}
+              >
+                Test focus escape
+              </button>
               {state.controlled ? (
                 <button
                   className="atom-button secondary"
@@ -275,21 +294,6 @@ export function DialogScenarioToolbar({
         label="Use ariaLabel"
         onChange={actions.setUseAriaLabel}
       />
-      {state.disabled && !state.open ? (
-        <>
-          <button type="button" onClick={() => actions.testDisabledTriggerKey("Enter")}>
-            Test Enter
-          </button>
-          <button type="button" onClick={() => actions.testDisabledTriggerKey(" ")}>
-            Test Space
-          </button>
-        </>
-      ) : null}
-      {state.open ? (
-        <button type="button" onClick={actions.testFocusEscape}>
-          Test focus escape
-        </button>
-      ) : null}
     </div>
   );
 }

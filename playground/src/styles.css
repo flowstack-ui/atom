@@ -340,6 +340,21 @@ h2 {
   font-size: 12px;
 }
 
+.dialog-probes {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.dialog-probes button {
+  min-height: 30px;
+  border: 1px solid #c2cad5;
+  border-radius: 6px;
+  background: #ffffff;
+  padding: 0 10px;
+  color: #26313e;
+  font-size: 12px;
+}
+
 .atom-button {
   min-height: 36px;
   border: 1px solid #182232;
