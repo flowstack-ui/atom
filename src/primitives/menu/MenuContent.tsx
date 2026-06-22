@@ -19,7 +19,11 @@ import {
   useFloating,
   type Placement,
 } from "@floating-ui/react";
-import { useFocusOnMount, useFocusRestore } from "../../hooks/focus.js";
+import {
+  useFocusOnMount,
+  useFocusRestore,
+  useFocusScopeContainer,
+} from "../../hooks/focus.js";
 import { usePresence } from "../../hooks/usePresence.js";
 import { useScrollLock } from "../../hooks/useScrollLock.js";
 import { Portal } from "../../utils/Portal.js";
@@ -101,6 +105,7 @@ function MenuContent(
 
   useFocusRestore(isOpen);
   useFocusOnMount(internalRef, isPresent);
+  useFocusScopeContainer(internalRef, isPresent);
   useScrollLock(isOpen && modal);
 
   useEffect(() => {

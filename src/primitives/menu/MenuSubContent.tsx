@@ -19,6 +19,7 @@ import {
   useFloating,
 } from "@floating-ui/react";
 import { useCollection } from "../../collection.js";
+import { useFocusScopeContainer } from "../../hooks/focus.js";
 import { usePresence } from "../../hooks/usePresence.js";
 import { Portal } from "../../utils/Portal.js";
 import type { NativeDivProps } from "../../utils/dom.js";
@@ -82,6 +83,7 @@ function MenuSubContent(
   const [nestedOpenSubMenuId, setNestedOpenSubMenuId] = useState<string | null>(null);
   const typeaheadBuffer = useRef("");
   const typeaheadTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useFocusScopeContainer(internalRef, isPresent);
 
   const onNestedSubMenuOpen = useCallback((id: string) => setNestedOpenSubMenuId(id), []);
   const onNestedSubMenuClose = useCallback(() => setNestedOpenSubMenuId(null), []);

@@ -80,10 +80,38 @@ test("modal focus hooks guard against stale targets and outside focus traps", as
     new URL("src/primitives/modal/useModalContent.ts", packageRoot),
     "utf8",
   );
+  const selectListboxSource = await readFile(
+    new URL("src/primitives/select/SelectListbox.tsx", packageRoot),
+    "utf8",
+  );
+  const menuContentSource = await readFile(
+    new URL("src/primitives/menu/MenuContent.tsx", packageRoot),
+    "utf8",
+  );
+  const menuSubContentSource = await readFile(
+    new URL("src/primitives/menu/MenuSubContent.tsx", packageRoot),
+    "utf8",
+  );
+  const popoverContentSource = await readFile(
+    new URL("src/primitives/popover/PopoverContent.tsx", packageRoot),
+    "utf8",
+  );
 
   assert.match(focusSource, /container\.contains\(document\.activeElement\)/);
+  assert.match(focusSource, /document\.addEventListener\("focusin", handleFocusIn\)/);
+  assert.match(focusSource, /focusFirstDescendant\(currentContainer\)/);
+  assert.match(focusSource, /FocusScopeContext/);
+  assert.match(focusSource, /registerContainer/);
   assert.match(focusSource, /querySelector<HTMLElement>\("\[autofocus\]"\)/);
   assert.match(focusSource, /document\.contains\(previousElementRef\.current\)/);
+  assert.match(modalContentSource, /useCreateFocusScope\(\)/);
+  assert.match(modalContentSource, /useFocusScopeContainer\(wrapperRef, isOpen, focusScope\)/);
+  assert.match(modalContentSource, /useFocusTrap\(wrapperRef, isOpen, \{ scope: focusScope \}\)/);
   assert.match(modalContentSource, /focusFirstDescendant\(container\)/);
   assert.doesNotMatch(modalContentSource, /FOCUSABLE_SELECTOR/);
+  assert.match(selectListboxSource, /useFocusScopeContainer\(internalRef, ctx\.isOpen\)/);
+  assert.match(menuContentSource, /useFocusScopeContainer\(internalRef, isPresent\)/);
+  assert.match(menuSubContentSource, /useFocusScopeContainer\(internalRef, isPresent\)/);
+  assert.match(popoverContentSource, /useFocusScopeContainer\(contentRef, isPresent\)/);
+  assert.match(popoverContentSource, /useFocusTrap\(contentRef, isOpen && modal, \{ scope: focusScope \}\)/);
 });

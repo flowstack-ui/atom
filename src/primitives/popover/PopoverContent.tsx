@@ -22,6 +22,9 @@ import {
 import { useClickAway } from "../../hooks/useClickAway.js";
 import {
   FOCUSABLE_SELECTOR,
+  FocusScopeProvider,
+  useCreateFocusScope,
+  useFocusScopeContainer,
   useFocusOnMount,
   useFocusRestore,
   useFocusTrap,
@@ -127,6 +130,7 @@ function PopoverContent(
     triggerMode,
   } = usePopoverContext();
   const contentRef = useRef<HTMLDivElement>(null);
+  const focusScope = useCreateFocusScope();
   const beforeGuardRef = useRef<HTMLSpanElement>(null);
   const afterGuardRef = useRef<HTMLSpanElement>(null);
   const arrowRef = useRef<SVGSVGElement>(null);
@@ -135,7 +139,9 @@ function PopoverContent(
 
   useFocusRestore(isOpen && modal);
   useFocusOnMount(contentRef, isPresent);
-  useFocusTrap(contentRef, isOpen && modal);
+  useFocusScopeContainer(contentRef, isPresent);
+  useFocusTrap(contentRef, isOpen && modal, { scope: focusScope });
+  useFocusScopeContainer(contentRef, isOpen && modal, focusScope);
   useScrollLock(isOpen && modal);
 
   useEffect(() => {
@@ -304,7 +310,9 @@ function PopoverContent(
             : onMouseLeave
         }
       >
-        {children}
+        <FocusScopeProvider scope={focusScope}>
+          {children}
+        </FocusScopeProvider>
       </div>
       {!modal ? (
         <span

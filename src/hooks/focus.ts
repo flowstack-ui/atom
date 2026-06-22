@@ -1,6 +1,15 @@
 "use client";
 
-import { useEffect, useRef, type RefObject } from "react";
+import {
+  createContext,
+  createElement,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  type ReactNode,
+  type RefObject,
+} from "react";
 
 export const FOCUSABLE_SELECTOR = [
   "a[href]",
@@ -19,12 +28,84 @@ function getAutoFocusElement(container: HTMLElement): HTMLElement | null {
   return container.querySelector<HTMLElement>("[autofocus]");
 }
 
+export interface FocusScope {
+  registerContainer: (container: HTMLElement) => () => void;
+  contains: (target: Node | null) => boolean;
+}
+
+const FocusScopeContext = createContext<FocusScope | null>(null);
+FocusScopeContext.displayName = "FocusScopeContext";
+
+export function useCreateFocusScope(): FocusScope {
+  const containersRef = useRef<Set<HTMLElement>>(new Set());
+
+  return useMemo(
+    () => ({
+      registerContainer(container) {
+        containersRef.current.add(container);
+
+        return () => {
+          containersRef.current.delete(container);
+        };
+      },
+      contains(target) {
+        if (!target) return false;
+
+        for (const container of containersRef.current) {
+          if (container.contains(target)) return true;
+        }
+
+        return false;
+      },
+    }),
+    [],
+  );
+}
+
+export function FocusScopeProvider({
+  children,
+  scope,
+}: {
+  children: ReactNode;
+  scope: FocusScope;
+}) {
+  return createElement(FocusScopeContext.Provider, { value: scope }, children);
+}
+
+export function useFocusScopeContainer(
+  containerRef: RefObject<HTMLElement | null>,
+  enabled: boolean,
+  scopeOverride?: FocusScope,
+): void {
+  const contextScope = useContext(FocusScopeContext);
+  const scope = scopeOverride ?? contextScope;
+
+  useEffect(() => {
+    if (!enabled || !scope) return undefined;
+
+    const container = containerRef.current;
+    if (!container) return undefined;
+
+    return scope.registerContainer(container);
+  }, [containerRef, enabled, scope]);
+}
+
+function isFocusAllowed(
+  container: HTMLElement,
+  scope: FocusScope | undefined,
+  target: Element | null,
+): boolean {
+  return Boolean(target && (container.contains(target) || scope?.contains(target)));
+}
+
 export function useFocusTrap(
   containerRef: RefObject<HTMLElement | null>,
   enabled: boolean,
+  options: { scope?: FocusScope } = {},
 ): void {
   useEffect(() => {
     if (!enabled) return undefined;
+    let restoreFrame = 0;
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Tab") return;
@@ -59,9 +140,42 @@ export function useFocusTrap(
       focusWithoutScrolling(focusableElements[nextIndex]);
     };
 
+    const handleFocusIn = (event: FocusEvent) => {
+      const container = containerRef.current;
+      if (!container) return;
+
+      const target = event.target instanceof Element ? event.target : null;
+      if (isFocusAllowed(container, options.scope, target)) return;
+
+      cancelAnimationFrame(restoreFrame);
+      restoreFrame = requestAnimationFrame(() => {
+        const currentContainer = containerRef.current;
+        const activeElement = document.activeElement;
+
+        if (!currentContainer) return;
+        if (
+          isFocusAllowed(
+            currentContainer,
+            options.scope,
+            activeElement instanceof Element ? activeElement : null,
+          )
+        ) {
+          return;
+        }
+
+        focusFirstDescendant(currentContainer);
+      });
+    };
+
     document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [containerRef, enabled]);
+    document.addEventListener("focusin", handleFocusIn);
+
+    return () => {
+      cancelAnimationFrame(restoreFrame);
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("focusin", handleFocusIn);
+    };
+  }, [containerRef, enabled, options.scope]);
 }
 
 export function focusFirstDescendant(container: HTMLElement): void {

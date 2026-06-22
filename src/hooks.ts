@@ -6,10 +6,14 @@ export { useDisclosure } from "./hooks/useDisclosure.js";
 export type { UseDisclosureReturn } from "./hooks/useDisclosure.js";
 export {
   FOCUSABLE_SELECTOR,
+  FocusScopeProvider,
+  useCreateFocusScope,
+  useFocusScopeContainer,
   useFocusOnMount,
   useFocusRestore,
   useFocusTrap,
 } from "./hooks/focus.js";
+export type { FocusScope } from "./hooks/focus.js";
 export { useEscapeKey } from "./hooks/useEscapeKey.js";
 export { useClickAway } from "./hooks/useClickAway.js";
 export type { UseClickAwayOptions } from "./hooks/useClickAway.js";

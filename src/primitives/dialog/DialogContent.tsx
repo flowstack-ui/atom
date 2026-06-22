@@ -1,6 +1,7 @@
 "use client";
 
 import { forwardRef, useMemo, type ReactNode } from "react";
+import { FocusScopeProvider } from "../../hooks/focus.js";
 import { useModalContent } from "../modal/useModalContent.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { composeRefs } from "../../utils/slot.js";
@@ -37,6 +38,7 @@ export const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
       isHidden,
       isPositioned,
       dataState,
+      focusScope,
       presenceRef,
       contentProps,
     } = useModalContent({ role, ariaLabel });
@@ -58,7 +60,9 @@ export const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
             data-state="closed"
             className={className}
           >
-            {children}
+            <FocusScopeProvider scope={focusScope}>
+              {children}
+            </FocusScopeProvider>
           </div>
         </div>
       );
@@ -74,7 +78,9 @@ export const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
         {...(isPositioned ? { "data-positioned": "" } : {})}
         className={className}
       >
-        {children}
+        <FocusScopeProvider scope={focusScope}>
+          {children}
+        </FocusScopeProvider>
       </div>
     );
   },

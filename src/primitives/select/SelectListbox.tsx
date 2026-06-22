@@ -17,6 +17,7 @@ import {
   size as sizeMiddleware,
   useFloating,
 } from "@floating-ui/react";
+import { useFocusScopeContainer } from "../../hooks/focus.js";
 import { useEscapeKey } from "../../hooks/useEscapeKey.js";
 import { Portal } from "../../utils/Portal.js";
 import type { NativeDivProps } from "../../utils/dom.js";
@@ -49,6 +50,7 @@ function SelectListbox(
   const ctx = useSelectContext();
   const internalRef = useRef<HTMLDivElement>(null);
   const [isPositioned, setIsPositioned] = useState(false);
+  useFocusScopeContainer(internalRef, ctx.isOpen);
   useEscapeKey(() => {
     ctx.onClose();
     ctx.triggerRef.current?.focus();

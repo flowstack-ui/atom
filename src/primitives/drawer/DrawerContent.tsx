@@ -1,6 +1,7 @@
 "use client";
 
 import { forwardRef, type ReactNode } from "react";
+import { FocusScopeProvider } from "../../hooks/focus.js";
 import { useModalContent } from "../modal/useModalContent.js";
 import { composeRefs } from "../../utils/slot.js";
 import type { NativeDivProps } from "../../utils/dom.js";
@@ -35,6 +36,7 @@ export const DrawerContent = forwardRef<HTMLDivElement, DrawerContentProps>(
       isHidden,
       isPositioned,
       dataState,
+      focusScope,
       presenceRef,
       contentProps,
     } = useModalContent({ ariaLabel });
@@ -55,7 +57,9 @@ export const DrawerContent = forwardRef<HTMLDivElement, DrawerContentProps>(
             data-placement={placement}
             className={className}
           >
-            {children}
+            <FocusScopeProvider scope={focusScope}>
+              {children}
+            </FocusScopeProvider>
           </div>
         </div>
       );
@@ -72,7 +76,9 @@ export const DrawerContent = forwardRef<HTMLDivElement, DrawerContentProps>(
         {...(isPositioned ? { "data-positioned": "" } : {})}
         className={className}
       >
-        {children}
+        <FocusScopeProvider scope={focusScope}>
+          {children}
+        </FocusScopeProvider>
       </div>
     );
   },

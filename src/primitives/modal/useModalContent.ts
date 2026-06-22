@@ -8,7 +8,10 @@ import {
   type RefObject,
 } from "react";
 import {
+  type FocusScope,
   focusFirstDescendant,
+  useCreateFocusScope,
+  useFocusScopeContainer,
   useFocusRestore,
   useFocusTrap,
 } from "../../hooks/focus.js";
@@ -35,6 +38,8 @@ export interface UseModalContentReturn {
   dataState: "open" | "closed";
   /** Ref for the focus-trapped content wrapper. */
   wrapperRef: RefObject<HTMLDivElement | null>;
+  /** Focus scope shared with portalled descendants owned by the modal. */
+  focusScope: FocusScope;
   /** Callback ref for the presence-tracked element. */
   presenceRef: (node: HTMLDivElement | null) => void;
   /** ARIA and role props for the content element. */
@@ -68,11 +73,13 @@ export function useModalContent(
     keepMounted,
   } = useModalContext();
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const focusScope = useCreateFocusScope();
   const { isPresent, ref: presenceRef } = usePresence({ present: isOpen });
   const [isPositioned, setIsPositioned] = useState(false);
 
   useFocusRestore(isOpen);
-  useFocusTrap(wrapperRef, isOpen);
+  useFocusTrap(wrapperRef, isOpen, { scope: focusScope });
+  useFocusScopeContainer(wrapperRef, isOpen, focusScope);
   useScrollLock(isOpen, wrapperRef);
   useEscapeKey(() => onClose("escapeKeyDown"), isOpen && closeOnEscape);
 
@@ -116,6 +123,7 @@ export function useModalContent(
     isPositioned,
     dataState: isOpen && isPositioned ? "open" : "closed",
     wrapperRef,
+    focusScope,
     presenceRef: mergedRef,
     contentProps: {
       id: modalId,
