@@ -359,6 +359,11 @@ h2 {
   color: #26313e;
 }
 
+.canvas-focus-target {
+  outline: 3px solid rgba(57, 120, 216, 0.38);
+  outline-offset: 3px;
+}
+
 .atom-dialog-overlay {
   position: fixed;
   inset: 0;

@@ -118,7 +118,17 @@ export function App() {
     : inspector.focusedRows;
   const focusCanvas = () => {
     const focusTarget = inspector.rootRef.current?.querySelector<HTMLElement>(focusableSelector);
-    focusTarget?.focus();
+    if (!focusTarget) return;
+
+    requestAnimationFrame(() => {
+      focusTarget.focus({ preventScroll: true });
+      focusTarget.classList.add("canvas-focus-target");
+      setActiveInspectorTab("focused");
+
+      window.setTimeout(() => {
+        focusTarget.classList.remove("canvas-focus-target");
+      }, 1400);
+    });
   };
 
   return (
