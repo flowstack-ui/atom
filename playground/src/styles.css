@@ -177,8 +177,7 @@ h2 {
   display: grid;
   grid-template-columns: minmax(220px, 0.72fr) minmax(420px, 1.7fr) minmax(240px, 0.85fr);
   grid-template-areas:
-    "controls canvas inspector"
-    "controls canvas log";
+    "controls canvas right";
   gap: 14px;
   align-items: start;
 }
@@ -198,12 +197,10 @@ h2 {
   grid-area: controls;
 }
 
-.inspector-card {
-  grid-area: inspector;
-}
-
-.log-card {
-  grid-area: log;
+.right-column {
+  display: grid;
+  grid-area: right;
+  gap: 14px;
 }
 
 .card-header {
@@ -624,8 +621,7 @@ h2 {
     grid-template-areas:
       "canvas"
       "controls"
-      "try"
-      "inspector";
+      "right";
   }
 
   .canvas {

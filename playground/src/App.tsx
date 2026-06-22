@@ -184,29 +184,31 @@ export function App() {
             />
           </article>
 
-          <article className="scenario-card inspector-card">
-            <div className="card-header">
-              <h2>Inspector</h2>
-            </div>
-            <dl className="inspector-list">
-              {inspector.rows.map((row) => (
-                <div key={row.label}>
-                  <dt>{row.label}</dt>
-                  <dd title={row.value}>{row.value}</dd>
-                </div>
-              ))}
-            </dl>
-          </article>
+          <div className="right-column">
+            <article className="scenario-card inspector-card">
+              <div className="card-header">
+                <h2>Inspector</h2>
+              </div>
+              <dl className="inspector-list">
+                {inspector.rows.map((row) => (
+                  <div key={row.label}>
+                    <dt>{row.label}</dt>
+                    <dd title={row.value}>{row.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </article>
 
-          <article className="scenario-card log-card">
-            <div className="card-header">
-              <h2>Log</h2>
-            </div>
-            <ScenarioLog
-              dialogScenario={dialogScenario}
-              scenarioId={activeScenario.id}
-            />
-          </article>
+            <article className="scenario-card log-card">
+              <div className="card-header">
+                <h2>Log</h2>
+              </div>
+              <ScenarioLog
+                dialogScenario={dialogScenario}
+                scenarioId={activeScenario.id}
+              />
+            </article>
+          </div>
         </section>
       </main>
     </div>
