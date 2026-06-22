@@ -93,6 +93,14 @@ const scenarios: Scenario[] = [
 ];
 
 const categories = ["Forms", "Overlays", "Navigation", "Data", "Utilities"];
+const focusableSelector = [
+  "button:not([disabled])",
+  "[href]",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  "[tabindex]:not([tabindex='-1'])",
+].join(",");
 
 function getScenario(id: string) {
   return scenarios.find((scenario) => scenario.id === id) ?? scenarios[0];
@@ -108,6 +116,10 @@ export function App() {
   const inspectorRows = activeInspectorTab === "selected"
     ? inspector.selectedRows
     : inspector.focusedRows;
+  const focusCanvas = () => {
+    const focusTarget = inspector.rootRef.current?.querySelector<HTMLElement>(focusableSelector);
+    focusTarget?.focus();
+  };
 
   return (
     <div className="app-shell">
@@ -174,6 +186,9 @@ export function App() {
           <article className="scenario-card canvas-card">
             <div className="card-header">
               <h2>Canvas</h2>
+              <button className="header-action" type="button" onClick={focusCanvas}>
+                Focus Canvas
+              </button>
             </div>
             <ScenarioToolbar
               dialogScenario={dialogScenario}
