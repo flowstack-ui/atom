@@ -125,9 +125,9 @@ export function App() {
       focusTarget.classList.add("canvas-focus-target");
       setActiveInspectorTab("focused");
 
-      window.setTimeout(() => {
+      focusTarget.addEventListener("blur", () => {
         focusTarget.classList.remove("canvas-focus-target");
-      }, 1400);
+      }, { once: true });
     });
   };
 
