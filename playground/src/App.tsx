@@ -189,14 +189,21 @@ export function App() {
               <div className="card-header">
                 <h2>Inspector</h2>
               </div>
-              <dl className="inspector-list">
-                {inspector.rows.map((row) => (
-                  <div key={row.label}>
-                    <dt>{row.label}</dt>
-                    <dd title={row.value}>{row.value}</dd>
-                  </div>
+              <div className="inspector-sections">
+                {inspector.sections.map((section) => (
+                  <section className="inspector-section" key={section.title}>
+                    <h3>{section.title}</h3>
+                    <dl className="inspector-list">
+                      {section.rows.map((row) => (
+                        <div key={row.label}>
+                          <dt>{row.label}</dt>
+                          <dd title={row.value}>{row.value}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </section>
                 ))}
-              </dl>
+              </div>
             </article>
 
             <article className="scenario-card log-card">

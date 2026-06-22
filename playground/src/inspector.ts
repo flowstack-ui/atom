@@ -5,9 +5,14 @@ export type InspectorRow = {
   value: string;
 };
 
+export type InspectorSection = {
+  title: string;
+  rows: InspectorRow[];
+};
+
 export type ElementInspector = {
   rootRef: RefObject<HTMLDivElement | null>;
-  rows: InspectorRow[];
+  sections: InspectorSection[];
 };
 
 const observedAttributes = [
@@ -53,9 +58,31 @@ function getBooleanAttribute(element: Element | null, name: string): string {
   return element.hasAttribute(name) ? "yes" : "no";
 }
 
+function isFocusable(element: Element | null): string {
+  if (!(element instanceof HTMLElement)) return "none";
+  if (element.hasAttribute("disabled")) return "no";
+
+  const tabIndex = element.tabIndex;
+  return tabIndex >= 0 || element.getAttribute("tabindex") === "-1" ? "yes" : "no";
+}
+
 function isInspectable(root: HTMLDivElement | null, element: Element | null): boolean {
   if (!element) return false;
   return Boolean(root?.contains(element) || element.closest("[data-playground-inspect]"));
+}
+
+function getElementRows(element: Element | null): InspectorRow[] {
+  return [
+    { label: "Element", value: formatElement(element) },
+    { label: "Tag", value: element ? element.tagName.toLowerCase() : "none" },
+    { label: "Role", value: element?.getAttribute("role") ?? "none" },
+    { label: "ARIA", value: getAttributes(element, "aria-") },
+    { label: "Data", value: getAttributes(element, "data-") },
+    { label: "Disabled", value: getBooleanAttribute(element, "disabled") },
+    { label: "Hidden", value: getBooleanAttribute(element, "hidden") },
+    { label: "Focusable", value: isFocusable(element) },
+    { label: "Tabindex attr", value: element?.getAttribute("tabindex") ?? "none" },
+  ];
 }
 
 export function useElementInspector(): ElementInspector {
@@ -150,21 +177,12 @@ export function useElementInspector(): ElementInspector {
     return () => cancelAnimationFrame(frame);
   }, []);
 
-  const rows = useMemo<InspectorRow[]>(() => {
-    const target = selectedElement ?? focusedElement;
-
+  const sections = useMemo<InspectorSection[]>(() => {
     return [
-      { label: "Focused", value: formatElement(focusedElement) },
-      { label: "Selected", value: formatElement(selectedElement) },
-      { label: "Tag", value: target ? target.tagName.toLowerCase() : "none" },
-      { label: "Role", value: target?.getAttribute("role") ?? "none" },
-      { label: "ARIA", value: getAttributes(target, "aria-") },
-      { label: "Data", value: getAttributes(target, "data-") },
-      { label: "Disabled", value: getBooleanAttribute(target, "disabled") },
-      { label: "Hidden", value: getBooleanAttribute(target, "hidden") },
-      { label: "Tabindex", value: target?.getAttribute("tabindex") ?? "none" },
+      { title: "Focused", rows: getElementRows(focusedElement) },
+      { title: "Selected", rows: getElementRows(selectedElement) },
     ];
   }, [focusedElement, selectedElement, revision]);
 
-  return { rootRef, rows };
+  return { rootRef, sections };
 }

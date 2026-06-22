@@ -582,12 +582,33 @@ h2 {
   line-height: 1.35;
 }
 
-.inspector-list {
+.inspector-sections {
   display: grid;
   max-height: 536px;
-  margin: 0;
+  gap: 12px;
   overflow: auto;
-  padding: 4px 0;
+  padding: 13px;
+}
+
+.inspector-section {
+  display: grid;
+  gap: 6px;
+}
+
+.inspector-section h3 {
+  margin: 0;
+  color: #4f5d6e;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.inspector-list {
+  display: grid;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid #dde3ea;
+  border-radius: 7px;
+  background: #dde3ea;
 }
 
 .inspector-list div {
@@ -595,7 +616,7 @@ h2 {
   grid-template-columns: 82px minmax(0, 1fr);
   gap: 10px;
   align-items: start;
-  border-bottom: 1px solid #edf0f4;
+  background: #ffffff;
   padding: 10px 13px;
 }
 
