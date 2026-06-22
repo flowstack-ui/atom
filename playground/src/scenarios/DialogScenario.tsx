@@ -34,9 +34,7 @@ export function DialogScenarioCanvas({
         closeOnEscape={state.closeOnEscape}
         closeOnBackdropClick={state.closeOnBackdropClick}
       >
-        {state.controlled ? null : (
-          <Dialog.Trigger className="atom-button">Open dialog</Dialog.Trigger>
-        )}
+        <Dialog.Trigger className="atom-button">Open dialog</Dialog.Trigger>
         {state.controlled ? (
           <button
             className="atom-button secondary"
