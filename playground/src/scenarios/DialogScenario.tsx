@@ -1,121 +1,186 @@
-import { useState } from "react";
 import { Dialog } from "@flowstack-ui/atom/dialog";
+import type {
+  DialogScenarioActions,
+  DialogScenarioState,
+} from "./useDialogScenario";
 
-export function DialogScenario() {
-  const [controlled, setControlled] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [disabled, setDisabled] = useState(false);
-  const [keepMounted, setKeepMounted] = useState(false);
-  const [closeOnEscape, setCloseOnEscape] = useState(true);
-  const [closeOnBackdropClick, setCloseOnBackdropClick] = useState(true);
-  const [lastChange, setLastChange] = useState("Ready");
-
-  const rootProps = controlled
+export function DialogScenarioCanvas({
+  state,
+  onOpenChange,
+  onControlledClose,
+}: {
+  state: DialogScenarioState;
+  onOpenChange: (open: boolean, reason?: string) => void;
+  onControlledClose: () => void;
+}) {
+  const rootProps = state.controlled
     ? {
-        open,
-        onOpenChange: (nextOpen: boolean, reason?: string) => {
-          setOpen(nextOpen);
-          setLastChange(reason ? `${nextOpen ? "Opened" : "Closed"} by ${reason}` : "Opened");
-        },
+        open: state.open,
+        onOpenChange,
       }
     : {
         defaultOpen: false,
-        onOpenChange: (nextOpen: boolean, reason?: string) => {
-          setOpen(nextOpen);
-          setLastChange(reason ? `${nextOpen ? "Opened" : "Closed"} by ${reason}` : "Opened");
-        },
+        onOpenChange,
       };
 
   return (
-    <>
+    <div className="dialog-stage">
+      <Dialog.Root
+        {...rootProps}
+        disabled={state.disabled}
+        keepMounted={state.keepMounted}
+        closeOnEscape={state.closeOnEscape}
+        closeOnBackdropClick={state.closeOnBackdropClick}
+      >
+        <Dialog.Trigger className="atom-button">Open dialog</Dialog.Trigger>
+        {state.controlled ? (
+          <button
+            className="atom-button secondary"
+            type="button"
+            onClick={() => onOpenChange(true)}
+          >
+            Open controlled
+          </button>
+        ) : null}
+        <Dialog.Portal>
+          <Dialog.Overlay className="atom-dialog-overlay" data-playground-inspect="" />
+          <Dialog.Content
+            ariaLabel={state.useAriaLabel ? "Project settings" : undefined}
+            className="atom-dialog-content"
+            data-playground-inspect=""
+          >
+            {state.useAriaLabel ? null : <Dialog.Title>Project settings</Dialog.Title>}
+            <Dialog.Description>
+              Change a setting, tab through the controls, press Escape, or close the dialog.
+            </Dialog.Description>
+            <div className="dialog-form-row">
+              <label htmlFor="dialog-name">Name</label>
+              <input id="dialog-name" defaultValue="Atom Playground" />
+            </div>
+            <div className="dialog-form-row">
+              <label htmlFor="dialog-mode">Mode</label>
+              <select id="dialog-mode" defaultValue="manual">
+                <option value="manual">Manual</option>
+                <option value="auto">Automatic</option>
+              </select>
+            </div>
+            <div className="dialog-actions">
+              {state.controlled ? (
+                <button
+                  className="atom-button secondary"
+                  type="button"
+                  onClick={onControlledClose}
+                >
+                  Close controlled
+                </button>
+              ) : null}
+              <Dialog.Close className="atom-button secondary">Cancel</Dialog.Close>
+              <Dialog.Close className="atom-button">Save</Dialog.Close>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+    </div>
+  );
+}
+
+export function DialogScenarioControls({
+  state,
+  actions,
+}: {
+  state: DialogScenarioState;
+  actions: DialogScenarioActions;
+}) {
+  return (
+    <div className="scenario-controls">
       <div className="control-strip" aria-label="Dialog controls">
-        <label>
-          <input
-            type="checkbox"
-            checked={controlled}
-            onChange={(event) => setControlled(event.target.checked)}
-          />
-          Controlled
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            checked={disabled}
-            onChange={(event) => setDisabled(event.target.checked)}
-          />
-          Disabled
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            checked={keepMounted}
-            onChange={(event) => setKeepMounted(event.target.checked)}
-          />
-          Keep mounted
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            checked={closeOnEscape}
-            onChange={(event) => setCloseOnEscape(event.target.checked)}
-          />
-          Escape closes
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            checked={closeOnBackdropClick}
-            onChange={(event) => setCloseOnBackdropClick(event.target.checked)}
-          />
-          Backdrop closes
-        </label>
-        {controlled ? (
-          <button type="button" onClick={() => setOpen((currentOpen) => !currentOpen)}>
-            {open ? "Close" : "Open"}
+        <ToggleControl
+          checked={state.controlled}
+          label="Controlled"
+          onChange={actions.setControlled}
+        />
+        <ToggleControl
+          checked={state.disabled}
+          label="Disabled"
+          onChange={actions.setDisabled}
+        />
+        <ToggleControl
+          checked={state.keepMounted}
+          label="Keep mounted"
+          onChange={actions.setKeepMounted}
+        />
+        <ToggleControl
+          checked={state.closeOnEscape}
+          label="Escape closes"
+          onChange={actions.setCloseOnEscape}
+        />
+        <ToggleControl
+          checked={state.closeOnBackdropClick}
+          label="Backdrop closes"
+          onChange={actions.setCloseOnBackdropClick}
+        />
+        <ToggleControl
+          checked={state.useAriaLabel}
+          label="Use ariaLabel"
+          onChange={actions.setUseAriaLabel}
+        />
+        {state.controlled ? (
+          <button
+            type="button"
+            onClick={() => actions.setControlledOpen(!state.open)}
+          >
+            {state.open ? "Close" : "Open"}
           </button>
         ) : null}
       </div>
 
-      <div className="dialog-stage">
-        <Dialog.Root
-          {...rootProps}
-          disabled={disabled}
-          keepMounted={keepMounted}
-          closeOnEscape={closeOnEscape}
-          closeOnBackdropClick={closeOnBackdropClick}
-        >
-          <Dialog.Trigger className="atom-button">Open dialog</Dialog.Trigger>
-          <Dialog.Portal>
-            <Dialog.Overlay className="atom-dialog-overlay" data-playground-inspect="" />
-            <Dialog.Content className="atom-dialog-content" data-playground-inspect="">
-              <Dialog.Title>Project settings</Dialog.Title>
-              <Dialog.Description>
-                Change a setting, tab through the controls, press Escape, or close the dialog.
-              </Dialog.Description>
-              <div className="dialog-form-row">
-                <label htmlFor="dialog-name">Name</label>
-                <input id="dialog-name" defaultValue="Atom Playground" />
-              </div>
-              <div className="dialog-form-row">
-                <label htmlFor="dialog-mode">Mode</label>
-                <select id="dialog-mode" defaultValue="manual">
-                  <option value="manual">Manual</option>
-                  <option value="auto">Automatic</option>
-                </select>
-              </div>
-              <div className="dialog-actions">
-                <Dialog.Close className="atom-button secondary">Cancel</Dialog.Close>
-                <Dialog.Close className="atom-button">Save</Dialog.Close>
-              </div>
-            </Dialog.Content>
-          </Dialog.Portal>
-        </Dialog.Root>
-
-        <div className="scenario-note" aria-live="polite">
-          <span>Open:</span> {String(open)}
-          <span>Last:</span> {lastChange}
+      <dl className="state-grid" aria-label="Dialog state">
+        <div>
+          <dt>Open</dt>
+          <dd>{String(state.open)}</dd>
         </div>
+        <div>
+          <dt>Mode</dt>
+          <dd>{state.controlled ? "controlled" : "uncontrolled"}</dd>
+        </div>
+        <div>
+          <dt>Last reason</dt>
+          <dd>{state.lastReason}</dd>
+        </div>
+      </dl>
+
+      <div className="event-log">
+        <div className="event-log-header">
+          <h3>Log</h3>
+          <button type="button" onClick={actions.clearLog}>Clear</button>
+        </div>
+        <ol>
+          {state.log.map((entry) => (
+            <li key={entry.id}>{entry.text}</li>
+          ))}
+        </ol>
       </div>
-    </>
+    </div>
+  );
+}
+
+function ToggleControl({
+  checked,
+  label,
+  onChange,
+}: {
+  checked: boolean;
+  label: string;
+  onChange: (value: boolean) => void;
+}) {
+  return (
+    <label>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+      />
+      {label}
+    </label>
   );
 }

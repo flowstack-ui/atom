@@ -2,7 +2,11 @@ import { useState } from "react";
 import "./styles.css";
 import packageInfo from "../../package.json";
 import { useElementInspector } from "./inspector";
-import { DialogScenario } from "./scenarios/DialogScenario";
+import {
+  DialogScenarioCanvas,
+  DialogScenarioControls,
+} from "./scenarios/DialogScenario";
+import { useDialogScenario } from "./scenarios/useDialogScenario";
 
 type Scenario = {
   id: string;
@@ -97,6 +101,7 @@ export function App() {
   const [activeScenarioId, setActiveScenarioId] = useState("dialog");
   const activeScenario = getScenario(activeScenarioId);
   const inspector = useElementInspector();
+  const dialogScenario = useDialogScenario();
 
   return (
     <div className="app-shell">
@@ -166,7 +171,11 @@ export function App() {
               <h2>Canvas</h2>
             </div>
             <div className="canvas" ref={inspector.rootRef}>
-              <ScenarioCanvas scenarioId={activeScenario.id} label={activeScenario.label} />
+              <ScenarioCanvas
+                dialogScenario={dialogScenario}
+                scenarioId={activeScenario.id}
+                label={activeScenario.label}
+              />
             </div>
           </article>
 
@@ -174,7 +183,10 @@ export function App() {
             <div className="card-header">
               <h2>Controls</h2>
             </div>
-            <ScenarioControls scenarioId={activeScenario.id} />
+            <ScenarioControls
+              dialogScenario={dialogScenario}
+              scenarioId={activeScenario.id}
+            />
           </article>
 
           <article className="scenario-card inspector-card">
@@ -196,9 +208,23 @@ export function App() {
   );
 }
 
-function ScenarioCanvas({ scenarioId, label }: { scenarioId: string; label: string }) {
+function ScenarioCanvas({
+  dialogScenario,
+  scenarioId,
+  label,
+}: {
+  dialogScenario: ReturnType<typeof useDialogScenario>;
+  scenarioId: string;
+  label: string;
+}) {
   if (scenarioId === "dialog") {
-    return <DialogScenario />;
+    return (
+      <DialogScenarioCanvas
+        state={dialogScenario.state}
+        onOpenChange={dialogScenario.handleOpenChange}
+        onControlledClose={() => dialogScenario.actions.setControlledOpen(false)}
+      />
+    );
   }
 
   return (
@@ -208,12 +234,19 @@ function ScenarioCanvas({ scenarioId, label }: { scenarioId: string; label: stri
   );
 }
 
-function ScenarioControls({ scenarioId }: { scenarioId: string }) {
+function ScenarioControls({
+  dialogScenario,
+  scenarioId,
+}: {
+  dialogScenario: ReturnType<typeof useDialogScenario>;
+  scenarioId: string;
+}) {
   if (scenarioId === "dialog") {
     return (
-      <p className="controls-note">
-        Dialog controls live inside the canvas so they can be inspected with the component.
-      </p>
+      <DialogScenarioControls
+        state={dialogScenario.state}
+        actions={dialogScenario.actions}
+      />
     );
   }
 

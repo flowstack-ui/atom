@@ -245,7 +245,6 @@ h2 {
 
 .canvas {
   display: grid;
-  gap: 18px;
   min-height: 420px;
   place-items: center;
   border-radius: 0 0 8px 8px;
@@ -272,9 +271,7 @@ h2 {
 
 .control-strip {
   display: flex;
-  max-width: 520px;
   flex-wrap: wrap;
-  justify-content: center;
   gap: 8px;
 }
 
@@ -305,10 +302,18 @@ h2 {
   color: #ffffff;
 }
 
-.dialog-stage {
+.scenario-controls {
   display: grid;
+  gap: 12px;
+  padding: 13px;
+}
+
+.dialog-stage {
+  display: flex;
+  flex-wrap: wrap;
   place-items: center;
-  gap: 18px;
+  justify-content: center;
+  gap: 10px;
 }
 
 .atom-button {
@@ -414,21 +419,6 @@ h2 {
   margin-top: 4px;
 }
 
-.scenario-note {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px 12px;
-  color: #4d5b6b;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  font-size: 12px;
-}
-
-.scenario-note span {
-  color: #24303d;
-  font-weight: 700;
-}
-
 .toolbar-row {
   display: flex;
   flex-wrap: wrap;
@@ -456,20 +446,105 @@ h2 {
   line-height: 1.45;
 }
 
+.state-grid {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid #dde3ea;
+  border-radius: 7px;
+  background: #dde3ea;
+}
+
+.state-grid div {
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  gap: 8px;
+  min-height: 30px;
+  align-items: center;
+  background: #ffffff;
+  padding: 0 9px;
+}
+
+.state-grid dt {
+  color: #667282;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.state-grid dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #24303d;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+}
+
+.event-log {
+  display: grid;
+  gap: 8px;
+}
+
+.event-log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.event-log h3 {
+  margin: 0;
+  color: #283442;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.event-log-header button {
+  min-height: 26px;
+  border: 1px solid #c8d0da;
+  border-radius: 5px;
+  background: #f7f9fb;
+  padding: 0 8px;
+  color: #26313e;
+  font-size: 12px;
+}
+
+.event-log ol {
+  display: grid;
+  max-height: 142px;
+  gap: 6px;
+  margin: 0;
+  overflow: auto;
+  padding: 0;
+  list-style: none;
+}
+
+.event-log li {
+  border: 1px solid #e1e6ed;
+  border-radius: 6px;
+  background: #fbfcfd;
+  padding: 7px 8px;
+  color: #394657;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .inspector-list {
   display: grid;
+  max-height: 536px;
   margin: 0;
+  overflow: auto;
   padding: 4px 0;
 }
 
 .inspector-list div {
   display: grid;
-  grid-template-columns: 90px minmax(0, 1fr);
+  grid-template-columns: 82px minmax(0, 1fr);
   gap: 10px;
-  min-height: 38px;
-  align-items: center;
+  align-items: start;
   border-bottom: 1px solid #edf0f4;
-  padding: 0 13px;
+  padding: 10px 13px;
 }
 
 .inspector-list div:last-child {
@@ -485,12 +560,12 @@ h2 {
 .inspector-list dd {
   min-width: 0;
   margin: 0;
-  overflow: hidden;
   color: #24303d;
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   font-size: 12px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 @media (max-width: 880px) {
