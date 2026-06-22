@@ -87,17 +87,10 @@ export function DialogScenarioCanvas({
   );
 }
 
-export function DialogScenarioControls({
-  state,
-  actions,
-}: {
-  state: DialogScenarioState;
-  actions: DialogScenarioActions;
-}) {
+export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState }) {
   return (
     <div className="scenario-controls">
       <div className="parts-panel">
-        <h3>Parts</h3>
         <PartGroup title="Root">
           <PartRow label="Mode" value={state.controlled ? "controlled" : "uncontrolled"} />
           <PartRow label="Disabled" value={state.disabled ? "Yes" : "No"} />
@@ -146,10 +139,21 @@ export function DialogScenarioControls({
           <PartRow label="Matches description" value={state.parts.descriptionMatches} />
         </PartGroup>
       </div>
+    </div>
+  );
+}
 
+export function DialogScenarioLog({
+  state,
+  actions,
+}: {
+  state: DialogScenarioState;
+  actions: DialogScenarioActions;
+}) {
+  return (
+    <div className="scenario-log">
       <div className="event-log">
         <div className="event-log-header">
-          <h3>Log</h3>
           <button type="button" onClick={actions.clearLog}>Clear</button>
         </div>
         <ol>

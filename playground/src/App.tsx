@@ -3,8 +3,9 @@ import "./styles.css";
 import packageInfo from "../../package.json";
 import { useElementInspector } from "./inspector";
 import {
+  DialogScenarioAnatomy,
   DialogScenarioCanvas,
-  DialogScenarioControls,
+  DialogScenarioLog,
   DialogScenarioToolbar,
 } from "./scenarios/DialogScenario";
 import { useDialogScenario } from "./scenarios/useDialogScenario";
@@ -175,9 +176,9 @@ export function App() {
 
           <article className="scenario-card controls-card">
             <div className="card-header">
-              <h2>Controls</h2>
+              <h2>Anatomy</h2>
             </div>
-            <ScenarioControls
+            <ScenarioAnatomy
               dialogScenario={dialogScenario}
               scenarioId={activeScenario.id}
             />
@@ -195,6 +196,16 @@ export function App() {
                 </div>
               ))}
             </dl>
+          </article>
+
+          <article className="scenario-card log-card">
+            <div className="card-header">
+              <h2>Log</h2>
+            </div>
+            <ScenarioLog
+              dialogScenario={dialogScenario}
+              scenarioId={activeScenario.id}
+            />
           </article>
         </section>
       </main>
@@ -248,7 +259,7 @@ function ScenarioCanvas({
   );
 }
 
-function ScenarioControls({
+function ScenarioAnatomy({
   dialogScenario,
   scenarioId,
 }: {
@@ -257,10 +268,7 @@ function ScenarioControls({
 }) {
   if (scenarioId === "dialog") {
     return (
-      <DialogScenarioControls
-        state={dialogScenario.state}
-        actions={dialogScenario.actions}
-      />
+      <DialogScenarioAnatomy state={dialogScenario.state} />
     );
   }
 
@@ -271,4 +279,23 @@ function ScenarioControls({
       <button type="button">RTL</button>
     </div>
   );
+}
+
+function ScenarioLog({
+  dialogScenario,
+  scenarioId,
+}: {
+  dialogScenario: ReturnType<typeof useDialogScenario>;
+  scenarioId: string;
+}) {
+  if (scenarioId === "dialog") {
+    return (
+      <DialogScenarioLog
+        state={dialogScenario.state}
+        actions={dialogScenario.actions}
+      />
+    );
+  }
+
+  return null;
 }

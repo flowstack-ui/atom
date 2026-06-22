@@ -177,7 +177,8 @@ h2 {
   display: grid;
   grid-template-columns: minmax(220px, 0.72fr) minmax(420px, 1.7fr) minmax(240px, 0.85fr);
   grid-template-areas:
-    "controls canvas inspector";
+    "controls canvas inspector"
+    "controls canvas log";
   gap: 14px;
   align-items: start;
 }
@@ -199,6 +200,10 @@ h2 {
 
 .inspector-card {
   grid-area: inspector;
+}
+
+.log-card {
+  grid-area: log;
 }
 
 .card-header {
@@ -449,13 +454,6 @@ h2 {
   gap: 10px;
 }
 
-.parts-panel h3 {
-  margin: 0;
-  color: #283442;
-  font-size: 13px;
-  font-weight: 700;
-}
-
 .part-group {
   display: grid;
   gap: 6px;
@@ -504,6 +502,10 @@ h2 {
   line-height: 1.35;
 }
 
+.scenario-log {
+  padding: 13px;
+}
+
 .event-log {
   display: grid;
   gap: 8px;
@@ -514,13 +516,6 @@ h2 {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-}
-
-.event-log h3 {
-  margin: 0;
-  color: #283442;
-  font-size: 13px;
-  font-weight: 700;
 }
 
 .event-log-header button {
