@@ -13,25 +13,35 @@ export type DialogScenarioState = {
   closeOnBackdropClick: boolean;
   useAriaLabel: boolean;
   open: boolean;
-  lastReason: string;
   log: DialogLogEntry[];
   parts: DialogPartsSnapshot;
 };
 
 export type DialogPartsSnapshot = {
+  triggerExists: string;
   triggerState: string;
   triggerControls: string;
+  triggerDisabled: string;
   contentExists: string;
   contentId: string;
+  contentRole: string;
   contentState: string;
   contentHidden: string;
+  contentAriaModal: string;
   contentAriaLabel: string;
   contentLabelledBy: string;
+  contentDescribedBy: string;
   controlsMatch: string;
   overlayExists: string;
   overlayState: string;
   portalParent: string;
   inCanvas: string;
+  titleExists: string;
+  titleId: string;
+  titleMatches: string;
+  descriptionExists: string;
+  descriptionId: string;
+  descriptionMatches: string;
 };
 
 export type DialogScenarioActions = {
@@ -55,7 +65,6 @@ export function useDialogScenario() {
   const [closeOnEscape, setCloseOnEscape] = useState(true);
   const [closeOnBackdropClick, setCloseOnBackdropClick] = useState(true);
   const [useAriaLabel, setUseAriaLabel] = useState(false);
-  const [lastReason, setLastReason] = useState("None");
   const [log, setLog] = useState<DialogLogEntry[]>([
     { id: 1, text: "Ready" },
   ]);
@@ -70,13 +79,11 @@ export function useDialogScenario() {
 
   const setControlledOpen = (nextOpen: boolean) => {
     setOpen(nextOpen);
-    setLastReason("external");
     addLog(`${nextOpen ? "Opened" : "Closed"} by external control`);
   };
 
   const handleOpenChange = (nextOpen: boolean, reason?: string) => {
     setOpen(nextOpen);
-    setLastReason(reason ?? "open");
     addLog(reason ? `Closed by ${reason}` : "Opened from trigger");
   };
 
@@ -122,7 +129,6 @@ export function useDialogScenario() {
     closeOnBackdropClick,
     useAriaLabel,
     open,
-    lastReason,
     log,
     parts,
   };
@@ -151,20 +157,33 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
   const trigger = document.querySelector("[data-slot='dialog-trigger']");
   const content = document.querySelector("[data-slot='dialog-content']");
   const overlay = document.querySelector("[data-slot='dialog-overlay']");
+  const title = document.querySelector("[data-slot='dialog-title']");
+  const description = document.querySelector("[data-slot='dialog-description']");
   const canvas = document.querySelector(".canvas");
   const triggerControls = trigger?.getAttribute("aria-controls") ?? "None";
   const contentId = content?.id || "None";
+  const labelledBy = content?.getAttribute("aria-labelledby") ?? "None";
+  const describedBy = content?.getAttribute("aria-describedby") ?? "None";
+  const titleId = title?.id || "None";
+  const descriptionId = description?.id || "None";
   const contentParent = content?.parentElement;
 
   return {
+    triggerExists: trigger ? "Yes" : "No",
     triggerState: trigger?.getAttribute("data-state") ?? "None",
     triggerControls,
+    triggerDisabled: trigger?.hasAttribute("disabled") || trigger?.hasAttribute("data-disabled")
+      ? "Yes"
+      : "No",
     contentExists: content ? "Yes" : "No",
     contentId,
+    contentRole: content?.getAttribute("role") ?? "None",
     contentState: content?.getAttribute("data-state") ?? "None",
     contentHidden: content?.closest("[hidden]") || content?.hasAttribute("hidden") ? "Yes" : "No",
+    contentAriaModal: content?.getAttribute("aria-modal") ?? "None",
     contentAriaLabel: content?.getAttribute("aria-label") ?? "None",
-    contentLabelledBy: content?.getAttribute("aria-labelledby") ?? "None",
+    contentLabelledBy: labelledBy,
+    contentDescribedBy: describedBy,
     controlsMatch: triggerControls !== "None" && triggerControls === contentId ? "Yes" : "No",
     overlayExists: overlay ? "Yes" : "No",
     overlayState: overlay?.getAttribute("data-state") ?? "None",
@@ -174,21 +193,38 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
         : contentParent.tagName.toLowerCase()
       : "None",
     inCanvas: content && canvas?.contains(content) ? "Yes" : "No",
+    titleExists: title ? "Yes" : "No",
+    titleId,
+    titleMatches: labelledBy !== "None" && labelledBy === titleId ? "Yes" : "No",
+    descriptionExists: description ? "Yes" : "No",
+    descriptionId,
+    descriptionMatches: describedBy !== "None" && describedBy === descriptionId ? "Yes" : "No",
   };
 }
 
 const emptyDialogPartsSnapshot: DialogPartsSnapshot = {
+  triggerExists: "No",
   triggerState: "None",
   triggerControls: "None",
+  triggerDisabled: "No",
   contentExists: "No",
   contentId: "None",
+  contentRole: "None",
   contentState: "None",
   contentHidden: "No",
+  contentAriaModal: "None",
   contentAriaLabel: "None",
   contentLabelledBy: "None",
+  contentDescribedBy: "None",
   controlsMatch: "No",
   overlayExists: "No",
   overlayState: "None",
   portalParent: "None",
   inCanvas: "No",
+  titleExists: "No",
+  titleId: "None",
+  titleMatches: "No",
+  descriptionExists: "No",
+  descriptionId: "None",
+  descriptionMatches: "No",
 };

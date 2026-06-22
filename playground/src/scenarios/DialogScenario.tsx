@@ -1,4 +1,5 @@
 import { Dialog } from "@flowstack-ui/atom/dialog";
+import type { ReactNode } from "react";
 import type {
   DialogScenarioActions,
   DialogScenarioState,
@@ -95,38 +96,55 @@ export function DialogScenarioControls({
 }) {
   return (
     <div className="scenario-controls">
-      <dl className="state-grid" aria-label="Dialog state">
-        <div>
-          <dt>Open</dt>
-          <dd>{String(state.open)}</dd>
-        </div>
-        <div>
-          <dt>Mode</dt>
-          <dd>{state.controlled ? "controlled" : "uncontrolled"}</dd>
-        </div>
-        <div>
-          <dt>Last reason</dt>
-          <dd>{state.lastReason}</dd>
-        </div>
-      </dl>
-
       <div className="parts-panel">
         <h3>Parts</h3>
-        <dl className="parts-grid" aria-label="Dialog parts">
-          <PartRow label="Trigger state" value={state.parts.triggerState} />
-          <PartRow label="Trigger controls" value={state.parts.triggerControls} />
-          <PartRow label="Content exists" value={state.parts.contentExists} />
-          <PartRow label="Content id" value={state.parts.contentId} />
+        <PartGroup title="Root">
+          <PartRow label="Mode" value={state.controlled ? "controlled" : "uncontrolled"} />
+          <PartRow label="Disabled" value={state.disabled ? "Yes" : "No"} />
+          <PartRow label="Keep mounted" value={state.keepMounted ? "Yes" : "No"} />
+          <PartRow label="Escape closes" value={state.closeOnEscape ? "Yes" : "No"} />
+          <PartRow
+            label="Backdrop closes"
+            value={state.closeOnBackdropClick ? "Yes" : "No"}
+          />
+        </PartGroup>
+        <PartGroup title="Trigger">
+          <PartRow label="Exists" value={state.parts.triggerExists} />
+          <PartRow label="data-state" value={state.parts.triggerState} />
+          <PartRow label="aria-controls" value={state.parts.triggerControls} />
           <PartRow label="Controls match" value={state.parts.controlsMatch} />
-          <PartRow label="Content state" value={state.parts.contentState} />
-          <PartRow label="Content hidden" value={state.parts.contentHidden} />
+          <PartRow label="Disabled" value={state.parts.triggerDisabled} />
+        </PartGroup>
+        <PartGroup title="Portal">
+          <PartRow label="Parent" value={state.parts.portalParent} />
+          <PartRow label="Inside canvas" value={state.parts.inCanvas} />
+          <PartRow label="Content exists" value={state.parts.contentExists} />
+        </PartGroup>
+        <PartGroup title="Overlay">
+          <PartRow label="Exists" value={state.parts.overlayExists} />
+          <PartRow label="data-state" value={state.parts.overlayState} />
+        </PartGroup>
+        <PartGroup title="Content">
+          <PartRow label="Exists" value={state.parts.contentExists} />
+          <PartRow label="id" value={state.parts.contentId} />
+          <PartRow label="role" value={state.parts.contentRole} />
+          <PartRow label="data-state" value={state.parts.contentState} />
+          <PartRow label="Hidden" value={state.parts.contentHidden} />
+          <PartRow label="aria-modal" value={state.parts.contentAriaModal} />
           <PartRow label="aria-label" value={state.parts.contentAriaLabel} />
           <PartRow label="aria-labelledby" value={state.parts.contentLabelledBy} />
-          <PartRow label="Overlay exists" value={state.parts.overlayExists} />
-          <PartRow label="Overlay state" value={state.parts.overlayState} />
-          <PartRow label="Portal parent" value={state.parts.portalParent} />
-          <PartRow label="Inside canvas" value={state.parts.inCanvas} />
-        </dl>
+          <PartRow label="aria-describedby" value={state.parts.contentDescribedBy} />
+        </PartGroup>
+        <PartGroup title="Title">
+          <PartRow label="Exists" value={state.parts.titleExists} />
+          <PartRow label="id" value={state.parts.titleId} />
+          <PartRow label="Matches label" value={state.parts.titleMatches} />
+        </PartGroup>
+        <PartGroup title="Description">
+          <PartRow label="Exists" value={state.parts.descriptionExists} />
+          <PartRow label="id" value={state.parts.descriptionId} />
+          <PartRow label="Matches description" value={state.parts.descriptionMatches} />
+        </PartGroup>
       </div>
 
       <div className="event-log">
@@ -184,6 +202,15 @@ export function DialogScenarioToolbar({
         onChange={actions.setUseAriaLabel}
       />
     </div>
+  );
+}
+
+function PartGroup({ children, title }: { children: ReactNode; title: string }) {
+  return (
+    <section className="part-group" aria-label={title}>
+      <h4>{title}</h4>
+      <dl className="parts-grid">{children}</dl>
+    </section>
   );
 }
 
