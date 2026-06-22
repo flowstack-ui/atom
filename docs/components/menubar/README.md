@@ -114,6 +114,8 @@ Opens one top-level menu.
 ## Accessibility
 
 Implements a horizontal menubar pattern. Top-level triggers use roving focus and open menus with keyboard or pointer input.
+Portalled menu content registers with a parent modal focus scope when opened
+inside Dialog, Drawer, or another modal primitive.
 
 | Key | Description |
 | --- | --- |

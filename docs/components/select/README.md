@@ -248,6 +248,8 @@ Decorative popup arrow slot.
 ## Accessibility
 
 Implements a button-based combobox that controls a listbox. The trigger owns keyboard interaction and references the highlighted option with `aria-activedescendant`.
+Portalled Select content registers with a parent modal focus scope when opened
+inside Dialog, Drawer, or another modal primitive.
 
 | Key | Description |
 | --- | --- |

@@ -2,6 +2,22 @@
 
 Use this checklist before publishing `@flowstack-ui/atom`.
 
+## Post-Release Change Tracking
+
+After a version has been published, do not bump `package.json` for every code
+change. Track changes under `Unreleased` until the next publish is prepared.
+
+- Update the root `CHANGELOG.md` for package-level behavior, API, or shared
+  utility changes.
+- Update every affected component `CHANGELOG.md`.
+- Update public docs when behavior, accessibility, anatomy, or semantics change.
+- Update playground coverage when the playground exposes or verifies the change.
+- When ready to publish, convert `Unreleased` entries into the target version,
+  then bump `package.json` and `package-lock.json` in the release commit.
+
+Use patch versions for compatible bug fixes and behavior corrections. Use minor
+versions for new public APIs or materially expanded component capability.
+
 1. Run tests.
 
    ```bash

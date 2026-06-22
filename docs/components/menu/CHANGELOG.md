@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-- No unreleased changes.
+- Registered portalled Menu content and submenu content with parent modal focus
+  scopes so menus can remain valid focus targets inside Dialog, Drawer, and
+  other modal primitives.
 
 ## 0.1.0
 

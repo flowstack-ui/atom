@@ -103,6 +103,8 @@ Opens and closes the dropdown menu.
 ## Accessibility
 
 The trigger is a button-like control and the content follows the WAI-ARIA menu pattern inherited from `Menu`.
+Portalled menu content registers with a parent modal focus scope when opened
+inside Dialog, Drawer, or another modal primitive.
 
 | Key | Description |
 | --- | --- |

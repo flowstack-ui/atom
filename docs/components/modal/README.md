@@ -145,6 +145,8 @@ Closes the modal with `reason: "closeClick"`.
 
 - Modal behavior is intended to be consumed through `Dialog`, `AlertDialog`, or `Drawer` content parts.
 - Focus is trapped while open and restored when the modal closes.
+- Focus containment includes registered portalled layers owned by descendants,
+  such as Select, Menu, and Popover content opened from inside the modal.
 - Provide a visible title and description when possible. Use an accessible label on the content wrapper when a visible title is not appropriate.
 
 | Key | Description |

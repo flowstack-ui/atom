@@ -179,6 +179,8 @@ Provide nested submenu behavior.
 ## Accessibility
 
 Implements the WAI-ARIA menu pattern. `Content` renders `role="menu"`, items render the correct menu item roles, disabled items expose disabled semantics, and keyboard focus is managed inside the open menu.
+Portalled Menu content and submenu content register with a parent modal focus
+scope when opened inside Dialog, Drawer, or another modal primitive.
 
 | Key | Description |
 | --- | --- |

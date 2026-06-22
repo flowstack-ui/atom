@@ -165,6 +165,8 @@ Closes the popover.
 ## Accessibility
 
 Popover content renders with `role="dialog"`. Provide `ariaLabel` or labelled content when the popover contains interactive controls.
+In modal mode, focus remains contained inside the popover scope, including
+registered portalled layers opened by descendants.
 
 | Key | Description |
 | --- | --- |

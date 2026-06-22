@@ -163,6 +163,8 @@ Closes the dialog with `reason: "closeClick"`.
 ## Accessibility
 
 Adheres to the modal dialog behavior expected by the WAI-ARIA dialog pattern.
+Focus remains contained inside the dialog scope, including registered portalled
+layers opened by descendants.
 
 | Key | Description |
 | --- | --- |

@@ -164,6 +164,8 @@ Closes the drawer with `reason: "closeClick"`.
 ## Accessibility
 
 Drawer uses modal dialog behavior. It should have an accessible name from `Drawer.Title` or an `ariaLabel` on content.
+Focus remains contained inside the drawer scope, including registered portalled
+layers opened by descendants.
 
 | Key | Description |
 | --- | --- |
