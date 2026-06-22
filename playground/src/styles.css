@@ -453,12 +453,11 @@ h2 {
 
 .part-group {
   display: grid;
-  gap: 6px;
 }
 
 .part-group-trigger {
   display: grid;
-  grid-template-columns: minmax(0, 0.7fr) minmax(0, 1fr);
+  grid-template-columns: 14px minmax(0, 0.7fr) minmax(0, 1fr);
   gap: 8px;
   min-height: 32px;
   align-items: center;
@@ -474,7 +473,17 @@ h2 {
   background: #f8fafc;
 }
 
+.part-group-trigger[aria-expanded="true"] {
+  border-bottom-color: #e5eaf0;
+  border-radius: 7px 7px 0 0;
+}
+
 .part-group-trigger span:first-child {
+  color: #7a8796;
+  font-size: 10px;
+}
+
+.part-group-trigger span:nth-child(2) {
   color: #4f5d6e;
   font-size: 12px;
   font-weight: 700;
@@ -495,7 +504,8 @@ h2 {
   margin: 0;
   overflow: hidden;
   border: 1px solid #dde3ea;
-  border-radius: 7px;
+  border-top: 0;
+  border-radius: 0 0 7px 7px;
   background: #dde3ea;
 }
 
