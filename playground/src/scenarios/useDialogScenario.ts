@@ -130,6 +130,7 @@ export function useDialogScenario() {
     requestAnimationFrame(() => {
       const activeElement = document.activeElement;
       addLog(`focus stayed inside dialog: ${content.contains(activeElement) ? "yes" : "no"}`);
+      focusFirstDialogElement(content);
     });
   };
 
@@ -192,18 +193,11 @@ export function useDialogScenario() {
 
       const currentIndex = focusableElements.indexOf(activeElement);
       const direction = event.shiftKey ? "backward" : "forward";
-      const nextIndex = direction === "backward"
-        ? currentIndex <= 0
-          ? focusableElements.length - 1
-          : currentIndex - 1
-        : currentIndex === -1 || currentIndex >= focusableElements.length - 1
-          ? 0
-          : currentIndex + 1;
       const currentLabel = getFocusLabel(activeElement);
-      const nextLabel = getFocusLabel(focusableElements[nextIndex]);
       const looped = direction === "backward"
         ? currentIndex <= 0
         : currentIndex >= focusableElements.length - 1;
+      if (!looped) return;
 
       requestAnimationFrame(() => {
         const actualElement = document.activeElement instanceof HTMLElement
@@ -213,15 +207,7 @@ export function useDialogScenario() {
           ? getFocusLabel(actualElement)
           : "outside";
 
-        addLog(
-          looped
-            ? `focus looped ${direction}: ${currentLabel}${direction === "backward" ? " <- " : " -> "}${actualLabel}`
-            : `focus moved ${direction}: ${currentLabel}${direction === "backward" ? " <- " : " -> "}${actualLabel}`,
-        );
-
-        if (actualLabel !== nextLabel) {
-          addLog(`focus expected ${direction}: ${nextLabel}`);
-        }
+        addLog(`focus looped ${direction}: ${currentLabel}${direction === "backward" ? " <- " : " -> "}${actualLabel}`);
       });
     };
 
@@ -370,6 +356,11 @@ function getFocusLabel(element: HTMLElement) {
   if (text) return text.toLowerCase();
 
   return element.getAttribute("data-slot") ?? element.tagName.toLowerCase();
+}
+
+function focusFirstDialogElement(content: HTMLElement) {
+  const firstFocusable = content.querySelector<HTMLElement>(focusableSelector);
+  (firstFocusable ?? content).focus({ preventScroll: true });
 }
 
 const focusableSelector = [
