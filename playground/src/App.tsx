@@ -5,6 +5,7 @@ import { useElementInspector } from "./inspector";
 import {
   DialogScenarioCanvas,
   DialogScenarioControls,
+  DialogScenarioToolbar,
 } from "./scenarios/DialogScenario";
 import { useDialogScenario } from "./scenarios/useDialogScenario";
 
@@ -159,6 +160,10 @@ export function App() {
             <div className="card-header">
               <h2>Canvas</h2>
             </div>
+            <ScenarioToolbar
+              dialogScenario={dialogScenario}
+              scenarioId={activeScenario.id}
+            />
             <div className="canvas" ref={inspector.rootRef}>
               <ScenarioCanvas
                 dialogScenario={dialogScenario}
@@ -195,6 +200,25 @@ export function App() {
       </main>
     </div>
   );
+}
+
+function ScenarioToolbar({
+  dialogScenario,
+  scenarioId,
+}: {
+  dialogScenario: ReturnType<typeof useDialogScenario>;
+  scenarioId: string;
+}) {
+  if (scenarioId === "dialog") {
+    return (
+      <DialogScenarioToolbar
+        state={dialogScenario.state}
+        actions={dialogScenario.actions}
+      />
+    );
+  }
+
+  return null;
 }
 
 function ScenarioCanvas({

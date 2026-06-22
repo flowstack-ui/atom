@@ -264,35 +264,38 @@ h2 {
   box-shadow: 0 8px 24px rgba(28, 36, 48, 0.08);
 }
 
-.control-strip {
+.canvas-toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  border-bottom: 1px solid #e0e5eb;
+  background: #f7f9fb;
+  padding: 8px 10px;
 }
 
-.control-strip label,
-.control-strip button {
+.canvas-toolbar label,
+.canvas-toolbar button {
   display: inline-flex;
-  min-height: 32px;
+  min-height: 28px;
   align-items: center;
   gap: 7px;
   border: 1px solid #c8d0da;
-  border-radius: 6px;
+  border-radius: 5px;
   background: #ffffff;
-  padding: 0 10px;
+  padding: 0 9px;
   color: #293544;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1;
   box-shadow: 0 1px 2px rgba(21, 29, 39, 0.05);
 }
 
-.control-strip input {
+.canvas-toolbar input {
   width: 14px;
   height: 14px;
   margin: 0;
 }
 
-.control-strip button {
+.canvas-toolbar button {
   background: #152131;
   color: #ffffff;
 }

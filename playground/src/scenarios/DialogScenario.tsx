@@ -95,39 +95,6 @@ export function DialogScenarioControls({
 }) {
   return (
     <div className="scenario-controls">
-      <div className="control-strip" aria-label="Dialog controls">
-        <ToggleControl
-          checked={state.controlled}
-          label="Controlled"
-          onChange={actions.setControlled}
-        />
-        <ToggleControl
-          checked={state.disabled}
-          label="Disabled"
-          onChange={actions.setDisabled}
-        />
-        <ToggleControl
-          checked={state.keepMounted}
-          label="Keep mounted"
-          onChange={actions.setKeepMounted}
-        />
-        <ToggleControl
-          checked={state.closeOnEscape}
-          label="Escape closes"
-          onChange={actions.setCloseOnEscape}
-        />
-        <ToggleControl
-          checked={state.closeOnBackdropClick}
-          label="Backdrop closes"
-          onChange={actions.setCloseOnBackdropClick}
-        />
-        <ToggleControl
-          checked={state.useAriaLabel}
-          label="Use ariaLabel"
-          onChange={actions.setUseAriaLabel}
-        />
-      </div>
-
       <dl className="state-grid" aria-label="Dialog state">
         <div>
           <dt>Open</dt>
@@ -173,6 +140,49 @@ export function DialogScenarioControls({
           ))}
         </ol>
       </div>
+    </div>
+  );
+}
+
+export function DialogScenarioToolbar({
+  state,
+  actions,
+}: {
+  state: DialogScenarioState;
+  actions: DialogScenarioActions;
+}) {
+  return (
+    <div className="canvas-toolbar" aria-label="Dialog controls">
+      <ToggleControl
+        checked={state.controlled}
+        label="Controlled"
+        onChange={actions.setControlled}
+      />
+      <ToggleControl
+        checked={state.disabled}
+        label="Disabled"
+        onChange={actions.setDisabled}
+      />
+      <ToggleControl
+        checked={state.keepMounted}
+        label="Keep mounted"
+        onChange={actions.setKeepMounted}
+      />
+      <ToggleControl
+        checked={state.closeOnEscape}
+        label="Escape closes"
+        onChange={actions.setCloseOnEscape}
+      />
+      <ToggleControl
+        checked={state.closeOnBackdropClick}
+        label="Backdrop closes"
+        onChange={actions.setCloseOnBackdropClick}
+      />
+      <ToggleControl
+        checked={state.useAriaLabel}
+        label="Use ariaLabel"
+        onChange={actions.setUseAriaLabel}
+      />
     </div>
   );
 }
