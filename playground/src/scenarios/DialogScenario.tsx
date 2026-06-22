@@ -1,4 +1,5 @@
 import { Dialog } from "@flowstack-ui/atom/dialog";
+import { useState } from "react";
 import type { ReactNode } from "react";
 import type {
   DialogScenarioActions,
@@ -88,10 +89,26 @@ export function DialogScenarioCanvas({
 }
 
 export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState }) {
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+    Root: true,
+    Trigger: true,
+  });
+  const toggleGroup = (title: string) => {
+    setOpenGroups((currentGroups) => ({
+      ...currentGroups,
+      [title]: !currentGroups[title],
+    }));
+  };
+
   return (
     <div className="scenario-controls">
       <div className="parts-panel">
-        <PartGroup title="Root">
+        <PartGroup
+          open={openGroups.Root}
+          summary={state.controlled ? "controlled" : "uncontrolled"}
+          title="Root"
+          onToggle={toggleGroup}
+        >
           <PartRow label="Mode" value={state.controlled ? "controlled" : "uncontrolled"} />
           <PartRow label="Disabled" value={state.disabled ? "Yes" : "No"} />
           <PartRow label="Keep mounted" value={state.keepMounted ? "Yes" : "No"} />
@@ -101,23 +118,43 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
             value={state.closeOnBackdropClick ? "Yes" : "No"}
           />
         </PartGroup>
-        <PartGroup title="Trigger">
+        <PartGroup
+          open={openGroups.Trigger}
+          summary={state.parts.triggerState}
+          title="Trigger"
+          onToggle={toggleGroup}
+        >
           <PartRow label="Exists" value={state.parts.triggerExists} />
           <PartRow label="data-state" value={state.parts.triggerState} />
           <PartRow label="aria-controls" value={state.parts.triggerControls} />
           <PartRow label="Controls match" value={state.parts.controlsMatch} />
           <PartRow label="Disabled" value={state.parts.triggerDisabled} />
         </PartGroup>
-        <PartGroup title="Portal">
+        <PartGroup
+          open={openGroups.Portal}
+          summary={state.parts.portalParent}
+          title="Portal"
+          onToggle={toggleGroup}
+        >
           <PartRow label="Parent" value={state.parts.portalParent} />
           <PartRow label="Inside canvas" value={state.parts.inCanvas} />
           <PartRow label="Content exists" value={state.parts.contentExists} />
         </PartGroup>
-        <PartGroup title="Overlay">
+        <PartGroup
+          open={openGroups.Overlay}
+          summary={state.parts.overlayExists === "Yes" ? state.parts.overlayState : "not mounted"}
+          title="Overlay"
+          onToggle={toggleGroup}
+        >
           <PartRow label="Exists" value={state.parts.overlayExists} />
           <PartRow label="data-state" value={state.parts.overlayState} />
         </PartGroup>
-        <PartGroup title="Content">
+        <PartGroup
+          open={openGroups.Content}
+          summary={state.parts.contentExists === "Yes" ? state.parts.contentState : "not mounted"}
+          title="Content"
+          onToggle={toggleGroup}
+        >
           <PartRow label="Exists" value={state.parts.contentExists} />
           <PartRow label="id" value={state.parts.contentId} />
           <PartRow label="role" value={state.parts.contentRole} />
@@ -128,12 +165,26 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
           <PartRow label="aria-labelledby" value={state.parts.contentLabelledBy} />
           <PartRow label="aria-describedby" value={state.parts.contentDescribedBy} />
         </PartGroup>
-        <PartGroup title="Title">
+        <PartGroup
+          open={openGroups.Title}
+          summary={state.parts.titleExists === "Yes" ? state.parts.titleId : "not mounted"}
+          title="Title"
+          onToggle={toggleGroup}
+        >
           <PartRow label="Exists" value={state.parts.titleExists} />
           <PartRow label="id" value={state.parts.titleId} />
           <PartRow label="Matches label" value={state.parts.titleMatches} />
         </PartGroup>
-        <PartGroup title="Description">
+        <PartGroup
+          open={openGroups.Description}
+          summary={
+            state.parts.descriptionExists === "Yes"
+              ? state.parts.descriptionId
+              : "not mounted"
+          }
+          title="Description"
+          onToggle={toggleGroup}
+        >
           <PartRow label="Exists" value={state.parts.descriptionExists} />
           <PartRow label="id" value={state.parts.descriptionId} />
           <PartRow label="Matches description" value={state.parts.descriptionMatches} />
@@ -209,11 +260,31 @@ export function DialogScenarioToolbar({
   );
 }
 
-function PartGroup({ children, title }: { children: ReactNode; title: string }) {
+function PartGroup({
+  children,
+  open = false,
+  summary,
+  title,
+  onToggle,
+}: {
+  children: ReactNode;
+  open?: boolean;
+  summary: string;
+  title: string;
+  onToggle: (title: string) => void;
+}) {
   return (
     <section className="part-group" aria-label={title}>
-      <h4>{title}</h4>
-      <dl className="parts-grid">{children}</dl>
+      <button
+        className="part-group-trigger"
+        type="button"
+        aria-expanded={open}
+        onClick={() => onToggle(title)}
+      >
+        <span>{title}</span>
+        <span>{summary}</span>
+      </button>
+      {open ? <dl className="parts-grid">{children}</dl> : null}
     </section>
   );
 }

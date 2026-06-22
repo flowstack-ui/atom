@@ -456,11 +456,37 @@ h2 {
   gap: 6px;
 }
 
-.part-group h4 {
-  margin: 0;
+.part-group-trigger {
+  display: grid;
+  grid-template-columns: minmax(0, 0.7fr) minmax(0, 1fr);
+  gap: 8px;
+  min-height: 32px;
+  align-items: center;
+  border: 1px solid #d4dce5;
+  border-radius: 7px;
+  background: #ffffff;
+  padding: 0 9px;
+  color: #4f5d6e;
+  text-align: left;
+}
+
+.part-group-trigger:hover {
+  background: #f8fafc;
+}
+
+.part-group-trigger span:first-child {
   color: #4f5d6e;
   font-size: 12px;
   font-weight: 700;
+}
+
+.part-group-trigger span:last-child {
+  overflow: hidden;
+  color: #25313d;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .parts-grid {
