@@ -493,10 +493,9 @@ h2 {
 
 .parts-grid {
   display: grid;
-  max-height: 230px;
   gap: 1px;
   margin: 0;
-  overflow: auto;
+  overflow: hidden;
   border: 1px solid #dde3ea;
   border-radius: 7px;
   background: #dde3ea;
