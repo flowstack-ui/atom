@@ -582,29 +582,35 @@ h2 {
   line-height: 1.35;
 }
 
-.inspector-sections {
-  display: grid;
-  max-height: 536px;
-  overflow: auto;
-  padding: 4px 0;
-}
-
-.inspector-section {
-  display: grid;
-}
-
-.inspector-section h3 {
-  margin: 0;
+.inspector-tabs {
+  display: flex;
+  gap: 6px;
   border-bottom: 1px solid #edf0f4;
-  padding: 10px 13px;
+  padding: 8px 10px;
+}
+
+.inspector-tabs button {
+  min-height: 28px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  padding: 0 10px;
   color: #4f5d6e;
   font-size: 12px;
   font-weight: 700;
 }
 
+.inspector-tabs button[aria-selected="true"] {
+  border-color: #c8d0da;
+  background: #ffffff;
+  color: #25313d;
+}
+
 .inspector-list {
   display: grid;
+  max-height: 536px;
   margin: 0;
+  overflow: auto;
 }
 
 .inspector-list div {

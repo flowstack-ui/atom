@@ -101,9 +101,13 @@ function getScenario(id: string) {
 export function App() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [activeScenarioId, setActiveScenarioId] = useState("dialog");
+  const [activeInspectorTab, setActiveInspectorTab] = useState<"selected" | "focused">("selected");
   const activeScenario = getScenario(activeScenarioId);
   const inspector = useElementInspector();
   const dialogScenario = useDialogScenario();
+  const inspectorRows = activeInspectorTab === "selected"
+    ? inspector.selectedRows
+    : inspector.focusedRows;
 
   return (
     <div className="app-shell">
@@ -189,21 +193,32 @@ export function App() {
               <div className="card-header">
                 <h2>Inspector</h2>
               </div>
-              <div className="inspector-sections">
-                {inspector.sections.map((section) => (
-                  <section className="inspector-section" key={section.title}>
-                    <h3>{section.title}</h3>
-                    <dl className="inspector-list">
-                      {section.rows.map((row) => (
-                        <div key={row.label}>
-                          <dt>{row.label}</dt>
-                          <dd title={row.value}>{row.value}</dd>
-                        </div>
-                      ))}
-                    </dl>
-                  </section>
-                ))}
+              <div className="inspector-tabs" role="tablist" aria-label="Inspector target">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeInspectorTab === "selected"}
+                  onClick={() => setActiveInspectorTab("selected")}
+                >
+                  Selected
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeInspectorTab === "focused"}
+                  onClick={() => setActiveInspectorTab("focused")}
+                >
+                  Focused
+                </button>
               </div>
+              <dl className="inspector-list">
+                {inspectorRows.map((row) => (
+                  <div key={row.label}>
+                    <dt>{row.label}</dt>
+                    <dd title={row.value}>{row.value}</dd>
+                  </div>
+                ))}
+              </dl>
             </article>
 
             <article className="scenario-card log-card">

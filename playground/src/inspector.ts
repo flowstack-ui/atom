@@ -5,14 +5,10 @@ export type InspectorRow = {
   value: string;
 };
 
-export type InspectorSection = {
-  title: string;
-  rows: InspectorRow[];
-};
-
 export type ElementInspector = {
+  focusedRows: InspectorRow[];
   rootRef: RefObject<HTMLDivElement | null>;
-  sections: InspectorSection[];
+  selectedRows: InspectorRow[];
 };
 
 const observedAttributes = [
@@ -177,12 +173,14 @@ export function useElementInspector(): ElementInspector {
     return () => cancelAnimationFrame(frame);
   }, []);
 
-  const sections = useMemo<InspectorSection[]>(() => {
-    return [
-      { title: "Focused", rows: getElementRows(focusedElement) },
-      { title: "Selected", rows: getElementRows(selectedElement) },
-    ];
-  }, [focusedElement, selectedElement, revision]);
+  const focusedRows = useMemo(
+    () => getElementRows(focusedElement),
+    [focusedElement, revision],
+  );
+  const selectedRows = useMemo(
+    () => getElementRows(selectedElement),
+    [selectedElement, revision],
+  );
 
-  return { rootRef, sections };
+  return { focusedRows, rootRef, selectedRows };
 }
