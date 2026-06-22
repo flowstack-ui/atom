@@ -478,24 +478,25 @@ h2 {
   border-radius: 7px 7px 0 0;
 }
 
-.part-group-trigger span:first-child {
+.part-group-icon {
   color: #7a8796;
   font-size: 10px;
 }
 
-.part-group-trigger span:nth-child(2) {
+.part-group-title {
   color: #4f5d6e;
   font-size: 12px;
   font-weight: 700;
 }
 
-.part-group-trigger span:last-child {
-  overflow: hidden;
+.part-group-summary {
+  min-width: 0;
   color: #25313d;
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   font-size: 12px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .parts-grid {

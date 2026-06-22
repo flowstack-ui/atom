@@ -281,9 +281,9 @@ function PartGroup({
         aria-expanded={open}
         onClick={() => onToggle(title)}
       >
-        <span aria-hidden="true">{open ? "▾" : "▸"}</span>
-        <span>{title}</span>
-        {open ? null : <span>{summary}</span>}
+        <span className="part-group-icon" aria-hidden="true">{open ? "▾" : "▸"}</span>
+        <span className="part-group-title">{title}</span>
+        {open ? null : <span className="part-group-summary">{summary}</span>}
       </button>
       {open ? <dl className="parts-grid">{children}</dl> : null}
     </section>
