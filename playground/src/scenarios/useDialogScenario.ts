@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type {
   KeyboardEvent as ReactKeyboardEvent,
   MouseEvent as ReactMouseEvent,
@@ -11,6 +11,14 @@ export type DialogLogEntry = {
 };
 
 export type DialogCompositionMode = "default" | "asChild" | "render";
+export type DialogRefPart =
+  | "trigger"
+  | "overlay"
+  | "content"
+  | "title"
+  | "description"
+  | "saveClose";
+export type DialogRefSnapshot = Record<DialogRefPart, string>;
 
 export type DialogScenarioState = {
   controlled: boolean;
@@ -26,11 +34,13 @@ export type DialogScenarioState = {
   blockBackdropClose: boolean;
   open: boolean;
   log: DialogLogEntry[];
+  refs: DialogRefSnapshot;
   parts: DialogPartsSnapshot;
 };
 
 export type DialogPartsSnapshot = {
   triggerExists: string;
+  triggerProps: string;
   triggerTag: string;
   triggerRole: string;
   triggerTabIndex: string;
@@ -44,10 +54,12 @@ export type DialogPartsSnapshot = {
   cancelCloseRole: string;
   cancelCloseTabIndex: string;
   saveCloseExists: string;
+  saveCloseProps: string;
   saveCloseTag: string;
   saveCloseRole: string;
   saveCloseTabIndex: string;
   contentExists: string;
+  contentProps: string;
   contentId: string;
   contentRole: string;
   contentState: string;
@@ -59,14 +71,17 @@ export type DialogPartsSnapshot = {
   contentDescribedBy: string;
   controlsMatch: string;
   overlayExists: string;
+  overlayProps: string;
   overlayState: string;
   portalParent: string;
   inCanvas: string;
   titleExists: string;
+  titleProps: string;
   titleTag: string;
   titleId: string;
   titleMatches: string;
   descriptionExists: string;
+  descriptionProps: string;
   descriptionId: string;
   descriptionMatches: string;
 };
@@ -89,6 +104,7 @@ export type DialogScenarioActions = {
   handleTriggerKeyDown: (event: ReactKeyboardEvent<HTMLElement>) => void;
   handleSaveCloseClick: (event: ReactMouseEvent<HTMLElement>) => void;
   handleOverlayClick: (event: ReactMouseEvent<HTMLElement>) => void;
+  markPartRef: (part: DialogRefPart, element: HTMLElement | null) => void;
   testDisabledTriggerKey: (key: "Enter" | " ") => void;
   testFocusEscape: () => void;
   clearLog: () => void;
@@ -113,6 +129,7 @@ export function useDialogScenario() {
   const [blockSaveClose, setBlockSaveClose] = useState(false);
   const [blockBackdropClose, setBlockBackdropClose] = useState(false);
   const [log, setLog] = useState<DialogLogEntry[]>([]);
+  const [refs, setRefs] = useState<DialogRefSnapshot>(emptyDialogRefSnapshot);
   const parts = getDialogPartsSnapshot(revision);
 
   const addLog = (text: string) => {
@@ -171,6 +188,19 @@ export function useDialogScenario() {
 
     addLog("overlay user onClick");
   };
+
+  const markPartRef = useCallback((part: DialogRefPart, element: HTMLElement | null) => {
+    const nextValue = element ? element.tagName.toLowerCase() : "none";
+
+    setRefs((currentRefs) => {
+      if (currentRefs[part] === nextValue) return currentRefs;
+
+      return {
+        ...currentRefs,
+        [part]: nextValue,
+      };
+    });
+  }, []);
 
   const handleOpenChange = (nextOpen: boolean, reason?: string) => {
     setOpen(nextOpen);
@@ -258,8 +288,11 @@ export function useDialogScenario() {
         "aria-labelledby",
         "data-state",
         "data-slot",
+        "data-prop-check",
         "hidden",
         "id",
+        "name",
+        "title",
       ],
     });
 
@@ -333,6 +366,7 @@ export function useDialogScenario() {
     blockBackdropClose,
     open,
     log,
+    refs,
     parts,
   };
 
@@ -356,6 +390,7 @@ export function useDialogScenario() {
     handleTriggerKeyDown,
     handleSaveCloseClick,
     handleOverlayClick,
+    markPartRef,
     testDisabledTriggerKey,
     testFocusEscape,
     clearLog: () => setLog([]),
@@ -397,6 +432,12 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
 
   return {
     triggerExists: trigger ? "yes" : "no",
+    triggerProps: propsMatch(trigger, [
+      ["id", "dialog-trigger-prop"],
+      ["name", "dialog-trigger-name"],
+      ["title", "trigger prop"],
+      ["data-prop-check", "trigger"],
+    ]),
     triggerTag: trigger?.tagName.toLowerCase() ?? "none",
     triggerRole: trigger?.getAttribute("role") ?? "none",
     triggerTabIndex: trigger?.getAttribute("tabindex") ?? "none",
@@ -412,10 +453,20 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
     cancelCloseRole: cancelClose?.getAttribute("role") ?? "none",
     cancelCloseTabIndex: cancelClose?.getAttribute("tabindex") ?? "none",
     saveCloseExists: saveClose ? "yes" : "no",
+    saveCloseProps: propsMatch(saveClose, [
+      ["id", "dialog-save-close-prop"],
+      ["name", "dialog-save-close-name"],
+      ["title", "save close prop"],
+      ["data-prop-check", "save-close"],
+    ]),
     saveCloseTag: saveClose?.tagName.toLowerCase() ?? "none",
     saveCloseRole: saveClose?.getAttribute("role") ?? "none",
     saveCloseTabIndex: saveClose?.getAttribute("tabindex") ?? "none",
     contentExists: content ? "yes" : "no",
+    contentProps: propsMatch(content, [
+      ["title", "content prop"],
+      ["data-prop-check", "content"],
+    ]),
     contentId,
     contentRole: content?.getAttribute("role") ?? "none",
     contentState: content?.getAttribute("data-state") ?? "none",
@@ -431,6 +482,11 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
     contentDescribedBy: describedBy,
     controlsMatch: triggerControls !== "none" && triggerControls === contentId ? "yes" : "no",
     overlayExists: overlay ? "yes" : "no",
+    overlayProps: propsMatch(overlay, [
+      ["id", "dialog-overlay-prop"],
+      ["title", "overlay prop"],
+      ["data-prop-check", "overlay"],
+    ]),
     overlayState: overlay?.getAttribute("data-state") ?? "none",
     portalParent: contentParent
       ? contentParent === document.body
@@ -439,17 +495,48 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
       : "none",
     inCanvas: content && canvas?.contains(content) ? "yes" : "no",
     titleExists: title ? "yes" : "no",
+    titleProps: propsMatch(title, [
+      ["title", "title prop"],
+      ["data-prop-check", "title"],
+    ]),
     titleTag: title?.tagName.toLowerCase() ?? "none",
     titleId,
     titleMatches: labelledBy !== "none" && labelledBy === titleId ? "yes" : "no",
     descriptionExists: description ? "yes" : "no",
+    descriptionProps: propsMatch(description, [
+      ["title", "description prop"],
+      ["data-prop-check", "description"],
+    ]),
     descriptionId,
     descriptionMatches: describedBy !== "none" && describedBy === descriptionId ? "yes" : "no",
   };
 }
 
+function propsMatch(
+  element: Element | null | undefined,
+  checks: [attribute: string, expectedValue: string][],
+) {
+  if (!element) return "no";
+
+  return checks.every(([attribute, expectedValue]) =>
+    element.getAttribute(attribute) === expectedValue
+  )
+    ? "yes"
+    : "no";
+}
+
+const emptyDialogRefSnapshot: DialogRefSnapshot = {
+  trigger: "none",
+  overlay: "none",
+  content: "none",
+  title: "none",
+  description: "none",
+  saveClose: "none",
+};
+
 const emptyDialogPartsSnapshot: DialogPartsSnapshot = {
   triggerExists: "no",
+  triggerProps: "no",
   triggerTag: "none",
   triggerRole: "none",
   triggerTabIndex: "none",
@@ -463,10 +550,12 @@ const emptyDialogPartsSnapshot: DialogPartsSnapshot = {
   cancelCloseRole: "none",
   cancelCloseTabIndex: "none",
   saveCloseExists: "no",
+  saveCloseProps: "no",
   saveCloseTag: "none",
   saveCloseRole: "none",
   saveCloseTabIndex: "none",
   contentExists: "no",
+  contentProps: "no",
   contentId: "none",
   contentRole: "none",
   contentState: "none",
@@ -478,14 +567,17 @@ const emptyDialogPartsSnapshot: DialogPartsSnapshot = {
   contentDescribedBy: "none",
   controlsMatch: "no",
   overlayExists: "no",
+  overlayProps: "no",
   overlayState: "none",
   portalParent: "none",
   inCanvas: "no",
   titleExists: "no",
+  titleProps: "no",
   titleTag: "none",
   titleId: "none",
   titleMatches: "no",
   descriptionExists: "no",
+  descriptionProps: "no",
   descriptionId: "none",
   descriptionMatches: "no",
 };

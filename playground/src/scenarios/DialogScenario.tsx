@@ -1,5 +1,5 @@
 import { Dialog } from "@flowstack-ui/atom/dialog";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import type {
   HTMLAttributes,
   KeyboardEvent as ReactKeyboardEvent,
@@ -35,6 +35,31 @@ export function DialogScenarioCanvas({
         defaultOpen: false,
         onOpenChange,
       };
+  const triggerRef = useCallback(
+    (element: HTMLElement | null) => actions.markPartRef("trigger", element),
+    [actions.markPartRef],
+  );
+  const overlayRef = useCallback(
+    (element: HTMLDivElement | null) => actions.markPartRef("overlay", element),
+    [actions.markPartRef],
+  );
+  const contentRef = useCallback(
+    (element: HTMLDivElement | null) => actions.markPartRef("content", element),
+    [actions.markPartRef],
+  );
+  const titleRef = useCallback(
+    (element: HTMLHeadingElement | null) => actions.markPartRef("title", element),
+    [actions.markPartRef],
+  );
+  const descriptionRef = useCallback(
+    (element: HTMLParagraphElement | null) =>
+      actions.markPartRef("description", element),
+    [actions.markPartRef],
+  );
+  const saveCloseRef = useCallback(
+    (element: HTMLElement | null) => actions.markPartRef("saveClose", element),
+    [actions.markPartRef],
+  );
 
   return (
     <div className="dialog-stage">
@@ -54,6 +79,7 @@ export function DialogScenarioCanvas({
         closeOnBackdropClick={state.closeOnBackdropClick}
       >
         <DialogTriggerExample
+          elementRef={triggerRef}
           mode={state.triggerComposition}
           onClick={actions.handleTriggerClick}
           onKeyDown={actions.handleTriggerKeyDown}
@@ -81,15 +107,34 @@ export function DialogScenarioCanvas({
           <Dialog.Overlay
             className="atom-dialog-overlay"
             data-playground-inspect=""
+            data-prop-check="overlay"
+            id="dialog-overlay-prop"
             onClick={actions.handleOverlayClick}
+            ref={overlayRef}
+            title="overlay prop"
           />
           <Dialog.Content
             ariaLabel={state.useAriaLabel ? "Project settings" : undefined}
             className="atom-dialog-content"
+            data-prop-check="content"
             data-playground-inspect=""
+            ref={contentRef}
+            title="content prop"
           >
-            {state.useAriaLabel ? null : <Dialog.Title>Project settings</Dialog.Title>}
-            <Dialog.Description>
+            {state.useAriaLabel ? null : (
+              <Dialog.Title
+                data-prop-check="title"
+                ref={titleRef}
+                title="title prop"
+              >
+                Project settings
+              </Dialog.Title>
+            )}
+            <Dialog.Description
+              data-prop-check="description"
+              ref={descriptionRef}
+              title="description prop"
+            >
               Change a setting, tab through the controls, press Escape, or close the dialog.
             </Dialog.Description>
             <div className="dialog-form-row">
@@ -129,6 +174,7 @@ export function DialogScenarioCanvas({
               </Dialog.Close>
               <DialogCloseExample
                 className="atom-button"
+                elementRef={saveCloseRef}
                 mode={state.closeComposition}
                 onClick={actions.handleSaveCloseClick}
               >
@@ -191,6 +237,8 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
           onToggle={toggleGroup}
         >
           <PartRow label="Exists" value={state.parts.triggerExists} />
+          <PartRow label="Ref" value={state.refs.trigger} />
+          <PartRow label="Props" value={state.parts.triggerProps} />
           <PartRow label="Composition" value={state.triggerComposition} />
           <PartRow label="tag" value={state.parts.triggerTag} />
           <PartRow label="role" value={state.parts.triggerRole} />
@@ -221,6 +269,8 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
           onToggle={toggleGroup}
         >
           <PartRow label="Exists" value={state.parts.saveCloseExists} />
+          <PartRow label="Ref" value={state.refs.saveClose} />
+          <PartRow label="Props" value={state.parts.saveCloseProps} />
           <PartRow label="Composition" value={state.closeComposition} />
           <PartRow label="tag" value={state.parts.saveCloseTag} />
           <PartRow label="role" value={state.parts.saveCloseRole} />
@@ -243,6 +293,8 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
           onToggle={toggleGroup}
         >
           <PartRow label="Exists" value={state.parts.overlayExists} />
+          <PartRow label="Ref" value={state.refs.overlay} />
+          <PartRow label="Props" value={state.parts.overlayProps} />
           <PartRow label="data-state" value={state.parts.overlayState} />
         </PartGroup>
         <PartGroup
@@ -252,6 +304,8 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
           onToggle={toggleGroup}
         >
           <PartRow label="Exists" value={state.parts.contentExists} />
+          <PartRow label="Ref" value={state.refs.content} />
+          <PartRow label="Props" value={state.parts.contentProps} />
           <PartRow label="id" value={state.parts.contentId} />
           <PartRow label="role" value={state.parts.contentRole} />
           <PartRow label="data-state" value={state.parts.contentState} />
@@ -269,6 +323,8 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
           onToggle={toggleGroup}
         >
           <PartRow label="Exists" value={state.parts.titleExists} />
+          <PartRow label="Ref" value={state.refs.title} />
+          <PartRow label="Props" value={state.parts.titleProps} />
           <PartRow label="tag" value={state.parts.titleTag} />
           <PartRow label="id" value={state.parts.titleId} />
           <PartRow label="Matches label" value={state.parts.titleMatches} />
@@ -284,6 +340,8 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
           onToggle={toggleGroup}
         >
           <PartRow label="Exists" value={state.parts.descriptionExists} />
+          <PartRow label="Ref" value={state.refs.description} />
+          <PartRow label="Props" value={state.parts.descriptionProps} />
           <PartRow label="id" value={state.parts.descriptionId} />
           <PartRow label="Matches description" value={state.parts.descriptionMatches} />
         </PartGroup>
@@ -475,10 +533,12 @@ function SelectControl({
 }
 
 function DialogTriggerExample({
+  elementRef,
   mode,
   onClick,
   onKeyDown,
 }: {
+  elementRef: (element: HTMLElement | null) => void;
   mode: DialogCompositionMode;
   onClick: (event: ReactMouseEvent<HTMLElement>) => void;
   onKeyDown: (event: ReactKeyboardEvent<HTMLElement>) => void;
@@ -487,6 +547,11 @@ function DialogTriggerExample({
     return (
       <Dialog.Trigger
         className="atom-button"
+        data-prop-check="trigger"
+        id="dialog-trigger-prop"
+        name="dialog-trigger-name"
+        ref={elementRef}
+        title="trigger prop"
         asChild
         onClick={onClick}
         onKeyDown={onKeyDown}
@@ -500,9 +565,14 @@ function DialogTriggerExample({
     return (
       <Dialog.Trigger
         className="atom-button"
+        data-prop-check="trigger"
+        id="dialog-trigger-prop"
+        name="dialog-trigger-name"
         onClick={onClick}
         onKeyDown={onKeyDown}
+        ref={elementRef}
         render={renderCompositionControl}
+        title="trigger prop"
       >
         Open dialog
       </Dialog.Trigger>
@@ -512,8 +582,13 @@ function DialogTriggerExample({
   return (
     <Dialog.Trigger
       className="atom-button"
+      data-prop-check="trigger"
+      id="dialog-trigger-prop"
+      name="dialog-trigger-name"
       onClick={onClick}
       onKeyDown={onKeyDown}
+      ref={elementRef}
+      title="trigger prop"
     >
       Open dialog
     </Dialog.Trigger>
@@ -523,17 +598,28 @@ function DialogTriggerExample({
 function DialogCloseExample({
   children,
   className,
+  elementRef,
   mode,
   onClick,
 }: {
   children: ReactNode;
   className: string;
+  elementRef: (element: HTMLElement | null) => void;
   mode: DialogCompositionMode;
   onClick: (event: ReactMouseEvent<HTMLElement>) => void;
 }) {
   if (mode === "asChild") {
     return (
-      <Dialog.Close className={className} asChild onClick={onClick}>
+      <Dialog.Close
+        className={className}
+        data-prop-check="save-close"
+        id="dialog-save-close-prop"
+        name="dialog-save-close-name"
+        ref={elementRef}
+        title="save close prop"
+        asChild
+        onClick={onClick}
+      >
         <span className="composition-control" data-dialog-save-close="">
           {children}
         </span>
@@ -546,8 +632,13 @@ function DialogCloseExample({
       <Dialog.Close
         className={className}
         data-dialog-save-close=""
+        data-prop-check="save-close"
+        id="dialog-save-close-prop"
+        name="dialog-save-close-name"
         onClick={onClick}
+        ref={elementRef}
         render={renderCompositionControl}
+        title="save close prop"
       >
         {children}
       </Dialog.Close>
@@ -555,7 +646,16 @@ function DialogCloseExample({
   }
 
   return (
-    <Dialog.Close className={className} data-dialog-save-close="" onClick={onClick}>
+    <Dialog.Close
+      className={className}
+      data-dialog-save-close=""
+      data-prop-check="save-close"
+      id="dialog-save-close-prop"
+      name="dialog-save-close-name"
+      onClick={onClick}
+      ref={elementRef}
+      title="save close prop"
+    >
       {children}
     </Dialog.Close>
   );
