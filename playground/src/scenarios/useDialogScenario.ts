@@ -32,6 +32,7 @@ export type DialogScenarioState = {
   blockTriggerEvent: boolean;
   blockSaveClose: boolean;
   blockBackdropClose: boolean;
+  overrideSlots: boolean;
   open: boolean;
   log: DialogLogEntry[];
   refs: DialogRefSnapshot;
@@ -40,6 +41,8 @@ export type DialogScenarioState = {
 
 export type DialogPartsSnapshot = {
   triggerExists: string;
+  triggerSlot: string;
+  triggerClass: string;
   triggerProps: string;
   triggerTag: string;
   triggerRole: string;
@@ -54,11 +57,13 @@ export type DialogPartsSnapshot = {
   cancelCloseRole: string;
   cancelCloseTabIndex: string;
   saveCloseExists: string;
+  saveCloseSlot: string;
   saveCloseProps: string;
   saveCloseTag: string;
   saveCloseRole: string;
   saveCloseTabIndex: string;
   contentExists: string;
+  contentSlot: string;
   contentProps: string;
   contentId: string;
   contentRole: string;
@@ -71,16 +76,19 @@ export type DialogPartsSnapshot = {
   contentDescribedBy: string;
   controlsMatch: string;
   overlayExists: string;
+  overlaySlot: string;
   overlayProps: string;
   overlayState: string;
   portalParent: string;
   inCanvas: string;
   titleExists: string;
+  titleSlot: string;
   titleProps: string;
   titleTag: string;
   titleId: string;
   titleMatches: string;
   descriptionExists: string;
+  descriptionSlot: string;
   descriptionProps: string;
   descriptionId: string;
   descriptionMatches: string;
@@ -98,6 +106,7 @@ export type DialogScenarioActions = {
   setBlockTriggerEvent: (value: boolean) => void;
   setBlockSaveClose: (value: boolean) => void;
   setBlockBackdropClose: (value: boolean) => void;
+  setOverrideSlots: (value: boolean) => void;
   setControlledOpen: (value: boolean) => void;
   markCloseSource: (source: "cancel" | "save") => void;
   handleTriggerClick: (event: ReactMouseEvent<HTMLElement>) => void;
@@ -128,6 +137,7 @@ export function useDialogScenario() {
   const [blockTriggerEvent, setBlockTriggerEvent] = useState(false);
   const [blockSaveClose, setBlockSaveClose] = useState(false);
   const [blockBackdropClose, setBlockBackdropClose] = useState(false);
+  const [overrideSlots, setOverrideSlots] = useState(false);
   const [log, setLog] = useState<DialogLogEntry[]>([]);
   const [refs, setRefs] = useState<DialogRefSnapshot>(emptyDialogRefSnapshot);
   const parts = getDialogPartsSnapshot(revision);
@@ -227,7 +237,7 @@ export function useDialogScenario() {
   };
 
   const testDisabledTriggerKey = (key: "Enter" | " ") => {
-    const trigger = document.querySelector<HTMLElement>("[data-slot='dialog-trigger']");
+    const trigger = document.querySelector<HTMLElement>("[data-dialog-trigger]");
     if (!trigger) {
       addLog("disabled trigger probe failed: no trigger");
       return;
@@ -240,7 +250,7 @@ export function useDialogScenario() {
     }));
 
     requestAnimationFrame(() => {
-      const content = document.querySelector("[data-slot='dialog-content']");
+      const content = document.querySelector("[data-dialog-content]");
       const stayedClosed = !content || content.getAttribute("data-state") === "closed";
       addLog(
         stayedClosed
@@ -252,7 +262,7 @@ export function useDialogScenario() {
 
   const testFocusEscape = () => {
     const behindButton = document.querySelector<HTMLButtonElement>("[data-dialog-behind]");
-    const content = document.querySelector<HTMLElement>("[data-slot='dialog-content']");
+    const content = document.querySelector<HTMLElement>("[data-dialog-content]");
 
     if (!behindButton || !content) {
       addLog("focus escape probe skipped");
@@ -311,7 +321,7 @@ export function useDialogScenario() {
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Tab") return;
-      const content = document.querySelector("[data-slot='dialog-content']");
+      const content = document.querySelector("[data-dialog-content]");
       const activeElement = document.activeElement instanceof HTMLElement
         ? document.activeElement
         : null;
@@ -366,6 +376,7 @@ export function useDialogScenario() {
     blockTriggerEvent,
     blockSaveClose,
     blockBackdropClose,
+    overrideSlots,
     open,
     log,
     refs,
@@ -384,6 +395,7 @@ export function useDialogScenario() {
     setBlockTriggerEvent,
     setBlockSaveClose,
     setBlockBackdropClose,
+    setOverrideSlots,
     setControlledOpen,
     markCloseSource: (source) => {
       closeSource.current = source;
@@ -416,13 +428,13 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
     return emptyDialogPartsSnapshot;
   }
 
-  const trigger = document.querySelector("[data-slot='dialog-trigger']");
+  const trigger = document.querySelector("[data-dialog-trigger]");
   const cancelClose = document.querySelector("[data-dialog-cancel-close]");
   const saveClose = document.querySelector("[data-dialog-save-close]");
-  const content = document.querySelector("[data-slot='dialog-content']");
-  const overlay = document.querySelector("[data-slot='dialog-overlay']");
-  const title = document.querySelector("[data-slot='dialog-title']");
-  const description = document.querySelector("[data-slot='dialog-description']");
+  const content = document.querySelector("[data-dialog-content]");
+  const overlay = document.querySelector("[data-dialog-overlay]");
+  const title = document.querySelector("[data-dialog-title]");
+  const description = document.querySelector("[data-dialog-description]");
   const canvas = document.querySelector(".canvas");
   const triggerControls = trigger?.getAttribute("aria-controls") ?? "none";
   const contentId = content?.id || "none";
@@ -437,6 +449,8 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
 
   return {
     triggerExists: trigger ? "yes" : "no",
+    triggerSlot: trigger?.getAttribute("data-slot") ?? "not rendered",
+    triggerClass: trigger?.classList.contains("atom-button") ? "passed" : "missing",
     triggerProps: propsMatch(trigger, [
       ["id", "dialog-trigger-prop"],
       ["name", "dialog-trigger-name"],
@@ -458,6 +472,7 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
     cancelCloseRole: cancelClose?.getAttribute("role") ?? "none",
     cancelCloseTabIndex: cancelClose?.getAttribute("tabindex") ?? "none",
     saveCloseExists: saveClose ? "yes" : "no",
+    saveCloseSlot: saveClose?.getAttribute("data-slot") ?? "not rendered",
     saveCloseProps: propsMatch(saveClose, [
       ["id", "dialog-save-close-prop"],
       ["name", "dialog-save-close-name"],
@@ -468,6 +483,7 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
     saveCloseRole: saveClose?.getAttribute("role") ?? "none",
     saveCloseTabIndex: saveClose?.getAttribute("tabindex") ?? "none",
     contentExists: content ? "yes" : "no",
+    contentSlot: content?.getAttribute("data-slot") ?? "not rendered",
     contentProps: propsMatch(content, [
       ["title", "content prop"],
       ["data-prop-check", "content"],
@@ -487,6 +503,7 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
     contentDescribedBy: describedBy,
     controlsMatch: triggerControls !== "none" && triggerControls === contentId ? "yes" : "no",
     overlayExists: overlay ? "yes" : "no",
+    overlaySlot: overlay?.getAttribute("data-slot") ?? "not rendered",
     overlayProps: propsMatch(overlay, [
       ["id", "dialog-overlay-prop"],
       ["title", "overlay prop"],
@@ -502,6 +519,7 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
       : "not rendered",
     inCanvas: content && canvas?.contains(content) ? "yes" : "no",
     titleExists: title ? "yes" : "no",
+    titleSlot: title?.getAttribute("data-slot") ?? "not rendered",
     titleProps: propsMatch(title, [
       ["title", "title prop"],
       ["data-prop-check", "title"],
@@ -510,6 +528,7 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
     titleId,
     titleMatches: labelledBy !== "none" && labelledBy === titleId ? "yes" : "no",
     descriptionExists: description ? "yes" : "no",
+    descriptionSlot: description?.getAttribute("data-slot") ?? "not rendered",
     descriptionProps: propsMatch(description, [
       ["title", "description prop"],
       ["data-prop-check", "description"],
@@ -543,6 +562,8 @@ const emptyDialogRefSnapshot: DialogRefSnapshot = {
 
 const emptyDialogPartsSnapshot: DialogPartsSnapshot = {
   triggerExists: "no",
+  triggerSlot: "not rendered",
+  triggerClass: "missing",
   triggerProps: "not rendered",
   triggerTag: "none",
   triggerRole: "none",
@@ -557,11 +578,13 @@ const emptyDialogPartsSnapshot: DialogPartsSnapshot = {
   cancelCloseRole: "none",
   cancelCloseTabIndex: "none",
   saveCloseExists: "no",
+  saveCloseSlot: "not rendered",
   saveCloseProps: "not rendered",
   saveCloseTag: "none",
   saveCloseRole: "none",
   saveCloseTabIndex: "none",
   contentExists: "no",
+  contentSlot: "not rendered",
   contentProps: "not rendered",
   contentId: "none",
   contentRole: "none",
@@ -574,16 +597,19 @@ const emptyDialogPartsSnapshot: DialogPartsSnapshot = {
   contentDescribedBy: "none",
   controlsMatch: "no",
   overlayExists: "no",
+  overlaySlot: "not rendered",
   overlayProps: "not rendered",
   overlayState: "none",
   portalParent: "not rendered",
   inCanvas: "no",
   titleExists: "no",
+  titleSlot: "not rendered",
   titleProps: "not rendered",
   titleTag: "none",
   titleId: "none",
   titleMatches: "no",
   descriptionExists: "no",
+  descriptionSlot: "not rendered",
   descriptionProps: "not rendered",
   descriptionId: "none",
   descriptionMatches: "no",
