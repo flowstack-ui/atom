@@ -431,6 +431,9 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
   const titleId = title?.id || "none";
   const descriptionId = description?.id || "none";
   const contentParent = content?.parentElement;
+  const contentHidden = content?.closest("[hidden]") || content?.hasAttribute("hidden")
+    ? "yes"
+    : "no";
 
   return {
     triggerExists: trigger ? "yes" : "no",
@@ -477,7 +480,7 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
         ? "yes"
         : "no"
       : "none",
-    contentHidden: content?.closest("[hidden]") || content?.hasAttribute("hidden") ? "yes" : "no",
+    contentHidden,
     contentAriaModal: content?.getAttribute("aria-modal") ?? "none",
     contentAriaLabel: content?.getAttribute("aria-label") ?? "none",
     contentLabelledBy: labelledBy,
@@ -493,7 +496,9 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
     portalParent: contentParent
       ? contentParent === document.body
         ? "body"
-        : contentParent.tagName.toLowerCase()
+        : contentHidden === "yes"
+          ? "hidden wrapper"
+          : contentParent.tagName.toLowerCase()
       : "not rendered",
     inCanvas: content && canvas?.contains(content) ? "yes" : "no",
     titleExists: title ? "yes" : "no",
