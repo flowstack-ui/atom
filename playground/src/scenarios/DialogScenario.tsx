@@ -264,7 +264,8 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
         </PartGroup>
         <PartGroup
           open={openGroups["Close: Save"]}
-          summary={state.closeComposition}
+          inactive={state.parts.saveCloseExists !== "yes"}
+          summary={state.parts.saveCloseExists === "yes" ? state.closeComposition : "not rendered"}
           title="Close: Save"
           onToggle={toggleGroup}
         >
@@ -291,7 +292,8 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
         </PartGroup>
         <PartGroup
           open={openGroups.Overlay}
-          summary={state.parts.overlayExists === "yes" ? state.parts.overlayState : "none"}
+          inactive={state.parts.overlayExists !== "yes"}
+          summary={state.parts.overlayExists === "yes" ? state.parts.overlayState : "not rendered"}
           title="Overlay"
           onToggle={toggleGroup}
         >
@@ -305,7 +307,8 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
         </PartGroup>
         <PartGroup
           open={openGroups.Content}
-          summary={state.parts.contentExists === "yes" ? state.parts.contentState : "none"}
+          inactive={state.parts.contentExists !== "yes"}
+          summary={state.parts.contentExists === "yes" ? state.parts.contentState : "not rendered"}
           title="Content"
           onToggle={toggleGroup}
         >
@@ -327,7 +330,8 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
         </PartGroup>
         <PartGroup
           open={openGroups.Title}
-          summary={state.parts.titleExists === "yes" ? state.parts.titleId : "none"}
+          inactive={state.parts.titleExists !== "yes"}
+          summary={state.parts.titleExists === "yes" ? state.parts.titleId : "not rendered"}
           title="Title"
           onToggle={toggleGroup}
         >
@@ -343,10 +347,11 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
         </PartGroup>
         <PartGroup
           open={openGroups.Description}
+          inactive={state.parts.descriptionExists !== "yes"}
           summary={
             state.parts.descriptionExists === "yes"
               ? state.parts.descriptionId
-              : "none"
+              : "not rendered"
           }
           title="Description"
           onToggle={toggleGroup}
@@ -465,19 +470,21 @@ export function DialogScenarioToolbar({
 
 function PartGroup({
   children,
+  inactive = false,
   open = false,
   summary,
   title,
   onToggle,
 }: {
   children: ReactNode;
+  inactive?: boolean;
   open?: boolean;
   summary: string;
   title: string;
   onToggle: (title: string) => void;
 }) {
   return (
-    <section className="part-group" aria-label={title}>
+    <section className="part-group" aria-label={title} data-inactive={inactive || undefined}>
       <button
         className="part-group-trigger"
         type="button"

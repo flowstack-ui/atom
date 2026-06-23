@@ -534,6 +534,18 @@ h2 {
   background: #f8fafc;
 }
 
+.part-group[data-inactive="true"] .part-group-trigger {
+  border-color: #e1e6ed;
+  background: #f8fafc;
+  color: #8a94a3;
+}
+
+.part-group[data-inactive="true"] .part-group-title,
+.part-group[data-inactive="true"] .part-group-summary,
+.part-group[data-inactive="true"] .part-group-icon {
+  color: #8a94a3;
+}
+
 .part-group-trigger:focus-visible {
   outline: 2px solid #72a2f8;
   outline-offset: -3px;

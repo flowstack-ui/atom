@@ -518,13 +518,13 @@ function propsMatch(
   element: Element | null | undefined,
   checks: [attribute: string, expectedValue: string][],
 ) {
-  if (!element) return "no";
+  if (!element) return "not rendered";
 
   return checks.every(([attribute, expectedValue]) =>
     element.getAttribute(attribute) === expectedValue
   )
-    ? "yes"
-    : "no";
+    ? "passed"
+    : "missing";
 }
 
 const emptyDialogRefSnapshot: DialogRefSnapshot = {
@@ -538,7 +538,7 @@ const emptyDialogRefSnapshot: DialogRefSnapshot = {
 
 const emptyDialogPartsSnapshot: DialogPartsSnapshot = {
   triggerExists: "no",
-  triggerProps: "no",
+  triggerProps: "not rendered",
   triggerTag: "none",
   triggerRole: "none",
   triggerTabIndex: "none",
@@ -552,12 +552,12 @@ const emptyDialogPartsSnapshot: DialogPartsSnapshot = {
   cancelCloseRole: "none",
   cancelCloseTabIndex: "none",
   saveCloseExists: "no",
-  saveCloseProps: "no",
+  saveCloseProps: "not rendered",
   saveCloseTag: "none",
   saveCloseRole: "none",
   saveCloseTabIndex: "none",
   contentExists: "no",
-  contentProps: "no",
+  contentProps: "not rendered",
   contentId: "none",
   contentRole: "none",
   contentState: "none",
@@ -569,17 +569,17 @@ const emptyDialogPartsSnapshot: DialogPartsSnapshot = {
   contentDescribedBy: "none",
   controlsMatch: "no",
   overlayExists: "no",
-  overlayProps: "no",
+  overlayProps: "not rendered",
   overlayState: "none",
   portalParent: "none",
   inCanvas: "no",
   titleExists: "no",
-  titleProps: "no",
+  titleProps: "not rendered",
   titleTag: "none",
   titleId: "none",
   titleMatches: "no",
   descriptionExists: "no",
-  descriptionProps: "no",
+  descriptionProps: "not rendered",
   descriptionId: "none",
   descriptionMatches: "no",
 };
