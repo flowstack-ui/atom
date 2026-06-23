@@ -252,7 +252,8 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
         </PartGroup>
         <PartGroup
           open={openGroups["Close: Cancel"]}
-          summary="default"
+          inactive={state.parts.cancelCloseExists !== "yes"}
+          summary={state.parts.cancelCloseExists === "yes" ? "default" : "not rendered"}
           title="Close: Cancel"
           onToggle={toggleGroup}
         >
@@ -282,11 +283,12 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
         </PartGroup>
         <PartGroup
           open={openGroups.Portal}
+          inactive={state.parts.contentExists !== "yes"}
           summary={state.parts.portalParent}
           title="Portal"
           onToggle={toggleGroup}
         >
-          <PartRow label="Parent" value={state.parts.portalParent} />
+          <PartRow label="Content parent" value={state.parts.portalParent} />
           <PartRow label="Inside canvas" value={state.parts.inCanvas} />
           <PartRow label="Content exists" value={state.parts.contentExists} />
         </PartGroup>

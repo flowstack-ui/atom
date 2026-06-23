@@ -494,7 +494,7 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
       ? contentParent === document.body
         ? "body"
         : contentParent.tagName.toLowerCase()
-      : "none",
+      : "not rendered",
     inCanvas: content && canvas?.contains(content) ? "yes" : "no",
     titleExists: title ? "yes" : "no",
     titleProps: propsMatch(title, [
@@ -571,7 +571,7 @@ const emptyDialogPartsSnapshot: DialogPartsSnapshot = {
   overlayExists: "no",
   overlayProps: "not rendered",
   overlayState: "none",
-  portalParent: "none",
+  portalParent: "not rendered",
   inCanvas: "no",
   titleExists: "no",
   titleProps: "not rendered",
