@@ -276,6 +276,7 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
           <PartRow label="Exists" value={state.parts.cancelCloseExists} />
           <PartRow label="Composition" value="default" />
           <PartRow label="tag" value={state.parts.cancelCloseTag} />
+          <PartRow label="data-slot" value={state.parts.cancelCloseSlot} />
           <PartRow label="role" value={state.parts.cancelCloseRole} />
           <PartRow label="tabindex attr" value={state.parts.cancelCloseTabIndex} />
         </PartGroup>

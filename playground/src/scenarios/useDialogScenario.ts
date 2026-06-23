@@ -53,6 +53,7 @@ export type DialogPartsSnapshot = {
   triggerExpanded: string;
   triggerDisabled: string;
   cancelCloseExists: string;
+  cancelCloseSlot: string;
   cancelCloseTag: string;
   cancelCloseRole: string;
   cancelCloseTabIndex: string;
@@ -468,6 +469,7 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
       ? "yes"
       : "no",
     cancelCloseExists: cancelClose ? "yes" : "no",
+    cancelCloseSlot: cancelClose?.getAttribute("data-slot") ?? "not rendered",
     cancelCloseTag: cancelClose?.tagName.toLowerCase() ?? "none",
     cancelCloseRole: cancelClose?.getAttribute("role") ?? "none",
     cancelCloseTabIndex: cancelClose?.getAttribute("tabindex") ?? "none",
@@ -574,6 +576,7 @@ const emptyDialogPartsSnapshot: DialogPartsSnapshot = {
   triggerExpanded: "none",
   triggerDisabled: "no",
   cancelCloseExists: "no",
+  cancelCloseSlot: "not rendered",
   cancelCloseTag: "none",
   cancelCloseRole: "none",
   cancelCloseTabIndex: "none",
