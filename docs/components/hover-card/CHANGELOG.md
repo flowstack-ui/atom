@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- No unreleased changes.
+- Added shared dismissable layer Escape handling so HoverCard participates in
+  topmost-layer dismissal with other overlays.
 
 ## 0.1.0
 

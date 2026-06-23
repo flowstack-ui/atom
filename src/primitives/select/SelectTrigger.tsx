@@ -52,11 +52,16 @@ export const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
   ) {
     const {
       "aria-label": nativeAriaLabel = ariaLabel,
+      "aria-labelledby": ariaLabelledBy,
+      "aria-describedby": ariaDescribedBy,
       ...buttonProps
     } = restProps;
     const ctx = useSelectContext();
     const {
       disabled,
+      fieldControlId,
+      fieldDescribedBy,
+      fieldLabelId,
       getEnabledItemValues,
       getItemId,
       highlightedValue,
@@ -92,7 +97,7 @@ export const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
           case "ArrowDown": {
             event.preventDefault();
             if (!isOpen) {
-              onOpen();
+              onOpen("current");
               onHighlight(getInitialSelectHighlight(ctxRef.current));
             } else {
               onHighlight(getNextSelectHighlight(values, currentValue, "next"));
@@ -102,7 +107,7 @@ export const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
           case "ArrowUp": {
             event.preventDefault();
             if (!isOpen) {
-              onOpen();
+              onOpen("last");
               onHighlight(values[values.length - 1] ?? null);
             } else {
               onHighlight(getNextSelectHighlight(values, currentValue, "previous"));
@@ -113,7 +118,7 @@ export const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
           case " ": {
             event.preventDefault();
             if (!isOpen) {
-              onOpen();
+              onOpen("current");
               onHighlight(getInitialSelectHighlight(ctxRef.current));
             } else if (highlightedValue) {
               onValueChange(highlightedValue);
@@ -122,13 +127,13 @@ export const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
           }
           case "Home": {
             event.preventDefault();
-            if (!isOpen) onOpen();
+            if (!isOpen) onOpen("first");
             onHighlight(values[0] ?? null);
             break;
           }
           case "End": {
             event.preventDefault();
-            if (!isOpen) onOpen();
+            if (!isOpen) onOpen("last");
             onHighlight(values[values.length - 1] ?? null);
             break;
           }
@@ -153,7 +158,7 @@ export const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
               typeaheadBuffer.current = "";
             }, 500);
 
-            if (!isOpen) onOpen();
+            if (!isOpen) onOpen("current");
 
             const match = getSelectTypeaheadMatch(ctxRef.current, typeaheadBuffer.current);
             if (match) onHighlight(match);
@@ -179,7 +184,7 @@ export const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
     const triggerProps = {
       ...buttonProps,
       ref: composedRef,
-      id: buttonProps.id ?? triggerId,
+      id: buttonProps.id ?? fieldControlId ?? triggerId,
       type: !asChild && !render ? "button" : undefined,
       role: "combobox",
       tabIndex: asChild || render ? (disabled ? -1 : 0) : undefined,
@@ -188,6 +193,8 @@ export const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
       "aria-controls": listboxId,
       "aria-activedescendant": isOpen ? activeDescendant : undefined,
       "aria-label": nativeAriaLabel,
+      "aria-labelledby": ariaLabelledBy ?? (nativeAriaLabel ? undefined : fieldLabelId),
+      "aria-describedby": ariaDescribedBy ?? fieldDescribedBy,
       "aria-required": required || undefined,
       "aria-disabled": disabled || undefined,
       disabled: !asChild && !render ? disabled : undefined,
@@ -197,13 +204,12 @@ export const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
       className,
       onClick: composeEventHandlers(onClick, handleClick),
       onKeyDown: composeEventHandlers(onKeyDown, handleKeyDown),
-      children,
     };
 
     if (asChild) {
       return cloneAndMerge(children, triggerProps);
     }
 
-    return renderElement(render, "button", triggerProps);
+    return renderElement(render, "button", { ...triggerProps, children });
   },
 );

@@ -16,7 +16,7 @@ export interface SelectItemData extends Record<string, unknown> {
 
 export interface SelectContextValue {
   isOpen: boolean;
-  onOpen: () => void;
+  onOpen: (highlightIntent?: SelectOpenHighlightIntent) => void;
   onClose: () => void;
   onToggle: () => void;
   value: string | undefined;
@@ -39,12 +39,19 @@ export interface SelectContextValue {
   disabled: boolean;
   required: boolean;
   name: string | undefined;
+  fieldControlId: string | undefined;
+  fieldLabelId: string | undefined;
+  fieldDescribedBy: string | undefined;
   registryVersion: number;
   isInsidePortal: boolean;
   setInsidePortal: (value: boolean) => void;
   registerLabel: (value: string, label: string) => void;
   getLabel: (value: string) => string | undefined;
+  openHighlightIntent: SelectOpenHighlightIntent | null;
+  clearOpenHighlightIntent: () => void;
 }
+
+export type SelectOpenHighlightIntent = "current" | "first" | "last";
 
 const SelectContext = createContext<SelectContextValue | null>(null);
 SelectContext.displayName = "SelectContext";

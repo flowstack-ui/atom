@@ -10,6 +10,7 @@ Modal alert dialog behavior for destructive actions, confirmations, and decision
 - Cancel button autofocus by default.
 - Close reasons for action and cancel flows.
 - Focus trap, focus restore, Escape dismissal, and scroll lock inherited from Modal.
+- Stack-aware Escape dismissal so nested overlays close before the parent alert dialog.
 
 ## Import
 

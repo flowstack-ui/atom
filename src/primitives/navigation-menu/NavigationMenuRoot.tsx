@@ -11,7 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { useCollection } from "../../collection.js";
-import { useEscapeKey } from "../../hooks/useEscapeKey.js";
+import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
 import type { NativeNavProps } from "../../utils/dom.js";
 import { composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
 import {
@@ -162,8 +162,9 @@ export const NavigationMenuRoot = forwardRef<
   const composedRef = useMemo(() => composeRefs(rootRef, ref), [ref]);
   const idPrefix = useId();
 
-  useEscapeKey((event) => {
-    if (activeValue !== null) {
+  useDismissableLayer({
+    enabled: activeValue !== null,
+    onEscapeKeyDown: (event) => {
       const target = event.target;
       if (
         target instanceof Element &&
@@ -172,11 +173,11 @@ export const NavigationMenuRoot = forwardRef<
         return;
       }
 
-      const trigger = getTriggerElement(activeValue);
+      const trigger = activeValue === null ? null : getTriggerElement(activeValue);
       handleValueChange(null);
       trigger?.focus();
-    }
-  }, activeValue !== null);
+    },
+  });
 
   const contextValue: NavigationMenuContextValue = useMemo(
     () => ({

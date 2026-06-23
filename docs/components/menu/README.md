@@ -9,6 +9,7 @@ Headless menu primitives for command menus, selection menus, groups, separators,
 - Supports checkbox and radio menu items.
 - Supports grouped items, separators, and nested submenus.
 - Supports configurable `closeOnSelect`, looping, escape close, side, align, and offsets.
+- Stack-aware Escape dismissal when nested inside parent overlays.
 - Exposes state data attributes for styling without shipping styles.
 
 ## Import
@@ -111,6 +112,10 @@ Provides radio selection state for `RadioItem`.
 | --- | --- | --- |
 | `value` | `string` | - |
 | `onValueChange` | `(value: string) => void` | - |
+
+Radio item values are scoped to their parent radio group for menu highlighting
+and keyboard movement, so separate groups can reuse values such as `"default"`
+inside the same menu.
 
 ### RadioItem
 

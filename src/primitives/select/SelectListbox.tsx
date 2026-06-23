@@ -18,7 +18,8 @@ import {
   useFloating,
 } from "@floating-ui/react";
 import { useFocusScopeContainer } from "../../hooks/focus.js";
-import { useEscapeKey } from "../../hooks/useEscapeKey.js";
+import { useClickAway } from "../../hooks/useClickAway.js";
+import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
 import { Portal } from "../../utils/Portal.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { composeRefs } from "../../utils/slot.js";
@@ -51,10 +52,13 @@ function SelectListbox(
   const internalRef = useRef<HTMLDivElement>(null);
   const [isPositioned, setIsPositioned] = useState(false);
   useFocusScopeContainer(internalRef, ctx.isOpen);
-  useEscapeKey(() => {
-    ctx.onClose();
-    ctx.triggerRef.current?.focus();
-  }, ctx.isOpen);
+  useDismissableLayer({
+    enabled: ctx.isOpen,
+    onEscapeKeyDown: () => {
+      ctx.onClose();
+      ctx.triggerRef.current?.focus();
+    },
+  });
 
   useEffect(() => {
     if (!ctx.isOpen) {
@@ -67,35 +71,48 @@ function SelectListbox(
     return () => cancelAnimationFrame(raf);
   }, [ctx.isOpen]);
 
-  useEffect(() => {
-    if (!ctx.isOpen) return undefined;
-
-    const handlePointerDown = (event: PointerEvent) => {
-      const target = event.target as Node;
-      const listbox = internalRef.current;
-      const trigger = ctx.triggerRef.current;
-
-      if (listbox && listbox.contains(target)) return;
-      if (trigger && trigger.contains(target)) return;
-
-      ctx.onClose();
-    };
-
-    const raf = requestAnimationFrame(() => {
-      document.addEventListener("pointerdown", handlePointerDown);
-    });
-
-    return () => {
-      cancelAnimationFrame(raf);
-      document.removeEventListener("pointerdown", handlePointerDown);
-    };
-  }, [ctx.isOpen, ctx.onClose, ctx.triggerRef]);
+  const clickAwayRefs = useMemo(
+    () => [internalRef, ctx.triggerRef],
+    [ctx.triggerRef],
+  );
+  useClickAway({
+    refs: clickAwayRefs,
+    onClickAway: ctx.onClose,
+    enabled: ctx.isOpen,
+  });
 
   useEffect(() => {
     if (!ctx.isOpen || !ctx.highlightedValue) return;
     const el = ctx.getItemElement(ctx.highlightedValue);
     el?.scrollIntoView({ block: "nearest" });
   }, [ctx.isOpen, ctx.highlightedValue, ctx.getItemElement]);
+
+  useEffect(() => {
+    if (!ctx.isOpen || !ctx.openHighlightIntent || ctx.highlightedValue) return;
+
+    const values = ctx.getEnabledItemValues();
+    if (values.length === 0) return;
+
+    const nextHighlight = ctx.openHighlightIntent === "last"
+      ? values[values.length - 1]
+      : ctx.openHighlightIntent === "first"
+        ? values[0]
+        : ctx.value && values.includes(ctx.value)
+          ? ctx.value
+          : values[0];
+
+    ctx.onHighlight(nextHighlight);
+    ctx.clearOpenHighlightIntent();
+  }, [
+    ctx.clearOpenHighlightIntent,
+    ctx.getEnabledItemValues,
+    ctx.highlightedValue,
+    ctx.isOpen,
+    ctx.onHighlight,
+    ctx.openHighlightIntent,
+    ctx.registryVersion,
+    ctx.value,
+  ]);
 
   const { refs, floatingStyles } = useFloating({
     elements: { reference: ctx.triggerRef.current },

@@ -38,6 +38,7 @@ test("Menubar primitives render bar and menu trigger attributes", () => {
   assert.match(html, /data-slot="menubar"/);
   assert.match(html, /class="menubar-class"/);
   assert.match(html, /data-slot="menubar-trigger"/);
+  assert.match(html, /role="menuitem"/);
   assert.match(html, /data-state="open"/);
   assert.match(html, /aria-haspopup="menu"/);
   assert.match(html, /aria-expanded="true"/);
@@ -72,6 +73,7 @@ test("Menubar source keeps keyboard open and focus behavior stable", async () =>
   assert.doesNotMatch(triggerSource, /barCtx\.unregisterTrigger\(menuValue\)/);
   assert.doesNotMatch(triggerSource, /requestAnimationFrame\(\(\) => \{\s*const values = menuCtx\.getItemValues/s);
   assert.match(triggerSource, /data-disabled=\{disabled \? "" : undefined\}/);
+  assert.match(triggerSource, /role="menuitem"/);
   assert.match(triggerSource, /aria-controls=\{menuCtx\.menuId\}/);
   assert.match(menuSource, /closeOnSelect = true/);
   assert.match(menuSource, /loop = true/);

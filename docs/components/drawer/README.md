@@ -7,6 +7,7 @@ Modal side-sheet dialog behavior with drawer-specific slots and placement metada
 - Controlled and uncontrolled open state.
 - Trigger, portal, overlay, content, title, description, and close parts.
 - Focus trap, focus restore, Escape dismissal, backdrop dismissal, and scroll lock.
+- Stack-aware Escape dismissal so nested overlays close before the parent drawer.
 - `placement` value exposed as `data-placement` for styling.
 - Keep-mounted content support for exit animations.
 - Headless only: placement does not apply visual positioning by itself.

@@ -168,6 +168,7 @@ export const MenubarTrigger = forwardRef<
       {...restProps}
       ref={composedRef}
       type="button"
+      role="menuitem"
       id={menuCtx.triggerId}
       data-slot="menubar-trigger"
       data-state={isOpen ? "open" : "closed"}

@@ -38,36 +38,37 @@ export function MenuRadioItem({
   const ctx = useMenuContext();
   const radioCtx = useMenuRadioGroupContext();
   const ref = useRef<HTMLDivElement>(null);
-  const isHighlighted = ctx.highlightedValue === value;
+  const itemValue = `${radioCtx.groupId}:${value}`;
+  const isHighlighted = ctx.highlightedValue === itemValue;
   const isChecked = radioCtx.value === value;
 
   const handleClick: MouseEventHandler<HTMLDivElement> = useCallback(() => {
     if (disabled) return;
     radioCtx.onValueChange(value);
-    ctx.onItemSelect(value, { closeOnSelect });
-  }, [closeOnSelect, ctx, disabled, radioCtx, value]);
+    ctx.onItemSelect(itemValue, { closeOnSelect });
+  }, [closeOnSelect, ctx, disabled, itemValue, radioCtx, value]);
 
   const handlePointerEnter: PointerEventHandler<HTMLDivElement> = useCallback(() => {
     if (disabled) return;
-    ctx.onHighlight(value);
+    ctx.onHighlight(itemValue);
     if (ctx.openSubMenuId) ctx.onSubMenuClose();
-  }, [ctx, disabled, value]);
+  }, [ctx, disabled, itemValue]);
 
   const handlePointerLeave: PointerEventHandler<HTMLDivElement> = useCallback(() => {
-    if (ctx.highlightedValue === value) ctx.onHighlight(null);
-  }, [ctx, value]);
+    if (ctx.highlightedValue === itemValue) ctx.onHighlight(null);
+  }, [ctx, itemValue]);
 
   useEffect(() => {
     const element = ref.current;
     if (!element || disabled) return undefined;
-    ctx.registerItem(value, element);
-    return () => ctx.unregisterItem(value);
-  }, [ctx.registerItem, ctx.unregisterItem, disabled, value]);
+    ctx.registerItem(itemValue, element);
+    return () => ctx.unregisterItem(itemValue);
+  }, [ctx.registerItem, ctx.unregisterItem, disabled, itemValue]);
 
   useEffect(() => {
     if (disabled) return;
-    ctx.registerLabel(value, textValue ?? (typeof children === "string" ? children : value));
-  }, [children, ctx.registerLabel, disabled, textValue, value]);
+    ctx.registerLabel(itemValue, textValue ?? (typeof children === "string" ? children : value));
+  }, [children, ctx.registerLabel, disabled, itemValue, textValue, value]);
 
   return (
     <div

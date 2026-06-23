@@ -10,6 +10,7 @@ Positioned disclosure content with optional anchor, modal behavior, focus guards
 - Floating UI positioning with side, align, side offset, collision shift, flip, and arrow coordinates.
 - Modal mode with focus trap and scroll lock.
 - Non-modal focus guards and outside interaction dismissal.
+- Stack-aware Escape dismissal for nested overlays.
 - Close button part and portal support.
 
 ## Import

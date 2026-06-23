@@ -29,13 +29,10 @@ export function useClickAway({
       handlerRef.current();
     };
 
-    const raf = requestAnimationFrame(() => {
-      document.addEventListener("pointerdown", handlePointerDown);
-    });
+    document.addEventListener("pointerdown", handlePointerDown, true);
 
     return () => {
-      cancelAnimationFrame(raf);
-      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("pointerdown", handlePointerDown, true);
     };
   }, [enabled, refs]);
 }

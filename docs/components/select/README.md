@@ -9,6 +9,9 @@ Single-value select with a combobox trigger, popup listbox, option collection, s
 - Keyboard navigation, typeahead search, highlighting, and selection.
 - Group, label, separator, viewport, scroll buttons, item text, and item indicator parts.
 - Hidden input for native form submission.
+- Stack-aware Escape dismissal when nested inside parent overlays.
+- Integrates with `Field.Root` for trigger labels, descriptions, disabled state,
+  and required state.
 - Optional portal and popup arrow.
 
 ## Import
@@ -66,6 +69,9 @@ Provides select state and form integration.
 | `name` | `string` | - |
 | `form` | `string` | - |
 
+When used inside `Field.Root`, `disabled` and `required` default to the Field
+state unless explicitly provided on `Select.Root`.
+
 ### Trigger
 
 Combobox button that opens the listbox and owns keyboard interaction.
@@ -82,6 +88,14 @@ Combobox button that opens the listbox and owns keyboard interaction.
 | `[data-slot]` | `"select-trigger"` |
 | `[data-state]` | `"open" | "closed"` |
 | `[data-disabled]` | Present when disabled |
+
+When used inside `Field.Root`, `Trigger` uses the Field control ID and inherits
+`aria-labelledby` / `aria-describedby` from the Field label and visible
+description or error content. Explicit `id`, `aria-label`, `aria-labelledby`,
+and `aria-describedby` props override this wiring.
+
+Typing a printable character while the trigger is focused opens the listbox and
+highlights the first enabled item whose label starts with the typed text.
 
 ### Value
 
@@ -215,23 +229,28 @@ Decorative popup arrow slot.
 ### Form Select
 
 ```tsx
-<Select.Root name="plan" defaultValue="pro" required>
-  <Select.Trigger aria-label="Plan">
-    <Select.Value placeholder="Choose a plan" />
-    <Select.Icon />
-  </Select.Trigger>
-  <Select.Content>
-    <Select.Viewport>
-      <Select.Item value="starter">
-        <Select.ItemText>Starter</Select.ItemText>
-      </Select.Item>
-      <Select.Item value="pro">
-        <Select.ItemText>Pro</Select.ItemText>
-        <Select.ItemIndicator />
-      </Select.Item>
-    </Select.Viewport>
-  </Select.Content>
-</Select.Root>
+import { Field, Select } from "@flowstack-ui/atom";
+
+<Field.Root id="plan" required>
+  <Field.Label>Plan</Field.Label>
+  <Select.Root name="plan" defaultValue="pro">
+    <Select.Trigger>
+      <Select.Value placeholder="Choose a plan" />
+      <Select.Icon />
+    </Select.Trigger>
+    <Select.Content>
+      <Select.Viewport>
+        <Select.Item value="starter">
+          <Select.ItemText>Starter</Select.ItemText>
+        </Select.Item>
+        <Select.Item value="pro">
+          <Select.ItemText>Pro</Select.ItemText>
+          <Select.ItemIndicator />
+        </Select.Item>
+      </Select.Viewport>
+    </Select.Content>
+  </Select.Root>
+</Field.Root>
 ```
 
 ### Grouped Options

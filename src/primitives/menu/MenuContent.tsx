@@ -24,6 +24,7 @@ import {
   useFocusRestore,
   useFocusScopeContainer,
 } from "../../hooks/focus.js";
+import { useClickAway } from "../../hooks/useClickAway.js";
 import { usePresence } from "../../hooks/usePresence.js";
 import { useScrollLock } from "../../hooks/useScrollLock.js";
 import { Portal } from "../../utils/Portal.js";
@@ -100,6 +101,7 @@ function MenuContent(
   const internalRef = useRef<HTMLDivElement>(null);
   const { isPresent, ref: presenceRef } = usePresence({ present: isOpen });
   const [isPositioned, setIsPositioned] = useState(false);
+  const hasAppliedInitialHighlightRef = useRef(false);
   const typeaheadBuffer = useRef("");
   const typeaheadTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -118,7 +120,19 @@ function MenuContent(
   }, [isPresent]);
 
   useEffect(() => {
-    if (!isPresent || highlightedValue) return undefined;
+    if (!isPresent) {
+      hasAppliedInitialHighlightRef.current = false;
+      return undefined;
+    }
+
+    if (highlightedValue) {
+      hasAppliedInitialHighlightRef.current = true;
+      return undefined;
+    }
+
+    if (hasAppliedInitialHighlightRef.current) return undefined;
+    hasAppliedInitialHighlightRef.current = true;
+
     const raf = requestAnimationFrame(() => {
       const values = getItemValues();
       if (values.length > 0) {
@@ -134,29 +148,15 @@ function MenuContent(
     el?.scrollIntoView({ block: "nearest" });
   }, [getItemElement, highlightedValue, isOpen]);
 
-  useEffect(() => {
-    if (!isOpen) return undefined;
-
-    const handlePointerDown = (event: PointerEvent) => {
-      const target = event.target as Node;
-      const content = internalRef.current;
-      const trigger = triggerRef.current;
-
-      if (content && content.contains(target)) return;
-      if (trigger && trigger.contains(target)) return;
-
-      onClose();
-    };
-
-    const raf = requestAnimationFrame(() => {
-      document.addEventListener("pointerdown", handlePointerDown);
-    });
-
-    return () => {
-      cancelAnimationFrame(raf);
-      document.removeEventListener("pointerdown", handlePointerDown);
-    };
-  }, [isOpen, onClose, triggerRef]);
+  const clickAwayRefs = useMemo(
+    () => [internalRef, triggerRef],
+    [triggerRef],
+  );
+  useClickAway({
+    refs: clickAwayRefs,
+    onClickAway: onClose,
+    enabled: isOpen,
+  });
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLDivElement>) => {

@@ -18,7 +18,7 @@ Atom provides:
 - React primitives
 - ARIA and keyboard behavior
 - controlled and uncontrolled state
-- focus, escape, presence, and scroll-lock hooks
+- focus, stack-aware escape dismissal, presence, and scroll-lock hooks
 - compound component context
 - portal utilities
 - data attributes for styling hooks

@@ -20,6 +20,7 @@ import {
 } from "@floating-ui/react";
 import { useCollection } from "../../collection.js";
 import { useFocusScopeContainer } from "../../hooks/focus.js";
+import { useClickAway } from "../../hooks/useClickAway.js";
 import { usePresence } from "../../hooks/usePresence.js";
 import { Portal } from "../../utils/Portal.js";
 import type { NativeDivProps } from "../../utils/dom.js";
@@ -170,24 +171,15 @@ function MenuSubContent(
     el?.scrollIntoView({ block: "nearest" });
   }, [getItemElement, highlightedValue, isOpen]);
 
-  useEffect(() => {
-    if (!isOpen) return undefined;
-    const handlePointerDown = (event: PointerEvent) => {
-      const target = event.target as Node;
-      const content = internalRef.current;
-      const trigger = subTriggerRef.current;
-      if (content && content.contains(target)) return;
-      if (trigger && trigger.contains(target)) return;
-      onClose();
-    };
-    const raf = requestAnimationFrame(() => {
-      document.addEventListener("pointerdown", handlePointerDown);
-    });
-    return () => {
-      cancelAnimationFrame(raf);
-      document.removeEventListener("pointerdown", handlePointerDown);
-    };
-  }, [isOpen, onClose, subTriggerRef]);
+  const clickAwayRefs = useMemo(
+    () => [internalRef, subTriggerRef],
+    [subTriggerRef],
+  );
+  useClickAway({
+    refs: clickAwayRefs,
+    onClickAway: onClose,
+    enabled: isOpen,
+  });
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLDivElement>) => {

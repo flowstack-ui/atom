@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useEscapeKey } from "../../hooks/useEscapeKey.js";
+import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
 import {
   PopoverContextProvider,
   type PopoverContextValue,
@@ -88,7 +88,10 @@ export function PopoverRoot({
     }
   }, [clearTimers, closeDelay, setOpen, triggerMode]);
 
-  useEscapeKey(onClose, isOpen && closeOnEscape);
+  useDismissableLayer({
+    enabled: isOpen && closeOnEscape,
+    onEscapeKeyDown: onClose,
+  });
   useEffect(() => () => clearTimers(), [clearTimers]);
 
   const contextValue: PopoverContextValue = useMemo(

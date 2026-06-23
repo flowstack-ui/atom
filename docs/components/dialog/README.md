@@ -7,6 +7,7 @@ Accessible dialog anatomy built on Modal behavior.
 - Controlled and uncontrolled open state.
 - Trigger, portal, overlay, content, title, description, and close parts.
 - Focus trap, focus restore, Escape dismissal, backdrop dismissal, and scroll lock.
+- Stack-aware Escape dismissal so nested overlays close before the parent dialog.
 - Keep-mounted content support for exit animations.
 - Dialog-specific `data-slot` values for every public part.
 

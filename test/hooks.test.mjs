@@ -132,6 +132,37 @@ test("collection hook source keeps registry version and DOM-order APIs stable", 
   assert.match(source, /clearItems/);
 });
 
+test("dismissable layer hook routes Escape to the topmost registered layer", async () => {
+  const source = await readFile(new URL("src/hooks/useDismissableLayer.ts", packageRoot), "utf8");
+
+  assert.match(source, /^"use client";/);
+  assert.match(source, /const layers: DismissableLayer\[\] = \[\]/);
+  assert.match(source, /const topLayer = layers\[layers\.length - 1\]/);
+  assert.match(source, /topLayer\?\.onEscapeKeyDownRef\.current\(event\)/);
+  assert.match(source, /document\.addEventListener\("keydown", handleDocumentKeyDown, true\)/);
+  assert.match(source, /document\.removeEventListener\("keydown", handleDocumentKeyDown, true\)/);
+});
+
+test("overlay primitives use dismissable layer stack for Escape handling", async () => {
+  const files = [
+    "src/primitives/modal/useModalContent.ts",
+    "src/primitives/select/SelectListbox.tsx",
+    "src/primitives/menu/MenuRoot.tsx",
+    "src/primitives/combobox/ComboboxContent.tsx",
+    "src/primitives/popover/PopoverRoot.tsx",
+    "src/primitives/hover-card/HoverCardRoot.tsx",
+    "src/primitives/tooltip/TooltipRoot.tsx",
+    "src/primitives/navigation-menu/NavigationMenuRoot.tsx",
+    "src/primitives/navigation-menu/NavigationMenuSub.tsx",
+  ];
+
+  for (const file of files) {
+    const source = await readFile(new URL(file, packageRoot), "utf8");
+    assert.match(source, /useDismissableLayer/);
+    assert.doesNotMatch(source, /useEscapeKey/);
+  }
+});
+
 test("virtualizer helpers calculate visible items with overscan and variable sizes", () => {
   const sizes = [20, 30, 40, 50, 60, 70];
   const getItemSize = (index) => sizes[index];

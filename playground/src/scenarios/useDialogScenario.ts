@@ -11,6 +11,8 @@ export type DialogLogEntry = {
 };
 
 export type DialogCompositionMode = "default" | "asChild" | "render";
+export type DialogContentRole = "dialog" | "alertdialog";
+export type DialogHeadingLevel = "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 export type DialogRefPart =
   | "trigger"
   | "overlay"
@@ -27,6 +29,9 @@ export type DialogScenarioState = {
   closeOnEscape: boolean;
   closeOnBackdropClick: boolean;
   useAriaLabel: boolean;
+  contentRole: DialogContentRole;
+  noFocusableContent: boolean;
+  titleHeadingLevel: DialogHeadingLevel;
   triggerComposition: DialogCompositionMode;
   closeComposition: DialogCompositionMode;
   blockTriggerEvent: boolean;
@@ -68,6 +73,7 @@ export type DialogPartsSnapshot = {
   contentProps: string;
   contentId: string;
   contentRole: string;
+  contentFocused: string;
   contentState: string;
   contentPositioned: string;
   contentHidden: string;
@@ -75,6 +81,7 @@ export type DialogPartsSnapshot = {
   contentAriaLabel: string;
   contentLabelledBy: string;
   contentDescribedBy: string;
+  bodyScrollLock: string;
   controlsMatch: string;
   overlayExists: string;
   overlaySlot: string;
@@ -102,6 +109,9 @@ export type DialogScenarioActions = {
   setCloseOnEscape: (value: boolean) => void;
   setCloseOnBackdropClick: (value: boolean) => void;
   setUseAriaLabel: (value: boolean) => void;
+  setContentRole: (value: DialogContentRole) => void;
+  setNoFocusableContent: (value: boolean) => void;
+  setTitleHeadingLevel: (value: DialogHeadingLevel) => void;
   setTriggerComposition: (value: DialogCompositionMode) => void;
   setCloseComposition: (value: DialogCompositionMode) => void;
   setBlockTriggerEvent: (value: boolean) => void;
@@ -131,6 +141,10 @@ export function useDialogScenario() {
   const [closeOnEscape, setCloseOnEscape] = useState(true);
   const [closeOnBackdropClick, setCloseOnBackdropClick] = useState(true);
   const [useAriaLabel, setUseAriaLabel] = useState(false);
+  const [contentRole, setContentRole] = useState<DialogContentRole>("dialog");
+  const [noFocusableContent, setNoFocusableContent] = useState(false);
+  const [titleHeadingLevel, setTitleHeadingLevel] =
+    useState<DialogHeadingLevel>("h2");
   const [triggerComposition, setTriggerComposition] =
     useState<DialogCompositionMode>("default");
   const [closeComposition, setCloseComposition] =
@@ -305,6 +319,7 @@ export function useDialogScenario() {
         "hidden",
         "id",
         "name",
+        "style",
         "title",
       ],
     });
@@ -372,6 +387,9 @@ export function useDialogScenario() {
     closeOnEscape,
     closeOnBackdropClick,
     useAriaLabel,
+    contentRole,
+    noFocusableContent,
+    titleHeadingLevel,
     triggerComposition,
     closeComposition,
     blockTriggerEvent,
@@ -391,6 +409,9 @@ export function useDialogScenario() {
     setCloseOnEscape,
     setCloseOnBackdropClick,
     setUseAriaLabel,
+    setContentRole,
+    setNoFocusableContent,
+    setTitleHeadingLevel,
     setTriggerComposition,
     setCloseComposition,
     setBlockTriggerEvent,
@@ -439,6 +460,7 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
   const canvas = document.querySelector(".canvas");
   const triggerControls = trigger?.getAttribute("aria-controls") ?? "none";
   const contentId = content?.id || "none";
+  const activeElement = document.activeElement;
   const labelledBy = content?.getAttribute("aria-labelledby") ?? "none";
   const describedBy = content?.getAttribute("aria-describedby") ?? "none";
   const titleId = title?.id || "none";
@@ -492,6 +514,7 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
     ]),
     contentId,
     contentRole: content?.getAttribute("role") ?? "none",
+    contentFocused: content && activeElement === content ? "yes" : "no",
     contentState: content?.getAttribute("data-state") ?? "none",
     contentPositioned: content
       ? content.hasAttribute("data-positioned")
@@ -503,6 +526,7 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
     contentAriaLabel: content?.getAttribute("aria-label") ?? "none",
     contentLabelledBy: labelledBy,
     contentDescribedBy: describedBy,
+    bodyScrollLock: document.body.style.overflow || "none",
     controlsMatch: triggerControls !== "none" && triggerControls === contentId ? "yes" : "no",
     overlayExists: overlay ? "yes" : "no",
     overlaySlot: overlay?.getAttribute("data-slot") ?? "not rendered",
@@ -591,6 +615,7 @@ const emptyDialogPartsSnapshot: DialogPartsSnapshot = {
   contentProps: "not rendered",
   contentId: "none",
   contentRole: "none",
+  contentFocused: "no",
   contentState: "none",
   contentPositioned: "none",
   contentHidden: "no",
@@ -598,6 +623,7 @@ const emptyDialogPartsSnapshot: DialogPartsSnapshot = {
   contentAriaLabel: "none",
   contentLabelledBy: "none",
   contentDescribedBy: "none",
+  bodyScrollLock: "none",
   controlsMatch: "no",
   overlayExists: "no",
   overlaySlot: "not rendered",

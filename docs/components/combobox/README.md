@@ -9,6 +9,7 @@ Text input with popup listbox, filtering helpers, option collection, selection s
 - Controlled and uncontrolled open state.
 - Keyboard navigation with `aria-activedescendant`.
 - Escape closes first, then clears when closed.
+- Stack-aware Escape dismissal when nested inside parent overlays.
 - Option groups, labels, empty/loading states, portal, and clear control.
 - Hidden input for native form submission.
 

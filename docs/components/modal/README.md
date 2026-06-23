@@ -6,6 +6,7 @@ Shared foundation for modal dialog behavior, focus management, portals, titles, 
 
 - Controlled and uncontrolled open state.
 - Escape-key and backdrop dismissal controls.
+- Stack-aware Escape dismissal so nested overlays close before the parent modal.
 - Focus trap, focus restore, scroll lock, and initial focus management.
 - Optional keep-mounted content support through `useModalContent`.
 - Close reasons for action, cancel, backdrop, Escape, and close-button flows.

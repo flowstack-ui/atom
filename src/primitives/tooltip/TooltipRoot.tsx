@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useEscapeKey } from "../../hooks/useEscapeKey.js";
+import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
 import {
   TooltipContextProvider,
   useTooltipProviderContext,
@@ -123,7 +123,10 @@ export function TooltipRoot({
     providerContext?.onTooltipClose();
   }, [clearTimers, providerContext, setOpen]);
 
-  useEscapeKey(handleEscape, isOpen);
+  useDismissableLayer({
+    enabled: isOpen,
+    onEscapeKeyDown: handleEscape,
+  });
 
   useEffect(() => () => clearTimers(), [clearTimers]);
 

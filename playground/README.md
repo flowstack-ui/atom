@@ -34,23 +34,38 @@ current local source without installing the published npm package.
 
 Do not import from `../src/primitives`, `../src/utils`, or other internal paths.
 
+When the workbench needs UI, dogfood Atom primitives before writing custom
+behavior. Current shared workbench UI uses:
+
+- `AppBar` for the top application bar
+- `Menubar` for the category menu and scenario toolbar menus
+- `Button` for header actions and imperative test actions
+- `Collapsible` for Anatomy groups
+- `Tabs` for Inspector target switching
+- `ScrollArea` for scrollable Log content
+- `Field`, `Input`, and `Select` inside live form scenarios
+
 ## App Shape
 
 Build the playground like a small desktop-style tool.
 
-- Use a top toolbar/menu bar.
+- Use a top `AppBar` with a `Menubar` for scenario categories.
 - Use dropdown menus for component categories directly in the top bar.
 - Use nested submenus only when a category needs them.
 - Do not add a persistent sidebar.
 - Keep the main area focused on the selected scenario.
-- Put scenario prop controls in the Canvas toolbar when they affect the live
-  component.
+- Put scenario prop controls in the Canvas toolbar when they affect the live component.
+  The Canvas toolbar is an Atom `Menubar`, not a long row of loose toggles.
 - Show the current package name and version on the right side of the top bar.
+- Put imperative panel actions in card headers, such as `Focus Canvas`,
+  `Collapse All`, and `Clear`.
+- Use compact panel footers for short summaries, such as active scenario state,
+  Inspector target, and Log event count.
 
 Expected structure:
 
 ```text
-Top toolbar
+Top app bar
   Atom Playground
   Forms
     Field
@@ -75,10 +90,14 @@ Main area
   Scenario title
   Anatomy
   Canvas
-    Canvas toolbar
+    Canvas toolbar menu
     Live component only
+    Canvas footer
   Inspector
+    Inspector header switch
+    Inspector footer
   Log
+    Log footer
 ```
 
 The visual order and DOM order should match:
@@ -108,10 +127,14 @@ Each scenario should include:
 
 - a short human title
 - an Anatomy panel for the component parts and live state
+- an Anatomy header action when the panel has many collapsible groups
 - a Canvas panel containing only the component being tested
-- a Canvas toolbar for important state or props
+- a Canvas toolbar menu for important state or props
+- a Canvas footer for one-line scenario state
 - an Inspector for focused or selected DOM details
+- an Inspector footer that names the current target mode
 - a Log for interaction events and close/open reasons
+- a Log footer with the current event count
 
 Do not put status text, duplicate state summaries, or helper explanations inside
 the Canvas stage. If a value is state, put it in Anatomy. If it is an event, put
@@ -136,25 +159,44 @@ when that is enough.
 
 Controls should test behavior, not decorate the page.
 
-Use simple controls:
+Use Atom primitives for playground controls:
 
-- checkbox/toggle for booleans
-- select for small option sets
-- text input for controlled values
-- buttons for imperative actions
+- `Menubar.CheckboxItem` for boolean scenario options
+- `Menubar.RadioGroup` and `Menubar.RadioItem` for small option sets
+- `Button` for imperative actions
+- `Field`, `Input`, and `Select` when the live component needs form controls
 
 Examples:
 
 ```text
-[Controlled] [Disabled] [Keep mounted] [RTL]
-Placement: [top | right | bottom | left]
-Value: [____________]
+State
+  Controlled
+  Disabled
+  Keep mounted
+
+Composition
+  Trigger
+    default
+    asChild
+    render
 ```
 
 Do not add controls for every prop unless that prop changes meaningful behavior.
 
-For boolean scenario props, prefer compact toggle buttons in the Canvas toolbar.
-Keep the left panel for Anatomy, not controls.
+For scenario props, prefer grouped menus in the Canvas toolbar. Keep the left
+panel for Anatomy, not controls.
+
+Menu rows should be easy to scan:
+
+- labels start on the left
+- selected marks sit on the right
+- group related controls under short muted section labels
+- use `Menubar.Separator` for real group breaks
+- use subtle row dividers when a menu has many options
+- keep common top-level menus consistent across scenarios when they apply:
+  `State`, `Field`, `ARIA`, `Popup`, `Dismiss`, and `Composition`
+- keep event blocking and debug logging controls in a clearly labeled section,
+  not mixed with normal composition controls
 
 ## Anatomy
 
@@ -171,14 +213,55 @@ Overlay
 Content
 Title
 Description
+Close
+```
+
+For Select, that means:
+
+```text
+Root
+Trigger
+Value
+Icon
+Portal
+Content
+Scroll Up Button
+Viewport
+Group
+Label
+Item
+Item Text
+Item Indicator
+Separator
+Scroll Down Button
+Arrow
 ```
 
 Rules:
 
+- Render Anatomy with the shared `AnatomyPanel` component, which uses Atom
+  `Collapsible` internally. Do not add one-off collapsible anatomy code inside
+  each scenario.
+- Order top-level Anatomy groups to match the public component anatomy docs.
 - Use collapsible groups when a component has many parts.
+- Start groups collapsed unless a scenario has a strong reason to open one.
+- Add a `Collapse All` header action when many groups can be expanded.
 - Show a useful summary on collapsed groups.
 - Do not repeat the summary value again inside the expanded group unless it is a
   real row.
+- Put test variants under the real anatomy part instead of creating fake parts.
+  For example, Dialog uses one `Close` group with `Cancel button` and
+  `Save button` subsections. Select uses one `Item` group with
+  `Selected item`, `Highlighted item`, `Raw item`, and `Disabled item`
+  subsections.
+- Keep generated DOM that users do not render manually under the owning public
+  part. For example, Select's hidden form input lives under `Root` as
+  `Generated hidden input`, not as a top-level anatomy group.
+- Use human-readable top-level titles for camel-case parts, such as
+  `Scroll Up Button`, `Item Text`, and `Item Indicator`.
+- Rows should carry a category so the shared renderer orders them consistently:
+  presence, identity, composition, state, data, ARIA, then behavior. Rows within
+  the same category are alphabetical.
 - Use lowercase generated values: `yes`, `no`, `none`, `open`, `closed`,
   `body`.
 - Keep group headers visually stable between collapsed and expanded states.
@@ -193,7 +276,7 @@ The Canvas is for the live component, not for documentation.
 Rules:
 
 - The stage should contain only the component parts needed for the scenario.
-- Controls live in the Canvas toolbar, above the stage.
+- Controls live in the Canvas toolbar menu, above the stage.
 - Status summaries live in Anatomy or Log, not inside the stage.
 - A scenario can include imperative test buttons when they are part of the
   behavior being tested, such as a controlled open button.
@@ -201,6 +284,8 @@ Rules:
   fake it into the Canvas just to keep it visually contained.
 - Include a `Focus Canvas` button in the Canvas title bar when tabbing through
   the full workbench would slow manual testing.
+- Use the Canvas footer for short state summaries that should not be inside the
+  live component area.
 
 ## Inspector
 
@@ -241,12 +326,15 @@ Rules:
 
 - Use short timestamps, such as `14:05`.
 - Use plain rows with dividers, matching Inspector density.
-- Start with an empty state like `no events`.
+- When there are no events, leave the row area empty and let the footer show
+  `0 Events`.
 - Do not add fake startup events like `ready`.
 - Do not log `log cleared`; clearing the log should simply return to the empty
   state.
 - Keep event text direct, such as `opened by trigger`, `opened by external
   control`, `closed by escapeKeyDown`, or `closed by backdropClick`.
+- Put `Clear` in the Log header, not inside the log rows.
+- Use the Log footer for event count.
 
 ## Coverage Tracker
 
@@ -255,6 +343,7 @@ Track playground coverage in `component-coverage.xlsx`.
 Rules:
 
 - Use one sheet per component. The Dialog sheet is named `Dialog`.
+  The Select sheet is named `Select`.
 - Keep the rows broad enough to cover the full component surface: public API,
   interaction, accessibility, composition, refs, native props, styling hooks,
   portal behavior, and mobile behavior when relevant.
@@ -274,16 +363,20 @@ styles shared and boring so scenarios stay consistent.
 
 Use the same UI model across scenarios:
 
-- desktop-style menu bar at the top
+- desktop-style `AppBar` and `Menubar` at the top
 - no persistent sidebar
 - compact cards for Anatomy, Canvas, Inspector, and Log
-- Canvas toolbar for prop toggles
+- Canvas toolbar menus for prop controls
+- header actions for panel commands
+- footers for short panel summaries
 - readable row tables for live state
 - no long instructional prose in the UI
 
-## First Scenario
+## Scenario Order
 
-Start with `Dialog`.
+Dialog established the initial playground pattern. Select is the second complete
+scenario and adds form, listbox, typeahead, scroll, nested overlay, and generated
+hidden input coverage.
 
 Dialog is a good first scenario because it exercises:
 
@@ -296,5 +389,6 @@ Dialog is a good first scenario because it exercises:
 - controlled and uncontrolled open state
 - `aria-*` and `data-state`
 
-Use that first scenario to prove the playground pattern before adding the rest
-of the primitives.
+Use these first scenarios to prove shared playground patterns before adding the
+rest of the primitives. Avoid extracting more shared UI until a repeated pattern
+has appeared in at least two scenarios and is likely to remain stable.

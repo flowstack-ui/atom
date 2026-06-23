@@ -8,6 +8,7 @@ import {
 } from "../test-utils.mjs";
 
 import {
+  Field,
   Select,
   SelectContent,
   SelectGroup,
@@ -126,6 +127,74 @@ test("Select exposes value, item text, indicator, group, label, viewport, and se
   assert.match(html, /<input type="hidden"[^>]*name="plan"[^>]*value="pro"/);
 });
 
+test("Select value resolves item text before the listbox mounts", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      SelectRoot,
+      { defaultValue: "pro" },
+      React.createElement(
+        SelectTrigger,
+        { "aria-label": "Plan" },
+        React.createElement(SelectValue, null),
+      ),
+      React.createElement(
+        SelectContent,
+        { disablePortal: true },
+        React.createElement(
+          SelectViewport,
+          null,
+          React.createElement(
+            SelectItem,
+            { value: "pro" },
+            React.createElement(SelectItemText, null, "Pro"),
+            React.createElement(SelectItemIndicator, null, "check"),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  assert.match(html, /data-slot="select-value"/);
+  assert.match(html, />Pro<\/span>/);
+  assert.doesNotMatch(html, />pro<\/span>/);
+  assert.doesNotMatch(html, /role="listbox"/);
+});
+
+test("Select trigger asChild preserves child contents without nesting the child", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      SelectRoot,
+      { defaultValue: "pro" },
+      React.createElement(
+        SelectTrigger,
+        { asChild: true, className: "select-trigger-class" },
+        React.createElement(
+          "span",
+          { className: "custom-trigger" },
+          React.createElement(SelectValue, null),
+          React.createElement(SelectIcon, null, "v"),
+        ),
+      ),
+      React.createElement(
+        SelectContent,
+        { disablePortal: true },
+        React.createElement(
+          SelectItem,
+          { value: "pro" },
+          React.createElement(SelectItemText, null, "Pro"),
+        ),
+      ),
+    ),
+  );
+
+  assert.match(html, /^<span /);
+  assert.match(html, /class="custom-trigger select-trigger-class"/);
+  assert.match(html, /role="combobox"/);
+  assert.match(html, /data-slot="select-trigger"/);
+  assert.match(html, />Pro<\/span><span aria-hidden="true" data-slot="select-icon">v<\/span><\/span>$/);
+  assert.doesNotMatch(html, /<span class="custom-trigger">/);
+});
+
 test("Select hidden form input mirrors disabled and form association", () => {
   const html = renderToStaticMarkup(
     React.createElement(
@@ -142,6 +211,67 @@ test("Select hidden form input mirrors disabled and form association", () => {
   assert.match(html, /value="pro"/);
   assert.match(html, /form="checkout"/);
   assert.match(html, /disabled=""/);
+});
+
+test("Select integrates with Field labels, descriptions, and state", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Field.Root,
+      { id: "plan-field", required: true, disabled: true },
+      React.createElement(Field.Label, null, "Plan"),
+      React.createElement(Field.Description, null, "Choose a plan."),
+      React.createElement(
+        SelectRoot,
+        { defaultValue: "pro", name: "plan" },
+        React.createElement(
+          SelectTrigger,
+          { className: "select-trigger-class" },
+          React.createElement(SelectValue, null),
+        ),
+        React.createElement(
+          SelectItem,
+          { value: "pro" },
+          React.createElement(SelectItemText, null, "Pro"),
+        ),
+      ),
+    ),
+  );
+
+  assert.match(html, /id="plan-field-control"/);
+  assert.match(html, /aria-labelledby="plan-field-label"/);
+  assert.match(html, /aria-required="true"/);
+  assert.match(html, /aria-disabled="true"/);
+  assert.match(html, /disabled=""/);
+  assert.match(html, /<input type="hidden"[^>]*disabled=""/);
+  assert.match(html, /<input type="hidden"[^>]*name="plan"/);
+  assert.match(html, /<input type="hidden"[^>]*value="pro"/);
+});
+
+test("Select explicit trigger labels override Field label wiring", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Field.Root,
+      { id: "plan-field" },
+      React.createElement(Field.Label, null, "Plan"),
+      React.createElement(
+        SelectRoot,
+        { defaultValue: "pro" },
+        React.createElement(
+          SelectTrigger,
+          { "aria-label": "Subscription plan" },
+          React.createElement(SelectValue, null),
+        ),
+        React.createElement(
+          SelectItem,
+          { value: "pro" },
+          React.createElement(SelectItemText, null, "Pro"),
+        ),
+      ),
+    ),
+  );
+
+  assert.match(html, /aria-label="Subscription plan"/);
+  assert.doesNotMatch(html, /aria-labelledby="plan-field-label"/);
 });
 
 test("SelectItem omits aria-labelledby until SelectItemText is mounted", () => {
@@ -183,14 +313,33 @@ test("Select source keeps trigger-owned keyboard navigation and stable registrat
   assert.doesNotMatch(rootSource, /compareDocumentPosition/);
   assert.match(rootSource, /registryVersion,/);
   assert.match(rootSource, /getEnabledItemValues/);
+  assert.match(rootSource, /openHighlightIntent/);
+  assert.match(rootSource, /clearOpenHighlightIntent/);
+  assert.match(rootSource, /labelMapRef\.current\.set\(itemValue, label\)/);
+  assert.match(rootSource, /collectStaticSelectItems\(children\)/);
+  assert.match(rootSource, /child\.type === SelectItemText/);
+  assert.match(rootSource, /staticItems\.get\(itemValue\)\?\.text/);
+  assert.match(rootSource, /getCollectionItem\(itemValue\)\?\.data\.textValue/);
+  assert.match(rootSource, /const mountedItems = getCollectionItems\(\)/);
+  assert.match(rootSource, /return Array\.from\(staticItems\.keys\(\)\)/);
+  assert.match(rootSource, /filter\(\(\[, item\]\) => !item\.disabled\)/);
+  assert.match(rootSource, /disabled: disabled === true/);
+  assert.doesNotMatch(rootSource, /labelMapRef\.current\.delete/);
   assert.match(triggerSource, /case "ArrowDown":/);
-  assert.match(triggerSource, /const \{\s*disabled,\s*getEnabledItemValues,/);
+  assert.match(triggerSource, /const \{\s*disabled,\s*fieldControlId,\s*fieldDescribedBy,\s*fieldLabelId,\s*getEnabledItemValues,/);
+  assert.match(triggerSource, /"aria-describedby": ariaDescribedBy \?\? fieldDescribedBy/);
+  assert.match(triggerSource, /onOpen\("current"\)/);
+  assert.match(triggerSource, /onOpen\("last"\)/);
+  assert.match(triggerSource, /onOpen\("first"\)/);
   assert.match(triggerSource, /if \(!isOpen\) \{/);
   assert.match(triggerSource, /getNextSelectHighlight\(values, currentValue, "next"\)/);
   assert.match(triggerSource, /case "Enter":/);
   assert.match(triggerSource, /ctxRef\.current = ctx/);
   assert.match(triggerSource, /onValueChange\(highlightedValue\)/);
   assert.match(triggerSource, /getSelectTypeaheadMatch\(ctxRef\.current, typeaheadBuffer\.current\)/);
+  assert.match(triggerSource, /return cloneAndMerge\(children, triggerProps\)/);
+  assert.match(triggerSource, /renderElement\(render, "button", \{ \.\.\.triggerProps, children \}\)/);
+  assert.doesNotMatch(triggerSource, /onKeyDown: composeEventHandlers\(onKeyDown, handleKeyDown\),\s*children,/);
   assert.doesNotMatch(triggerSource, /\},\s*\[ctx\]\s*,/);
   assert.match(itemSource, /ctx\.registerItem\(value, \{/);
   assert.match(itemSource, /const generatedId = useId\(\)/);
@@ -230,7 +379,12 @@ test("Select source avoids dead listbox keyboard handling and portal/scroll foot
   assert.match(contextSource, /isInsidePortal: boolean/);
   assert.doesNotMatch(listboxSource, /type KeyboardEventHandler/);
   assert.doesNotMatch(listboxSource, /onKeyDown=/);
+  assert.match(listboxSource, /useClickAway\(\{/);
+  assert.doesNotMatch(listboxSource, /document\.addEventListener\("pointerdown"/);
   assert.match(listboxSource, /disabled=\{disablePortal \|\| ctx\.isInsidePortal\}/);
+  assert.match(listboxSource, /ctx\.openHighlightIntent/);
+  assert.match(listboxSource, /ctx\.registryVersion/);
+  assert.match(listboxSource, /ctx\.clearOpenHighlightIntent\(\)/);
   assert.match(portalSource, /ctx\.setInsidePortal\(true\)/);
   assert.match(portalSource, /\}, \[ctx\.setInsidePortal, disabled\]\)/);
   assert.doesNotMatch(portalSource, /\}, \[ctx, disabled\]\)/);

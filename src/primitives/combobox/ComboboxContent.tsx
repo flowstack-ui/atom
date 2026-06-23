@@ -16,7 +16,8 @@ import {
   size as sizeMiddleware,
   useFloating,
 } from "@floating-ui/react";
-import { useEscapeKey } from "../../hooks/useEscapeKey.js";
+import { useClickAway } from "../../hooks/useClickAway.js";
+import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { composeRefs } from "../../utils/slot.js";
 import { useComboboxContext } from "./context.js";
@@ -91,10 +92,13 @@ export const ComboboxContent = forwardRef<HTMLDivElement, ComboboxContentProps>(
       onClose,
     } = ctx;
 
-    useEscapeKey(() => {
-      onClose();
-      inputRef.current?.focus({ preventScroll: true });
-    }, isOpen);
+    useDismissableLayer({
+      enabled: isOpen,
+      onEscapeKeyDown: () => {
+        onClose();
+        inputRef.current?.focus({ preventScroll: true });
+      },
+    });
 
     useEffect(() => {
       if (!isOpen) {
@@ -107,29 +111,15 @@ export const ComboboxContent = forwardRef<HTMLDivElement, ComboboxContentProps>(
       return () => cancelAnimationFrame(raf);
     }, [isOpen]);
 
-    useEffect(() => {
-      if (!isOpen) return undefined;
-
-      const handlePointerDown = (event: PointerEvent) => {
-        const target = event.target as Node;
-        const content = contentRef.current;
-        const input = inputRef.current;
-
-        if (content && content.contains(target)) return;
-        if (input && input.contains(target)) return;
-
-        onClose();
-      };
-
-      const raf = requestAnimationFrame(() => {
-        document.addEventListener("pointerdown", handlePointerDown);
-      });
-
-      return () => {
-        cancelAnimationFrame(raf);
-        document.removeEventListener("pointerdown", handlePointerDown);
-      };
-    }, [contentRef, inputRef, isOpen, onClose]);
+    const clickAwayRefs = useMemo(
+      () => [contentRef, inputRef],
+      [contentRef, inputRef],
+    );
+    useClickAway({
+      refs: clickAwayRefs,
+      onClickAway: onClose,
+      enabled: isOpen,
+    });
 
     useEffect(() => {
       if (!isOpen || !highlightedValue) return;

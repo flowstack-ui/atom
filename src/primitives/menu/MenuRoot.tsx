@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { useCollection } from "../../collection.js";
-import { useEscapeKey } from "../../hooks/useEscapeKey.js";
+import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
 import {
   MenuContextProvider,
   type MenuContextValue,
@@ -116,10 +116,13 @@ export function MenuRoot({
     [closeOnSelect, onClose],
   );
 
-  useEscapeKey(() => {
-    onClose();
-    triggerRef.current?.focus();
-  }, isOpen && closeOnEscape && openSubMenuId === null);
+  useDismissableLayer({
+    enabled: isOpen && closeOnEscape && openSubMenuId === null,
+    onEscapeKeyDown: () => {
+      onClose();
+      triggerRef.current?.focus();
+    },
+  });
 
   const contextValue: MenuContextValue = useMemo(
     () => ({

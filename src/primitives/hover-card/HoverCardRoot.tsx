@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useEscapeKey } from "../../hooks/useEscapeKey.js";
+import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
 import {
   HoverCardContextProvider,
   type HoverCardContextValue,
@@ -89,7 +89,10 @@ export function HoverCardRoot({
     setOpen(false);
   }, [clearTimers, setOpen]);
 
-  useEscapeKey(handleEscape, isOpen);
+  useDismissableLayer({
+    enabled: isOpen,
+    onEscapeKeyDown: handleEscape,
+  });
   useEffect(() => () => clearTimers(), [clearTimers]);
 
   const contextValue: HoverCardContextValue = useMemo(

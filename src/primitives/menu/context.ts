@@ -44,6 +44,7 @@ export function useMenuContext(): MenuContextValue {
 }
 
 export interface MenuRadioGroupContextValue {
+  groupId: string;
   value: string | undefined;
   onValueChange: (value: string) => void;
 }

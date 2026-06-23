@@ -11,7 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { useCollection } from "../../collection.js";
-import { useEscapeKey } from "../../hooks/useEscapeKey.js";
+import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import {
   cloneAndMerge,
@@ -165,11 +165,14 @@ export const NavigationMenuSub = forwardRef<
     };
   }, []);
 
-  useEscapeKey((event) => {
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    handleValueChange(null);
-  }, activeValue !== null);
+  useDismissableLayer({
+    enabled: activeValue !== null,
+    onEscapeKeyDown: (event) => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      handleValueChange(null);
+    },
+  });
 
   const contextValue: NavigationMenuContextValue = useMemo(
     () => ({

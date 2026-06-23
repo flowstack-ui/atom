@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added shared dismissable layer Escape handling so nested overlays close
+  before parent Popover layers.
 - Added scoped modal focus containment for modal Popover and registered
   Popover content with parent modal focus scopes when nested inside another
   modal primitive.

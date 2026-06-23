@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, type ReactNode } from "react";
+import { useCallback, useId, type ReactNode } from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { MenuRadioGroupContextProvider } from "./context.js";
 
@@ -20,13 +20,16 @@ export function MenuRadioGroup({
   children,
   ...restProps
 }: MenuRadioGroupProps) {
+  const groupId = useId();
   const handleValueChange = useCallback(
     (newValue: string) => onValueChange?.(newValue),
     [onValueChange],
   );
 
   return (
-    <MenuRadioGroupContextProvider value={{ value, onValueChange: handleValueChange }}>
+    <MenuRadioGroupContextProvider
+      value={{ groupId, value, onValueChange: handleValueChange }}
+    >
       <div
         {...restProps}
         role="group"

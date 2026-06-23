@@ -100,6 +100,14 @@ test("Menu source keeps selection and submenu close behavior stable", async () =
     new URL("src/primitives/menu/MenuRadioItem.tsx", packageRoot),
     "utf8",
   );
+  const radioGroupSource = await readFile(
+    new URL("src/primitives/menu/MenuRadioGroup.tsx", packageRoot),
+    "utf8",
+  );
+  const contextSource = await readFile(
+    new URL("src/primitives/menu/context.ts", packageRoot),
+    "utf8",
+  );
   const subTriggerSource = await readFile(
     new URL("src/primitives/menu/MenuSubTrigger.tsx", packageRoot),
     "utf8",
@@ -112,6 +120,10 @@ test("Menu source keeps selection and submenu close behavior stable", async () =
     new URL("src/primitives/menu/MenuSubContent.tsx", packageRoot),
     "utf8",
   );
+  const clickAwaySource = await readFile(
+    new URL("src/hooks/useClickAway.ts", packageRoot),
+    "utf8",
+  );
 
   assert.match(rootSource, /const contextValue: MenuContextValue = useMemo/);
   assert.match(rootSource, /useCollection<string, HTMLElement>\(\)/);
@@ -119,9 +131,14 @@ test("Menu source keeps selection and submenu close behavior stable", async () =
   assert.doesNotMatch(rootSource, /compareDocumentPosition/);
   assert.match(rootSource, /isOpen && closeOnEscape && openSubMenuId === null/);
   assert.match(contentSource, /useFocusOnMount\(internalRef, isPresent\)/);
-  assert.match(contentSource, /if \(!isPresent \|\| highlightedValue\) return undefined/);
+  assert.match(contentSource, /const hasAppliedInitialHighlightRef = useRef\(false\)/);
+  assert.match(contentSource, /hasAppliedInitialHighlightRef\.current = false/);
+  assert.match(contentSource, /if \(highlightedValue\) \{\s*hasAppliedInitialHighlightRef\.current = true/s);
+  assert.match(contentSource, /if \(hasAppliedInitialHighlightRef\.current\) return undefined/);
   assert.match(contentSource, /case "ArrowRight":/);
   assert.match(contentSource, /el\?\.dataset\.slot === "menu-sub-trigger"/);
+  assert.match(contentSource, /useClickAway\(\{/);
+  assert.doesNotMatch(contentSource, /document\.addEventListener\("pointerdown"/);
   assert.match(subContentSource, /usePresence\(\{ present: isOpen \}\)/);
   assert.match(subContentSource, /useCollection<string, HTMLElement>\(\)/);
   assert.match(subContentSource, /registerCollectionItem/);
@@ -134,8 +151,13 @@ test("Menu source keeps selection and submenu close behavior stable", async () =
     subContentSource.indexOf("const subMenuContext: MenuContextValue = useMemo") <
       subContentSource.indexOf("if (!isPresent) return null"),
   );
+  assert.match(subContentSource, /useClickAway\(\{/);
+  assert.doesNotMatch(subContentSource, /document\.addEventListener\("pointerdown"/);
   assert.match(subContentSource, /parentMenuContext\.contentRef\.current\?\.focus\(\)/);
   assert.doesNotMatch(subContentSource, /subTriggerRef\.current\?\.focus\(\)/);
+  assert.match(clickAwaySource, /document\.addEventListener\("pointerdown", handlePointerDown, true\)/);
+  assert.match(clickAwaySource, /document\.removeEventListener\("pointerdown", handlePointerDown, true\)/);
+  assert.doesNotMatch(clickAwaySource, /requestAnimationFrame/);
   assert.match(subTriggerSource, /id=\{subCtx\.subTriggerId\}/);
   assert.match(itemSource, /ctx\.onItemSelect\(value, \{ closeOnSelect \}\)/);
   assert.match(itemSource, /if \(ctx\.openSubMenuId\) ctx\.onSubMenuClose\(\)/);
@@ -143,7 +165,15 @@ test("Menu source keeps selection and submenu close behavior stable", async () =
   assert.match(checkboxSource, /ctx\.onItemSelect\(value, \{ closeOnSelect \}\)/);
   assert.match(checkboxSource, /if \(ctx\.openSubMenuId\) ctx\.onSubMenuClose\(\)/);
   assert.match(radioSource, /closeOnSelect = false/);
-  assert.match(radioSource, /ctx\.onItemSelect\(value, \{ closeOnSelect \}\)/);
+  assert.match(contextSource, /groupId: string/);
+  assert.match(radioGroupSource, /const groupId = useId\(\)/);
+  assert.match(radioGroupSource, /value=\{\{ groupId, value, onValueChange: handleValueChange \}\}/);
+  assert.match(radioSource, /const itemValue = `\$\{radioCtx\.groupId\}:\$\{value\}`/);
+  assert.match(radioSource, /const isHighlighted = ctx\.highlightedValue === itemValue/);
+  assert.match(radioSource, /ctx\.onItemSelect\(itemValue, \{ closeOnSelect \}\)/);
+  assert.match(radioSource, /ctx\.registerItem\(itemValue, element\)/);
+  assert.match(radioSource, /ctx\.registerLabel\(itemValue,/);
+  assert.match(radioSource, /data-value=\{value\}/);
   assert.match(radioSource, /if \(ctx\.openSubMenuId\) ctx\.onSubMenuClose\(\)/);
   assert.doesNotMatch(itemSource, /ctx\.onClose\(\);/);
 });

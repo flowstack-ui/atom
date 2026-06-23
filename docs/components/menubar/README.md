@@ -72,6 +72,9 @@ Provides one top-level menu scope.
 
 Opens one top-level menu.
 
+`Trigger` renders as a `menuitem` inside the `menubar` root and controls its
+associated menu content.
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"menubar-trigger"` |
@@ -114,6 +117,8 @@ Opens one top-level menu.
 ## Accessibility
 
 Implements a horizontal menubar pattern. Top-level triggers use roving focus and open menus with keyboard or pointer input.
+Top-level triggers expose `role="menuitem"` so the `role="menubar"` root has
+valid menuitem children.
 Portalled menu content registers with a parent modal focus scope when opened
 inside Dialog, Drawer, or another modal primitive.
 

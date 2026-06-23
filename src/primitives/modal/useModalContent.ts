@@ -15,7 +15,7 @@ import {
   useFocusRestore,
   useFocusTrap,
 } from "../../hooks/focus.js";
-import { useEscapeKey } from "../../hooks/useEscapeKey.js";
+import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
 import { usePresence } from "../../hooks/usePresence.js";
 import { useScrollLock } from "../../hooks/useScrollLock.js";
 import { useModalContext, type ModalCloseReason } from "./context.js";
@@ -81,7 +81,10 @@ export function useModalContent(
   useFocusTrap(wrapperRef, isOpen, { scope: focusScope });
   useFocusScopeContainer(wrapperRef, isOpen, focusScope);
   useScrollLock(isOpen, wrapperRef);
-  useEscapeKey(() => onClose("escapeKeyDown"), isOpen && closeOnEscape);
+  useDismissableLayer({
+    enabled: isOpen && closeOnEscape,
+    onEscapeKeyDown: () => onClose("escapeKeyDown"),
+  });
 
   useEffect(() => {
     if (!isPresent) return;
