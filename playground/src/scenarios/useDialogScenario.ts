@@ -190,7 +190,9 @@ export function useDialogScenario() {
   };
 
   const markPartRef = useCallback((part: DialogRefPart, element: HTMLElement | null) => {
-    const nextValue = element ? element.tagName.toLowerCase() : "none";
+    if (!element) return;
+
+    const nextValue = element.tagName.toLowerCase();
 
     setRefs((currentRefs) => {
       if (currentRefs[part] === nextValue) return currentRefs;

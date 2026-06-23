@@ -269,7 +269,10 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
           onToggle={toggleGroup}
         >
           <PartRow label="Exists" value={state.parts.saveCloseExists} />
-          <PartRow label="Ref" value={state.refs.saveClose} />
+          <PartRow
+            label="Ref"
+            value={state.parts.saveCloseExists === "yes" ? state.refs.saveClose : "none"}
+          />
           <PartRow label="Props" value={state.parts.saveCloseProps} />
           <PartRow label="Composition" value={state.closeComposition} />
           <PartRow label="tag" value={state.parts.saveCloseTag} />
@@ -293,7 +296,10 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
           onToggle={toggleGroup}
         >
           <PartRow label="Exists" value={state.parts.overlayExists} />
-          <PartRow label="Ref" value={state.refs.overlay} />
+          <PartRow
+            label="Ref"
+            value={state.parts.overlayExists === "yes" ? state.refs.overlay : "none"}
+          />
           <PartRow label="Props" value={state.parts.overlayProps} />
           <PartRow label="data-state" value={state.parts.overlayState} />
         </PartGroup>
@@ -304,7 +310,10 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
           onToggle={toggleGroup}
         >
           <PartRow label="Exists" value={state.parts.contentExists} />
-          <PartRow label="Ref" value={state.refs.content} />
+          <PartRow
+            label="Ref"
+            value={state.parts.contentExists === "yes" ? state.refs.content : "none"}
+          />
           <PartRow label="Props" value={state.parts.contentProps} />
           <PartRow label="id" value={state.parts.contentId} />
           <PartRow label="role" value={state.parts.contentRole} />
@@ -323,7 +332,10 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
           onToggle={toggleGroup}
         >
           <PartRow label="Exists" value={state.parts.titleExists} />
-          <PartRow label="Ref" value={state.refs.title} />
+          <PartRow
+            label="Ref"
+            value={state.parts.titleExists === "yes" ? state.refs.title : "none"}
+          />
           <PartRow label="Props" value={state.parts.titleProps} />
           <PartRow label="tag" value={state.parts.titleTag} />
           <PartRow label="id" value={state.parts.titleId} />
@@ -340,7 +352,10 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
           onToggle={toggleGroup}
         >
           <PartRow label="Exists" value={state.parts.descriptionExists} />
-          <PartRow label="Ref" value={state.refs.description} />
+          <PartRow
+            label="Ref"
+            value={state.parts.descriptionExists === "yes" ? state.refs.description : "none"}
+          />
           <PartRow label="Props" value={state.parts.descriptionProps} />
           <PartRow label="id" value={state.parts.descriptionId} />
           <PartRow label="Matches description" value={state.parts.descriptionMatches} />
