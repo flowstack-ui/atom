@@ -33,7 +33,6 @@ export type DialogPartsSnapshot = {
   triggerExpanded: string;
   triggerDisabled: string;
   closeExists: string;
-  closeCount: string;
   closeTag: string;
   closeRole: string;
   closeTabIndex: string;
@@ -292,8 +291,7 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
   }
 
   const trigger = document.querySelector("[data-slot='dialog-trigger']");
-  const closeControls = Array.from(document.querySelectorAll("[data-slot='dialog-close']"));
-  const close = closeControls[0];
+  const close = document.querySelector("[data-dialog-tested-close]");
   const content = document.querySelector("[data-slot='dialog-content']");
   const overlay = document.querySelector("[data-slot='dialog-overlay']");
   const title = document.querySelector("[data-slot='dialog-title']");
@@ -320,7 +318,6 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
       ? "yes"
       : "no",
     closeExists: close ? "yes" : "no",
-    closeCount: String(closeControls.length),
     closeTag: close?.tagName.toLowerCase() ?? "none",
     closeRole: close?.getAttribute("role") ?? "none",
     closeTabIndex: close?.getAttribute("tabindex") ?? "none",
@@ -368,7 +365,6 @@ const emptyDialogPartsSnapshot: DialogPartsSnapshot = {
   triggerExpanded: "none",
   triggerDisabled: "no",
   closeExists: "no",
-  closeCount: "0",
   closeTag: "none",
   closeRole: "none",
   closeTabIndex: "none",

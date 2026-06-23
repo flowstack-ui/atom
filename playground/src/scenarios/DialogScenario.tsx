@@ -106,12 +106,7 @@ export function DialogScenarioCanvas({
                   Close controlled
                 </button>
               ) : null}
-              <DialogCloseExample
-                className="atom-button secondary"
-                mode={state.closeComposition}
-              >
-                Cancel
-              </DialogCloseExample>
+              <Dialog.Close className="atom-button secondary">Cancel</Dialog.Close>
               <DialogCloseExample className="atom-button" mode={state.closeComposition}>
                 Save
               </DialogCloseExample>
@@ -179,7 +174,6 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
         >
           <PartRow label="Exists" value={state.parts.closeExists} />
           <PartRow label="Composition" value={state.closeComposition} />
-          <PartRow label="Count" value={state.parts.closeCount} />
           <PartRow label="tag" value={state.parts.closeTag} />
           <PartRow label="role" value={state.parts.closeRole} />
           <PartRow label="tabindex attr" value={state.parts.closeTabIndex} />
@@ -449,20 +443,30 @@ function DialogCloseExample({
   if (mode === "asChild") {
     return (
       <Dialog.Close className={className} asChild>
-        <span className="composition-control">{children}</span>
+        <span className="composition-control" data-dialog-tested-close="">
+          {children}
+        </span>
       </Dialog.Close>
     );
   }
 
   if (mode === "render") {
     return (
-      <Dialog.Close className={className} render={renderCompositionControl}>
+      <Dialog.Close
+        className={className}
+        data-dialog-tested-close=""
+        render={renderCompositionControl}
+      >
         {children}
       </Dialog.Close>
     );
   }
 
-  return <Dialog.Close className={className}>{children}</Dialog.Close>;
+  return (
+    <Dialog.Close className={className} data-dialog-tested-close="">
+      {children}
+    </Dialog.Close>
+  );
 }
 
 function renderCompositionControl(props: Record<string, unknown>) {
