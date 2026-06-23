@@ -1,4 +1,8 @@
 import { useEffect, useRef, useState } from "react";
+import type {
+  KeyboardEvent as ReactKeyboardEvent,
+  MouseEvent as ReactMouseEvent,
+} from "react";
 
 export type DialogLogEntry = {
   id: number;
@@ -17,6 +21,9 @@ export type DialogScenarioState = {
   useAriaLabel: boolean;
   triggerComposition: DialogCompositionMode;
   closeComposition: DialogCompositionMode;
+  blockTriggerEvent: boolean;
+  blockSaveClose: boolean;
+  blockBackdropClose: boolean;
   open: boolean;
   log: DialogLogEntry[];
   parts: DialogPartsSnapshot;
@@ -73,8 +80,15 @@ export type DialogScenarioActions = {
   setUseAriaLabel: (value: boolean) => void;
   setTriggerComposition: (value: DialogCompositionMode) => void;
   setCloseComposition: (value: DialogCompositionMode) => void;
+  setBlockTriggerEvent: (value: boolean) => void;
+  setBlockSaveClose: (value: boolean) => void;
+  setBlockBackdropClose: (value: boolean) => void;
   setControlledOpen: (value: boolean) => void;
   markCloseSource: (source: "cancel" | "save") => void;
+  handleTriggerClick: (event: ReactMouseEvent<HTMLElement>) => void;
+  handleTriggerKeyDown: (event: ReactKeyboardEvent<HTMLElement>) => void;
+  handleSaveCloseClick: (event: ReactMouseEvent<HTMLElement>) => void;
+  handleOverlayClick: (event: ReactMouseEvent<HTMLElement>) => void;
   testDisabledTriggerKey: (key: "Enter" | " ") => void;
   testFocusEscape: () => void;
   clearLog: () => void;
@@ -95,6 +109,9 @@ export function useDialogScenario() {
     useState<DialogCompositionMode>("default");
   const [closeComposition, setCloseComposition] =
     useState<DialogCompositionMode>("default");
+  const [blockTriggerEvent, setBlockTriggerEvent] = useState(false);
+  const [blockSaveClose, setBlockSaveClose] = useState(false);
+  const [blockBackdropClose, setBlockBackdropClose] = useState(false);
   const [log, setLog] = useState<DialogLogEntry[]>([]);
   const parts = getDialogPartsSnapshot(revision);
 
@@ -108,6 +125,51 @@ export function useDialogScenario() {
   const setControlledOpen = (nextOpen: boolean) => {
     setOpen(nextOpen);
     addLog(`${nextOpen ? "opened" : "closed"} by external control`);
+  };
+
+  const handleTriggerClick = (event: ReactMouseEvent<HTMLElement>) => {
+    if (blockTriggerEvent) {
+      event.preventDefault();
+      addLog("trigger user onClick blocked open");
+      return;
+    }
+
+    addLog("trigger user onClick");
+  };
+
+  const handleTriggerKeyDown = (event: ReactKeyboardEvent<HTMLElement>) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+
+    const key = event.key === " " ? "Space" : event.key;
+    if (blockTriggerEvent) {
+      event.preventDefault();
+      addLog(`trigger user onKeyDown blocked ${key}`);
+      return;
+    }
+
+    addLog(`trigger user onKeyDown ${key}`);
+  };
+
+  const handleSaveCloseClick = (event: ReactMouseEvent<HTMLElement>) => {
+    closeSource.current = "save";
+
+    if (blockSaveClose) {
+      event.preventDefault();
+      addLog("save user onClick blocked close");
+      return;
+    }
+
+    addLog("save user onClick");
+  };
+
+  const handleOverlayClick = (event: ReactMouseEvent<HTMLElement>) => {
+    if (blockBackdropClose) {
+      event.preventDefault();
+      addLog("overlay user onClick blocked backdrop close");
+      return;
+    }
+
+    addLog("overlay user onClick");
   };
 
   const handleOpenChange = (nextOpen: boolean, reason?: string) => {
@@ -266,6 +328,9 @@ export function useDialogScenario() {
     useAriaLabel,
     triggerComposition,
     closeComposition,
+    blockTriggerEvent,
+    blockSaveClose,
+    blockBackdropClose,
     open,
     log,
     parts,
@@ -280,10 +345,17 @@ export function useDialogScenario() {
     setUseAriaLabel,
     setTriggerComposition,
     setCloseComposition,
+    setBlockTriggerEvent,
+    setBlockSaveClose,
+    setBlockBackdropClose,
     setControlledOpen,
     markCloseSource: (source) => {
       closeSource.current = source;
     },
+    handleTriggerClick,
+    handleTriggerKeyDown,
+    handleSaveCloseClick,
+    handleOverlayClick,
     testDisabledTriggerKey,
     testFocusEscape,
     clearLog: () => setLog([]),

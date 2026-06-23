@@ -1,6 +1,12 @@
 import { Dialog } from "@flowstack-ui/atom/dialog";
 import { useState } from "react";
-import type { HTMLAttributes, ReactNode, RefAttributes } from "react";
+import type {
+  HTMLAttributes,
+  KeyboardEvent as ReactKeyboardEvent,
+  MouseEvent as ReactMouseEvent,
+  ReactNode,
+  RefAttributes,
+} from "react";
 import type {
   DialogCompositionMode,
   DialogScenarioActions,
@@ -47,7 +53,11 @@ export function DialogScenarioCanvas({
         closeOnEscape={state.closeOnEscape}
         closeOnBackdropClick={state.closeOnBackdropClick}
       >
-        <DialogTriggerExample mode={state.triggerComposition} />
+        <DialogTriggerExample
+          mode={state.triggerComposition}
+          onClick={actions.handleTriggerClick}
+          onKeyDown={actions.handleTriggerKeyDown}
+        />
         {state.disabled && !state.open ? (
           <div className="dialog-probes" aria-label="Disabled trigger probes">
             <button type="button" onClick={() => actions.testDisabledTriggerKey("Enter")}>
@@ -68,7 +78,11 @@ export function DialogScenarioCanvas({
           </button>
         ) : null}
         <Dialog.Portal>
-          <Dialog.Overlay className="atom-dialog-overlay" data-playground-inspect="" />
+          <Dialog.Overlay
+            className="atom-dialog-overlay"
+            data-playground-inspect=""
+            onClick={actions.handleOverlayClick}
+          />
           <Dialog.Content
             ariaLabel={state.useAriaLabel ? "Project settings" : undefined}
             className="atom-dialog-content"
@@ -116,7 +130,7 @@ export function DialogScenarioCanvas({
               <DialogCloseExample
                 className="atom-button"
                 mode={state.closeComposition}
-                onClick={() => actions.markCloseSource("save")}
+                onClick={actions.handleSaveCloseClick}
               >
                 Save
               </DialogCloseExample>
@@ -156,6 +170,18 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
           <PartRow
             label="Backdrop closes"
             value={state.closeOnBackdropClick ? "yes" : "no"}
+          />
+          <PartRow
+            label="Block trigger event"
+            value={state.blockTriggerEvent ? "yes" : "no"}
+          />
+          <PartRow
+            label="Block save close"
+            value={state.blockSaveClose ? "yes" : "no"}
+          />
+          <PartRow
+            label="Block backdrop close"
+            value={state.blockBackdropClose ? "yes" : "no"}
           />
         </PartGroup>
         <PartGroup
@@ -345,6 +371,21 @@ export function DialogScenarioToolbar({
         value={state.closeComposition}
         onChange={actions.setCloseComposition}
       />
+      <ToggleControl
+        checked={state.blockTriggerEvent}
+        label="Block trigger event"
+        onChange={actions.setBlockTriggerEvent}
+      />
+      <ToggleControl
+        checked={state.blockSaveClose}
+        label="Block save close"
+        onChange={actions.setBlockSaveClose}
+      />
+      <ToggleControl
+        checked={state.blockBackdropClose}
+        label="Block backdrop close"
+        onChange={actions.setBlockBackdropClose}
+      />
     </div>
   );
 }
@@ -433,10 +474,23 @@ function SelectControl({
   );
 }
 
-function DialogTriggerExample({ mode }: { mode: DialogCompositionMode }) {
+function DialogTriggerExample({
+  mode,
+  onClick,
+  onKeyDown,
+}: {
+  mode: DialogCompositionMode;
+  onClick: (event: ReactMouseEvent<HTMLElement>) => void;
+  onKeyDown: (event: ReactKeyboardEvent<HTMLElement>) => void;
+}) {
   if (mode === "asChild") {
     return (
-      <Dialog.Trigger className="atom-button" asChild>
+      <Dialog.Trigger
+        className="atom-button"
+        asChild
+        onClick={onClick}
+        onKeyDown={onKeyDown}
+      >
         <span className="composition-control">Open dialog</span>
       </Dialog.Trigger>
     );
@@ -444,13 +498,26 @@ function DialogTriggerExample({ mode }: { mode: DialogCompositionMode }) {
 
   if (mode === "render") {
     return (
-      <Dialog.Trigger className="atom-button" render={renderCompositionControl}>
+      <Dialog.Trigger
+        className="atom-button"
+        onClick={onClick}
+        onKeyDown={onKeyDown}
+        render={renderCompositionControl}
+      >
         Open dialog
       </Dialog.Trigger>
     );
   }
 
-  return <Dialog.Trigger className="atom-button">Open dialog</Dialog.Trigger>;
+  return (
+    <Dialog.Trigger
+      className="atom-button"
+      onClick={onClick}
+      onKeyDown={onKeyDown}
+    >
+      Open dialog
+    </Dialog.Trigger>
+  );
 }
 
 function DialogCloseExample({
@@ -462,7 +529,7 @@ function DialogCloseExample({
   children: ReactNode;
   className: string;
   mode: DialogCompositionMode;
-  onClick: () => void;
+  onClick: (event: ReactMouseEvent<HTMLElement>) => void;
 }) {
   if (mode === "asChild") {
     return (
