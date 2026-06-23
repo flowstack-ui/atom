@@ -106,8 +106,18 @@ export function DialogScenarioCanvas({
                   Close controlled
                 </button>
               ) : null}
-              <Dialog.Close className="atom-button secondary">Cancel</Dialog.Close>
-              <DialogCloseExample className="atom-button" mode={state.closeComposition}>
+              <Dialog.Close
+                className="atom-button secondary"
+                data-dialog-cancel-close=""
+                onClick={() => actions.markCloseSource("cancel")}
+              >
+                Cancel
+              </Dialog.Close>
+              <DialogCloseExample
+                className="atom-button"
+                mode={state.closeComposition}
+                onClick={() => actions.markCloseSource("save")}
+              >
                 Save
               </DialogCloseExample>
             </div>
@@ -167,16 +177,28 @@ export function DialogScenarioAnatomy({ state }: { state: DialogScenarioState })
           <PartRow label="Disabled" value={state.parts.triggerDisabled} />
         </PartGroup>
         <PartGroup
-          open={openGroups.Close}
-          summary={state.closeComposition}
-          title="Close"
+          open={openGroups["Close: Cancel"]}
+          summary="default"
+          title="Close: Cancel"
           onToggle={toggleGroup}
         >
-          <PartRow label="Exists" value={state.parts.closeExists} />
+          <PartRow label="Exists" value={state.parts.cancelCloseExists} />
+          <PartRow label="Composition" value="default" />
+          <PartRow label="tag" value={state.parts.cancelCloseTag} />
+          <PartRow label="role" value={state.parts.cancelCloseRole} />
+          <PartRow label="tabindex attr" value={state.parts.cancelCloseTabIndex} />
+        </PartGroup>
+        <PartGroup
+          open={openGroups["Close: Save"]}
+          summary={state.closeComposition}
+          title="Close: Save"
+          onToggle={toggleGroup}
+        >
+          <PartRow label="Exists" value={state.parts.saveCloseExists} />
           <PartRow label="Composition" value={state.closeComposition} />
-          <PartRow label="tag" value={state.parts.closeTag} />
-          <PartRow label="role" value={state.parts.closeRole} />
-          <PartRow label="tabindex attr" value={state.parts.closeTabIndex} />
+          <PartRow label="tag" value={state.parts.saveCloseTag} />
+          <PartRow label="role" value={state.parts.saveCloseRole} />
+          <PartRow label="tabindex attr" value={state.parts.saveCloseTabIndex} />
         </PartGroup>
         <PartGroup
           open={openGroups.Portal}
@@ -319,7 +341,7 @@ export function DialogScenarioToolbar({
         onChange={actions.setTriggerComposition}
       />
       <SelectControl
-        label="Close"
+        label="Save close"
         value={state.closeComposition}
         onChange={actions.setCloseComposition}
       />
@@ -435,15 +457,17 @@ function DialogCloseExample({
   children,
   className,
   mode,
+  onClick,
 }: {
   children: ReactNode;
   className: string;
   mode: DialogCompositionMode;
+  onClick: () => void;
 }) {
   if (mode === "asChild") {
     return (
-      <Dialog.Close className={className} asChild>
-        <span className="composition-control" data-dialog-tested-close="">
+      <Dialog.Close className={className} asChild onClick={onClick}>
+        <span className="composition-control" data-dialog-save-close="">
           {children}
         </span>
       </Dialog.Close>
@@ -454,7 +478,8 @@ function DialogCloseExample({
     return (
       <Dialog.Close
         className={className}
-        data-dialog-tested-close=""
+        data-dialog-save-close=""
+        onClick={onClick}
         render={renderCompositionControl}
       >
         {children}
@@ -463,7 +488,7 @@ function DialogCloseExample({
   }
 
   return (
-    <Dialog.Close className={className} data-dialog-tested-close="">
+    <Dialog.Close className={className} data-dialog-save-close="" onClick={onClick}>
       {children}
     </Dialog.Close>
   );

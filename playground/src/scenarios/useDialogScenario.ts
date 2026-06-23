@@ -32,10 +32,14 @@ export type DialogPartsSnapshot = {
   triggerHasPopup: string;
   triggerExpanded: string;
   triggerDisabled: string;
-  closeExists: string;
-  closeTag: string;
-  closeRole: string;
-  closeTabIndex: string;
+  cancelCloseExists: string;
+  cancelCloseTag: string;
+  cancelCloseRole: string;
+  cancelCloseTabIndex: string;
+  saveCloseExists: string;
+  saveCloseTag: string;
+  saveCloseRole: string;
+  saveCloseTabIndex: string;
   contentExists: string;
   contentId: string;
   contentRole: string;
@@ -70,6 +74,7 @@ export type DialogScenarioActions = {
   setTriggerComposition: (value: DialogCompositionMode) => void;
   setCloseComposition: (value: DialogCompositionMode) => void;
   setControlledOpen: (value: boolean) => void;
+  markCloseSource: (source: "cancel" | "save") => void;
   testDisabledTriggerKey: (key: "Enter" | " ") => void;
   testFocusEscape: () => void;
   clearLog: () => void;
@@ -77,6 +82,7 @@ export type DialogScenarioActions = {
 
 export function useDialogScenario() {
   const nextLogId = useRef(2);
+  const closeSource = useRef<"cancel" | "save" | null>(null);
   const [revision, setRevision] = useState(0);
   const [controlled, setControlled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -113,9 +119,17 @@ export function useDialogScenario() {
       return;
     }
 
-    addLog(reason === "closeClick" && closeComposition !== "default"
-      ? `closed by ${reason} (${closeComposition} close)`
-      : `closed by ${reason}`);
+    if (reason === "closeClick") {
+      const source = closeSource.current;
+      closeSource.current = null;
+      const composition = source === "save" ? closeComposition : "default";
+      addLog(source
+        ? `closed by ${reason} (${source} ${composition} close)`
+        : `closed by ${reason}`);
+      return;
+    }
+
+    addLog(`closed by ${reason}`);
   };
 
   const testDisabledTriggerKey = (key: "Enter" | " ") => {
@@ -267,6 +281,9 @@ export function useDialogScenario() {
     setTriggerComposition,
     setCloseComposition,
     setControlledOpen,
+    markCloseSource: (source) => {
+      closeSource.current = source;
+    },
     testDisabledTriggerKey,
     testFocusEscape,
     clearLog: () => setLog([]),
@@ -291,7 +308,8 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
   }
 
   const trigger = document.querySelector("[data-slot='dialog-trigger']");
-  const close = document.querySelector("[data-dialog-tested-close]");
+  const cancelClose = document.querySelector("[data-dialog-cancel-close]");
+  const saveClose = document.querySelector("[data-dialog-save-close]");
   const content = document.querySelector("[data-slot='dialog-content']");
   const overlay = document.querySelector("[data-slot='dialog-overlay']");
   const title = document.querySelector("[data-slot='dialog-title']");
@@ -317,10 +335,14 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
     triggerDisabled: trigger?.hasAttribute("disabled") || trigger?.hasAttribute("data-disabled")
       ? "yes"
       : "no",
-    closeExists: close ? "yes" : "no",
-    closeTag: close?.tagName.toLowerCase() ?? "none",
-    closeRole: close?.getAttribute("role") ?? "none",
-    closeTabIndex: close?.getAttribute("tabindex") ?? "none",
+    cancelCloseExists: cancelClose ? "yes" : "no",
+    cancelCloseTag: cancelClose?.tagName.toLowerCase() ?? "none",
+    cancelCloseRole: cancelClose?.getAttribute("role") ?? "none",
+    cancelCloseTabIndex: cancelClose?.getAttribute("tabindex") ?? "none",
+    saveCloseExists: saveClose ? "yes" : "no",
+    saveCloseTag: saveClose?.tagName.toLowerCase() ?? "none",
+    saveCloseRole: saveClose?.getAttribute("role") ?? "none",
+    saveCloseTabIndex: saveClose?.getAttribute("tabindex") ?? "none",
     contentExists: content ? "yes" : "no",
     contentId,
     contentRole: content?.getAttribute("role") ?? "none",
@@ -364,10 +386,14 @@ const emptyDialogPartsSnapshot: DialogPartsSnapshot = {
   triggerHasPopup: "none",
   triggerExpanded: "none",
   triggerDisabled: "no",
-  closeExists: "no",
-  closeTag: "none",
-  closeRole: "none",
-  closeTabIndex: "none",
+  cancelCloseExists: "no",
+  cancelCloseTag: "none",
+  cancelCloseRole: "none",
+  cancelCloseTabIndex: "none",
+  saveCloseExists: "no",
+  saveCloseTag: "none",
+  saveCloseRole: "none",
+  saveCloseTabIndex: "none",
   contentExists: "no",
   contentId: "none",
   contentRole: "none",
