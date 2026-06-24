@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+- Fixed Menubar pointer-open behavior so clicking or hovering between top-level
+  menus opens content without pre-highlighting the first item; keyboard
+  ArrowDown/ArrowUp still seed first/last highlight.
+- Fixed shared autofocus behavior for portalled overlays so focus waits for
+  delayed portal content to mount before moving into the overlay.
+- Fixed Menu autofocus inside modal focus scopes so portalled content registers
+  with the parent Dialog/Modal scope before focus moves into the menu.
+- Fixed standalone Menu content labelling so `aria-labelledby` is only emitted
+  when a trigger is mounted; standalone/context menus should use `ariaLabel`.
+- Fixed nested Menu submenu item selection so child submenu clicks are not
+  treated as outside clicks and selection closes the root menu.
+- Fixed Menu submenu positioning so submenu content uses the mounted
+  `SubTrigger` as its Floating UI reference when opened.
+- Fixed Menu initial keyboard highlight so it waits for mounted items before
+  marking the first highlight as applied.
+- Fixed `Menu.Item` so its documented `asChild` and `render` composition props
+  are implemented while preserving menuitem behavior, refs, and data attributes.
 - Added shared dismissable layer Escape handling so nested overlays close the
   innermost open layer first instead of also closing parent Dialog, Drawer,
   Modal, Popover, Menu, Select, Combobox, HoverCard, Tooltip, or

@@ -81,17 +81,19 @@ export const MenubarTrigger = forwardRef<
     if (isOpen) {
       barCtx.onMenuClose();
     } else {
+      menuCtx.onInitialHighlight(null);
       barCtx.onMenuOpen(menuValue);
     }
-  }, [barCtx, disabled, isOpen, menuValue]);
+  }, [barCtx, disabled, isOpen, menuCtx, menuValue]);
 
   const handlePointerEnter: PointerEventHandler<HTMLButtonElement> = useCallback(() => {
     if (disabled) return;
     if (barCtx.isAnyOpen && barCtx.openValue !== menuValue) {
+      menuCtx.onInitialHighlight(null);
       barCtx.onMenuOpen(menuValue);
       buttonRef.current?.focus();
     }
-  }, [barCtx, disabled, menuValue]);
+  }, [barCtx, disabled, menuCtx, menuValue]);
 
   const handleFocus: FocusEventHandler<HTMLButtonElement> = useCallback(() => {
     barCtx.onFocus(menuValue);

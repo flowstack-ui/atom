@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Fixed pointer-open behavior so clicking or hovering between top-level menus
+  opens content without pre-highlighting the first item; keyboard ArrowDown and
+  ArrowUp still seed first and last item highlight.
 - Registered shared Menu content with parent modal focus scopes so Menubar
   menus can remain valid focus targets inside Dialog, Drawer, and other modal
   primitives.

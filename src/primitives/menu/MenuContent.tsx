@@ -95,6 +95,7 @@ function MenuContent(
     modal,
     onClose,
     onHighlight,
+    openSubMenuId,
     triggerId,
     triggerRef,
   } = ctx;
@@ -106,8 +107,8 @@ function MenuContent(
   const typeaheadTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useFocusRestore(isOpen);
-  useFocusOnMount(internalRef, isPresent);
   useFocusScopeContainer(internalRef, isPresent);
+  useFocusOnMount(internalRef, isPresent);
   useScrollLock(isOpen && modal);
 
   useEffect(() => {
@@ -130,12 +131,12 @@ function MenuContent(
       return undefined;
     }
 
-    if (hasAppliedInitialHighlightRef.current) return undefined;
-    hasAppliedInitialHighlightRef.current = true;
+    if (hasAppliedInitialHighlightRef.current || initialHighlight === null) return undefined;
 
     const raf = requestAnimationFrame(() => {
       const values = getItemValues();
       if (values.length > 0) {
+        hasAppliedInitialHighlightRef.current = true;
         onHighlight(initialHighlight === "last" ? values[values.length - 1] : values[0]);
       }
     });
@@ -156,6 +157,7 @@ function MenuContent(
     refs: clickAwayRefs,
     onClickAway: onClose,
     enabled: isOpen,
+    ignore: (target) => openSubMenuId !== null && isMenuSubContent(target),
   });
 
   const handleKeyDown = useCallback(
@@ -309,7 +311,7 @@ function MenuContent(
         role="menu"
         aria-orientation="vertical"
         aria-label={ariaLabel}
-        aria-labelledby={!ariaLabel ? triggerId : undefined}
+        aria-labelledby={!ariaLabel && triggerRef.current ? triggerId : undefined}
         tabIndex={-1}
         data-slot="menu-content"
         data-state={dataState}
@@ -328,3 +330,7 @@ function MenuContent(
     </Portal>
   );
 });
+
+function isMenuSubContent(target: Node): boolean {
+  return target instanceof Element && target.closest('[data-slot="menu-sub-content"]') !== null;
+}

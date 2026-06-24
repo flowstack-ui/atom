@@ -119,6 +119,8 @@ associated menu content.
 Implements a horizontal menubar pattern. Top-level triggers use roving focus and open menus with keyboard or pointer input.
 Top-level triggers expose `role="menuitem"` so the `role="menubar"` root has
 valid menuitem children.
+Pointer-opened menus do not pre-highlight an item; ArrowDown and ArrowUp seed
+the first and last item highlight for keyboard navigation.
 Portalled menu content registers with a parent modal focus scope when opened
 inside Dialog, Drawer, or another modal primitive.
 

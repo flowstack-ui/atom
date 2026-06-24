@@ -47,7 +47,7 @@ function getAttributes(element: Element | null, prefix: string): string {
     .filter((attribute) => attribute.name.startsWith(prefix))
     .map((attribute) => `${attribute.name}="${attribute.value}"`);
 
-  return attrs.length > 0 ? attrs.join(" ") : "none";
+  return attrs.length > 0 ? attrs.join("\n") : "none";
 }
 
 function getBooleanAttribute(element: Element | null, name: string): string {
@@ -55,9 +55,24 @@ function getBooleanAttribute(element: Element | null, name: string): string {
   return element.hasAttribute(name) ? "yes" : "no";
 }
 
+function getDisabledState(element: Element | null): string {
+  if (!element) return "none";
+  return element.hasAttribute("disabled") ||
+    element.getAttribute("aria-disabled") === "true" ||
+    element.hasAttribute("data-disabled")
+    ? "yes"
+    : "no";
+}
+
 function isFocusable(element: Element | null): string {
   if (!(element instanceof HTMLElement)) return "none";
-  if (element.hasAttribute("disabled")) return "no";
+  if (
+    element.hasAttribute("disabled") ||
+    element.getAttribute("aria-disabled") === "true" ||
+    element.hasAttribute("data-disabled")
+  ) {
+    return "no";
+  }
 
   const tabIndex = element.tabIndex;
   return tabIndex >= 0 || element.getAttribute("tabindex") === "-1" ? "yes" : "no";
@@ -72,10 +87,11 @@ function getElementRows(element: Element | null): InspectorRow[] {
   return [
     { label: "Element", value: formatElement(element) },
     { label: "Tag", value: element ? element.tagName.toLowerCase() : "none" },
+    { label: "ID", value: element?.id || "none" },
     { label: "Role", value: element?.getAttribute("role") ?? "none" },
     { label: "ARIA", value: getAttributes(element, "aria-") },
     { label: "Data", value: getAttributes(element, "data-") },
-    { label: "Disabled", value: getBooleanAttribute(element, "disabled") },
+    { label: "Disabled", value: getDisabledState(element) },
     { label: "Hidden", value: getBooleanAttribute(element, "hidden") },
     { label: "Focusable", value: isFocusable(element) },
     { label: "Tabindex attr", value: element?.getAttribute("tabindex") ?? "none" },

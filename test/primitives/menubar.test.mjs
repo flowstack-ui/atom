@@ -65,6 +65,7 @@ test("Menubar source keeps keyboard open and focus behavior stable", async () =>
   );
 
   assert.match(triggerSource, /menuCtx\.onInitialHighlight\("last"\)/);
+  assert.match(triggerSource, /menuCtx\.onInitialHighlight\(null\)/);
   assert.match(triggerSource, /const useSafeLayoutEffect =/);
   assert.match(triggerSource, /const \{ registerTrigger, unregisterTrigger \} = barCtx/);
   assert.match(triggerSource, /useSafeLayoutEffect\(\(\) => \{\s*const el = buttonRef\.current/s);

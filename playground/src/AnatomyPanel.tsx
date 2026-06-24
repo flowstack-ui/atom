@@ -1,4 +1,5 @@
 import { Collapsible } from "@flowstack-ui/atom/collapsible";
+import { ScrollArea } from "@flowstack-ui/atom/scroll-area";
 import type { Dispatch, SetStateAction } from "react";
 
 export type AnatomyRowCategory =
@@ -70,34 +71,38 @@ export function AnatomyPanel({
   return (
     <div className="scenario-controls">
       <div className="parts-panel">
-        {sections.map((section) => (
-          <Collapsible.Root
-            className="part-group"
-            key={section.title}
-            open={openGroups[section.title] ?? false}
-            onOpenChange={(open) => setGroupOpen(section.title, open)}
-            data-inactive={section.inactive || undefined}
-          >
-            <Collapsible.Trigger className="part-group-trigger">
-              <span className="part-group-icon" aria-hidden="true">
-                {openGroups[section.title] ? "▾" : "▸"}
-              </span>
-              <span className="part-group-title">{section.title}</span>
-              {openGroups[section.title] ? null : (
-                <span className="part-group-summary">{section.summary}</span>
-              )}
-            </Collapsible.Trigger>
-            <Collapsible.Content className="part-group-body">
-              {section.groups?.map((group) => (
-                <div className="parts-subsection" key={group.title}>
-                  <h3>{group.title}</h3>
-                  <AnatomyRows rows={group.rows} />
-                </div>
-              ))}
-              {section.rows ? <AnatomyRows rows={section.rows} /> : null}
-            </Collapsible.Content>
-          </Collapsible.Root>
-        ))}
+        <ScrollArea.Root className="parts-scroll" orientation="vertical">
+          <ScrollArea.Viewport className="parts-scroll-viewport" focusable aria-label="Anatomy parts">
+            {sections.map((section) => (
+              <Collapsible.Root
+                className="part-group"
+                key={section.title}
+                open={openGroups[section.title] ?? false}
+                onOpenChange={(open) => setGroupOpen(section.title, open)}
+                data-inactive={section.inactive || undefined}
+              >
+                <Collapsible.Trigger className="part-group-trigger">
+                  <span className="part-group-icon" aria-hidden="true">
+                    {openGroups[section.title] ? "▾" : "▸"}
+                  </span>
+                  <span className="part-group-title">{section.title}</span>
+                  {openGroups[section.title] ? null : (
+                    <span className="part-group-summary">{section.summary}</span>
+                  )}
+                </Collapsible.Trigger>
+                <Collapsible.Content className="part-group-body">
+                  {section.groups?.map((group) => (
+                    <div className="parts-subsection" key={group.title}>
+                      <h3>{group.title}</h3>
+                      <AnatomyRows rows={group.rows} />
+                    </div>
+                  ))}
+                  {section.rows ? <AnatomyRows rows={section.rows} /> : null}
+                </Collapsible.Content>
+              </Collapsible.Root>
+            ))}
+          </ScrollArea.Viewport>
+        </ScrollArea.Root>
         <div className="panel-footer">{footer}</div>
       </div>
     </div>

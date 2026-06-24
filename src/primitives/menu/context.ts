@@ -2,7 +2,7 @@
 
 import { createContext, useContext, type RefObject } from "react";
 
-export type MenuInitialHighlight = "first" | "last";
+export type MenuInitialHighlight = "first" | "last" | null;
 
 export interface MenuContextValue {
   isOpen: boolean;

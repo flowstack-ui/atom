@@ -102,8 +102,13 @@ test("modal focus hooks guard against stale targets and outside focus traps", as
   assert.match(focusSource, /focusFirstDescendant\(currentContainer\)/);
   assert.match(focusSource, /FocusScopeContext/);
   assert.match(focusSource, /registerContainer/);
+  assert.match(focusSource, /const registerWhenMounted = \(\) =>/);
+  assert.match(focusSource, /unregister = scope\.registerContainer\(container\)/);
   assert.match(focusSource, /querySelector<HTMLElement>\("\[autofocus\]"\)/);
   assert.match(focusSource, /document\.contains\(previousElementRef\.current\)/);
+  assert.match(focusSource, /const focusWhenMounted = \(\) =>/);
+  assert.match(focusSource, /attempts < 10/);
+  assert.match(focusSource, /frame = requestAnimationFrame\(focusWhenMounted\)/);
   assert.match(modalContentSource, /useCreateFocusScope\(\)/);
   assert.match(modalContentSource, /useFocusScopeContainer\(wrapperRef, isOpen, focusScope\)/);
   assert.match(modalContentSource, /useFocusTrap\(wrapperRef, isOpen, \{ scope: focusScope \}\)/);

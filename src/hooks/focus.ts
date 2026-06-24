@@ -83,10 +83,33 @@ export function useFocusScopeContainer(
   useEffect(() => {
     if (!enabled || !scope) return undefined;
 
-    const container = containerRef.current;
-    if (!container) return undefined;
+    let unregister: (() => void) | undefined;
+    let frame = 0;
+    let attempts = 0;
+    let cancelled = false;
 
-    return scope.registerContainer(container);
+    const registerWhenMounted = () => {
+      if (cancelled || unregister) return;
+
+      const container = containerRef.current;
+      if (container) {
+        unregister = scope.registerContainer(container);
+        return;
+      }
+
+      attempts += 1;
+      if (attempts < 10) {
+        frame = requestAnimationFrame(registerWhenMounted);
+      }
+    };
+
+    frame = requestAnimationFrame(registerWhenMounted);
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(frame);
+      unregister?.();
+    };
   }, [containerRef, enabled, scope]);
 }
 
@@ -192,16 +215,30 @@ export function useFocusOnMount(
   useEffect(() => {
     if (!enabled) return undefined;
 
-    if (ref.current) {
-      focusFirstDescendant(ref.current);
-      return undefined;
-    }
+    let frame = 0;
+    let attempts = 0;
+    let cancelled = false;
 
-    const frame = requestAnimationFrame(() => {
-      if (ref.current) focusFirstDescendant(ref.current);
-    });
+    const focusWhenMounted = () => {
+      if (cancelled) return;
 
-    return () => cancelAnimationFrame(frame);
+      if (ref.current) {
+        focusFirstDescendant(ref.current);
+        return;
+      }
+
+      attempts += 1;
+      if (attempts < 10) {
+        frame = requestAnimationFrame(focusWhenMounted);
+      }
+    };
+
+    frame = requestAnimationFrame(focusWhenMounted);
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(frame);
+    };
   }, [enabled, ref]);
 }
 

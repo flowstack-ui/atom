@@ -116,6 +116,8 @@ Good:
   disabled trigger, and `data-state`
 - one Select scenario that can test value, disabled items, keyboard navigation,
   portal, and form output
+- one Menu scenario that can test item navigation, checkbox/radio items,
+  submenus, placement, and close behavior
 
 Avoid:
 
@@ -282,6 +284,9 @@ Rules:
   behavior being tested, such as a controlled open button.
 - Keep portal behavior real. If a component portals to `document.body`, do not
   fake it into the Canvas just to keep it visually contained.
+- When a primitive has no public trigger part, do not invent one in Anatomy.
+  Use controlled state or the primitive's real positioning API in Canvas, and
+  document any missing public API coverage in the coverage tracker.
 - Include a `Focus Canvas` button in the Canvas title bar when tabbing through
   the full workbench would slow manual testing.
 - Use the Canvas footer for short state summaries that should not be inside the
@@ -343,7 +348,7 @@ Track playground coverage in `component-coverage.xlsx`.
 Rules:
 
 - Use one sheet per component. The Dialog sheet is named `Dialog`.
-  The Select sheet is named `Select`.
+  The Select sheet is named `Select`. The Menu sheet is named `Menu`.
 - Keep the rows broad enough to cover the full component surface: public API,
   interaction, accessibility, composition, refs, native props, styling hooks,
   portal behavior, and mobile behavior when relevant.
@@ -374,9 +379,10 @@ Use the same UI model across scenarios:
 
 ## Scenario Order
 
-Dialog established the initial playground pattern. Select is the second complete
-scenario and adds form, listbox, typeahead, scroll, nested overlay, and generated
-hidden input coverage.
+Dialog established the initial playground pattern. Select added form, listbox,
+typeahead, scroll, nested overlay, and generated hidden input coverage. Menu is
+the next scenario for command menus, checkbox/radio items, submenus, placement,
+and close behavior.
 
 Dialog is a good first scenario because it exercises:
 

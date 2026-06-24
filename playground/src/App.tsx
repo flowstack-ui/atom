@@ -1,6 +1,7 @@
 import { AppBar } from "@flowstack-ui/atom/app-bar";
 import { Button } from "@flowstack-ui/atom/button";
 import { Menubar } from "@flowstack-ui/atom/menubar";
+import { ScrollArea } from "@flowstack-ui/atom/scroll-area";
 import { Tabs } from "@flowstack-ui/atom/tabs";
 import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
@@ -14,12 +15,19 @@ import {
   DialogScenarioToolbar,
 } from "./scenarios/DialogScenario";
 import {
+  MenuScenarioAnatomy,
+  MenuScenarioCanvas,
+  MenuScenarioLog,
+  MenuScenarioToolbar,
+} from "./scenarios/MenuScenario";
+import {
   SelectScenarioAnatomy,
   SelectScenarioCanvas,
   SelectScenarioLog,
   SelectScenarioToolbar,
 } from "./scenarios/SelectScenario";
 import { useDialogScenario } from "./scenarios/useDialogScenario";
+import { useMenuScenario } from "./scenarios/useMenuScenario";
 import { useSelectScenario } from "./scenarios/useSelectScenario";
 
 type Scenario = {
@@ -73,6 +81,12 @@ const scenarios: Scenario[] = [
     checks: ["Arrow keys move", "Panel changes", "Tab order stays correct"],
   },
   {
+    id: "menu",
+    label: "Menu",
+    category: "Navigation",
+    checks: ["Arrow keys move", "Submenu opens", "Selection state updates"],
+  },
+  {
     id: "accordion",
     label: "Accordion",
     category: "Navigation",
@@ -119,13 +133,15 @@ function getScenario(id: string) {
 }
 
 export function App() {
-  const [activeScenarioId, setActiveScenarioId] = useState("dialog");
-  const [activeInspectorTab, setActiveInspectorTab] = useState<"selected" | "focused">("selected");
+  const [activeScenarioId, setActiveScenarioId] = useState("menu");
+  const [activeInspectorTab, setActiveInspectorTab] = useState<"selected" | "focused" | "log">("selected");
   const [dialogAnatomyOpenGroups, setDialogAnatomyOpenGroups] = useState<Record<string, boolean>>({});
+  const [menuAnatomyOpenGroups, setMenuAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [selectAnatomyOpenGroups, setSelectAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const activeScenario = getScenario(activeScenarioId);
   const inspector = useElementInspector();
   const dialogScenario = useDialogScenario();
+  const menuScenario = useMenuScenario();
   const selectScenario = useSelectScenario();
   const focusCanvas = () => {
     const focusTarget = inspector.rootRef.current?.querySelector<HTMLElement>(focusableSelector);
@@ -207,14 +223,25 @@ export function App() {
                   Collapse All
                 </Button.Root>
               ) : null}
+              {activeScenario.id === "menu" ? (
+                <Button.Root
+                  className="header-action"
+                  onPress={() => setMenuAnatomyOpenGroups({})}
+                >
+                  Collapse All
+                </Button.Root>
+              ) : null}
             </div>
             <ScenarioAnatomy
               dialogAnatomyOpenGroups={dialogAnatomyOpenGroups}
               dialogScenario={dialogScenario}
+              menuAnatomyOpenGroups={menuAnatomyOpenGroups}
+              menuScenario={menuScenario}
               selectAnatomyOpenGroups={selectAnatomyOpenGroups}
               selectScenario={selectScenario}
               scenarioId={activeScenario.id}
               onDialogAnatomyOpenGroupsChange={setDialogAnatomyOpenGroups}
+              onMenuAnatomyOpenGroupsChange={setMenuAnatomyOpenGroups}
               onSelectAnatomyOpenGroupsChange={setSelectAnatomyOpenGroups}
             />
           </article>
@@ -228,12 +255,14 @@ export function App() {
             </div>
             <ScenarioToolbar
               dialogScenario={dialogScenario}
+              menuScenario={menuScenario}
               selectScenario={selectScenario}
               scenarioId={activeScenario.id}
             />
             <div className="canvas" ref={inspector.rootRef}>
               <ScenarioCanvas
                 dialogScenario={dialogScenario}
+                menuScenario={menuScenario}
                 selectScenario={selectScenario}
                 scenarioId={activeScenario.id}
                 label={activeScenario.label}
@@ -241,6 +270,7 @@ export function App() {
             </div>
             <ScenarioCanvasFooter
               dialogScenario={dialogScenario}
+              menuScenario={menuScenario}
               selectScenario={selectScenario}
               scenarioId={activeScenario.id}
             />
@@ -250,50 +280,59 @@ export function App() {
             <Tabs.Root
               className="scenario-card inspector-card"
               value={activeInspectorTab}
-              onValueChange={(value) => setActiveInspectorTab(value as "selected" | "focused")}
+              onValueChange={(value) => setActiveInspectorTab(value as "selected" | "focused" | "log")}
             >
               <div className="card-header">
                 <h2>Inspector</h2>
-                <Tabs.List className="header-segmented" ariaLabel="Inspector target">
-                  <Tabs.Trigger value="selected">
-                    Selected
-                  </Tabs.Trigger>
-                  <Tabs.Trigger value="focused">
-                    Focused
-                  </Tabs.Trigger>
-                </Tabs.List>
+                {activeInspectorTab === "log" ? (
+                  <ScenarioLogAction
+                    dialogScenario={dialogScenario}
+                    menuScenario={menuScenario}
+                    selectScenario={selectScenario}
+                    scenarioId={activeScenario.id}
+                  />
+                ) : null}
               </div>
-              <Tabs.Content value="selected">
+              <Tabs.List className="inspector-mode-list" ariaLabel="Inspector view">
+                <Tabs.Trigger value="selected">
+                  Selected
+                </Tabs.Trigger>
+                <Tabs.Trigger value="focused">
+                  Focused
+                </Tabs.Trigger>
+                <Tabs.Trigger value="log">
+                  Logs
+                </Tabs.Trigger>
+              </Tabs.List>
+              <Tabs.Content className="inspector-panel" value="selected">
                 <InspectorList rows={inspector.selectedRows} />
               </Tabs.Content>
-              <Tabs.Content value="focused">
+              <Tabs.Content className="inspector-panel" value="focused">
                 <InspectorList rows={inspector.focusedRows} />
               </Tabs.Content>
-              <div className="panel-footer">
-                {activeInspectorTab === "selected" ? "Selected Target" : "Focused Target"}
-              </div>
-            </Tabs.Root>
-
-            <article className="scenario-card log-card">
-              <div className="card-header">
-                <h2>Log</h2>
-                <ScenarioLogAction
+              <Tabs.Content className="inspector-panel" value="log">
+                <ScenarioLog
                   dialogScenario={dialogScenario}
+                  menuScenario={menuScenario}
                   selectScenario={selectScenario}
                   scenarioId={activeScenario.id}
                 />
+              </Tabs.Content>
+              <div className="panel-footer">
+                {activeInspectorTab === "selected" ? (
+                  "Selected Target"
+                ) : activeInspectorTab === "focused" ? (
+                  "Focused Target"
+                ) : (
+                  <ScenarioLogFooter
+                    dialogScenario={dialogScenario}
+                    menuScenario={menuScenario}
+                    selectScenario={selectScenario}
+                    scenarioId={activeScenario.id}
+                  />
+                )}
               </div>
-              <ScenarioLog
-                dialogScenario={dialogScenario}
-                selectScenario={selectScenario}
-                scenarioId={activeScenario.id}
-              />
-              <ScenarioLogFooter
-                dialogScenario={dialogScenario}
-                selectScenario={selectScenario}
-                scenarioId={activeScenario.id}
-              />
-            </article>
+            </Tabs.Root>
           </div>
         </section>
       </main>
@@ -303,23 +342,29 @@ export function App() {
 
 function InspectorList({ rows }: { rows: Array<{ label: string; value: string }> }) {
   return (
-    <dl className="inspector-list">
-      {rows.map((row) => (
-        <div key={row.label}>
-          <dt>{row.label}</dt>
-          <dd title={row.value}>{row.value}</dd>
-        </div>
-      ))}
-    </dl>
+    <ScrollArea.Root className="inspector-scroll" orientation="vertical">
+      <ScrollArea.Viewport className="inspector-scroll-viewport" focusable aria-label="Inspector rows">
+        <dl className="inspector-list">
+          {rows.map((row) => (
+            <div key={row.label}>
+              <dt>{row.label}</dt>
+              <dd title={row.value}>{row.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </ScrollArea.Viewport>
+    </ScrollArea.Root>
   );
 }
 
 function ScenarioToolbar({
   dialogScenario,
+  menuScenario,
   selectScenario,
   scenarioId,
 }: {
   dialogScenario: ReturnType<typeof useDialogScenario>;
+  menuScenario: ReturnType<typeof useMenuScenario>;
   selectScenario: ReturnType<typeof useSelectScenario>;
   scenarioId: string;
 }) {
@@ -341,16 +386,27 @@ function ScenarioToolbar({
     );
   }
 
+  if (scenarioId === "menu") {
+    return (
+      <MenuScenarioToolbar
+        state={menuScenario.state}
+        actions={menuScenario.actions}
+      />
+    );
+  }
+
   return null;
 }
 
 function ScenarioCanvas({
   dialogScenario,
+  menuScenario,
   selectScenario,
   scenarioId,
   label,
 }: {
   dialogScenario: ReturnType<typeof useDialogScenario>;
+  menuScenario: ReturnType<typeof useMenuScenario>;
   selectScenario: ReturnType<typeof useSelectScenario>;
   scenarioId: string;
   label: string;
@@ -376,6 +432,15 @@ function ScenarioCanvas({
     );
   }
 
+  if (scenarioId === "menu") {
+    return (
+      <MenuScenarioCanvas
+        state={menuScenario.state}
+        actions={menuScenario.actions}
+      />
+    );
+  }
+
   return (
     <p className="placeholder-card">
       {label} scenario goes here.
@@ -385,10 +450,12 @@ function ScenarioCanvas({
 
 function ScenarioCanvasFooter({
   dialogScenario,
+  menuScenario,
   selectScenario,
   scenarioId,
 }: {
   dialogScenario: ReturnType<typeof useDialogScenario>;
+  menuScenario: ReturnType<typeof useMenuScenario>;
   selectScenario: ReturnType<typeof useSelectScenario>;
   scenarioId: string;
 }) {
@@ -417,24 +484,42 @@ function ScenarioCanvasFooter({
     );
   }
 
+  if (scenarioId === "menu") {
+    const state = menuScenario.state;
+    const openState = state.open ? "Open" : "Closed";
+    const mode = state.controlled ? "Controlled" : "Uncontrolled";
+
+    return (
+      <div className="panel-footer">
+        {`${openState} | ${mode} | ${state.side} ${state.align} | Radio ${state.radioValue}`}
+      </div>
+    );
+  }
+
   return null;
 }
 
 function ScenarioAnatomy({
   dialogAnatomyOpenGroups,
   dialogScenario,
+  menuAnatomyOpenGroups,
+  menuScenario,
   selectAnatomyOpenGroups,
   selectScenario,
   scenarioId,
   onDialogAnatomyOpenGroupsChange,
+  onMenuAnatomyOpenGroupsChange,
   onSelectAnatomyOpenGroupsChange,
 }: {
   dialogAnatomyOpenGroups: Record<string, boolean>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
+  menuAnatomyOpenGroups: Record<string, boolean>;
+  menuScenario: ReturnType<typeof useMenuScenario>;
   selectAnatomyOpenGroups: Record<string, boolean>;
   selectScenario: ReturnType<typeof useSelectScenario>;
   scenarioId: string;
   onDialogAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
+  onMenuAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onSelectAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
 }) {
   if (scenarioId === "dialog") {
@@ -457,6 +542,16 @@ function ScenarioAnatomy({
     );
   }
 
+  if (scenarioId === "menu") {
+    return (
+      <MenuScenarioAnatomy
+        openGroups={menuAnatomyOpenGroups}
+        state={menuScenario.state}
+        onOpenGroupsChange={onMenuAnatomyOpenGroupsChange}
+      />
+    );
+  }
+
   return (
     <div className="toolbar-row" aria-label="Scenario controls">
       <button type="button">Controlled</button>
@@ -468,10 +563,12 @@ function ScenarioAnatomy({
 
 function ScenarioLog({
   dialogScenario,
+  menuScenario,
   selectScenario,
   scenarioId,
 }: {
   dialogScenario: ReturnType<typeof useDialogScenario>;
+  menuScenario: ReturnType<typeof useMenuScenario>;
   selectScenario: ReturnType<typeof useSelectScenario>;
   scenarioId: string;
 }) {
@@ -491,42 +588,52 @@ function ScenarioLog({
     );
   }
 
+  if (scenarioId === "menu") {
+    return (
+      <MenuScenarioLog
+        state={menuScenario.state}
+      />
+    );
+  }
+
   return null;
 }
 
 function ScenarioLogFooter({
   dialogScenario,
+  menuScenario,
   selectScenario,
   scenarioId,
 }: {
   dialogScenario: ReturnType<typeof useDialogScenario>;
+  menuScenario: ReturnType<typeof useMenuScenario>;
   selectScenario: ReturnType<typeof useSelectScenario>;
   scenarioId: string;
 }) {
-  if (scenarioId !== "dialog" && scenarioId !== "select") return null;
+  if (scenarioId !== "dialog" && scenarioId !== "select" && scenarioId !== "menu") return null;
 
   const eventCount = scenarioId === "dialog"
     ? dialogScenario.state.log.length
-    : selectScenario.state.log.length;
+    : scenarioId === "select"
+      ? selectScenario.state.log.length
+      : menuScenario.state.log.length;
   const eventLabel = eventCount === 1 ? "Event" : "Events";
 
-  return (
-    <div className="panel-footer">
-      {eventCount === 0 ? "No Events" : `${eventCount} ${eventLabel}`}
-    </div>
-  );
+  return <>{eventCount === 0 ? "No Events" : `${eventCount} ${eventLabel}`}</>;
 }
 
 function ScenarioLogAction({
   dialogScenario,
+  menuScenario,
   selectScenario,
   scenarioId,
 }: {
   dialogScenario: ReturnType<typeof useDialogScenario>;
+  menuScenario: ReturnType<typeof useMenuScenario>;
   selectScenario: ReturnType<typeof useSelectScenario>;
   scenarioId: string;
 }) {
-  if (scenarioId !== "dialog" && scenarioId !== "select") return null;
+  if (scenarioId !== "dialog" && scenarioId !== "select" && scenarioId !== "menu") return null;
 
   return (
     <Button.Root
@@ -534,7 +641,9 @@ function ScenarioLogAction({
       onPress={
         scenarioId === "dialog"
           ? dialogScenario.actions.clearLog
-          : selectScenario.actions.clearLog
+          : scenarioId === "select"
+            ? selectScenario.actions.clearLog
+            : menuScenario.actions.clearLog
       }
     >
       Clear

@@ -46,7 +46,7 @@ export const MenuSubContent = forwardRef<HTMLDivElement, MenuSubContentProps>(
 function MenuSubContent(
   {
     children,
-    sideOffset = 0,
+    sideOffset = 4,
     loop = true,
     className,
     ariaLabel,
@@ -117,11 +117,10 @@ function MenuSubContent(
   }, []);
 
   const onItemSelect = useCallback(
-    (_value: string, options?: { closeOnSelect?: boolean }) => {
+    (value: string, options?: { closeOnSelect?: boolean }) => {
       if (options?.closeOnSelect ?? true) {
         onClose();
-        parentMenuContext.onClose();
-        parentMenuContext.triggerRef.current?.focus();
+        parentMenuContext.onItemSelect(value, { closeOnSelect: true });
       }
     },
     [onClose, parentMenuContext],
@@ -179,6 +178,7 @@ function MenuSubContent(
     refs: clickAwayRefs,
     onClickAway: onClose,
     enabled: isOpen,
+    ignore: (target) => nestedOpenSubMenuId !== null && isMenuSubContent(target),
   });
 
   const handleKeyDown = useCallback(
@@ -286,12 +286,15 @@ function MenuSubContent(
   );
 
   const { refs, floatingStyles, placement } = useFloating({
-    elements: { reference: subTriggerRef.current },
     placement: "right-start",
     middleware: [offset(sideOffset), flip({ padding: 8 }), shift({ padding: 8 })],
     whileElementsMounted: autoUpdate,
     open: isOpen,
   });
+
+  useEffect(() => {
+    refs.setReference(subTriggerRef.current);
+  }, [isOpen, refs, subTriggerRef]);
 
   const composedRef = useMemo(
     () => composeRefs(refs.setFloating, internalRef, presenceRef, ref),
@@ -388,3 +391,7 @@ function MenuSubContent(
     </MenuContextProvider>
   );
 });
+
+function isMenuSubContent(target: Node): boolean {
+  return target instanceof Element && target.closest('[data-slot="menu-sub-content"]') !== null;
+}

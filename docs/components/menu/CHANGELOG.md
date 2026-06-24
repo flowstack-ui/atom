@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- Added support for no initial Menu highlight so composed patterns such as
+  Menubar can open from pointer input without pre-highlighting the first item.
+- Fixed autofocus for portalled Menu content that mounts after the Menu opens,
+  including controlled menus rendered inside Dialog.
+- Fixed Menu autofocus inside modal focus scopes so portalled content registers
+  with the parent Dialog/Modal scope before focus moves into the menu.
+- Fixed standalone content labelling so `aria-labelledby` is only emitted when a
+  trigger is mounted; standalone/context menus should use `ariaLabel`.
+- Fixed nested submenu item selection so child submenu clicks are not treated
+  as outside clicks and selection closes the root menu.
+- Fixed submenu positioning so `SubContent` uses the mounted `SubTrigger` as
+  its Floating UI reference when opened.
+- Fixed Menu initial keyboard highlight so it waits for mounted items before
+  marking the first highlight as applied.
+- Fixed `Menu.Item` so its documented `asChild` and `render` composition props
+  are implemented while preserving menuitem behavior, refs, and data attributes.
 - Added shared dismissable layer Escape handling so Menu closes before parent
   overlays when nested inside Dialog, Drawer, Modal, or Popover.
 - Fixed outside pointer dismissal so Menu and Menubar-backed menus close

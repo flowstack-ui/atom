@@ -131,13 +131,23 @@ test("Menu source keeps selection and submenu close behavior stable", async () =
   assert.doesNotMatch(rootSource, /compareDocumentPosition/);
   assert.match(rootSource, /isOpen && closeOnEscape && openSubMenuId === null/);
   assert.match(contentSource, /useFocusOnMount\(internalRef, isPresent\)/);
+  assert.ok(
+    contentSource.indexOf("useFocusScopeContainer(internalRef, isPresent)") <
+      contentSource.indexOf("useFocusOnMount(internalRef, isPresent)"),
+  );
   assert.match(contentSource, /const hasAppliedInitialHighlightRef = useRef\(false\)/);
   assert.match(contentSource, /hasAppliedInitialHighlightRef\.current = false/);
   assert.match(contentSource, /if \(highlightedValue\) \{\s*hasAppliedInitialHighlightRef\.current = true/s);
-  assert.match(contentSource, /if \(hasAppliedInitialHighlightRef\.current\) return undefined/);
+  assert.match(contentSource, /if \(hasAppliedInitialHighlightRef\.current \|\| initialHighlight === null\) return undefined/);
+  assert.match(contentSource, /if \(values\.length > 0\) \{\s*hasAppliedInitialHighlightRef\.current = true;\s*onHighlight/s);
+  assert.doesNotMatch(contentSource, /if \(hasAppliedInitialHighlightRef\.current\) return undefined;\s*hasAppliedInitialHighlightRef\.current = true;\s*const raf/s);
   assert.match(contentSource, /case "ArrowRight":/);
   assert.match(contentSource, /el\?\.dataset\.slot === "menu-sub-trigger"/);
   assert.match(contentSource, /useClickAway\(\{/);
+  assert.match(contentSource, /ignore: \(target\) => openSubMenuId !== null && isMenuSubContent\(target\)/);
+  assert.match(contentSource, /target\.closest\('\[data-slot="menu-sub-content"\]'\) !== null/);
+  assert.match(contentSource, /aria-labelledby=\{!ariaLabel && triggerRef\.current \? triggerId : undefined\}/);
+  assert.doesNotMatch(contentSource, /aria-labelledby=\{!ariaLabel \? triggerId : undefined\}/);
   assert.doesNotMatch(contentSource, /document\.addEventListener\("pointerdown"/);
   assert.match(subContentSource, /usePresence\(\{ present: isOpen \}\)/);
   assert.match(subContentSource, /useCollection<string, HTMLElement>\(\)/);
@@ -147,16 +157,23 @@ test("Menu source keeps selection and submenu close behavior stable", async () =
   assert.match(subContentSource, /event\.stopPropagation\(\)/);
   assert.match(subContentSource, /el\?\.dataset\.slot === "menu-sub-trigger"/);
   assert.match(subContentSource, /aria-labelledby=\{!ariaLabel \? subTriggerId : undefined\}/);
+  assert.match(subContentSource, /sideOffset = 4/);
+  assert.match(subContentSource, /refs\.setReference\(subTriggerRef\.current\)/);
+  assert.doesNotMatch(subContentSource, /elements: \{ reference: subTriggerRef\.current \}/);
   assert.ok(
     subContentSource.indexOf("const subMenuContext: MenuContextValue = useMemo") <
       subContentSource.indexOf("if (!isPresent) return null"),
   );
   assert.match(subContentSource, /useClickAway\(\{/);
+  assert.match(subContentSource, /ignore: \(target\) => nestedOpenSubMenuId !== null && isMenuSubContent\(target\)/);
+  assert.match(subContentSource, /target\.closest\('\[data-slot="menu-sub-content"\]'\) !== null/);
   assert.doesNotMatch(subContentSource, /document\.addEventListener\("pointerdown"/);
-  assert.match(subContentSource, /parentMenuContext\.contentRef\.current\?\.focus\(\)/);
+  assert.match(subContentSource, /parentMenuContext\.onItemSelect\(value, \{ closeOnSelect: true \}\)/);
+  assert.doesNotMatch(subContentSource, /parentMenuContext\.onClose\(\);\s*parentMenuContext\.triggerRef\.current\?\.focus\(\)/s);
   assert.doesNotMatch(subContentSource, /subTriggerRef\.current\?\.focus\(\)/);
   assert.match(clickAwaySource, /document\.addEventListener\("pointerdown", handlePointerDown, true\)/);
   assert.match(clickAwaySource, /document\.removeEventListener\("pointerdown", handlePointerDown, true\)/);
+  assert.match(clickAwaySource, /ignoreRef\.current\?\.\(target\)/);
   assert.doesNotMatch(clickAwaySource, /requestAnimationFrame/);
   assert.match(subTriggerSource, /id=\{subCtx\.subTriggerId\}/);
   assert.match(itemSource, /ctx\.onItemSelect\(value, \{ closeOnSelect \}\)/);
@@ -176,4 +193,45 @@ test("Menu source keeps selection and submenu close behavior stable", async () =
   assert.match(radioSource, /data-value=\{value\}/);
   assert.match(radioSource, /if \(ctx\.openSubMenuId\) ctx\.onSubMenuClose\(\)/);
   assert.doesNotMatch(itemSource, /ctx\.onClose\(\);/);
+});
+
+test("MenuItem supports asChild and render composition", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      MenuRoot,
+      { defaultOpen: true },
+      React.createElement(
+        MenuItem,
+        {
+          value: "as-child",
+          asChild: true,
+          className: "item-class",
+          "data-testid": "as-child-item",
+        },
+        React.createElement("span", { className: "child-class" }, "As child"),
+      ),
+      React.createElement(
+        MenuItem,
+        {
+          value: "rendered",
+          render: "section",
+          className: "render-class",
+          "data-testid": "rendered-item",
+        },
+        "Rendered",
+      ),
+    ),
+  );
+
+  assert.match(html, /<span[^>]*role="menuitem"/);
+  assert.match(html, /<span[^>]*data-slot="menu-item"/);
+  assert.match(html, /<span[^>]*data-value="as-child"/);
+  assert.match(html, /<span[^>]*class="child-class item-class"/);
+  assert.match(html, /<span[^>]*data-testid="as-child-item"/);
+  assert.doesNotMatch(html, /<div[^>]*data-value="as-child"/);
+  assert.match(html, /<section[^>]*role="menuitem"/);
+  assert.match(html, /<section[^>]*data-slot="menu-item"/);
+  assert.match(html, /<section[^>]*data-value="rendered"/);
+  assert.match(html, /<section[^>]*class="render-class"/);
+  assert.doesNotMatch(html, /<div[^>]*data-value="rendered"/);
 });

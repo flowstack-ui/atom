@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  forwardRef,
   useCallback,
   useEffect,
   useRef,
@@ -9,7 +10,13 @@ import {
   type ReactNode,
 } from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
-import { composeEventHandlers } from "../../utils/slot.js";
+import {
+  cloneAndMerge,
+  composeEventHandlers,
+  composeRefs,
+  renderElement,
+  type RenderProp,
+} from "../../utils/slot.js";
 import { useMenuContext } from "./context.js";
 
 type MenuItemNativeProps = NativeDivProps<"children" | "role">;
@@ -21,24 +28,33 @@ export interface MenuItemProps extends MenuItemNativeProps {
   disabled?: boolean;
   closeOnSelect?: boolean;
   className?: string;
+  asChild?: boolean;
+  render?: RenderProp;
+  "data-slot"?: string;
   children: ReactNode;
 }
 
-export function MenuItem({
-  value,
-  textValue,
-  onSelect,
-  disabled = false,
-  closeOnSelect: closeOnSelectProp,
-  className,
-  children,
-  onClick,
-  onPointerEnter,
-  onPointerLeave,
-  ...restProps
-}: MenuItemProps) {
+export const MenuItem = forwardRef<HTMLElement, MenuItemProps>(function MenuItem(
+  {
+    value,
+    textValue,
+    onSelect,
+    disabled = false,
+    closeOnSelect: closeOnSelectProp,
+    className,
+    asChild = false,
+    render,
+    "data-slot": dataSlot = "menu-item",
+    children,
+    onClick,
+    onPointerEnter,
+    onPointerLeave,
+    ...restProps
+  },
+  forwardedRef,
+) {
   const ctx = useMenuContext();
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLElement>(null);
   const closeOnSelect = closeOnSelectProp ?? ctx.closeOnSelect;
   const isHighlighted = ctx.highlightedValue === value;
 
@@ -54,7 +70,7 @@ export function MenuItem({
     ctx.registerLabel(value, textValue ?? (typeof children === "string" ? children : value));
   }, [children, ctx.registerLabel, disabled, textValue, value]);
 
-  const handleClick: MouseEventHandler<HTMLDivElement> = useCallback(() => {
+  const handleClick: MouseEventHandler<HTMLElement> = useCallback(() => {
     if (disabled) return;
     onSelect?.();
     ctx.onItemSelect(value, { closeOnSelect });
@@ -63,33 +79,35 @@ export function MenuItem({
     }
   }, [closeOnSelect, ctx, disabled, onSelect, value]);
 
-  const handlePointerEnter: PointerEventHandler<HTMLDivElement> = useCallback(() => {
+  const handlePointerEnter: PointerEventHandler<HTMLElement> = useCallback(() => {
     if (disabled) return;
     ctx.onHighlight(value);
     if (ctx.openSubMenuId) ctx.onSubMenuClose();
   }, [ctx, disabled, value]);
 
-  const handlePointerLeave: PointerEventHandler<HTMLDivElement> = useCallback(() => {
+  const handlePointerLeave: PointerEventHandler<HTMLElement> = useCallback(() => {
     if (ctx.highlightedValue === value) ctx.onHighlight(null);
   }, [ctx, value]);
 
-  return (
-    <div
-      {...restProps}
-      ref={ref}
-      role="menuitem"
-      tabIndex={-1}
-      data-slot="menu-item"
-      data-highlighted={isHighlighted ? "" : undefined}
-      data-disabled={disabled ? "" : undefined}
-      data-value={value}
-      aria-disabled={disabled || undefined}
-      className={className}
-      onClick={composeEventHandlers(onClick, handleClick)}
-      onPointerEnter={composeEventHandlers(onPointerEnter, handlePointerEnter)}
-      onPointerLeave={composeEventHandlers(onPointerLeave, handlePointerLeave)}
-    >
-      {children}
-    </div>
-  );
-}
+  const behaviorProps = {
+    ...restProps,
+    ref: composeRefs(ref, forwardedRef),
+    role: "menuitem",
+    tabIndex: -1,
+    "data-slot": dataSlot,
+    "data-highlighted": isHighlighted ? "" : undefined,
+    "data-disabled": disabled ? "" : undefined,
+    "data-value": value,
+    "aria-disabled": disabled || undefined,
+    className,
+    onClick: composeEventHandlers(onClick, handleClick),
+    onPointerEnter: composeEventHandlers(onPointerEnter, handlePointerEnter),
+    onPointerLeave: composeEventHandlers(onPointerLeave, handlePointerLeave),
+  };
+
+  if (asChild) {
+    return cloneAndMerge(children, behaviorProps);
+  }
+
+  return renderElement(render, "div", { ...behaviorProps, children });
+});
