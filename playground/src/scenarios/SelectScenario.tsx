@@ -508,6 +508,7 @@ export function SelectScenarioAnatomy({
       groups: [
         {
           title: "Generated hidden input",
+          selector: "input[name='plan']",
           rows: [
             { label: "Exists", value: state.parts.hiddenInputExists, category: "presence" },
             { label: "form", value: state.parts.hiddenInputForm, category: "identity" },
@@ -520,6 +521,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Trigger",
+      selector: "[data-select-trigger]",
       summary: state.parts.triggerState,
       rows: [
         { label: "Exists", value: state.parts.triggerExists, category: "presence" },
@@ -550,6 +552,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Value",
+      selector: "[data-select-value]",
       summary: state.parts.valueText,
       rows: [
         { label: "Exists", value: state.parts.valueExists, category: "presence" },
@@ -562,6 +565,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Icon",
+      selector: "[data-select-icon]",
       summary: state.parts.iconExists === "yes" ? "decorative" : "not rendered",
       rows: [
         { label: "Exists", value: state.parts.iconExists, category: "presence" },
@@ -584,6 +588,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Content",
+      selector: "[data-select-listbox]",
       inactive: state.parts.listboxExists !== "yes",
       summary: state.parts.listboxExists === "yes" ? state.parts.listboxState : "not rendered",
       rows: [
@@ -604,6 +609,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Scroll Up Button",
+      selector: "[data-select-scroll-up]",
       inactive: state.parts.scrollUpExists !== "yes",
       summary: state.parts.scrollUpExists === "yes" ? state.refs.scrollUpButton : "not rendered",
       rows: [
@@ -617,6 +623,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Viewport",
+      selector: "[data-select-viewport]",
       inactive: state.parts.viewportExists !== "yes",
       summary: state.parts.viewportExists === "yes" ? state.refs.viewport : "not rendered",
       rows: [
@@ -629,6 +636,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Group",
+      selector: "[data-select-group]",
       inactive: state.parts.groupExists !== "yes",
       summary: state.parts.groupExists === "yes" ? state.parts.groupRole : "not rendered",
       rows: [
@@ -643,6 +651,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Label",
+      selector: "[data-select-label]",
       inactive: state.parts.labelExists !== "yes",
       summary: state.parts.labelExists === "yes" ? state.parts.labelId : "not rendered",
       rows: [
@@ -660,6 +669,7 @@ export function SelectScenarioAnatomy({
       groups: [
         {
           title: "Selected item",
+          selector: "[data-select-item][data-state='checked']",
           rows: [
             { label: "Exists", value: state.parts.selectedItemExists, category: "presence" },
             { label: "Ref", value: state.refs.selectedItem, category: "identity" },
@@ -675,6 +685,7 @@ export function SelectScenarioAnatomy({
         },
         {
           title: "Highlighted item",
+          selector: "[data-select-item][data-highlighted]",
           rows: [
             { label: "Exists", value: state.parts.highlightedItemExists, category: "presence" },
             { label: "data-state", value: state.parts.highlightedItemState, category: "data" },
@@ -684,6 +695,7 @@ export function SelectScenarioAnatomy({
         },
         {
           title: "Raw item",
+          selector: "[data-select-raw-item]",
           rows: [
             { label: "Exists", value: state.parts.rawItemExists, category: "presence" },
             { label: "Ref", value: state.refs.rawItem, category: "identity" },
@@ -693,6 +705,7 @@ export function SelectScenarioAnatomy({
         },
         {
           title: "Disabled item",
+          selector: "[data-select-item][data-disabled]",
           rows: [
             { label: "Exists", value: state.parts.disabledItemExists, category: "presence" },
             { label: "Ref", value: state.refs.disabledItem, category: "identity" },
@@ -704,6 +717,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Item Text",
+      selector: "[data-select-item-text]",
       inactive: state.parts.itemTextExists !== "yes",
       summary: state.parts.itemTextExists === "yes" ? state.refs.itemText : "not rendered",
       rows: [
@@ -715,6 +729,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Item Indicator",
+      selector: "[data-select-indicator][data-state='checked']",
       inactive: state.parts.itemIndicatorExists !== "yes",
       summary: state.parts.itemIndicatorExists === "yes" ? state.parts.itemIndicatorState : "not rendered",
       rows: [
@@ -729,6 +744,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Separator",
+      selector: "[data-select-separator]",
       inactive: state.parts.separatorExists !== "yes",
       summary: state.parts.separatorExists === "yes" ? state.parts.separatorRole : "not rendered",
       rows: [
@@ -742,6 +758,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Scroll Down Button",
+      selector: "[data-select-scroll-down]",
       inactive: state.parts.scrollDownExists !== "yes",
       summary: state.parts.scrollDownExists === "yes" ? state.refs.scrollDownButton : "not rendered",
       rows: [
@@ -755,6 +772,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Arrow",
+      selector: "[data-select-arrow]",
       inactive: state.parts.arrowExists !== "yes",
       summary: state.parts.arrowExists === "yes" ? "decorative" : "not rendered",
       rows: [

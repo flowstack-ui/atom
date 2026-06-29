@@ -18,6 +18,7 @@ export type AnatomyRow = {
 };
 
 export type AnatomyRowGroup = {
+  selector?: string;
   title: string;
   rows: AnatomyRow[];
 };
@@ -26,6 +27,7 @@ export type AnatomySection = {
   inactive?: boolean;
   groups?: AnatomyRowGroup[];
   rows?: AnatomyRow[];
+  selector?: string;
   summary: string;
   title: string;
 };
@@ -35,19 +37,254 @@ const categoryOrder: Record<AnatomyRowCategory, number> = {
   identity: 1,
   composition: 2,
   state: 3,
-  data: 4,
+  behavior: 4,
   aria: 5,
-  behavior: 6,
+  data: 6,
 };
 
-function sortRows(rows: AnatomyRow[]): AnatomyRow[] {
-  return [...rows].sort((first, second) => {
-    const firstCategory = categoryOrder[first.category ?? "state"];
-    const secondCategory = categoryOrder[second.category ?? "state"];
+type AnatomyDisplayGroup = {
+  kind: "rows";
+  rows: AnatomyRow[];
+  title: string;
+} | {
+  kind: "raw";
+  rows: AnatomyRow[];
+  tag?: string;
+  title: string;
+};
 
-    if (firstCategory !== secondCategory) return firstCategory - secondCategory;
-    return first.label.localeCompare(second.label);
+const visibleGroupOrder = [
+  "presence",
+  "identity",
+  "state",
+  "closing",
+  "blocking",
+  "composition",
+  "behavior",
+  "attributes",
+  "aria",
+  "data",
+] as const;
+
+const groupTitles: Record<(typeof visibleGroupOrder)[number], string> = {
+  presence: "Presence",
+  identity: "Identity",
+  state: "State",
+  closing: "Closing",
+  blocking: "Blocking",
+  composition: "Composition",
+  behavior: "Behavior",
+  attributes: "Attributes",
+  aria: "ARIA",
+  data: "Data",
+};
+
+const hiddenLabels = new Set(["class", "props", "ref", "tag"]);
+const hiddenRawAttributes = new Set([
+  "data-playground-inspect",
+]);
+const hiddenNativeAttributes = new Set([
+  "class",
+  "id",
+  "style",
+]);
+const emptyValues = new Set(["", "none", "not rendered", "-"]);
+const nativeAttributeLabels = new Set([
+  "form",
+  "name",
+  "role",
+  "tabindex attr",
+  "title",
+  "type",
+]);
+
+function getRowKey(row: AnatomyRow) {
+  return row.label.toLowerCase();
+}
+
+function getRowValue(row: AnatomyRow) {
+  if (row.value === "yes") return "true";
+  if (row.value === "no") return "false";
+  return row.value;
+}
+
+function isRawAttribute(row: AnatomyRow) {
+  const label = getRowKey(row);
+  return label.startsWith("aria-") ||
+    label.startsWith("data-") ||
+    nativeAttributeLabels.has(label) ||
+    (row.category === "aria" && (label === "role" || label === "tabindex attr"));
+}
+
+function isEmptyValue(value: string) {
+  return emptyValues.has(value.toLowerCase());
+}
+
+function isHiddenRow(row: AnatomyRow) {
+  const label = getRowKey(row);
+  const value = row.value.toLowerCase();
+  const rawAttribute = isRawAttribute(row);
+
+  if (hiddenLabels.has(label)) return true;
+  if (hiddenRawAttributes.has(label)) return true;
+  if (rawAttribute && (isEmptyValue(row.value) || value === "no" || value === "false")) {
+    return true;
+  }
+  if (!rawAttribute && (row.value === "" || row.value === "-")) return true;
+
+  return false;
+}
+
+function getTag(rows: AnatomyRow[]) {
+  return rows.find((row) => getRowKey(row) === "tag")?.value ?? "-";
+}
+
+function getLiveElement(selector?: string) {
+  if (!selector || typeof document === "undefined") return null;
+  return document.querySelector(selector);
+}
+
+function getLiveRows(selector?: string): AnatomyRow[] {
+  const element = getLiveElement(selector);
+  if (!element) return [];
+
+  const baseRows: AnatomyRow[] = [
+    { label: "tag", value: element.tagName.toLowerCase(), category: "identity" },
+  ];
+
+  if (element.id) {
+    baseRows.push({ label: "id", value: element.id, category: "identity" });
+  }
+
+  const attributeRows: AnatomyRow[] = [];
+
+  Array.from(element.attributes).forEach((attribute) => {
+    if (hiddenRawAttributes.has(attribute.name)) return [];
+    if (hiddenNativeAttributes.has(attribute.name)) return [];
+
+    const row = {
+      label: attribute.name,
+      value: attribute.value === "" ? "yes" : attribute.value,
+    };
+
+    if (attribute.name.startsWith("aria-")) {
+      attributeRows.push({ ...row, category: "aria" });
+      return;
+    }
+
+    if (attribute.name.startsWith("data-")) {
+      attributeRows.push({ ...row, category: "data" });
+      return;
+    }
+
+    attributeRows.push({ ...row, category: "aria" });
   });
+
+  return [
+    ...baseRows,
+    ...attributeRows,
+  ];
+}
+
+function getDisplayCategory(row: AnatomyRow): (typeof visibleGroupOrder)[number] | null {
+  const label = getRowKey(row);
+
+  if (label.includes("match")) return "behavior";
+  if (label === "escape closes" || label === "close on select" || label === "backdrop closes") {
+    return "closing";
+  }
+  if (label.startsWith("block ")) return "blocking";
+  if (label === "id") return "identity";
+  if (label.startsWith("aria-")) return "aria";
+  if (label.startsWith("data-")) return "data";
+  if (nativeAttributeLabels.has(label)) return "attributes";
+  if (row.category === "aria" && (label === "role" || label === "tabindex attr")) {
+    return "attributes";
+  }
+  if (row.category === "data") return "data";
+  if (row.category === "identity") return label === "id" ? "identity" : null;
+
+  return row.category ?? "state";
+}
+
+function formatAttributeRow(row: AnatomyRow) {
+  const label = row.label === "tabindex attr" ? "tabindex" : row.label;
+  const value = getRowValue(row);
+
+  if (label.startsWith("data-") && value === "true") return label;
+  return `${label}="${value}"`;
+}
+
+function getDisplayLabel(row: AnatomyRow, groupTitle: string) {
+  const label = row.label;
+  const key = getRowKey(row);
+
+  if (groupTitle === "Composition" && key === "composition") return "Mode";
+  if (groupTitle === "Closing") {
+    if (key === "escape closes") return "Escape";
+    if (key === "backdrop closes") return "Backdrop";
+    if (key === "close on select") return "Select";
+  }
+  if (groupTitle === "Blocking") {
+    return label.replace(/^Block\s+/i, "").replace(/\s+event$/i, "");
+  }
+
+  return label;
+}
+
+function buildDisplayGroups(rows: AnatomyRow[]): AnatomyDisplayGroup[] {
+  const buckets = new Map<(typeof visibleGroupOrder)[number], AnatomyRow[]>();
+  const groups: AnatomyDisplayGroup[] = [];
+  const tag = getTag(rows);
+
+  rows.forEach((row) => {
+    if (isHiddenRow(row)) return;
+
+    const category = getDisplayCategory(row);
+    if (!category) return;
+
+    const currentRows = buckets.get(category) ?? [];
+    currentRows.push(row);
+    buckets.set(category, currentRows);
+  });
+
+  visibleGroupOrder.forEach((category) => {
+    const rowsForCategory = buckets.get(category);
+    if (!rowsForCategory?.length) return;
+
+    const dedupedRows = Array.from(
+      rowsForCategory.reduce((rowMap, row) => {
+        rowMap.set(getRowKey(row), row);
+        return rowMap;
+      }, new Map<string, AnatomyRow>()).values(),
+    );
+
+    const sortedRows = dedupedRows.sort((first, second) => {
+      const firstOrder = categoryOrder[first.category ?? "state"];
+      const secondOrder = categoryOrder[second.category ?? "state"];
+
+      if (firstOrder !== secondOrder) return firstOrder - secondOrder;
+      return first.label.localeCompare(second.label);
+    });
+
+    if (category === "attributes" || category === "aria" || category === "data") {
+      groups.push({
+        kind: "raw",
+        rows: sortedRows,
+        tag: category === "attributes" ? tag : undefined,
+        title: groupTitles[category],
+      });
+      return;
+    }
+
+    groups.push({
+      kind: "rows",
+      rows: sortedRows,
+      title: groupTitles[category],
+    });
+  });
+
+  return groups;
 }
 
 export function AnatomyPanel({
@@ -94,10 +331,22 @@ export function AnatomyPanel({
                   {section.groups?.map((group) => (
                     <div className="parts-subsection" key={group.title}>
                       <h3>{group.title}</h3>
-                      <AnatomyRows rows={group.rows} />
+                      <AnatomyGroups
+                        rows={[
+                          ...group.rows,
+                          ...getLiveRows(group.selector),
+                        ]}
+                      />
                     </div>
                   ))}
-                  {section.rows ? <AnatomyRows rows={section.rows} /> : null}
+                  {section.rows ? (
+                    <AnatomyGroups
+                      rows={[
+                        ...section.rows,
+                        ...getLiveRows(section.selector),
+                      ]}
+                    />
+                  ) : null}
                 </Collapsible.Content>
               </Collapsible.Root>
             ))}
@@ -109,15 +358,33 @@ export function AnatomyPanel({
   );
 }
 
-function AnatomyRows({ rows }: { rows: AnatomyRow[] }) {
+function AnatomyGroups({ rows }: { rows: AnatomyRow[] }) {
+  const displayGroups = buildDisplayGroups(rows);
+
   return (
-    <dl className="parts-grid">
-      {sortRows(rows).map((row) => (
-        <div key={`${row.category ?? "state"}-${row.label}`}>
-          <dt>{row.label}</dt>
-          <dd>{row.value}</dd>
-        </div>
+    <div className="parts-groups">
+      {displayGroups.map((group) => (
+        <section className="parts-value-group" key={group.title}>
+          <h4 className="parts-value-group-title">
+            <span>{group.title}</span>
+            {group.kind === "raw" && group.tag ? <code>{group.tag}</code> : null}
+          </h4>
+          {group.kind === "raw" ? (
+            <pre className="parts-attribute-list">
+              {group.rows.map(formatAttributeRow).join("\n")}
+            </pre>
+          ) : (
+            <dl className="parts-grid">
+              {group.rows.map((row) => (
+                <div key={`${row.category ?? "state"}-${row.label}`}>
+                  <dt>{getDisplayLabel(row, group.title)}</dt>
+                  <dd>{getRowValue(row)}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+        </section>
       ))}
-    </dl>
+    </div>
   );
 }

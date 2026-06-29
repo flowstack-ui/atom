@@ -413,6 +413,7 @@ export function MenuScenarioAnatomy({
     },
     {
       title: "Content",
+      selector: "[data-menu-content]",
       inactive: state.parts.contentExists !== "yes",
       summary: state.parts.contentExists === "yes" ? state.parts.contentState : "not rendered",
       rows: [
@@ -435,6 +436,7 @@ export function MenuScenarioAnatomy({
     },
     {
       title: "Group",
+      selector: "[data-menu-group]",
       inactive: state.parts.groupExists !== "yes",
       summary: state.parts.groupExists === "yes" ? state.parts.groupRole : "not rendered",
       rows: [
@@ -451,6 +453,7 @@ export function MenuScenarioAnatomy({
       groups: [
         {
           title: "Primary item",
+          selector: "[data-menu-item-primary]",
           rows: [
             { label: "Exists", value: state.parts.itemExists, category: "presence" },
             { label: "Ref", value: state.parts.itemRef, category: "identity" },
@@ -462,6 +465,7 @@ export function MenuScenarioAnatomy({
         },
         {
           title: "Disabled item",
+          selector: "[data-menu-item-disabled]",
           rows: [
             { label: "Exists", value: state.parts.disabledItemExists, category: "presence" },
             { label: "Ref", value: state.parts.disabledItemRef, category: "identity" },
@@ -472,6 +476,7 @@ export function MenuScenarioAnatomy({
     },
     {
       title: "Checkbox Item",
+      selector: "[data-menu-checkbox]",
       inactive: state.parts.checkboxExists !== "yes",
       summary: state.parts.checkboxExists === "yes" ? state.parts.checkboxChecked : "not rendered",
       rows: [
@@ -488,6 +493,7 @@ export function MenuScenarioAnatomy({
       groups: [
         {
           title: "Group 1",
+          selector: "[data-menu-radio-group]",
           rows: [
             { label: "Exists", value: state.parts.radioGroupExists, category: "presence" },
             { label: "Ref", value: state.parts.radioGroupRef, category: "identity" },
@@ -497,6 +503,7 @@ export function MenuScenarioAnatomy({
         },
         {
           title: "Group 2",
+          selector: "[data-menu-radio-group-secondary]",
           rows: [
             { label: "Exists", value: state.parts.radioGroupSecondaryExists, category: "presence" },
             { label: "Ref", value: state.parts.radioGroupSecondaryRef, category: "identity" },
@@ -513,6 +520,7 @@ export function MenuScenarioAnatomy({
       groups: [
         {
           title: "Group 1 item",
+          selector: "[data-menu-radio-item][aria-checked='true']",
           rows: [
             { label: "Exists", value: state.parts.radioItemExists, category: "presence" },
             { label: "Ref", value: state.parts.radioItemRef, category: "identity" },
@@ -523,6 +531,7 @@ export function MenuScenarioAnatomy({
         },
         {
           title: "Group 2 item",
+          selector: "[data-menu-radio-item-secondary][aria-checked='true']",
           rows: [
             { label: "Exists", value: state.parts.radioItemSecondaryExists, category: "presence" },
             { label: "Ref", value: state.parts.radioItemSecondaryRef, category: "identity" },
@@ -535,6 +544,7 @@ export function MenuScenarioAnatomy({
     },
     {
       title: "Separator",
+      selector: "[data-menu-separator]",
       inactive: state.parts.separatorExists !== "yes",
       summary: state.parts.separatorExists === "yes" ? state.parts.separatorRole : "not rendered",
       rows: [
@@ -560,6 +570,7 @@ export function MenuScenarioAnatomy({
       groups: [
         {
           title: "More actions trigger",
+          selector: "[data-menu-sub-trigger]",
           rows: [
             { label: "Exists", value: state.parts.subTriggerExists, category: "presence" },
             { label: "Ref", value: state.parts.subTriggerRef, category: "identity" },
@@ -569,6 +580,7 @@ export function MenuScenarioAnatomy({
         },
         {
           title: "Share actions trigger",
+          selector: "[data-menu-sub-trigger-secondary]",
           rows: [
             { label: "Exists", value: state.parts.subTriggerSecondaryExists, category: "presence" },
             { label: "Ref", value: state.parts.subTriggerSecondaryRef, category: "identity" },
@@ -586,6 +598,7 @@ export function MenuScenarioAnatomy({
       groups: [
         {
           title: "More actions content",
+          selector: "[data-menu-sub-content]",
           rows: [
             { label: "Exists", value: state.parts.subContentExists, category: "presence" },
             { label: "Ref", value: state.parts.subContentRef, category: "identity" },
@@ -601,6 +614,7 @@ export function MenuScenarioAnatomy({
         },
         {
           title: "Share actions content",
+          selector: "[data-menu-sub-content-secondary]",
           rows: [
             { label: "Exists", value: state.parts.subContentSecondaryExists, category: "presence" },
             { label: "Ref", value: state.parts.subContentSecondaryRef, category: "identity" },
@@ -614,6 +628,7 @@ export function MenuScenarioAnatomy({
     },
     {
       title: "Nested Sub Trigger",
+      selector: "[data-menu-nested-sub-trigger]",
       inactive: state.parts.nestedSubTriggerExists !== "yes",
       summary: state.parts.nestedSubTriggerExists === "yes" ? state.parts.nestedSubTriggerState : "not rendered",
       rows: [
@@ -625,6 +640,7 @@ export function MenuScenarioAnatomy({
     },
     {
       title: "Nested Sub Content",
+      selector: "[data-menu-nested-sub-content]",
       inactive: state.parts.nestedSubContentExists !== "yes",
       summary: state.parts.nestedSubContentExists === "yes" ? state.parts.nestedSubContentState : "not rendered",
       rows: [

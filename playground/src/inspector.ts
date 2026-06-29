@@ -1,17 +1,26 @@
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 
-export type InspectorRow = {
-  label: string;
+export type InspectorDetails = {
+  aria: string;
+  data: string;
+  disabled: boolean;
+  hidden: boolean;
+  id: string;
+  native: string;
+  role: string;
+  tag: string;
+  text: string;
   value: string;
 };
 
 export type ElementInspector = {
-  focusedRows: InspectorRow[];
+  focusedDetails: InspectorDetails;
   rootRef: RefObject<HTMLDivElement | null>;
-  selectedRows: InspectorRow[];
+  selectedDetails: InspectorDetails;
 };
 
 const observedAttributes = [
+  "aria-checked",
   "aria-controls",
   "aria-describedby",
   "aria-disabled",
@@ -20,62 +29,95 @@ const observedAttributes = [
   "aria-hidden",
   "aria-labelledby",
   "aria-modal",
+  "checked",
+  "data-checked",
   "data-disabled",
   "data-positioned",
   "data-state",
   "data-slot",
   "disabled",
   "hidden",
+  "href",
+  "name",
+  "placeholder",
+  "readonly",
   "role",
+  "selected",
   "tabindex",
+  "title",
+  "type",
+  "value",
 ];
 
-function formatElement(element: Element | null): string {
-  if (!element) return "none";
+const EMPTY_VALUE = "-";
+const hiddenDataAttributes = new Set([
+  "data-playground-inspect",
+]);
 
-  const id = element.id ? `#${element.id}` : "";
-  const slot = element.getAttribute("data-slot");
-  const slotText = slot ? `[data-slot="${slot}"]` : "";
-
-  return `${element.tagName.toLowerCase()}${id}${slotText}`;
+function formatAttribute(attribute: Attr): string {
+  return attribute.value === ""
+    ? attribute.name
+    : `${attribute.name}="${attribute.value}"`;
 }
 
 function getAttributes(element: Element | null, prefix: string): string {
-  if (!element) return "none";
+  if (!element) return EMPTY_VALUE;
 
   const attrs = Array.from(element.attributes)
-    .filter((attribute) => attribute.name.startsWith(prefix))
-    .map((attribute) => `${attribute.name}="${attribute.value}"`);
+    .filter((attribute) => (
+      attribute.name.startsWith(prefix) &&
+      !hiddenDataAttributes.has(attribute.name)
+    ))
+    .map(formatAttribute);
 
-  return attrs.length > 0 ? attrs.join("\n") : "none";
+  return attrs.length > 0 ? attrs.join("\n") : EMPTY_VALUE;
 }
 
-function getBooleanAttribute(element: Element | null, name: string): string {
-  if (!element) return "none";
-  return element.hasAttribute(name) ? "yes" : "no";
+function getNativeAttributes(element: Element | null): string {
+  if (!element) return EMPTY_VALUE;
+
+  const attrs = Array.from(element.attributes)
+    .filter((attribute) => (
+      !attribute.name.startsWith("aria-") &&
+      !attribute.name.startsWith("data-") &&
+      attribute.name !== "class" &&
+      attribute.name !== "id" &&
+      attribute.name !== "style"
+    ))
+    .map(formatAttribute);
+
+  return attrs.length > 0 ? attrs.join("\n") : EMPTY_VALUE;
 }
 
-function getDisabledState(element: Element | null): string {
-  if (!element) return "none";
+function getDisabledState(element: Element | null): boolean {
+  if (!element) return false;
   return element.hasAttribute("disabled") ||
     element.getAttribute("aria-disabled") === "true" ||
-    element.hasAttribute("data-disabled")
-    ? "yes"
-    : "no";
+    element.hasAttribute("data-disabled");
 }
 
-function isFocusable(element: Element | null): string {
-  if (!(element instanceof HTMLElement)) return "none";
+function getText(element: Element | null): string {
+  const text = Array.from(element?.childNodes ?? [])
+    .filter((node) => node.nodeType === Node.TEXT_NODE)
+    .map((node) => node.textContent ?? "")
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!text) return EMPTY_VALUE;
+  return text.length > 80 ? `${text.slice(0, 77)}...` : text;
+}
+
+function getValue(element: Element | null): string {
   if (
-    element.hasAttribute("disabled") ||
-    element.getAttribute("aria-disabled") === "true" ||
-    element.hasAttribute("data-disabled")
+    element instanceof HTMLInputElement ||
+    element instanceof HTMLTextAreaElement ||
+    element instanceof HTMLSelectElement ||
+    element instanceof HTMLOptionElement
   ) {
-    return "no";
+    return element.value || EMPTY_VALUE;
   }
 
-  const tabIndex = element.tabIndex;
-  return tabIndex >= 0 || element.getAttribute("tabindex") === "-1" ? "yes" : "no";
+  return element?.getAttribute("value") || EMPTY_VALUE;
 }
 
 function isInspectable(root: HTMLDivElement | null, element: Element | null): boolean {
@@ -83,19 +125,30 @@ function isInspectable(root: HTMLDivElement | null, element: Element | null): bo
   return Boolean(root?.contains(element) || element.closest("[data-playground-inspect]"));
 }
 
-function getElementRows(element: Element | null): InspectorRow[] {
-  return [
-    { label: "Element", value: formatElement(element) },
-    { label: "Tag", value: element ? element.tagName.toLowerCase() : "none" },
-    { label: "ID", value: element?.id || "none" },
-    { label: "Role", value: element?.getAttribute("role") ?? "none" },
-    { label: "ARIA", value: getAttributes(element, "aria-") },
-    { label: "Data", value: getAttributes(element, "data-") },
-    { label: "Disabled", value: getDisabledState(element) },
-    { label: "Hidden", value: getBooleanAttribute(element, "hidden") },
-    { label: "Focusable", value: isFocusable(element) },
-    { label: "Tabindex attr", value: element?.getAttribute("tabindex") ?? "none" },
-  ];
+function getInspectableEventTarget(
+  root: HTMLDivElement | null,
+  event: PointerEvent | MouseEvent,
+): Element | null {
+  const target = event.target instanceof Element ? event.target : null;
+  if (isInspectable(root, target)) return target;
+
+  const pointTarget = document.elementFromPoint(event.clientX, event.clientY);
+  return isInspectable(root, pointTarget) ? pointTarget : null;
+}
+
+function getElementDetails(element: Element | null): InspectorDetails {
+  return {
+    aria: getAttributes(element, "aria-"),
+    data: getAttributes(element, "data-"),
+    disabled: getDisabledState(element),
+    hidden: Boolean(element?.hasAttribute("hidden")),
+    id: element?.id || EMPTY_VALUE,
+    native: getNativeAttributes(element),
+    role: element?.getAttribute("role") ?? EMPTY_VALUE,
+    tag: element ? element.tagName.toLowerCase() : EMPTY_VALUE,
+    text: getText(element),
+    value: getValue(element),
+  };
 }
 
 export function useElementInspector(): ElementInspector {
@@ -112,22 +165,24 @@ export function useElementInspector(): ElementInspector {
       );
     };
 
-    const updateSelectedElement = (event: PointerEvent) => {
-      const target = event.target instanceof Element ? event.target : null;
-      if (isInspectable(rootRef.current, target)) {
+    const updateSelectedElement = (event: PointerEvent | MouseEvent) => {
+      const target = getInspectableEventTarget(rootRef.current, event);
+      if (target) {
         setSelectedElement(target);
       }
     };
 
     document.addEventListener("focusin", updateFocusedElement);
     document.addEventListener("focusout", updateFocusedElement);
-    document.addEventListener("pointerdown", updateSelectedElement);
+    document.addEventListener("pointerdown", updateSelectedElement, true);
+    document.addEventListener("mousedown", updateSelectedElement, true);
     updateFocusedElement();
 
     return () => {
       document.removeEventListener("focusin", updateFocusedElement);
       document.removeEventListener("focusout", updateFocusedElement);
-      document.removeEventListener("pointerdown", updateSelectedElement);
+      document.removeEventListener("pointerdown", updateSelectedElement, true);
+      document.removeEventListener("mousedown", updateSelectedElement, true);
     };
   }, []);
 
@@ -190,14 +245,14 @@ export function useElementInspector(): ElementInspector {
     return () => cancelAnimationFrame(frame);
   }, []);
 
-  const focusedRows = useMemo(
-    () => getElementRows(focusedElement),
+  const focusedDetails = useMemo(
+    () => getElementDetails(focusedElement),
     [focusedElement, revision],
   );
-  const selectedRows = useMemo(
-    () => getElementRows(selectedElement),
+  const selectedDetails = useMemo(
+    () => getElementDetails(selectedElement),
     [selectedElement, revision],
   );
 
-  return { focusedRows, rootRef, selectedRows };
+  return { focusedDetails, rootRef, selectedDetails };
 }

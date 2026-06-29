@@ -72,6 +72,7 @@ export type DialogPartsSnapshot = {
   contentSlot: string;
   contentProps: string;
   contentId: string;
+  contentTag: string;
   contentRole: string;
   contentFocused: string;
   contentState: string;
@@ -307,20 +308,28 @@ export function useDialogScenario() {
       childList: true,
       subtree: true,
       attributeFilter: [
+        "aria-describedby",
+        "aria-disabled",
+        "aria-modal",
         "aria-controls",
         "aria-expanded",
         "aria-haspopup",
         "aria-hidden",
         "aria-label",
         "aria-labelledby",
+        "data-positioned",
         "data-state",
         "data-slot",
         "data-prop-check",
+        "disabled",
         "hidden",
         "id",
         "name",
+        "role",
         "style",
+        "tabindex",
         "title",
+        "type",
       ],
     });
 
@@ -513,6 +522,7 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
       ["data-prop-check", "content"],
     ]),
     contentId,
+    contentTag: content?.tagName.toLowerCase() ?? "none",
     contentRole: content?.getAttribute("role") ?? "none",
     contentFocused: content && activeElement === content ? "yes" : "no",
     contentState: content?.getAttribute("data-state") ?? "none",
@@ -614,6 +624,7 @@ const emptyDialogPartsSnapshot: DialogPartsSnapshot = {
   contentSlot: "not rendered",
   contentProps: "not rendered",
   contentId: "none",
+  contentTag: "none",
   contentRole: "none",
   contentFocused: "no",
   contentState: "none",

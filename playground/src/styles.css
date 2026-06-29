@@ -248,6 +248,12 @@ h2 {
   padding: 0 13px;
 }
 
+.canvas-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .header-action {
   min-height: 26px;
   border: 1px solid #182232;
@@ -292,6 +298,7 @@ h2 {
 
 .canvas {
   display: grid;
+  height: 100%;
   min-height: 0;
   place-items: center;
   border-radius: 0 0 8px 8px;
@@ -301,6 +308,59 @@ h2 {
     #fbfcfd;
   background-size: 24px 24px;
   padding: 28px;
+}
+
+.canvas-tab-panel {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.canvas-source-scroll,
+.canvas-source-viewport {
+  height: 100%;
+  min-height: 0;
+}
+
+.canvas-source-viewport {
+  overflow: auto;
+}
+
+.canvas-source-code {
+  min-height: 100%;
+  margin: 0;
+  background: #fbfcfd;
+  color: #24303d;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  padding: 14px 16px;
+  tab-size: 2;
+  white-space: pre;
+}
+
+.source-token-tag {
+  color: #0f6cbd;
+}
+
+.source-token-prop {
+  color: #8a4b00;
+}
+
+.source-token-string {
+  color: #116329;
+}
+
+.source-token-brace {
+  color: #6b46c1;
+}
+
+.source-token-literal {
+  color: #b42318;
+}
+
+.source-token-comment {
+  color: #667282;
+  font-style: italic;
 }
 
 .placeholder-card {
@@ -505,7 +565,6 @@ h2 {
   border-color: #c9d0d9;
   background: #e6eaf0;
   color: #778393;
-  pointer-events: none;
 }
 
 .atom-button.secondary {
@@ -1108,6 +1167,60 @@ h2 {
   text-transform: uppercase;
 }
 
+.parts-groups {
+  display: grid;
+}
+
+.parts-value-group {
+  display: grid;
+  border-top: 1px solid #edf0f4;
+}
+
+.parts-value-group:first-child {
+  border-top: 0;
+}
+
+.parts-value-group-title {
+  display: flex;
+  min-height: 30px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  border-bottom: 1px solid #edf0f4;
+  background: #ffffff;
+  padding: 0 13px;
+  color: #8a94a3;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.parts-value-group-title code {
+  min-width: 0;
+  color: #24303d;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+  text-align: right;
+  text-transform: none;
+}
+
+.parts-attribute-list {
+  min-height: 34px;
+  margin: 0;
+  background: #f8fafc;
+  padding: 10px 13px;
+  color: #24303d;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
 .parts-grid {
   display: grid;
   margin: 0;
@@ -1292,12 +1405,11 @@ h2 {
   overflow: auto;
 }
 
-.inspector-list {
+.inspector-details {
   display: grid;
-  margin: 0;
 }
 
-.inspector-list div {
+.inspector-row {
   display: grid;
   grid-template-columns: minmax(62px, max-content) minmax(0, 1fr);
   gap: 8px;
@@ -1306,30 +1418,88 @@ h2 {
   padding: 10px 13px;
 }
 
-.inspector-list div:nth-child(even) {
-  background: #f8fafc;
-}
-
-.inspector-list div:last-child {
-  border-bottom: 0;
-}
-
-.inspector-list dt {
+.inspector-row span {
   color: #667282;
   font-size: 12px;
   font-weight: 700;
 }
 
-.inspector-list dd {
+.inspector-row code {
   min-width: 0;
-  justify-self: end;
-  margin: 0;
   color: #24303d;
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   font-size: 12px;
   line-height: 1.35;
   overflow-wrap: anywhere;
   text-align: right;
+  white-space: pre-wrap;
+}
+
+.inspector-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  border-bottom: 1px solid #edf0f4;
+}
+
+.inspector-split .inspector-block {
+  border-bottom: 0;
+}
+
+.inspector-split .inspector-block + .inspector-block {
+  border-left: 1px solid #edf0f4;
+}
+
+.inspector-block {
+  display: grid;
+  grid-template-rows: auto auto;
+  border-bottom: 1px solid #edf0f4;
+}
+
+.inspector-block:nth-child(even),
+.inspector-split:nth-child(even) {
+  background: #f8fafc;
+}
+
+.inspector-block:last-child {
+  border-bottom: 0;
+}
+
+.inspector-block h3 {
+  margin: 0;
+  border-bottom: 1px solid #edf0f4;
+  padding: 8px 13px;
+  color: #667282;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.inspector-attribute-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.inspector-attribute-title code {
+  min-width: 0;
+  color: #24303d;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.inspector-block pre {
+  min-height: 34px;
+  margin: 0;
+  padding: 10px 13px;
+  color: #24303d;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
   white-space: pre-wrap;
 }
 

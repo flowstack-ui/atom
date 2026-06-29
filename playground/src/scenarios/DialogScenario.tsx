@@ -248,7 +248,6 @@ export function DialogScenarioAnatomy({
         { label: "Block backdrop close", value: state.blockBackdropClose ? "yes" : "no", category: "state" },
         { label: "Block save close", value: state.blockSaveClose ? "yes" : "no", category: "state" },
         { label: "Block trigger event", value: state.blockTriggerEvent ? "yes" : "no", category: "state" },
-        { label: "Content role", value: state.contentRole, category: "state" },
         { label: "Disabled", value: state.disabled ? "yes" : "no", category: "state" },
         { label: "Escape closes", value: state.closeOnEscape ? "yes" : "no", category: "state" },
         { label: "Keep mounted", value: state.keepMounted ? "yes" : "no", category: "state" },
@@ -260,6 +259,7 @@ export function DialogScenarioAnatomy({
     },
     {
       title: "Trigger",
+      selector: "[data-dialog-trigger]",
       summary: state.parts.triggerState,
       rows: [
         { label: "Exists", value: state.parts.triggerExists, category: "presence" },
@@ -291,6 +291,7 @@ export function DialogScenarioAnatomy({
     },
     {
       title: "Overlay",
+      selector: "[data-dialog-overlay]",
       inactive: state.parts.overlayExists !== "yes",
       summary: state.parts.overlayExists === "yes" ? state.parts.overlayState : "not rendered",
       rows: [
@@ -303,12 +304,14 @@ export function DialogScenarioAnatomy({
     },
     {
       title: "Content",
+      selector: "[data-dialog-content]",
       inactive: state.parts.contentExists !== "yes",
       summary: state.parts.contentExists === "yes" ? state.parts.contentState : "not rendered",
       rows: [
         { label: "Exists", value: state.parts.contentExists, category: "presence" },
         { label: "Ref", value: state.parts.contentExists === "yes" ? state.refs.content : "none", category: "identity" },
         { label: "id", value: state.parts.contentId, category: "identity" },
+        { label: "tag", value: state.parts.contentTag, category: "identity" },
         { label: "Props", value: state.parts.contentProps, category: "composition" },
         { label: "data-positioned", value: state.parts.contentPositioned, category: "data" },
         { label: "data-slot", value: state.parts.contentSlot, category: "data" },
@@ -325,6 +328,7 @@ export function DialogScenarioAnatomy({
     },
     {
       title: "Title",
+      selector: "[data-dialog-title]",
       inactive: state.parts.titleExists !== "yes",
       summary: state.parts.titleExists === "yes" ? state.parts.titleId : "not rendered",
       rows: [
@@ -339,6 +343,7 @@ export function DialogScenarioAnatomy({
     },
     {
       title: "Description",
+      selector: "[data-dialog-description]",
       inactive: state.parts.descriptionExists !== "yes",
       summary: state.parts.descriptionExists === "yes" ? state.parts.descriptionId : "not rendered",
       rows: [
@@ -357,6 +362,7 @@ export function DialogScenarioAnatomy({
       groups: [
         {
           title: "Cancel button",
+          selector: "[data-dialog-cancel-close]",
           rows: [
             { label: "Exists", value: state.parts.cancelCloseExists, category: "presence" },
             { label: "tag", value: state.parts.cancelCloseTag, category: "identity" },
@@ -368,6 +374,7 @@ export function DialogScenarioAnatomy({
         },
         {
           title: "Save button",
+          selector: "[data-dialog-save-close]",
           rows: [
             { label: "Exists", value: state.parts.saveCloseExists, category: "presence" },
             { label: "Ref", value: state.parts.saveCloseExists === "yes" ? state.refs.saveClose : "none", category: "identity" },

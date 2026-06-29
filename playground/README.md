@@ -94,16 +94,16 @@ Main area
     Live component only
     Canvas footer
   Inspector
-    Inspector header switch
+    Selected
+    Focused
+    Logs
     Inspector footer
-  Log
-    Log footer
 ```
 
 The visual order and DOM order should match:
 
 ```text
-Menubar -> Anatomy -> Canvas toolbar -> Canvas component -> Inspector -> Log
+Menubar -> Anatomy -> Canvas toolbar -> Canvas component -> Inspector
 ```
 
 ## Scenario Rules
@@ -133,14 +133,12 @@ Each scenario should include:
 - a Canvas panel containing only the component being tested
 - a Canvas toolbar menu for important state or props
 - a Canvas footer for one-line scenario state
-- an Inspector for focused or selected DOM details
-- an Inspector footer that names the current target mode
-- a Log for interaction events and close/open reasons
-- a Log footer with the current event count
+- an Inspector with `Selected`, `Focused`, and `Logs` tabs
+- an Inspector footer that names the current target mode or event count
 
 Do not put status text, duplicate state summaries, or helper explanations inside
 the Canvas stage. If a value is state, put it in Anatomy. If it is an event, put
-it in Log. If it is a DOM attribute, make it visible through Inspector or
+it in Inspector Logs. If it is a DOM attribute, make it visible through Inspector or
 Anatomy.
 
 Use short labels:
@@ -262,14 +260,39 @@ Rules:
 - Use human-readable top-level titles for camel-case parts, such as
   `Scroll Up Button`, `Item Text`, and `Item Indicator`.
 - Rows should carry a category so the shared renderer orders them consistently:
-  presence, identity, composition, state, data, ARIA, then behavior. Rows within
-  the same category are alphabetical.
-- Use lowercase generated values: `yes`, `no`, `none`, `open`, `closed`,
-  `body`.
+  presence, identity, state, closing, blocking, composition, behavior,
+  attributes, ARIA, then data. Rows within the same category are alphabetical.
+- Use scenario rows for human-readable meaning: open state, controlled mode,
+  close behavior, blocking behavior, focus behavior, relationships, and
+  component-specific test results.
+- Add a `selector` to every Anatomy section or subsection that represents a
+  live DOM part. The shared Anatomy renderer uses that selector to read the
+  current element and append raw DOM evidence.
+- Raw DOM groups must be live, not hand-maintained. `Attributes`, `ARIA`, and
+  `Data` should be derived from the current element in the Canvas or portal so
+  they stay complete as the tester changes props and interactions.
+- `Attributes` shows the tag name on the group title's right side. It includes
+  native attributes such as `role`, `type`, `title`, `tabindex`, `name`, and
+  `value`.
+- `ARIA` shows live `aria-*` attributes exactly like the DOM, such as
+  `aria-modal="true"`.
+- `Data` shows live `data-*` attributes. Empty data flags render as flags, such
+  as `data-disabled`, while valued attributes stay explicit, such as
+  `data-state="open"`.
+- Filter playground plumbing from raw groups. Do not show `class`, `style`,
+  duplicated `id` inside `Attributes`, or `data-playground-inspect`.
+- Keep prop-forwarding test markers visible only when they are part of the
+  scenario's testing surface, such as `data-prop-check`.
+- Use lowercase generated values in curated rows: `true`, `false`, `none`,
+  `open`, `closed`, `body`.
 - Keep group headers visually stable between collapsed and expanded states.
 - Make the whole group focus ring feel like one focused control.
 - Prefer rows that answer direct testing questions, such as `controls match`,
   `inside canvas`, `hidden`, or `aria-modal`.
+- Do not duplicate raw DOM evidence as curated rows unless it answers a
+  separate behavior question. For example, `role="dialog"` belongs in
+  `Attributes`; `Content role` belongs only if we are testing the configured
+  prop while the DOM part is not mounted.
 
 ## Canvas
 
@@ -279,7 +302,7 @@ Rules:
 
 - The stage should contain only the component parts needed for the scenario.
 - Controls live in the Canvas toolbar menu, above the stage.
-- Status summaries live in Anatomy or Log, not inside the stage.
+- Status summaries live in Anatomy or Inspector Logs, not inside the stage.
 - A scenario can include imperative test buttons when they are part of the
   behavior being tested, such as a controlled open button.
 - Keep portal behavior real. If a component portals to `document.body`, do not
@@ -289,30 +312,45 @@ Rules:
   document any missing public API coverage in the coverage tracker.
 - Include a `Focus Canvas` button in the Canvas title bar when tabbing through
   the full workbench would slow manual testing.
+- Include a Canvas `Source` view for the clean Atom JSX that produces the live
+  component. The source should update from scenario state and omit playground
+  plumbing such as refs, log markers, layout wrappers, and CSS classes.
 - Use the Canvas footer for short state summaries that should not be inside the
   live component area.
 
 ## Inspector
 
-The inspector should make live DOM state easy to check without reading a huge
-HTML dump.
+The Inspector should make live DOM state and interaction logs easy to check
+without reading a huge HTML dump.
+
+Use three tabs:
+
+- `Selected` for the element the tester clicked
+- `Focused` for the current active element
+- `Logs` for interaction events and close/open reasons
 
 Useful fields:
 
-- tag name
-- role
-- `aria-*`
-- `data-*`
-- `disabled`
-- `hidden`
-- focusable
-- `tabindex` attribute
+- `ID`
+- `Text` when the selected/focused element has direct text
+- `Value` when the selected/focused element has a value
+- native `Attributes`, with tag name on the title row
+- `ARIA`
+- `Data`
+- footer flags for computed `disabled` and `hidden`
 
 Keep focused and selected targets separate. Use tabs or another clear switch so
 it is obvious whether the rows describe the currently focused element or the
 element the tester clicked.
 
-Prefer flat rows with dividers inside the Inspector card. Avoid nested boxes
+Raw groups follow the same filtering and formatting rules as Anatomy:
+
+- do not show `class`, `style`, duplicated `id`, or `data-playground-inspect`
+- keep `aria-*` values explicit, such as `aria-disabled="true"`
+- render empty data flags as flags, such as `data-checked`
+- keep valued data attributes explicit, such as `data-value="starter"`
+
+Prefer flat panels with dividers inside the Inspector card. Avoid nested boxes
 that make the panel feel heavier than the data.
 
 The inspector can update from:
@@ -322,10 +360,31 @@ The inspector can update from:
 - clicking a portalled element marked for playground inspection
 - `MutationObserver` watching attribute changes
 
-## Log
+## Live Canvas Inspection
 
-The Log records behavior events that should remain visible after the component
-closes.
+Anatomy, Inspector, and Canvas Source should eventually share one live canvas
+inspection layer.
+
+Target direction:
+
+- The live inspector owns Canvas root lookup, portal lookup, selected/focused
+  elements, DOM attribute formatting, filtered playground plumbing, and mutation
+  updates.
+- Anatomy uses the same live inspector for each part selector, then adds
+  curated behavior rows that explain what the part is doing.
+- Inspector uses the same live inspector for selected/focused elements.
+- Source uses the same scenario state as Canvas, but not DOM extraction, because
+  DOM cannot reconstruct React source.
+- Scenario files should not manually copy every `aria-*` and `data-*`
+  attribute. They should provide selectors and curated behavior rows.
+
+This keeps live DOM evidence complete while preserving readable behavior
+summaries for each component part.
+
+## Logs
+
+The Logs tab records behavior events that should remain visible after the
+component closes.
 
 Rules:
 
@@ -338,8 +397,9 @@ Rules:
   state.
 - Keep event text direct, such as `opened by trigger`, `opened by external
   control`, `closed by escapeKeyDown`, or `closed by backdropClick`.
-- Put `Clear` in the Log header, not inside the log rows.
-- Use the Log footer for event count.
+- Put `Clear` in the Inspector header area when Logs is active, not inside the
+  log rows.
+- Use the Inspector footer for event count when Logs is active.
 
 ## Coverage Tracker
 
@@ -370,7 +430,7 @@ Use the same UI model across scenarios:
 
 - desktop-style `AppBar` and `Menubar` at the top
 - no persistent sidebar
-- compact cards for Anatomy, Canvas, Inspector, and Log
+- compact cards for Anatomy, Canvas, and Inspector
 - Canvas toolbar menus for prop controls
 - header actions for panel commands
 - footers for short panel summaries
