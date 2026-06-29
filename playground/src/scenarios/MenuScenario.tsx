@@ -197,6 +197,10 @@ export function MenuScenarioCanvas({
           </Menu.RadioGroup>
           {state.showSubmenu ? (
             <>
+              <Menu.Separator
+                className="playground-menu-separator"
+                data-menu-submenu-separator=""
+              />
               <Menu.Sub
                 {...(state.controlledSubmenu
                   ? { open: state.subOpen, onOpenChange: actions.handleSubOpenChange }
