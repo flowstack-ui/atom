@@ -456,6 +456,10 @@ generated form inputs, keyboard interaction, and composition coverage.
 Badge, Divider, Aspect Ratio, Avatar, Label, and List start the lightweight
 display/layout pass with render output, composition, native prop markers,
 label association, avatar fallback state, and live DOM evidence.
+Progress, Pressable, Visually Hidden, Skip Link, Collapsible, and Toolbar add
+utility and disclosure coverage for progress semantics, custom press behavior,
+programmatic skip focus, mounted/unmounted disclosure content, and toolbar
+roving focus.
 
 Dialog is a good first scenario because it exercises:
 
