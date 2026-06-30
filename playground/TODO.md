@@ -256,9 +256,13 @@ Implementation should happen after the current Anatomy experiment is stable:
    - `blockEvent`
 
 3. Migrate existing scenarios one at a time.
-   - Menu
-   - Select
    - Dialog
+   - Select
+   - Menu
+   - Dropdown Menu
+   - Context Menu
+   - Popover
+   - Alert Dialog
 
 4. After two or three more components, review whether more builders are worth
    adding.

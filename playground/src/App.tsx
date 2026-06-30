@@ -15,6 +15,13 @@ import {
   DialogScenarioToolbar,
 } from "./scenarios/DialogScenario";
 import {
+  AlertDialogScenarioAnatomy,
+  AlertDialogScenarioCanvas,
+  AlertDialogScenarioLog,
+  AlertDialogScenarioToolbar,
+  getAlertDialogSource,
+} from "./scenarios/AlertDialogScenario";
+import {
   DropdownMenuScenarioAnatomy,
   DropdownMenuScenarioCanvas,
   DropdownMenuScenarioLog,
@@ -33,15 +40,24 @@ import {
   MenuScenarioToolbar,
 } from "./scenarios/MenuScenario";
 import {
+  PopoverScenarioAnatomy,
+  PopoverScenarioCanvas,
+  PopoverScenarioLog,
+  PopoverScenarioToolbar,
+  getPopoverSource,
+} from "./scenarios/PopoverScenario";
+import {
   SelectScenarioAnatomy,
   SelectScenarioCanvas,
   SelectScenarioLog,
   SelectScenarioToolbar,
 } from "./scenarios/SelectScenario";
 import { useDialogScenario } from "./scenarios/useDialogScenario";
+import { useAlertDialogScenario } from "./scenarios/useAlertDialogScenario";
 import { useDropdownMenuScenario } from "./scenarios/useDropdownMenuScenario";
 import { useContextMenuScenario } from "./scenarios/useContextMenuScenario";
 import { useMenuScenario } from "./scenarios/useMenuScenario";
+import { usePopoverScenario } from "./scenarios/usePopoverScenario";
 import { useSelectScenario } from "./scenarios/useSelectScenario";
 
 type Scenario = {
@@ -57,6 +73,12 @@ const scenarios: Scenario[] = [
     label: "Dialog",
     category: "Overlays",
     checks: ["Opens from trigger", "Escape closes", "Focus returns", "State is visible"],
+  },
+  {
+    id: "alert-dialog",
+    label: "Alert Dialog",
+    category: "Overlays",
+    checks: ["Cancel autofocus", "Action reason", "Backdrop is blocked"],
   },
   {
     id: "popover",
@@ -162,17 +184,21 @@ export function App() {
   const [activeScenarioId, setActiveScenarioId] = useState("context-menu");
   const [activeCanvasTab, setActiveCanvasTab] = useState<"preview" | "source">("preview");
   const [activeInspectorTab, setActiveInspectorTab] = useState<"selected" | "focused" | "log">("selected");
+  const [alertDialogAnatomyOpenGroups, setAlertDialogAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [dialogAnatomyOpenGroups, setDialogAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [contextMenuAnatomyOpenGroups, setContextMenuAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [dropdownMenuAnatomyOpenGroups, setDropdownMenuAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [menuAnatomyOpenGroups, setMenuAnatomyOpenGroups] = useState<Record<string, boolean>>({});
+  const [popoverAnatomyOpenGroups, setPopoverAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [selectAnatomyOpenGroups, setSelectAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const activeScenario = getScenario(activeScenarioId);
   const inspector = useElementInspector();
+  const alertDialogScenario = useAlertDialogScenario();
   const dialogScenario = useDialogScenario();
   const contextMenuScenario = useContextMenuScenario();
   const dropdownMenuScenario = useDropdownMenuScenario();
   const menuScenario = useMenuScenario();
+  const popoverScenario = usePopoverScenario();
   const selectScenario = useSelectScenario();
   const focusCanvas = () => {
     const focusTarget = inspector.rootRef.current?.querySelector<HTMLElement>(focusableSelector);
@@ -246,6 +272,22 @@ export function App() {
                   Collapse All
                 </Button.Root>
               ) : null}
+              {activeScenario.id === "alert-dialog" ? (
+                <Button.Root
+                  className="header-action"
+                  onPress={() => setAlertDialogAnatomyOpenGroups({})}
+                >
+                  Collapse All
+                </Button.Root>
+              ) : null}
+              {activeScenario.id === "popover" ? (
+                <Button.Root
+                  className="header-action"
+                  onPress={() => setPopoverAnatomyOpenGroups({})}
+                >
+                  Collapse All
+                </Button.Root>
+              ) : null}
               {activeScenario.id === "select" ? (
                 <Button.Root
                   className="header-action"
@@ -280,6 +322,8 @@ export function App() {
               ) : null}
             </div>
             <ScenarioAnatomy
+              alertDialogAnatomyOpenGroups={alertDialogAnatomyOpenGroups}
+              alertDialogScenario={alertDialogScenario}
               contextMenuAnatomyOpenGroups={contextMenuAnatomyOpenGroups}
               contextMenuScenario={contextMenuScenario}
               dialogAnatomyOpenGroups={dialogAnatomyOpenGroups}
@@ -288,13 +332,17 @@ export function App() {
               dropdownMenuScenario={dropdownMenuScenario}
               menuAnatomyOpenGroups={menuAnatomyOpenGroups}
               menuScenario={menuScenario}
+              popoverAnatomyOpenGroups={popoverAnatomyOpenGroups}
+              popoverScenario={popoverScenario}
               selectAnatomyOpenGroups={selectAnatomyOpenGroups}
               selectScenario={selectScenario}
               scenarioId={activeScenario.id}
+              onAlertDialogAnatomyOpenGroupsChange={setAlertDialogAnatomyOpenGroups}
               onDialogAnatomyOpenGroupsChange={setDialogAnatomyOpenGroups}
               onContextMenuAnatomyOpenGroupsChange={setContextMenuAnatomyOpenGroups}
               onDropdownMenuAnatomyOpenGroupsChange={setDropdownMenuAnatomyOpenGroups}
               onMenuAnatomyOpenGroupsChange={setMenuAnatomyOpenGroups}
+              onPopoverAnatomyOpenGroupsChange={setPopoverAnatomyOpenGroups}
               onSelectAnatomyOpenGroupsChange={setSelectAnatomyOpenGroups}
             />
           </article>
@@ -319,20 +367,24 @@ export function App() {
               </div>
             </div>
             <ScenarioToolbar
+              alertDialogScenario={alertDialogScenario}
               contextMenuScenario={contextMenuScenario}
               dialogScenario={dialogScenario}
               dropdownMenuScenario={dropdownMenuScenario}
               menuScenario={menuScenario}
+              popoverScenario={popoverScenario}
               selectScenario={selectScenario}
               scenarioId={activeScenario.id}
             />
             <Tabs.Content className="canvas-tab-panel" value="preview">
               <div className="canvas" ref={inspector.rootRef}>
                 <ScenarioCanvas
+                  alertDialogScenario={alertDialogScenario}
                   contextMenuScenario={contextMenuScenario}
                   dialogScenario={dialogScenario}
                   dropdownMenuScenario={dropdownMenuScenario}
                   menuScenario={menuScenario}
+                  popoverScenario={popoverScenario}
                   selectScenario={selectScenario}
                   scenarioId={activeScenario.id}
                   label={activeScenario.label}
@@ -341,19 +393,23 @@ export function App() {
             </Tabs.Content>
             <Tabs.Content className="canvas-tab-panel" value="source">
               <ScenarioSource
+                alertDialogScenario={alertDialogScenario}
                 contextMenuScenario={contextMenuScenario}
                 dialogScenario={dialogScenario}
                 dropdownMenuScenario={dropdownMenuScenario}
                 menuScenario={menuScenario}
+                popoverScenario={popoverScenario}
                 selectScenario={selectScenario}
                 scenarioId={activeScenario.id}
               />
             </Tabs.Content>
             <ScenarioCanvasFooter
+              alertDialogScenario={alertDialogScenario}
               contextMenuScenario={contextMenuScenario}
               dialogScenario={dialogScenario}
               dropdownMenuScenario={dropdownMenuScenario}
               menuScenario={menuScenario}
+              popoverScenario={popoverScenario}
               selectScenario={selectScenario}
               scenarioId={activeScenario.id}
             />
@@ -370,9 +426,11 @@ export function App() {
                 {activeInspectorTab === "log" ? (
                   <ScenarioLogAction
                     contextMenuScenario={contextMenuScenario}
+                    alertDialogScenario={alertDialogScenario}
                     dialogScenario={dialogScenario}
                     dropdownMenuScenario={dropdownMenuScenario}
                     menuScenario={menuScenario}
+                    popoverScenario={popoverScenario}
                     selectScenario={selectScenario}
                     scenarioId={activeScenario.id}
                   />
@@ -396,11 +454,13 @@ export function App() {
                 <InspectorPanel details={inspector.focusedDetails} />
               </Tabs.Content>
               <Tabs.Content className="inspector-panel" value="log">
-                  <ScenarioLog
-                    contextMenuScenario={contextMenuScenario}
-                    dialogScenario={dialogScenario}
+                <ScenarioLog
+                  contextMenuScenario={contextMenuScenario}
+                  alertDialogScenario={alertDialogScenario}
+                  dialogScenario={dialogScenario}
                   dropdownMenuScenario={dropdownMenuScenario}
                   menuScenario={menuScenario}
+                  popoverScenario={popoverScenario}
                   selectScenario={selectScenario}
                   scenarioId={activeScenario.id}
                 />
@@ -413,9 +473,11 @@ export function App() {
                 ) : (
                   <ScenarioLogFooter
                     contextMenuScenario={contextMenuScenario}
+                    alertDialogScenario={alertDialogScenario}
                     dialogScenario={dialogScenario}
                     dropdownMenuScenario={dropdownMenuScenario}
                     menuScenario={menuScenario}
+                    popoverScenario={popoverScenario}
                     selectScenario={selectScenario}
                     scenarioId={activeScenario.id}
                   />
@@ -485,20 +547,42 @@ function InspectorFooter({
 }
 
 function ScenarioToolbar({
+  alertDialogScenario,
   contextMenuScenario,
   dialogScenario,
   dropdownMenuScenario,
   menuScenario,
+  popoverScenario,
   selectScenario,
   scenarioId,
 }: {
+  alertDialogScenario: ReturnType<typeof useAlertDialogScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   menuScenario: ReturnType<typeof useMenuScenario>;
+  popoverScenario: ReturnType<typeof usePopoverScenario>;
   selectScenario: ReturnType<typeof useSelectScenario>;
   scenarioId: string;
 }) {
+  if (scenarioId === "alert-dialog") {
+    return (
+      <AlertDialogScenarioToolbar
+        state={alertDialogScenario.state}
+        actions={alertDialogScenario.actions}
+      />
+    );
+  }
+
+  if (scenarioId === "popover") {
+    return (
+      <PopoverScenarioToolbar
+        state={popoverScenario.state}
+        actions={popoverScenario.actions}
+      />
+    );
+  }
+
   if (scenarioId === "dialog") {
     return (
       <DialogScenarioToolbar
@@ -548,22 +632,44 @@ function ScenarioToolbar({
 }
 
 function ScenarioCanvas({
+  alertDialogScenario,
   contextMenuScenario,
   dialogScenario,
   dropdownMenuScenario,
   menuScenario,
+  popoverScenario,
   selectScenario,
   scenarioId,
   label,
 }: {
+  alertDialogScenario: ReturnType<typeof useAlertDialogScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   menuScenario: ReturnType<typeof useMenuScenario>;
+  popoverScenario: ReturnType<typeof usePopoverScenario>;
   selectScenario: ReturnType<typeof useSelectScenario>;
   scenarioId: string;
   label: string;
 }) {
+  if (scenarioId === "alert-dialog") {
+    return (
+      <AlertDialogScenarioCanvas
+        state={alertDialogScenario.state}
+        actions={alertDialogScenario.actions}
+      />
+    );
+  }
+
+  if (scenarioId === "popover") {
+    return (
+      <PopoverScenarioCanvas
+        state={popoverScenario.state}
+        actions={popoverScenario.actions}
+      />
+    );
+  }
+
   if (scenarioId === "dialog") {
     return (
       <DialogScenarioCanvas
@@ -620,25 +726,31 @@ function ScenarioCanvas({
 }
 
 function ScenarioSource({
+  alertDialogScenario,
   contextMenuScenario,
   dialogScenario,
   dropdownMenuScenario,
   menuScenario,
+  popoverScenario,
   selectScenario,
   scenarioId,
 }: {
+  alertDialogScenario: ReturnType<typeof useAlertDialogScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   menuScenario: ReturnType<typeof useMenuScenario>;
+  popoverScenario: ReturnType<typeof usePopoverScenario>;
   selectScenario: ReturnType<typeof useSelectScenario>;
   scenarioId: string;
 }) {
   const source = getScenarioSource({
+    alertDialogScenario,
     contextMenuScenario,
     dialogScenario,
     dropdownMenuScenario,
     menuScenario,
+    popoverScenario,
     selectScenario,
     scenarioId,
   });
@@ -682,20 +794,48 @@ function highlightSource(source: string) {
 }
 
 function ScenarioCanvasFooter({
+  alertDialogScenario,
   contextMenuScenario,
   dialogScenario,
   dropdownMenuScenario,
   menuScenario,
+  popoverScenario,
   selectScenario,
   scenarioId,
 }: {
+  alertDialogScenario: ReturnType<typeof useAlertDialogScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   menuScenario: ReturnType<typeof useMenuScenario>;
+  popoverScenario: ReturnType<typeof usePopoverScenario>;
   selectScenario: ReturnType<typeof useSelectScenario>;
   scenarioId: string;
 }) {
+  if (scenarioId === "alert-dialog") {
+    const state = alertDialogScenario.state;
+    const openState = state.open ? "Open" : "Closed";
+    const mode = state.controlled ? "Controlled" : "Uncontrolled";
+
+    return (
+      <div className="panel-footer">
+        {`${openState} | ${mode} | Trigger ${state.triggerComposition} | Action ${state.actionComposition}`}
+      </div>
+    );
+  }
+
+  if (scenarioId === "popover") {
+    const state = popoverScenario.state;
+    const openState = state.open ? "Open" : "Closed";
+    const mode = state.controlled ? "Controlled" : "Uncontrolled";
+
+    return (
+      <div className="panel-footer">
+        {`${openState} | ${mode} | ${state.side} ${state.align} | Trigger ${state.triggerComposition}`}
+      </div>
+    );
+  }
+
   if (scenarioId === "dialog") {
     const state = dialogScenario.state;
     const openState = state.open ? "Open" : "Closed";
@@ -761,20 +901,26 @@ function ScenarioCanvasFooter({
 }
 
 function getScenarioSource({
+  alertDialogScenario,
   contextMenuScenario,
   dialogScenario,
   dropdownMenuScenario,
   menuScenario,
+  popoverScenario,
   selectScenario,
   scenarioId,
 }: {
+  alertDialogScenario: ReturnType<typeof useAlertDialogScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   menuScenario: ReturnType<typeof useMenuScenario>;
+  popoverScenario: ReturnType<typeof usePopoverScenario>;
   selectScenario: ReturnType<typeof useSelectScenario>;
   scenarioId: string;
 }) {
+  if (scenarioId === "alert-dialog") return getAlertDialogSource(alertDialogScenario.state);
+  if (scenarioId === "popover") return getPopoverSource(popoverScenario.state);
   if (scenarioId === "dialog") return getDialogSource(dialogScenario.state);
   if (scenarioId === "select") return getSelectSource(selectScenario.state);
   if (scenarioId === "menu") return getMenuSource(menuScenario.state);
@@ -1319,6 +1465,8 @@ function getMenuItemSource(namespace: "ContextMenu" | "DropdownMenu", mode: "def
 }
 
 function ScenarioAnatomy({
+  alertDialogAnatomyOpenGroups,
+  alertDialogScenario,
   contextMenuAnatomyOpenGroups,
   contextMenuScenario,
   dialogAnatomyOpenGroups,
@@ -1327,15 +1475,21 @@ function ScenarioAnatomy({
   dropdownMenuScenario,
   menuAnatomyOpenGroups,
   menuScenario,
+  popoverAnatomyOpenGroups,
+  popoverScenario,
   selectAnatomyOpenGroups,
   selectScenario,
   scenarioId,
+  onAlertDialogAnatomyOpenGroupsChange,
   onContextMenuAnatomyOpenGroupsChange,
   onDialogAnatomyOpenGroupsChange,
   onDropdownMenuAnatomyOpenGroupsChange,
   onMenuAnatomyOpenGroupsChange,
+  onPopoverAnatomyOpenGroupsChange,
   onSelectAnatomyOpenGroupsChange,
 }: {
+  alertDialogAnatomyOpenGroups: Record<string, boolean>;
+  alertDialogScenario: ReturnType<typeof useAlertDialogScenario>;
   contextMenuAnatomyOpenGroups: Record<string, boolean>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogAnatomyOpenGroups: Record<string, boolean>;
@@ -1344,15 +1498,39 @@ function ScenarioAnatomy({
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   menuAnatomyOpenGroups: Record<string, boolean>;
   menuScenario: ReturnType<typeof useMenuScenario>;
+  popoverAnatomyOpenGroups: Record<string, boolean>;
+  popoverScenario: ReturnType<typeof usePopoverScenario>;
   selectAnatomyOpenGroups: Record<string, boolean>;
   selectScenario: ReturnType<typeof useSelectScenario>;
   scenarioId: string;
+  onAlertDialogAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onContextMenuAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onDialogAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onDropdownMenuAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onMenuAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
+  onPopoverAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onSelectAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
 }) {
+  if (scenarioId === "alert-dialog") {
+    return (
+      <AlertDialogScenarioAnatomy
+        openGroups={alertDialogAnatomyOpenGroups}
+        state={alertDialogScenario.state}
+        onOpenGroupsChange={onAlertDialogAnatomyOpenGroupsChange}
+      />
+    );
+  }
+
+  if (scenarioId === "popover") {
+    return (
+      <PopoverScenarioAnatomy
+        openGroups={popoverAnatomyOpenGroups}
+        state={popoverScenario.state}
+        onOpenGroupsChange={onPopoverAnatomyOpenGroupsChange}
+      />
+    );
+  }
+
   if (scenarioId === "dialog") {
     return (
       <DialogScenarioAnatomy
@@ -1413,20 +1591,40 @@ function ScenarioAnatomy({
 }
 
 function ScenarioLog({
+  alertDialogScenario,
   contextMenuScenario,
   dialogScenario,
   dropdownMenuScenario,
   menuScenario,
+  popoverScenario,
   selectScenario,
   scenarioId,
 }: {
+  alertDialogScenario: ReturnType<typeof useAlertDialogScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   menuScenario: ReturnType<typeof useMenuScenario>;
+  popoverScenario: ReturnType<typeof usePopoverScenario>;
   selectScenario: ReturnType<typeof useSelectScenario>;
   scenarioId: string;
 }) {
+  if (scenarioId === "alert-dialog") {
+    return (
+      <AlertDialogScenarioLog
+        state={alertDialogScenario.state}
+      />
+    );
+  }
+
+  if (scenarioId === "popover") {
+    return (
+      <PopoverScenarioLog
+        state={popoverScenario.state}
+      />
+    );
+  }
+
   if (scenarioId === "dialog") {
     return (
       <DialogScenarioLog
@@ -1471,52 +1669,80 @@ function ScenarioLog({
 }
 
 function ScenarioLogFooter({
+  alertDialogScenario,
   contextMenuScenario,
   dialogScenario,
   dropdownMenuScenario,
   menuScenario,
+  popoverScenario,
   selectScenario,
   scenarioId,
 }: {
+  alertDialogScenario: ReturnType<typeof useAlertDialogScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   menuScenario: ReturnType<typeof useMenuScenario>;
+  popoverScenario: ReturnType<typeof usePopoverScenario>;
   selectScenario: ReturnType<typeof useSelectScenario>;
   scenarioId: string;
 }) {
-  if (scenarioId !== "dialog" && scenarioId !== "select" && scenarioId !== "menu" && scenarioId !== "context-menu" && scenarioId !== "dropdown-menu") return null;
+  if (
+    scenarioId !== "alert-dialog" &&
+    scenarioId !== "popover" &&
+    scenarioId !== "dialog" &&
+    scenarioId !== "select" &&
+    scenarioId !== "menu" &&
+    scenarioId !== "context-menu" &&
+    scenarioId !== "dropdown-menu"
+  ) return null;
 
   const eventCount = scenarioId === "dialog"
     ? dialogScenario.state.log.length
-    : scenarioId === "select"
-      ? selectScenario.state.log.length
-      : scenarioId === "menu"
-        ? menuScenario.state.log.length
-        : scenarioId === "context-menu"
-          ? contextMenuScenario.state.log.length
-          : dropdownMenuScenario.state.log.length;
+    : scenarioId === "alert-dialog"
+      ? alertDialogScenario.state.log.length
+      : scenarioId === "popover"
+        ? popoverScenario.state.log.length
+        : scenarioId === "select"
+          ? selectScenario.state.log.length
+          : scenarioId === "menu"
+            ? menuScenario.state.log.length
+            : scenarioId === "context-menu"
+              ? contextMenuScenario.state.log.length
+              : dropdownMenuScenario.state.log.length;
   const eventLabel = eventCount === 1 ? "Event" : "Events";
 
   return <>{eventCount === 0 ? "No Events" : `${eventCount} ${eventLabel}`}</>;
 }
 
 function ScenarioLogAction({
+  alertDialogScenario,
   contextMenuScenario,
   dialogScenario,
   dropdownMenuScenario,
   menuScenario,
+  popoverScenario,
   selectScenario,
   scenarioId,
 }: {
+  alertDialogScenario: ReturnType<typeof useAlertDialogScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   menuScenario: ReturnType<typeof useMenuScenario>;
+  popoverScenario: ReturnType<typeof usePopoverScenario>;
   selectScenario: ReturnType<typeof useSelectScenario>;
   scenarioId: string;
 }) {
-  if (scenarioId !== "dialog" && scenarioId !== "select" && scenarioId !== "menu" && scenarioId !== "context-menu" && scenarioId !== "dropdown-menu") return null;
+  if (
+    scenarioId !== "alert-dialog" &&
+    scenarioId !== "popover" &&
+    scenarioId !== "dialog" &&
+    scenarioId !== "select" &&
+    scenarioId !== "menu" &&
+    scenarioId !== "context-menu" &&
+    scenarioId !== "dropdown-menu"
+  ) return null;
 
   return (
     <Button.Root
@@ -1524,13 +1750,17 @@ function ScenarioLogAction({
       onPress={
         scenarioId === "dialog"
           ? dialogScenario.actions.clearLog
-          : scenarioId === "select"
-            ? selectScenario.actions.clearLog
-            : scenarioId === "menu"
-              ? menuScenario.actions.clearLog
-              : scenarioId === "context-menu"
-                ? contextMenuScenario.actions.clearLog
-                : dropdownMenuScenario.actions.clearLog
+          : scenarioId === "alert-dialog"
+            ? alertDialogScenario.actions.clearLog
+            : scenarioId === "popover"
+              ? popoverScenario.actions.clearLog
+              : scenarioId === "select"
+                ? selectScenario.actions.clearLog
+                : scenarioId === "menu"
+                  ? menuScenario.actions.clearLog
+                  : scenarioId === "context-menu"
+                    ? contextMenuScenario.actions.clearLog
+                    : dropdownMenuScenario.actions.clearLog
       }
     >
       Clear

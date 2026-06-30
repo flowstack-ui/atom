@@ -445,9 +445,11 @@ Use the same UI model across scenarios:
 ## Scenario Order
 
 Dialog established the initial playground pattern. Select added form, listbox,
-typeahead, scroll, nested overlay, and generated hidden input coverage. Menu is
-the next scenario for command menus, checkbox/radio items, submenus, placement,
-and close behavior.
+typeahead, scroll, nested overlay, and generated hidden input coverage. Menu,
+Dropdown Menu, and Context Menu proved shared command-menu behavior, checkbox
+and radio items, submenus, placement, and close behavior. Popover and
+Alert Dialog extend the overlay set with anchored popup behavior and destructive
+confirmation behavior.
 
 Dialog is a good first scenario because it exercises:
 
@@ -462,4 +464,7 @@ Dialog is a good first scenario because it exercises:
 
 Use these first scenarios to prove shared playground patterns before adding the
 rest of the primitives. Avoid extracting more shared UI until a repeated pattern
-has appeared in at least two scenarios and is likely to remain stable.
+has appeared in at least two scenarios and is likely to remain stable. The next
+shared extraction candidates are the Canvas toolbar builders, scenario log
+rendering, source rendering helpers, and live DOM evidence used by Anatomy and
+Inspector.

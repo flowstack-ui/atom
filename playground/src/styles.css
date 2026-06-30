@@ -725,6 +725,80 @@ h2 {
   margin-top: 4px;
 }
 
+.controlled-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.popover-stage {
+  display: grid;
+  place-items: center;
+  gap: 12px;
+}
+
+.popover-anchor-box {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #aeb8c4;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0 12px;
+  color: #536171;
+  font-size: 13px;
+}
+
+.atom-popover-content {
+  z-index: 45;
+  display: grid;
+  width: min(320px, calc(100vw - 32px));
+  gap: 10px;
+  border: 1px solid #b9c2ce;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 14px;
+  box-shadow: 0 22px 55px rgba(12, 18, 26, 0.24), 0 5px 16px rgba(12, 18, 26, 0.12);
+}
+
+.atom-popover-content:focus {
+  outline: 3px solid rgba(57, 120, 216, 0.24);
+  outline-offset: 2px;
+}
+
+.popover-kicker,
+.popover-title,
+.popover-copy {
+  margin: 0;
+}
+
+.popover-kicker {
+  color: #6b7787;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.popover-title {
+  color: #121a24;
+  font-size: 17px;
+  font-weight: 720;
+}
+
+.popover-copy {
+  color: #536171;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.atom-popover-arrow {
+  fill: #ffffff;
+  stroke: #b9c2ce;
+}
+
 .select-field {
   display: grid;
   width: min(420px, 100%);
