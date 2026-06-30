@@ -336,7 +336,7 @@ test("Select source keeps trigger-owned keyboard navigation and stable registrat
   assert.match(triggerSource, /case "Enter":/);
   assert.match(triggerSource, /ctxRef\.current = ctx/);
   assert.match(triggerSource, /onValueChange\(highlightedValue\)/);
-  assert.match(triggerSource, /getSelectTypeaheadMatch\(ctxRef\.current, typeaheadBuffer\.current\)/);
+  assert.match(triggerSource, /getSelectTypeaheadMatch\(\s*ctxRef\.current,\s*typeaheadBuffer\.current,\s*highlightedValue,\s*\)/s);
   assert.match(triggerSource, /return cloneAndMerge\(children, triggerProps\)/);
   assert.match(triggerSource, /renderElement\(render, "button", \{ \.\.\.triggerProps, children \}\)/);
   assert.doesNotMatch(triggerSource, /onKeyDown: composeEventHandlers\(onKeyDown, handleKeyDown\),\s*children,/);

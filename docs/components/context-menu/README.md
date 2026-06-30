@@ -105,6 +105,7 @@ Wraps the area that owns the context menu.
 The trigger supports mouse and keyboard context menu opening. The content follows the WAI-ARIA menu pattern inherited from `Menu`.
 Portalled menu content registers with a parent modal focus scope when opened
 inside Dialog, Drawer, or another modal primitive.
+ContextMenu inherits Menu typeahead behavior for printable-character searches.
 
 | Key | Description |
 | --- | --- |

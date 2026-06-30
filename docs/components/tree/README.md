@@ -103,6 +103,9 @@ Contains child tree items.
 ## Accessibility
 
 Implements the WAI-ARIA tree pattern with root focus and `aria-activedescendant`.
+Printable-character typeahead matches enabled visible item text; a
+single-character search cycles forward from the current matching item, while
+multi-character buffers match exact prefixes.
 
 | Key | Description |
 | --- | --- |

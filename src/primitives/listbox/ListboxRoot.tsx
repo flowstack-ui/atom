@@ -23,6 +23,7 @@ import {
   renderElement,
   type RenderProp,
 } from "../../utils/slot.js";
+import { getTypeaheadMatch } from "../../utils/typeahead.js";
 import {
   ListboxContextProvider,
   type ListboxContextValue,
@@ -82,25 +83,16 @@ function getDefaultListboxValue(
   return multiple ? [] : null;
 }
 
-function getTypeaheadMatch(
+function getListboxTypeaheadMatch(
   items: { value: string; data: ListboxItemData }[],
   search: string,
   currentValue: string | null,
 ): string | null {
-  if (!search) return null;
-
-  const normalizedSearch = search.toLocaleLowerCase();
-  const currentIndex = currentValue
-    ? items.findIndex((item) => item.value === currentValue)
-    : -1;
-  const orderedItems = [
-    ...items.slice(currentIndex + 1),
-    ...items.slice(0, currentIndex + 1),
-  ];
-
-  return orderedItems.find((item) =>
-    item.data.textValue.toLocaleLowerCase().startsWith(normalizedSearch),
-  )?.value ?? null;
+  return getTypeaheadMatch(
+    items.map((item) => ({ value: item.value, label: item.data.textValue })),
+    search,
+    currentValue,
+  );
 }
 
 export const ListboxRoot = forwardRef<HTMLElement, ListboxRootProps>(
@@ -336,7 +328,7 @@ export const ListboxRoot = forwardRef<HTMLElement, ListboxRootProps>(
             typeaheadTimeoutRef.current = null;
           }, 700);
 
-          const match = getTypeaheadMatch(
+          const match = getListboxTypeaheadMatch(
             getEnabledItems(),
             typeaheadBufferRef.current,
             highlightedValue,

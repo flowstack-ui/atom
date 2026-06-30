@@ -269,6 +269,9 @@ import { Field, Select } from "@flowstack-ui/atom";
 Implements a button-based combobox that controls a listbox. The trigger owns keyboard interaction and references the highlighted option with `aria-activedescendant`.
 Portalled Select content registers with a parent modal focus scope when opened
 inside Dialog, Drawer, or another modal primitive.
+Printable-character typeahead matches enabled option text; a single-character
+search cycles forward from the current matching option, while multi-character
+buffers match exact prefixes.
 
 | Key | Description |
 | --- | --- |
@@ -278,6 +281,7 @@ inside Dialog, Drawer, or another modal primitive.
 | `Space` | Opens the listbox or selects the highlighted item. |
 | `Home` | Highlights the first enabled item. |
 | `End` | Highlights the last enabled item. |
+| Printable character | Typeahead search. |
 | `Escape` | Closes the listbox. |
 | `Tab` | Closes the listbox and moves focus normally. |
 

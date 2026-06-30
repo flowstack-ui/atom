@@ -117,8 +117,9 @@ export function MenuRoot({
   );
 
   useDismissableLayer({
-    enabled: isOpen && closeOnEscape && openSubMenuId === null,
+    enabled: isOpen && closeOnEscape,
     onEscapeKeyDown: () => {
+      if (openSubMenuId !== null) return;
       onClose();
       triggerRef.current?.focus();
     },

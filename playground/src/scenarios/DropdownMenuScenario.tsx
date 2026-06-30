@@ -1,33 +1,29 @@
 import { Button } from "@flowstack-ui/atom/button";
 import { Dialog } from "@flowstack-ui/atom/dialog";
+import { DropdownMenu } from "@flowstack-ui/atom/dropdown-menu";
 import { Menubar } from "@flowstack-ui/atom/menubar";
-import { Menu } from "@flowstack-ui/atom/menu";
 import { ScrollArea } from "@flowstack-ui/atom/scroll-area";
-import { useRef, type MouseEvent, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import {
   AnatomyPanel,
   type AnatomySection,
 } from "../AnatomyPanel";
 import type { Dispatch, SetStateAction } from "react";
 import type {
-  MenuAlign,
-  MenuItemCompositionMode,
-  MenuScenarioActions,
-  MenuScenarioState,
-  MenuSide,
-} from "./useMenuScenario";
+  DropdownMenuAlign,
+  DropdownMenuItemCompositionMode,
+  DropdownMenuScenarioActions,
+  DropdownMenuScenarioState,
+  DropdownMenuSide,
+} from "./useDropdownMenuScenario";
 
-export function MenuScenarioCanvas({
+export function DropdownMenuScenarioCanvas({
   state,
   actions,
 }: {
-  state: MenuScenarioState;
-  actions: MenuScenarioActions;
+  state: DropdownMenuScenarioState;
+  actions: DropdownMenuScenarioActions;
 }) {
-  const anchorRef = useRef<HTMLButtonElement>(null);
-  const anchorPoint = state.useAnchorPoint
-    ? state.anchorPoint ?? getAnchorPoint(anchorRef.current, state.side, state.align)
-    : null;
   const rootProps = {
     ...(state.controlled ? { open: state.open } : { defaultOpen: state.defaultOpen }),
     modal: state.modal,
@@ -63,102 +59,105 @@ export function MenuScenarioCanvas({
           </Button.Root>
         ) : null}
       </div>
-      <button
-        type="button"
-        ref={anchorRef}
-        aria-label="Set menu anchor point"
-        className="menu-anchor"
-        onClick={(event) => handleAnchorClick(event, actions)}
-        data-anchor-mode={state.useAnchorPoint ? "point" : "rect"}
-      >
-        <span className="menu-anchor-line" />
-        <span
-          className="menu-anchor-dot"
-          style={state.anchorPoint
-            ? { left: state.anchorPoint.localX, top: state.anchorPoint.localY }
-            : undefined}
-        />
-      </button>
-      <Menu.Root
+      <DropdownMenu.Root
         key={state.controlled ? "controlled" : `uncontrolled-${state.defaultOpen}`}
         {...rootProps}
       >
-        <Menu.Content
-          anchorPoint={anchorPoint}
+        <DropdownMenuTrigger
+          mode={state.triggerComposition}
+          disabled={state.triggerDisabled}
+          data-dropdown-menu-trigger=""
+          data-prop-check="trigger"
+          data-slot={state.triggerSlotOverride ? "dropdown-menu-trigger-custom" : undefined}
+          onClick={actions.handleTriggerClick}
+          onKeyDown={actions.handleTriggerKeyDown}
+        >
+          Actions
+        </DropdownMenuTrigger>
+        <DropdownMenu.Content
           ariaLabel={state.contentAriaLabel ? "Project actions" : undefined}
           className="playground-menu-content"
           data-menu-content=""
+          data-prop-check="content"
           data-playground-inspect=""
           side={state.side}
           align={state.align}
           sideOffset={state.sideOffset}
           loop={state.contentLoopOff ? false : undefined}
+          onKeyDownCapture={actions.handleContentKeyDownCapture}
           ref={(element) => actions.markPartRef("content", element)}
         >
-          <Menu.Group
+          <DropdownMenu.Group
             className="playground-menu-group"
             data-menu-group=""
+            data-prop-check="group"
           >
-            <MenuActionItem
+            <DropdownMenuActionItem
               mode={state.itemComposition}
               value="new"
               disabled={false}
               data-menu-item-primary=""
+              data-prop-check="item"
               onSelect={() => actions.handleActionSelect("new")}
               onClick={actions.handleActionClick("new")}
               onPointerEnter={() => actions.handlePointer("new", "enter")}
               onPointerLeave={() => actions.handlePointer("new", "leave")}
             >
               New project
-            </MenuActionItem>
+            </DropdownMenuActionItem>
             {state.showDisabledItem ? (
-              <Menu.Item
+              <DropdownMenu.Item
                 className="playground-menu-item"
                 value="disabled"
                 disabled
                 data-menu-item-disabled=""
               >
                 Disabled action
-              </Menu.Item>
+              </DropdownMenu.Item>
             ) : null}
-          </Menu.Group>
-          <Menu.Separator
+          </DropdownMenu.Group>
+          <DropdownMenu.Separator
             className="playground-menu-separator"
             data-menu-separator=""
           />
-          <Menu.CheckboxItem
+          <DropdownMenu.CheckboxItem
             className="playground-menu-item"
             value="grid"
             textValue="Show grid"
             checked={state.checkboxChecked}
+            disabled={state.checkboxDisabled}
             closeOnSelect={state.closeCheckboxOnSelect}
             data-menu-checkbox=""
+            data-prop-check="checkbox-item"
             onCheckedChange={actions.handleCheckboxChange}
           >
             <span>Show grid</span>
             <span className="playground-menu-check" aria-hidden="true" />
-          </Menu.CheckboxItem>
-          <Menu.Separator
+          </DropdownMenu.CheckboxItem>
+          <DropdownMenu.Separator
             className="playground-menu-separator"
             data-menu-selection-separator=""
           />
-          <Menu.RadioGroup
+          <DropdownMenu.RadioGroup
             className="playground-menu-radio-group"
             value={state.radioValue}
             data-menu-radio-group=""
+            data-prop-check="radio-group"
             onValueChange={actions.handleRadioChange}
           >
-            <Menu.RadioItem
+            <DropdownMenu.RadioItem
               className="playground-menu-item"
               value="compact"
               textValue="Compact"
+              disabled={state.radioItemDisabled}
               closeOnSelect={state.closeRadioOnSelect}
               data-menu-radio-item=""
+              data-prop-check="radio-item"
             >
               <span>Compact</span>
               <span className="playground-menu-radio" aria-hidden="true" />
-            </Menu.RadioItem>
-            <Menu.RadioItem
+            </DropdownMenu.RadioItem>
+            <DropdownMenu.RadioItem
               className="playground-menu-item"
               value="comfortable"
               textValue="Comfortable"
@@ -167,29 +166,30 @@ export function MenuScenarioCanvas({
             >
               <span>Comfortable</span>
               <span className="playground-menu-radio" aria-hidden="true" />
-            </Menu.RadioItem>
-          </Menu.RadioGroup>
-          <Menu.Separator
+            </DropdownMenu.RadioItem>
+          </DropdownMenu.RadioGroup>
+          <DropdownMenu.Separator
             className="playground-menu-separator"
             data-menu-radio-separator=""
           />
-          <Menu.RadioGroup
+          <DropdownMenu.RadioGroup
             className="playground-menu-radio-group"
             value={state.radioValueSecondary}
             data-menu-radio-group-secondary=""
             onValueChange={actions.handleRadioSecondaryChange}
           >
-            <Menu.RadioItem
+            <DropdownMenu.RadioItem
               className="playground-menu-item"
               value="compact"
               textValue="Dense compact"
               closeOnSelect={state.closeRadioOnSelect}
               data-menu-radio-item-secondary=""
+              data-prop-check="radio-item-secondary"
             >
               <span>Dense compact</span>
               <span className="playground-menu-radio" aria-hidden="true" />
-            </Menu.RadioItem>
-            <Menu.RadioItem
+            </DropdownMenu.RadioItem>
+            <DropdownMenu.RadioItem
               className="playground-menu-item"
               value="comfortable"
               textValue="Dense comfortable"
@@ -198,20 +198,20 @@ export function MenuScenarioCanvas({
             >
               <span>Dense comfortable</span>
               <span className="playground-menu-radio" aria-hidden="true" />
-            </Menu.RadioItem>
-          </Menu.RadioGroup>
+            </DropdownMenu.RadioItem>
+          </DropdownMenu.RadioGroup>
           {state.showSubmenu ? (
             <>
-              <Menu.Separator
+              <DropdownMenu.Separator
                 className="playground-menu-separator"
                 data-menu-submenu-separator=""
               />
-              <Menu.Sub
+              <DropdownMenu.Sub
                 {...(state.controlledSubmenu
                   ? { open: state.subOpen, onOpenChange: actions.handleSubOpenChange }
-                  : { defaultOpen: false })}
+                  : { defaultOpen: state.defaultSubmenuOpen })}
               >
-                <Menu.SubTrigger
+                <DropdownMenu.SubTrigger
                   className="playground-menu-item"
                   value="more"
                   textValue="More actions"
@@ -219,26 +219,36 @@ export function MenuScenarioCanvas({
                 >
                   <span>More actions</span>
                   <span className="playground-menu-sub-arrow" aria-hidden="true">›</span>
-                </Menu.SubTrigger>
-                <Menu.SubContent
+                </DropdownMenu.SubTrigger>
+                <DropdownMenu.SubContent
                   className="playground-menu-content playground-submenu-content"
                   ariaLabel={state.subContentAriaLabel ? "More actions" : undefined}
                   sideOffset={state.subSideOffset}
+                  loop={state.subContentLoopOff ? false : undefined}
                   data-menu-sub-content=""
+                  data-prop-check="sub-content"
                   data-playground-inspect=""
                   ref={(element) => actions.markPartRef("subContent", element)}
                 >
-                  <Menu.Item
+                  <DropdownMenu.Item
                     className="playground-menu-item"
                     value="archive"
                     data-menu-sub-item=""
                     onSelect={() => actions.handleActionSelect("archive")}
                   >
                     Archive
-                  </Menu.Item>
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item
+                    className="playground-menu-item"
+                    value="duplicate"
+                    data-menu-sub-item-extra=""
+                    onSelect={() => actions.handleActionSelect("duplicate")}
+                  >
+                    Duplicate
+                  </DropdownMenu.Item>
                   {state.showNestedSubmenu ? (
-                    <Menu.Sub>
-                      <Menu.SubTrigger
+                    <DropdownMenu.Sub>
+                      <DropdownMenu.SubTrigger
                         className="playground-menu-item"
                         value="advanced"
                         textValue="Advanced"
@@ -246,30 +256,30 @@ export function MenuScenarioCanvas({
                       >
                         <span>Advanced</span>
                         <span className="playground-menu-sub-arrow" aria-hidden="true">›</span>
-                      </Menu.SubTrigger>
-                      <Menu.SubContent
+                      </DropdownMenu.SubTrigger>
+                      <DropdownMenu.SubContent
                         className="playground-menu-content playground-submenu-content"
                         data-menu-nested-sub-content=""
                         data-playground-inspect=""
                         ref={(element) => actions.markPartRef("nestedSubContent", element)}
                       >
-                        <Menu.Item
+                        <DropdownMenu.Item
                           className="playground-menu-item"
                           value="export"
                           data-menu-nested-sub-item=""
                           onSelect={() => actions.handleActionSelect("export")}
                         >
                           Export
-                        </Menu.Item>
-                      </Menu.SubContent>
-                    </Menu.Sub>
+                        </DropdownMenu.Item>
+                      </DropdownMenu.SubContent>
+                    </DropdownMenu.Sub>
                   ) : null}
-                </Menu.SubContent>
-              </Menu.Sub>
-              <Menu.Sub
+                </DropdownMenu.SubContent>
+              </DropdownMenu.Sub>
+              <DropdownMenu.Sub
                 defaultOpen={false}
               >
-                <Menu.SubTrigger
+                <DropdownMenu.SubTrigger
                   className="playground-menu-item"
                   value="share"
                   textValue="Share actions"
@@ -278,28 +288,28 @@ export function MenuScenarioCanvas({
                 >
                   <span>Share actions</span>
                   <span className="playground-menu-sub-arrow" aria-hidden="true">›</span>
-                </Menu.SubTrigger>
-                <Menu.SubContent
+                </DropdownMenu.SubTrigger>
+                <DropdownMenu.SubContent
                   className="playground-menu-content playground-submenu-content"
                   sideOffset={state.subSideOffset}
                   data-menu-sub-content-secondary=""
                   data-playground-inspect=""
                   ref={(element) => actions.markPartRef("subContentSecondary", element)}
                 >
-                  <Menu.Item
+                  <DropdownMenu.Item
                     className="playground-menu-item"
                     value="copy-link"
                     data-menu-sub-item-secondary=""
                     onSelect={() => actions.handleActionSelect("copy-link")}
                   >
                     Copy link
-                  </Menu.Item>
-                </Menu.SubContent>
-              </Menu.Sub>
+                  </DropdownMenu.Item>
+                </DropdownMenu.SubContent>
+              </DropdownMenu.Sub>
             </>
           ) : null}
-        </Menu.Content>
-      </Menu.Root>
+        </DropdownMenu.Content>
+      </DropdownMenu.Root>
     </div>
   );
 
@@ -315,11 +325,11 @@ export function MenuScenarioCanvas({
         <Dialog.Overlay className="atom-dialog-overlay" />
         <Dialog.Content
           className="atom-dialog-content menu-dialog-host"
-          aria-label="Menu modal host"
+          aria-label="Dropdown Menu modal host"
         >
-          <Dialog.Title className="dialog-title">Menu in dialog</Dialog.Title>
+          <Dialog.Title className="dialog-title">Dropdown Menu in dialog</Dialog.Title>
           <Dialog.Description className="dialog-description">
-            Portalled Menu content should remain inside the modal focus scope.
+            Portalled Dropdown Menu content should remain inside the modal focus scope.
           </Dialog.Description>
           <div className="dialog-actions">
             <Dialog.Close className="atom-button secondary">
@@ -333,77 +343,85 @@ export function MenuScenarioCanvas({
   );
 }
 
-export function MenuScenarioToolbar({
+export function DropdownMenuScenarioToolbar({
   state,
   actions,
 }: {
-  state: MenuScenarioState;
-  actions: MenuScenarioActions;
+  state: DropdownMenuScenarioState;
+  actions: DropdownMenuScenarioActions;
 }) {
   return (
-    <Menubar.Root className="canvas-toolbar" aria-label="Menu controls">
+    <Menubar.Root className="canvas-toolbar" aria-label="Dropdown Menu controls">
       <ToolbarGroup title="State" value="state">
-        <MenuSection label="Root">
-          <MenuCheckboxControl checked={state.controlled} label="Controlled" value="controlled" onChange={actions.setControlled} />
-          <MenuCheckboxControl checked={state.defaultOpen} label="Default open" value="default-open" onChange={actions.setDefaultOpen} />
-          <MenuCheckboxControl checked={state.modal} label="Modal" value="modal" onChange={actions.setModal} />
-          <MenuCheckboxControl checked={state.closeOnSelect} label="Close on select" value="close-on-select" onChange={actions.setCloseOnSelect} />
-          <MenuCheckboxControl checked={state.closeOnEscape} label="Escape closes" value="escape-closes" onChange={actions.setCloseOnEscape} />
-          <MenuCheckboxControl checked={state.loop} label="Loop" value="loop" onChange={actions.setLoop} />
-        </MenuSection>
+        <DropdownMenuSection label="Root">
+          <DropdownMenuCheckboxControl checked={state.controlled} label="Controlled" value="controlled" onChange={actions.setControlled} />
+          <DropdownMenuCheckboxControl checked={state.defaultOpen} label="Default open" value="default-open" onChange={actions.setDefaultOpen} />
+          <DropdownMenuCheckboxControl checked={state.modal} label="Modal" value="modal" onChange={actions.setModal} />
+          <DropdownMenuCheckboxControl checked={state.closeOnSelect} label="Close on select" value="close-on-select" onChange={actions.setCloseOnSelect} />
+          <DropdownMenuCheckboxControl checked={state.closeOnEscape} label="Escape closes" value="escape-closes" onChange={actions.setCloseOnEscape} />
+          <DropdownMenuCheckboxControl checked={state.loop} label="Loop" value="loop" onChange={actions.setLoop} />
+        </DropdownMenuSection>
       </ToolbarGroup>
       <ToolbarGroup title="Popup" value="popup">
-        <MenuRadioControl label="Side" options={sideOptions} value={state.side} onChange={actions.setSide} />
-        <MenuRadioControl label="Align" options={alignOptions} value={state.align} onChange={actions.setAlign} />
-        <MenuSection label="Position">
-          <MenuCheckboxControl checked={state.useAnchorPoint} label="Anchor to click point" value="use-anchor-point" onChange={actions.setUseAnchorPoint} />
-          <MenuCheckboxControl checked={state.sideOffset === 16} label="Large offset" value="large-offset" onChange={(checked) => actions.setSideOffset(checked ? 16 : 4)} />
-          <MenuCheckboxControl checked={state.contentAriaLabel} label="Content ariaLabel" value="content-aria-label" onChange={actions.setContentAriaLabel} />
-          <MenuCheckboxControl checked={state.contentLoopOff} label="Content loop off" value="content-loop-off" onChange={actions.setContentLoopOff} />
-        </MenuSection>
-        <MenuSection label="Nesting">
-          <MenuCheckboxControl checked={state.insideDialog} label="Inside Dialog" value="inside-dialog" onChange={actions.setInsideDialog} />
-        </MenuSection>
+        <DropdownMenuRadioControl label="Side" options={sideOptions} value={state.side} onChange={actions.setSide} />
+        <DropdownMenuRadioControl label="Align" options={alignOptions} value={state.align} onChange={actions.setAlign} />
+        <DropdownMenuSection label="Position">
+          <DropdownMenuCheckboxControl checked={state.sideOffset === 16} label="Large offset" value="large-offset" onChange={(checked) => actions.setSideOffset(checked ? 16 : 4)} />
+          <DropdownMenuCheckboxControl checked={state.contentAriaLabel} label="Content ariaLabel" value="content-aria-label" onChange={actions.setContentAriaLabel} />
+          <DropdownMenuCheckboxControl checked={state.contentLoopOff} label="Content loop off" value="content-loop-off" onChange={actions.setContentLoopOff} />
+          <DropdownMenuCheckboxControl checked={state.blockContentKeyDown} label="Block content keys" value="block-content-keys" onChange={actions.setBlockContentKeyDown} />
+        </DropdownMenuSection>
+        <DropdownMenuSection label="Nesting">
+          <DropdownMenuCheckboxControl checked={state.insideDialog} label="Inside Dialog" value="inside-dialog" onChange={actions.setInsideDialog} />
+        </DropdownMenuSection>
       </ToolbarGroup>
       <ToolbarGroup title="Items" value="items">
-        <MenuSection label="Selection">
-          <MenuCheckboxControl checked={state.checkboxChecked} label="Checkbox checked" value="checkbox-checked" onChange={actions.setCheckboxChecked} />
-          <MenuCheckboxControl checked={state.closeCheckboxOnSelect} label="Checkbox closes" value="checkbox-closes" onChange={actions.setCloseCheckboxOnSelect} />
-          <MenuCheckboxControl checked={state.closeRadioOnSelect} label="Radio closes" value="radio-closes" onChange={actions.setCloseRadioOnSelect} />
-        </MenuSection>
-        <MenuRadioControl label="Radio value" options={radioOptions} value={state.radioValue} onChange={actions.setRadioValue} />
-        <MenuRadioControl label="Radio value 2" options={radioOptions} value={state.radioValueSecondary} onChange={actions.setRadioValueSecondary} />
-        <MenuSection label="Availability">
-          <MenuCheckboxControl checked={state.showDisabledItem} label="Show disabled item" value="show-disabled-item" onChange={actions.setShowDisabledItem} />
-        </MenuSection>
+        <DropdownMenuSection label="Selection">
+          <DropdownMenuCheckboxControl checked={state.checkboxChecked} label="Checkbox checked" value="checkbox-checked" onChange={actions.setCheckboxChecked} />
+          <DropdownMenuCheckboxControl checked={state.checkboxDisabled} label="Checkbox disabled" value="checkbox-disabled" onChange={actions.setCheckboxDisabled} />
+          <DropdownMenuCheckboxControl checked={state.closeCheckboxOnSelect} label="Checkbox closes" value="checkbox-closes" onChange={actions.setCloseCheckboxOnSelect} />
+          <DropdownMenuCheckboxControl checked={state.closeRadioOnSelect} label="Radio closes" value="radio-closes" onChange={actions.setCloseRadioOnSelect} />
+        </DropdownMenuSection>
+        <DropdownMenuRadioControl label="Radio value" options={radioOptions} value={state.radioValue} onChange={actions.setRadioValue} />
+        <DropdownMenuRadioControl label="Radio value 2" options={radioOptions} value={state.radioValueSecondary} onChange={actions.setRadioValueSecondary} />
+        <DropdownMenuSection label="Availability">
+          <DropdownMenuCheckboxControl checked={state.showDisabledItem} label="Show disabled item" value="show-disabled-item" onChange={actions.setShowDisabledItem} />
+          <DropdownMenuCheckboxControl checked={state.radioItemDisabled} label="Compact radio disabled" value="compact-radio-disabled" onChange={actions.setRadioItemDisabled} />
+        </DropdownMenuSection>
       </ToolbarGroup>
       <ToolbarGroup title="Submenu" value="submenu">
-        <MenuSection label="Sub">
-          <MenuCheckboxControl checked={state.showSubmenu} label="Show submenu" value="show-submenu" onChange={actions.setShowSubmenu} />
-          <MenuCheckboxControl checked={state.disableSecondSubmenu} label="Disable share submenu" value="disable-second-submenu" onChange={actions.setDisableSecondSubmenu} />
-          <MenuCheckboxControl checked={state.controlledSubmenu} label="Controlled submenu" value="controlled-submenu" onChange={actions.setControlledSubmenu} />
-          <MenuCheckboxControl checked={state.subContentAriaLabel} label="Sub ariaLabel" value="sub-aria-label" onChange={actions.setSubContentAriaLabel} />
-          <MenuCheckboxControl checked={state.subSideOffset === 12} label="Large sub offset" value="large-sub-offset" onChange={(checked) => actions.setSubSideOffset(checked ? 12 : 4)} />
-          <MenuCheckboxControl checked={state.showNestedSubmenu} label="Nested submenu" value="nested-submenu" onChange={actions.setShowNestedSubmenu} />
-        </MenuSection>
+        <DropdownMenuSection label="Sub">
+          <DropdownMenuCheckboxControl checked={state.showSubmenu} label="Show submenu" value="show-submenu" onChange={actions.setShowSubmenu} />
+          <DropdownMenuCheckboxControl checked={state.disableSecondSubmenu} label="Disable share submenu" value="disable-second-submenu" onChange={actions.setDisableSecondSubmenu} />
+          <DropdownMenuCheckboxControl checked={state.controlledSubmenu} label="Controlled submenu" value="controlled-submenu" onChange={actions.setControlledSubmenu} />
+          <DropdownMenuCheckboxControl checked={state.defaultSubmenuOpen} label="Default sub open" value="default-sub-open" onChange={actions.setDefaultSubmenuOpen} />
+          <DropdownMenuCheckboxControl checked={state.subContentAriaLabel} label="Sub ariaLabel" value="sub-aria-label" onChange={actions.setSubContentAriaLabel} />
+          <DropdownMenuCheckboxControl checked={state.subSideOffset === 12} label="Large sub offset" value="large-sub-offset" onChange={(checked) => actions.setSubSideOffset(checked ? 12 : 4)} />
+          <DropdownMenuCheckboxControl checked={state.subContentLoopOff} label="Sub loop off" value="sub-loop-off" onChange={actions.setSubContentLoopOff} />
+          <DropdownMenuCheckboxControl checked={state.showNestedSubmenu} label="Nested submenu" value="nested-submenu" onChange={actions.setShowNestedSubmenu} />
+        </DropdownMenuSection>
       </ToolbarGroup>
       <ToolbarGroup title="Composition" value="composition">
-        <MenuRadioControl label="Item" options={compositionOptions} value={state.itemComposition} onChange={actions.setItemComposition} />
-        <MenuSection label="Events">
-          <MenuCheckboxControl checked={state.blockItemSelect} label="Block item select" value="block-item-select" onChange={actions.setBlockItemSelect} />
-          <MenuCheckboxControl checked={state.logPointer} label="Log pointer" value="log-pointer" onChange={actions.setLogPointer} />
-        </MenuSection>
+        <DropdownMenuRadioControl label="Trigger" options={compositionOptions} value={state.triggerComposition} onChange={actions.setTriggerComposition} />
+        <DropdownMenuRadioControl label="Item" options={compositionOptions} value={state.itemComposition} onChange={actions.setItemComposition} />
+        <DropdownMenuSection label="Events">
+          <DropdownMenuCheckboxControl checked={state.triggerDisabled} label="Disabled trigger" value="disabled-trigger" onChange={actions.setTriggerDisabled} />
+          <DropdownMenuCheckboxControl checked={state.triggerSlotOverride} label="Override trigger slot" value="override-trigger-slot" onChange={actions.setTriggerSlotOverride} />
+          <DropdownMenuCheckboxControl checked={state.blockTriggerEvent} label="Block trigger event" value="block-trigger-event" onChange={actions.setBlockTriggerEvent} />
+          <DropdownMenuCheckboxControl checked={state.blockItemSelect} label="Block item select" value="block-item-select" onChange={actions.setBlockItemSelect} />
+          <DropdownMenuCheckboxControl checked={state.logPointer} label="Log pointer" value="log-pointer" onChange={actions.setLogPointer} />
+        </DropdownMenuSection>
       </ToolbarGroup>
     </Menubar.Root>
   );
 }
 
-export function MenuScenarioAnatomy({
+export function DropdownMenuScenarioAnatomy({
   state,
   openGroups,
   onOpenGroupsChange,
 }: {
-  state: MenuScenarioState;
+  state: DropdownMenuScenarioState;
   openGroups: Record<string, boolean>;
   onOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
 }) {
@@ -419,6 +437,30 @@ export function MenuScenarioAnatomy({
         { label: "Close on select", value: state.parts.closeOnSelect, category: "state" },
         { label: "Escape closes", value: state.parts.closeOnEscape, category: "state" },
         { label: "Loop", value: state.parts.loop, category: "state" },
+      ],
+    },
+    {
+      title: "Trigger",
+      selector: "[data-dropdown-menu-trigger]",
+      inactive: state.parts.triggerExists !== "yes",
+      summary: state.parts.triggerExists === "yes" ? state.parts.triggerState : "not rendered",
+      rows: [
+        { label: "Exists", value: state.parts.triggerExists, category: "presence" },
+        { label: "Ref", value: state.parts.triggerRef, category: "identity" },
+        { label: "Composition", value: state.triggerComposition, category: "composition" },
+        { label: "Disabled", value: state.parts.triggerDisabled, category: "state" },
+        { label: "tag", value: state.parts.triggerTag, category: "identity" },
+        { label: "type", value: state.parts.triggerType, category: "identity" },
+        { label: "role", value: state.parts.triggerRole, category: "aria" },
+        { label: "tabindex attr", value: state.parts.triggerTabIndex, category: "behavior" },
+        { label: "aria-haspopup", value: state.parts.triggerHasPopup, category: "aria" },
+        { label: "aria-expanded", value: state.parts.triggerExpanded, category: "aria" },
+        { label: "aria-controls", value: state.parts.triggerControls, category: "aria" },
+        { label: "aria-disabled", value: state.parts.triggerAriaDisabled, category: "aria" },
+        { label: "Controls match", value: state.parts.triggerControlsMatch, category: "behavior" },
+        { label: "data-slot", value: state.parts.triggerSlot, category: "data" },
+        { label: "data-state", value: state.parts.triggerState, category: "data" },
+        { label: "data-prop-check", value: state.parts.triggerDataPropCheck, category: "data" },
       ],
     },
     {
@@ -442,6 +484,7 @@ export function MenuScenarioAnatomy({
         { label: "data-side", value: state.parts.contentSide, category: "data" },
         { label: "data-align", value: state.parts.contentAlign, category: "data" },
         { label: "data-positioned", value: state.parts.contentPositioned, category: "data" },
+        { label: "data-prop-check", value: state.parts.contentDataPropCheck, category: "data" },
       ],
     },
     {
@@ -454,6 +497,7 @@ export function MenuScenarioAnatomy({
         { label: "Ref", value: state.parts.groupRef, category: "identity" },
         { label: "role", value: state.parts.groupRole, category: "aria" },
         { label: "data-slot", value: state.parts.groupSlot, category: "data" },
+        { label: "data-prop-check", value: state.parts.groupDataPropCheck, category: "data" },
       ],
     },
     {
@@ -470,6 +514,7 @@ export function MenuScenarioAnatomy({
             { label: "role", value: state.parts.itemRole, category: "aria" },
             { label: "data-slot", value: state.parts.itemSlot, category: "data" },
             { label: "data-value", value: state.parts.itemValue, category: "data" },
+            { label: "data-prop-check", value: state.parts.itemDataPropCheck, category: "data" },
             { label: "Highlighted", value: state.parts.itemHighlighted, category: "state" },
           ],
         },
@@ -494,6 +539,7 @@ export function MenuScenarioAnatomy({
         { label: "Ref", value: state.parts.checkboxRef, category: "identity" },
         { label: "aria-checked", value: state.parts.checkboxChecked, category: "aria" },
         { label: "data-checked", value: state.parts.checkboxDataChecked, category: "data" },
+        { label: "Disabled", value: state.parts.checkboxDisabled, category: "state" },
       ],
     },
     {
@@ -509,6 +555,7 @@ export function MenuScenarioAnatomy({
             { label: "Ref", value: state.parts.radioGroupRef, category: "identity" },
             { label: "Value", value: state.parts.radioGroupValue, category: "state" },
             { label: "role", value: state.parts.radioGroupRole, category: "aria" },
+            { label: "data-prop-check", value: state.parts.radioGroupDataPropCheck, category: "data" },
           ],
         },
         {
@@ -537,6 +584,7 @@ export function MenuScenarioAnatomy({
             { label: "data-value", value: state.parts.radioItemValue, category: "data" },
             { label: "aria-checked", value: state.parts.radioItemChecked, category: "aria" },
             { label: "data-checked", value: state.parts.radioItemDataChecked, category: "data" },
+            { label: "Compact disabled", value: state.parts.radioItemDisabledSkipped, category: "state" },
           ],
         },
         {
@@ -570,6 +618,7 @@ export function MenuScenarioAnatomy({
       summary: state.parts.subTriggerExists === "yes" ? state.parts.subTriggerState : "not rendered",
       rows: [
         { label: "Controlled", value: state.controlledSubmenu ? "yes" : "no", category: "state" },
+        { label: "Default open", value: state.defaultSubmenuOpen ? "yes" : "no", category: "state" },
         { label: "Open", value: state.subOpen ? "yes" : "no", category: "state" },
       ],
     },
@@ -612,12 +661,14 @@ export function MenuScenarioAnatomy({
           rows: [
             { label: "Exists", value: state.parts.subContentExists, category: "presence" },
             { label: "Ref", value: state.parts.subContentRef, category: "identity" },
+            { label: "Parent", value: state.parts.subContentParent, category: "behavior" },
             { label: "role", value: state.parts.subContentRole, category: "aria" },
             { label: "aria-label", value: state.parts.subContentLabel, category: "aria" },
             { label: "aria-labelledby", value: state.parts.subContentLabelledBy, category: "aria" },
             { label: "data-state", value: state.parts.subContentState, category: "data" },
             { label: "data-side", value: state.parts.subContentSide, category: "data" },
             { label: "data-positioned", value: state.parts.subContentPositioned, category: "data" },
+            { label: "Loop", value: state.subContentLoopOff ? "off" : "on", category: "state" },
             { label: "Item exists", value: state.parts.subItemExists, category: "presence" },
             { label: "Item ref", value: state.parts.subItemRef, category: "identity" },
           ],
@@ -628,6 +679,7 @@ export function MenuScenarioAnatomy({
           rows: [
             { label: "Exists", value: state.parts.subContentSecondaryExists, category: "presence" },
             { label: "Ref", value: state.parts.subContentSecondaryRef, category: "identity" },
+            { label: "Parent", value: state.parts.subContentSecondaryParent, category: "behavior" },
             { label: "role", value: state.parts.subContentSecondaryRole, category: "aria" },
             { label: "data-state", value: state.parts.subContentSecondaryState, category: "data" },
             { label: "Item exists", value: state.parts.subItemSecondaryExists, category: "presence" },
@@ -656,6 +708,7 @@ export function MenuScenarioAnatomy({
       rows: [
         { label: "Exists", value: state.parts.nestedSubContentExists, category: "presence" },
         { label: "Ref", value: state.parts.nestedSubContentRef, category: "identity" },
+        { label: "Parent", value: state.parts.nestedSubContentParent, category: "behavior" },
         { label: "role", value: state.parts.nestedSubContentRole, category: "aria" },
         { label: "data-state", value: state.parts.nestedSubContentState, category: "data" },
         { label: "Nested item exists", value: state.parts.nestedSubItemExists, category: "presence" },
@@ -674,7 +727,7 @@ export function MenuScenarioAnatomy({
   );
 }
 
-export function MenuScenarioLog({ state }: { state: MenuScenarioState }) {
+export function DropdownMenuScenarioLog({ state }: { state: DropdownMenuScenarioState }) {
   return (
     <div className="scenario-log">
       <ScrollArea.Root className="event-log" orientation="vertical">
@@ -706,7 +759,7 @@ function ToolbarGroup({ children, title, value }: { children: ReactNode; title: 
   );
 }
 
-function MenuSection({ children, label }: { children: ReactNode; label: string }) {
+function DropdownMenuSection({ children, label }: { children: ReactNode; label: string }) {
   return (
     <div className="toolbar-menu-section">
       <div className="toolbar-menu-label">{label}</div>
@@ -715,7 +768,7 @@ function MenuSection({ children, label }: { children: ReactNode; label: string }
   );
 }
 
-function MenuCheckboxControl({
+function DropdownMenuCheckboxControl({
   checked,
   label,
   value,
@@ -734,7 +787,7 @@ function MenuCheckboxControl({
   );
 }
 
-function MenuRadioControl<T extends string>({
+function DropdownMenuRadioControl<T extends string>({
   label,
   options,
   value,
@@ -760,13 +813,71 @@ function MenuRadioControl<T extends string>({
   );
 }
 
-const sideOptions: readonly MenuSide[] = ["bottom", "top", "right", "left"];
-const alignOptions: readonly MenuAlign[] = ["start", "center", "end"];
+const sideOptions: readonly DropdownMenuSide[] = ["bottom", "top", "right", "left"];
+const alignOptions: readonly DropdownMenuAlign[] = ["start", "center", "end"];
 const radioOptions = ["compact", "comfortable"] as const;
-const compositionOptions: readonly MenuItemCompositionMode[] = ["default", "asChild", "render"];
+const compositionOptions: readonly DropdownMenuItemCompositionMode[] = ["default", "asChild", "render"];
 
-type MenuActionItemProps = {
-  mode: MenuItemCompositionMode;
+type DropdownMenuTriggerProps = {
+  mode: DropdownMenuItemCompositionMode;
+  children: ReactNode;
+  disabled: boolean;
+  onClick: (event: { preventDefault: () => void }) => void;
+  onKeyDown: (event: { key: string; preventDefault: () => void }) => void;
+  "data-dropdown-menu-trigger": string;
+  "data-prop-check": string;
+  "data-slot"?: string;
+};
+
+function DropdownMenuTrigger({
+  mode,
+  children,
+  disabled,
+  onClick,
+  onKeyDown,
+  ...dataProps
+}: DropdownMenuTriggerProps) {
+  const sharedProps = {
+    className: "atom-button secondary",
+    disabled,
+    onClick,
+    onKeyDown,
+    ...dataProps,
+  };
+
+  if (mode === "asChild") {
+    return (
+      <DropdownMenu.Trigger
+        {...sharedProps}
+        asChild
+      >
+        <button type="button">{children}</button>
+      </DropdownMenu.Trigger>
+    );
+  }
+
+  if (mode === "render") {
+    return (
+      <DropdownMenu.Trigger
+        {...sharedProps}
+        render="section"
+      >
+        {children}
+      </DropdownMenu.Trigger>
+    );
+  }
+
+  return (
+    <DropdownMenu.Trigger
+      {...sharedProps}
+    >
+      {children}
+    </DropdownMenu.Trigger>
+  );
+}
+
+type DropdownMenuActionItemProps = {
+  mode: DropdownMenuItemCompositionMode;
   children: ReactNode;
   value: string;
   disabled: boolean;
@@ -775,9 +886,10 @@ type MenuActionItemProps = {
   onPointerEnter: () => void;
   onPointerLeave: () => void;
   "data-menu-item-primary": string;
+  "data-prop-check": string;
 };
 
-function MenuActionItem({
+function DropdownMenuActionItem({
   mode,
   children,
   value,
@@ -787,7 +899,7 @@ function MenuActionItem({
   onPointerEnter,
   onPointerLeave,
   ...dataProps
-}: MenuActionItemProps) {
+}: DropdownMenuActionItemProps) {
   const sharedProps = {
     className: "playground-menu-item",
     value,
@@ -801,65 +913,31 @@ function MenuActionItem({
 
   if (mode === "asChild") {
     return (
-      <Menu.Item
+      <DropdownMenu.Item
         {...sharedProps}
         asChild
       >
         <span>{children}</span>
-      </Menu.Item>
+      </DropdownMenu.Item>
     );
   }
 
   if (mode === "render") {
     return (
-      <Menu.Item
+      <DropdownMenu.Item
         {...sharedProps}
         render="section"
       >
         {children}
-      </Menu.Item>
+      </DropdownMenu.Item>
     );
   }
 
   return (
-    <Menu.Item
+    <DropdownMenu.Item
       {...sharedProps}
     >
       {children}
-    </Menu.Item>
+    </DropdownMenu.Item>
   );
-}
-
-function getAnchorPoint(element: HTMLElement | null, side: MenuSide, align: MenuAlign) {
-  const rect = element?.getBoundingClientRect();
-  if (!rect) return null;
-
-  const xByAlign = {
-    start: rect.left,
-    center: rect.left + rect.width / 2,
-    end: rect.right,
-  } satisfies Record<MenuAlign, number>;
-  const yByAlign = {
-    start: rect.top,
-    center: rect.top + rect.height / 2,
-    end: rect.bottom,
-  } satisfies Record<MenuAlign, number>;
-
-  if (side === "top") return { x: xByAlign[align], y: rect.top };
-  if (side === "bottom") return { x: xByAlign[align], y: rect.bottom };
-  if (side === "left") return { x: rect.left, y: yByAlign[align] };
-  return { x: rect.right, y: yByAlign[align] };
-}
-
-function handleAnchorClick(
-  event: MouseEvent<HTMLButtonElement>,
-  actions: MenuScenarioActions,
-) {
-  const rect = event.currentTarget.getBoundingClientRect();
-  actions.setAnchorPoint({
-    x: event.clientX,
-    y: event.clientY,
-    localX: event.clientX - rect.left,
-    localY: event.clientY - rect.top,
-  });
 }

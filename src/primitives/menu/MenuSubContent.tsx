@@ -25,6 +25,7 @@ import { usePresence } from "../../hooks/usePresence.js";
 import { Portal } from "../../utils/Portal.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { composeEventHandlers, composeRefs } from "../../utils/slot.js";
+import { getTypeaheadMatch } from "../../utils/typeahead.js";
 import {
   MenuContextProvider,
   useMenuSubContext,
@@ -265,10 +266,11 @@ function MenuSubContent(
             typeaheadTimeout.current = setTimeout(() => {
               typeaheadBuffer.current = "";
             }, 500);
-            const match = values.find((value) => {
-              const label = getLabel(value) ?? value;
-              return label.toLowerCase().startsWith(typeaheadBuffer.current);
-            });
+            const match = getTypeaheadMatch(
+              values.map((value) => ({ value, label: getLabel(value) ?? value })),
+              typeaheadBuffer.current,
+              highlightedValue,
+            );
             if (match) setHighlightedValue(match);
           }
         }

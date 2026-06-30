@@ -281,8 +281,10 @@ Rules:
   `data-state="open"`.
 - Filter playground plumbing from raw groups. Do not show `class`, `style`,
   duplicated `id` inside `Attributes`, or `data-playground-inspect`.
-- Keep prop-forwarding test markers visible only when they are part of the
-  scenario's testing surface, such as `data-prop-check`.
+- Use `data-prop-check="<part>"` as the standard playground marker for native
+  prop pass-through tests. Keep it visible in raw `Data` so testers can verify
+  the real DOM received the prop. Do not add separate curated rows like
+  `Native props: passed`; the raw `data-prop-check` evidence is the test.
 - Use lowercase generated values in curated rows: `true`, `false`, `none`,
   `open`, `closed`, `body`.
 - Keep group headers visually stable between collapsed and expanded states.
@@ -412,6 +414,9 @@ Rules:
 - Keep the rows broad enough to cover the full component surface: public API,
   interaction, accessibility, composition, refs, native props, styling hooks,
   portal behavior, and mobile behavior when relevant.
+- Native prop coverage should point testers to the relevant part's raw `Data`
+  group and its `data-prop-check="<part>"` marker. One non-Atom-owned marker is
+  enough to prove rest props pass through for that part.
 - Use `covered`, `partial`, or `missing`.
 - Treat `partial` as half covered in the percentage.
 - Update the tracker when a scenario gains or loses coverage.

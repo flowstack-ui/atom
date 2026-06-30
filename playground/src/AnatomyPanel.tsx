@@ -93,13 +93,20 @@ const nativeAttributeLabels = new Set([
   "form",
   "name",
   "role",
+  "tabindex",
   "tabindex attr",
   "title",
   "type",
 ]);
+const visibleFalseRawAttributes = new Set([
+  "aria-checked",
+  "aria-expanded",
+]);
 
 function getRowKey(row: AnatomyRow) {
-  return row.label.toLowerCase();
+  const label = row.label.toLowerCase();
+  if (label === "tabindex attr") return "tabindex";
+  return label;
 }
 
 function getRowValue(row: AnatomyRow) {
@@ -127,7 +134,11 @@ function isHiddenRow(row: AnatomyRow) {
 
   if (hiddenLabels.has(label)) return true;
   if (hiddenRawAttributes.has(label)) return true;
-  if (rawAttribute && (isEmptyValue(row.value) || value === "no" || value === "false")) {
+  if (
+    rawAttribute &&
+    !visibleFalseRawAttributes.has(label) &&
+    (isEmptyValue(row.value) || value === "no" || value === "false")
+  ) {
     return true;
   }
   if (!rawAttribute && (row.value === "" || row.value === "-")) return true;

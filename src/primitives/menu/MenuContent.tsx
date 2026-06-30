@@ -30,6 +30,7 @@ import { useScrollLock } from "../../hooks/useScrollLock.js";
 import { Portal } from "../../utils/Portal.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { composeEventHandlers, composeRefs } from "../../utils/slot.js";
+import { getTypeaheadMatch } from "../../utils/typeahead.js";
 import { useMenuContext } from "./context.js";
 
 export type MenuSide = "top" | "right" | "bottom" | "left";
@@ -121,7 +122,7 @@ function MenuContent(
   }, [isPresent]);
 
   useEffect(() => {
-    if (!isPresent) {
+    if (!isOpen || !isPresent) {
       hasAppliedInitialHighlightRef.current = false;
       return undefined;
     }
@@ -141,7 +142,7 @@ function MenuContent(
       }
     });
     return () => cancelAnimationFrame(raf);
-  }, [getItemValues, highlightedValue, initialHighlight, isPresent, onHighlight]);
+  }, [getItemValues, highlightedValue, initialHighlight, isOpen, isPresent, onHighlight]);
 
   useEffect(() => {
     if (!isOpen || !highlightedValue) return;
@@ -238,10 +239,11 @@ function MenuContent(
               typeaheadBuffer.current = "";
             }, 500);
 
-            const match = values.find((value) => {
-              const label = getLabel(value) ?? value;
-              return label.toLowerCase().startsWith(typeaheadBuffer.current);
-            });
+            const match = getTypeaheadMatch(
+              values.map((value) => ({ value, label: getLabel(value) ?? value })),
+              typeaheadBuffer.current,
+              highlightedValue,
+            );
 
             if (match) onHighlight(match);
           }

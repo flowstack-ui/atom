@@ -10,6 +10,9 @@ import {
   composeEventHandlers,
   mergeProps,
 } from "../dist/_internal/utils/slot.js";
+import {
+  getTypeaheadMatch,
+} from "../dist/_internal/utils/typeahead.js";
 
 test("slot utilities compose props and event handlers", () => {
   const calls = [];
@@ -89,4 +92,21 @@ test("composeEventHandlers lets consumers cancel Atom behavior", () => {
 
   composed(event);
   assert.deepEqual(calls, ["consumer"]);
+});
+
+test("typeahead utility cycles single-character searches without breaking buffers", () => {
+  const items = [
+    { value: "compact", label: "Compact" },
+    { value: "comfortable", label: "Comfortable" },
+    { value: "dense", label: "Dense compact" },
+    { value: "copy", label: "Copy link" },
+  ];
+
+  assert.equal(getTypeaheadMatch(items, "c", null), "compact");
+  assert.equal(getTypeaheadMatch(items, "c", "compact"), "comfortable");
+  assert.equal(getTypeaheadMatch(items, "c", "comfortable"), "copy");
+  assert.equal(getTypeaheadMatch(items, "c", "copy"), "compact");
+  assert.equal(getTypeaheadMatch(items, "co", "compact"), "compact");
+  assert.equal(getTypeaheadMatch(items, "den", "compact"), "dense");
+  assert.equal(getTypeaheadMatch(items, "", "compact"), null);
 });

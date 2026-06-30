@@ -123,6 +123,8 @@ Pointer-opened menus do not pre-highlight an item; ArrowDown and ArrowUp seed
 the first and last item highlight for keyboard navigation.
 Portalled menu content registers with a parent modal focus scope when opened
 inside Dialog, Drawer, or another modal primitive.
+Menubar menu content inherits Menu typeahead behavior for printable-character
+searches.
 
 | Key | Description |
 | --- | --- |

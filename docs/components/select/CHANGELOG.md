@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Standardized Select typeahead so a single-character search cycles from the
+  current matching option while multi-character buffers still match exact
+  prefixes.
 - Added shared dismissable layer Escape handling so Select closes before
   parent overlays when nested inside Dialog, Drawer, Modal, or Popover.
 - Fixed outside pointer dismissal so Select closes reliably when clicking

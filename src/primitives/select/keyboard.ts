@@ -1,5 +1,6 @@
 "use client";
 
+import { getTypeaheadMatch } from "../../utils/typeahead.js";
 import type { SelectContextValue } from "./context.js";
 
 export function getInitialSelectHighlight(ctx: SelectContextValue): string | null {
@@ -28,13 +29,14 @@ export function getNextSelectHighlight(
 export function getSelectTypeaheadMatch(
   ctx: SelectContextValue,
   buffer: string,
+  currentValue: string | null,
 ): string | null {
-  const normalizedBuffer = buffer.toLowerCase();
-
-  return (
-    ctx.getEnabledItemValues().find((value) => {
-      const label = ctx.getLabel(value) ?? value;
-      return label.toLowerCase().startsWith(normalizedBuffer);
-    }) ?? null
+  return getTypeaheadMatch(
+    ctx.getEnabledItemValues().map((value) => ({
+      value,
+      label: ctx.getLabel(value) ?? value,
+    })),
+    buffer,
+    currentValue,
   );
 }

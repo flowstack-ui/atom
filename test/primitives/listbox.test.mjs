@@ -145,6 +145,7 @@ test("Listbox source uses Collection and keeps keyboard behavior in Root", async
   assert.match(rootSource, /getFirstItem\(true\)/);
   assert.match(rootSource, /getLastItem\(true\)/);
   assert.match(rootSource, /typeaheadBufferRef/);
+  assert.match(rootSource, /getListboxTypeaheadMatch\(/);
   assert.match(rootSource, /const isAltGr = event\.ctrlKey && event\.altKey/);
   assert.match(rootSource, /getNextItem\(currentValue/);
   assert.match(rootSource, /const handleBlur = useCallback/);

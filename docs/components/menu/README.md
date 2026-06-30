@@ -186,14 +186,18 @@ Provide nested submenu behavior.
 Implements the WAI-ARIA menu pattern. `Content` renders `role="menu"`, items render the correct menu item roles, disabled items expose disabled semantics, and keyboard focus is managed inside the open menu.
 Portalled Menu content and submenu content register with a parent modal focus
 scope when opened inside Dialog, Drawer, or another modal primitive.
+Printable-character typeahead matches enabled item text; a single-character
+search cycles forward from the current matching item, while multi-character
+buffers match exact prefixes.
 
 | Key | Description |
 | --- | --- |
 | `ArrowDown` / `ArrowUp` | Moves highlight between enabled items |
 | `Home` / `End` | Moves highlight to first or last enabled item |
 | `Enter` / `Space` | Selects the highlighted item |
-| `Escape` | Closes the menu when enabled |
+| `Escape` | Closes the topmost submenu first, then the root menu when enabled |
 | `ArrowRight` / `ArrowLeft` | Opens or closes submenus based on direction |
+| Printable character | Typeahead search |
 
 ## Changelog
 

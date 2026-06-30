@@ -160,7 +160,11 @@ export const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
 
             if (!isOpen) onOpen("current");
 
-            const match = getSelectTypeaheadMatch(ctxRef.current, typeaheadBuffer.current);
+            const match = getSelectTypeaheadMatch(
+              ctxRef.current,
+              typeaheadBuffer.current,
+              highlightedValue,
+            );
             if (match) onHighlight(match);
           }
         }

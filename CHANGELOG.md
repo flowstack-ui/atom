@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Standardized typeahead matching across Menu, DropdownMenu, ContextMenu,
+  Menubar, Select, Listbox, and Tree so single-character searches cycle from
+  the current matching item while multi-character buffers still match exact
+  prefixes.
+- Fixed DropdownMenu pointer-open behavior so clicking the trigger opens
+  without pre-highlighting the first item; keyboard Enter, Space, ArrowDown,
+  and ArrowUp still seed the expected highlight.
+- Fixed Menu/DropdownMenu pointer reopen behavior so closing animations cannot
+  reapply the default first-item highlight for the next pointer open.
 - Fixed Menubar pointer-open behavior so clicking or hovering between top-level
   menus opens content without pre-highlighting the first item; keyboard
   ArrowDown/ArrowUp still seed first/last highlight.
@@ -13,6 +22,8 @@
   when a trigger is mounted; standalone/context menus should use `ariaLabel`.
 - Fixed nested Menu submenu item selection so child submenu clicks are not
   treated as outside clicks and selection closes the root menu.
+- Fixed Menu submenu Escape handling inside parent overlays so Escape closes
+  the topmost submenu before the root menu or parent Dialog/Modal layer.
 - Fixed Menu submenu positioning so submenu content uses the mounted
   `SubTrigger` as its Floating UI reference when opened.
 - Fixed Menu initial keyboard highlight so it waits for mounted items before

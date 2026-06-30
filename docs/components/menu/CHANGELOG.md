@@ -2,8 +2,13 @@
 
 ## Unreleased
 
+- Standardized Menu typeahead so a single-character search cycles from the
+  current matching item while multi-character buffers still match exact
+  prefixes.
 - Added support for no initial Menu highlight so composed patterns such as
   Menubar can open from pointer input without pre-highlighting the first item.
+- Fixed pointer reopen behavior so closing presence frames cannot reapply the
+  default first-item highlight for the next pointer open.
 - Fixed autofocus for portalled Menu content that mounts after the Menu opens,
   including controlled menus rendered inside Dialog.
 - Fixed Menu autofocus inside modal focus scopes so portalled content registers
@@ -12,6 +17,8 @@
   trigger is mounted; standalone/context menus should use `ariaLabel`.
 - Fixed nested submenu item selection so child submenu clicks are not treated
   as outside clicks and selection closes the root menu.
+- Fixed submenu Escape handling inside parent overlays so Escape closes the
+  topmost submenu before the root menu or parent Dialog/Modal layer.
 - Fixed submenu positioning so `SubContent` uses the mounted `SubTrigger` as
   its Floating UI reference when opened.
 - Fixed Menu initial keyboard highlight so it waits for mounted items before

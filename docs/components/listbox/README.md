@@ -124,6 +124,9 @@ Group related options and label the group.
 ## Accessibility
 
 Implements the WAI-ARIA listbox pattern. The root keeps DOM focus and exposes the active option through `aria-activedescendant`.
+Printable-character typeahead matches enabled option text; a single-character
+search cycles forward from the current matching option, while multi-character
+buffers match exact prefixes.
 
 | Key | Description |
 | --- | --- |

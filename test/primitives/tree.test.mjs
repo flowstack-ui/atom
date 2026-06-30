@@ -144,6 +144,7 @@ test("Tree source uses Collection and keeps APG tree keyboard behavior in Root",
   assert.match(rootSource, /toggleExpandedValue\(activeValue\)/);
   assert.match(rootSource, /direction === "next" \? 0 : enabledItems\.length - 1/);
   assert.match(rootSource, /const isAltGr = event\.ctrlKey && event\.altKey/);
+  assert.match(rootSource, /getTreeTypeaheadMatch\(/);
   assert.match(rootSource, /createVisibilityPredicate/);
   assert.match(rootSource, /const expandedSet = new Set\(expandedValues\)/);
   assert.match(rootSource, /Array\.isArray\(selectedValue\)/);

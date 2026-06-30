@@ -8,6 +8,7 @@ Headless trigger-driven menu primitives for button dropdowns.
 - Provides a keyboard-accessible trigger with `aria-haspopup`, `aria-expanded`, and stable `aria-controls`.
 - Supports controlled and uncontrolled open state through `Root`.
 - Supports initial highlight direction for `ArrowDown` and `ArrowUp`.
+- Inherits shared Menu typeahead behavior for printable-character searches.
 - Supports `asChild` and `render` trigger composition.
 
 ## Import
@@ -105,13 +106,15 @@ Opens and closes the dropdown menu.
 The trigger is a button-like control and the content follows the WAI-ARIA menu pattern inherited from `Menu`.
 Portalled menu content registers with a parent modal focus scope when opened
 inside Dialog, Drawer, or another modal primitive.
+Pointer clicks open the menu without pre-highlighting an item. Keyboard opening
+seeds the expected item highlight for immediate arrow-key interaction.
 
 | Key | Description |
 | --- | --- |
-| `Enter` / `Space` | Opens or closes the menu |
+| `Enter` / `Space` | Opens the menu and highlights the first item |
 | `ArrowDown` | Opens and highlights the first item |
 | `ArrowUp` | Opens and highlights the last item |
-| `Escape` | Closes the menu |
+| `Escape` | Closes the topmost submenu first, then the dropdown |
 
 ## Changelog
 

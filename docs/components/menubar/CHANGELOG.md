@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Inherited the shared Menu typeahead behavior so a single-character search
+  cycles from the current matching item while multi-character buffers still
+  match exact prefixes.
 - Fixed pointer-open behavior so clicking or hovering between top-level menus
   opens content without pre-highlighting the first item; keyboard ArrowDown and
   ArrowUp still seed first and last item highlight.
