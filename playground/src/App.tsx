@@ -99,6 +99,19 @@ import {
   useToggleGroupScenario,
   useToggleScenario,
 } from "./scenarios/FormControlScenarios";
+import {
+  DisplayPrimitiveScenarioAnatomy,
+  DisplayPrimitiveScenarioCanvas,
+  DisplayPrimitiveScenarioLog,
+  DisplayPrimitiveScenarioToolbar,
+  clearDisplayPrimitiveLog,
+  displayPrimitiveScenarioIds,
+  getDisplayPrimitiveCanvasFooter,
+  getDisplayPrimitiveEventCount,
+  getDisplayPrimitiveSource,
+  useDisplayPrimitiveScenarios,
+  type DisplayPrimitiveScenarios,
+} from "./scenarios/DisplayPrimitiveScenarios";
 import { useDialogScenario } from "./scenarios/useDialogScenario";
 import { useAlertDialogScenario } from "./scenarios/useAlertDialogScenario";
 import { useDropdownMenuScenario } from "./scenarios/useDropdownMenuScenario";
@@ -208,6 +221,12 @@ const scenarios: Scenario[] = [
     checks: ["Value changes", "Arrow keys move", "Disabled item skips"],
   },
   {
+    id: "label",
+    label: "Label",
+    category: "Forms",
+    checks: ["htmlFor connects", "State data shows", "Composition works"],
+  },
+  {
     id: "tabs",
     label: "Tabs",
     category: "Navigation",
@@ -232,10 +251,40 @@ const scenarios: Scenario[] = [
     checks: ["Native table renders", "Caption is exposed", "Headers connect"],
   },
   {
+    id: "badge",
+    label: "Badge",
+    category: "Data",
+    checks: ["Content renders", "Native props pass", "Composition works"],
+  },
+  {
+    id: "avatar",
+    label: "Avatar",
+    category: "Data",
+    checks: ["Image loads", "Fallback renders", "Group renders"],
+  },
+  {
+    id: "list",
+    label: "List",
+    category: "Data",
+    checks: ["Ordered toggles", "Items render", "Disabled metadata shows"],
+  },
+  {
     id: "tree",
     label: "Tree",
     category: "Data",
     checks: ["Arrow keys move", "Groups expand", "Selection updates"],
+  },
+  {
+    id: "aspect-ratio",
+    label: "Aspect Ratio",
+    category: "Utilities",
+    checks: ["Ratio applies", "Fallback ratio works", "Composition works"],
+  },
+  {
+    id: "divider",
+    label: "Divider",
+    category: "Utilities",
+    checks: ["Orientation changes", "Decorative state changes", "Content changes tag"],
   },
   {
     id: "portal",
@@ -273,6 +322,7 @@ export function App() {
   const [buttonAnatomyOpenGroups, setButtonAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [checkboxAnatomyOpenGroups, setCheckboxAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [dialogAnatomyOpenGroups, setDialogAnatomyOpenGroups] = useState<Record<string, boolean>>({});
+  const [displayPrimitiveAnatomyOpenGroups, setDisplayPrimitiveAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [contextMenuAnatomyOpenGroups, setContextMenuAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [dropdownMenuAnatomyOpenGroups, setDropdownMenuAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [hoverCardAnatomyOpenGroups, setHoverCardAnatomyOpenGroups] = useState<Record<string, boolean>>({});
@@ -292,6 +342,7 @@ export function App() {
   const dialogScenario = useDialogScenario();
   const contextMenuScenario = useContextMenuScenario();
   const dropdownMenuScenario = useDropdownMenuScenario();
+  const displayPrimitiveScenarios = useDisplayPrimitiveScenarios();
   const hoverCardScenario = useHoverCardScenario();
   const menuScenario = useMenuScenario();
   const popoverScenario = usePopoverScenario();
@@ -421,6 +472,14 @@ export function App() {
                   Collapse All
                 </Button.Root>
               ) : null}
+              {displayPrimitiveScenarioIds.has(activeScenario.id) ? (
+                <Button.Root
+                  className="header-action"
+                  onPress={() => setDisplayPrimitiveAnatomyOpenGroups({})}
+                >
+                  Collapse All
+                </Button.Root>
+              ) : null}
               {activeScenario.id === "alert-dialog" ? (
                 <Button.Root
                   className="header-action"
@@ -497,6 +556,8 @@ export function App() {
               contextMenuScenario={contextMenuScenario}
               dialogAnatomyOpenGroups={dialogAnatomyOpenGroups}
               dialogScenario={dialogScenario}
+              displayPrimitiveAnatomyOpenGroups={displayPrimitiveAnatomyOpenGroups}
+              displayPrimitiveScenarios={displayPrimitiveScenarios}
               dropdownMenuAnatomyOpenGroups={dropdownMenuAnatomyOpenGroups}
               dropdownMenuScenario={dropdownMenuScenario}
               hoverCardAnatomyOpenGroups={hoverCardAnatomyOpenGroups}
@@ -522,6 +583,7 @@ export function App() {
               onButtonAnatomyOpenGroupsChange={setButtonAnatomyOpenGroups}
               onCheckboxAnatomyOpenGroupsChange={setCheckboxAnatomyOpenGroups}
               onDialogAnatomyOpenGroupsChange={setDialogAnatomyOpenGroups}
+              onDisplayPrimitiveAnatomyOpenGroupsChange={setDisplayPrimitiveAnatomyOpenGroups}
               onContextMenuAnatomyOpenGroupsChange={setContextMenuAnatomyOpenGroups}
               onDropdownMenuAnatomyOpenGroupsChange={setDropdownMenuAnatomyOpenGroups}
               onHoverCardAnatomyOpenGroupsChange={setHoverCardAnatomyOpenGroups}
@@ -561,6 +623,7 @@ export function App() {
               checkboxScenario={checkboxScenario}
               contextMenuScenario={contextMenuScenario}
               dialogScenario={dialogScenario}
+              displayPrimitiveScenarios={displayPrimitiveScenarios}
               dropdownMenuScenario={dropdownMenuScenario}
               hoverCardScenario={hoverCardScenario}
               menuScenario={menuScenario}
@@ -581,6 +644,7 @@ export function App() {
                   checkboxScenario={checkboxScenario}
                   contextMenuScenario={contextMenuScenario}
                   dialogScenario={dialogScenario}
+                  displayPrimitiveScenarios={displayPrimitiveScenarios}
                   dropdownMenuScenario={dropdownMenuScenario}
                   hoverCardScenario={hoverCardScenario}
                   menuScenario={menuScenario}
@@ -603,6 +667,7 @@ export function App() {
                 checkboxScenario={checkboxScenario}
                 contextMenuScenario={contextMenuScenario}
                 dialogScenario={dialogScenario}
+                displayPrimitiveScenarios={displayPrimitiveScenarios}
                 dropdownMenuScenario={dropdownMenuScenario}
                 hoverCardScenario={hoverCardScenario}
                 menuScenario={menuScenario}
@@ -622,6 +687,7 @@ export function App() {
               checkboxScenario={checkboxScenario}
               contextMenuScenario={contextMenuScenario}
               dialogScenario={dialogScenario}
+              displayPrimitiveScenarios={displayPrimitiveScenarios}
               dropdownMenuScenario={dropdownMenuScenario}
               hoverCardScenario={hoverCardScenario}
               menuScenario={menuScenario}
@@ -651,6 +717,7 @@ export function App() {
                     buttonScenario={buttonScenario}
                     checkboxScenario={checkboxScenario}
                     dialogScenario={dialogScenario}
+                    displayPrimitiveScenarios={displayPrimitiveScenarios}
                     dropdownMenuScenario={dropdownMenuScenario}
                     hoverCardScenario={hoverCardScenario}
                     menuScenario={menuScenario}
@@ -689,6 +756,7 @@ export function App() {
                   buttonScenario={buttonScenario}
                   checkboxScenario={checkboxScenario}
                   dialogScenario={dialogScenario}
+                  displayPrimitiveScenarios={displayPrimitiveScenarios}
                   dropdownMenuScenario={dropdownMenuScenario}
                   hoverCardScenario={hoverCardScenario}
                   menuScenario={menuScenario}
@@ -714,6 +782,7 @@ export function App() {
                     buttonScenario={buttonScenario}
                     checkboxScenario={checkboxScenario}
                     dialogScenario={dialogScenario}
+                    displayPrimitiveScenarios={displayPrimitiveScenarios}
                     dropdownMenuScenario={dropdownMenuScenario}
                     hoverCardScenario={hoverCardScenario}
                     menuScenario={menuScenario}
@@ -797,6 +866,7 @@ function ScenarioToolbar({
   checkboxScenario,
   contextMenuScenario,
   dialogScenario,
+  displayPrimitiveScenarios,
   dropdownMenuScenario,
   hoverCardScenario,
   menuScenario,
@@ -814,6 +884,7 @@ function ScenarioToolbar({
   checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
+  displayPrimitiveScenarios: DisplayPrimitiveScenarios;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   hoverCardScenario: ReturnType<typeof useHoverCardScenario>;
   menuScenario: ReturnType<typeof useMenuScenario>;
@@ -832,6 +903,14 @@ function ScenarioToolbar({
   if (scenarioId === "switch") return <SwitchScenarioToolbar scenario={switchScenario} />;
   if (scenarioId === "toggle") return <ToggleScenarioToolbar scenario={toggleScenario} />;
   if (scenarioId === "toggle-group") return <ToggleGroupScenarioToolbar scenario={toggleGroupScenario} />;
+  if (displayPrimitiveScenarioIds.has(scenarioId)) {
+    return (
+      <DisplayPrimitiveScenarioToolbar
+        scenarioId={scenarioId}
+        scenarios={displayPrimitiveScenarios}
+      />
+    );
+  }
 
   if (scenarioId === "alert-dialog") {
     return (
@@ -923,6 +1002,7 @@ function ScenarioCanvas({
   checkboxScenario,
   contextMenuScenario,
   dialogScenario,
+  displayPrimitiveScenarios,
   dropdownMenuScenario,
   hoverCardScenario,
   menuScenario,
@@ -941,6 +1021,7 @@ function ScenarioCanvas({
   checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
+  displayPrimitiveScenarios: DisplayPrimitiveScenarios;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   hoverCardScenario: ReturnType<typeof useHoverCardScenario>;
   menuScenario: ReturnType<typeof useMenuScenario>;
@@ -960,6 +1041,14 @@ function ScenarioCanvas({
   if (scenarioId === "switch") return <SwitchScenarioCanvas scenario={switchScenario} />;
   if (scenarioId === "toggle") return <ToggleScenarioCanvas scenario={toggleScenario} />;
   if (scenarioId === "toggle-group") return <ToggleGroupScenarioCanvas scenario={toggleGroupScenario} />;
+  if (displayPrimitiveScenarioIds.has(scenarioId)) {
+    return (
+      <DisplayPrimitiveScenarioCanvas
+        scenarioId={scenarioId}
+        scenarios={displayPrimitiveScenarios}
+      />
+    );
+  }
 
   if (scenarioId === "alert-dialog") {
     return (
@@ -1058,6 +1147,7 @@ function ScenarioSource({
   checkboxScenario,
   contextMenuScenario,
   dialogScenario,
+  displayPrimitiveScenarios,
   dropdownMenuScenario,
   hoverCardScenario,
   menuScenario,
@@ -1075,6 +1165,7 @@ function ScenarioSource({
   checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
+  displayPrimitiveScenarios: DisplayPrimitiveScenarios;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   hoverCardScenario: ReturnType<typeof useHoverCardScenario>;
   menuScenario: ReturnType<typeof useMenuScenario>;
@@ -1093,6 +1184,7 @@ function ScenarioSource({
     checkboxScenario,
     contextMenuScenario,
     dialogScenario,
+    displayPrimitiveScenarios,
     dropdownMenuScenario,
     hoverCardScenario,
     menuScenario,
@@ -1150,6 +1242,7 @@ function ScenarioCanvasFooter({
   checkboxScenario,
   contextMenuScenario,
   dialogScenario,
+  displayPrimitiveScenarios,
   dropdownMenuScenario,
   hoverCardScenario,
   menuScenario,
@@ -1167,6 +1260,7 @@ function ScenarioCanvasFooter({
   checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
+  displayPrimitiveScenarios: DisplayPrimitiveScenarios;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   hoverCardScenario: ReturnType<typeof useHoverCardScenario>;
   menuScenario: ReturnType<typeof useMenuScenario>;
@@ -1208,6 +1302,14 @@ function ScenarioCanvasFooter({
     const state = toggleGroupScenario.state;
     const value = Array.isArray(state.value) ? state.value.join(", ") || "none" : state.value || "none";
     return <div className="panel-footer">{`${state.controlled ? "Controlled" : "Uncontrolled"} | ${state.type} | Value ${value}`}</div>;
+  }
+
+  if (displayPrimitiveScenarioIds.has(scenarioId)) {
+    return (
+      <div className="panel-footer">
+        {getDisplayPrimitiveCanvasFooter(scenarioId, displayPrimitiveScenarios)}
+      </div>
+    );
   }
 
   if (scenarioId === "alert-dialog") {
@@ -1328,6 +1430,7 @@ function getScenarioSource({
   checkboxScenario,
   contextMenuScenario,
   dialogScenario,
+  displayPrimitiveScenarios,
   dropdownMenuScenario,
   hoverCardScenario,
   menuScenario,
@@ -1345,6 +1448,7 @@ function getScenarioSource({
   checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
+  displayPrimitiveScenarios: DisplayPrimitiveScenarios;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   hoverCardScenario: ReturnType<typeof useHoverCardScenario>;
   menuScenario: ReturnType<typeof useMenuScenario>;
@@ -1363,6 +1467,9 @@ function getScenarioSource({
   if (scenarioId === "switch") return getSwitchSource(switchScenario.state);
   if (scenarioId === "toggle") return getToggleSource(toggleScenario.state);
   if (scenarioId === "toggle-group") return getToggleGroupSource(toggleGroupScenario.state);
+  if (displayPrimitiveScenarioIds.has(scenarioId)) {
+    return getDisplayPrimitiveSource(scenarioId, displayPrimitiveScenarios);
+  }
   if (scenarioId === "alert-dialog") return getAlertDialogSource(alertDialogScenario.state);
   if (scenarioId === "popover") return getPopoverSource(popoverScenario.state);
   if (scenarioId === "hover-card") return getHoverCardSource(hoverCardScenario.state);
@@ -1921,6 +2028,8 @@ function ScenarioAnatomy({
   contextMenuScenario,
   dialogAnatomyOpenGroups,
   dialogScenario,
+  displayPrimitiveAnatomyOpenGroups,
+  displayPrimitiveScenarios,
   dropdownMenuAnatomyOpenGroups,
   dropdownMenuScenario,
   hoverCardAnatomyOpenGroups,
@@ -1947,6 +2056,7 @@ function ScenarioAnatomy({
   onCheckboxAnatomyOpenGroupsChange,
   onContextMenuAnatomyOpenGroupsChange,
   onDialogAnatomyOpenGroupsChange,
+  onDisplayPrimitiveAnatomyOpenGroupsChange,
   onDropdownMenuAnatomyOpenGroupsChange,
   onHoverCardAnatomyOpenGroupsChange,
   onMenuAnatomyOpenGroupsChange,
@@ -1968,6 +2078,8 @@ function ScenarioAnatomy({
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogAnatomyOpenGroups: Record<string, boolean>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
+  displayPrimitiveAnatomyOpenGroups: Record<string, boolean>;
+  displayPrimitiveScenarios: DisplayPrimitiveScenarios;
   dropdownMenuAnatomyOpenGroups: Record<string, boolean>;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   hoverCardAnatomyOpenGroups: Record<string, boolean>;
@@ -1994,6 +2106,7 @@ function ScenarioAnatomy({
   onCheckboxAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onContextMenuAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onDialogAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
+  onDisplayPrimitiveAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onDropdownMenuAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onHoverCardAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onMenuAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
@@ -2061,6 +2174,17 @@ function ScenarioAnatomy({
         openGroups={toggleGroupAnatomyOpenGroups}
         scenario={toggleGroupScenario}
         onOpenGroupsChange={onToggleGroupAnatomyOpenGroupsChange}
+      />
+    );
+  }
+
+  if (displayPrimitiveScenarioIds.has(scenarioId)) {
+    return (
+      <DisplayPrimitiveScenarioAnatomy
+        openGroups={displayPrimitiveAnatomyOpenGroups}
+        scenarioId={scenarioId}
+        scenarios={displayPrimitiveScenarios}
+        onOpenGroupsChange={onDisplayPrimitiveAnatomyOpenGroupsChange}
       />
     );
   }
@@ -2170,6 +2294,7 @@ function ScenarioLog({
   checkboxScenario,
   contextMenuScenario,
   dialogScenario,
+  displayPrimitiveScenarios,
   dropdownMenuScenario,
   hoverCardScenario,
   menuScenario,
@@ -2187,6 +2312,7 @@ function ScenarioLog({
   checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
+  displayPrimitiveScenarios: DisplayPrimitiveScenarios;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   hoverCardScenario: ReturnType<typeof useHoverCardScenario>;
   menuScenario: ReturnType<typeof useMenuScenario>;
@@ -2205,6 +2331,14 @@ function ScenarioLog({
   if (scenarioId === "switch") return <ScenarioEventLog log={switchScenario.state.log} />;
   if (scenarioId === "toggle") return <ScenarioEventLog log={toggleScenario.state.log} />;
   if (scenarioId === "toggle-group") return <ScenarioEventLog log={toggleGroupScenario.state.log} />;
+  if (displayPrimitiveScenarioIds.has(scenarioId)) {
+    return (
+      <DisplayPrimitiveScenarioLog
+        scenarioId={scenarioId}
+        scenarios={displayPrimitiveScenarios}
+      />
+    );
+  }
 
   if (scenarioId === "alert-dialog") {
     return (
@@ -2287,6 +2421,7 @@ function ScenarioLogFooter({
   checkboxScenario,
   contextMenuScenario,
   dialogScenario,
+  displayPrimitiveScenarios,
   dropdownMenuScenario,
   hoverCardScenario,
   menuScenario,
@@ -2304,6 +2439,7 @@ function ScenarioLogFooter({
   checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
+  displayPrimitiveScenarios: DisplayPrimitiveScenarios;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   hoverCardScenario: ReturnType<typeof useHoverCardScenario>;
   menuScenario: ReturnType<typeof useMenuScenario>;
@@ -2323,6 +2459,7 @@ function ScenarioLogFooter({
     scenarioId !== "switch" &&
     scenarioId !== "toggle" &&
     scenarioId !== "toggle-group" &&
+    !displayPrimitiveScenarioIds.has(scenarioId) &&
     scenarioId !== "alert-dialog" &&
     scenarioId !== "popover" &&
     scenarioId !== "hover-card" &&
@@ -2348,6 +2485,8 @@ function ScenarioLogFooter({
               ? toggleScenario.state.log.length
               : scenarioId === "toggle-group"
                 ? toggleGroupScenario.state.log.length
+                : displayPrimitiveScenarioIds.has(scenarioId)
+                  ? getDisplayPrimitiveEventCount(scenarioId, displayPrimitiveScenarios)
     : scenarioId === "alert-dialog"
       ? alertDialogScenario.state.log.length
       : scenarioId === "popover"
@@ -2374,6 +2513,7 @@ function ScenarioLogAction({
   checkboxScenario,
   contextMenuScenario,
   dialogScenario,
+  displayPrimitiveScenarios,
   dropdownMenuScenario,
   hoverCardScenario,
   menuScenario,
@@ -2391,6 +2531,7 @@ function ScenarioLogAction({
   checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
+  displayPrimitiveScenarios: DisplayPrimitiveScenarios;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   hoverCardScenario: ReturnType<typeof useHoverCardScenario>;
   menuScenario: ReturnType<typeof useMenuScenario>;
@@ -2410,6 +2551,7 @@ function ScenarioLogAction({
     scenarioId !== "switch" &&
     scenarioId !== "toggle" &&
     scenarioId !== "toggle-group" &&
+    !displayPrimitiveScenarioIds.has(scenarioId) &&
     scenarioId !== "alert-dialog" &&
     scenarioId !== "popover" &&
     scenarioId !== "hover-card" &&
@@ -2439,6 +2581,8 @@ function ScenarioLogAction({
                     ? toggleScenario.actions.clearLog
                     : scenarioId === "toggle-group"
                       ? toggleGroupScenario.actions.clearLog
+                      : displayPrimitiveScenarioIds.has(scenarioId)
+                        ? () => clearDisplayPrimitiveLog(scenarioId, displayPrimitiveScenarios)
           : scenarioId === "alert-dialog"
             ? alertDialogScenario.actions.clearLog
             : scenarioId === "popover"

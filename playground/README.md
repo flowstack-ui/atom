@@ -453,6 +453,9 @@ hover/focus timing, tooltip relationships, and destructive confirmation behavior
 Button, Checkbox, Switch, Toggle, ToggleGroup, and RadioGroup start the form
 control pass with checked/pressed/value state, disabled/read-only behavior,
 generated form inputs, keyboard interaction, and composition coverage.
+Badge, Divider, Aspect Ratio, Avatar, Label, and List start the lightweight
+display/layout pass with render output, composition, native prop markers,
+label association, avatar fallback state, and live DOM evidence.
 
 Dialog is a good first scenario because it exercises:
 
