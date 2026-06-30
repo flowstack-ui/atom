@@ -66,6 +66,39 @@ import {
   TooltipScenarioToolbar,
   getTooltipSource,
 } from "./scenarios/TooltipScenario";
+import {
+  ButtonScenarioAnatomy,
+  ButtonScenarioCanvas,
+  ButtonScenarioToolbar,
+  CheckboxScenarioAnatomy,
+  CheckboxScenarioCanvas,
+  CheckboxScenarioToolbar,
+  RadioGroupScenarioAnatomy,
+  RadioGroupScenarioCanvas,
+  RadioGroupScenarioToolbar,
+  ScenarioEventLog,
+  SwitchScenarioAnatomy,
+  SwitchScenarioCanvas,
+  SwitchScenarioToolbar,
+  ToggleGroupScenarioAnatomy,
+  ToggleGroupScenarioCanvas,
+  ToggleGroupScenarioToolbar,
+  ToggleScenarioAnatomy,
+  ToggleScenarioCanvas,
+  ToggleScenarioToolbar,
+  getButtonSource,
+  getCheckboxSource,
+  getRadioGroupSource,
+  getSwitchSource,
+  getToggleGroupSource,
+  getToggleSource,
+  useButtonScenario,
+  useCheckboxScenario,
+  useRadioGroupScenario,
+  useSwitchScenario,
+  useToggleGroupScenario,
+  useToggleScenario,
+} from "./scenarios/FormControlScenarios";
 import { useDialogScenario } from "./scenarios/useDialogScenario";
 import { useAlertDialogScenario } from "./scenarios/useAlertDialogScenario";
 import { useDropdownMenuScenario } from "./scenarios/useDropdownMenuScenario";
@@ -133,6 +166,12 @@ const scenarios: Scenario[] = [
     checks: ["Trigger opens", "Keyboard opens", "Menu behavior works"],
   },
   {
+    id: "button",
+    label: "Button",
+    category: "Forms",
+    checks: ["Press fires", "Disabled blocks", "Composition works"],
+  },
+  {
     id: "field",
     label: "Field",
     category: "Forms",
@@ -149,6 +188,24 @@ const scenarios: Scenario[] = [
     label: "RadioGroup",
     category: "Forms",
     checks: ["Arrow keys move", "Value changes", "Required state shows"],
+  },
+  {
+    id: "switch",
+    label: "Switch",
+    category: "Forms",
+    checks: ["Click toggles", "Hidden input updates", "Thumb state follows"],
+  },
+  {
+    id: "toggle",
+    label: "Toggle",
+    category: "Forms",
+    checks: ["Pressed changes", "Keyboard toggles", "Composition works"],
+  },
+  {
+    id: "toggle-group",
+    label: "ToggleGroup",
+    category: "Forms",
+    checks: ["Value changes", "Arrow keys move", "Disabled item skips"],
   },
   {
     id: "tabs",
@@ -213,25 +270,37 @@ export function App() {
   const [activeCanvasTab, setActiveCanvasTab] = useState<"preview" | "source">("preview");
   const [activeInspectorTab, setActiveInspectorTab] = useState<"selected" | "focused" | "log">("selected");
   const [alertDialogAnatomyOpenGroups, setAlertDialogAnatomyOpenGroups] = useState<Record<string, boolean>>({});
+  const [buttonAnatomyOpenGroups, setButtonAnatomyOpenGroups] = useState<Record<string, boolean>>({});
+  const [checkboxAnatomyOpenGroups, setCheckboxAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [dialogAnatomyOpenGroups, setDialogAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [contextMenuAnatomyOpenGroups, setContextMenuAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [dropdownMenuAnatomyOpenGroups, setDropdownMenuAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [hoverCardAnatomyOpenGroups, setHoverCardAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [menuAnatomyOpenGroups, setMenuAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [popoverAnatomyOpenGroups, setPopoverAnatomyOpenGroups] = useState<Record<string, boolean>>({});
+  const [radioGroupAnatomyOpenGroups, setRadioGroupAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [selectAnatomyOpenGroups, setSelectAnatomyOpenGroups] = useState<Record<string, boolean>>({});
+  const [switchAnatomyOpenGroups, setSwitchAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [tooltipAnatomyOpenGroups, setTooltipAnatomyOpenGroups] = useState<Record<string, boolean>>({});
+  const [toggleAnatomyOpenGroups, setToggleAnatomyOpenGroups] = useState<Record<string, boolean>>({});
+  const [toggleGroupAnatomyOpenGroups, setToggleGroupAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const activeScenario = getScenario(activeScenarioId);
   const inspector = useElementInspector();
   const alertDialogScenario = useAlertDialogScenario();
+  const buttonScenario = useButtonScenario();
+  const checkboxScenario = useCheckboxScenario();
   const dialogScenario = useDialogScenario();
   const contextMenuScenario = useContextMenuScenario();
   const dropdownMenuScenario = useDropdownMenuScenario();
   const hoverCardScenario = useHoverCardScenario();
   const menuScenario = useMenuScenario();
   const popoverScenario = usePopoverScenario();
+  const radioGroupScenario = useRadioGroupScenario();
   const selectScenario = useSelectScenario();
+  const switchScenario = useSwitchScenario();
   const tooltipScenario = useTooltipScenario();
+  const toggleScenario = useToggleScenario();
+  const toggleGroupScenario = useToggleGroupScenario();
   const focusCanvas = () => {
     const focusTarget = inspector.rootRef.current?.querySelector<HTMLElement>(focusableSelector);
     if (!focusTarget) return;
@@ -304,6 +373,54 @@ export function App() {
                   Collapse All
                 </Button.Root>
               ) : null}
+              {activeScenario.id === "button" ? (
+                <Button.Root
+                  className="header-action"
+                  onPress={() => setButtonAnatomyOpenGroups({})}
+                >
+                  Collapse All
+                </Button.Root>
+              ) : null}
+              {activeScenario.id === "checkbox" ? (
+                <Button.Root
+                  className="header-action"
+                  onPress={() => setCheckboxAnatomyOpenGroups({})}
+                >
+                  Collapse All
+                </Button.Root>
+              ) : null}
+              {activeScenario.id === "radio-group" ? (
+                <Button.Root
+                  className="header-action"
+                  onPress={() => setRadioGroupAnatomyOpenGroups({})}
+                >
+                  Collapse All
+                </Button.Root>
+              ) : null}
+              {activeScenario.id === "switch" ? (
+                <Button.Root
+                  className="header-action"
+                  onPress={() => setSwitchAnatomyOpenGroups({})}
+                >
+                  Collapse All
+                </Button.Root>
+              ) : null}
+              {activeScenario.id === "toggle" ? (
+                <Button.Root
+                  className="header-action"
+                  onPress={() => setToggleAnatomyOpenGroups({})}
+                >
+                  Collapse All
+                </Button.Root>
+              ) : null}
+              {activeScenario.id === "toggle-group" ? (
+                <Button.Root
+                  className="header-action"
+                  onPress={() => setToggleGroupAnatomyOpenGroups({})}
+                >
+                  Collapse All
+                </Button.Root>
+              ) : null}
               {activeScenario.id === "alert-dialog" ? (
                 <Button.Root
                   className="header-action"
@@ -372,6 +489,10 @@ export function App() {
             <ScenarioAnatomy
               alertDialogAnatomyOpenGroups={alertDialogAnatomyOpenGroups}
               alertDialogScenario={alertDialogScenario}
+              buttonAnatomyOpenGroups={buttonAnatomyOpenGroups}
+              buttonScenario={buttonScenario}
+              checkboxAnatomyOpenGroups={checkboxAnatomyOpenGroups}
+              checkboxScenario={checkboxScenario}
               contextMenuAnatomyOpenGroups={contextMenuAnatomyOpenGroups}
               contextMenuScenario={contextMenuScenario}
               dialogAnatomyOpenGroups={dialogAnatomyOpenGroups}
@@ -384,20 +505,34 @@ export function App() {
               menuScenario={menuScenario}
               popoverAnatomyOpenGroups={popoverAnatomyOpenGroups}
               popoverScenario={popoverScenario}
+              radioGroupAnatomyOpenGroups={radioGroupAnatomyOpenGroups}
+              radioGroupScenario={radioGroupScenario}
               selectAnatomyOpenGroups={selectAnatomyOpenGroups}
               selectScenario={selectScenario}
               scenarioId={activeScenario.id}
+              switchAnatomyOpenGroups={switchAnatomyOpenGroups}
+              switchScenario={switchScenario}
               tooltipAnatomyOpenGroups={tooltipAnatomyOpenGroups}
               tooltipScenario={tooltipScenario}
+              toggleAnatomyOpenGroups={toggleAnatomyOpenGroups}
+              toggleScenario={toggleScenario}
+              toggleGroupAnatomyOpenGroups={toggleGroupAnatomyOpenGroups}
+              toggleGroupScenario={toggleGroupScenario}
               onAlertDialogAnatomyOpenGroupsChange={setAlertDialogAnatomyOpenGroups}
+              onButtonAnatomyOpenGroupsChange={setButtonAnatomyOpenGroups}
+              onCheckboxAnatomyOpenGroupsChange={setCheckboxAnatomyOpenGroups}
               onDialogAnatomyOpenGroupsChange={setDialogAnatomyOpenGroups}
               onContextMenuAnatomyOpenGroupsChange={setContextMenuAnatomyOpenGroups}
               onDropdownMenuAnatomyOpenGroupsChange={setDropdownMenuAnatomyOpenGroups}
               onHoverCardAnatomyOpenGroupsChange={setHoverCardAnatomyOpenGroups}
               onMenuAnatomyOpenGroupsChange={setMenuAnatomyOpenGroups}
               onPopoverAnatomyOpenGroupsChange={setPopoverAnatomyOpenGroups}
+              onRadioGroupAnatomyOpenGroupsChange={setRadioGroupAnatomyOpenGroups}
               onSelectAnatomyOpenGroupsChange={setSelectAnatomyOpenGroups}
+              onSwitchAnatomyOpenGroupsChange={setSwitchAnatomyOpenGroups}
               onTooltipAnatomyOpenGroupsChange={setTooltipAnatomyOpenGroups}
+              onToggleAnatomyOpenGroupsChange={setToggleAnatomyOpenGroups}
+              onToggleGroupAnatomyOpenGroupsChange={setToggleGroupAnatomyOpenGroups}
             />
           </article>
 
@@ -422,29 +557,41 @@ export function App() {
             </div>
             <ScenarioToolbar
               alertDialogScenario={alertDialogScenario}
+              buttonScenario={buttonScenario}
+              checkboxScenario={checkboxScenario}
               contextMenuScenario={contextMenuScenario}
               dialogScenario={dialogScenario}
               dropdownMenuScenario={dropdownMenuScenario}
               hoverCardScenario={hoverCardScenario}
               menuScenario={menuScenario}
               popoverScenario={popoverScenario}
+              radioGroupScenario={radioGroupScenario}
               selectScenario={selectScenario}
               scenarioId={activeScenario.id}
+              switchScenario={switchScenario}
               tooltipScenario={tooltipScenario}
+              toggleScenario={toggleScenario}
+              toggleGroupScenario={toggleGroupScenario}
             />
             <Tabs.Content className="canvas-tab-panel" value="preview">
               <div className="canvas" ref={inspector.rootRef}>
                 <ScenarioCanvas
                   alertDialogScenario={alertDialogScenario}
+                  buttonScenario={buttonScenario}
+                  checkboxScenario={checkboxScenario}
                   contextMenuScenario={contextMenuScenario}
                   dialogScenario={dialogScenario}
                   dropdownMenuScenario={dropdownMenuScenario}
                   hoverCardScenario={hoverCardScenario}
                   menuScenario={menuScenario}
                   popoverScenario={popoverScenario}
+                  radioGroupScenario={radioGroupScenario}
                   selectScenario={selectScenario}
                   scenarioId={activeScenario.id}
+                  switchScenario={switchScenario}
                   tooltipScenario={tooltipScenario}
+                  toggleScenario={toggleScenario}
+                  toggleGroupScenario={toggleGroupScenario}
                   label={activeScenario.label}
                 />
               </div>
@@ -452,28 +599,40 @@ export function App() {
             <Tabs.Content className="canvas-tab-panel" value="source">
               <ScenarioSource
                 alertDialogScenario={alertDialogScenario}
+                buttonScenario={buttonScenario}
+                checkboxScenario={checkboxScenario}
                 contextMenuScenario={contextMenuScenario}
                 dialogScenario={dialogScenario}
                 dropdownMenuScenario={dropdownMenuScenario}
                 hoverCardScenario={hoverCardScenario}
                 menuScenario={menuScenario}
                 popoverScenario={popoverScenario}
+                radioGroupScenario={radioGroupScenario}
                 selectScenario={selectScenario}
                 scenarioId={activeScenario.id}
+                switchScenario={switchScenario}
                 tooltipScenario={tooltipScenario}
+                toggleScenario={toggleScenario}
+                toggleGroupScenario={toggleGroupScenario}
               />
             </Tabs.Content>
             <ScenarioCanvasFooter
               alertDialogScenario={alertDialogScenario}
+              buttonScenario={buttonScenario}
+              checkboxScenario={checkboxScenario}
               contextMenuScenario={contextMenuScenario}
               dialogScenario={dialogScenario}
               dropdownMenuScenario={dropdownMenuScenario}
               hoverCardScenario={hoverCardScenario}
               menuScenario={menuScenario}
               popoverScenario={popoverScenario}
+              radioGroupScenario={radioGroupScenario}
               selectScenario={selectScenario}
               scenarioId={activeScenario.id}
+              switchScenario={switchScenario}
               tooltipScenario={tooltipScenario}
+              toggleScenario={toggleScenario}
+              toggleGroupScenario={toggleGroupScenario}
             />
           </Tabs.Root>
 
@@ -489,14 +648,20 @@ export function App() {
                   <ScenarioLogAction
                     contextMenuScenario={contextMenuScenario}
                     alertDialogScenario={alertDialogScenario}
+                    buttonScenario={buttonScenario}
+                    checkboxScenario={checkboxScenario}
                     dialogScenario={dialogScenario}
                     dropdownMenuScenario={dropdownMenuScenario}
                     hoverCardScenario={hoverCardScenario}
                     menuScenario={menuScenario}
                     popoverScenario={popoverScenario}
+                    radioGroupScenario={radioGroupScenario}
                     selectScenario={selectScenario}
                     scenarioId={activeScenario.id}
+                    switchScenario={switchScenario}
                     tooltipScenario={tooltipScenario}
+                    toggleScenario={toggleScenario}
+                    toggleGroupScenario={toggleGroupScenario}
                   />
                 ) : null}
               </div>
@@ -521,14 +686,20 @@ export function App() {
                 <ScenarioLog
                   contextMenuScenario={contextMenuScenario}
                   alertDialogScenario={alertDialogScenario}
+                  buttonScenario={buttonScenario}
+                  checkboxScenario={checkboxScenario}
                   dialogScenario={dialogScenario}
                   dropdownMenuScenario={dropdownMenuScenario}
                   hoverCardScenario={hoverCardScenario}
                   menuScenario={menuScenario}
                   popoverScenario={popoverScenario}
+                  radioGroupScenario={radioGroupScenario}
                   selectScenario={selectScenario}
                   scenarioId={activeScenario.id}
+                  switchScenario={switchScenario}
                   tooltipScenario={tooltipScenario}
+                  toggleScenario={toggleScenario}
+                  toggleGroupScenario={toggleGroupScenario}
                 />
               </Tabs.Content>
               <div className="panel-footer">
@@ -540,14 +711,20 @@ export function App() {
                   <ScenarioLogFooter
                     contextMenuScenario={contextMenuScenario}
                     alertDialogScenario={alertDialogScenario}
+                    buttonScenario={buttonScenario}
+                    checkboxScenario={checkboxScenario}
                     dialogScenario={dialogScenario}
                     dropdownMenuScenario={dropdownMenuScenario}
                     hoverCardScenario={hoverCardScenario}
                     menuScenario={menuScenario}
                     popoverScenario={popoverScenario}
+                    radioGroupScenario={radioGroupScenario}
                     selectScenario={selectScenario}
                     scenarioId={activeScenario.id}
+                    switchScenario={switchScenario}
                     tooltipScenario={tooltipScenario}
+                    toggleScenario={toggleScenario}
+                    toggleGroupScenario={toggleGroupScenario}
                   />
                 )}
               </div>
@@ -616,27 +793,46 @@ function InspectorFooter({
 
 function ScenarioToolbar({
   alertDialogScenario,
+  buttonScenario,
+  checkboxScenario,
   contextMenuScenario,
   dialogScenario,
   dropdownMenuScenario,
   hoverCardScenario,
   menuScenario,
   popoverScenario,
+  radioGroupScenario,
   selectScenario,
   scenarioId,
+  switchScenario,
   tooltipScenario,
+  toggleScenario,
+  toggleGroupScenario,
 }: {
   alertDialogScenario: ReturnType<typeof useAlertDialogScenario>;
+  buttonScenario: ReturnType<typeof useButtonScenario>;
+  checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   hoverCardScenario: ReturnType<typeof useHoverCardScenario>;
   menuScenario: ReturnType<typeof useMenuScenario>;
   popoverScenario: ReturnType<typeof usePopoverScenario>;
+  radioGroupScenario: ReturnType<typeof useRadioGroupScenario>;
   selectScenario: ReturnType<typeof useSelectScenario>;
   scenarioId: string;
+  switchScenario: ReturnType<typeof useSwitchScenario>;
   tooltipScenario: ReturnType<typeof useTooltipScenario>;
+  toggleScenario: ReturnType<typeof useToggleScenario>;
+  toggleGroupScenario: ReturnType<typeof useToggleGroupScenario>;
 }) {
+  if (scenarioId === "button") return <ButtonScenarioToolbar scenario={buttonScenario} />;
+  if (scenarioId === "checkbox") return <CheckboxScenarioToolbar scenario={checkboxScenario} />;
+  if (scenarioId === "radio-group") return <RadioGroupScenarioToolbar scenario={radioGroupScenario} />;
+  if (scenarioId === "switch") return <SwitchScenarioToolbar scenario={switchScenario} />;
+  if (scenarioId === "toggle") return <ToggleScenarioToolbar scenario={toggleScenario} />;
+  if (scenarioId === "toggle-group") return <ToggleGroupScenarioToolbar scenario={toggleGroupScenario} />;
+
   if (scenarioId === "alert-dialog") {
     return (
       <AlertDialogScenarioToolbar
@@ -723,29 +919,48 @@ function ScenarioToolbar({
 
 function ScenarioCanvas({
   alertDialogScenario,
+  buttonScenario,
+  checkboxScenario,
   contextMenuScenario,
   dialogScenario,
   dropdownMenuScenario,
   hoverCardScenario,
   menuScenario,
   popoverScenario,
+  radioGroupScenario,
   selectScenario,
   scenarioId,
+  switchScenario,
   tooltipScenario,
+  toggleScenario,
+  toggleGroupScenario,
   label,
 }: {
   alertDialogScenario: ReturnType<typeof useAlertDialogScenario>;
+  buttonScenario: ReturnType<typeof useButtonScenario>;
+  checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   hoverCardScenario: ReturnType<typeof useHoverCardScenario>;
   menuScenario: ReturnType<typeof useMenuScenario>;
   popoverScenario: ReturnType<typeof usePopoverScenario>;
+  radioGroupScenario: ReturnType<typeof useRadioGroupScenario>;
   selectScenario: ReturnType<typeof useSelectScenario>;
   scenarioId: string;
+  switchScenario: ReturnType<typeof useSwitchScenario>;
   tooltipScenario: ReturnType<typeof useTooltipScenario>;
+  toggleScenario: ReturnType<typeof useToggleScenario>;
+  toggleGroupScenario: ReturnType<typeof useToggleGroupScenario>;
   label: string;
 }) {
+  if (scenarioId === "button") return <ButtonScenarioCanvas scenario={buttonScenario} />;
+  if (scenarioId === "checkbox") return <CheckboxScenarioCanvas scenario={checkboxScenario} />;
+  if (scenarioId === "radio-group") return <RadioGroupScenarioCanvas scenario={radioGroupScenario} />;
+  if (scenarioId === "switch") return <SwitchScenarioCanvas scenario={switchScenario} />;
+  if (scenarioId === "toggle") return <ToggleScenarioCanvas scenario={toggleScenario} />;
+  if (scenarioId === "toggle-group") return <ToggleGroupScenarioCanvas scenario={toggleGroupScenario} />;
+
   if (scenarioId === "alert-dialog") {
     return (
       <AlertDialogScenarioCanvas
@@ -839,38 +1054,56 @@ function ScenarioCanvas({
 
 function ScenarioSource({
   alertDialogScenario,
+  buttonScenario,
+  checkboxScenario,
   contextMenuScenario,
   dialogScenario,
   dropdownMenuScenario,
   hoverCardScenario,
   menuScenario,
   popoverScenario,
+  radioGroupScenario,
   selectScenario,
   scenarioId,
+  switchScenario,
   tooltipScenario,
+  toggleScenario,
+  toggleGroupScenario,
 }: {
   alertDialogScenario: ReturnType<typeof useAlertDialogScenario>;
+  buttonScenario: ReturnType<typeof useButtonScenario>;
+  checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   hoverCardScenario: ReturnType<typeof useHoverCardScenario>;
   menuScenario: ReturnType<typeof useMenuScenario>;
   popoverScenario: ReturnType<typeof usePopoverScenario>;
+  radioGroupScenario: ReturnType<typeof useRadioGroupScenario>;
   selectScenario: ReturnType<typeof useSelectScenario>;
   scenarioId: string;
+  switchScenario: ReturnType<typeof useSwitchScenario>;
   tooltipScenario: ReturnType<typeof useTooltipScenario>;
+  toggleScenario: ReturnType<typeof useToggleScenario>;
+  toggleGroupScenario: ReturnType<typeof useToggleGroupScenario>;
 }) {
   const source = getScenarioSource({
     alertDialogScenario,
+    buttonScenario,
+    checkboxScenario,
     contextMenuScenario,
     dialogScenario,
     dropdownMenuScenario,
     hoverCardScenario,
     menuScenario,
     popoverScenario,
+    radioGroupScenario,
     selectScenario,
     scenarioId,
+    switchScenario,
     tooltipScenario,
+    toggleScenario,
+    toggleGroupScenario,
   });
 
   return (
@@ -913,27 +1146,70 @@ function highlightSource(source: string) {
 
 function ScenarioCanvasFooter({
   alertDialogScenario,
+  buttonScenario,
+  checkboxScenario,
   contextMenuScenario,
   dialogScenario,
   dropdownMenuScenario,
   hoverCardScenario,
   menuScenario,
   popoverScenario,
+  radioGroupScenario,
   selectScenario,
   scenarioId,
+  switchScenario,
   tooltipScenario,
+  toggleScenario,
+  toggleGroupScenario,
 }: {
   alertDialogScenario: ReturnType<typeof useAlertDialogScenario>;
+  buttonScenario: ReturnType<typeof useButtonScenario>;
+  checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   hoverCardScenario: ReturnType<typeof useHoverCardScenario>;
   menuScenario: ReturnType<typeof useMenuScenario>;
   popoverScenario: ReturnType<typeof usePopoverScenario>;
+  radioGroupScenario: ReturnType<typeof useRadioGroupScenario>;
   selectScenario: ReturnType<typeof useSelectScenario>;
   scenarioId: string;
+  switchScenario: ReturnType<typeof useSwitchScenario>;
   tooltipScenario: ReturnType<typeof useTooltipScenario>;
+  toggleScenario: ReturnType<typeof useToggleScenario>;
+  toggleGroupScenario: ReturnType<typeof useToggleGroupScenario>;
 }) {
+  if (scenarioId === "button") {
+    const state = buttonScenario.state;
+    return <div className="panel-footer">{`Pressed ${state.pressCount} | Disabled ${state.disabled} | Loading ${state.loading}`}</div>;
+  }
+
+  if (scenarioId === "checkbox") {
+    const state = checkboxScenario.state;
+    return <div className="panel-footer">{`${state.controlled ? "Controlled" : "Uncontrolled"} | Checked ${String(state.checked)} | Disabled ${state.disabled}`}</div>;
+  }
+
+  if (scenarioId === "radio-group") {
+    const state = radioGroupScenario.state;
+    return <div className="panel-footer">{`${state.controlled ? "Controlled" : "Uncontrolled"} | Value ${state.value} | ${state.orientation}`}</div>;
+  }
+
+  if (scenarioId === "switch") {
+    const state = switchScenario.state;
+    return <div className="panel-footer">{`${state.controlled ? "Controlled" : "Uncontrolled"} | Checked ${state.checked} | Disabled ${state.disabled}`}</div>;
+  }
+
+  if (scenarioId === "toggle") {
+    const state = toggleScenario.state;
+    return <div className="panel-footer">{`${state.controlled ? "Controlled" : "Uncontrolled"} | Pressed ${state.pressed} | Disabled ${state.disabled}`}</div>;
+  }
+
+  if (scenarioId === "toggle-group") {
+    const state = toggleGroupScenario.state;
+    const value = Array.isArray(state.value) ? state.value.join(", ") || "none" : state.value || "none";
+    return <div className="panel-footer">{`${state.controlled ? "Controlled" : "Uncontrolled"} | ${state.type} | Value ${value}`}</div>;
+  }
+
   if (scenarioId === "alert-dialog") {
     const state = alertDialogScenario.state;
     const openState = state.open ? "Open" : "Closed";
@@ -1048,27 +1324,45 @@ function ScenarioCanvasFooter({
 
 function getScenarioSource({
   alertDialogScenario,
+  buttonScenario,
+  checkboxScenario,
   contextMenuScenario,
   dialogScenario,
   dropdownMenuScenario,
   hoverCardScenario,
   menuScenario,
   popoverScenario,
+  radioGroupScenario,
   selectScenario,
   scenarioId,
+  switchScenario,
   tooltipScenario,
+  toggleScenario,
+  toggleGroupScenario,
 }: {
   alertDialogScenario: ReturnType<typeof useAlertDialogScenario>;
+  buttonScenario: ReturnType<typeof useButtonScenario>;
+  checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   hoverCardScenario: ReturnType<typeof useHoverCardScenario>;
   menuScenario: ReturnType<typeof useMenuScenario>;
   popoverScenario: ReturnType<typeof usePopoverScenario>;
+  radioGroupScenario: ReturnType<typeof useRadioGroupScenario>;
   selectScenario: ReturnType<typeof useSelectScenario>;
   scenarioId: string;
+  switchScenario: ReturnType<typeof useSwitchScenario>;
   tooltipScenario: ReturnType<typeof useTooltipScenario>;
+  toggleScenario: ReturnType<typeof useToggleScenario>;
+  toggleGroupScenario: ReturnType<typeof useToggleGroupScenario>;
 }) {
+  if (scenarioId === "button") return getButtonSource(buttonScenario.state);
+  if (scenarioId === "checkbox") return getCheckboxSource(checkboxScenario.state);
+  if (scenarioId === "radio-group") return getRadioGroupSource(radioGroupScenario.state);
+  if (scenarioId === "switch") return getSwitchSource(switchScenario.state);
+  if (scenarioId === "toggle") return getToggleSource(toggleScenario.state);
+  if (scenarioId === "toggle-group") return getToggleGroupSource(toggleGroupScenario.state);
   if (scenarioId === "alert-dialog") return getAlertDialogSource(alertDialogScenario.state);
   if (scenarioId === "popover") return getPopoverSource(popoverScenario.state);
   if (scenarioId === "hover-card") return getHoverCardSource(hoverCardScenario.state);
@@ -1619,6 +1913,10 @@ function getMenuItemSource(namespace: "ContextMenu" | "DropdownMenu", mode: "def
 function ScenarioAnatomy({
   alertDialogAnatomyOpenGroups,
   alertDialogScenario,
+  buttonAnatomyOpenGroups,
+  buttonScenario,
+  checkboxAnatomyOpenGroups,
+  checkboxScenario,
   contextMenuAnatomyOpenGroups,
   contextMenuScenario,
   dialogAnatomyOpenGroups,
@@ -1631,23 +1929,41 @@ function ScenarioAnatomy({
   menuScenario,
   popoverAnatomyOpenGroups,
   popoverScenario,
+  radioGroupAnatomyOpenGroups,
+  radioGroupScenario,
   selectAnatomyOpenGroups,
   selectScenario,
   scenarioId,
+  switchAnatomyOpenGroups,
+  switchScenario,
   tooltipAnatomyOpenGroups,
   tooltipScenario,
+  toggleAnatomyOpenGroups,
+  toggleScenario,
+  toggleGroupAnatomyOpenGroups,
+  toggleGroupScenario,
   onAlertDialogAnatomyOpenGroupsChange,
+  onButtonAnatomyOpenGroupsChange,
+  onCheckboxAnatomyOpenGroupsChange,
   onContextMenuAnatomyOpenGroupsChange,
   onDialogAnatomyOpenGroupsChange,
   onDropdownMenuAnatomyOpenGroupsChange,
   onHoverCardAnatomyOpenGroupsChange,
   onMenuAnatomyOpenGroupsChange,
   onPopoverAnatomyOpenGroupsChange,
+  onRadioGroupAnatomyOpenGroupsChange,
   onSelectAnatomyOpenGroupsChange,
+  onSwitchAnatomyOpenGroupsChange,
   onTooltipAnatomyOpenGroupsChange,
+  onToggleAnatomyOpenGroupsChange,
+  onToggleGroupAnatomyOpenGroupsChange,
 }: {
   alertDialogAnatomyOpenGroups: Record<string, boolean>;
   alertDialogScenario: ReturnType<typeof useAlertDialogScenario>;
+  buttonAnatomyOpenGroups: Record<string, boolean>;
+  buttonScenario: ReturnType<typeof useButtonScenario>;
+  checkboxAnatomyOpenGroups: Record<string, boolean>;
+  checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuAnatomyOpenGroups: Record<string, boolean>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogAnatomyOpenGroups: Record<string, boolean>;
@@ -1660,21 +1976,95 @@ function ScenarioAnatomy({
   menuScenario: ReturnType<typeof useMenuScenario>;
   popoverAnatomyOpenGroups: Record<string, boolean>;
   popoverScenario: ReturnType<typeof usePopoverScenario>;
+  radioGroupAnatomyOpenGroups: Record<string, boolean>;
+  radioGroupScenario: ReturnType<typeof useRadioGroupScenario>;
   selectAnatomyOpenGroups: Record<string, boolean>;
   selectScenario: ReturnType<typeof useSelectScenario>;
   scenarioId: string;
+  switchAnatomyOpenGroups: Record<string, boolean>;
+  switchScenario: ReturnType<typeof useSwitchScenario>;
   tooltipAnatomyOpenGroups: Record<string, boolean>;
   tooltipScenario: ReturnType<typeof useTooltipScenario>;
+  toggleAnatomyOpenGroups: Record<string, boolean>;
+  toggleScenario: ReturnType<typeof useToggleScenario>;
+  toggleGroupAnatomyOpenGroups: Record<string, boolean>;
+  toggleGroupScenario: ReturnType<typeof useToggleGroupScenario>;
   onAlertDialogAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
+  onButtonAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
+  onCheckboxAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onContextMenuAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onDialogAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onDropdownMenuAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onHoverCardAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onMenuAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onPopoverAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
+  onRadioGroupAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onSelectAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
+  onSwitchAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onTooltipAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
+  onToggleAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
+  onToggleGroupAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
 }) {
+  if (scenarioId === "button") {
+    return (
+      <ButtonScenarioAnatomy
+        openGroups={buttonAnatomyOpenGroups}
+        scenario={buttonScenario}
+        onOpenGroupsChange={onButtonAnatomyOpenGroupsChange}
+      />
+    );
+  }
+
+  if (scenarioId === "checkbox") {
+    return (
+      <CheckboxScenarioAnatomy
+        openGroups={checkboxAnatomyOpenGroups}
+        scenario={checkboxScenario}
+        onOpenGroupsChange={onCheckboxAnatomyOpenGroupsChange}
+      />
+    );
+  }
+
+  if (scenarioId === "radio-group") {
+    return (
+      <RadioGroupScenarioAnatomy
+        openGroups={radioGroupAnatomyOpenGroups}
+        scenario={radioGroupScenario}
+        onOpenGroupsChange={onRadioGroupAnatomyOpenGroupsChange}
+      />
+    );
+  }
+
+  if (scenarioId === "switch") {
+    return (
+      <SwitchScenarioAnatomy
+        openGroups={switchAnatomyOpenGroups}
+        scenario={switchScenario}
+        onOpenGroupsChange={onSwitchAnatomyOpenGroupsChange}
+      />
+    );
+  }
+
+  if (scenarioId === "toggle") {
+    return (
+      <ToggleScenarioAnatomy
+        openGroups={toggleAnatomyOpenGroups}
+        scenario={toggleScenario}
+        onOpenGroupsChange={onToggleAnatomyOpenGroupsChange}
+      />
+    );
+  }
+
+  if (scenarioId === "toggle-group") {
+    return (
+      <ToggleGroupScenarioAnatomy
+        openGroups={toggleGroupAnatomyOpenGroups}
+        scenario={toggleGroupScenario}
+        onOpenGroupsChange={onToggleGroupAnatomyOpenGroupsChange}
+      />
+    );
+  }
+
   if (scenarioId === "alert-dialog") {
     return (
       <AlertDialogScenarioAnatomy
@@ -1776,27 +2166,46 @@ function ScenarioAnatomy({
 
 function ScenarioLog({
   alertDialogScenario,
+  buttonScenario,
+  checkboxScenario,
   contextMenuScenario,
   dialogScenario,
   dropdownMenuScenario,
   hoverCardScenario,
   menuScenario,
   popoverScenario,
+  radioGroupScenario,
   selectScenario,
   scenarioId,
+  switchScenario,
   tooltipScenario,
+  toggleScenario,
+  toggleGroupScenario,
 }: {
   alertDialogScenario: ReturnType<typeof useAlertDialogScenario>;
+  buttonScenario: ReturnType<typeof useButtonScenario>;
+  checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   hoverCardScenario: ReturnType<typeof useHoverCardScenario>;
   menuScenario: ReturnType<typeof useMenuScenario>;
   popoverScenario: ReturnType<typeof usePopoverScenario>;
+  radioGroupScenario: ReturnType<typeof useRadioGroupScenario>;
   selectScenario: ReturnType<typeof useSelectScenario>;
   scenarioId: string;
+  switchScenario: ReturnType<typeof useSwitchScenario>;
   tooltipScenario: ReturnType<typeof useTooltipScenario>;
+  toggleScenario: ReturnType<typeof useToggleScenario>;
+  toggleGroupScenario: ReturnType<typeof useToggleGroupScenario>;
 }) {
+  if (scenarioId === "button") return <ScenarioEventLog log={buttonScenario.state.log} />;
+  if (scenarioId === "checkbox") return <ScenarioEventLog log={checkboxScenario.state.log} />;
+  if (scenarioId === "radio-group") return <ScenarioEventLog log={radioGroupScenario.state.log} />;
+  if (scenarioId === "switch") return <ScenarioEventLog log={switchScenario.state.log} />;
+  if (scenarioId === "toggle") return <ScenarioEventLog log={toggleScenario.state.log} />;
+  if (scenarioId === "toggle-group") return <ScenarioEventLog log={toggleGroupScenario.state.log} />;
+
   if (scenarioId === "alert-dialog") {
     return (
       <AlertDialogScenarioLog
@@ -1874,28 +2283,46 @@ function ScenarioLog({
 
 function ScenarioLogFooter({
   alertDialogScenario,
+  buttonScenario,
+  checkboxScenario,
   contextMenuScenario,
   dialogScenario,
   dropdownMenuScenario,
   hoverCardScenario,
   menuScenario,
   popoverScenario,
+  radioGroupScenario,
   selectScenario,
   scenarioId,
+  switchScenario,
   tooltipScenario,
+  toggleScenario,
+  toggleGroupScenario,
 }: {
   alertDialogScenario: ReturnType<typeof useAlertDialogScenario>;
+  buttonScenario: ReturnType<typeof useButtonScenario>;
+  checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   hoverCardScenario: ReturnType<typeof useHoverCardScenario>;
   menuScenario: ReturnType<typeof useMenuScenario>;
   popoverScenario: ReturnType<typeof usePopoverScenario>;
+  radioGroupScenario: ReturnType<typeof useRadioGroupScenario>;
   selectScenario: ReturnType<typeof useSelectScenario>;
   scenarioId: string;
+  switchScenario: ReturnType<typeof useSwitchScenario>;
   tooltipScenario: ReturnType<typeof useTooltipScenario>;
+  toggleScenario: ReturnType<typeof useToggleScenario>;
+  toggleGroupScenario: ReturnType<typeof useToggleGroupScenario>;
 }) {
   if (
+    scenarioId !== "button" &&
+    scenarioId !== "checkbox" &&
+    scenarioId !== "radio-group" &&
+    scenarioId !== "switch" &&
+    scenarioId !== "toggle" &&
+    scenarioId !== "toggle-group" &&
     scenarioId !== "alert-dialog" &&
     scenarioId !== "popover" &&
     scenarioId !== "hover-card" &&
@@ -1909,6 +2336,18 @@ function ScenarioLogFooter({
 
   const eventCount = scenarioId === "dialog"
     ? dialogScenario.state.log.length
+    : scenarioId === "button"
+      ? buttonScenario.state.log.length
+      : scenarioId === "checkbox"
+        ? checkboxScenario.state.log.length
+        : scenarioId === "radio-group"
+          ? radioGroupScenario.state.log.length
+          : scenarioId === "switch"
+            ? switchScenario.state.log.length
+            : scenarioId === "toggle"
+              ? toggleScenario.state.log.length
+              : scenarioId === "toggle-group"
+                ? toggleGroupScenario.state.log.length
     : scenarioId === "alert-dialog"
       ? alertDialogScenario.state.log.length
       : scenarioId === "popover"
@@ -1931,28 +2370,46 @@ function ScenarioLogFooter({
 
 function ScenarioLogAction({
   alertDialogScenario,
+  buttonScenario,
+  checkboxScenario,
   contextMenuScenario,
   dialogScenario,
   dropdownMenuScenario,
   hoverCardScenario,
   menuScenario,
   popoverScenario,
+  radioGroupScenario,
   selectScenario,
   scenarioId,
+  switchScenario,
   tooltipScenario,
+  toggleScenario,
+  toggleGroupScenario,
 }: {
   alertDialogScenario: ReturnType<typeof useAlertDialogScenario>;
+  buttonScenario: ReturnType<typeof useButtonScenario>;
+  checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   hoverCardScenario: ReturnType<typeof useHoverCardScenario>;
   menuScenario: ReturnType<typeof useMenuScenario>;
   popoverScenario: ReturnType<typeof usePopoverScenario>;
+  radioGroupScenario: ReturnType<typeof useRadioGroupScenario>;
   selectScenario: ReturnType<typeof useSelectScenario>;
   scenarioId: string;
+  switchScenario: ReturnType<typeof useSwitchScenario>;
   tooltipScenario: ReturnType<typeof useTooltipScenario>;
+  toggleScenario: ReturnType<typeof useToggleScenario>;
+  toggleGroupScenario: ReturnType<typeof useToggleGroupScenario>;
 }) {
   if (
+    scenarioId !== "button" &&
+    scenarioId !== "checkbox" &&
+    scenarioId !== "radio-group" &&
+    scenarioId !== "switch" &&
+    scenarioId !== "toggle" &&
+    scenarioId !== "toggle-group" &&
     scenarioId !== "alert-dialog" &&
     scenarioId !== "popover" &&
     scenarioId !== "hover-card" &&
@@ -1970,6 +2427,18 @@ function ScenarioLogAction({
       onPress={
         scenarioId === "dialog"
           ? dialogScenario.actions.clearLog
+          : scenarioId === "button"
+            ? buttonScenario.actions.clearLog
+            : scenarioId === "checkbox"
+              ? checkboxScenario.actions.clearLog
+              : scenarioId === "radio-group"
+                ? radioGroupScenario.actions.clearLog
+                : scenarioId === "switch"
+                  ? switchScenario.actions.clearLog
+                  : scenarioId === "toggle"
+                    ? toggleScenario.actions.clearLog
+                    : scenarioId === "toggle-group"
+                      ? toggleGroupScenario.actions.clearLog
           : scenarioId === "alert-dialog"
             ? alertDialogScenario.actions.clearLog
             : scenarioId === "popover"

@@ -450,6 +450,9 @@ Dropdown Menu, and Context Menu proved shared command-menu behavior, checkbox
 and radio items, submenus, placement, and close behavior. Popover, HoverCard,
 Tooltip, and Alert Dialog extend the overlay set with anchored popup behavior,
 hover/focus timing, tooltip relationships, and destructive confirmation behavior.
+Button, Checkbox, Switch, Toggle, ToggleGroup, and RadioGroup start the form
+control pass with checked/pressed/value state, disabled/read-only behavior,
+generated form inputs, keyboard interaction, and composition coverage.
 
 Dialog is a good first scenario because it exercises:
 
