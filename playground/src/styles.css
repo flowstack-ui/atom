@@ -1285,6 +1285,32 @@ h2 {
   box-shadow: 0 1px 2px rgba(12, 18, 26, 0.08);
 }
 
+.utility-pressable {
+  display: grid;
+  width: min(320px, 100%);
+  min-height: 108px;
+  align-content: center;
+  justify-content: stretch;
+  gap: 7px;
+  border-radius: 8px;
+  padding: 16px 18px;
+  text-align: left;
+}
+
+.utility-pressable strong {
+  color: inherit;
+  font-size: 16px;
+  font-weight: 760;
+  line-height: 1.2;
+}
+
+.utility-pressable span {
+  color: #536171;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
 .utility-pressable:hover,
 .utility-visible-button:hover,
 .utility-skip-link:hover,
@@ -1307,6 +1333,10 @@ h2 {
   border-color: #1c2430;
   background: #1c2430;
   color: #ffffff;
+}
+
+.utility-pressable[data-pressed] span {
+  color: #d9e1eb;
 }
 
 .utility-pressable[disabled],

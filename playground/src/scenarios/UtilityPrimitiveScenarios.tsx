@@ -568,6 +568,7 @@ function PressableScenarioCanvas({ scenario }: { scenario: ReturnType<typeof use
     "data-playground-inspect": "",
     "data-prop-check": "root",
     disabled: scenario.state.disabled,
+    render: "div" as const,
     onClick: () => scenario.actions.note("user onClick"),
     onKeyDown: (event: KeyboardEvent<HTMLElement>) => scenario.actions.note(`user onKeyDown ${event.key}`),
     onPointerDown: () => scenario.actions.note("user pointerdown"),
@@ -578,13 +579,27 @@ function PressableScenarioCanvas({ scenario }: { scenario: ReturnType<typeof use
   return (
     <div className="utility-primitive-stage">
       {scenario.state.composition === "asChild" ? (
-        <Pressable.Root {...props} asChild>
-          <span>Press action</span>
+        <Pressable.Root {...props} render={undefined} asChild>
+          <article>
+            <strong>Project Alpha</strong>
+            <span>Open project details</span>
+          </article>
         </Pressable.Root>
       ) : scenario.state.composition === "render" ? (
-        <Pressable.Root {...props} render={(renderProps) => <div {...renderProps}>Press action</div>} />
+        <Pressable.Root
+          {...props}
+          render={(renderProps) => (
+            <div {...renderProps}>
+              <strong>Project Alpha</strong>
+              <span>Open project details</span>
+            </div>
+          )}
+        />
       ) : (
-        <Pressable.Root {...props}>Press action</Pressable.Root>
+        <Pressable.Root {...props}>
+          <strong>Project Alpha</strong>
+          <span>Open project details</span>
+        </Pressable.Root>
       )}
     </div>
   );

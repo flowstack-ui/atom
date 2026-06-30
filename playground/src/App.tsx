@@ -341,12 +341,6 @@ const scenarios: Scenario[] = [
     category: "Utilities",
     checks: ["Content mounts outside root", "Unmount removes content"],
   },
-  {
-    id: "visually-hidden",
-    label: "VisuallyHidden",
-    category: "Utilities",
-    checks: ["Content stays accessible", "Text is visually hidden"],
-  },
 ];
 
 const categories = ["Forms", "Overlays", "Navigation", "Data", "Utilities"];
