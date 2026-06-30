@@ -9,6 +9,13 @@
 - Fixed DropdownMenu pointer-open behavior so clicking the trigger opens
   without pre-highlighting the first item; keyboard Enter, Space, ArrowDown,
   and ArrowUp still seed the expected highlight.
+- Fixed `ContextMenu.Trigger` so its documented `asChild` and `render`
+  composition props are implemented while preserving context-menu behavior.
+- Fixed `ContextMenu.Content` so refs forward to the underlying shared menu
+  content element.
+- Fixed ContextMenu pointer-open behavior so right-click opens without
+  pre-highlighting the first item; keyboard context-menu opens still seed the
+  first highlight.
 - Fixed Menu/DropdownMenu pointer reopen behavior so closing animations cannot
   reapply the default first-item highlight for the next pointer open.
 - Fixed Menubar pointer-open behavior so clicking or hovering between top-level

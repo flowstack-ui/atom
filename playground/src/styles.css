@@ -933,6 +933,50 @@ h2 {
   pointer-events: none;
 }
 
+.context-menu-target {
+  position: relative;
+  display: grid;
+  box-sizing: border-box;
+  width: min(100%, 440px);
+  min-height: 150px;
+  align-content: center;
+  justify-items: center;
+  gap: 8px;
+  border: 1px dashed #9ca8b8;
+  border-radius: 7px;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.78)),
+    repeating-linear-gradient(0deg, transparent 0 23px, #e9edf2 23px 24px),
+    repeating-linear-gradient(90deg, transparent 0 23px, #e9edf2 23px 24px);
+  color: #253142;
+  cursor: context-menu;
+  outline: none;
+}
+
+.context-menu-target:focus-visible {
+  box-shadow: 0 0 0 3px #8ab4ff;
+}
+
+.context-menu-target-title {
+  font-weight: 750;
+}
+
+.context-menu-target-copy {
+  color: #617083;
+  font-size: 13px;
+}
+
+.context-menu-target-marker {
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
+  width: 9px;
+  height: 9px;
+  border: 2px solid #253142;
+  border-radius: 999px;
+  background: #ffffff;
+}
+
 .playground-menu-content {
   z-index: 50;
   min-width: 190px;

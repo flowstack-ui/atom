@@ -591,7 +591,7 @@ test("namespace exports provide the long-term compound API", () => {
   assert.equal(typeof MenuContent, "object");
   assert.equal(typeof MenuSubContent, "object");
   assert.equal(typeof MenubarContent, "object");
-  assert.equal(typeof ContextMenu.Content, "function");
+  assert.equal(typeof ContextMenu.Content, "object");
   assert.equal(typeof ContextMenu.Item, "object");
   assert.equal(typeof ContextMenu.CheckboxItem, "function");
   assert.equal(typeof ContextMenu.RadioGroup, "function");

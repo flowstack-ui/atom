@@ -236,8 +236,8 @@ test("source exposes refs and client boundaries on public wrappers", async () =>
   assert.match(modalDescriptionSource, /^"use client";/);
   assert.match(modalTitleSource, /forwardRef<\s*HTMLHeadingElement,\s*ModalTitleProps\s*>/);
   assert.match(modalDescriptionSource, /forwardRef<\s*HTMLParagraphElement,\s*ModalDescriptionProps\s*>/);
-  assert.match(contextMenuTriggerSource, /forwardRef<\s*HTMLSpanElement,\s*ContextMenuTriggerProps\s*>/);
-  assert.match(contextMenuTriggerSource, /composeRefs\(spanRef, ctx\.triggerRef, ref\)/);
+  assert.match(contextMenuTriggerSource, /forwardRef<\s*HTMLElement,\s*ContextMenuTriggerProps\s*>/);
+  assert.match(contextMenuTriggerSource, /composeRefs\(triggerRef, ctx\.triggerRef, ref\)/);
   assert.match(menuContentSource, /forwardRef<\s*HTMLDivElement,\s*MenuContentProps\s*>/);
   assert.match(menuContentSource, /composeRefs\(refs\.setFloating, internalRef, contentRef, presenceRef, ref\)/);
   assert.match(menuSubContentSource, /forwardRef<\s*HTMLDivElement,\s*MenuSubContentProps\s*>/);

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Fixed `Trigger` so its documented `asChild` and `render` composition props
+  are implemented while preserving context-menu behavior.
+- Fixed `Content` so refs forward to the underlying shared menu content
+  element.
+- Fixed pointer-open behavior so right-click opens without pre-highlighting the
+  first item; keyboard context-menu opens still seed the first highlight.
 - Inherited the shared Menu typeahead behavior so a single-character search
   cycles from the current matching item while multi-character buffers still
   match exact prefixes.

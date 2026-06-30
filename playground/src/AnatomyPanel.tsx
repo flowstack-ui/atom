@@ -261,10 +261,10 @@ function buildDisplayGroups(rows: AnatomyRow[]): AnatomyDisplayGroup[] {
 
   visibleGroupOrder.forEach((category) => {
     const rowsForCategory = buckets.get(category);
-    if (!rowsForCategory?.length) return;
+    if (!rowsForCategory?.length && (category !== "attributes" || isEmptyValue(tag))) return;
 
     const dedupedRows = Array.from(
-      rowsForCategory.reduce((rowMap, row) => {
+      (rowsForCategory ?? []).reduce((rowMap, row) => {
         rowMap.set(getRowKey(row), row);
         return rowMap;
       }, new Map<string, AnatomyRow>()).values(),
@@ -380,11 +380,11 @@ function AnatomyGroups({ rows }: { rows: AnatomyRow[] }) {
             <span>{group.title}</span>
             {group.kind === "raw" && group.tag ? <code>{group.tag}</code> : null}
           </h4>
-          {group.kind === "raw" ? (
+          {group.kind === "raw" && group.rows.length > 0 ? (
             <pre className="parts-attribute-list">
               {group.rows.map(formatAttributeRow).join("\n")}
             </pre>
-          ) : (
+          ) : group.kind === "raw" ? null : (
             <dl className="parts-grid">
               {group.rows.map((row) => (
                 <div key={`${row.category ?? "state"}-${row.label}`}>
