@@ -2282,6 +2282,125 @@ h2 {
   text-align: center;
 }
 
+.field-demo,
+.fieldset-demo {
+  display: grid;
+  width: min(520px, 100%);
+  gap: 8px;
+}
+
+.field-demo {
+  align-items: start;
+}
+
+.fieldset-demo {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.field-demo [data-slot="field-label"],
+.fieldset-demo [data-slot="fieldset-legend"] {
+  color: #1f2a37;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.field-demo [data-slot="field-description"],
+.fieldset-demo [data-slot="fieldset-description"] {
+  margin: 0;
+  color: #5f6f82;
+  font-size: 14px;
+}
+
+.field-demo [data-slot="field-error"],
+.fieldset-demo [data-slot="fieldset-error"] {
+  margin: 0;
+  color: #9f1239;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.field-demo [data-slot="input"],
+.field-demo [data-slot="textarea"],
+.number-input-control,
+.password-demo-row [data-slot="password-toggle-field-input"] {
+  min-height: 40px;
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1f2a37;
+  font: inherit;
+  padding: 8px 10px;
+}
+
+.field-demo [data-slot="textarea"] {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.input-demo-row,
+.password-demo-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.input-demo-row [data-slot="input"] {
+  grid-column: 1;
+}
+
+.input-demo-row [data-slot="input-clear"],
+.password-demo-row [data-slot="password-toggle-field-toggle"] {
+  min-height: 40px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1f2a37;
+  font: inherit;
+  font-weight: 700;
+  padding: 0 12px;
+}
+
+.input-demo-row [data-slot="input-clear"][data-hidden],
+.password-demo-row [data-slot="password-toggle-field-toggle"]:disabled,
+.number-stepper .small:disabled {
+  opacity: 0.48;
+}
+
+.field-option-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.field-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #1f2a37;
+  font-weight: 700;
+}
+
+.number-input-demo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.number-stepper {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.number-stepper .small {
+  min-height: 40px;
+  padding-inline: 12px;
+}
+
 @media (max-width: 880px) {
   .menu-bar {
     padding: 0;

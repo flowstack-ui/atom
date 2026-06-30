@@ -453,6 +453,10 @@ hover/focus timing, tooltip relationships, and destructive confirmation behavior
 Button, Checkbox, Switch, Toggle, ToggleGroup, and RadioGroup start the form
 control pass with checked/pressed/value state, disabled/read-only behavior,
 generated form inputs, keyboard interaction, and composition coverage.
+Field, Fieldset, Input, Textarea, Number Input, and Password Toggle Field extend
+the form pass with label/description/error wiring, grouped field state, text
+value controls, clear/count companions, number spinbutton behavior, and password
+visibility toggling.
 Badge, Divider, Aspect Ratio, Avatar, Label, and List start the lightweight
 display/layout pass with render output, composition, native prop markers,
 label association, avatar fallback state, and live DOM evidence.
