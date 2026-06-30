@@ -755,7 +755,7 @@ export function ToggleScenarioToolbar({ scenario }: { scenario: ToggleScenario }
 
 export function RadioGroupScenarioToolbar({ scenario }: { scenario: RadioGroupScenario }) {
   return (
-    <ControlToolbar label="RadioGroup controls">
+    <ControlToolbar label="Radio Group controls">
       <ToolbarGroup title="State" value="state">
         <MenuCheckboxControl checked={scenario.state.controlled} label="Controlled" value="controlled" onChange={scenario.actions.setControlled} />
         <MenuCheckboxControl checked={scenario.state.disabled} label="Disabled" value="disabled" onChange={scenario.actions.setDisabled} />
@@ -779,7 +779,7 @@ export function ToggleGroupScenarioToolbar({ scenario }: { scenario: ToggleGroup
   const valueString = Array.isArray(scenario.state.value) ? scenario.state.value[0] ?? "none" : scenario.state.value || "none";
 
   return (
-    <ControlToolbar label="ToggleGroup controls">
+    <ControlToolbar label="Toggle Group controls">
       <ToolbarGroup title="State" value="state">
         <MenuCheckboxControl checked={scenario.state.controlled} label="Controlled" value="controlled" onChange={scenario.actions.setControlled} />
         <MenuCheckboxControl checked={scenario.state.disabled} label="Disabled" value="disabled" onChange={scenario.actions.setDisabled} />
@@ -1103,8 +1103,8 @@ function ControlToolbar({ label, children }: { label: string; children: ReactNod
 function ToolbarGroup({ title, value, children }: { title: string; value: string; children: ReactNode }) {
   return (
     <Menubar.Menu value={value}>
-      <Menubar.Trigger className="toolbar-menu-trigger">{title}</Menubar.Trigger>
-      <Menubar.Content className="toolbar-menu-content" align="start" sideOffset={6}>
+      <Menubar.Trigger className="toolbar-group-trigger">{title}</Menubar.Trigger>
+      <Menubar.Content className="toolbar-menu" align="start" sideOffset={6}>
         {children}
       </Menubar.Content>
     </Menubar.Menu>
@@ -1126,7 +1126,7 @@ function CompositionToolbarGroup({
 }
 
 function MenuSection({ label }: { label: string }) {
-  return <div className="toolbar-menu-section">{label}</div>;
+  return <div className="toolbar-menu-label">{label}</div>;
 }
 
 function MenuCheckboxControl({

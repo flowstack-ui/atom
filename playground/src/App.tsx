@@ -185,7 +185,7 @@ const scenarios: Scenario[] = [
   },
   {
     id: "radio-group",
-    label: "RadioGroup",
+    label: "Radio Group",
     category: "Forms",
     checks: ["Arrow keys move", "Value changes", "Required state shows"],
   },
@@ -203,7 +203,7 @@ const scenarios: Scenario[] = [
   },
   {
     id: "toggle-group",
-    label: "ToggleGroup",
+    label: "Toggle Group",
     category: "Forms",
     checks: ["Value changes", "Arrow keys move", "Disabled item skips"],
   },
