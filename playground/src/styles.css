@@ -799,6 +799,25 @@ h2 {
   stroke: #b9c2ce;
 }
 
+.atom-tooltip-content {
+  z-index: 45;
+  max-width: min(220px, calc(100vw - 32px));
+  border: 1px solid #b9c2ce;
+  border-radius: 6px;
+  background: #ffffff;
+  padding: 7px 9px;
+  color: #202a36;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.35;
+  box-shadow: 0 14px 34px rgba(12, 18, 26, 0.22), 0 4px 12px rgba(12, 18, 26, 0.12);
+}
+
+.atom-tooltip-content:focus {
+  outline: 3px solid rgba(57, 120, 216, 0.24);
+  outline-offset: 2px;
+}
+
 .select-field {
   display: grid;
   width: min(420px, 100%);
