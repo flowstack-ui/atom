@@ -263,21 +263,21 @@ export function PopoverScenarioLog({
 }: {
   state: PopoverScenarioState;
 }) {
-  if (state.log.length === 0) return null;
-
   return (
-    <ScrollArea.Root className="log-scroll" orientation="vertical">
-      <ScrollArea.Viewport className="log-scroll-viewport" focusable aria-label="Popover event log">
-        <ol className="log-list">
-          {state.log.map((entry) => (
-            <li key={entry.id}>
-              <time>{entry.time}</time>
-              <span>{entry.text}</span>
-            </li>
-          ))}
-        </ol>
-      </ScrollArea.Viewport>
-    </ScrollArea.Root>
+    <div className="scenario-log">
+      <ScrollArea.Root className="event-log" orientation="vertical">
+        <ScrollArea.Viewport className="event-log-viewport" focusable aria-label="Event log">
+          <ol>
+            {state.log.map((entry) => (
+              <li key={entry.id}>
+                <time>{entry.time}</time>
+                <span>{entry.text}</span>
+              </li>
+            ))}
+          </ol>
+        </ScrollArea.Viewport>
+      </ScrollArea.Root>
+    </div>
   );
 }
 

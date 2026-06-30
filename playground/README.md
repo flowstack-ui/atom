@@ -447,9 +447,9 @@ Use the same UI model across scenarios:
 Dialog established the initial playground pattern. Select added form, listbox,
 typeahead, scroll, nested overlay, and generated hidden input coverage. Menu,
 Dropdown Menu, and Context Menu proved shared command-menu behavior, checkbox
-and radio items, submenus, placement, and close behavior. Popover and
-Alert Dialog extend the overlay set with anchored popup behavior and destructive
-confirmation behavior.
+and radio items, submenus, placement, and close behavior. Popover, HoverCard,
+Tooltip, and Alert Dialog extend the overlay set with anchored popup behavior,
+hover/focus timing, tooltip relationships, and destructive confirmation behavior.
 
 Dialog is a good first scenario because it exercises:
 
