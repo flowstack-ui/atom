@@ -317,9 +317,7 @@ export function CheckboxScenarioCanvas({ scenario }: { scenario: CheckboxScenari
             data-playground-inspect=""
             data-prop-check="indicator"
             forceMount={state.forceMount}
-          >
-            ✓
-          </Checkbox.Indicator>
+          />
         </CheckboxRootExample>
         <span>Email updates</span>
       </label>
