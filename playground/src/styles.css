@@ -2366,7 +2366,7 @@ h2 {
 
 .input-demo-row [data-slot="input-clear"][data-hidden],
 .password-demo-row [data-slot="password-toggle-field-toggle"]:disabled,
-.number-stepper .small:disabled {
+.number-stepper-button:disabled {
   opacity: 0.48;
 }
 
@@ -2393,12 +2393,330 @@ h2 {
 
 .number-stepper {
   display: inline-flex;
+  align-items: center;
   gap: 6px;
 }
 
-.number-stepper .small {
+.number-stepper-button {
+  width: 72px;
   min-height: 40px;
-  padding-inline: 12px;
+  padding-inline: 0;
+}
+
+.playground-appbar {
+  width: min(620px, 100%);
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.playground-appbar-toolbar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  min-height: 56px;
+  gap: 12px;
+  padding: 10px 14px;
+}
+
+.playground-appbar-section {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #1f2a37;
+  font-weight: 700;
+}
+
+.playground-appbar-section:last-child {
+  justify-content: flex-end;
+}
+
+.playground-tabs {
+  width: min(620px, 100%);
+  display: grid;
+  gap: 10px;
+}
+
+.playground-tabs-list {
+  position: relative;
+  display: inline-flex;
+  width: fit-content;
+  gap: 4px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 4px;
+}
+
+.playground-tabs-trigger {
+  min-height: 36px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #4b5563;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 0 12px;
+}
+
+.playground-tabs-trigger[data-state="active"] {
+  background: #111827;
+  color: #ffffff;
+}
+
+.playground-tabs-trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.playground-tabs-indicator {
+  display: none;
+}
+
+.playground-tabs-content {
+  min-height: 118px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f2a37;
+  padding: 18px;
+}
+
+.playground-accordion {
+  width: min(620px, 100%);
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.playground-accordion-item + .playground-accordion-item {
+  border-top: 1px solid #e5e7eb;
+}
+
+.playground-accordion-header {
+  margin: 0;
+}
+
+.playground-accordion-trigger {
+  width: 100%;
+  min-height: 46px;
+  border: 0;
+  background: #ffffff;
+  color: #1f2a37;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 0 14px;
+  text-align: left;
+}
+
+.playground-accordion-trigger:hover {
+  background: #f8fafc;
+}
+
+.playground-accordion-trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.playground-accordion-content {
+  border-top: 1px solid #e5e7eb;
+  background: #f8fafc;
+  color: #4b5563;
+  padding: 14px;
+}
+
+.playground-breadcrumb {
+  width: min(620px, 100%);
+}
+
+.playground-breadcrumb-list {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: #4b5563;
+  font-weight: 700;
+}
+
+.playground-breadcrumb-list a,
+.playground-breadcrumb-list button {
+  border: 0;
+  background: transparent;
+  color: #1f2a37;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 0;
+  text-decoration: none;
+}
+
+.playground-pagination {
+  width: min(620px, 100%);
+}
+
+.playground-pagination-list {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.playground-pagination-button,
+.playground-pagination-ellipsis {
+  min-width: 40px;
+  min-height: 40px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f2a37;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: inherit;
+  font-weight: 700;
+  padding: 0 10px;
+}
+
+.playground-pagination-button {
+  cursor: pointer;
+}
+
+.playground-pagination-button[aria-current="page"] {
+  background: #111827;
+  border-color: #111827;
+  color: #ffffff;
+}
+
+.playground-pagination-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.playground-bottom-nav {
+  width: min(620px, 100%);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.playground-bottom-nav-item {
+  min-height: 58px;
+  border: 0;
+  border-right: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #4b5563;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: inherit;
+  font-weight: 700;
+  padding: 0 12px;
+  text-decoration: none;
+}
+
+.playground-bottom-nav-item:last-child {
+  border-right: 0;
+}
+
+.playground-bottom-nav-item[data-state="active"] {
+  background: #111827;
+  color: #ffffff;
+}
+
+.playground-bottom-nav-item:disabled,
+.playground-bottom-nav-item[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.playground-nav-list {
+  width: min(620px, 100%);
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.playground-nav-list-section-trigger,
+.playground-nav-list-section-label {
+  min-height: 44px;
+  padding: 0 14px;
+  color: #1f2a37;
+  font-weight: 700;
+}
+
+.playground-nav-list-section-trigger {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.playground-nav-list-section-trigger:hover {
+  background: #f8fafc;
+}
+
+.playground-nav-list-section-label {
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+.playground-nav-list-section-content {
+  border-top: 1px solid #e5e7eb;
+}
+
+.playground-nav-list-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 8px;
+  list-style-position: inside;
+}
+
+.playground-nav-list-list a,
+.playground-nav-list-list button {
+  width: 100%;
+  min-height: 38px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #1f2a37;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font: inherit;
+  font-weight: 700;
+  padding: 0 10px;
+  text-align: left;
+  text-decoration: none;
+}
+
+.playground-nav-list-list a:hover,
+.playground-nav-list-list button:hover {
+  background: #f1f5f9;
+}
+
+.playground-nav-list-list [aria-current="page"] {
+  background: #111827;
+  color: #ffffff;
 }
 
 @media (max-width: 880px) {

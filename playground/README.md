@@ -76,6 +76,11 @@ Top app bar
     Popover
     Select
   Navigation
+    App Bar
+    Bottom Navigation
+    Breadcrumb
+    Pagination
+    Nav List
     Tabs
     Accordion
   Data
@@ -464,6 +469,10 @@ Progress, Pressable, Visually Hidden, Skip Link, Collapsible, and Toolbar add
 utility and disclosure coverage for progress semantics, custom press behavior,
 programmatic skip focus, mounted/unmounted disclosure content, and toolbar
 roving focus.
+App Bar, Tabs, Accordion, Breadcrumb, Pagination, Bottom Navigation, and Nav
+List start the navigation pass with structural landmarks, active value state,
+roving/keyboard behavior, ordered path output, page range controls, and
+collapsible navigation sections.
 
 Dialog is a good first scenario because it exercises:
 

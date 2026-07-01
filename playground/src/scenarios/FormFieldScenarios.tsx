@@ -700,7 +700,7 @@ function NumberInputCanvas({ scenario }: { scenario: ReturnType<typeof useNumber
         {(renderState) => (
           <div className="number-stepper" data-prop-check="controls">
             <Button.Root
-              className="secondary small"
+              className="atom-button secondary number-stepper-button"
               disabled={renderState.disabled || renderState.readOnly || renderState.isAtMin}
               onPress={() => {
                 renderState.handleStep(-1);
@@ -710,7 +710,7 @@ function NumberInputCanvas({ scenario }: { scenario: ReturnType<typeof useNumber
               Down
             </Button.Root>
             <Button.Root
-              className="secondary small"
+              className="atom-button secondary number-stepper-button"
               disabled={renderState.disabled || renderState.readOnly || renderState.isAtMax}
               onPress={() => {
                 renderState.handleStep(1);
