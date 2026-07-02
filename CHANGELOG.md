@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Fixed Collection duplicate item value warnings so browser development
+  environments without `process.env.NODE_ENV` still report duplicate values.
+- Fixed Slider percent geometry so `data-percent` and inline percent offsets do
+  not expose floating-point artifacts such as `55.00000000000001`.
 - Standardized typeahead matching across Menu, DropdownMenu, ContextMenu,
   Menubar, Select, Listbox, and Tree so single-character searches cycle from
   the current matching item while multi-character buffers still match exact

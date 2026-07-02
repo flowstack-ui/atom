@@ -1,13 +1,12 @@
 import { Button } from "@flowstack-ui/atom/button";
 import { Dialog } from "@flowstack-ui/atom/dialog";
-import { Menubar } from "@flowstack-ui/atom/menubar";
 import { Menu } from "@flowstack-ui/atom/menu";
-import { ScrollArea } from "@flowstack-ui/atom/scroll-area";
 import { useRef, type MouseEvent, type ReactNode } from "react";
 import {
   AnatomyPanel,
   type AnatomySection,
 } from "../AnatomyPanel";
+import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, ScenarioEventLog, ToolbarGroup } from "../WorkbenchPrimitives";
 import type { Dispatch, SetStateAction } from "react";
 import type {
   MenuAlign,
@@ -341,7 +340,7 @@ export function MenuScenarioToolbar({
   actions: MenuScenarioActions;
 }) {
   return (
-    <Menubar.Root className="canvas-toolbar" aria-label="Menu controls">
+    <ControlToolbar label="Menu controls">
       <ToolbarGroup title="State" value="state">
         <MenuSection label="Root">
           <MenuCheckboxControl checked={state.controlled} label="Controlled" value="controlled" onChange={actions.setControlled} />
@@ -394,7 +393,7 @@ export function MenuScenarioToolbar({
           <MenuCheckboxControl checked={state.logPointer} label="Log pointer" value="log-pointer" onChange={actions.setLogPointer} />
         </MenuSection>
       </ToolbarGroup>
-    </Menubar.Root>
+    </ControlToolbar>
   );
 }
 
@@ -675,89 +674,7 @@ export function MenuScenarioAnatomy({
 }
 
 export function MenuScenarioLog({ state }: { state: MenuScenarioState }) {
-  return (
-    <div className="scenario-log">
-      <ScrollArea.Root className="event-log" orientation="vertical">
-        <ScrollArea.Viewport className="event-log-viewport" focusable aria-label="Event log">
-          <ol>
-            {state.log.map((entry) => (
-              <li key={entry.id}>
-                <time>{entry.time}</time>
-                <span>{entry.text}</span>
-              </li>
-            ))}
-          </ol>
-        </ScrollArea.Viewport>
-      </ScrollArea.Root>
-    </div>
-  );
-}
-
-function ToolbarGroup({ children, title, value }: { children: ReactNode; title: string; value: string }) {
-  return (
-    <Menubar.Menu closeOnSelect={false} value={value}>
-      <Menubar.Trigger className="toolbar-group-trigger">
-        <span>{title}</span>
-      </Menubar.Trigger>
-      <Menubar.Content className="toolbar-menu" sideOffset={4}>
-        {children}
-      </Menubar.Content>
-    </Menubar.Menu>
-  );
-}
-
-function MenuSection({ children, label }: { children: ReactNode; label: string }) {
-  return (
-    <div className="toolbar-menu-section">
-      <div className="toolbar-menu-label">{label}</div>
-      <div className="toolbar-menu-items">{children}</div>
-    </div>
-  );
-}
-
-function MenuCheckboxControl({
-  checked,
-  label,
-  value,
-  onChange,
-}: {
-  checked: boolean;
-  label: string;
-  value: string;
-  onChange: (value: boolean) => void;
-}) {
-  return (
-    <Menubar.CheckboxItem className="toolbar-menu-item" checked={checked} value={value} onCheckedChange={onChange}>
-      <span>{label}</span>
-      <span className="toolbar-menu-check" aria-hidden="true">{checked ? "✓" : ""}</span>
-    </Menubar.CheckboxItem>
-  );
-}
-
-function MenuRadioControl<T extends string>({
-  label,
-  options,
-  value,
-  onChange,
-}: {
-  label: string;
-  options: readonly T[];
-  value: T;
-  onChange: (value: T) => void;
-}) {
-  return (
-    <div className="toolbar-menu-section">
-      <div className="toolbar-menu-label">{label}</div>
-      <Menubar.RadioGroup className="toolbar-radio-group" value={value} onValueChange={(nextValue) => onChange(nextValue as T)}>
-        {options.map((option) => (
-          <Menubar.RadioItem className="toolbar-menu-item" key={option} value={option}>
-            <span>{option}</span>
-            <span className="toolbar-menu-check" aria-hidden="true">{option === value ? "✓" : ""}</span>
-          </Menubar.RadioItem>
-        ))}
-      </Menubar.RadioGroup>
-    </div>
-  );
+  return <ScenarioEventLog log={state.log} />;
 }
 
 const sideOptions: readonly MenuSide[] = ["bottom", "top", "right", "left"];

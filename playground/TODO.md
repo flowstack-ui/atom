@@ -8,6 +8,23 @@ yet. Keep it practical and update it when the playground conventions change.
 We want a reusable toolbar system so Dialog, Select, Menu, and future scenarios
 do not hand-roll different menu structures for the same ideas.
 
+Shared module:
+
+- `src/WorkbenchPrimitives.tsx`
+
+Use this module for workbench chrome before adding new per-scenario helpers.
+It currently owns:
+
+- `ControlToolbar`
+- `ToolbarGroup`
+- `MenuSection`
+- `MenuCheckboxControl`
+- `MenuRadioControl`
+- `ScenarioEventLog`
+
+The shared module is for playground UI only. It must not own component-specific
+scenario state, anatomy sections, or the live Atom component JSX.
+
 The goal is two layers:
 
 1. Shared toolbar renderer
@@ -173,7 +190,9 @@ Cross-component scenarios.
 
 ## Current Inconsistencies To Resolve
 
-- Dialog, Select, and Menu each define toolbar rows locally.
+- Scenario pages should not define private toolbar/log renderers. Add repeated
+  workbench UI to `WorkbenchPrimitives` and keep scenario files focused on
+  component state, anatomy data, source snippets, and canvas JSX.
 - Composition labels and order can drift between scenarios.
 - Common controls such as Controlled, Disabled, Required, Side, Align, and
   ariaLabel are repeated manually.
@@ -199,6 +218,8 @@ Target responsibilities:
    - Can inspect portalled elements that belong to the active scenario.
    - Accepts part selectors from scenarios.
    - Filters playground-only plumbing such as `data-playground-inspect`.
+   - Knows when a public API is a hook/utility with no Atom-rendered DOM, so
+     Anatomy can show hook return values separately from consumer DOM evidence.
 
 2. DOM evidence formatter
    - Produces `ID`, tag, native attributes, `ARIA`, and `Data`.
@@ -231,6 +252,38 @@ Implementation should happen after the current Anatomy experiment is stable:
 3. Move MutationObserver logic into one canvas inspection hook.
 4. Update Dialog, Select, and Menu to provide selectors plus curated rows only.
 5. Keep the coverage tracker updated as scenarios change.
+
+## Direction Coverage Audit
+
+Direction-sensitive primitives need a shared rule before more pages are marked
+complete.
+
+Target responsibilities:
+
+1. Source audit
+   - Identify components where RTL changes behavior, not only visual styling.
+   - Track components that already read `Direction.Provider`.
+   - Track components that expose only a local `dir` prop.
+   - Track components with left/right or start/end behavior that currently do
+     not read direction.
+
+2. Coverage tracker
+   - Add rows only to direction-sensitive component tabs.
+   - Rows should cover provider context, direct `dir` override when available,
+     mirrored keyboard or pointer behavior, and playground controls.
+   - Existing completed components should become incomplete again when a real
+     direction gap is found.
+
+3. Playground scenarios
+   - Expose provider direction and direct override separately when the public API
+     supports both.
+   - Show active direction in Anatomy/Inspector/logs when it helps verify the
+     behavior.
+
+4. Source implementation, later
+   - Standard component pattern should be direct `dir` prop first,
+     `Direction.Provider` second, then component default.
+   - Do not change source as part of the audit-only pass.
 
 ## Implementation Plan
 

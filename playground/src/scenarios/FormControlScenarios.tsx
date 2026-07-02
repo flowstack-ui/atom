@@ -1,8 +1,6 @@
 import { Button } from "@flowstack-ui/atom/button";
 import { Checkbox, type CheckboxCheckedState } from "@flowstack-ui/atom/checkbox";
-import { Menubar } from "@flowstack-ui/atom/menubar";
 import { RadioGroup } from "@flowstack-ui/atom/radio-group";
-import { ScrollArea } from "@flowstack-ui/atom/scroll-area";
 import { Switch } from "@flowstack-ui/atom/switch";
 import { Toggle } from "@flowstack-ui/atom/toggle";
 import { ToggleGroup } from "@flowstack-ui/atom/toggle-group";
@@ -11,6 +9,7 @@ import {
   AnatomyPanel,
   type AnatomySection,
 } from "../AnatomyPanel";
+import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, ScenarioEventLog as ScenarioEventLogBase, ToolbarGroup } from "../WorkbenchPrimitives";
 
 type LogEntry = {
   id: number;
@@ -797,22 +796,7 @@ export function ToggleGroupScenarioToolbar({ scenario }: { scenario: ToggleGroup
 }
 
 export function ScenarioEventLog({ log }: { log: LogEntry[] }) {
-  return (
-    <div className="scenario-log">
-      <ScrollArea.Root className="event-log" orientation="vertical">
-        <ScrollArea.Viewport className="event-log-viewport" focusable aria-label="Event log">
-          <ol>
-            {log.map((entry) => (
-              <li key={entry.id}>
-                <time>{entry.time}</time>
-                <span>{entry.text}</span>
-              </li>
-            ))}
-          </ol>
-        </ScrollArea.Viewport>
-      </ScrollArea.Root>
-    </div>
-  );
+  return <ScenarioEventLogBase log={log} />;
 }
 
 export function getButtonSource(state: ButtonScenario["state"]) {
@@ -1090,25 +1074,6 @@ function ToggleGroupItem({
   );
 }
 
-function ControlToolbar({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <Menubar.Root className="canvas-toolbar" aria-label={label}>
-      {children}
-    </Menubar.Root>
-  );
-}
-
-function ToolbarGroup({ title, value, children }: { title: string; value: string; children: ReactNode }) {
-  return (
-    <Menubar.Menu value={value}>
-      <Menubar.Trigger className="toolbar-group-trigger">{title}</Menubar.Trigger>
-      <Menubar.Content className="toolbar-menu" align="start" sideOffset={6}>
-        {children}
-      </Menubar.Content>
-    </Menubar.Menu>
-  );
-}
-
 function CompositionToolbarGroup({
   value,
   onChange,
@@ -1120,60 +1085,6 @@ function CompositionToolbarGroup({
     <ToolbarGroup title="Composition" value="composition">
       <MenuRadioControl label="Root" options={compositionOptions} value={value} onChange={onChange} />
     </ToolbarGroup>
-  );
-}
-
-function MenuSection({ label }: { label: string }) {
-  return <div className="toolbar-menu-label">{label}</div>;
-}
-
-function MenuCheckboxControl({
-  checked,
-  label,
-  value,
-  onChange,
-}: {
-  checked: boolean;
-  label: string;
-  value: string;
-  onChange: (checked: boolean) => void;
-}) {
-  return (
-    <Menubar.CheckboxItem
-      className="toolbar-menu-item"
-      checked={checked}
-      value={value}
-      onCheckedChange={onChange}
-    >
-      <span>{label}</span>
-      <span className="toolbar-menu-check" aria-hidden="true">{checked ? "✓" : ""}</span>
-    </Menubar.CheckboxItem>
-  );
-}
-
-function MenuRadioControl<T extends string>({
-  label,
-  options,
-  value,
-  onChange,
-}: {
-  label: string;
-  options: readonly T[];
-  value: T | string;
-  onChange: (value: T) => void;
-}) {
-  return (
-    <>
-      <MenuSection label={label} />
-      <Menubar.RadioGroup className="toolbar-radio-group" value={value} onValueChange={(nextValue) => onChange(nextValue as T)}>
-        {options.map((option) => (
-          <Menubar.RadioItem className="toolbar-menu-item" key={option} value={option}>
-            <span>{formatOption(option)}</span>
-            <span className="toolbar-menu-check" aria-hidden="true">{value === option ? "✓" : ""}</span>
-          </Menubar.RadioItem>
-        ))}
-      </Menubar.RadioGroup>
-    </>
   );
 }
 
@@ -1208,14 +1119,6 @@ function parseCheckboxState(value: string): CheckboxCheckedState {
   if (value === "true") return true;
   if (value === "indeterminate") return "indeterminate";
   return false;
-}
-
-function formatOption(value: string) {
-  if (value === "asChild") return "As Child";
-  return value
-    .split("-")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
 }
 
 const compositionOptions = ["default", "asChild", "render"] as const;

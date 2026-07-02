@@ -1,13 +1,12 @@
 import { Button } from "@flowstack-ui/atom/button";
 import { Dialog } from "@flowstack-ui/atom/dialog";
 import { DropdownMenu } from "@flowstack-ui/atom/dropdown-menu";
-import { Menubar } from "@flowstack-ui/atom/menubar";
-import { ScrollArea } from "@flowstack-ui/atom/scroll-area";
 import { type ReactNode } from "react";
 import {
   AnatomyPanel,
   type AnatomySection,
 } from "../AnatomyPanel";
+import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, ScenarioEventLog, ToolbarGroup } from "../WorkbenchPrimitives";
 import type { Dispatch, SetStateAction } from "react";
 import type {
   DropdownMenuAlign,
@@ -351,68 +350,68 @@ export function DropdownMenuScenarioToolbar({
   actions: DropdownMenuScenarioActions;
 }) {
   return (
-    <Menubar.Root className="canvas-toolbar" aria-label="Dropdown Menu controls">
+    <ControlToolbar label="Dropdown Menu controls">
       <ToolbarGroup title="State" value="state">
-        <DropdownMenuSection label="Root">
-          <DropdownMenuCheckboxControl checked={state.controlled} label="Controlled" value="controlled" onChange={actions.setControlled} />
-          <DropdownMenuCheckboxControl checked={state.defaultOpen} label="Default open" value="default-open" onChange={actions.setDefaultOpen} />
-          <DropdownMenuCheckboxControl checked={state.modal} label="Modal" value="modal" onChange={actions.setModal} />
-          <DropdownMenuCheckboxControl checked={state.closeOnSelect} label="Close on select" value="close-on-select" onChange={actions.setCloseOnSelect} />
-          <DropdownMenuCheckboxControl checked={state.closeOnEscape} label="Escape closes" value="escape-closes" onChange={actions.setCloseOnEscape} />
-          <DropdownMenuCheckboxControl checked={state.loop} label="Loop" value="loop" onChange={actions.setLoop} />
-        </DropdownMenuSection>
+        <MenuSection label="Root">
+          <MenuCheckboxControl checked={state.controlled} label="Controlled" value="controlled" onChange={actions.setControlled} />
+          <MenuCheckboxControl checked={state.defaultOpen} label="Default open" value="default-open" onChange={actions.setDefaultOpen} />
+          <MenuCheckboxControl checked={state.modal} label="Modal" value="modal" onChange={actions.setModal} />
+          <MenuCheckboxControl checked={state.closeOnSelect} label="Close on select" value="close-on-select" onChange={actions.setCloseOnSelect} />
+          <MenuCheckboxControl checked={state.closeOnEscape} label="Escape closes" value="escape-closes" onChange={actions.setCloseOnEscape} />
+          <MenuCheckboxControl checked={state.loop} label="Loop" value="loop" onChange={actions.setLoop} />
+        </MenuSection>
       </ToolbarGroup>
       <ToolbarGroup title="Popup" value="popup">
-        <DropdownMenuRadioControl label="Side" options={sideOptions} value={state.side} onChange={actions.setSide} />
-        <DropdownMenuRadioControl label="Align" options={alignOptions} value={state.align} onChange={actions.setAlign} />
-        <DropdownMenuSection label="Position">
-          <DropdownMenuCheckboxControl checked={state.sideOffset === 16} label="Large offset" value="large-offset" onChange={(checked) => actions.setSideOffset(checked ? 16 : 4)} />
-          <DropdownMenuCheckboxControl checked={state.contentAriaLabel} label="Content ariaLabel" value="content-aria-label" onChange={actions.setContentAriaLabel} />
-          <DropdownMenuCheckboxControl checked={state.contentLoopOff} label="Content loop off" value="content-loop-off" onChange={actions.setContentLoopOff} />
-          <DropdownMenuCheckboxControl checked={state.blockContentKeyDown} label="Block content keys" value="block-content-keys" onChange={actions.setBlockContentKeyDown} />
-        </DropdownMenuSection>
-        <DropdownMenuSection label="Nesting">
-          <DropdownMenuCheckboxControl checked={state.insideDialog} label="Inside Dialog" value="inside-dialog" onChange={actions.setInsideDialog} />
-        </DropdownMenuSection>
+        <MenuRadioControl label="Side" options={sideOptions} value={state.side} onChange={actions.setSide} />
+        <MenuRadioControl label="Align" options={alignOptions} value={state.align} onChange={actions.setAlign} />
+        <MenuSection label="Position">
+          <MenuCheckboxControl checked={state.sideOffset === 16} label="Large offset" value="large-offset" onChange={(checked) => actions.setSideOffset(checked ? 16 : 4)} />
+          <MenuCheckboxControl checked={state.contentAriaLabel} label="Content ariaLabel" value="content-aria-label" onChange={actions.setContentAriaLabel} />
+          <MenuCheckboxControl checked={state.contentLoopOff} label="Content loop off" value="content-loop-off" onChange={actions.setContentLoopOff} />
+          <MenuCheckboxControl checked={state.blockContentKeyDown} label="Block content keys" value="block-content-keys" onChange={actions.setBlockContentKeyDown} />
+        </MenuSection>
+        <MenuSection label="Nesting">
+          <MenuCheckboxControl checked={state.insideDialog} label="Inside Dialog" value="inside-dialog" onChange={actions.setInsideDialog} />
+        </MenuSection>
       </ToolbarGroup>
       <ToolbarGroup title="Items" value="items">
-        <DropdownMenuSection label="Selection">
-          <DropdownMenuCheckboxControl checked={state.checkboxChecked} label="Checkbox checked" value="checkbox-checked" onChange={actions.setCheckboxChecked} />
-          <DropdownMenuCheckboxControl checked={state.checkboxDisabled} label="Checkbox disabled" value="checkbox-disabled" onChange={actions.setCheckboxDisabled} />
-          <DropdownMenuCheckboxControl checked={state.closeCheckboxOnSelect} label="Checkbox closes" value="checkbox-closes" onChange={actions.setCloseCheckboxOnSelect} />
-          <DropdownMenuCheckboxControl checked={state.closeRadioOnSelect} label="Radio closes" value="radio-closes" onChange={actions.setCloseRadioOnSelect} />
-        </DropdownMenuSection>
-        <DropdownMenuRadioControl label="Radio value" options={radioOptions} value={state.radioValue} onChange={actions.setRadioValue} />
-        <DropdownMenuRadioControl label="Radio value 2" options={radioOptions} value={state.radioValueSecondary} onChange={actions.setRadioValueSecondary} />
-        <DropdownMenuSection label="Availability">
-          <DropdownMenuCheckboxControl checked={state.showDisabledItem} label="Show disabled item" value="show-disabled-item" onChange={actions.setShowDisabledItem} />
-          <DropdownMenuCheckboxControl checked={state.radioItemDisabled} label="Compact radio disabled" value="compact-radio-disabled" onChange={actions.setRadioItemDisabled} />
-        </DropdownMenuSection>
+        <MenuSection label="Selection">
+          <MenuCheckboxControl checked={state.checkboxChecked} label="Checkbox checked" value="checkbox-checked" onChange={actions.setCheckboxChecked} />
+          <MenuCheckboxControl checked={state.checkboxDisabled} label="Checkbox disabled" value="checkbox-disabled" onChange={actions.setCheckboxDisabled} />
+          <MenuCheckboxControl checked={state.closeCheckboxOnSelect} label="Checkbox closes" value="checkbox-closes" onChange={actions.setCloseCheckboxOnSelect} />
+          <MenuCheckboxControl checked={state.closeRadioOnSelect} label="Radio closes" value="radio-closes" onChange={actions.setCloseRadioOnSelect} />
+        </MenuSection>
+        <MenuRadioControl label="Radio value" options={radioOptions} value={state.radioValue} onChange={actions.setRadioValue} />
+        <MenuRadioControl label="Radio value 2" options={radioOptions} value={state.radioValueSecondary} onChange={actions.setRadioValueSecondary} />
+        <MenuSection label="Availability">
+          <MenuCheckboxControl checked={state.showDisabledItem} label="Show disabled item" value="show-disabled-item" onChange={actions.setShowDisabledItem} />
+          <MenuCheckboxControl checked={state.radioItemDisabled} label="Compact radio disabled" value="compact-radio-disabled" onChange={actions.setRadioItemDisabled} />
+        </MenuSection>
       </ToolbarGroup>
       <ToolbarGroup title="Submenu" value="submenu">
-        <DropdownMenuSection label="Sub">
-          <DropdownMenuCheckboxControl checked={state.showSubmenu} label="Show submenu" value="show-submenu" onChange={actions.setShowSubmenu} />
-          <DropdownMenuCheckboxControl checked={state.disableSecondSubmenu} label="Disable share submenu" value="disable-second-submenu" onChange={actions.setDisableSecondSubmenu} />
-          <DropdownMenuCheckboxControl checked={state.controlledSubmenu} label="Controlled submenu" value="controlled-submenu" onChange={actions.setControlledSubmenu} />
-          <DropdownMenuCheckboxControl checked={state.defaultSubmenuOpen} label="Default sub open" value="default-sub-open" onChange={actions.setDefaultSubmenuOpen} />
-          <DropdownMenuCheckboxControl checked={state.subContentAriaLabel} label="Sub ariaLabel" value="sub-aria-label" onChange={actions.setSubContentAriaLabel} />
-          <DropdownMenuCheckboxControl checked={state.subSideOffset === 12} label="Large sub offset" value="large-sub-offset" onChange={(checked) => actions.setSubSideOffset(checked ? 12 : 4)} />
-          <DropdownMenuCheckboxControl checked={state.subContentLoopOff} label="Sub loop off" value="sub-loop-off" onChange={actions.setSubContentLoopOff} />
-          <DropdownMenuCheckboxControl checked={state.showNestedSubmenu} label="Nested submenu" value="nested-submenu" onChange={actions.setShowNestedSubmenu} />
-        </DropdownMenuSection>
+        <MenuSection label="Sub">
+          <MenuCheckboxControl checked={state.showSubmenu} label="Show submenu" value="show-submenu" onChange={actions.setShowSubmenu} />
+          <MenuCheckboxControl checked={state.disableSecondSubmenu} label="Disable share submenu" value="disable-second-submenu" onChange={actions.setDisableSecondSubmenu} />
+          <MenuCheckboxControl checked={state.controlledSubmenu} label="Controlled submenu" value="controlled-submenu" onChange={actions.setControlledSubmenu} />
+          <MenuCheckboxControl checked={state.defaultSubmenuOpen} label="Default sub open" value="default-sub-open" onChange={actions.setDefaultSubmenuOpen} />
+          <MenuCheckboxControl checked={state.subContentAriaLabel} label="Sub ariaLabel" value="sub-aria-label" onChange={actions.setSubContentAriaLabel} />
+          <MenuCheckboxControl checked={state.subSideOffset === 12} label="Large sub offset" value="large-sub-offset" onChange={(checked) => actions.setSubSideOffset(checked ? 12 : 4)} />
+          <MenuCheckboxControl checked={state.subContentLoopOff} label="Sub loop off" value="sub-loop-off" onChange={actions.setSubContentLoopOff} />
+          <MenuCheckboxControl checked={state.showNestedSubmenu} label="Nested submenu" value="nested-submenu" onChange={actions.setShowNestedSubmenu} />
+        </MenuSection>
       </ToolbarGroup>
       <ToolbarGroup title="Composition" value="composition">
-        <DropdownMenuRadioControl label="Trigger" options={compositionOptions} value={state.triggerComposition} onChange={actions.setTriggerComposition} />
-        <DropdownMenuRadioControl label="Item" options={compositionOptions} value={state.itemComposition} onChange={actions.setItemComposition} />
-        <DropdownMenuSection label="Events">
-          <DropdownMenuCheckboxControl checked={state.triggerDisabled} label="Disabled trigger" value="disabled-trigger" onChange={actions.setTriggerDisabled} />
-          <DropdownMenuCheckboxControl checked={state.triggerSlotOverride} label="Override trigger slot" value="override-trigger-slot" onChange={actions.setTriggerSlotOverride} />
-          <DropdownMenuCheckboxControl checked={state.blockTriggerEvent} label="Block trigger event" value="block-trigger-event" onChange={actions.setBlockTriggerEvent} />
-          <DropdownMenuCheckboxControl checked={state.blockItemSelect} label="Block item select" value="block-item-select" onChange={actions.setBlockItemSelect} />
-          <DropdownMenuCheckboxControl checked={state.logPointer} label="Log pointer" value="log-pointer" onChange={actions.setLogPointer} />
-        </DropdownMenuSection>
+        <MenuRadioControl label="Trigger" options={compositionOptions} value={state.triggerComposition} onChange={actions.setTriggerComposition} />
+        <MenuRadioControl label="Item" options={compositionOptions} value={state.itemComposition} onChange={actions.setItemComposition} />
+        <MenuSection label="Events">
+          <MenuCheckboxControl checked={state.triggerDisabled} label="Disabled trigger" value="disabled-trigger" onChange={actions.setTriggerDisabled} />
+          <MenuCheckboxControl checked={state.triggerSlotOverride} label="Override trigger slot" value="override-trigger-slot" onChange={actions.setTriggerSlotOverride} />
+          <MenuCheckboxControl checked={state.blockTriggerEvent} label="Block trigger event" value="block-trigger-event" onChange={actions.setBlockTriggerEvent} />
+          <MenuCheckboxControl checked={state.blockItemSelect} label="Block item select" value="block-item-select" onChange={actions.setBlockItemSelect} />
+          <MenuCheckboxControl checked={state.logPointer} label="Log pointer" value="log-pointer" onChange={actions.setLogPointer} />
+        </MenuSection>
       </ToolbarGroup>
-    </Menubar.Root>
+    </ControlToolbar>
   );
 }
 
@@ -728,89 +727,7 @@ export function DropdownMenuScenarioAnatomy({
 }
 
 export function DropdownMenuScenarioLog({ state }: { state: DropdownMenuScenarioState }) {
-  return (
-    <div className="scenario-log">
-      <ScrollArea.Root className="event-log" orientation="vertical">
-        <ScrollArea.Viewport className="event-log-viewport" focusable aria-label="Event log">
-          <ol>
-            {state.log.map((entry) => (
-              <li key={entry.id}>
-                <time>{entry.time}</time>
-                <span>{entry.text}</span>
-              </li>
-            ))}
-          </ol>
-        </ScrollArea.Viewport>
-      </ScrollArea.Root>
-    </div>
-  );
-}
-
-function ToolbarGroup({ children, title, value }: { children: ReactNode; title: string; value: string }) {
-  return (
-    <Menubar.Menu closeOnSelect={false} value={value}>
-      <Menubar.Trigger className="toolbar-group-trigger">
-        <span>{title}</span>
-      </Menubar.Trigger>
-      <Menubar.Content className="toolbar-menu" sideOffset={4}>
-        {children}
-      </Menubar.Content>
-    </Menubar.Menu>
-  );
-}
-
-function DropdownMenuSection({ children, label }: { children: ReactNode; label: string }) {
-  return (
-    <div className="toolbar-menu-section">
-      <div className="toolbar-menu-label">{label}</div>
-      <div className="toolbar-menu-items">{children}</div>
-    </div>
-  );
-}
-
-function DropdownMenuCheckboxControl({
-  checked,
-  label,
-  value,
-  onChange,
-}: {
-  checked: boolean;
-  label: string;
-  value: string;
-  onChange: (value: boolean) => void;
-}) {
-  return (
-    <Menubar.CheckboxItem className="toolbar-menu-item" checked={checked} value={value} onCheckedChange={onChange}>
-      <span>{label}</span>
-      <span className="toolbar-menu-check" aria-hidden="true">{checked ? "✓" : ""}</span>
-    </Menubar.CheckboxItem>
-  );
-}
-
-function DropdownMenuRadioControl<T extends string>({
-  label,
-  options,
-  value,
-  onChange,
-}: {
-  label: string;
-  options: readonly T[];
-  value: T;
-  onChange: (value: T) => void;
-}) {
-  return (
-    <div className="toolbar-menu-section">
-      <div className="toolbar-menu-label">{label}</div>
-      <Menubar.RadioGroup className="toolbar-radio-group" value={value} onValueChange={(nextValue) => onChange(nextValue as T)}>
-        {options.map((option) => (
-          <Menubar.RadioItem className="toolbar-menu-item" key={option} value={option}>
-            <span>{option}</span>
-            <span className="toolbar-menu-check" aria-hidden="true">{option === value ? "✓" : ""}</span>
-          </Menubar.RadioItem>
-        ))}
-      </Menubar.RadioGroup>
-    </div>
-  );
+  return <ScenarioEventLog log={state.log} />;
 }
 
 const sideOptions: readonly DropdownMenuSide[] = ["bottom", "top", "right", "left"];

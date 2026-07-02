@@ -1,13 +1,12 @@
 import { Button } from "@flowstack-ui/atom/button";
 import { Dialog } from "@flowstack-ui/atom/dialog";
 import { ContextMenu, useContextMenuContext } from "@flowstack-ui/atom/context-menu";
-import { Menubar } from "@flowstack-ui/atom/menubar";
-import { ScrollArea } from "@flowstack-ui/atom/scroll-area";
 import { useEffect, type ReactNode } from "react";
 import {
   AnatomyPanel,
   type AnatomySection,
 } from "../AnatomyPanel";
+import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, ScenarioEventLog, ToolbarGroup } from "../WorkbenchPrimitives";
 import type { Dispatch, SetStateAction } from "react";
 import type {
   ContextMenuAlign,
@@ -408,68 +407,68 @@ export function ContextMenuScenarioToolbar({
   actions: ContextMenuScenarioActions;
 }) {
   return (
-    <Menubar.Root className="canvas-toolbar" aria-label="Context Menu controls">
+    <ControlToolbar label="Context Menu controls">
       <ToolbarGroup title="State" value="state">
-        <ContextMenuSection label="Root">
-          <ContextMenuCheckboxControl checked={state.controlled} label="Controlled" value="controlled" onChange={actions.setControlled} />
-          <ContextMenuCheckboxControl checked={state.defaultOpen} label="Default open" value="default-open" onChange={actions.setDefaultOpen} />
-          <ContextMenuCheckboxControl checked={state.modal} label="Modal" value="modal" onChange={actions.setModal} />
-          <ContextMenuCheckboxControl checked={state.closeOnSelect} label="Close on select" value="close-on-select" onChange={actions.setCloseOnSelect} />
-          <ContextMenuCheckboxControl checked={state.closeOnEscape} label="Escape closes" value="escape-closes" onChange={actions.setCloseOnEscape} />
-          <ContextMenuCheckboxControl checked={state.loop} label="Loop" value="loop" onChange={actions.setLoop} />
-        </ContextMenuSection>
+        <MenuSection label="Root">
+          <MenuCheckboxControl checked={state.controlled} label="Controlled" value="controlled" onChange={actions.setControlled} />
+          <MenuCheckboxControl checked={state.defaultOpen} label="Default open" value="default-open" onChange={actions.setDefaultOpen} />
+          <MenuCheckboxControl checked={state.modal} label="Modal" value="modal" onChange={actions.setModal} />
+          <MenuCheckboxControl checked={state.closeOnSelect} label="Close on select" value="close-on-select" onChange={actions.setCloseOnSelect} />
+          <MenuCheckboxControl checked={state.closeOnEscape} label="Escape closes" value="escape-closes" onChange={actions.setCloseOnEscape} />
+          <MenuCheckboxControl checked={state.loop} label="Loop" value="loop" onChange={actions.setLoop} />
+        </MenuSection>
       </ToolbarGroup>
       <ToolbarGroup title="Popup" value="popup">
-        <ContextMenuRadioControl label="Side" options={sideOptions} value={state.side} onChange={actions.setSide} />
-        <ContextMenuRadioControl label="Align" options={alignOptions} value={state.align} onChange={actions.setAlign} />
-        <ContextMenuSection label="Position">
-          <ContextMenuCheckboxControl checked={state.sideOffset === 16} label="Large offset" value="large-offset" onChange={(checked) => actions.setSideOffset(checked ? 16 : 4)} />
-          <ContextMenuCheckboxControl checked={state.contentAriaLabel} label="Content ariaLabel" value="content-aria-label" onChange={actions.setContentAriaLabel} />
-          <ContextMenuCheckboxControl checked={state.contentLoopOff} label="Content loop off" value="content-loop-off" onChange={actions.setContentLoopOff} />
-          <ContextMenuCheckboxControl checked={state.blockContentKeyDown} label="Block content keys" value="block-content-keys" onChange={actions.setBlockContentKeyDown} />
-        </ContextMenuSection>
-        <ContextMenuSection label="Nesting">
-          <ContextMenuCheckboxControl checked={state.insideDialog} label="Inside Dialog" value="inside-dialog" onChange={actions.setInsideDialog} />
-        </ContextMenuSection>
+        <MenuRadioControl label="Side" options={sideOptions} value={state.side} onChange={actions.setSide} />
+        <MenuRadioControl label="Align" options={alignOptions} value={state.align} onChange={actions.setAlign} />
+        <MenuSection label="Position">
+          <MenuCheckboxControl checked={state.sideOffset === 16} label="Large offset" value="large-offset" onChange={(checked) => actions.setSideOffset(checked ? 16 : 4)} />
+          <MenuCheckboxControl checked={state.contentAriaLabel} label="Content ariaLabel" value="content-aria-label" onChange={actions.setContentAriaLabel} />
+          <MenuCheckboxControl checked={state.contentLoopOff} label="Content loop off" value="content-loop-off" onChange={actions.setContentLoopOff} />
+          <MenuCheckboxControl checked={state.blockContentKeyDown} label="Block content keys" value="block-content-keys" onChange={actions.setBlockContentKeyDown} />
+        </MenuSection>
+        <MenuSection label="Nesting">
+          <MenuCheckboxControl checked={state.insideDialog} label="Inside Dialog" value="inside-dialog" onChange={actions.setInsideDialog} />
+        </MenuSection>
       </ToolbarGroup>
       <ToolbarGroup title="Items" value="items">
-        <ContextMenuSection label="Selection">
-          <ContextMenuCheckboxControl checked={state.checkboxChecked} label="Checkbox checked" value="checkbox-checked" onChange={actions.setCheckboxChecked} />
-          <ContextMenuCheckboxControl checked={state.checkboxDisabled} label="Checkbox disabled" value="checkbox-disabled" onChange={actions.setCheckboxDisabled} />
-          <ContextMenuCheckboxControl checked={state.closeCheckboxOnSelect} label="Checkbox closes" value="checkbox-closes" onChange={actions.setCloseCheckboxOnSelect} />
-          <ContextMenuCheckboxControl checked={state.closeRadioOnSelect} label="Radio closes" value="radio-closes" onChange={actions.setCloseRadioOnSelect} />
-        </ContextMenuSection>
-        <ContextMenuRadioControl label="Radio value" options={radioOptions} value={state.radioValue} onChange={actions.setRadioValue} />
-        <ContextMenuRadioControl label="Radio value 2" options={radioOptions} value={state.radioValueSecondary} onChange={actions.setRadioValueSecondary} />
-        <ContextMenuSection label="Availability">
-          <ContextMenuCheckboxControl checked={state.showDisabledItem} label="Show disabled item" value="show-disabled-item" onChange={actions.setShowDisabledItem} />
-          <ContextMenuCheckboxControl checked={state.radioItemDisabled} label="Compact radio disabled" value="compact-radio-disabled" onChange={actions.setRadioItemDisabled} />
-        </ContextMenuSection>
+        <MenuSection label="Selection">
+          <MenuCheckboxControl checked={state.checkboxChecked} label="Checkbox checked" value="checkbox-checked" onChange={actions.setCheckboxChecked} />
+          <MenuCheckboxControl checked={state.checkboxDisabled} label="Checkbox disabled" value="checkbox-disabled" onChange={actions.setCheckboxDisabled} />
+          <MenuCheckboxControl checked={state.closeCheckboxOnSelect} label="Checkbox closes" value="checkbox-closes" onChange={actions.setCloseCheckboxOnSelect} />
+          <MenuCheckboxControl checked={state.closeRadioOnSelect} label="Radio closes" value="radio-closes" onChange={actions.setCloseRadioOnSelect} />
+        </MenuSection>
+        <MenuRadioControl label="Radio value" options={radioOptions} value={state.radioValue} onChange={actions.setRadioValue} />
+        <MenuRadioControl label="Radio value 2" options={radioOptions} value={state.radioValueSecondary} onChange={actions.setRadioValueSecondary} />
+        <MenuSection label="Availability">
+          <MenuCheckboxControl checked={state.showDisabledItem} label="Show disabled item" value="show-disabled-item" onChange={actions.setShowDisabledItem} />
+          <MenuCheckboxControl checked={state.radioItemDisabled} label="Compact radio disabled" value="compact-radio-disabled" onChange={actions.setRadioItemDisabled} />
+        </MenuSection>
       </ToolbarGroup>
       <ToolbarGroup title="Submenu" value="submenu">
-        <ContextMenuSection label="Sub">
-          <ContextMenuCheckboxControl checked={state.showSubmenu} label="Show submenu" value="show-submenu" onChange={actions.setShowSubmenu} />
-          <ContextMenuCheckboxControl checked={state.disableSecondSubmenu} label="Disable share submenu" value="disable-second-submenu" onChange={actions.setDisableSecondSubmenu} />
-          <ContextMenuCheckboxControl checked={state.controlledSubmenu} label="Controlled submenu" value="controlled-submenu" onChange={actions.setControlledSubmenu} />
-          <ContextMenuCheckboxControl checked={state.defaultSubmenuOpen} label="Default sub open" value="default-sub-open" onChange={actions.setDefaultSubmenuOpen} />
-          <ContextMenuCheckboxControl checked={state.subContentAriaLabel} label="Sub ariaLabel" value="sub-aria-label" onChange={actions.setSubContentAriaLabel} />
-          <ContextMenuCheckboxControl checked={state.subSideOffset === 12} label="Large sub offset" value="large-sub-offset" onChange={(checked) => actions.setSubSideOffset(checked ? 12 : 4)} />
-          <ContextMenuCheckboxControl checked={state.subContentLoopOff} label="Sub loop off" value="sub-loop-off" onChange={actions.setSubContentLoopOff} />
-          <ContextMenuCheckboxControl checked={state.showNestedSubmenu} label="Nested submenu" value="nested-submenu" onChange={actions.setShowNestedSubmenu} />
-        </ContextMenuSection>
+        <MenuSection label="Sub">
+          <MenuCheckboxControl checked={state.showSubmenu} label="Show submenu" value="show-submenu" onChange={actions.setShowSubmenu} />
+          <MenuCheckboxControl checked={state.disableSecondSubmenu} label="Disable share submenu" value="disable-second-submenu" onChange={actions.setDisableSecondSubmenu} />
+          <MenuCheckboxControl checked={state.controlledSubmenu} label="Controlled submenu" value="controlled-submenu" onChange={actions.setControlledSubmenu} />
+          <MenuCheckboxControl checked={state.defaultSubmenuOpen} label="Default sub open" value="default-sub-open" onChange={actions.setDefaultSubmenuOpen} />
+          <MenuCheckboxControl checked={state.subContentAriaLabel} label="Sub ariaLabel" value="sub-aria-label" onChange={actions.setSubContentAriaLabel} />
+          <MenuCheckboxControl checked={state.subSideOffset === 12} label="Large sub offset" value="large-sub-offset" onChange={(checked) => actions.setSubSideOffset(checked ? 12 : 4)} />
+          <MenuCheckboxControl checked={state.subContentLoopOff} label="Sub loop off" value="sub-loop-off" onChange={actions.setSubContentLoopOff} />
+          <MenuCheckboxControl checked={state.showNestedSubmenu} label="Nested submenu" value="nested-submenu" onChange={actions.setShowNestedSubmenu} />
+        </MenuSection>
       </ToolbarGroup>
       <ToolbarGroup title="Composition" value="composition">
-        <ContextMenuRadioControl label="Trigger" options={compositionOptions} value={state.triggerComposition} onChange={actions.setTriggerComposition} />
-        <ContextMenuRadioControl label="Item" options={compositionOptions} value={state.itemComposition} onChange={actions.setItemComposition} />
-        <ContextMenuSection label="Events">
-          <ContextMenuCheckboxControl checked={state.triggerDisabled} label="Disabled trigger" value="disabled-trigger" onChange={actions.setTriggerDisabled} />
-          <ContextMenuCheckboxControl checked={state.triggerSlotOverride} label="Override trigger slot" value="override-trigger-slot" onChange={actions.setTriggerSlotOverride} />
-          <ContextMenuCheckboxControl checked={state.blockTriggerEvent} label="Block trigger event" value="block-trigger-event" onChange={actions.setBlockTriggerEvent} />
-          <ContextMenuCheckboxControl checked={state.blockItemSelect} label="Block item select" value="block-item-select" onChange={actions.setBlockItemSelect} />
-          <ContextMenuCheckboxControl checked={state.logPointer} label="Log pointer" value="log-pointer" onChange={actions.setLogPointer} />
-        </ContextMenuSection>
+        <MenuRadioControl label="Trigger" options={compositionOptions} value={state.triggerComposition} onChange={actions.setTriggerComposition} />
+        <MenuRadioControl label="Item" options={compositionOptions} value={state.itemComposition} onChange={actions.setItemComposition} />
+        <MenuSection label="Events">
+          <MenuCheckboxControl checked={state.triggerDisabled} label="Disabled trigger" value="disabled-trigger" onChange={actions.setTriggerDisabled} />
+          <MenuCheckboxControl checked={state.triggerSlotOverride} label="Override trigger slot" value="override-trigger-slot" onChange={actions.setTriggerSlotOverride} />
+          <MenuCheckboxControl checked={state.blockTriggerEvent} label="Block trigger event" value="block-trigger-event" onChange={actions.setBlockTriggerEvent} />
+          <MenuCheckboxControl checked={state.blockItemSelect} label="Block item select" value="block-item-select" onChange={actions.setBlockItemSelect} />
+          <MenuCheckboxControl checked={state.logPointer} label="Log pointer" value="log-pointer" onChange={actions.setLogPointer} />
+        </MenuSection>
       </ToolbarGroup>
-    </Menubar.Root>
+    </ControlToolbar>
   );
 }
 
@@ -785,89 +784,7 @@ export function ContextMenuScenarioAnatomy({
 }
 
 export function ContextMenuScenarioLog({ state }: { state: ContextMenuScenarioState }) {
-  return (
-    <div className="scenario-log">
-      <ScrollArea.Root className="event-log" orientation="vertical">
-        <ScrollArea.Viewport className="event-log-viewport" focusable aria-label="Event log">
-          <ol>
-            {state.log.map((entry) => (
-              <li key={entry.id}>
-                <time>{entry.time}</time>
-                <span>{entry.text}</span>
-              </li>
-            ))}
-          </ol>
-        </ScrollArea.Viewport>
-      </ScrollArea.Root>
-    </div>
-  );
-}
-
-function ToolbarGroup({ children, title, value }: { children: ReactNode; title: string; value: string }) {
-  return (
-    <Menubar.Menu closeOnSelect={false} value={value}>
-      <Menubar.Trigger className="toolbar-group-trigger">
-        <span>{title}</span>
-      </Menubar.Trigger>
-      <Menubar.Content className="toolbar-menu" sideOffset={4}>
-        {children}
-      </Menubar.Content>
-    </Menubar.Menu>
-  );
-}
-
-function ContextMenuSection({ children, label }: { children: ReactNode; label: string }) {
-  return (
-    <div className="toolbar-menu-section">
-      <div className="toolbar-menu-label">{label}</div>
-      <div className="toolbar-menu-items">{children}</div>
-    </div>
-  );
-}
-
-function ContextMenuCheckboxControl({
-  checked,
-  label,
-  value,
-  onChange,
-}: {
-  checked: boolean;
-  label: string;
-  value: string;
-  onChange: (value: boolean) => void;
-}) {
-  return (
-    <Menubar.CheckboxItem className="toolbar-menu-item" checked={checked} value={value} onCheckedChange={onChange}>
-      <span>{label}</span>
-      <span className="toolbar-menu-check" aria-hidden="true">{checked ? "✓" : ""}</span>
-    </Menubar.CheckboxItem>
-  );
-}
-
-function ContextMenuRadioControl<T extends string>({
-  label,
-  options,
-  value,
-  onChange,
-}: {
-  label: string;
-  options: readonly T[];
-  value: T;
-  onChange: (value: T) => void;
-}) {
-  return (
-    <div className="toolbar-menu-section">
-      <div className="toolbar-menu-label">{label}</div>
-      <Menubar.RadioGroup className="toolbar-radio-group" value={value} onValueChange={(nextValue) => onChange(nextValue as T)}>
-        {options.map((option) => (
-          <Menubar.RadioItem className="toolbar-menu-item" key={option} value={option}>
-            <span>{option}</span>
-            <span className="toolbar-menu-check" aria-hidden="true">{option === value ? "✓" : ""}</span>
-          </Menubar.RadioItem>
-        ))}
-      </Menubar.RadioGroup>
-    </div>
-  );
+  return <ScenarioEventLog log={state.log} />;
 }
 
 const sideOptions: readonly ContextMenuSide[] = ["bottom", "top", "right", "left"];

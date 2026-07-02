@@ -13,7 +13,13 @@ Headless virtual collection measurement helpers for rendering only the visible p
 ## Import
 
 ```tsx
-import { useVirtualizer, getVirtualItems } from "@flowstack-ui/atom";
+import {
+  useVirtualizer,
+  getVirtualItems,
+  getVirtualOffsetForIndex,
+  getVirtualScrollOffsetForIndex,
+  getVirtualTotalSize,
+} from "@flowstack-ui/atom";
 ```
 
 ## Anatomy
@@ -69,6 +75,12 @@ Measures a scroll container and returns the visible item range.
 | `scrollToOffset` | `(offset) => void` |
 | `scrollToIndex` | `(index, options?) => void` |
 
+### scrollToIndex options
+
+| Option | Type | Default |
+| --- | --- | --- |
+| `align` | `"start" \| "center" \| "end" \| "auto"` | `"auto"` |
+
 ### getVirtualItems
 
 Pure helper for computing visible virtual items.
@@ -81,6 +93,38 @@ Pure helper for computing visible virtual items.
 | `overscan` | `number` | `1` |
 | `getItemSize` | `(index: number) => number` | required |
 | `getItemKey` | `(index: number) => string \| number` | item index |
+
+### getVirtualTotalSize
+
+Pure helper for computing the total scrollable size.
+
+| Argument | Type |
+| --- | --- |
+| `count` | `number` |
+| `getItemSize` | `(index: number) => number` |
+
+### getVirtualOffsetForIndex
+
+Pure helper for computing the starting offset of an item.
+
+| Argument | Type |
+| --- | --- |
+| `count` | `number` |
+| `index` | `number` |
+| `getItemSize` | `(index: number) => number` |
+
+### getVirtualScrollOffsetForIndex
+
+Pure helper for computing the scroll offset needed to reveal an item.
+
+| Option | Type | Default |
+| --- | --- | --- |
+| `count` | `number` | required |
+| `index` | `number` | required |
+| `align` | `"start" \| "center" \| "end" \| "auto"` | `"auto"` |
+| `scrollOffset` | `number` | required |
+| `viewportSize` | `number` | required |
+| `getItemSize` | `(index: number) => number` | required |
 
 ### VirtualItem
 

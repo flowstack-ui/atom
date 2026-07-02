@@ -11,6 +11,7 @@ import {
   SliderRoot,
   SliderThumb,
   SliderTrack,
+  valueToPercent,
 } from "../../dist/index.js";
 
 test("Slider namespace exposes compound parts", () => {
@@ -79,4 +80,32 @@ test("Slider compound parts render track range and thumbs", () => {
     html,
     /<input(?=[^>]*type="hidden")(?=[^>]*disabled="")(?=[^>]*name="price\[1\]")(?=[^>]*form="filters-form")(?=[^>]*value="75")[^>]*>/,
   );
+});
+
+test("Slider percent geometry is normalized for data attributes", () => {
+  assert.equal(valueToPercent(55.00000000000001, 0, 100), 55);
+
+  const html = renderToStaticMarkup(
+    React.createElement(
+      SliderRoot,
+      {
+        value: 55.00000000000001,
+        min: 0,
+        max: 100,
+        ariaLabel: "Volume",
+      },
+      React.createElement(
+        SliderTrack,
+        null,
+        React.createElement(SliderRange, null),
+      ),
+      React.createElement(SliderThumb, null),
+    ),
+  );
+
+  assert.match(html, /data-value="55.00000000000001"/);
+  assert.match(html, /data-percent="55"/);
+  assert.match(html, /inset-inline-start:55%/);
+  assert.doesNotMatch(html, /55\.00000000000001%/);
+  assert.doesNotMatch(html, /data-percent="55\.00000000000001"/);
 });

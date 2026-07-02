@@ -1,11 +1,10 @@
 import { Button } from "@flowstack-ui/atom/button";
-import { Menubar } from "@flowstack-ui/atom/menubar";
-import { ScrollArea } from "@flowstack-ui/atom/scroll-area";
 import { Tooltip } from "@flowstack-ui/atom/tooltip";
 import {
   AnatomyPanel,
   type AnatomySection,
 } from "../AnatomyPanel";
+import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, ScenarioEventLog, ToolbarGroup } from "../WorkbenchPrimitives";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import type {
   TooltipAlign,
@@ -189,7 +188,7 @@ export function TooltipScenarioToolbar({
   actions: TooltipScenarioActions;
 }) {
   return (
-    <Menubar.Root className="canvas-toolbar" aria-label="Tooltip controls">
+    <ControlToolbar label="Tooltip controls">
       <ToolbarGroup title="State" value="state">
         <MenuSection label="Root">
           <MenuCheckboxControl checked={state.controlled} label="Controlled" value="controlled" onChange={actions.setControlled} />
@@ -211,27 +210,12 @@ export function TooltipScenarioToolbar({
       <ToolbarGroup title="Composition" value="composition">
         <MenuRadioControl label="Trigger" options={compositionOptions} value={state.triggerComposition} onChange={actions.setTriggerComposition} />
       </ToolbarGroup>
-    </Menubar.Root>
+    </ControlToolbar>
   );
 }
 
 export function TooltipScenarioLog({ state }: { state: TooltipScenarioState }) {
-  return (
-    <div className="scenario-log">
-      <ScrollArea.Root className="event-log" orientation="vertical">
-        <ScrollArea.Viewport className="event-log-viewport" focusable aria-label="Event log">
-          <ol>
-            {state.log.map((entry) => (
-              <li key={entry.id}>
-                <time>{entry.time}</time>
-                <span>{entry.text}</span>
-              </li>
-            ))}
-          </ol>
-        </ScrollArea.Viewport>
-      </ScrollArea.Root>
-    </div>
-  );
+  return <ScenarioEventLog log={state.log} />;
 }
 
 export function getTooltipSource(state: TooltipScenarioState) {
@@ -331,81 +315,6 @@ function getTooltipTriggerSource(state: TooltipScenarioState) {
   }
 
   return `<Tooltip.Trigger>Save</Tooltip.Trigger>`;
-}
-
-function ToolbarGroup({ children, title, value }: { children: ReactNode; title: string; value: string }) {
-  return (
-    <Menubar.Menu closeOnSelect={false} value={value}>
-      <Menubar.Trigger className="toolbar-group-trigger">
-        <span>{title}</span>
-      </Menubar.Trigger>
-      <Menubar.Content className="toolbar-menu" sideOffset={4}>
-        {children}
-      </Menubar.Content>
-    </Menubar.Menu>
-  );
-}
-
-function MenuSection({ children, label }: { children: ReactNode; label: string }) {
-  return (
-    <div className="toolbar-menu-section">
-      <div className="toolbar-menu-label">{label}</div>
-      <div className="toolbar-menu-items">{children}</div>
-    </div>
-  );
-}
-
-function MenuCheckboxControl({
-  checked,
-  label,
-  value,
-  onChange,
-}: {
-  checked: boolean;
-  label: string;
-  value: string;
-  onChange: (checked: boolean) => void;
-}) {
-  return (
-    <Menubar.CheckboxItem
-      checked={checked}
-      className="toolbar-menu-item"
-      value={value}
-      onCheckedChange={onChange}
-    >
-      <span>{label}</span>
-      <span aria-hidden="true" className="toolbar-menu-check">{checked ? "✓" : ""}</span>
-    </Menubar.CheckboxItem>
-  );
-}
-
-function MenuRadioControl<TValue extends string>({
-  label,
-  options,
-  value,
-  onChange,
-}: {
-  label: string;
-  options: readonly { label: string; value: TValue }[];
-  value: TValue;
-  onChange: (value: TValue) => void;
-}) {
-  return (
-    <MenuSection label={label}>
-      <Menubar.RadioGroup value={value} onValueChange={(nextValue) => onChange(nextValue as TValue)}>
-        {options.map((option) => (
-          <Menubar.RadioItem
-            className="toolbar-menu-item"
-            key={option.value}
-            value={option.value}
-          >
-            <span>{option.label}</span>
-            <span aria-hidden="true" className="toolbar-menu-check">{option.value === value ? "✓" : ""}</span>
-          </Menubar.RadioItem>
-        ))}
-      </Menubar.RadioGroup>
-    </MenuSection>
-  );
 }
 
 const compositionOptions = [

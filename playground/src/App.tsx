@@ -151,6 +151,32 @@ import {
   useNavigationPrimitiveScenarios,
   type NavigationPrimitiveScenarios,
 } from "./scenarios/NavigationPrimitiveScenarios";
+import {
+  SelectionPrimitiveScenarioAnatomy,
+  SelectionPrimitiveScenarioCanvas,
+  SelectionPrimitiveScenarioLog,
+  SelectionPrimitiveScenarioToolbar,
+  clearSelectionPrimitiveLog,
+  getSelectionPrimitiveCanvasFooter,
+  getSelectionPrimitiveEventCount,
+  getSelectionPrimitiveSource,
+  selectionPrimitiveScenarioIds,
+  useSelectionPrimitiveScenarios,
+  type SelectionPrimitiveScenarios,
+} from "./scenarios/SelectionPrimitiveScenarios";
+import {
+  DataPrimitiveScenarioAnatomy,
+  DataPrimitiveScenarioCanvas,
+  DataPrimitiveScenarioLog,
+  DataPrimitiveScenarioToolbar,
+  clearDataPrimitiveLog,
+  dataPrimitiveScenarioIds,
+  getDataPrimitiveCanvasFooter,
+  getDataPrimitiveEventCount,
+  getDataPrimitiveSource,
+  useDataPrimitiveScenarios,
+  type DataPrimitiveScenarios,
+} from "./scenarios/DataPrimitiveScenarios";
 import { useDialogScenario } from "./scenarios/useDialogScenario";
 import { useAlertDialogScenario } from "./scenarios/useAlertDialogScenario";
 import { useDropdownMenuScenario } from "./scenarios/useDropdownMenuScenario";
@@ -194,6 +220,12 @@ const scenarios: Scenario[] = [
     checks: ["Hover opens", "Focus opens", "Placement updates"],
   },
   {
+    id: "toast",
+    label: "Toast",
+    category: "Overlays",
+    checks: ["Toast appears", "Actions dismiss", "Viewport position changes"],
+  },
+  {
     id: "tooltip",
     label: "Tooltip",
     category: "Overlays",
@@ -202,7 +234,7 @@ const scenarios: Scenario[] = [
   {
     id: "select",
     label: "Select",
-    category: "Overlays",
+    category: "Selection",
     checks: ["Arrow keys move", "Value changes", "Disabled options skip"],
   },
   {
@@ -218,88 +250,148 @@ const scenarios: Scenario[] = [
     checks: ["Trigger opens", "Keyboard opens", "Menu behavior works"],
   },
   {
+    id: "modal",
+    label: "Modal",
+    category: "Overlays",
+    checks: ["Trigger opens", "Portal renders", "Close reason logs"],
+  },
+  {
+    id: "drawer",
+    label: "Drawer",
+    category: "Overlays",
+    checks: ["Trigger opens", "Backdrop closes", "Placement data shows"],
+  },
+  {
     id: "button",
     label: "Button",
-    category: "Forms",
+    category: "Controls",
     checks: ["Press fires", "Disabled blocks", "Composition works"],
   },
   {
     id: "field",
     label: "Field",
-    category: "Forms",
+    category: "Fields",
     checks: ["Label connects", "Description connects", "Error state updates"],
   },
   {
     id: "fieldset",
     label: "Fieldset",
-    category: "Forms",
+    category: "Fields",
     checks: ["Legend renders", "Description connects", "Disabled group applies"],
   },
   {
     id: "input",
     label: "Input",
-    category: "Forms",
+    category: "Fields",
     checks: ["Value changes", "Clear button works", "Field context connects"],
   },
   {
     id: "textarea",
     label: "Textarea",
-    category: "Forms",
+    category: "Fields",
     checks: ["Value changes", "Count updates", "Auto resize toggles"],
   },
   {
     id: "number-input",
     label: "Number Input",
-    category: "Forms",
+    category: "Fields",
     checks: ["Arrow keys step", "Bounds clamp", "Hidden input updates"],
   },
   {
     id: "password-toggle-field",
     label: "Password Toggle Field",
-    category: "Forms",
+    category: "Fields",
     checks: ["Toggle changes type", "Icon state follows", "Field state applies"],
   },
   {
     id: "checkbox",
     label: "Checkbox",
-    category: "Forms",
+    category: "Controls",
     checks: ["Space toggles", "Disabled blocks changes", "Form value exists"],
+  },
+  {
+    id: "checkbox-group",
+    label: "Checkbox Group",
+    category: "Controls",
+    checks: ["Values update", "Hidden inputs update", "Group state applies"],
   },
   {
     id: "radio-group",
     label: "Radio Group",
-    category: "Forms",
+    category: "Controls",
     checks: ["Arrow keys move", "Value changes", "Required state shows"],
   },
   {
     id: "switch",
     label: "Switch",
-    category: "Forms",
+    category: "Controls",
     checks: ["Click toggles", "Hidden input updates", "Thumb state follows"],
   },
   {
     id: "toggle",
     label: "Toggle",
-    category: "Forms",
+    category: "Controls",
     checks: ["Pressed changes", "Keyboard toggles", "Composition works"],
   },
   {
     id: "toggle-group",
     label: "Toggle Group",
-    category: "Forms",
+    category: "Controls",
     checks: ["Value changes", "Arrow keys move", "Disabled item skips"],
+  },
+  {
+    id: "slider",
+    label: "Slider",
+    category: "Controls",
+    checks: ["Thumb moves", "Keyboard steps", "Hidden input updates"],
+  },
+  {
+    id: "rating",
+    label: "Rating",
+    category: "Controls",
+    checks: ["Pointer changes", "Keyboard changes", "Hidden input updates"],
+  },
+  {
+    id: "otp-field",
+    label: "OTP Field",
+    category: "Fields",
+    checks: ["Cells advance", "Paste fills", "Complete fires"],
+  },
+  {
+    id: "file-upload",
+    label: "File Upload",
+    category: "Fields",
+    checks: ["Files update", "Dropzone state shows", "Remove works"],
+  },
+  {
+    id: "listbox",
+    label: "Listbox",
+    category: "Selection",
+    checks: ["Options select", "Keyboard moves", "Disabled option skips"],
+  },
+  {
+    id: "combobox",
+    label: "Combobox",
+    category: "Selection",
+    checks: ["Input filters", "Options select", "Clear works"],
   },
   {
     id: "label",
     label: "Label",
-    category: "Forms",
+    category: "Fields",
     checks: ["htmlFor connects", "State data shows", "Composition works"],
   },
   {
     id: "pressable",
     label: "Pressable",
-    category: "Forms",
+    category: "Controls",
     checks: ["Pointer presses", "Keyboard presses", "Disabled blocks"],
+  },
+  {
+    id: "swipeable-item",
+    label: "Swipeable Item",
+    category: "Controls",
+    checks: ["Arrow keys open actions", "Swipe changes side", "Disabled and read-only block"],
   },
   {
     id: "app-bar",
@@ -344,6 +436,24 @@ const scenarios: Scenario[] = [
     checks: ["Arrow keys move", "Submenu opens", "Selection state updates"],
   },
   {
+    id: "menubar",
+    label: "Menubar",
+    category: "Navigation",
+    checks: ["Top-level menus open", "Arrow keys move", "Menu items update"],
+  },
+  {
+    id: "navigation-menu",
+    label: "Navigation Menu",
+    category: "Navigation",
+    checks: ["Trigger opens panel", "Viewport renders content", "Indicator follows trigger"],
+  },
+  {
+    id: "sidebar",
+    label: "Sidebar",
+    category: "Navigation",
+    checks: ["State toggles", "Panel visibility updates", "Side changes"],
+  },
+  {
     id: "accordion",
     label: "Accordion",
     category: "Navigation",
@@ -356,21 +466,51 @@ const scenarios: Scenario[] = [
     checks: ["Native table renders", "Caption is exposed", "Headers connect"],
   },
   {
+    id: "data-grid",
+    label: "Data Grid",
+    category: "Data",
+    checks: ["Arrow keys move", "Selection updates", "ARIA grid state shows"],
+  },
+  {
+    id: "tree-grid",
+    label: "Tree Grid",
+    category: "Data",
+    checks: ["Rows expand", "Arrow keys move", "Tree ARIA state shows"],
+  },
+  {
+    id: "feed",
+    label: "Feed",
+    category: "Data",
+    checks: ["Articles expose position", "Busy state shows", "Page keys move"],
+  },
+  {
+    id: "scroll-area",
+    label: "Scroll Area",
+    category: "Utilities",
+    checks: ["Viewport scrolls", "Focusable option works", "Region naming works"],
+  },
+  {
+    id: "form",
+    label: "Form",
+    category: "Fields",
+    checks: ["Submit state updates", "Validation blocks", "Reset clears state"],
+  },
+  {
     id: "badge",
     label: "Badge",
-    category: "Data",
+    category: "Display",
     checks: ["Content renders", "Native props pass", "Composition works"],
   },
   {
     id: "avatar",
     label: "Avatar",
-    category: "Data",
+    category: "Display",
     checks: ["Image loads", "Fallback renders", "Group renders"],
   },
   {
     id: "list",
     label: "List",
-    category: "Data",
+    category: "Display",
     checks: ["Ordered toggles", "Items render", "Disabled metadata shows"],
   },
   {
@@ -382,7 +522,7 @@ const scenarios: Scenario[] = [
   {
     id: "progress",
     label: "Progress",
-    category: "Data",
+    category: "Display",
     checks: ["Determinate value", "Indeterminate value", "Indicator mirrors state"],
   },
   {
@@ -427,9 +567,27 @@ const scenarios: Scenario[] = [
     category: "Utilities",
     checks: ["Content mounts outside root", "Unmount removes content"],
   },
+  {
+    id: "collection",
+    label: "Collection",
+    category: "Utilities",
+    checks: ["Items register in DOM order", "Disabled items skip", "Next/previous helpers work"],
+  },
+  {
+    id: "virtualizer",
+    label: "Virtualizer",
+    category: "Utilities",
+    checks: ["Visible range updates", "Overscan changes", "Scroll helpers move"],
+  },
+  {
+    id: "direction",
+    label: "Direction",
+    category: "Utilities",
+    checks: ["Provider value changes", "Nested override works", "DOM dir is visible"],
+  },
 ];
 
-const categories = ["Forms", "Overlays", "Navigation", "Data", "Utilities"];
+const categories = ["Fields", "Controls", "Selection", "Overlays", "Navigation", "Data", "Display", "Utilities"];
 const focusableSelector = [
   "button:not([disabled])",
   "[href]",
@@ -451,6 +609,7 @@ export function App() {
   const [buttonAnatomyOpenGroups, setButtonAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [checkboxAnatomyOpenGroups, setCheckboxAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [dialogAnatomyOpenGroups, setDialogAnatomyOpenGroups] = useState<Record<string, boolean>>({});
+  const [dataPrimitiveAnatomyOpenGroups, setDataPrimitiveAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [displayPrimitiveAnatomyOpenGroups, setDisplayPrimitiveAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [formFieldAnatomyOpenGroups, setFormFieldAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [utilityPrimitiveAnatomyOpenGroups, setUtilityPrimitiveAnatomyOpenGroups] = useState<Record<string, boolean>>({});
@@ -459,6 +618,7 @@ export function App() {
   const [hoverCardAnatomyOpenGroups, setHoverCardAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [menuAnatomyOpenGroups, setMenuAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [navigationPrimitiveAnatomyOpenGroups, setNavigationPrimitiveAnatomyOpenGroups] = useState<Record<string, boolean>>({});
+  const [selectionPrimitiveAnatomyOpenGroups, setSelectionPrimitiveAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [popoverAnatomyOpenGroups, setPopoverAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [radioGroupAnatomyOpenGroups, setRadioGroupAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [selectAnatomyOpenGroups, setSelectAnatomyOpenGroups] = useState<Record<string, boolean>>({});
@@ -474,12 +634,14 @@ export function App() {
   const dialogScenario = useDialogScenario();
   const contextMenuScenario = useContextMenuScenario();
   const dropdownMenuScenario = useDropdownMenuScenario();
+  const dataPrimitiveScenarios = useDataPrimitiveScenarios();
   const displayPrimitiveScenarios = useDisplayPrimitiveScenarios();
   const formFieldScenarios = useFormFieldScenarios();
   const utilityPrimitiveScenarios = useUtilityPrimitiveScenarios();
   const hoverCardScenario = useHoverCardScenario();
   const menuScenario = useMenuScenario();
   const navigationPrimitiveScenarios = useNavigationPrimitiveScenarios();
+  const selectionPrimitiveScenarios = useSelectionPrimitiveScenarios();
   const popoverScenario = usePopoverScenario();
   const radioGroupScenario = useRadioGroupScenario();
   const selectScenario = useSelectScenario();
@@ -615,6 +777,14 @@ export function App() {
                   Collapse All
                 </Button.Root>
               ) : null}
+              {dataPrimitiveScenarioIds.has(activeScenario.id) ? (
+                <Button.Root
+                  className="header-action"
+                  onPress={() => setDataPrimitiveAnatomyOpenGroups({})}
+                >
+                  Collapse All
+                </Button.Root>
+              ) : null}
               {formFieldScenarioIds.has(activeScenario.id) ? (
                 <Button.Root
                   className="header-action"
@@ -635,6 +805,14 @@ export function App() {
                 <Button.Root
                   className="header-action"
                   onPress={() => setNavigationPrimitiveAnatomyOpenGroups({})}
+                >
+                  Collapse All
+                </Button.Root>
+              ) : null}
+              {selectionPrimitiveScenarioIds.has(activeScenario.id) ? (
+                <Button.Root
+                  className="header-action"
+                  onPress={() => setSelectionPrimitiveAnatomyOpenGroups({})}
                 >
                   Collapse All
                 </Button.Root>
@@ -715,12 +893,16 @@ export function App() {
               contextMenuScenario={contextMenuScenario}
               dialogAnatomyOpenGroups={dialogAnatomyOpenGroups}
               dialogScenario={dialogScenario}
+              dataPrimitiveAnatomyOpenGroups={dataPrimitiveAnatomyOpenGroups}
+              dataPrimitiveScenarios={dataPrimitiveScenarios}
               displayPrimitiveAnatomyOpenGroups={displayPrimitiveAnatomyOpenGroups}
               displayPrimitiveScenarios={displayPrimitiveScenarios}
               formFieldAnatomyOpenGroups={formFieldAnatomyOpenGroups}
               formFieldScenarios={formFieldScenarios}
               navigationPrimitiveAnatomyOpenGroups={navigationPrimitiveAnatomyOpenGroups}
               navigationPrimitiveScenarios={navigationPrimitiveScenarios}
+              selectionPrimitiveAnatomyOpenGroups={selectionPrimitiveAnatomyOpenGroups}
+              selectionPrimitiveScenarios={selectionPrimitiveScenarios}
               utilityPrimitiveAnatomyOpenGroups={utilityPrimitiveAnatomyOpenGroups}
               utilityPrimitiveScenarios={utilityPrimitiveScenarios}
               dropdownMenuAnatomyOpenGroups={dropdownMenuAnatomyOpenGroups}
@@ -748,9 +930,11 @@ export function App() {
               onButtonAnatomyOpenGroupsChange={setButtonAnatomyOpenGroups}
               onCheckboxAnatomyOpenGroupsChange={setCheckboxAnatomyOpenGroups}
               onDialogAnatomyOpenGroupsChange={setDialogAnatomyOpenGroups}
+              onDataPrimitiveAnatomyOpenGroupsChange={setDataPrimitiveAnatomyOpenGroups}
               onDisplayPrimitiveAnatomyOpenGroupsChange={setDisplayPrimitiveAnatomyOpenGroups}
               onFormFieldAnatomyOpenGroupsChange={setFormFieldAnatomyOpenGroups}
               onNavigationPrimitiveAnatomyOpenGroupsChange={setNavigationPrimitiveAnatomyOpenGroups}
+              onSelectionPrimitiveAnatomyOpenGroupsChange={setSelectionPrimitiveAnatomyOpenGroups}
               onUtilityPrimitiveAnatomyOpenGroupsChange={setUtilityPrimitiveAnatomyOpenGroups}
               onContextMenuAnatomyOpenGroupsChange={setContextMenuAnatomyOpenGroups}
               onDropdownMenuAnatomyOpenGroupsChange={setDropdownMenuAnatomyOpenGroups}
@@ -790,10 +974,12 @@ export function App() {
               buttonScenario={buttonScenario}
               checkboxScenario={checkboxScenario}
               contextMenuScenario={contextMenuScenario}
+              dataPrimitiveScenarios={dataPrimitiveScenarios}
               dialogScenario={dialogScenario}
               formFieldScenarios={formFieldScenarios}
               displayPrimitiveScenarios={displayPrimitiveScenarios}
               navigationPrimitiveScenarios={navigationPrimitiveScenarios}
+              selectionPrimitiveScenarios={selectionPrimitiveScenarios}
               utilityPrimitiveScenarios={utilityPrimitiveScenarios}
               dropdownMenuScenario={dropdownMenuScenario}
               hoverCardScenario={hoverCardScenario}
@@ -814,10 +1000,12 @@ export function App() {
                   buttonScenario={buttonScenario}
                   checkboxScenario={checkboxScenario}
                   contextMenuScenario={contextMenuScenario}
+                  dataPrimitiveScenarios={dataPrimitiveScenarios}
                   dialogScenario={dialogScenario}
                   formFieldScenarios={formFieldScenarios}
                   displayPrimitiveScenarios={displayPrimitiveScenarios}
                   navigationPrimitiveScenarios={navigationPrimitiveScenarios}
+                  selectionPrimitiveScenarios={selectionPrimitiveScenarios}
                   utilityPrimitiveScenarios={utilityPrimitiveScenarios}
                   dropdownMenuScenario={dropdownMenuScenario}
                   hoverCardScenario={hoverCardScenario}
@@ -840,10 +1028,12 @@ export function App() {
                 buttonScenario={buttonScenario}
                 checkboxScenario={checkboxScenario}
                 contextMenuScenario={contextMenuScenario}
+                dataPrimitiveScenarios={dataPrimitiveScenarios}
                 dialogScenario={dialogScenario}
                 formFieldScenarios={formFieldScenarios}
                 displayPrimitiveScenarios={displayPrimitiveScenarios}
                 navigationPrimitiveScenarios={navigationPrimitiveScenarios}
+                selectionPrimitiveScenarios={selectionPrimitiveScenarios}
                 utilityPrimitiveScenarios={utilityPrimitiveScenarios}
                 dropdownMenuScenario={dropdownMenuScenario}
                 hoverCardScenario={hoverCardScenario}
@@ -863,10 +1053,12 @@ export function App() {
               buttonScenario={buttonScenario}
               checkboxScenario={checkboxScenario}
               contextMenuScenario={contextMenuScenario}
+              dataPrimitiveScenarios={dataPrimitiveScenarios}
               dialogScenario={dialogScenario}
               formFieldScenarios={formFieldScenarios}
               displayPrimitiveScenarios={displayPrimitiveScenarios}
               navigationPrimitiveScenarios={navigationPrimitiveScenarios}
+              selectionPrimitiveScenarios={selectionPrimitiveScenarios}
               utilityPrimitiveScenarios={utilityPrimitiveScenarios}
               dropdownMenuScenario={dropdownMenuScenario}
               hoverCardScenario={hoverCardScenario}
@@ -896,11 +1088,13 @@ export function App() {
                     alertDialogScenario={alertDialogScenario}
                     buttonScenario={buttonScenario}
                     checkboxScenario={checkboxScenario}
+                    dataPrimitiveScenarios={dataPrimitiveScenarios}
                     dialogScenario={dialogScenario}
                     formFieldScenarios={formFieldScenarios}
                     displayPrimitiveScenarios={displayPrimitiveScenarios}
                     navigationPrimitiveScenarios={navigationPrimitiveScenarios}
-              utilityPrimitiveScenarios={utilityPrimitiveScenarios}
+                    selectionPrimitiveScenarios={selectionPrimitiveScenarios}
+                    utilityPrimitiveScenarios={utilityPrimitiveScenarios}
                     dropdownMenuScenario={dropdownMenuScenario}
                     hoverCardScenario={hoverCardScenario}
                     menuScenario={menuScenario}
@@ -938,11 +1132,13 @@ export function App() {
                   alertDialogScenario={alertDialogScenario}
                   buttonScenario={buttonScenario}
                   checkboxScenario={checkboxScenario}
+                  dataPrimitiveScenarios={dataPrimitiveScenarios}
                   dialogScenario={dialogScenario}
                   formFieldScenarios={formFieldScenarios}
                   displayPrimitiveScenarios={displayPrimitiveScenarios}
                   navigationPrimitiveScenarios={navigationPrimitiveScenarios}
-              utilityPrimitiveScenarios={utilityPrimitiveScenarios}
+                  selectionPrimitiveScenarios={selectionPrimitiveScenarios}
+                  utilityPrimitiveScenarios={utilityPrimitiveScenarios}
                   dropdownMenuScenario={dropdownMenuScenario}
                   hoverCardScenario={hoverCardScenario}
                   menuScenario={menuScenario}
@@ -967,11 +1163,13 @@ export function App() {
                     alertDialogScenario={alertDialogScenario}
                     buttonScenario={buttonScenario}
                     checkboxScenario={checkboxScenario}
+                    dataPrimitiveScenarios={dataPrimitiveScenarios}
                     dialogScenario={dialogScenario}
                     formFieldScenarios={formFieldScenarios}
                     displayPrimitiveScenarios={displayPrimitiveScenarios}
                     navigationPrimitiveScenarios={navigationPrimitiveScenarios}
-              utilityPrimitiveScenarios={utilityPrimitiveScenarios}
+                    selectionPrimitiveScenarios={selectionPrimitiveScenarios}
+                    utilityPrimitiveScenarios={utilityPrimitiveScenarios}
                     dropdownMenuScenario={dropdownMenuScenario}
                     hoverCardScenario={hoverCardScenario}
                     menuScenario={menuScenario}
@@ -1054,10 +1252,12 @@ function ScenarioToolbar({
   buttonScenario,
   checkboxScenario,
   contextMenuScenario,
+  dataPrimitiveScenarios,
   dialogScenario,
   displayPrimitiveScenarios,
   formFieldScenarios,
   navigationPrimitiveScenarios,
+  selectionPrimitiveScenarios,
   utilityPrimitiveScenarios,
   dropdownMenuScenario,
   hoverCardScenario,
@@ -1075,10 +1275,12 @@ function ScenarioToolbar({
   buttonScenario: ReturnType<typeof useButtonScenario>;
   checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
+  dataPrimitiveScenarios: DataPrimitiveScenarios;
   dialogScenario: ReturnType<typeof useDialogScenario>;
   displayPrimitiveScenarios: DisplayPrimitiveScenarios;
   formFieldScenarios: FormFieldScenarios;
   navigationPrimitiveScenarios: NavigationPrimitiveScenarios;
+  selectionPrimitiveScenarios: SelectionPrimitiveScenarios;
   utilityPrimitiveScenarios: UtilityPrimitiveScenarios;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   hoverCardScenario: ReturnType<typeof useHoverCardScenario>;
@@ -1119,6 +1321,22 @@ function ScenarioToolbar({
       <NavigationPrimitiveScenarioToolbar
         scenarioId={scenarioId}
         scenarios={navigationPrimitiveScenarios}
+      />
+    );
+  }
+  if (selectionPrimitiveScenarioIds.has(scenarioId)) {
+    return (
+      <SelectionPrimitiveScenarioToolbar
+        scenarioId={scenarioId}
+        scenarios={selectionPrimitiveScenarios}
+      />
+    );
+  }
+  if (dataPrimitiveScenarioIds.has(scenarioId)) {
+    return (
+      <DataPrimitiveScenarioToolbar
+        scenarioId={scenarioId}
+        scenarios={dataPrimitiveScenarios}
       />
     );
   }
@@ -1220,10 +1438,12 @@ function ScenarioCanvas({
   buttonScenario,
   checkboxScenario,
   contextMenuScenario,
+  dataPrimitiveScenarios,
   dialogScenario,
   displayPrimitiveScenarios,
   formFieldScenarios,
   navigationPrimitiveScenarios,
+  selectionPrimitiveScenarios,
   utilityPrimitiveScenarios,
   dropdownMenuScenario,
   hoverCardScenario,
@@ -1242,10 +1462,12 @@ function ScenarioCanvas({
   buttonScenario: ReturnType<typeof useButtonScenario>;
   checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
+  dataPrimitiveScenarios: DataPrimitiveScenarios;
   dialogScenario: ReturnType<typeof useDialogScenario>;
   displayPrimitiveScenarios: DisplayPrimitiveScenarios;
   formFieldScenarios: FormFieldScenarios;
   navigationPrimitiveScenarios: NavigationPrimitiveScenarios;
+  selectionPrimitiveScenarios: SelectionPrimitiveScenarios;
   utilityPrimitiveScenarios: UtilityPrimitiveScenarios;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   hoverCardScenario: ReturnType<typeof useHoverCardScenario>;
@@ -1287,6 +1509,22 @@ function ScenarioCanvas({
       <NavigationPrimitiveScenarioCanvas
         scenarioId={scenarioId}
         scenarios={navigationPrimitiveScenarios}
+      />
+    );
+  }
+  if (selectionPrimitiveScenarioIds.has(scenarioId)) {
+    return (
+      <SelectionPrimitiveScenarioCanvas
+        scenarioId={scenarioId}
+        scenarios={selectionPrimitiveScenarios}
+      />
+    );
+  }
+  if (dataPrimitiveScenarioIds.has(scenarioId)) {
+    return (
+      <DataPrimitiveScenarioCanvas
+        scenarioId={scenarioId}
+        scenarios={dataPrimitiveScenarios}
       />
     );
   }
@@ -1395,10 +1633,12 @@ function ScenarioSource({
   buttonScenario,
   checkboxScenario,
   contextMenuScenario,
+  dataPrimitiveScenarios,
   dialogScenario,
   displayPrimitiveScenarios,
   formFieldScenarios,
   navigationPrimitiveScenarios,
+  selectionPrimitiveScenarios,
   utilityPrimitiveScenarios,
   dropdownMenuScenario,
   hoverCardScenario,
@@ -1416,10 +1656,12 @@ function ScenarioSource({
   buttonScenario: ReturnType<typeof useButtonScenario>;
   checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
+  dataPrimitiveScenarios: DataPrimitiveScenarios;
   dialogScenario: ReturnType<typeof useDialogScenario>;
   displayPrimitiveScenarios: DisplayPrimitiveScenarios;
   formFieldScenarios: FormFieldScenarios;
   navigationPrimitiveScenarios: NavigationPrimitiveScenarios;
+  selectionPrimitiveScenarios: SelectionPrimitiveScenarios;
   utilityPrimitiveScenarios: UtilityPrimitiveScenarios;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   hoverCardScenario: ReturnType<typeof useHoverCardScenario>;
@@ -1438,10 +1680,12 @@ function ScenarioSource({
     buttonScenario,
     checkboxScenario,
     contextMenuScenario,
+    dataPrimitiveScenarios,
     dialogScenario,
     displayPrimitiveScenarios,
     formFieldScenarios,
     navigationPrimitiveScenarios,
+    selectionPrimitiveScenarios,
     utilityPrimitiveScenarios,
     dropdownMenuScenario,
     hoverCardScenario,
@@ -1499,10 +1743,12 @@ function ScenarioCanvasFooter({
   buttonScenario,
   checkboxScenario,
   contextMenuScenario,
+  dataPrimitiveScenarios,
   dialogScenario,
   displayPrimitiveScenarios,
   formFieldScenarios,
   navigationPrimitiveScenarios,
+  selectionPrimitiveScenarios,
   utilityPrimitiveScenarios,
   dropdownMenuScenario,
   hoverCardScenario,
@@ -1520,10 +1766,12 @@ function ScenarioCanvasFooter({
   buttonScenario: ReturnType<typeof useButtonScenario>;
   checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
+  dataPrimitiveScenarios: DataPrimitiveScenarios;
   dialogScenario: ReturnType<typeof useDialogScenario>;
   displayPrimitiveScenarios: DisplayPrimitiveScenarios;
   formFieldScenarios: FormFieldScenarios;
   navigationPrimitiveScenarios: NavigationPrimitiveScenarios;
+  selectionPrimitiveScenarios: SelectionPrimitiveScenarios;
   utilityPrimitiveScenarios: UtilityPrimitiveScenarios;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   hoverCardScenario: ReturnType<typeof useHoverCardScenario>;
@@ -1588,6 +1836,22 @@ function ScenarioCanvasFooter({
     return (
       <div className="panel-footer">
         {getNavigationPrimitiveCanvasFooter(scenarioId, navigationPrimitiveScenarios)}
+      </div>
+    );
+  }
+
+  if (selectionPrimitiveScenarioIds.has(scenarioId)) {
+    return (
+      <div className="panel-footer">
+        {getSelectionPrimitiveCanvasFooter(scenarioId, selectionPrimitiveScenarios)}
+      </div>
+    );
+  }
+
+  if (dataPrimitiveScenarioIds.has(scenarioId)) {
+    return (
+      <div className="panel-footer">
+        {getDataPrimitiveCanvasFooter(scenarioId, dataPrimitiveScenarios)}
       </div>
     );
   }
@@ -1717,10 +1981,12 @@ function getScenarioSource({
   buttonScenario,
   checkboxScenario,
   contextMenuScenario,
+  dataPrimitiveScenarios,
   dialogScenario,
   displayPrimitiveScenarios,
   formFieldScenarios,
   navigationPrimitiveScenarios,
+  selectionPrimitiveScenarios,
   utilityPrimitiveScenarios,
   dropdownMenuScenario,
   hoverCardScenario,
@@ -1738,10 +2004,12 @@ function getScenarioSource({
   buttonScenario: ReturnType<typeof useButtonScenario>;
   checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
+  dataPrimitiveScenarios: DataPrimitiveScenarios;
   dialogScenario: ReturnType<typeof useDialogScenario>;
   displayPrimitiveScenarios: DisplayPrimitiveScenarios;
   formFieldScenarios: FormFieldScenarios;
   navigationPrimitiveScenarios: NavigationPrimitiveScenarios;
+  selectionPrimitiveScenarios: SelectionPrimitiveScenarios;
   utilityPrimitiveScenarios: UtilityPrimitiveScenarios;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   hoverCardScenario: ReturnType<typeof useHoverCardScenario>;
@@ -1766,6 +2034,12 @@ function getScenarioSource({
   }
   if (formFieldScenarioIds.has(scenarioId)) {
     return getFormFieldSource(scenarioId, formFieldScenarios);
+  }
+  if (selectionPrimitiveScenarioIds.has(scenarioId)) {
+    return getSelectionPrimitiveSource(scenarioId);
+  }
+  if (dataPrimitiveScenarioIds.has(scenarioId)) {
+    return getDataPrimitiveSource(scenarioId, dataPrimitiveScenarios);
   }
   if (utilityPrimitiveScenarioIds.has(scenarioId)) {
     return getUtilityPrimitiveSource(scenarioId, utilityPrimitiveScenarios);
@@ -2326,6 +2600,8 @@ function ScenarioAnatomy({
   checkboxScenario,
   contextMenuAnatomyOpenGroups,
   contextMenuScenario,
+  dataPrimitiveAnatomyOpenGroups,
+  dataPrimitiveScenarios,
   dialogAnatomyOpenGroups,
   dialogScenario,
   displayPrimitiveAnatomyOpenGroups,
@@ -2334,6 +2610,8 @@ function ScenarioAnatomy({
   formFieldScenarios,
   navigationPrimitiveAnatomyOpenGroups,
   navigationPrimitiveScenarios,
+  selectionPrimitiveAnatomyOpenGroups,
+  selectionPrimitiveScenarios,
   utilityPrimitiveAnatomyOpenGroups,
   utilityPrimitiveScenarios,
   dropdownMenuAnatomyOpenGroups,
@@ -2361,10 +2639,12 @@ function ScenarioAnatomy({
   onButtonAnatomyOpenGroupsChange,
   onCheckboxAnatomyOpenGroupsChange,
   onContextMenuAnatomyOpenGroupsChange,
+  onDataPrimitiveAnatomyOpenGroupsChange,
   onDialogAnatomyOpenGroupsChange,
   onDisplayPrimitiveAnatomyOpenGroupsChange,
   onFormFieldAnatomyOpenGroupsChange,
   onNavigationPrimitiveAnatomyOpenGroupsChange,
+  onSelectionPrimitiveAnatomyOpenGroupsChange,
   onUtilityPrimitiveAnatomyOpenGroupsChange,
   onDropdownMenuAnatomyOpenGroupsChange,
   onHoverCardAnatomyOpenGroupsChange,
@@ -2385,6 +2665,8 @@ function ScenarioAnatomy({
   checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuAnatomyOpenGroups: Record<string, boolean>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
+  dataPrimitiveAnatomyOpenGroups: Record<string, boolean>;
+  dataPrimitiveScenarios: DataPrimitiveScenarios;
   dialogAnatomyOpenGroups: Record<string, boolean>;
   dialogScenario: ReturnType<typeof useDialogScenario>;
   displayPrimitiveAnatomyOpenGroups: Record<string, boolean>;
@@ -2393,6 +2675,8 @@ function ScenarioAnatomy({
   formFieldScenarios: FormFieldScenarios;
   navigationPrimitiveAnatomyOpenGroups: Record<string, boolean>;
   navigationPrimitiveScenarios: NavigationPrimitiveScenarios;
+  selectionPrimitiveAnatomyOpenGroups: Record<string, boolean>;
+  selectionPrimitiveScenarios: SelectionPrimitiveScenarios;
   utilityPrimitiveAnatomyOpenGroups: Record<string, boolean>;
   utilityPrimitiveScenarios: UtilityPrimitiveScenarios;
   dropdownMenuAnatomyOpenGroups: Record<string, boolean>;
@@ -2420,10 +2704,12 @@ function ScenarioAnatomy({
   onButtonAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onCheckboxAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onContextMenuAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
+  onDataPrimitiveAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onDialogAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onDisplayPrimitiveAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onFormFieldAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onNavigationPrimitiveAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
+  onSelectionPrimitiveAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onUtilityPrimitiveAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onDropdownMenuAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onHoverCardAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
@@ -2525,6 +2811,28 @@ function ScenarioAnatomy({
         scenarioId={scenarioId}
         scenarios={navigationPrimitiveScenarios}
         onOpenGroupsChange={onNavigationPrimitiveAnatomyOpenGroupsChange}
+      />
+    );
+  }
+
+  if (selectionPrimitiveScenarioIds.has(scenarioId)) {
+    return (
+      <SelectionPrimitiveScenarioAnatomy
+        openGroups={selectionPrimitiveAnatomyOpenGroups}
+        scenarioId={scenarioId}
+        scenarios={selectionPrimitiveScenarios}
+        onOpenGroupsChange={onSelectionPrimitiveAnatomyOpenGroupsChange}
+      />
+    );
+  }
+
+  if (dataPrimitiveScenarioIds.has(scenarioId)) {
+    return (
+      <DataPrimitiveScenarioAnatomy
+        openGroups={dataPrimitiveAnatomyOpenGroups}
+        scenarioId={scenarioId}
+        scenarios={dataPrimitiveScenarios}
+        onOpenGroupsChange={onDataPrimitiveAnatomyOpenGroupsChange}
       />
     );
   }
@@ -2644,10 +2952,12 @@ function ScenarioLog({
   buttonScenario,
   checkboxScenario,
   contextMenuScenario,
+  dataPrimitiveScenarios,
   dialogScenario,
   displayPrimitiveScenarios,
   formFieldScenarios,
   navigationPrimitiveScenarios,
+  selectionPrimitiveScenarios,
   utilityPrimitiveScenarios,
   dropdownMenuScenario,
   hoverCardScenario,
@@ -2665,10 +2975,12 @@ function ScenarioLog({
   buttonScenario: ReturnType<typeof useButtonScenario>;
   checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
+  dataPrimitiveScenarios: DataPrimitiveScenarios;
   dialogScenario: ReturnType<typeof useDialogScenario>;
   displayPrimitiveScenarios: DisplayPrimitiveScenarios;
   formFieldScenarios: FormFieldScenarios;
   navigationPrimitiveScenarios: NavigationPrimitiveScenarios;
+  selectionPrimitiveScenarios: SelectionPrimitiveScenarios;
   utilityPrimitiveScenarios: UtilityPrimitiveScenarios;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   hoverCardScenario: ReturnType<typeof useHoverCardScenario>;
@@ -2709,6 +3021,22 @@ function ScenarioLog({
       <NavigationPrimitiveScenarioLog
         scenarioId={scenarioId}
         scenarios={navigationPrimitiveScenarios}
+      />
+    );
+  }
+  if (selectionPrimitiveScenarioIds.has(scenarioId)) {
+    return (
+      <SelectionPrimitiveScenarioLog
+        scenarioId={scenarioId}
+        scenarios={selectionPrimitiveScenarios}
+      />
+    );
+  }
+  if (dataPrimitiveScenarioIds.has(scenarioId)) {
+    return (
+      <DataPrimitiveScenarioLog
+        scenarioId={scenarioId}
+        scenarios={dataPrimitiveScenarios}
       />
     );
   }
@@ -2801,10 +3129,12 @@ function ScenarioLogFooter({
   buttonScenario,
   checkboxScenario,
   contextMenuScenario,
+  dataPrimitiveScenarios,
   dialogScenario,
   displayPrimitiveScenarios,
   formFieldScenarios,
   navigationPrimitiveScenarios,
+  selectionPrimitiveScenarios,
   utilityPrimitiveScenarios,
   dropdownMenuScenario,
   hoverCardScenario,
@@ -2822,10 +3152,12 @@ function ScenarioLogFooter({
   buttonScenario: ReturnType<typeof useButtonScenario>;
   checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
+  dataPrimitiveScenarios: DataPrimitiveScenarios;
   dialogScenario: ReturnType<typeof useDialogScenario>;
   displayPrimitiveScenarios: DisplayPrimitiveScenarios;
   formFieldScenarios: FormFieldScenarios;
   navigationPrimitiveScenarios: NavigationPrimitiveScenarios;
+  selectionPrimitiveScenarios: SelectionPrimitiveScenarios;
   utilityPrimitiveScenarios: UtilityPrimitiveScenarios;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   hoverCardScenario: ReturnType<typeof useHoverCardScenario>;
@@ -2849,6 +3181,8 @@ function ScenarioLogFooter({
     !displayPrimitiveScenarioIds.has(scenarioId) &&
     !formFieldScenarioIds.has(scenarioId) &&
     !navigationPrimitiveScenarioIds.has(scenarioId) &&
+    !selectionPrimitiveScenarioIds.has(scenarioId) &&
+    !dataPrimitiveScenarioIds.has(scenarioId) &&
     !utilityPrimitiveScenarioIds.has(scenarioId) &&
     scenarioId !== "alert-dialog" &&
     scenarioId !== "popover" &&
@@ -2881,8 +3215,12 @@ function ScenarioLogFooter({
                     ? getFormFieldEventCount(scenarioId, formFieldScenarios)
                     : navigationPrimitiveScenarioIds.has(scenarioId)
                       ? getNavigationPrimitiveEventCount(scenarioId, navigationPrimitiveScenarios)
-                      : utilityPrimitiveScenarioIds.has(scenarioId)
-                        ? getUtilityPrimitiveEventCount(scenarioId, utilityPrimitiveScenarios)
+                      : selectionPrimitiveScenarioIds.has(scenarioId)
+                        ? getSelectionPrimitiveEventCount(scenarioId, selectionPrimitiveScenarios)
+                        : dataPrimitiveScenarioIds.has(scenarioId)
+                          ? getDataPrimitiveEventCount(scenarioId, dataPrimitiveScenarios)
+                          : utilityPrimitiveScenarioIds.has(scenarioId)
+                            ? getUtilityPrimitiveEventCount(scenarioId, utilityPrimitiveScenarios)
     : scenarioId === "alert-dialog"
       ? alertDialogScenario.state.log.length
       : scenarioId === "popover"
@@ -2908,10 +3246,12 @@ function ScenarioLogAction({
   buttonScenario,
   checkboxScenario,
   contextMenuScenario,
+  dataPrimitiveScenarios,
   dialogScenario,
   displayPrimitiveScenarios,
   formFieldScenarios,
   navigationPrimitiveScenarios,
+  selectionPrimitiveScenarios,
   utilityPrimitiveScenarios,
   dropdownMenuScenario,
   hoverCardScenario,
@@ -2929,10 +3269,12 @@ function ScenarioLogAction({
   buttonScenario: ReturnType<typeof useButtonScenario>;
   checkboxScenario: ReturnType<typeof useCheckboxScenario>;
   contextMenuScenario: ReturnType<typeof useContextMenuScenario>;
+  dataPrimitiveScenarios: DataPrimitiveScenarios;
   dialogScenario: ReturnType<typeof useDialogScenario>;
   displayPrimitiveScenarios: DisplayPrimitiveScenarios;
   formFieldScenarios: FormFieldScenarios;
   navigationPrimitiveScenarios: NavigationPrimitiveScenarios;
+  selectionPrimitiveScenarios: SelectionPrimitiveScenarios;
   utilityPrimitiveScenarios: UtilityPrimitiveScenarios;
   dropdownMenuScenario: ReturnType<typeof useDropdownMenuScenario>;
   hoverCardScenario: ReturnType<typeof useHoverCardScenario>;
@@ -2956,6 +3298,8 @@ function ScenarioLogAction({
     !displayPrimitiveScenarioIds.has(scenarioId) &&
     !formFieldScenarioIds.has(scenarioId) &&
     !navigationPrimitiveScenarioIds.has(scenarioId) &&
+    !selectionPrimitiveScenarioIds.has(scenarioId) &&
+    !dataPrimitiveScenarioIds.has(scenarioId) &&
     !utilityPrimitiveScenarioIds.has(scenarioId) &&
     scenarioId !== "alert-dialog" &&
     scenarioId !== "popover" &&
@@ -2992,8 +3336,12 @@ function ScenarioLogAction({
                           ? () => clearFormFieldLog(scenarioId, formFieldScenarios)
                           : navigationPrimitiveScenarioIds.has(scenarioId)
                             ? () => clearNavigationPrimitiveLog(scenarioId, navigationPrimitiveScenarios)
-                            : utilityPrimitiveScenarioIds.has(scenarioId)
-                              ? () => clearUtilityPrimitiveLog(scenarioId, utilityPrimitiveScenarios)
+                            : selectionPrimitiveScenarioIds.has(scenarioId)
+                              ? () => clearSelectionPrimitiveLog(scenarioId, selectionPrimitiveScenarios)
+                              : dataPrimitiveScenarioIds.has(scenarioId)
+                                ? () => clearDataPrimitiveLog(scenarioId, dataPrimitiveScenarios)
+                                : utilityPrimitiveScenarioIds.has(scenarioId)
+                                  ? () => clearUtilityPrimitiveLog(scenarioId, utilityPrimitiveScenarios)
           : scenarioId === "alert-dialog"
             ? alertDialogScenario.actions.clearLog
             : scenarioId === "popover"

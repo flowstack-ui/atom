@@ -3,13 +3,12 @@ import { AppBar } from "@flowstack-ui/atom/app-bar";
 import { BottomNavigation } from "@flowstack-ui/atom/bottom-navigation";
 import { Breadcrumb } from "@flowstack-ui/atom/breadcrumb";
 import { Button } from "@flowstack-ui/atom/button";
-import { Menubar } from "@flowstack-ui/atom/menubar";
 import { NavList } from "@flowstack-ui/atom/nav-list";
 import { Pagination, usePaginationContext } from "@flowstack-ui/atom/pagination";
-import { ScrollArea } from "@flowstack-ui/atom/scroll-area";
 import { Tabs } from "@flowstack-ui/atom/tabs";
 import { useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { AnatomyPanel, type AnatomySection } from "../AnatomyPanel";
+import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, ScenarioEventLog, ToolbarGroup } from "../WorkbenchPrimitives";
 
 type CompositionMode = "default" | "asChild" | "render";
 type Orientation = "horizontal" | "vertical";
@@ -946,23 +945,6 @@ function getNavigationLog(scenarioId: string, scenarios: NavigationPrimitiveScen
   return [];
 }
 
-function ScenarioEventLog({ log }: { log: LogEntry[] }) {
-  return (
-    <ScrollArea.Root className="log-scroll" orientation="vertical">
-      <ScrollArea.Viewport className="log-scroll-viewport" focusable aria-label="Event log">
-        <ol className="event-log">
-          {log.map((entry) => (
-            <li key={entry.id}>
-              <time>{entry.time}</time>
-              <span>{entry.text}</span>
-            </li>
-          ))}
-        </ol>
-      </ScrollArea.Viewport>
-    </ScrollArea.Root>
-  );
-}
-
 export function getNavigationPrimitiveEventCount(scenarioId: string, scenarios: NavigationPrimitiveScenarios) {
   return getNavigationLog(scenarioId, scenarios).length;
 }
@@ -1063,25 +1045,6 @@ export function getNavigationPrimitiveSource(scenarioId: string) {
 </NavList.Root>`;
 }
 
-function ControlToolbar({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <Menubar.Root className="canvas-toolbar" aria-label={label}>
-      {children}
-    </Menubar.Root>
-  );
-}
-
-function ToolbarGroup({ title, value, children }: { title: string; value: string; children: ReactNode }) {
-  return (
-    <Menubar.Menu value={value}>
-      <Menubar.Trigger className="toolbar-group-trigger">{title}</Menubar.Trigger>
-      <Menubar.Content className="toolbar-menu" align="start" sideOffset={6}>
-        {children}
-      </Menubar.Content>
-    </Menubar.Menu>
-  );
-}
-
 function CompositionToolbarGroup({ label = "Root", value, onChange }: { label?: string; value: CompositionMode; onChange: (value: CompositionMode) => void }) {
   return (
     <ToolbarGroup title="Composition" value="composition">
@@ -1090,42 +1053,8 @@ function CompositionToolbarGroup({ label = "Root", value, onChange }: { label?: 
   );
 }
 
-function MenuSection({ label }: { label: string }) {
-  return <div className="toolbar-menu-label">{label}</div>;
-}
-
-function MenuCheckboxControl({ checked, label, value, onChange }: { checked: boolean; label: string; value: string; onChange: (checked: boolean) => void }) {
-  return (
-    <Menubar.CheckboxItem className="toolbar-menu-item" checked={checked} value={value} onCheckedChange={onChange}>
-      <span>{label}</span>
-      <span className="toolbar-menu-check" aria-hidden="true">{checked ? "✓" : ""}</span>
-    </Menubar.CheckboxItem>
-  );
-}
-
-function MenuRadioControl<T extends string>({ label, options, value, onChange }: { label: string; options: readonly T[]; value: T | string; onChange: (value: T) => void }) {
-  return (
-    <>
-      <MenuSection label={label} />
-      <Menubar.RadioGroup className="toolbar-radio-group" value={value} onValueChange={(nextValue) => onChange(nextValue as T)}>
-        {options.map((option) => (
-          <Menubar.RadioItem className="toolbar-menu-item" key={option} value={option}>
-            <span>{formatOption(option)}</span>
-            <span className="toolbar-menu-check" aria-hidden="true">{value === option ? "✓" : ""}</span>
-          </Menubar.RadioItem>
-        ))}
-      </Menubar.RadioGroup>
-    </>
-  );
-}
-
 function bool(value: boolean) {
   return value ? "true" : "false";
-}
-
-function formatOption(value: string) {
-  if (value === "asChild") return "As Child";
-  return value.split("-").map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
 }
 
 const compositionOptions = ["default", "asChild", "render"] as const;

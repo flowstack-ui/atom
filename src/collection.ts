@@ -176,7 +176,6 @@ export function useCollection<
         process?: { env?: { NODE_ENV?: string } };
       }).process?.env?.NODE_ENV;
       if (
-        nodeEnv &&
         nodeEnv !== "production" &&
         previousItem &&
         previousItem.element !== element

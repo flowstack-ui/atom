@@ -1,6 +1,6 @@
 export function valueToPercent(value: number, min: number, max: number): number {
   if (max === min) return 0;
-  return ((value - min) / (max - min)) * 100;
+  return roundSliderNumber(((value - min) / (max - min)) * 100);
 }
 
 export function percentToValue(
@@ -22,6 +22,10 @@ export function snapToStep(value: number, step: number, min: number): number {
   const snapped = Math.round(offset / step) * step + min;
   const decimals = countDecimals(step);
   return Number.parseFloat(snapped.toFixed(decimals));
+}
+
+function roundSliderNumber(value: number): number {
+  return Number.parseFloat(value.toFixed(6));
 }
 
 function countDecimals(value: number): number {

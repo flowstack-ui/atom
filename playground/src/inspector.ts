@@ -22,6 +22,7 @@ export type ElementInspector = {
 const observedAttributes = [
   "aria-checked",
   "aria-controls",
+  "aria-current",
   "aria-describedby",
   "aria-disabled",
   "aria-expanded",
@@ -29,8 +30,10 @@ const observedAttributes = [
   "aria-hidden",
   "aria-labelledby",
   "aria-modal",
+  "alt",
   "checked",
   "data-checked",
+  "data-active",
   "data-disabled",
   "data-positioned",
   "data-state",
@@ -43,6 +46,7 @@ const observedAttributes = [
   "readonly",
   "role",
   "selected",
+  "src",
   "tabindex",
   "title",
   "type",
@@ -53,9 +57,24 @@ const EMPTY_VALUE = "-";
 const hiddenDataAttributes = new Set([
   "data-playground-inspect",
 ]);
+const hiddenNativeAttributes = new Set([
+  "class",
+  "id",
+  "style",
+  "value",
+]);
+const booleanNativeAttributes = new Set([
+  "checked",
+  "disabled",
+  "hidden",
+  "multiple",
+  "readonly",
+  "required",
+  "selected",
+]);
 
 function formatAttribute(attribute: Attr): string {
-  return attribute.value === ""
+  return attribute.value === "" && (attribute.name.startsWith("data-") || booleanNativeAttributes.has(attribute.name))
     ? attribute.name
     : `${attribute.name}="${attribute.value}"`;
 }
@@ -80,9 +99,7 @@ function getNativeAttributes(element: Element | null): string {
     .filter((attribute) => (
       !attribute.name.startsWith("aria-") &&
       !attribute.name.startsWith("data-") &&
-      attribute.name !== "class" &&
-      attribute.name !== "id" &&
-      attribute.name !== "style"
+      !hiddenNativeAttributes.has(attribute.name)
     ))
     .map(formatAttribute);
 
@@ -149,6 +166,38 @@ function getElementDetails(element: Element | null): InspectorDetails {
     text: getText(element),
     value: getValue(element),
   };
+}
+
+function cssEscape(value: string): string {
+  if (typeof CSS !== "undefined" && typeof CSS.escape === "function") {
+    return CSS.escape(value);
+  }
+
+  return value.replace(/["\\]/g, "\\$&");
+}
+
+function getReplacementSelector(element: Element): string | null {
+  const propCheck = element.getAttribute("data-prop-check");
+  if (propCheck) return `[data-prop-check="${cssEscape(propCheck)}"]`;
+
+  const slot = element.getAttribute("data-slot");
+  if (slot) return `[data-slot="${cssEscape(slot)}"]`;
+
+  const id = element.id;
+  if (id) return `#${cssEscape(id)}`;
+
+  return null;
+}
+
+function resolveLiveElement(root: HTMLDivElement | null, element: Element | null): Element | null {
+  if (!element) return null;
+  if (element.isConnected) return element;
+
+  const selector = getReplacementSelector(element);
+  if (!selector) return null;
+
+  const replacement = document.querySelector(selector);
+  return isInspectable(root, replacement) ? replacement : null;
 }
 
 export function useElementInspector(): ElementInspector {
@@ -246,11 +295,11 @@ export function useElementInspector(): ElementInspector {
   }, []);
 
   const focusedDetails = useMemo(
-    () => getElementDetails(focusedElement),
+    () => getElementDetails(resolveLiveElement(rootRef.current, focusedElement)),
     [focusedElement, revision],
   );
   const selectedDetails = useMemo(
-    () => getElementDetails(selectedElement),
+    () => getElementDetails(resolveLiveElement(rootRef.current, selectedElement)),
     [selectedElement, revision],
   );
 

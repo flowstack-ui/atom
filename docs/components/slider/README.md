@@ -86,8 +86,8 @@ Renders the selected range.
 | --- | --- |
 | `[data-slot]` | `"slider-range"` |
 | `[data-orientation]` | `"horizontal" \| "vertical"` |
-| `[data-start]` | Start percentage |
-| `[data-end]` | End percentage |
+| `[data-start]` | Normalized start percentage |
+| `[data-end]` | Normalized end percentage |
 | `[data-disabled]` | Present when disabled |
 
 ### Thumb
@@ -104,7 +104,7 @@ Renders a slider thumb.
 | --- | --- |
 | `[data-slot]` | `"slider-thumb"` |
 | `[data-value]` | Current thumb value |
-| `[data-percent]` | Current thumb percentage |
+| `[data-percent]` | Normalized current thumb percentage |
 
 ## Examples
 

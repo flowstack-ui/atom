@@ -42,8 +42,13 @@ behavior. Current shared workbench UI uses:
 - `Button` for header actions and imperative test actions
 - `Collapsible` for Anatomy groups
 - `Tabs` for Inspector target switching
-- `ScrollArea` for scrollable Log content
+- `ScrollArea` for scrollable Anatomy, Inspector, Log, and source panels
 - `Field`, `Input`, and `Select` inside live form scenarios
+
+Shared playground chrome lives in `src/WorkbenchPrimitives.tsx`. Use it before
+creating scenario-local toolbar or log helpers. Scenario files should provide
+state, actions, anatomy rows, and the live Atom JSX; shared workbench controls
+should own common toolbar menu rows, check/radio placement, and event log rows.
 
 ## App Shape
 
@@ -67,14 +72,40 @@ Expected structure:
 ```text
 Top app bar
   Atom Playground
-  Forms
+  Fields
     Field
+    Fieldset
+    Input
+    Textarea
+    Number Input
+    Password Toggle Field
+    OTP Field
+    File Upload
+    Form
+    Label
+  Controls
+    Button
     Checkbox
-    RadioGroup
+    Checkbox Group
+    Radio Group
+    Switch
+    Toggle
+    Toggle Group
+    Slider
+    Rating
+    Pressable
+  Selection
+    Select
+    Listbox
+    Combobox
   Overlays
     Dialog
+    Alert Dialog
     Popover
-    Select
+    Hover Card
+    Tooltip
+    Context Menu
+    Dropdown Menu
   Navigation
     App Bar
     Bottom Navigation
@@ -85,10 +116,24 @@ Top app bar
     Accordion
   Data
     Table
+    Data Grid
+    Tree Grid
+    Feed
     Tree
+  Display
+    Badge
+    Avatar
+    List
+    Progress
   Utilities
     Portal
-    VisuallyHidden
+    Collection
+    Virtualizer
+    Scroll Area
+    Visually Hidden
+    Aspect Ratio
+    Divider
+    Skip Link
   @flowstack-ui/atom 0.1.0
 
 Main area
@@ -146,6 +191,15 @@ the Canvas stage. If a value is state, put it in Anatomy. If it is an event, put
 it in Inspector Logs. If it is a DOM attribute, make it visible through Inspector or
 Anatomy.
 
+Hooks and utility modules still get playground pages when they are public API.
+Because they do not render Atom DOM by themselves, the page should show:
+
+- the hook return values in Anatomy
+- the consumer DOM required to use the hook correctly
+- source code that shows the actual hook call
+- explicit notes in the coverage tracker when no `data-slot` or Atom data
+  attributes are expected
+
 Use short labels:
 
 ```text
@@ -170,6 +224,18 @@ Use Atom primitives for playground controls:
 - `Menubar.RadioGroup` and `Menubar.RadioItem` for small option sets
 - `Button` for imperative actions
 - `Field`, `Input`, and `Select` when the live component needs form controls
+
+Use the shared workbench primitives for repeated Canvas toolbar UI:
+
+- `ControlToolbar`
+- `ToolbarGroup`
+- `MenuSection`
+- `MenuCheckboxControl`
+- `MenuRadioControl`
+- `ScenarioEventLog`
+
+Do not copy these helpers into new scenario files. Add shared capability to
+`WorkbenchPrimitives.tsx` when a repeated pattern appears.
 
 Examples:
 
@@ -388,6 +454,29 @@ Target direction:
 This keeps live DOM evidence complete while preserving readable behavior
 summaries for each component part.
 
+## Direction Coverage
+
+Direction-sensitive primitives need explicit playground coverage. A component is
+direction-sensitive when `ltr` versus `rtl` changes keyboard movement, submenu
+open/close keys, start/end placement, swipe direction, slider/rating math, or
+grid/tree horizontal navigation.
+
+Rules:
+
+- Add coverage tracker rows for every direction-sensitive component.
+- The standard Atom behavior is `dir` prop override first, then
+  `Direction.Provider`, then the component default.
+- The playground scenario should expose both provider direction and direct `dir`
+  override when the component supports both.
+- Direction tests should verify DOM evidence and behavior. For example:
+  `dir="rtl"` appears where the component renders it, ArrowLeft/ArrowRight
+  behavior mirrors correctly, and start/end sides flip when they should.
+- Do not add direction rows to components where direction only affects consumer
+  styling or text layout. Those belong to the styled layer or the app DOM.
+- If a component has local `dir` behavior but does not read
+  `Direction.Provider`, mark the provider row as `missing` in the tracker until
+  the component source is updated.
+
 ## Logs
 
 The Logs tab records behavior events that should remain visible after the
@@ -419,6 +508,9 @@ Rules:
 - Keep the rows broad enough to cover the full component surface: public API,
   interaction, accessibility, composition, refs, native props, styling hooks,
   portal behavior, and mobile behavior when relevant.
+- Add direction rows for components whose behavior changes in RTL. Include
+  provider context, direct `dir` override, and mirrored keyboard/pointer
+  behavior where relevant.
 - Native prop coverage should point testers to the relevant part's raw `Data`
   group and its `data-prop-check="<part>"` marker. One non-Atom-owned marker is
   enough to prove rest props pass through for that part.
@@ -462,6 +554,10 @@ Field, Fieldset, Input, Textarea, Number Input, and Password Toggle Field extend
 the form pass with label/description/error wiring, grouped field state, text
 value controls, clear/count companions, number spinbutton behavior, and password
 visibility toggling.
+Checkbox Group, Slider, Rating, OTP Field, File Upload, Listbox, and Combobox
+extend the form and selection pass with grouped values, range thumbs, rating
+keyboard/pointer behavior, segmented code input, file item lists, option
+selection, filtering, and generated hidden input evidence.
 Badge, Divider, Aspect Ratio, Avatar, Label, and List start the lightweight
 display/layout pass with render output, composition, native prop markers,
 label association, avatar fallback state, and live DOM evidence.
@@ -473,6 +569,9 @@ App Bar, Tabs, Accordion, Breadcrumb, Pagination, Bottom Navigation, and Nav
 List start the navigation pass with structural landmarks, active value state,
 roving/keyboard behavior, ordered path output, page range controls, and
 collapsible navigation sections.
+Data Grid, Tree Grid, Feed, Scroll Area, and Form add the first structured data
+and document-flow batch with grid/treegrid keyboard state, article paging,
+scrollable region access, and submit/reset validation behavior.
 
 Dialog is a good first scenario because it exercises:
 

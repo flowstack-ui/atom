@@ -3,6 +3,7 @@ dist/
 playground/dist/
 *.tgz
 *.tsbuildinfo
+*.inspect.ndjson
 .DS_Store
 .env
 .env.*
