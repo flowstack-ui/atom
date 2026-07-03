@@ -550,17 +550,17 @@ hover/focus timing, tooltip relationships, and destructive confirmation behavior
 Button, Checkbox, Switch, Toggle, ToggleGroup, and RadioGroup start the form
 control pass with checked/pressed/value state, disabled/read-only behavior,
 generated form inputs, keyboard interaction, and composition coverage.
-Field, Fieldset, Input, Textarea, Number Input, and Password Toggle Field extend
-the form pass with label/description/error wiring, grouped field state, text
-value controls, clear/count companions, number spinbutton behavior, and password
-visibility toggling.
+Label, Field, Fieldset, Input, Textarea, Number Input, and Password Toggle Field
+extend the form pass with label association, label/description/error wiring,
+grouped field state, text value controls, clear/count companions, number
+spinbutton behavior, and password visibility toggling.
 Checkbox Group, Slider, Rating, OTP Field, File Upload, Listbox, and Combobox
 extend the form and selection pass with grouped values, range thumbs, rating
 keyboard/pointer behavior, segmented code input, file item lists, option
 selection, filtering, and generated hidden input evidence.
-Badge, Divider, Aspect Ratio, Avatar, Label, and List start the lightweight
-display/layout pass with render output, composition, native prop markers,
-label association, avatar fallback state, and live DOM evidence.
+Badge, Divider, Aspect Ratio, Avatar, and List start the lightweight
+display/layout pass with render output, composition, native prop markers, avatar
+fallback state, and live DOM evidence.
 Progress, Pressable, Visually Hidden, Skip Link, Collapsible, and Toolbar add
 utility and disclosure coverage for progress semantics, custom press behavior,
 programmatic skip focus, mounted/unmounted disclosure content, and toolbar

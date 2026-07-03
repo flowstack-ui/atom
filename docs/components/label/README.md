@@ -19,9 +19,7 @@ import { Label } from "@flowstack-ui/atom";
 ## Anatomy
 
 ```tsx
-export default () => (
-  <Label.Root />
-);
+<Label.Root />
 ```
 
 ## API Reference
@@ -55,12 +53,8 @@ Renders a native label element.
 ```tsx
 import { Label } from "@flowstack-ui/atom";
 
-export default () => (
-  <>
-    <Label.Root htmlFor="email">Email</Label.Root>
-    <input id="email" name="email" />
-  </>
-);
+<Label.Root htmlFor="email">Email</Label.Root>
+<input id="email" name="email" />
 ```
 
 ### Field-Aware Label
@@ -68,12 +62,10 @@ export default () => (
 ```tsx
 import { Field, Input } from "@flowstack-ui/atom";
 
-export default () => (
-  <Field.Root id="email" required>
-    <Field.Label>Email</Field.Label>
-    <Input.Root name="email" />
-  </Field.Root>
-);
+<Field.Root id="email" required>
+  <Field.Label>Email</Field.Label>
+  <Input.Root name="email" />
+</Field.Root>
 ```
 
 ## Accessibility

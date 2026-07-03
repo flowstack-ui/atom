@@ -202,10 +202,14 @@ function useLabelScenario() {
   const [readOnly, setReadOnly] = useState(false);
   const [withHtmlFor, setWithHtmlFor] = useState(true);
   const [composition, setComposition] = useState<CompositionMode>("default");
+  const [rootRef, setRootRef] = useState("none");
   const { log, addLog, clearLog } = useScenarioLog();
+  const markRootRef = useCallback((node: HTMLElement | null) => {
+    if (node) setRootRef(node.tagName.toLowerCase());
+  }, []);
 
   return {
-    state: { disabled, invalid, required, readOnly, withHtmlFor, composition, log },
+    state: { disabled, invalid, required, readOnly, withHtmlFor, composition, rootRef, log },
     actions: {
       setDisabled,
       setInvalid,
@@ -213,6 +217,7 @@ function useLabelScenario() {
       setReadOnly,
       setWithHtmlFor,
       setComposition,
+      markRootRef,
       clearLog,
       noteLabelClick: () => addLog("label clicked"),
       noteInputFocus: () => addLog("input focused"),
@@ -555,15 +560,31 @@ ${indent(avatar, 2)}
 
   if (scenarioId === "label") {
     const state = scenarios.label.state;
-    return `<Label.Root
-  ${state.withHtmlFor ? `htmlFor="display-label-input"` : ""}
-  disabled={${state.disabled}}
-  invalid={${state.invalid}}
-  required={${state.required}}
-  readOnly={${state.readOnly}}
->
-  Email
+    const props = [
+      state.withHtmlFor ? `htmlFor="display-label-input"` : "",
+      state.disabled ? "disabled" : "",
+      state.invalid ? "invalid" : "",
+      state.required ? "required" : "",
+      state.readOnly ? "readOnly" : "",
+    ].filter(Boolean);
+    const propText = props.length > 0 ? ` ${props.join(" ")}` : "";
+
+    if (state.composition === "asChild") {
+      return `<Label.Root${propText} asChild>
+  <span>Email</span>
 </Label.Root>
+<Input.Root id="display-label-input" />`;
+    }
+
+    if (state.composition === "render") {
+      const renderedProps = props.length > 0 ? `\n  ${props.join("\n  ")}` : "";
+      return `<Label.Root${renderedProps}
+  render={(props) => <span {...props}>Email</span>}
+/>
+<Input.Root id="display-label-input" />`;
+    }
+
+    return `<Label.Root${propText}>Email</Label.Root>
 <Input.Root id="display-label-input" />`;
   }
 
@@ -759,6 +780,7 @@ function LabelScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useLabe
     readOnly: scenario.state.readOnly,
     htmlFor: scenario.state.withHtmlFor ? "display-label-input" : undefined,
     onClick: scenario.actions.noteLabelClick,
+    ref: scenario.actions.markRootRef,
   };
 
   return (
@@ -1126,6 +1148,8 @@ function getDisplayPrimitiveSections(
   if (scenarioId === "label") {
     const label = document.querySelector<HTMLElement>("[data-label-root]");
     const input = document.querySelector<HTMLInputElement>("[data-input-root]");
+    const labelTag = label?.tagName.toLowerCase() ?? "none";
+    const hasNativeLabelBehavior = labelTag === "label";
     return [
       {
         title: "Root",
@@ -1133,22 +1157,16 @@ function getDisplayPrimitiveSections(
         summary: label?.textContent?.trim() || "not rendered",
         rows: [
           { label: "Exists", value: bool(!!label), category: "presence" },
+          { label: "Ref target", value: scenarios.label.state.rootRef, category: "identity" },
+          { label: "Text", value: label?.textContent?.trim() || "none", category: "state" },
           { label: "Disabled", value: bool(scenarios.label.state.disabled), category: "state" },
           { label: "Invalid", value: bool(scenarios.label.state.invalid), category: "state" },
           { label: "Required", value: bool(scenarios.label.state.required), category: "state" },
           { label: "Read only", value: bool(scenarios.label.state.readOnly), category: "state" },
           { label: "htmlFor", value: scenarios.label.state.withHtmlFor ? "display-label-input" : "none", category: "behavior" },
-          { label: "Matches input", value: bool(!!label && !!input && label.getAttribute("for") === input.id), category: "behavior" },
+          { label: "for", value: label?.getAttribute("for") ?? "none", category: "attributes" },
+          { label: "Matches input", value: bool(hasNativeLabelBehavior && !!label && !!input && label.getAttribute("for") === input.id), category: "behavior" },
           { label: "Composition", value: scenarios.label.state.composition, category: "composition" },
-        ],
-      },
-      {
-        title: "Control",
-        selector: "[data-input-root]",
-        summary: input?.value || "not rendered",
-        rows: [
-          { label: "Exists", value: bool(!!input), category: "presence" },
-          { label: "Value", value: input?.value ?? "none", category: "state" },
         ],
       },
     ];
