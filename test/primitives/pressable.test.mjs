@@ -80,6 +80,20 @@ test("Pressable source exposes pointer press state and disabled guards", async (
   assert.match(source, /onKeyUp: handleKeyUp/);
 });
 
+test("Pressable source suppresses custom-render clicks released outside", async () => {
+  const source = await readFile(
+    new URL("src/primitives/pressable/PressableRoot.tsx", packageRoot),
+    "utf8",
+  );
+
+  assert.match(source, /const suppressClickRef = useRef\(false\)/);
+  assert.match(source, /ownerDocument\.elementFromPoint/);
+  assert.match(source, /event\.currentTarget\.contains\(releaseTarget\)/);
+  assert.match(source, /suppressClickRef\.current = true/);
+  assert.match(source, /if \(suppressClickRef\.current\) \{/);
+  assert.match(source, /event\.preventDefault\(\);\s*return;/);
+});
+
 test("Pressable primitive barrel does not create a client boundary", async () => {
   const indexSource = await readFile(
     new URL("src/primitives/pressable/index.ts", packageRoot),

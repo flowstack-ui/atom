@@ -1359,6 +1359,14 @@ h2 {
   text-align: left;
 }
 
+.utility-pressable-stage {
+  align-content: center;
+}
+
+.utility-pressable-cancel-button {
+  justify-self: center;
+}
+
 .utility-pressable strong {
   color: inherit;
   font-size: 16px;

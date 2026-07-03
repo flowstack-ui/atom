@@ -369,20 +369,42 @@ function useProgressScenario() {
 }
 
 function usePressableScenario() {
+  const rootElementRef = useRef<HTMLElement | null>(null);
   const [disabled, setDisabled] = useState(false);
+  const [blockClick, setBlockClick] = useState(false);
+  const [showPointerCancelHelper, setShowPointerCancelHelper] = useState(false);
   const [composition, setComposition] = useState<CompositionMode>("default");
   const [pressCount, setPressCount] = useState(0);
+  const [pressed, setPressed] = useState(false);
+  const [rootRef, setRootRef] = useState("none");
   const { log, addLog, clearLog } = useScenarioLog();
+  const markRootRef = useCallback((node: HTMLElement | null) => {
+    rootElementRef.current = node;
+    setRootRef(node?.tagName.toLowerCase() ?? "none");
+  }, []);
 
   const note = (text: string) => addLog(text);
   const handlePress = () => {
     setPressCount((count) => count + 1);
     addLog("pressed");
   };
+  const testPointerCancel = () => {
+    const root = rootElementRef.current;
+    if (!root) {
+      addLog("pointer cancel unavailable");
+      return;
+    }
+
+    setPressed(true);
+    root.dispatchEvent(new PointerEvent("pointercancel", {
+      bubbles: true,
+      pointerId: 1,
+    }));
+  };
 
   return {
-    state: { disabled, composition, pressCount, log },
-    actions: { setDisabled, setComposition, handlePress, note, clearLog },
+    state: { disabled, blockClick, showPointerCancelHelper, composition, pressCount, pressed, rootRef, log },
+    actions: { setDisabled, setBlockClick, setShowPointerCancelHelper, setComposition, setPressed, markRootRef, handlePress, testPointerCancel, note, clearLog },
   };
 }
 
@@ -827,6 +849,10 @@ export function UtilityPrimitiveScenarioToolbar({
       <ControlToolbar label="Pressable controls">
         <ToolbarGroup title="State" value="state">
           <MenuCheckboxControl checked={scenario.state.disabled} label="Disabled" value="disabled" onChange={scenario.actions.setDisabled} />
+        </ToolbarGroup>
+        <ToolbarGroup title="Events" value="events">
+          <MenuCheckboxControl checked={scenario.state.blockClick} label="Block click" value="block-click" onChange={scenario.actions.setBlockClick} />
+          <MenuCheckboxControl checked={scenario.state.showPointerCancelHelper} label="Show pointer cancel helper" value="show-pointer-cancel-helper" onChange={scenario.actions.setShowPointerCancelHelper} />
         </ToolbarGroup>
         <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
       </ControlToolbar>
@@ -1318,11 +1344,44 @@ ${indent(indicator, 2)}
 
   if (scenarioId === "pressable") {
     const state = scenarios.pressable.state;
-    return `<Pressable.Root
-  disabled={${state.disabled}}
+    const disabledProp = state.disabled ? " disabled" : "";
+    const clickHandler = state.blockClick ? " onClick={(event) => event.preventDefault()}" : "";
+
+    if (state.composition === "asChild") {
+      return `<Pressable.Root${disabledProp}${clickHandler}
+  asChild
+  onKeyUp={handleKeyUp}
+  onPointerCancel={handlePointerCancel}
   onPress={handlePress}
 >
-  Press action
+  <article>
+    <strong>Project Alpha</strong>
+    <span>Open project details</span>
+  </article>
+</Pressable.Root>`;
+    }
+
+    if (state.composition === "render") {
+      return `<Pressable.Root${disabledProp}${clickHandler}
+  render={(props) => (
+    <div {...props}>
+      <strong>Project Alpha</strong>
+      <span>Open project details</span>
+    </div>
+  )}
+  onKeyUp={handleKeyUp}
+  onPointerCancel={handlePointerCancel}
+  onPress={handlePress}
+/>`;
+    }
+
+    return `<Pressable.Root${disabledProp}${clickHandler}
+  onKeyUp={handleKeyUp}
+  onPointerCancel={handlePointerCancel}
+  onPress={handlePress}
+>
+  <strong>Project Alpha</strong>
+  <span>Open project details</span>
 </Pressable.Root>`;
   }
 
@@ -1889,24 +1948,55 @@ function ProgressIndicatorExample({ mode, onRef, percent }: { mode: CompositionM
 }
 
 function PressableScenarioCanvas({ scenario }: { scenario: ReturnType<typeof usePressableScenario> }) {
+  const getKeyName = (event: KeyboardEvent<HTMLElement>) => event.key === " " ? "Space" : event.key;
   const props = {
     className: "utility-pressable",
     "data-pressable-root": "",
     "data-playground-inspect": "",
     "data-prop-check": "root",
     disabled: scenario.state.disabled,
-    render: "div" as const,
-    onClick: () => scenario.actions.note("user onClick"),
-    onKeyDown: (event: KeyboardEvent<HTMLElement>) => scenario.actions.note(`user onKeyDown ${event.key}`),
-    onPointerDown: () => scenario.actions.note("user pointerdown"),
-    onPointerUp: () => scenario.actions.note("user pointerup"),
+    ref: scenario.actions.markRootRef,
+    onClick: (event: MouseEvent<HTMLElement>) => {
+      scenario.actions.note("user onClick");
+      if (scenario.state.blockClick) {
+        event.preventDefault();
+        scenario.actions.note("user onClick blocked press");
+      }
+    },
+    onKeyDown: (event: KeyboardEvent<HTMLElement>) => scenario.actions.note(`user onKeyDown ${getKeyName(event)}`),
+    onKeyUp: (event: KeyboardEvent<HTMLElement>) => scenario.actions.note(`user onKeyUp ${getKeyName(event)}`),
+    onPointerDown: () => {
+      scenario.actions.setPressed(true);
+      scenario.actions.note("user pointerdown");
+    },
+    onPointerUp: () => {
+      scenario.actions.setPressed(false);
+      scenario.actions.note("user pointerup");
+    },
+    onPointerCancel: () => {
+      scenario.actions.setPressed(false);
+      scenario.actions.note("user pointercancel");
+    },
+    onLostPointerCapture: () => {
+      scenario.actions.setPressed(false);
+      scenario.actions.note("user lostpointercapture");
+    },
     onPress: scenario.actions.handlePress,
   };
 
   return (
-    <div className="utility-primitive-stage">
+    <div className="utility-primitive-stage utility-pressable-stage">
+      {scenario.state.showPointerCancelHelper ? (
+        <button
+          className="atom-button secondary utility-pressable-cancel-button"
+          type="button"
+          onClick={scenario.actions.testPointerCancel}
+        >
+          Pointer cancel
+        </button>
+      ) : null}
       {scenario.state.composition === "asChild" ? (
-        <Pressable.Root {...props} render={undefined} asChild>
+        <Pressable.Root {...props} asChild>
           <article>
             <strong>Project Alpha</strong>
             <span>Open project details</span>
@@ -2769,12 +2859,16 @@ function getUtilityPrimitiveSections(
       title: "Root",
       selector: "[data-pressable-root]",
       summary: scenarios.pressable.state.composition,
-      rows: [
-        { label: "Exists", value: bool(!!root), category: "presence" },
-        { label: "Disabled", value: bool(scenarios.pressable.state.disabled), category: "state" },
-        { label: "Press count", value: String(scenarios.pressable.state.pressCount), category: "behavior" },
-        { label: "Composition", value: scenarios.pressable.state.composition, category: "composition" },
-      ],
+        rows: [
+          { label: "Exists", value: bool(!!root), category: "presence" },
+          { label: "Ref target", value: scenarios.pressable.state.rootRef, category: "identity" },
+          { label: "Disabled", value: bool(scenarios.pressable.state.disabled), category: "state" },
+          { label: "Pressed", value: bool(scenarios.pressable.state.pressed), category: "state" },
+          { label: "Block click", value: bool(scenarios.pressable.state.blockClick), category: "behavior" },
+          { label: "Pointer cancel helper", value: bool(scenarios.pressable.state.showPointerCancelHelper), category: "behavior" },
+          { label: "Press count", value: String(scenarios.pressable.state.pressCount), category: "behavior" },
+          { label: "Composition", value: scenarios.pressable.state.composition, category: "composition" },
+        ],
     }];
   }
 

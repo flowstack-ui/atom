@@ -90,12 +90,23 @@ export const PressableRoot = forwardRef<HTMLElement, PressableRootProps>(
   ) {
     const [pressed, setPressed] = useState(false);
     const pointerIdRef = useRef<number | null>(null);
+    const suppressClickRef = useRef(false);
+    const suppressClickTimeoutRef = useRef<number | null>(null);
     const usesNativeButton =
       !asChild && (render === undefined || render === "button");
+
+    const clearSuppressClickTimeout = useCallback(() => {
+      if (suppressClickTimeoutRef.current === null) return;
+      window.clearTimeout(suppressClickTimeoutRef.current);
+      suppressClickTimeoutRef.current = null;
+    }, []);
+
+    useEffect(() => () => clearSuppressClickTimeout(), [clearSuppressClickTimeout]);
 
     useEffect(() => {
       if (!disabled) return;
       pointerIdRef.current = null;
+      suppressClickRef.current = false;
       setPressed(false);
     }, [disabled]);
 
@@ -105,11 +116,18 @@ export const PressableRoot = forwardRef<HTMLElement, PressableRootProps>(
         return;
       }
 
+      if (suppressClickRef.current) {
+        suppressClickRef.current = false;
+        clearSuppressClickTimeout();
+        event.preventDefault();
+        return;
+      }
+
       onClick?.(event);
       if (!event.defaultPrevented) {
         onPress?.(event);
       }
-    }, [disabled, onClick, onPress]);
+    }, [clearSuppressClickTimeout, disabled, onClick, onPress]);
 
     const handleKeyDown = useCallback<KeyboardEventHandler<HTMLElement>>((event) => {
       if (disabled) {
@@ -172,10 +190,12 @@ export const PressableRoot = forwardRef<HTMLElement, PressableRootProps>(
       onPointerDown?.(event);
       if (event.defaultPrevented || event.button !== 0) return;
 
+      suppressClickRef.current = false;
+      clearSuppressClickTimeout();
       pointerIdRef.current = event.pointerId;
       event.currentTarget.setPointerCapture?.(event.pointerId);
       setPressed(true);
-    }, [disabled, onPointerDown]);
+    }, [clearSuppressClickTimeout, disabled, onPointerDown]);
 
     const handlePointerUp = useCallback<PointerEventHandler<HTMLElement>>((event) => {
       if (disabled) return;
@@ -183,10 +203,27 @@ export const PressableRoot = forwardRef<HTMLElement, PressableRootProps>(
       onPointerUp?.(event);
       if (pointerIdRef.current !== event.pointerId) return;
 
+      const releaseTarget = event.currentTarget.ownerDocument.elementFromPoint(
+        event.clientX,
+        event.clientY,
+      );
+      const releasedInside = releaseTarget
+        ? event.currentTarget.contains(releaseTarget)
+        : false;
+
+      if (!releasedInside) {
+        suppressClickRef.current = true;
+        clearSuppressClickTimeout();
+        suppressClickTimeoutRef.current = window.setTimeout(() => {
+          suppressClickRef.current = false;
+          suppressClickTimeoutRef.current = null;
+        }, 0);
+      }
+
       event.currentTarget.releasePointerCapture?.(event.pointerId);
       pointerIdRef.current = null;
       setPressed(false);
-    }, [disabled, onPointerUp]);
+    }, [clearSuppressClickTimeout, disabled, onPointerUp]);
 
     const handlePointerCancel = useCallback<PointerEventHandler<HTMLElement>>((event) => {
       onPointerCancel?.(event);

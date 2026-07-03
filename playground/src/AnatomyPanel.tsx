@@ -97,6 +97,7 @@ const nativeAttributeLabels = new Set([
   "href",
   "name",
   "placeholder",
+  "rel",
   "readonly",
   "role",
   "selected",

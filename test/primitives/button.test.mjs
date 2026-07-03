@@ -103,6 +103,46 @@ test("ButtonRoot adds button semantics to custom non-native renders", () => {
   assert.match(html, />Custom<\/div>/);
 });
 
+test("ButtonRoot adds button semantics to custom asChild elements", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Button.Root,
+      {
+        asChild: true,
+        "data-testid": "custom-child-button",
+      },
+      React.createElement("span", null, "Custom child"),
+    ),
+  );
+
+  assert.match(html, /^<span/);
+  assert.match(html, /role="button"/);
+  assert.match(html, /tabindex="0"/);
+  assert.match(html, /data-testid="custom-child-button"/);
+  assert.match(html, /data-slot="button"/);
+  assert.match(html, />Custom child<\/span>/);
+});
+
+test("ButtonRoot preserves native asChild button semantics", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Button.Root,
+      {
+        asChild: true,
+        disabled: true,
+      },
+      React.createElement("button", null, "Native child"),
+    ),
+  );
+
+  assert.match(html, /^<button/);
+  assert.match(html, /type="button"/);
+  assert.match(html, /disabled=""/);
+  assert.match(html, /data-disabled=""/);
+  assert.doesNotMatch(html, /role="button"/);
+  assert.doesNotMatch(html, /aria-disabled="true"/);
+});
+
 test("ButtonRoot preserves native render element tabIndex", () => {
   const html = renderToStaticMarkup(
     React.createElement(
@@ -126,6 +166,7 @@ test("ButtonRoot source guards inactive state before consumer handlers", async (
   );
 
   assert.doesNotMatch(source, /composeEventHandlers\(onClick, handleClick\)/);
+  assert.match(source, /childHasNativeButtonSemantics/);
   assert.match(source, /disabled: disabled \|\| undefined/);
   assert.match(source, /renderHasNativeButtonSemantics/);
   assert.match(source, /if \(isInactive\) \{\s*event\.preventDefault\(\);\s*return;\s*\}\s*onClick\?\.\(event\);/);

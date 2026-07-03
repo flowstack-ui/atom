@@ -10,6 +10,8 @@ Headless press interaction primitive for custom interactive surfaces.
 - Supports disabled state and press cancellation.
 - Fires `onPress` for pointer and keyboard activation.
 - Handles Space activation on keyup for ARIA button parity.
+- Cancels custom-render press activation when the pointer releases outside the
+  pressable target.
 
 ## Import
 
@@ -77,6 +79,8 @@ Use `Pressable` when a non-button surface needs button-like interaction. Prefer 
 | `Space` | Activates custom non-native renders on keyup. |
 
 Custom non-native renders receive `role="button"` and `aria-disabled` when disabled.
+They also suppress the follow-up click when a pointer press starts on the
+pressable but releases outside, matching native button activation behavior.
 
 ## Changelog
 

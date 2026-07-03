@@ -4,7 +4,7 @@ import { RadioGroup } from "@flowstack-ui/atom/radio-group";
 import { Switch } from "@flowstack-ui/atom/switch";
 import { Toggle } from "@flowstack-ui/atom/toggle";
 import { ToggleGroup } from "@flowstack-ui/atom/toggle-group";
-import { useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { useCallback, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import {
   AnatomyPanel,
   type AnatomySection,
@@ -20,6 +20,7 @@ type LogEntry = {
 type CompositionMode = "default" | "asChild" | "render";
 type Orientation = "horizontal" | "vertical";
 type ToggleGroupType = "single" | "multiple";
+type ButtonType = "button" | "submit" | "reset";
 
 function nowTime() {
   return new Intl.DateTimeFormat("en-US", {
@@ -50,22 +51,52 @@ export function useButtonScenario() {
   const [disabled, setDisabled] = useState(false);
   const [loading, setLoading] = useState(false);
   const [linkMode, setLinkMode] = useState(false);
+  const [newTab, setNewTab] = useState(false);
+  const [customRel, setCustomRel] = useState(false);
+  const [blockClick, setBlockClick] = useState(false);
+  const [type, setType] = useState<ButtonType>("button");
   const [composition, setComposition] = useState<CompositionMode>("default");
   const [pressCount, setPressCount] = useState(0);
+  const [rootRef, setRootRef] = useState("none");
   const { log, addLog, clearLog } = useScenarioLog();
+
+  const markRootRef = useCallback((node: HTMLElement | null) => {
+    if (node) setRootRef(node.tagName.toLowerCase());
+  }, []);
+
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    addLog("user onClick");
+    if (blockClick) {
+      event.preventDefault();
+      addLog("user onClick blocked press");
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      addLog(`user onKeyDown ${event.key === " " ? "Space" : event.key}`);
+    }
+  };
 
   const handlePress = () => {
     setPressCount((count) => count + 1);
-    addLog("pressed");
+    addLog("onPress");
   };
 
   return {
-    state: { disabled, loading, linkMode, composition, pressCount, log },
+    state: { disabled, loading, linkMode, newTab, customRel, blockClick, type, composition, pressCount, rootRef, log },
     actions: {
       setDisabled,
       setLoading,
       setLinkMode,
+      setNewTab,
+      setCustomRel,
+      setBlockClick,
+      setType,
       setComposition,
+      markRootRef,
+      handleClick,
+      handleKeyDown,
       handlePress,
       clearLog,
     },
@@ -269,9 +300,15 @@ export function ButtonScenarioCanvas({ scenario }: { scenario: ButtonScenario })
     disabled: state.disabled,
     loading: state.loading,
     href: state.linkMode ? "#button-link" : undefined,
+    target: state.linkMode && state.newTab ? "_blank" : undefined,
+    rel: state.linkMode && state.customRel ? "author" : undefined,
+    type: state.type,
     "data-button-root": "",
     "data-playground-inspect": "",
     "data-prop-check": "root",
+    ref: actions.markRootRef,
+    onClick: actions.handleClick,
+    onKeyDown: actions.handleKeyDown,
     onPress: actions.handlePress,
   };
 
@@ -446,9 +483,15 @@ export function ButtonScenarioAnatomy({
       summary: stateSummary(root, "button"),
       rows: [
         { label: "Exists", value: yesNo(root), category: "presence" },
+        { label: "Ref target", value: scenario.state.rootRef, category: "identity" },
+        { label: "Text", value: root?.textContent?.trim() || "none", category: "state" },
         { label: "Disabled", value: bool(scenario.state.disabled), category: "state" },
         { label: "Loading", value: bool(scenario.state.loading), category: "state" },
         { label: "Link mode", value: bool(scenario.state.linkMode), category: "behavior" },
+        { label: "New tab", value: bool(scenario.state.newTab), category: "behavior" },
+        { label: "Custom rel", value: bool(scenario.state.customRel), category: "behavior" },
+        { label: "Block click", value: bool(scenario.state.blockClick), category: "blocking" },
+        { label: "Type", value: scenario.state.type, category: "state" },
         { label: "Composition", value: scenario.state.composition, category: "composition" },
         { label: "Press count", value: String(scenario.state.pressCount), category: "behavior" },
       ],
@@ -695,7 +738,15 @@ export function ButtonScenarioToolbar({ scenario }: { scenario: ButtonScenario }
       <ToolbarGroup title="State" value="state">
         <MenuCheckboxControl checked={scenario.state.disabled} label="Disabled" value="disabled" onChange={scenario.actions.setDisabled} />
         <MenuCheckboxControl checked={scenario.state.loading} label="Loading" value="loading" onChange={scenario.actions.setLoading} />
-        <MenuCheckboxControl checked={scenario.state.linkMode} label="Link mode" value="link" onChange={scenario.actions.setLinkMode} />
+        <MenuRadioControl label="Type" options={buttonTypeOptions} value={scenario.state.type} onChange={scenario.actions.setType} />
+      </ToolbarGroup>
+      <ToolbarGroup title="Link" value="link">
+        <MenuCheckboxControl checked={scenario.state.linkMode} label="Use href" value="link" onChange={scenario.actions.setLinkMode} />
+        <MenuCheckboxControl checked={scenario.state.newTab} label="New tab" value="new-tab" onChange={scenario.actions.setNewTab} />
+        <MenuCheckboxControl checked={scenario.state.customRel} label="Custom rel" value="custom-rel" onChange={scenario.actions.setCustomRel} />
+      </ToolbarGroup>
+      <ToolbarGroup title="Events" value="events">
+        <MenuCheckboxControl checked={scenario.state.blockClick} label="Block click" value="block-click" onChange={scenario.actions.setBlockClick} />
       </ToolbarGroup>
       <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
     </ControlToolbar>
@@ -800,14 +851,31 @@ export function ScenarioEventLog({ log }: { log: LogEntry[] }) {
 }
 
 export function getButtonSource(state: ButtonScenario["state"]) {
-  return `<Button.Root
-  disabled={${state.disabled}}
-  loading={${state.loading}}
-  ${state.linkMode ? `href="#button-link"` : ""}
-  onPress={handlePress}
->
-  Run action
+  const props = [
+    state.disabled ? "disabled" : "",
+    state.loading ? "loading" : "",
+    state.type !== "button" ? `type="${state.type}"` : "",
+    state.linkMode ? `href="#button-link"` : "",
+    state.linkMode && state.newTab ? `target="_blank"` : "",
+    state.linkMode && state.customRel ? `rel="author"` : "",
+    "onClick={handleClick}",
+    "onPress={handlePress}",
+  ].filter(Boolean);
+
+  if (state.composition === "asChild") {
+    return `<Button.Root ${props.join(" ")} asChild>
+  <span>Run action</span>
 </Button.Root>`;
+  }
+
+  if (state.composition === "render") {
+    return `<Button.Root
+  ${props.join("\n  ")}
+  render={(props) => <span {...props}>Run action</span>}
+/>`;
+  }
+
+  return `<Button.Root ${props.join(" ")}>Run action</Button.Root>`;
 }
 
 export function getCheckboxSource(state: CheckboxScenario["state"]) {
@@ -1122,6 +1190,7 @@ function parseCheckboxState(value: string): CheckboxCheckedState {
 }
 
 const compositionOptions = ["default", "asChild", "render"] as const;
+const buttonTypeOptions = ["button", "submit", "reset"] as const;
 const checkboxStateOptions = ["false", "true", "indeterminate"] as const;
 const choiceOptions = ["email", "sms", "push"] as const;
 const toggleChoiceOptions = ["bold", "italic", "underline"] as const;

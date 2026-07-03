@@ -10,8 +10,11 @@ import {
 } from "react";
 import type { NativeButtonProps } from "../../utils/dom.js";
 import {
+  childHasNativeButtonSemantics,
+  childIsNativeButton,
   hasNativeButtonKeyboardActivation,
   renderHasNativeButtonSemantics,
+  renderIsNativeButton,
 } from "../../utils/native-semantics.js";
 import {
   cloneAndMerge,
@@ -87,14 +90,14 @@ export const ButtonRoot = forwardRef<HTMLElement, ButtonRootProps>(
   ) {
     const isInactive = disabled || loading;
     const defaultTag = href !== undefined ? "a" : "button";
-    const isNativeButton = !asChild && render === undefined && href === undefined;
+    const isDefaultButton = !asChild && render === undefined && href === undefined;
+    const hasNativeSemantics = isDefaultButton ||
+      (asChild ? childHasNativeButtonSemantics(children) : renderHasNativeButtonSemantics(render));
+    const isNativeButton = isDefaultButton ||
+      (asChild ? childIsNativeButton(children) : renderIsNativeButton(render));
     const isDisabledDefaultAnchor =
       !asChild && render === undefined && href !== undefined && isInactive;
-    const needsButtonSemantics =
-      !asChild &&
-      href === undefined &&
-      render !== undefined &&
-      !renderHasNativeButtonSemantics(render);
+    const needsButtonSemantics = href === undefined && !hasNativeSemantics;
     const resolvedRel = getSafeRel({ rel, target });
 
     const handleClick = useCallback<MouseEventHandler<HTMLElement>>(

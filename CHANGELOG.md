@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Fixed custom-render `Pressable.Root` activation so pointer presses released
+  outside the pressable target do not fire `onPress`.
+- Fixed `Button.Root` `asChild` composition so non-native child elements
+  receive button semantics and keyboard focus behavior.
 - Fixed Collection duplicate item value warnings so browser development
   environments without `process.env.NODE_ENV` still report duplicate values.
 - Fixed Slider percent geometry so `data-percent` and inline percent offsets do
