@@ -11,7 +11,8 @@ import {
 } from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { composeEventHandlers } from "../../utils/slot.js";
-import { useMenuContext, useMenuSubContext } from "./context.js";
+import { useDirection } from "../direction/index.js";
+import { getMenuSubmenuOpenKey, useMenuContext, useMenuSubContext } from "./context.js";
 
 const HOVER_DELAY = 100;
 
@@ -39,6 +40,7 @@ export function MenuSubTrigger({
 }: MenuSubTriggerProps) {
   const ctx = useMenuContext();
   const subCtx = useMenuSubContext();
+  const dir = useDirection();
   const ref = useRef<HTMLDivElement>(null);
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -73,13 +75,13 @@ export function MenuSubTrigger({
   const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = useCallback(
     (event) => {
       if (disabled) return;
-      if (event.key === "ArrowRight") {
+      if (event.key === getMenuSubmenuOpenKey(dir)) {
         event.preventDefault();
         event.stopPropagation();
         subCtx.onOpen();
       }
     },
-    [disabled, subCtx],
+    [dir, disabled, subCtx],
   );
 
   useEffect(() => () => clearTimeout(hoverTimeoutRef.current), []);

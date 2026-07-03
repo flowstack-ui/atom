@@ -43,6 +43,23 @@ test("ToggleGroupRoot renders group attributes", () => {
   assert.match(html, /class="group-class"/);
 });
 
+test("ToggleGroupRoot exposes disabled group semantics", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      ToggleGroupRoot,
+      {
+        disabled: true,
+        ariaLabel: "Text formatting",
+      },
+      React.createElement(ToggleGroupItemRoot, { value: "bold" }, "B"),
+    ),
+  );
+
+  assert.match(html, /role="group"/);
+  assert.match(html, /aria-disabled="true"/);
+  assert.match(html, /data-disabled=""/);
+});
+
 test("ToggleGroupRoot restricts arrow-key navigation by orientation", () => {
   assert.equal(getToggleGroupNavigationDirection("vertical", "ArrowDown"), 1);
   assert.equal(getToggleGroupNavigationDirection("vertical", "ArrowUp"), -1);
@@ -51,6 +68,8 @@ test("ToggleGroupRoot restricts arrow-key navigation by orientation", () => {
 
   assert.equal(getToggleGroupNavigationDirection("horizontal", "ArrowRight"), 1);
   assert.equal(getToggleGroupNavigationDirection("horizontal", "ArrowLeft"), -1);
+  assert.equal(getToggleGroupNavigationDirection("horizontal", "ArrowRight", "rtl"), -1);
+  assert.equal(getToggleGroupNavigationDirection("horizontal", "ArrowLeft", "rtl"), 1);
   assert.equal(getToggleGroupNavigationDirection("horizontal", "ArrowDown"), null);
   assert.equal(getToggleGroupNavigationDirection("horizontal", "ArrowUp"), null);
 });
@@ -62,13 +81,37 @@ test("ToggleGroupItemRoot chooses a tabbable item when no value is selected", ()
   });
 
   assert.equal(
-    getToggleGroupTabStopValue(["bold", "italic", "underline"], [], getItemElement),
+    getToggleGroupTabStopValue(
+      ["bold", "italic", "underline"],
+      [],
+      getItemElement,
+      (value) => disabledValues.has(value),
+    ),
     "italic",
   );
   assert.equal(
-    getToggleGroupTabStopValue(["bold", "italic", "underline"], ["underline"], getItemElement),
+    getToggleGroupTabStopValue(
+      ["bold", "italic", "underline"],
+      ["underline"],
+      getItemElement,
+      (value) => disabledValues.has(value),
+    ),
     "underline",
   );
+});
+
+test("ToggleGroupRoot single mode exposes only one pressed value", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      ToggleGroupRoot,
+      { value: ["bold", "underline"], type: "single", ariaLabel: "Text formatting" },
+      React.createElement(ToggleGroupItemRoot, { value: "bold", ariaLabel: "Bold" }),
+      React.createElement(ToggleGroupItemRoot, { value: "underline", ariaLabel: "Underline" }),
+    ),
+  );
+
+  assert.match(html, /data-value="bold"[^>]*data-state="on"|data-state="on"[^>]*data-value="bold"/);
+  assert.match(html, /data-value="underline"[^>]*data-state="off"|data-state="off"[^>]*data-value="underline"/);
 });
 
 test("ToggleGroupItemRoot renders selected and unselected item attributes", () => {
@@ -93,11 +136,31 @@ test("ToggleGroupItemRoot renders selected and unselected item attributes", () =
   assert.match(html, /data-value="bold"/);
   assert.match(html, /class="item-class"/);
   assert.match(html, /aria-pressed="false"/);
-  assert.match(html, /aria-disabled="true"/);
+  assert.doesNotMatch(html, /aria-disabled="true"/);
   assert.match(html, /disabled=""/);
   assert.match(html, /data-disabled=""/);
   assert.match(html, /data-state="off"/);
   assert.match(html, /data-value="italic"/);
+});
+
+test("ToggleGroupItemRoot exposes aria-disabled for disabled non-native items", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      ToggleGroupRoot,
+      { value: "bold", ariaLabel: "Text formatting" },
+      React.createElement(ToggleGroupItemRoot, {
+        value: "bold",
+        disabled: true,
+        render: (props) => React.createElement("span", props),
+      }, "B"),
+    ),
+  );
+
+  assert.match(html, /<span/);
+  assert.match(html, /role="button"/);
+  assert.match(html, /aria-disabled="true"/);
+  assert.doesNotMatch(html, /<span[^>]* disabled=""/);
+  assert.match(html, /data-disabled=""/);
 });
 
 test("ToggleGroupItemRoot passes native button attributes without losing group behavior", () => {
@@ -181,7 +244,19 @@ test("ToggleGroupRoot source uses Collection for DOM-ordered item registration",
     "utf8",
   );
 
-  assert.match(source, /useCollection<string, HTMLButtonElement>\(\)/);
+  assert.match(source, /useCollection<string, HTMLElement>\(\)/);
   assert.match(source, /registerCollectionItem/);
   assert.doesNotMatch(source, /compareDocumentPosition/);
+});
+
+test("ToggleGroupItemRoot source re-registers collection items when composition changes", async () => {
+  const source = await readFile(
+    new URL("src/primitives/toggle-group/ToggleGroupItemRoot.tsx", packageRoot),
+    "utf8",
+  );
+
+  assert.match(source, /const \[itemElement, setItemElement\] = useState<HTMLElement \| null>\(null\)/);
+  assert.match(source, /setItemElement\(\(current\) => \(current === element \? current : element\)\)/);
+  assert.match(source, /context\.registerItem\(value, itemElement, isDisabled\)/);
+  assert.match(source, /itemElement, value\]/);
 });

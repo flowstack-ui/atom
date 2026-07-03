@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { DirectionValue } from "@flowstack-ui/atom/direction";
 
 export type ContextMenuLogEntry = {
   id: number;
@@ -174,6 +175,7 @@ export type ContextMenuScenarioState = {
   contentAriaLabel: boolean;
   side: ContextMenuSide;
   align: ContextMenuAlign;
+  dir: DirectionValue;
   sideOffset: number;
   contentLoopOff: boolean;
   insideDialog: boolean;
@@ -218,6 +220,7 @@ export type ContextMenuScenarioActions = {
   setContentAriaLabel: (value: boolean) => void;
   setSide: (value: ContextMenuSide) => void;
   setAlign: (value: ContextMenuAlign) => void;
+  setDir: (value: DirectionValue) => void;
   setSideOffset: (value: number) => void;
   setContentLoopOff: (value: boolean) => void;
   setInsideDialog: (value: boolean) => void;
@@ -273,6 +276,7 @@ export function useContextMenuScenario() {
   const [contentAriaLabel, setContentAriaLabel] = useState(false);
   const [side, setSide] = useState<ContextMenuSide>("bottom");
   const [align, setAlign] = useState<ContextMenuAlign>("start");
+  const [dir, setDir] = useState<DirectionValue>("ltr");
   const [sideOffset, setSideOffset] = useState(4);
   const [contentLoopOff, setContentLoopOff] = useState(false);
   const [insideDialog, setInsideDialog] = useState(false);
@@ -445,6 +449,7 @@ export function useContextMenuScenario() {
     contentAriaLabel,
     side,
     align,
+    dir,
     sideOffset,
     contentLoopOff,
     insideDialog,
@@ -489,6 +494,7 @@ export function useContextMenuScenario() {
     setContentAriaLabel,
     setSide,
     setAlign,
+    setDir,
     setSideOffset,
     setContentLoopOff,
     setInsideDialog,

@@ -7,7 +7,7 @@ import { ScrollArea } from "@flowstack-ui/atom/scroll-area";
 import { Table } from "@flowstack-ui/atom/table";
 import { Tree } from "@flowstack-ui/atom/tree";
 import { TreeGrid } from "@flowstack-ui/atom/tree-grid";
-import { useCallback, useState, type Dispatch, type SetStateAction } from "react";
+import { useCallback, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { AnatomyPanel, type AnatomySection } from "../AnatomyPanel";
 import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, ScenarioEventLog, ToolbarGroup } from "../WorkbenchPrimitives";
 
@@ -260,15 +260,19 @@ function useScrollAreaScenario() {
 
 function useFormScenario() {
   const [preventDefault, setPreventDefault] = useState(true);
-  const [validation, setValidation] = useState(true);
+  const [validation, setValidation] = useState<"none" | "pass" | "fail">("pass");
   const [asyncValidation, setAsyncValidation] = useState(false);
   const [composition, setComposition] = useState<CompositionMode>("default");
   const [status, setStatus] = useState("idle");
+  const [rootRef, setRootRef] = useState("none");
   const { log, addLog, clearLog } = useScenarioLog();
+  const markRootRef = useCallback((element: HTMLElement | null) => {
+    setRootRef(formatRef(element));
+  }, []);
 
   return {
-    state: { preventDefault, validation, asyncValidation, composition, status, log },
-    actions: { setPreventDefault, setValidation, setAsyncValidation, setComposition, setStatus, clearLog, addLog },
+    state: { preventDefault, validation, asyncValidation, composition, status, rootRef, log },
+    actions: { setPreventDefault, setValidation, setAsyncValidation, setComposition, setStatus, markRootRef, clearLog, addLog },
   };
 }
 
@@ -406,7 +410,17 @@ export function DataPrimitiveScenarioToolbar({
       <ControlToolbar label="Form controls">
         <ToolbarGroup title="State" value="state">
           <MenuCheckboxControl checked={scenario.state.preventDefault} label="Prevent default submit" value="prevent" onChange={scenario.actions.setPreventDefault} />
-          <MenuCheckboxControl checked={scenario.state.validation} label="Validate submit" value="validate" onChange={scenario.actions.setValidation} />
+          <MenuRadioControl
+            label="Validation"
+            options={[
+              { label: "None", value: "none" },
+              { label: "Pass", value: "pass" },
+              { label: "Fail", value: "fail" },
+            ]}
+            value={scenario.state.validation}
+            onChange={(value) => scenario.actions.setValidation(value as "none" | "pass" | "fail")}
+          />
+          <div className="toolbar-menu-separator" role="separator" />
           <MenuCheckboxControl checked={scenario.state.asyncValidation} label="Async validation" value="async" onChange={scenario.actions.setAsyncValidation} />
         </ToolbarGroup>
         <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
@@ -649,10 +663,31 @@ export function getDataPrimitiveSource(scenarioId: string, scenarios?: DataPrimi
   }
 
   if (scenarioId === "form") {
-    return `<Form.Root preventDefaultOnSubmit validateOnSubmit={validate}>
+    const state = scenarios.form.state;
+    const validation =
+      state.validation === "none"
+        ? ""
+        : `
+  validateOnSubmit={${state.asyncValidation ? "asyncValidate" : state.validation === "pass" ? "validatePass" : "validateFail"}}`;
+    const props = `${state.preventDefault ? " preventDefaultOnSubmit" : ""}${validation}`;
+    const open = state.composition === "asChild"
+      ? `<Form.Root${props} asChild>
+  <form data-prop-check="root">`
+      : state.composition === "render"
+        ? `<Form.Root${props}
+  render={(props) => <form {...props} data-prop-check="root" />}
+>`
+        : `<Form.Root${props} data-prop-check="root">`;
+    const close = state.composition === "asChild"
+      ? `  </form>
+</Form.Root>`
+      : state.composition === "render"
+        ? `</Form.Root>`
+        : `</Form.Root>`;
+    return `${open}
   <Input.Root name="project" required />
   <Button.Root type="submit">Submit</Button.Root>
-</Form.Root>`;
+${close}`;
   }
 
   return "// No source example for this scenario yet.";
@@ -1045,21 +1080,36 @@ function ScrollAreaScenarioCanvas({ scenario }: { scenario: ReturnType<typeof us
 function FormScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useFormScenario> }) {
   const state = scenario.state;
   const validate = async () => {
+    scenario.actions.setStatus(state.asyncValidation ? "validating" : "validating");
+    scenario.actions.addLog(state.asyncValidation ? "async validation started" : "validation started");
     if (state.asyncValidation) {
       await new Promise((resolve) => window.setTimeout(resolve, 200));
     }
-    return state.validation;
+    const valid = state.validation !== "fail";
+    scenario.actions.addLog(valid ? "validation passed" : "validation failed");
+    if (!valid) {
+      scenario.actions.setStatus("invalid");
+    }
+    return valid;
   };
   const props: any = {
     className: "playground-form-demo",
+    name: "project-form",
+    title: "Project form",
     "data-form-root": "",
     "data-playground-inspect": "",
     "data-prop-check": "root",
+    ref: scenario.actions.markRootRef,
     preventDefaultOnSubmit: state.preventDefault,
-    validateOnSubmit: validate,
-    onSubmit: () => {
+    ...(state.validation !== "none" && { validateOnSubmit: validate }),
+    onSubmit: (event: FormEvent<HTMLFormElement>) => {
+      const wasDefaultPrevented = event.defaultPrevented;
       scenario.actions.setStatus("submitted");
-      scenario.actions.addLog("form submitted");
+      scenario.actions.addLog(`form submitted defaultPrevented ${bool(wasDefaultPrevented)}`);
+      if (!event.defaultPrevented) {
+        event.preventDefault();
+        scenario.actions.addLog("playground prevented navigation");
+      }
     },
     onReset: () => {
       scenario.actions.setStatus("reset");
@@ -1071,8 +1121,8 @@ function FormScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useFormS
       <label htmlFor="form-project-name">Project name</label>
       <Input.Root id="form-project-name" name="project" required defaultValue="Atom" data-playground-inspect="" data-form-input="" />
       <div className="playground-form-actions">
-        <Button.Root type="submit" data-playground-inspect="" data-form-submit="">Submit</Button.Root>
-        <Button.Root className="playground-data-small-button" type="reset" data-playground-inspect="" data-form-reset="">Reset</Button.Root>
+        <Button.Root className="atom-button" type="submit" data-playground-inspect="" data-form-submit="">Submit</Button.Root>
+        <Button.Root className="atom-button secondary" type="reset" data-playground-inspect="" data-form-reset="">Reset</Button.Root>
       </div>
     </>
   );
@@ -1227,15 +1277,13 @@ function getDataPrimitiveSections(
     const state = scenarios.form.state;
     return [
       section("Root", state.status, "[data-form-root]", [
+        row("Ref target", state.rootRef, "identity"),
         row("Status", state.status, "state"),
         row("Prevent default", bool(state.preventDefault), "behavior"),
-        row("Validate submit", bool(state.validation), "behavior"),
+        row("Validation", state.validation, "behavior"),
         row("Async validation", bool(state.asyncValidation), "behavior"),
         row("Composition", state.composition, "composition"),
       ]),
-      section("Input", "required", "[data-form-input]"),
-      section("Submit Button", "submit", "[data-form-submit]"),
-      section("Reset Button", "reset", "[data-form-reset]"),
     ];
   }
 

@@ -5,6 +5,7 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
   type KeyboardEventHandler,
   type MouseEventHandler,
   type ReactNode,
@@ -30,12 +31,13 @@ type ToggleGroupItemRootNativeProps = NativeButtonProps<
   "children" | "disabled" | "onChange" | "role" | "type" | "value"
 >;
 
-type ToggleGroupFocusableElement = Pick<HTMLButtonElement, "disabled">;
+type ToggleGroupFocusableElement = Pick<HTMLElement, "dataset">;
 
 export function getToggleGroupTabStopValue(
   registeredValues: string[],
   selectedValues: string[],
   getItemElement: (value: string) => ToggleGroupFocusableElement | null,
+  isItemDisabled: (value: string) => boolean = () => false,
 ): string | undefined {
   const firstPressedValue = registeredValues.find((registeredValue) =>
     selectedValues.includes(registeredValue),
@@ -43,7 +45,7 @@ export function getToggleGroupTabStopValue(
 
   return firstPressedValue ?? registeredValues.find((registeredValue) => {
     const element = getItemElement(registeredValue);
-    return element && !element.disabled;
+    return element && !isItemDisabled(registeredValue);
   });
 }
 
@@ -85,9 +87,17 @@ export const ToggleGroupItemRoot = forwardRef<HTMLButtonElement, ToggleGroupItem
   ) {
     const context = useToggleGroupContext();
 
-    const internalRef = useRef<HTMLButtonElement>(null);
+    const internalRef = useRef<HTMLElement | null>(null);
+    const [itemElement, setItemElement] = useState<HTMLElement | null>(null);
     const composedRef = useMemo(
-      () => composeRefs(internalRef, ref),
+      () => composeRefs(
+        (node: unknown) => {
+          const element = node as HTMLElement | null;
+          internalRef.current = element;
+          setItemElement((current) => (current === element ? current : element));
+        },
+        ref,
+      ),
       [ref],
     );
     const isPressed = context.value.includes(value);
@@ -101,19 +111,19 @@ export const ToggleGroupItemRoot = forwardRef<HTMLButtonElement, ToggleGroupItem
       (asChild ? childIsNativeButton(children) : renderIsNativeButton(render));
 
     useEffect(() => {
-      const element = internalRef.current;
-      if (!element) return undefined;
+      if (!itemElement) return undefined;
 
-      context.registerItem(value, element);
+      context.registerItem(value, itemElement, isDisabled);
       return () => {
         context.unregisterItem(value);
       };
-    }, [context.registerItem, context.unregisterItem, value]);
+    }, [context.registerItem, context.unregisterItem, isDisabled, itemElement, value]);
 
     const firstFocusableValue = getToggleGroupTabStopValue(
       context.registeredValues,
       context.value,
       context.getItemElement,
+      context.isItemDisabled,
     );
     const tabIndex = value === firstFocusableValue ? 0 : -1;
 
@@ -140,7 +150,7 @@ export const ToggleGroupItemRoot = forwardRef<HTMLButtonElement, ToggleGroupItem
       ...(!hasNativeSemantics ? { role: "button" } : {}),
       "aria-pressed": isPressed,
       ...(ariaLabel !== undefined && { "aria-label": ariaLabel }),
-      "aria-disabled": isDisabled || undefined,
+      ...(!isNativeButton && { "aria-disabled": isDisabled || undefined }),
       tabIndex,
       "data-state": isPressed ? "on" : "off",
       "data-slot": dataSlot,

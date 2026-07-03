@@ -1,8 +1,17 @@
 "use client";
 
 import { createContext, useContext, type RefObject } from "react";
+import type { DirectionValue } from "../direction/index.js";
 
 export type MenuInitialHighlight = "first" | "last" | null;
+
+export function getMenuSubmenuOpenKey(dir: DirectionValue): "ArrowLeft" | "ArrowRight" {
+  return dir === "rtl" ? "ArrowLeft" : "ArrowRight";
+}
+
+export function getMenuSubmenuCloseKey(dir: DirectionValue): "ArrowLeft" | "ArrowRight" {
+  return dir === "rtl" ? "ArrowRight" : "ArrowLeft";
+}
 
 export interface MenuContextValue {
   isOpen: boolean;

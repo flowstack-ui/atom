@@ -132,7 +132,12 @@ test("Menu source keeps selection and submenu close behavior stable", async () =
   assert.match(rootSource, /enabled: isOpen && closeOnEscape/);
   assert.match(rootSource, /if \(openSubMenuId !== null\) return/);
   assert.match(rootSource, /onEscapeKeyDown: \(\) => \{\s*if \(openSubMenuId !== null\) return;\s*onClose\(\);/s);
+  assert.match(contextSource, /getMenuSubmenuOpenKey\(dir: DirectionValue\)/);
+  assert.match(contextSource, /return dir === "rtl" \? "ArrowLeft" : "ArrowRight"/);
+  assert.match(contextSource, /getMenuSubmenuCloseKey\(dir: DirectionValue\)/);
+  assert.match(contextSource, /return dir === "rtl" \? "ArrowRight" : "ArrowLeft"/);
   assert.match(contentSource, /useFocusOnMount\(internalRef, isPresent\)/);
+  assert.match(contentSource, /const dir = useDirection\(\)/);
   assert.ok(
     contentSource.indexOf("useFocusScopeContainer(internalRef, isPresent)") <
       contentSource.indexOf("useFocusOnMount(internalRef, isPresent)"),
@@ -143,7 +148,7 @@ test("Menu source keeps selection and submenu close behavior stable", async () =
   assert.match(contentSource, /if \(hasAppliedInitialHighlightRef\.current \|\| initialHighlight === null\) return undefined/);
   assert.match(contentSource, /if \(values\.length > 0\) \{\s*hasAppliedInitialHighlightRef\.current = true;\s*onHighlight/s);
   assert.doesNotMatch(contentSource, /if \(hasAppliedInitialHighlightRef\.current\) return undefined;\s*hasAppliedInitialHighlightRef\.current = true;\s*const raf/s);
-  assert.match(contentSource, /case "ArrowRight":/);
+  assert.match(contentSource, /case getMenuSubmenuOpenKey\(dir\):/);
   assert.match(contentSource, /getTypeaheadMatch\(/);
   assert.match(contentSource, /el\?\.dataset\.slot === "menu-sub-trigger"/);
   assert.match(contentSource, /useClickAway\(\{/);
@@ -153,10 +158,13 @@ test("Menu source keeps selection and submenu close behavior stable", async () =
   assert.doesNotMatch(contentSource, /aria-labelledby=\{!ariaLabel \? triggerId : undefined\}/);
   assert.doesNotMatch(contentSource, /document\.addEventListener\("pointerdown"/);
   assert.match(subContentSource, /usePresence\(\{ present: isOpen \}\)/);
+  assert.match(subContentSource, /const dir = useDirection\(\)/);
   assert.match(subContentSource, /useCollection<string, HTMLElement>\(\)/);
   assert.match(subContentSource, /registerCollectionItem/);
   assert.doesNotMatch(subContentSource, /compareDocumentPosition/);
-  assert.match(subContentSource, /case "ArrowRight":/);
+  assert.match(subContentSource, /case getMenuSubmenuOpenKey\(dir\):/);
+  assert.match(subContentSource, /case getMenuSubmenuCloseKey\(dir\):/);
+  assert.match(subContentSource, /placement: dir === "rtl" \? "left-start" : "right-start"/);
   assert.match(subContentSource, /getTypeaheadMatch\(/);
   assert.match(subContentSource, /event\.stopPropagation\(\)/);
   assert.match(subContentSource, /el\?\.dataset\.slot === "menu-sub-trigger"/);
@@ -180,6 +188,8 @@ test("Menu source keeps selection and submenu close behavior stable", async () =
   assert.match(clickAwaySource, /ignoreRef\.current\?\.\(target\)/);
   assert.doesNotMatch(clickAwaySource, /requestAnimationFrame/);
   assert.match(subTriggerSource, /id=\{subCtx\.subTriggerId\}/);
+  assert.match(subTriggerSource, /const dir = useDirection\(\)/);
+  assert.match(subTriggerSource, /event\.key === getMenuSubmenuOpenKey\(dir\)/);
   assert.match(itemSource, /ctx\.onItemSelect\(value, \{ closeOnSelect \}\)/);
   assert.match(itemSource, /if \(ctx\.openSubMenuId\) ctx\.onSubMenuClose\(\)/);
   assert.match(checkboxSource, /closeOnSelect = false/);

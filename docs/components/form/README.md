@@ -21,11 +21,9 @@ import { Form } from "@flowstack-ui/atom";
 ## Anatomy
 
 ```tsx
-export default () => (
-  <Form.Root>
-    <button type="submit">Submit</button>
-  </Form.Root>
-);
+<Form.Root>
+  <button type="submit">Submit</button>
+</Form.Root>
 ```
 
 ## API Reference
@@ -57,18 +55,16 @@ Renders the native form element.
 ```tsx
 import { Field, Form, Input } from "@flowstack-ui/atom";
 
-export default () => (
-  <Form.Root onSubmit={handleSubmit}>
-    <Field.Root required invalid={emailInvalid}>
-      <Field.Label>Email</Field.Label>
-      <Input.Root name="email" type="email" />
-      <Field.Description>Use a work email.</Field.Description>
-      <Field.Error>Email is required.</Field.Error>
-    </Field.Root>
+<Form.Root onSubmit={handleSubmit}>
+  <Field.Root required invalid={emailInvalid}>
+    <Field.Label>Email</Field.Label>
+    <Input.Root name="email" type="email" />
+    <Field.Description>Use a work email.</Field.Description>
+    <Field.Error>Email is required.</Field.Error>
+  </Field.Root>
 
-    <button type="submit">Submit</button>
-  </Form.Root>
-);
+  <button type="submit">Submit</button>
+</Form.Root>
 ```
 
 ### Async Validation
@@ -76,14 +72,12 @@ export default () => (
 ```tsx
 import { Form } from "@flowstack-ui/atom";
 
-export default () => (
-  <Form.Root
-    validateOnSubmit={async () => {
-      return await validateForm();
-    }}
-    onSubmit={saveForm}
-  />
-);
+<Form.Root
+  validateOnSubmit={async () => {
+    return await validateForm();
+  }}
+  onSubmit={saveForm}
+/>
 ```
 
 ## Accessibility

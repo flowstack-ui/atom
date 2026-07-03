@@ -26,7 +26,10 @@ import { Portal } from "../../utils/Portal.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { composeEventHandlers, composeRefs } from "../../utils/slot.js";
 import { getTypeaheadMatch } from "../../utils/typeahead.js";
+import { useDirection } from "../direction/index.js";
 import {
+  getMenuSubmenuCloseKey,
+  getMenuSubmenuOpenKey,
   MenuContextProvider,
   useMenuSubContext,
   type MenuContextValue,
@@ -70,6 +73,7 @@ function MenuSubContent(
     subTriggerRef,
     parentMenuContext,
   } = subCtx;
+  const dir = useDirection();
   const internalRef = useRef<HTMLDivElement>(null);
   const { isPresent, ref: presenceRef } = usePresence({ present: isOpen });
   const [isPositioned, setIsPositioned] = useState(false);
@@ -210,14 +214,14 @@ function MenuSubContent(
           }
           break;
         }
-        case "ArrowLeft": {
+        case getMenuSubmenuCloseKey(dir): {
           event.preventDefault();
           event.stopPropagation();
           onClose();
           parentMenuContext.contentRef.current?.focus();
           break;
         }
-        case "ArrowRight": {
+        case getMenuSubmenuOpenKey(dir): {
           event.preventDefault();
           event.stopPropagation();
           if (highlightedValue) {
@@ -281,6 +285,7 @@ function MenuSubContent(
       getItemValues,
       getLabel,
       highlightedValue,
+      dir,
       loop,
       onClose,
       parentMenuContext.contentRef,
@@ -288,7 +293,7 @@ function MenuSubContent(
   );
 
   const { refs, floatingStyles, placement } = useFloating({
-    placement: "right-start",
+    placement: dir === "rtl" ? "left-start" : "right-start",
     middleware: [offset(sideOffset), flip({ padding: 8 }), shift({ padding: 8 })],
     whileElementsMounted: autoUpdate,
     open: isOpen,

@@ -1164,7 +1164,7 @@ function getDisplayPrimitiveSections(
           { label: "Required", value: bool(scenarios.label.state.required), category: "state" },
           { label: "Read only", value: bool(scenarios.label.state.readOnly), category: "state" },
           { label: "htmlFor", value: scenarios.label.state.withHtmlFor ? "display-label-input" : "none", category: "behavior" },
-          { label: "for", value: label?.getAttribute("for") ?? "none", category: "attributes" },
+          { label: "for", value: label?.getAttribute("for") ?? "none", category: "identity" },
           { label: "Matches input", value: bool(hasNativeLabelBehavior && !!label && !!input && label.getAttribute("for") === input.id), category: "behavior" },
           { label: "Composition", value: scenarios.label.state.composition, category: "composition" },
         ],

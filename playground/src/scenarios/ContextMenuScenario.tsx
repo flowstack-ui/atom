@@ -1,6 +1,7 @@
 import { Button } from "@flowstack-ui/atom/button";
 import { Dialog } from "@flowstack-ui/atom/dialog";
 import { ContextMenu, useContextMenuContext } from "@flowstack-ui/atom/context-menu";
+import { Direction } from "@flowstack-ui/atom/direction";
 import { useEffect, type ReactNode } from "react";
 import {
   AnatomyPanel,
@@ -291,7 +292,13 @@ export function ContextMenuScenarioCanvas({
     </div>
   );
 
-  if (!state.insideDialog) return menuDemo;
+  const directedMenuDemo = (
+    <Direction.Provider dir={state.dir}>
+      {menuDemo}
+    </Direction.Provider>
+  );
+
+  if (!state.insideDialog) return directedMenuDemo;
 
   return (
     <Dialog.Root
@@ -314,7 +321,7 @@ export function ContextMenuScenarioCanvas({
               Close dialog
             </Dialog.Close>
           </div>
-          {menuDemo}
+          {directedMenuDemo}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
@@ -421,6 +428,7 @@ export function ContextMenuScenarioToolbar({
       <ToolbarGroup title="Popup" value="popup">
         <MenuRadioControl label="Side" options={sideOptions} value={state.side} onChange={actions.setSide} />
         <MenuRadioControl label="Align" options={alignOptions} value={state.align} onChange={actions.setAlign} />
+        <MenuRadioControl label="Direction" options={directionOptions} value={state.dir} onChange={actions.setDir} />
         <MenuSection label="Position">
           <MenuCheckboxControl checked={state.sideOffset === 16} label="Large offset" value="large-offset" onChange={(checked) => actions.setSideOffset(checked ? 16 : 4)} />
           <MenuCheckboxControl checked={state.contentAriaLabel} label="Content ariaLabel" value="content-aria-label" onChange={actions.setContentAriaLabel} />
@@ -493,6 +501,7 @@ export function ContextMenuScenarioAnatomy({
         { label: "Close on select", value: state.parts.closeOnSelect, category: "state" },
         { label: "Escape closes", value: state.parts.closeOnEscape, category: "state" },
         { label: "Loop", value: state.parts.loop, category: "state" },
+        { label: "Direction", value: state.dir, category: "state" },
       ],
     },
     {
@@ -789,6 +798,7 @@ export function ContextMenuScenarioLog({ state }: { state: ContextMenuScenarioSt
 
 const sideOptions: readonly ContextMenuSide[] = ["bottom", "top", "right", "left"];
 const alignOptions: readonly ContextMenuAlign[] = ["start", "center", "end"];
+const directionOptions = ["ltr", "rtl"] as const;
 const radioOptions = ["compact", "comfortable"] as const;
 const compositionOptions: readonly ContextMenuItemCompositionMode[] = ["default", "asChild", "render"];
 

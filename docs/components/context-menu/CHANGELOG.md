@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Inherited fixed submenu keyboard behavior under `Direction.Provider dir="rtl"`
+  so ArrowLeft opens submenus, ArrowRight closes submenus, and submenu
+  placement mirrors to the left side.
 - Fixed `Trigger` so its documented `asChild` and `render` composition props
   are implemented while preserving context-menu behavior.
 - Fixed `Content` so refs forward to the underlying shared menu content

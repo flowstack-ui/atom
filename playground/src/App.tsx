@@ -1944,7 +1944,7 @@ function ScenarioCanvasFooter({
 
     return (
       <div className="panel-footer">
-        {`${openState} | ${mode} | ${state.side} ${state.align} | Radio ${state.radioValue}`}
+        {`${openState} | ${mode} | ${state.side} ${state.align} | ${state.dir} | Radio ${state.radioValue}`}
       </div>
     );
   }
@@ -1956,7 +1956,7 @@ function ScenarioCanvasFooter({
 
     return (
       <div className="panel-footer">
-        {`${openState} | ${mode} | Trigger ${state.triggerComposition} | ${state.side} ${state.align}`}
+        {`${openState} | ${mode} | Trigger ${state.triggerComposition} | ${state.side} ${state.align} | ${state.dir}`}
       </div>
     );
   }
@@ -1968,7 +1968,7 @@ function ScenarioCanvasFooter({
 
     return (
       <div className="panel-footer">
-        {`${openState} | ${mode} | Trigger ${state.triggerComposition} | ${state.side} ${state.align}`}
+        {`${openState} | ${mode} | Trigger ${state.triggerComposition} | ${state.side} ${state.align} | ${state.dir}`}
       </div>
     );
   }
@@ -2291,7 +2291,7 @@ function getMenuSource(state: ReturnType<typeof useMenuScenario>["state"]) {
       </Menu.SubContent>
     </Menu.Sub>` : "";
 
-  return `<Menu.Root
+  const source = `<Menu.Root
   ${rootMode}
   modal={${state.modal}}
   closeOnSelect={${state.closeOnSelect}}
@@ -2349,6 +2349,8 @@ function getMenuSource(state: ReturnType<typeof useMenuScenario>["state"]) {
     </Menu.RadioGroup>${submenu}
   </Menu.Content>
 </Menu.Root>`;
+
+  return wrapDirectionSource(source, state.dir);
 }
 
 function getDropdownMenuSource(state: ReturnType<typeof useDropdownMenuScenario>["state"]) {
@@ -2403,7 +2405,7 @@ function getDropdownMenuSource(state: ReturnType<typeof useDropdownMenuScenario>
     </DropdownMenu.Sub>` : "";
   const item = getMenuItemSource("DropdownMenu", state.itemComposition);
 
-  return `<DropdownMenu.Root
+  const source = `<DropdownMenu.Root
   ${rootMode}
   modal={${state.modal}}
   closeOnSelect={${state.closeOnSelect}}
@@ -2459,6 +2461,8 @@ ${item}${state.showDisabledItem ? `
     </DropdownMenu.RadioGroup>${submenu}
   </DropdownMenu.Content>
 </DropdownMenu.Root>`;
+
+  return wrapDirectionSource(source, state.dir);
 }
 
 function getContextMenuSource(state: ReturnType<typeof useContextMenuScenario>["state"]) {
@@ -2515,7 +2519,7 @@ function getContextMenuSource(state: ReturnType<typeof useContextMenuScenario>["
     </ContextMenu.Sub>` : "";
   const item = getMenuItemSource("ContextMenu", state.itemComposition);
 
-  return `<ContextMenu.Root
+  const source = `<ContextMenu.Root
   ${rootMode}
   modal={${state.modal}}
   closeOnSelect={${state.closeOnSelect}}
@@ -2571,6 +2575,19 @@ ${item}${state.showDisabledItem ? `
     </ContextMenu.RadioGroup>${submenu}
   </ContextMenu.Content>
 </ContextMenu.Root>`;
+
+  return wrapDirectionSource(source, state.dir);
+}
+
+function wrapDirectionSource(source: string, dir: "ltr" | "rtl") {
+  if (dir === "ltr") return source;
+
+  return `<Direction.Provider dir="${dir}">
+${source
+  .split("\n")
+  .map((line) => `  ${line}`)
+  .join("\n")}
+</Direction.Provider>`;
 }
 
 function getMenuItemSource(namespace: "ContextMenu" | "DropdownMenu", mode: "default" | "asChild" | "render") {

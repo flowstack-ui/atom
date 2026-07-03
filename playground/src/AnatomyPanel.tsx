@@ -111,6 +111,7 @@ const nativeAttributeLabels = new Set([
 const visibleFalseRawAttributes = new Set([
   "aria-checked",
   "aria-expanded",
+  "aria-pressed",
 ]);
 const booleanRawAttributes = new Set([
   "checked",

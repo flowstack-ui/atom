@@ -33,7 +33,7 @@ test("ToggleRoot renders WAI-ARIA toggle button state attributes", () => {
   assert.doesNotMatch(html, /role="button"/);
   assert.match(html, /aria-pressed="true"/);
   assert.match(html, /aria-label="Bold"/);
-  assert.match(html, /aria-disabled="true"/);
+  assert.doesNotMatch(html, /aria-disabled="true"/);
   assert.match(html, /disabled=""/);
   assert.doesNotMatch(html, /tabindex=/);
   assert.match(html, /data-disabled=""/);
@@ -92,6 +92,25 @@ test("ToggleRoot asChild merges behavior without replacing child content", () =>
   assert.match(html, /data-slot="toggle"/);
   assert.match(html, /class="child-class root-class"/);
   assert.match(html, />I<\/span>$/);
+});
+
+test("ToggleRoot exposes aria-disabled for disabled non-native renders", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      ToggleRoot,
+      {
+        render: (props) => React.createElement("span", props, "B"),
+        disabled: true,
+        pressed: false,
+      },
+    ),
+  );
+
+  assert.match(html, /^<span/);
+  assert.match(html, /role="button"/);
+  assert.match(html, /aria-disabled="true"/);
+  assert.match(html, /data-disabled=""/);
+  assert.match(html, /aria-pressed="false"/);
 });
 
 test("ToggleRoot asChild preserves native button semantics without redundant role", () => {

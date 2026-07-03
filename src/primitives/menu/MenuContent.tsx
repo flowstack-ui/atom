@@ -31,7 +31,8 @@ import { Portal } from "../../utils/Portal.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { composeEventHandlers, composeRefs } from "../../utils/slot.js";
 import { getTypeaheadMatch } from "../../utils/typeahead.js";
-import { useMenuContext } from "./context.js";
+import { useDirection } from "../direction/index.js";
+import { getMenuSubmenuOpenKey, useMenuContext } from "./context.js";
 
 export type MenuSide = "top" | "right" | "bottom" | "left";
 export type MenuAlign = "start" | "center" | "end";
@@ -83,6 +84,7 @@ function MenuContent(
   ref,
 ) {
   const ctx = useMenuContext();
+  const dir = useDirection();
   const loop = loopProp ?? ctx.loop;
   const {
     contentRef,
@@ -204,7 +206,7 @@ function MenuContent(
           onHighlight(values[values.length - 1]);
           break;
         }
-        case "ArrowRight": {
+        case getMenuSubmenuOpenKey(dir): {
           event.preventDefault();
           if (highlightedValue) {
             const el = getItemElement(highlightedValue);
@@ -255,6 +257,7 @@ function MenuContent(
       getItemValues,
       getLabel,
       highlightedValue,
+      dir,
       loop,
       onClose,
       onHighlight,

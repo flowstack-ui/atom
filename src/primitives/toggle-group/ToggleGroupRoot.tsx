@@ -8,6 +8,7 @@ import {
 } from "react";
 import { useCollection } from "../../collection.js";
 import { useControllableState } from "../../hooks/useControllableState.js";
+import { useDirection, type DirectionValue } from "../direction/index.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import {
   cloneAndMerge,
@@ -27,10 +28,11 @@ type ToggleGroupOrientation = "horizontal" | "vertical";
 export function getToggleGroupNavigationDirection(
   orientation: ToggleGroupOrientation,
   key: string,
+  dir: DirectionValue = "ltr",
 ): 1 | -1 | null {
   if (orientation === "horizontal") {
-    if (key === "ArrowRight") return 1;
-    if (key === "ArrowLeft") return -1;
+    if (key === "ArrowRight") return dir === "rtl" ? -1 : 1;
+    if (key === "ArrowLeft") return dir === "rtl" ? 1 : -1;
     return null;
   }
 
@@ -94,6 +96,7 @@ export const ToggleGroupRoot = forwardRef<HTMLDivElement, ToggleGroupRootProps>(
     },
     ref,
   ) {
+    const dir = useDirection();
     const [selectedValue, setSelectedValue] = useControllableState({
       value: value === undefined ? undefined : normalizeValue(value),
       defaultValue: normalizeValue(defaultValue),
@@ -110,12 +113,13 @@ export const ToggleGroupRoot = forwardRef<HTMLDivElement, ToggleGroupRootProps>(
       unregisterItem: unregisterCollectionItem,
       getItem: getCollectionItem,
       getValues: getCollectionValues,
-    } = useCollection<string, HTMLButtonElement>();
+    } = useCollection<string, HTMLElement>();
+    const activeValue = type === "single" ? selectedValue.slice(0, 1) : selectedValue;
 
     const onItemPress = useCallback(
       (itemValue: string) => {
         if (type === "single") {
-          const next = selectedValue[0] === itemValue ? [] : [itemValue];
+          const next = activeValue[0] === itemValue ? [] : [itemValue];
           setSelectedValue(next);
         } else {
           const next = selectedValue.includes(itemValue)
@@ -124,12 +128,12 @@ export const ToggleGroupRoot = forwardRef<HTMLDivElement, ToggleGroupRootProps>(
           setSelectedValue(next);
         }
       },
-      [selectedValue, setSelectedValue, type],
+      [activeValue, selectedValue, setSelectedValue, type],
     );
 
     const registerItem = useCallback(
-      (itemValue: string, element: HTMLButtonElement) => {
-        registerCollectionItem(itemValue, element);
+      (itemValue: string, element: HTMLElement, disabled?: boolean) => {
+        registerCollectionItem(itemValue, element, { disabled });
       },
       [registerCollectionItem],
     );
@@ -139,8 +143,12 @@ export const ToggleGroupRoot = forwardRef<HTMLDivElement, ToggleGroupRootProps>(
       [unregisterCollectionItem],
     );
 
-    const getItemElement = useCallback((itemValue: string): HTMLButtonElement | null => {
+    const getItemElement = useCallback((itemValue: string): HTMLElement | null => {
       return getCollectionItem(itemValue)?.element ?? null;
+    }, [getCollectionItem]);
+
+    const isItemDisabled = useCallback((itemValue: string): boolean => {
+      return getCollectionItem(itemValue)?.disabled ?? false;
     }, [getCollectionItem]);
 
     const getItemValues = useCallback((): string[] => {
@@ -161,7 +169,7 @@ export const ToggleGroupRoot = forwardRef<HTMLDivElement, ToggleGroupRootProps>(
 
           const candidate = values[index];
           const element = getItemElement(candidate);
-          if (element && !element.disabled) {
+          if (element && !isItemDisabled(candidate)) {
             return candidate;
           }
 
@@ -170,7 +178,7 @@ export const ToggleGroupRoot = forwardRef<HTMLDivElement, ToggleGroupRootProps>(
 
         return null;
       },
-      [getItemElement, loop],
+      [getItemElement, isItemDisabled, loop],
     );
 
     const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = (event) => {
@@ -183,7 +191,7 @@ export const ToggleGroupRoot = forwardRef<HTMLDivElement, ToggleGroupRootProps>(
 
       if (currentIndex === -1) return;
 
-      const navigationDirection = getToggleGroupNavigationDirection(orientation, event.key);
+      const navigationDirection = getToggleGroupNavigationDirection(orientation, event.key, dir);
 
       if (navigationDirection === 1) {
         event.preventDefault();
@@ -197,14 +205,14 @@ export const ToggleGroupRoot = forwardRef<HTMLDivElement, ToggleGroupRootProps>(
         event.preventDefault();
         const first = values.find((value) => {
           const element = getItemElement(value);
-          return element && !element.disabled;
+          return element && !isItemDisabled(value);
         });
         if (first) getItemElement(first)?.focus();
       } else if (event.key === "End") {
         event.preventDefault();
         const last = [...values].reverse().find((value) => {
           const element = getItemElement(value);
-          return element && !element.disabled;
+          return element && !isItemDisabled(value);
         });
         if (last) getItemElement(last)?.focus();
       }
@@ -212,7 +220,7 @@ export const ToggleGroupRoot = forwardRef<HTMLDivElement, ToggleGroupRootProps>(
 
     const contextValue: ToggleGroupContextValue = {
       type,
-      value: selectedValue,
+      value: activeValue,
       registeredValues: getItemValues(),
       onItemPress,
       disabled,
@@ -221,6 +229,7 @@ export const ToggleGroupRoot = forwardRef<HTMLDivElement, ToggleGroupRootProps>(
       registerItem,
       unregisterItem,
       getItemElement,
+      isItemDisabled,
       getItemValues,
     };
 
@@ -229,6 +238,7 @@ export const ToggleGroupRoot = forwardRef<HTMLDivElement, ToggleGroupRootProps>(
       ref,
       role: "group",
       ...(ariaLabel !== undefined && { "aria-label": ariaLabel }),
+      "aria-disabled": disabled || undefined,
       "data-slot": dataSlot,
       "data-orientation": orientation,
       ...(disabled && { "data-disabled": "" }),

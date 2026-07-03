@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Fixed submenu keyboard behavior under `Direction.Provider dir="rtl"` so
+  ArrowLeft opens submenus, ArrowRight closes submenus, and submenu placement
+  mirrors to the left side.
 - Standardized Menu typeahead so a single-character search cycles from the
   current matching item while multi-character buffers still match exact
   prefixes.

@@ -1,5 +1,6 @@
 import { Button } from "@flowstack-ui/atom/button";
 import { Dialog } from "@flowstack-ui/atom/dialog";
+import { Direction } from "@flowstack-ui/atom/direction";
 import { Menu } from "@flowstack-ui/atom/menu";
 import { useRef, type MouseEvent, type ReactNode } from "react";
 import {
@@ -302,7 +303,13 @@ export function MenuScenarioCanvas({
     </div>
   );
 
-  if (!state.insideDialog) return menuDemo;
+  const directedMenuDemo = (
+    <Direction.Provider dir={state.dir}>
+      {menuDemo}
+    </Direction.Provider>
+  );
+
+  if (!state.insideDialog) return directedMenuDemo;
 
   return (
     <Dialog.Root
@@ -325,7 +332,7 @@ export function MenuScenarioCanvas({
               Close dialog
             </Dialog.Close>
           </div>
-          {menuDemo}
+          {directedMenuDemo}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
@@ -354,6 +361,7 @@ export function MenuScenarioToolbar({
       <ToolbarGroup title="Popup" value="popup">
         <MenuRadioControl label="Side" options={sideOptions} value={state.side} onChange={actions.setSide} />
         <MenuRadioControl label="Align" options={alignOptions} value={state.align} onChange={actions.setAlign} />
+        <MenuRadioControl label="Direction" options={directionOptions} value={state.dir} onChange={actions.setDir} />
         <MenuSection label="Position">
           <MenuCheckboxControl checked={state.useAnchorPoint} label="Anchor to click point" value="use-anchor-point" onChange={actions.setUseAnchorPoint} />
           <MenuCheckboxControl checked={state.sideOffset === 16} label="Large offset" value="large-offset" onChange={(checked) => actions.setSideOffset(checked ? 16 : 4)} />
@@ -418,6 +426,7 @@ export function MenuScenarioAnatomy({
         { label: "Close on select", value: state.parts.closeOnSelect, category: "state" },
         { label: "Escape closes", value: state.parts.closeOnEscape, category: "state" },
         { label: "Loop", value: state.parts.loop, category: "state" },
+        { label: "Direction", value: state.dir, category: "state" },
       ],
     },
     {
@@ -679,6 +688,7 @@ export function MenuScenarioLog({ state }: { state: MenuScenarioState }) {
 
 const sideOptions: readonly MenuSide[] = ["bottom", "top", "right", "left"];
 const alignOptions: readonly MenuAlign[] = ["start", "center", "end"];
+const directionOptions = ["ltr", "rtl"] as const;
 const radioOptions = ["compact", "comfortable"] as const;
 const compositionOptions: readonly MenuItemCompositionMode[] = ["default", "asChild", "render"];
 

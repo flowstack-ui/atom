@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { DirectionValue } from "@flowstack-ui/atom/direction";
 
 export type DropdownMenuLogEntry = {
   id: number;
@@ -174,6 +175,7 @@ export type DropdownMenuScenarioState = {
   contentAriaLabel: boolean;
   side: DropdownMenuSide;
   align: DropdownMenuAlign;
+  dir: DirectionValue;
   sideOffset: number;
   contentLoopOff: boolean;
   insideDialog: boolean;
@@ -218,6 +220,7 @@ export type DropdownMenuScenarioActions = {
   setContentAriaLabel: (value: boolean) => void;
   setSide: (value: DropdownMenuSide) => void;
   setAlign: (value: DropdownMenuAlign) => void;
+  setDir: (value: DirectionValue) => void;
   setSideOffset: (value: number) => void;
   setContentLoopOff: (value: boolean) => void;
   setInsideDialog: (value: boolean) => void;
@@ -273,6 +276,7 @@ export function useDropdownMenuScenario() {
   const [contentAriaLabel, setContentAriaLabel] = useState(false);
   const [side, setSide] = useState<DropdownMenuSide>("bottom");
   const [align, setAlign] = useState<DropdownMenuAlign>("start");
+  const [dir, setDir] = useState<DirectionValue>("ltr");
   const [sideOffset, setSideOffset] = useState(4);
   const [contentLoopOff, setContentLoopOff] = useState(false);
   const [insideDialog, setInsideDialog] = useState(false);
@@ -443,6 +447,7 @@ export function useDropdownMenuScenario() {
     contentAriaLabel,
     side,
     align,
+    dir,
     sideOffset,
     contentLoopOff,
     insideDialog,
@@ -487,6 +492,7 @@ export function useDropdownMenuScenario() {
     setContentAriaLabel,
     setSide,
     setAlign,
+    setDir,
     setSideOffset,
     setContentLoopOff,
     setInsideDialog,

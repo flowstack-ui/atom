@@ -106,7 +106,7 @@ export const ToggleRoot = forwardRef<HTMLButtonElement, ToggleRootProps>(
       ...(!hasNativeSemantics ? { role: "button" } : {}),
       "aria-pressed": isPressed,
       ...(ariaLabel !== undefined && { "aria-label": ariaLabel }),
-      "aria-disabled": disabled || undefined,
+      ...(!isNativeButton && { "aria-disabled": disabled || undefined }),
       tabIndex: disabled ? undefined : 0,
       ...(disabled && { "data-disabled": "" }),
       "data-state": isPressed ? "on" : "off",

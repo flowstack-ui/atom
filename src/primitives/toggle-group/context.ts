@@ -18,11 +18,13 @@ export interface ToggleGroupContextValue {
   /** Arrow-key wrapping. */
   loop: boolean;
   /** Register an item element for roving tabindex. */
-  registerItem: (value: string, element: HTMLButtonElement) => void;
+  registerItem: (value: string, element: HTMLElement, disabled?: boolean) => void;
   /** Unregister an item element. */
   unregisterItem: (value: string) => void;
   /** Get a registered item element by value. */
-  getItemElement: (value: string) => HTMLButtonElement | null;
+  getItemElement: (value: string) => HTMLElement | null;
+  /** Check whether a registered item is disabled. */
+  isItemDisabled: (value: string) => boolean;
   /** Get registered item values in DOM order. */
   getItemValues: () => string[];
 }

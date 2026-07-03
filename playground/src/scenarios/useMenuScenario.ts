@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { DirectionValue } from "@flowstack-ui/atom/direction";
 
 export type MenuLogEntry = {
   id: number;
@@ -149,6 +150,7 @@ export type MenuScenarioState = {
   contentAriaLabel: boolean;
   side: MenuSide;
   align: MenuAlign;
+  dir: DirectionValue;
   sideOffset: number;
   contentLoopOff: boolean;
   insideDialog: boolean;
@@ -186,6 +188,7 @@ export type MenuScenarioActions = {
   setContentAriaLabel: (value: boolean) => void;
   setSide: (value: MenuSide) => void;
   setAlign: (value: MenuAlign) => void;
+  setDir: (value: DirectionValue) => void;
   setUseAnchorPoint: (value: boolean) => void;
   setAnchorPoint: (value: MenuAnchorPoint) => void;
   setSideOffset: (value: number) => void;
@@ -231,6 +234,7 @@ export function useMenuScenario() {
   const [contentAriaLabel, setContentAriaLabel] = useState(false);
   const [side, setSide] = useState<MenuSide>("bottom");
   const [align, setAlign] = useState<MenuAlign>("start");
+  const [dir, setDir] = useState<DirectionValue>("ltr");
   const [sideOffset, setSideOffset] = useState(4);
   const [contentLoopOff, setContentLoopOff] = useState(false);
   const [insideDialog, setInsideDialog] = useState(false);
@@ -374,6 +378,7 @@ export function useMenuScenario() {
     contentAriaLabel,
     side,
     align,
+    dir,
     sideOffset,
     contentLoopOff,
     insideDialog,
@@ -411,6 +416,7 @@ export function useMenuScenario() {
     setContentAriaLabel,
     setSide,
     setAlign,
+    setDir,
     setUseAnchorPoint,
     setAnchorPoint,
     setSideOffset,

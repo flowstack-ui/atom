@@ -1,15 +1,16 @@
 import { Button } from "@flowstack-ui/atom/button";
 import { Checkbox, type CheckboxCheckedState } from "@flowstack-ui/atom/checkbox";
+import { Direction, type DirectionValue } from "@flowstack-ui/atom/direction";
 import { RadioGroup } from "@flowstack-ui/atom/radio-group";
 import { Switch } from "@flowstack-ui/atom/switch";
 import { Toggle } from "@flowstack-ui/atom/toggle";
 import { ToggleGroup } from "@flowstack-ui/atom/toggle-group";
-import { useCallback, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { useCallback, useState, type Dispatch, type KeyboardEvent, type MouseEvent, type ReactNode, type SetStateAction } from "react";
 import {
   AnatomyPanel,
   type AnatomySection,
 } from "../AnatomyPanel";
-import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, ScenarioEventLog as ScenarioEventLogBase, ToolbarGroup } from "../WorkbenchPrimitives";
+import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, ScenarioEventLog as ScenarioEventLogBase, ToolbarGroup } from "../WorkbenchPrimitives";
 
 type LogEntry = {
   id: number;
@@ -64,7 +65,7 @@ export function useButtonScenario() {
     if (node) setRootRef(node.tagName.toLowerCase());
   }, []);
 
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+  const handleClick = (event: MouseEvent<HTMLElement>) => {
     addLog("user onClick");
     if (blockClick) {
       event.preventDefault();
@@ -72,7 +73,7 @@ export function useButtonScenario() {
     }
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
+  const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (event.key === "Enter" || event.key === " ") {
       addLog(`user onKeyDown ${event.key === " " ? "Space" : event.key}`);
     }
@@ -181,22 +182,49 @@ export function useToggleScenario() {
   const [controlled, setControlled] = useState(false);
   const [pressed, setPressed] = useState(false);
   const [disabled, setDisabled] = useState(false);
+  const [blockToggle, setBlockToggle] = useState(false);
   const [composition, setComposition] = useState<CompositionMode>("default");
+  const [rootRef, setRootRef] = useState("none");
   const { log, addLog, clearLog } = useScenarioLog();
+
+  const markRootRef = useCallback((node: HTMLElement | null) => {
+    if (node) setRootRef(node.tagName.toLowerCase());
+  }, []);
 
   const handlePressedChange = (next: boolean) => {
     setPressed(next);
     addLog(`pressed changed to ${String(next)}`);
   };
 
+  const handleClick = (event: MouseEvent<HTMLElement>) => {
+    addLog("user onClick");
+    if (blockToggle) {
+      event.preventDefault();
+      addLog("user onClick blocked toggle");
+    }
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    addLog(`user onKeyDown ${event.key === " " ? "Space" : event.key}`);
+    if (blockToggle) {
+      event.preventDefault();
+      addLog(`user onKeyDown ${event.key === " " ? "Space" : event.key} blocked toggle`);
+    }
+  };
+
   return {
-    state: { controlled, pressed, disabled, composition, log },
+    state: { controlled, pressed, disabled, blockToggle, composition, rootRef, log },
     actions: {
       setControlled,
       setPressed,
       setDisabled,
+      setBlockToggle,
       setComposition,
+      markRootRef,
       handlePressedChange,
+      handleClick,
+      handleKeyDown,
       clearLog,
     },
   };
@@ -255,9 +283,24 @@ export function useToggleGroupScenario() {
   const [disabled, setDisabled] = useState(false);
   const [loop, setLoop] = useState(true);
   const [orientation, setOrientation] = useState<Orientation>("horizontal");
+  const [direction, setDirection] = useState<DirectionValue>("ltr");
   const [disabledItem, setDisabledItem] = useState(true);
-  const [composition, setComposition] = useState<CompositionMode>("default");
+  const [blockItemPress, setBlockItemPress] = useState(false);
+  const [rootComposition, setRootComposition] = useState<CompositionMode>("default");
+  const [itemComposition, setItemComposition] = useState<CompositionMode>("default");
+  const [rootRef, setRootRef] = useState("none");
+  const [itemRefs, setItemRefs] = useState<Record<string, string>>({});
   const { log, addLog, clearLog } = useScenarioLog();
+
+  const markRootRef = useCallback((node: HTMLElement | null) => {
+    if (node) setRootRef(node.tagName.toLowerCase());
+  }, []);
+
+  const markItemRef = useCallback((value: string, node: HTMLElement | null) => {
+    if (!node) return;
+    const tag = node.tagName.toLowerCase();
+    setItemRefs((refs) => (refs[value] === tag ? refs : { ...refs, [value]: tag }));
+  }, []);
 
   const handleTypeChange = (next: ToggleGroupType) => {
     setType(next);
@@ -269,8 +312,47 @@ export function useToggleGroupScenario() {
     addLog(`value changed to ${Array.isArray(next) ? next.join(", ") || "none" : next || "none"}`);
   };
 
+  const handleRootKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) {
+      addLog(`root user onKeyDown ${event.key}`);
+    }
+  };
+
+  const handleItemClick = (itemValue: string, event: MouseEvent<HTMLElement>) => {
+    addLog(`item user onClick ${itemValue}`);
+    if (blockItemPress) {
+      event.preventDefault();
+      addLog(`item user onClick blocked ${itemValue}`);
+    }
+  };
+
+  const handleItemKeyDown = (itemValue: string, event: KeyboardEvent<HTMLElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      addLog(`item user onKeyDown ${event.key === " " ? "Space" : event.key} ${itemValue}`);
+      if (blockItemPress) {
+        event.preventDefault();
+        addLog(`item user onKeyDown blocked ${itemValue}`);
+      }
+    }
+  };
+
   return {
-    state: { controlled, type, value, disabled, loop, orientation, disabledItem, composition, log },
+    state: {
+      controlled,
+      type,
+      value,
+      disabled,
+      loop,
+      orientation,
+      direction,
+      disabledItem,
+      blockItemPress,
+      rootComposition,
+      itemComposition,
+      rootRef,
+      itemRefs,
+      log,
+    },
     actions: {
       setControlled,
       setType: handleTypeChange,
@@ -278,8 +360,16 @@ export function useToggleGroupScenario() {
       setDisabled,
       setLoop,
       setOrientation,
+      setDirection,
       setDisabledItem,
-      setComposition,
+      setBlockItemPress,
+      setRootComposition,
+      setItemComposition,
+      markRootRef,
+      markItemRef,
+      handleRootKeyDown,
+      handleItemClick,
+      handleItemKeyDown,
       handleValueChange,
       clearLog,
     },
@@ -395,7 +485,7 @@ export function ToggleScenarioCanvas({ scenario }: { scenario: ToggleScenario })
   const { state, actions } = scenario;
   const rootProps = state.controlled
     ? { pressed: state.pressed, onPressedChange: actions.handlePressedChange }
-    : { defaultPressed: false, onPressedChange: actions.handlePressedChange };
+    : { defaultPressed: state.pressed, onPressedChange: actions.handlePressedChange };
 
   return (
     <div className="form-control-stage">
@@ -403,6 +493,9 @@ export function ToggleScenarioCanvas({ scenario }: { scenario: ToggleScenario })
         mode={state.composition}
         rootProps={rootProps}
         disabled={state.disabled}
+        refCallback={actions.markRootRef}
+        onClick={actions.handleClick}
+        onKeyDown={actions.handleKeyDown}
       />
     </div>
   );
@@ -440,28 +533,71 @@ export function RadioGroupScenarioCanvas({ scenario }: { scenario: RadioGroupSce
 
 export function ToggleGroupScenarioCanvas({ scenario }: { scenario: ToggleGroupScenario }) {
   const { state, actions } = scenario;
-  const rootProps = state.controlled
-    ? { value: state.value, onValueChange: actions.handleValueChange }
-    : { defaultValue: state.type === "single" ? "bold" : ["bold"], onValueChange: actions.handleValueChange };
+  const rootProps = {
+    ...(state.controlled
+      ? { value: state.value, onValueChange: actions.handleValueChange }
+      : { defaultValue: state.type === "single" ? "bold" : ["bold"], onValueChange: actions.handleValueChange }),
+    ref: actions.markRootRef,
+    className: "control-toggle-group",
+    ariaLabel: "Text formatting",
+    "data-playground-inspect": "",
+    "data-prop-check": "root",
+    "data-toggle-group-root": "",
+    disabled: state.disabled,
+    loop: state.loop,
+    onKeyDown: actions.handleRootKeyDown,
+    orientation: state.orientation,
+    type: state.type,
+  };
+
+  const items = (
+    <>
+      <ToggleGroupItem
+        value="bold"
+        label="B"
+        ariaLabel="Bold"
+        mode={state.itemComposition}
+        onClick={actions.handleItemClick}
+        onKeyDown={actions.handleItemKeyDown}
+        onRef={actions.markItemRef}
+      />
+      <ToggleGroupItem
+        value="italic"
+        label="I"
+        ariaLabel="Italic"
+        mode={state.itemComposition}
+        disabled={state.disabledItem}
+        onClick={actions.handleItemClick}
+        onKeyDown={actions.handleItemKeyDown}
+        onRef={actions.markItemRef}
+      />
+      <ToggleGroupItem
+        value="underline"
+        label="U"
+        ariaLabel="Underline"
+        mode={state.itemComposition}
+        onClick={actions.handleItemClick}
+        onKeyDown={actions.handleItemKeyDown}
+        onRef={actions.markItemRef}
+      />
+    </>
+  );
+
+  const group = state.rootComposition === "asChild" ? (
+    <ToggleGroup.Root {...rootProps} asChild>
+      <section>{items}</section>
+    </ToggleGroup.Root>
+  ) : state.rootComposition === "render" ? (
+    <ToggleGroup.Root {...rootProps} render={(renderProps) => <section {...renderProps} />}>
+      {items}
+    </ToggleGroup.Root>
+  ) : (
+    <ToggleGroup.Root {...rootProps}>{items}</ToggleGroup.Root>
+  );
 
   return (
     <div className="form-control-stage">
-      <ToggleGroup.Root
-        {...rootProps}
-        className="control-toggle-group"
-        ariaLabel="Text formatting"
-        data-playground-inspect=""
-        data-prop-check="root"
-        data-toggle-group-root=""
-        disabled={state.disabled}
-        loop={state.loop}
-        orientation={state.orientation}
-        type={state.type}
-      >
-        <ToggleGroupItem value="bold" label="B" mode={state.composition} />
-        <ToggleGroupItem value="italic" label="I" mode={state.composition} disabled={state.disabledItem} />
-        <ToggleGroupItem value="underline" label="U" mode={state.composition} />
-      </ToggleGroup.Root>
+      <Direction.Provider dir={state.direction}>{group}</Direction.Provider>
     </div>
   );
 }
@@ -490,7 +626,7 @@ export function ButtonScenarioAnatomy({
         { label: "Link mode", value: bool(scenario.state.linkMode), category: "behavior" },
         { label: "New tab", value: bool(scenario.state.newTab), category: "behavior" },
         { label: "Custom rel", value: bool(scenario.state.customRel), category: "behavior" },
-        { label: "Block click", value: bool(scenario.state.blockClick), category: "blocking" },
+        { label: "Block click", value: bool(scenario.state.blockClick), category: "behavior" },
         { label: "Type", value: scenario.state.type, category: "state" },
         { label: "Composition", value: scenario.state.composition, category: "composition" },
         { label: "Press count", value: String(scenario.state.pressCount), category: "behavior" },
@@ -605,9 +741,12 @@ export function ToggleScenarioAnatomy({
       summary: root?.dataset.state ?? "off",
       rows: [
         { label: "Exists", value: yesNo(root), category: "presence" },
+        { label: "Ref target", value: scenario.state.rootRef, category: "identity" },
+        { label: "Text", value: root?.textContent?.trim() || "none", category: "state" },
         { label: "Mode", value: scenario.state.controlled ? "controlled" : "uncontrolled", category: "state" },
-        { label: "Pressed", value: bool(scenario.state.pressed), category: "state" },
+        { label: "Pressed", value: bool(root?.dataset.state === "on"), category: "state" },
         { label: "Disabled", value: bool(scenario.state.disabled), category: "state" },
+        { label: "Block toggle", value: bool(scenario.state.blockToggle), category: "behavior" },
         { label: "Composition", value: scenario.state.composition, category: "composition" },
       ],
     },
@@ -685,9 +824,32 @@ export function ToggleGroupScenarioAnatomy({
   onOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
 }) {
   const root = document.querySelector<HTMLElement>("[data-toggle-group-root]");
-  const selected = document.querySelector<HTMLElement>("[data-toggle-group-item][data-state='on']");
-  const disabled = document.querySelector<HTMLElement>("[data-toggle-group-item][data-value='italic']");
   const value = Array.isArray(scenario.state.value) ? scenario.state.value.join(", ") : scenario.state.value;
+  const itemSections: AnatomySection[] = [
+    { title: "Item: Bold", value: "bold", label: "B" },
+    { title: "Item: Italic", value: "italic", label: "I" },
+    { title: "Item: Underline", value: "underline", label: "U" },
+  ].map(({ title, value: itemValue, label }): AnatomySection => {
+    const item = document.querySelector<HTMLElement>(`[data-toggle-group-item][data-value='${itemValue}']`);
+    const isDisabled = item?.matches(":disabled,[aria-disabled='true'],[data-disabled]") ?? false;
+
+    return {
+      title,
+      selector: `[data-toggle-group-item][data-value='${itemValue}']`,
+      summary: item?.dataset.state ?? "not rendered",
+      rows: [
+        { label: "Exists", value: yesNo(item), category: "presence" },
+        { label: "Ref target", value: scenario.state.itemRefs[itemValue] ?? "none", category: "identity" },
+        { label: "Text", value: item?.textContent?.trim() || label, category: "identity" },
+        { label: "Value", value: itemValue, category: "state" },
+        { label: "Pressed", value: bool(item?.dataset.state === "on"), category: "state" },
+        { label: "Disabled", value: bool(isDisabled), category: "state" },
+        { label: "Composition", value: scenario.state.itemComposition, category: "composition" },
+        { label: "Block press", value: bool(scenario.state.blockItemPress), category: "behavior" },
+      ],
+    };
+  });
+
   const sections: AnatomySection[] = [
     {
       title: "Root",
@@ -695,38 +857,18 @@ export function ToggleGroupScenarioAnatomy({
       summary: scenario.state.type,
       rows: [
         { label: "Exists", value: yesNo(root), category: "presence" },
+        { label: "Ref target", value: scenario.state.rootRef, category: "identity" },
         { label: "Mode", value: scenario.state.controlled ? "controlled" : "uncontrolled", category: "state" },
         { label: "Type", value: scenario.state.type, category: "state" },
         { label: "Value", value: value || "none", category: "state" },
         { label: "Disabled", value: bool(scenario.state.disabled), category: "state" },
         { label: "Loop", value: bool(scenario.state.loop), category: "behavior" },
         { label: "Orientation", value: scenario.state.orientation, category: "behavior" },
+        { label: "Direction", value: scenario.state.direction, category: "behavior" },
+        { label: "Composition", value: scenario.state.rootComposition, category: "composition" },
       ],
     },
-    {
-      title: "Item",
-      selector: "[data-toggle-group-item][data-state='on']",
-      summary: selected?.dataset.value ?? "none",
-      groups: [
-        {
-          title: "Selected item",
-          selector: "[data-toggle-group-item][data-state='on']",
-          rows: [
-            { label: "Exists", value: yesNo(selected), category: "presence" },
-            { label: "Value", value: selected?.dataset.value ?? "none", category: "state" },
-            { label: "Composition", value: scenario.state.composition, category: "composition" },
-          ],
-        },
-        {
-          title: "Disabled item",
-          selector: "[data-toggle-group-item][data-value='italic']",
-          rows: [
-            { label: "Exists", value: yesNo(disabled), category: "presence" },
-            { label: "Disabled option", value: bool(scenario.state.disabledItem), category: "state" },
-          ],
-        },
-      ],
-    },
+    ...itemSections,
   ];
 
   return <AnatomyPanel footer={`${sections.length} parts`} openGroups={openGroups} sections={sections} onOpenGroupsChange={onOpenGroupsChange} />;
@@ -796,6 +938,9 @@ export function ToggleScenarioToolbar({ scenario }: { scenario: ToggleScenario }
         <MenuCheckboxControl checked={scenario.state.pressed} label="Pressed" value="pressed" onChange={scenario.actions.setPressed} />
         <MenuCheckboxControl checked={scenario.state.disabled} label="Disabled" value="disabled" onChange={scenario.actions.setDisabled} />
       </ToolbarGroup>
+      <ToolbarGroup title="Events" value="events">
+        <MenuCheckboxControl checked={scenario.state.blockToggle} label="Block toggle" value="block-toggle" onChange={scenario.actions.setBlockToggle} />
+      </ToolbarGroup>
       <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
     </ControlToolbar>
   );
@@ -825,6 +970,17 @@ export function RadioGroupScenarioToolbar({ scenario }: { scenario: RadioGroupSc
 
 export function ToggleGroupScenarioToolbar({ scenario }: { scenario: ToggleGroupScenario }) {
   const valueString = Array.isArray(scenario.state.value) ? scenario.state.value[0] ?? "none" : scenario.state.value || "none";
+  const valueArray = Array.isArray(scenario.state.value)
+    ? scenario.state.value
+    : scenario.state.value
+      ? [scenario.state.value]
+      : [];
+  const setMultipleValue = (itemValue: string, checked: boolean) => {
+    const next = checked
+      ? Array.from(new Set([...valueArray, itemValue]))
+      : valueArray.filter((value) => value !== itemValue);
+    scenario.actions.setValue(next);
+  };
 
   return (
     <ControlToolbar label="Toggle Group controls">
@@ -836,12 +992,29 @@ export function ToggleGroupScenarioToolbar({ scenario }: { scenario: ToggleGroup
       </ToolbarGroup>
       <ToolbarGroup title="Items" value="items">
         <MenuCheckboxControl checked={scenario.state.disabledItem} label="Italic disabled" value="italic-disabled" onChange={scenario.actions.setDisabledItem} />
-        <MenuRadioControl label="Value" options={toggleChoiceOptions} value={valueString} onChange={(value) => scenario.actions.setValue(scenario.state.type === "single" ? value : [value])} />
+        {scenario.state.controlled ? (
+          scenario.state.type === "single" ? (
+            <MenuRadioControl label="Controlled value" options={toggleChoiceOptions} value={valueString} onChange={scenario.actions.setValue} />
+          ) : (
+            <MenuSection label="Controlled Values">
+              <MenuCheckboxControl checked={valueArray.includes("bold")} label="Bold value" value="bold-value" onChange={(checked) => setMultipleValue("bold", checked)} />
+              <MenuCheckboxControl checked={valueArray.includes("italic")} label="Italic value" value="italic-value" onChange={(checked) => setMultipleValue("italic", checked)} />
+              <MenuCheckboxControl checked={valueArray.includes("underline")} label="Underline value" value="underline-value" onChange={(checked) => setMultipleValue("underline", checked)} />
+            </MenuSection>
+          )
+        ) : null}
       </ToolbarGroup>
       <ToolbarGroup title="Content" value="content">
         <MenuRadioControl label="Orientation" options={orientationOptions} value={scenario.state.orientation} onChange={scenario.actions.setOrientation} />
+        <MenuRadioControl label="Direction" options={directionOptions} value={scenario.state.direction} onChange={scenario.actions.setDirection} />
       </ToolbarGroup>
-      <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+      <ToolbarGroup title="Events" value="events">
+        <MenuCheckboxControl checked={scenario.state.blockItemPress} label="Block item press" value="block-item-press" onChange={scenario.actions.setBlockItemPress} />
+      </ToolbarGroup>
+      <ToolbarGroup title="Composition" value="composition">
+        <MenuRadioControl label="Root" options={compositionOptions} value={scenario.state.rootComposition} onChange={scenario.actions.setRootComposition} />
+        <MenuRadioControl label="Item" options={compositionOptions} value={scenario.state.itemComposition} onChange={scenario.actions.setItemComposition} />
+      </ToolbarGroup>
     </ControlToolbar>
   );
 }
@@ -911,12 +1084,30 @@ export function getSwitchSource(state: SwitchScenario["state"]) {
 }
 
 export function getToggleSource(state: ToggleScenario["state"]) {
-  return `<Toggle.Root
-  ${state.controlled ? `pressed={pressed}` : `defaultPressed={false}`}
-  disabled={${state.disabled}}
-  ariaLabel="Bold"
-  onPressedChange={setPressed}
->
+  const props = [
+    state.controlled ? "pressed={pressed}" : `defaultPressed={${state.pressed}}`,
+    state.disabled ? "disabled" : "",
+    `ariaLabel="Bold"`,
+    `value="bold"`,
+    state.blockToggle ? "onClick={blockToggle}" : "onClick={handleClick}",
+    state.blockToggle ? "onKeyDown={blockToggle}" : "onKeyDown={handleKeyDown}",
+    "onPressedChange={setPressed}",
+    state.composition === "asChild" ? "asChild" : "",
+  ].filter(Boolean).join(" ");
+
+  if (state.composition === "asChild") {
+    return `<Toggle.Root ${props}>
+  <span>Bold</span>
+</Toggle.Root>`;
+  }
+
+  if (state.composition === "render") {
+    return `<Toggle.Root ${props}
+  render={(props) => <span {...props}>Bold</span>}
+/>`;
+  }
+
+  return `<Toggle.Root ${props}>
   Bold
 </Toggle.Root>`;
 }
@@ -940,19 +1131,44 @@ export function getRadioGroupSource(state: RadioGroupScenario["state"]) {
 }
 
 export function getToggleGroupSource(state: ToggleGroupScenario["state"]) {
-  return `<ToggleGroup.Root
-  type="${state.type}"
-  ${state.controlled ? `value={value}` : `defaultValue={${state.type === "single" ? `"bold"` : `["bold"]`}}`}
-  disabled={${state.disabled}}
-  orientation="${state.orientation}"
-  loop={${state.loop}}
-  ariaLabel="Text formatting"
-  onValueChange={setValue}
->
-  <ToggleGroup.Item value="bold">B</ToggleGroup.Item>
-  <ToggleGroup.Item value="italic" disabled={${state.disabledItem}}>I</ToggleGroup.Item>
-  <ToggleGroup.Item value="underline">U</ToggleGroup.Item>
-</ToggleGroup.Root>`;
+  const rootProps = [
+    `type="${state.type}"`,
+    state.controlled
+      ? "value={value}"
+      : `defaultValue={${state.type === "single" ? `"bold"` : `["bold"]`}}`,
+    state.disabled ? "disabled" : "",
+    state.orientation !== "horizontal" ? `orientation="${state.orientation}"` : "",
+    !state.loop ? "loop={false}" : "",
+    `ariaLabel="Text formatting"`,
+    "onValueChange={setValue}",
+  ].filter(Boolean);
+  const rootOpen = state.rootComposition === "asChild"
+    ? `<ToggleGroup.Root ${rootProps.join(" ")} asChild>\n  <section>`
+    : state.rootComposition === "render"
+      ? `<ToggleGroup.Root\n  ${rootProps.join("\n  ")}\n  render={(props) => <section {...props} />}\n>`
+      : `<ToggleGroup.Root\n  ${rootProps.join("\n  ")}\n>`;
+  const rootClose = state.rootComposition === "asChild"
+    ? `  </section>\n</ToggleGroup.Root>`
+    : "</ToggleGroup.Root>";
+  const itemProp = state.disabledItem ? " disabled" : "";
+  const item = (value: string, label: string, ariaLabel: string, extra = "") => {
+    if (state.itemComposition === "asChild") {
+      return `  <ToggleGroup.Item value="${value}" ariaLabel="${ariaLabel}"${extra} asChild>\n    <span>${label}</span>\n  </ToggleGroup.Item>`;
+    }
+    if (state.itemComposition === "render") {
+      return `  <ToggleGroup.Item value="${value}" ariaLabel="${ariaLabel}"${extra} render={(props) => <span {...props}>${label}</span>} />`;
+    }
+    return `  <ToggleGroup.Item value="${value}" ariaLabel="${ariaLabel}"${extra}>${label}</ToggleGroup.Item>`;
+  };
+  const source = `${rootOpen}
+${item("bold", "B", "Bold")}
+${item("italic", "I", "Italic", itemProp)}
+${item("underline", "U", "Underline")}
+${rootClose}`;
+
+  return state.direction === "rtl"
+    ? `<Direction.Provider dir="rtl">\n${source}\n</Direction.Provider>`
+    : source;
 }
 
 function CheckboxRootExample({
@@ -1045,10 +1261,16 @@ function ToggleRootExample({
   mode,
   rootProps,
   disabled,
+  refCallback,
+  onClick,
+  onKeyDown,
 }: {
   mode: CompositionMode;
   rootProps: Record<string, unknown>;
   disabled: boolean;
+  refCallback: (node: HTMLElement | null) => void;
+  onClick: (event: MouseEvent<HTMLElement>) => void;
+  onKeyDown: (event: KeyboardEvent<HTMLElement>) => void;
 }) {
   const props = {
     ...rootProps,
@@ -1058,6 +1280,9 @@ function ToggleRootExample({
     "data-prop-check": "root",
     "data-toggle-root": "",
     disabled,
+    ref: refCallback,
+    onClick,
+    onKeyDown,
     value: "bold",
   };
 
@@ -1114,20 +1339,32 @@ function RadioItem({
 function ToggleGroupItem({
   value,
   label,
+  ariaLabel,
   disabled = false,
   mode,
+  onClick,
+  onKeyDown,
+  onRef,
 }: {
   value: string;
   label: string;
+  ariaLabel: string;
   disabled?: boolean;
   mode: CompositionMode;
+  onClick: (value: string, event: MouseEvent<HTMLElement>) => void;
+  onKeyDown: (value: string, event: KeyboardEvent<HTMLElement>) => void;
+  onRef: (value: string, node: HTMLElement | null) => void;
 }) {
   const props = {
     className: "control-toggle-group-item",
     "data-playground-inspect": "",
-    "data-prop-check": value === "bold" ? "item" : undefined,
+    "data-prop-check": "item",
     "data-toggle-group-item": "",
+    ariaLabel,
     disabled,
+    onClick: (event: MouseEvent<HTMLElement>) => onClick(value, event),
+    onKeyDown: (event: KeyboardEvent<HTMLElement>) => onKeyDown(value, event),
+    ref: (node: HTMLElement | null) => onRef(value, node),
     value,
   };
 
@@ -1196,3 +1433,4 @@ const choiceOptions = ["email", "sms", "push"] as const;
 const toggleChoiceOptions = ["bold", "italic", "underline"] as const;
 const toggleGroupTypeOptions = ["single", "multiple"] as const;
 const orientationOptions = ["horizontal", "vertical"] as const;
+const directionOptions = ["ltr", "rtl"] as const;
