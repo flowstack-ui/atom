@@ -7,6 +7,15 @@ interaction, focus management, controlled/uncontrolled state, compound context,
 and portals. It does not ship CSS, visual themes, icons, app templates, routing
 integrations, or product-specific data models.
 
+## Developer Quick Start
+
+For maintainer work inside this package, read these first:
+
+1. `../AGENTS.md`
+2. `../docs/README.md`
+3. `AGENTS.md`
+4. `docs/README.md`
+
 ## Boundary
 
 Atom is the behavior layer for React interfaces. Applications and styled
