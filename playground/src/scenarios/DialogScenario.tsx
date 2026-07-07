@@ -8,7 +8,16 @@ import {
   AnatomyPanel,
   type AnatomySection,
 } from "../AnatomyPanel";
-import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, ScenarioEventLog, ToolbarGroup } from "../WorkbenchPrimitives";
+import {
+  ControlToolbar,
+  MenuCheckboxControl,
+  MenuRadioControl,
+  MenuSection,
+  partProps,
+  PropsToolbarGroup,
+  ScenarioEventLog,
+  ToolbarGroup,
+} from "../WorkbenchPrimitives";
 import type {
   Dispatch,
   HTMLAttributes,
@@ -95,7 +104,8 @@ export function DialogScenarioCanvas({
           mode={state.triggerComposition}
           onClick={actions.handleTriggerClick}
           onKeyDown={actions.handleTriggerKeyDown}
-          overrideSlots={state.overrideSlots}
+          propCheck={state.propCheck}
+          customSlot={state.customTriggerSlot}
         />
         {state.disabled && !state.open ? (
           <div className="dialog-probes" aria-label="Disabled trigger probes">
@@ -120,8 +130,7 @@ export function DialogScenarioCanvas({
             className="atom-dialog-overlay"
             data-dialog-overlay=""
             data-playground-inspect=""
-            data-prop-check="overlay"
-            data-slot={state.overrideSlots ? "playground-dialog-overlay" : undefined}
+            {...partProps("overlay", { propCheck: state.propCheck, customSlot: state.customOverlaySlot }, "dialog-overlay-custom")}
             id="dialog-overlay-prop"
             onClick={actions.handleOverlayClick}
             ref={overlayRef}
@@ -131,9 +140,8 @@ export function DialogScenarioCanvas({
             ariaLabel={state.useAriaLabel ? "Project settings" : undefined}
             className="atom-dialog-content"
             data-dialog-content=""
-            data-prop-check="content"
             data-playground-inspect=""
-            data-slot={state.overrideSlots ? "playground-dialog-content" : undefined}
+            {...partProps("content", { propCheck: state.propCheck, customSlot: state.customContentSlot }, "dialog-content-custom")}
             ref={contentRef}
             role={state.contentRole}
             title="content prop"
@@ -142,8 +150,7 @@ export function DialogScenarioCanvas({
               <Dialog.Title
                 as={state.titleHeadingLevel}
                 data-dialog-title=""
-                data-prop-check="title"
-                data-slot={state.overrideSlots ? "playground-dialog-title" : undefined}
+                {...partProps("title", { propCheck: state.propCheck, customSlot: state.customTitleSlot }, "dialog-title-custom")}
                 ref={titleRef}
                 title="title prop"
               >
@@ -152,8 +159,7 @@ export function DialogScenarioCanvas({
             )}
             <Dialog.Description
               data-dialog-description=""
-              data-prop-check="description"
-              data-slot={state.overrideSlots ? "playground-dialog-description" : undefined}
+              {...partProps("description", { propCheck: state.propCheck, customSlot: state.customDescriptionSlot }, "dialog-description-custom")}
               ref={descriptionRef}
               title="description prop"
             >
@@ -206,6 +212,7 @@ export function DialogScenarioCanvas({
                   <Dialog.Close
                     className="atom-button secondary"
                     data-dialog-cancel-close=""
+                    {...partProps("cancel-close", { propCheck: state.propCheck, customSlot: state.customCloseSlot }, "dialog-close-custom")}
                     onClick={() => actions.markCloseSource("cancel")}
                   >
                     Cancel
@@ -215,7 +222,8 @@ export function DialogScenarioCanvas({
                     elementRef={saveCloseRef}
                     mode={state.closeComposition}
                     onClick={actions.handleSaveCloseClick}
-                    overrideSlots={state.overrideSlots}
+                    propCheck={state.propCheck}
+                    customSlot={state.customCloseSlot}
                   >
                     Save
                   </DialogCloseExample>
@@ -252,7 +260,6 @@ export function DialogScenarioAnatomy({
         { label: "Keep mounted", value: state.keepMounted ? "yes" : "no", category: "state" },
         { label: "Mode", value: state.controlled ? "controlled" : "uncontrolled", category: "state" },
         { label: "No focusables", value: state.noFocusableContent ? "yes" : "no", category: "state" },
-        { label: "Override slots", value: state.overrideSlots ? "yes" : "no", category: "state" },
         { label: "Title as", value: state.titleHeadingLevel, category: "state" },
       ],
     },
@@ -517,15 +524,19 @@ export function DialogScenarioToolbar({
           value={state.closeComposition}
           onChange={actions.setCloseComposition}
         />
-        <MenuSection label="Props">
-          <MenuCheckboxControl
-            checked={state.overrideSlots}
-            label="Override slots"
-            value="override-slots"
-            onChange={actions.setOverrideSlots}
-          />
-        </MenuSection>
       </ToolbarGroup>
+      <PropsToolbarGroup
+        propCheck={state.propCheck}
+        onPropCheckChange={actions.setPropCheck}
+        customSlots={[
+          { checked: state.customTriggerSlot, label: "Trigger slot", value: "trigger-slot", onChange: actions.setCustomTriggerSlot },
+          { checked: state.customOverlaySlot, label: "Overlay slot", value: "overlay-slot", onChange: actions.setCustomOverlaySlot },
+          { checked: state.customContentSlot, label: "Content slot", value: "content-slot", onChange: actions.setCustomContentSlot },
+          { checked: state.customTitleSlot, label: "Title slot", value: "title-slot", onChange: actions.setCustomTitleSlot },
+          { checked: state.customDescriptionSlot, label: "Description slot", value: "description-slot", onChange: actions.setCustomDescriptionSlot },
+          { checked: state.customCloseSlot, label: "Close slot", value: "close-slot", onChange: actions.setCustomCloseSlot },
+        ]}
+      />
     </ControlToolbar>
   );
 }
@@ -539,21 +550,22 @@ function DialogTriggerExample({
   mode,
   onClick,
   onKeyDown,
-  overrideSlots,
+  propCheck,
+  customSlot,
 }: {
   elementRef: (element: HTMLElement | null) => void;
   mode: DialogCompositionMode;
   onClick: (event: ReactMouseEvent<HTMLElement>) => void;
   onKeyDown: (event: ReactKeyboardEvent<HTMLElement>) => void;
-  overrideSlots: boolean;
+  propCheck: boolean;
+  customSlot: boolean;
 }) {
   if (mode === "asChild") {
     return (
       <Dialog.Trigger
         className="atom-button"
         data-dialog-trigger=""
-        data-prop-check="trigger"
-        data-slot={overrideSlots ? "playground-dialog-trigger" : undefined}
+        {...partProps("trigger", { propCheck, customSlot }, "dialog-trigger-custom")}
         id="dialog-trigger-prop"
         name="dialog-trigger-name"
         ref={elementRef}
@@ -572,8 +584,7 @@ function DialogTriggerExample({
       <Dialog.Trigger
         className="atom-button"
         data-dialog-trigger=""
-        data-prop-check="trigger"
-        data-slot={overrideSlots ? "playground-dialog-trigger" : undefined}
+        {...partProps("trigger", { propCheck, customSlot }, "dialog-trigger-custom")}
         id="dialog-trigger-prop"
         name="dialog-trigger-name"
         onClick={onClick}
@@ -591,8 +602,7 @@ function DialogTriggerExample({
     <Dialog.Trigger
       className="atom-button"
       data-dialog-trigger=""
-      data-prop-check="trigger"
-      data-slot={overrideSlots ? "playground-dialog-trigger" : undefined}
+      {...partProps("trigger", { propCheck, customSlot }, "dialog-trigger-custom")}
       id="dialog-trigger-prop"
       name="dialog-trigger-name"
       onClick={onClick}
@@ -611,21 +621,22 @@ function DialogCloseExample({
   elementRef,
   mode,
   onClick,
-  overrideSlots,
+  propCheck,
+  customSlot,
 }: {
   children: ReactNode;
   className: string;
   elementRef: (element: HTMLElement | null) => void;
   mode: DialogCompositionMode;
   onClick: (event: ReactMouseEvent<HTMLElement>) => void;
-  overrideSlots: boolean;
+  propCheck: boolean;
+  customSlot: boolean;
 }) {
   if (mode === "asChild") {
     return (
       <Dialog.Close
         className={className}
-        data-prop-check="save-close"
-        data-slot={overrideSlots ? "playground-dialog-close" : undefined}
+        {...partProps("save-close", { propCheck, customSlot }, "dialog-close-custom")}
         id="dialog-save-close-prop"
         name="dialog-save-close-name"
         ref={elementRef}
@@ -645,8 +656,7 @@ function DialogCloseExample({
       <Dialog.Close
         className={className}
         data-dialog-save-close=""
-        data-prop-check="save-close"
-        data-slot={overrideSlots ? "playground-dialog-close" : undefined}
+        {...partProps("save-close", { propCheck, customSlot }, "dialog-close-custom")}
         id="dialog-save-close-prop"
         name="dialog-save-close-name"
         onClick={onClick}
@@ -663,8 +673,7 @@ function DialogCloseExample({
     <Dialog.Close
       className={className}
       data-dialog-save-close=""
-      data-prop-check="save-close"
-      data-slot={overrideSlots ? "playground-dialog-close" : undefined}
+      {...partProps("save-close", { propCheck, customSlot }, "dialog-close-custom")}
       id="dialog-save-close-prop"
       name="dialog-save-close-name"
       onClick={onClick}

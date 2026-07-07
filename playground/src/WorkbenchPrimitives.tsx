@@ -13,6 +13,21 @@ export type WorkbenchOption<T extends string = string> = {
   value: T;
 };
 
+export type PartPropsState = {
+  propCheck?: boolean;
+  customSlots?: Record<string, boolean>;
+};
+
+export type PartPropsOptions = {
+  customSlot?: boolean;
+  propCheck?: boolean;
+};
+
+export type PartPropsResult = {
+  "data-prop-check"?: string;
+  "data-slot"?: string;
+};
+
 export function ControlToolbar({ label, children }: { label: string; children: ReactNode }) {
   return (
     <Menubar.Root className="canvas-toolbar" aria-label={label}>
@@ -41,6 +56,47 @@ export function ToolbarGroup({
         {children}
       </Menubar.Content>
     </Menubar.Menu>
+  );
+}
+
+export function PropsToolbarGroup({
+  propCheck,
+  onPropCheckChange,
+  customSlots = [],
+}: {
+  propCheck: boolean;
+  onPropCheckChange: (checked: boolean) => void;
+  customSlots?: Array<{
+    checked: boolean;
+    label: string;
+    value: string;
+    onChange: (checked: boolean) => void;
+  }>;
+}) {
+  return (
+    <ToolbarGroup title="Props" value="props">
+      {customSlots.length > 0 ? (
+        <MenuSection label="Slots">
+          {customSlots.map((slot) => (
+            <MenuCheckboxControl
+              checked={slot.checked}
+              key={slot.value}
+              label={slot.label}
+              value={slot.value}
+              onChange={slot.onChange}
+            />
+          ))}
+        </MenuSection>
+      ) : null}
+      <MenuSection label="Pass Through">
+        <MenuCheckboxControl
+          checked={propCheck}
+          label="Prop Check"
+          value="prop-check"
+          onChange={onPropCheckChange}
+        />
+      </MenuSection>
+    </ToolbarGroup>
   );
 }
 
@@ -144,6 +200,25 @@ export function ScenarioEventLog({ log }: { log: WorkbenchLogEntry[] }) {
       </ScrollArea.Viewport>
     </ScrollArea.Root>
   );
+}
+
+export function partProps(
+  part: string,
+  options: PartPropsOptions = {},
+  customSlot?: string,
+): PartPropsResult {
+  return {
+    "data-prop-check": options.propCheck ? part : undefined,
+    "data-slot": options.customSlot ? customSlot ?? `${part}-custom` : undefined,
+  };
+}
+
+export function propCheckAttr(enabled: boolean, part: string) {
+  return enabled ? { "data-prop-check": part } : {};
+}
+
+export function customSlotAttr(enabled: boolean, slot: string) {
+  return enabled ? { "data-slot": slot } : {};
 }
 
 function normalizeOption<T extends string>(option: T | WorkbenchOption<T>): WorkbenchOption<T> {

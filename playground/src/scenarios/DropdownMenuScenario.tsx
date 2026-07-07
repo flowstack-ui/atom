@@ -7,7 +7,7 @@ import {
   AnatomyPanel,
   type AnatomySection,
 } from "../AnatomyPanel";
-import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, ScenarioEventLog, ToolbarGroup } from "../WorkbenchPrimitives";
+import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup, partProps } from "../WorkbenchPrimitives";
 import type { Dispatch, SetStateAction } from "react";
 import type {
   DropdownMenuAlign,
@@ -67,8 +67,7 @@ export function DropdownMenuScenarioCanvas({
           mode={state.triggerComposition}
           disabled={state.triggerDisabled}
           data-dropdown-menu-trigger=""
-          data-prop-check="trigger"
-          data-slot={state.triggerSlotOverride ? "dropdown-menu-trigger-custom" : undefined}
+          {...partProps("trigger", { propCheck: state.propCheck, customSlot: state.customTriggerSlot }, "dropdown-menu-trigger-custom")}
           onClick={actions.handleTriggerClick}
           onKeyDown={actions.handleTriggerKeyDown}
         >
@@ -78,7 +77,7 @@ export function DropdownMenuScenarioCanvas({
           ariaLabel={state.contentAriaLabel ? "Project actions" : undefined}
           className="playground-menu-content"
           data-menu-content=""
-          data-prop-check="content"
+          {...partProps("content", { propCheck: state.propCheck, customSlot: state.customContentSlot }, "dropdown-menu-content-custom")}
           data-playground-inspect=""
           side={state.side}
           align={state.align}
@@ -90,14 +89,14 @@ export function DropdownMenuScenarioCanvas({
           <DropdownMenu.Group
             className="playground-menu-group"
             data-menu-group=""
-            data-prop-check="group"
+            {...partProps("group", { propCheck: state.propCheck, customSlot: state.customGroupSlot }, "dropdown-menu-group-custom")}
           >
             <DropdownMenuActionItem
               mode={state.itemComposition}
               value="new"
               disabled={false}
               data-menu-item-primary=""
-              data-prop-check="item"
+              {...partProps("item", { propCheck: state.propCheck, customSlot: state.customItemSlot }, "dropdown-menu-item-custom")}
               onSelect={() => actions.handleActionSelect("new")}
               onClick={actions.handleActionClick("new")}
               onPointerEnter={() => actions.handlePointer("new", "enter")}
@@ -119,6 +118,7 @@ export function DropdownMenuScenarioCanvas({
           <DropdownMenu.Separator
             className="playground-menu-separator"
             data-menu-separator=""
+            {...partProps("separator", { propCheck: state.propCheck, customSlot: state.customSeparatorSlot }, "dropdown-menu-separator-custom")}
           />
           <DropdownMenu.CheckboxItem
             className="playground-menu-item"
@@ -128,7 +128,7 @@ export function DropdownMenuScenarioCanvas({
             disabled={state.checkboxDisabled}
             closeOnSelect={state.closeCheckboxOnSelect}
             data-menu-checkbox=""
-            data-prop-check="checkbox-item"
+            {...partProps("checkbox-item", { propCheck: state.propCheck, customSlot: state.customCheckboxItemSlot }, "dropdown-menu-checkbox-item-custom")}
             onCheckedChange={actions.handleCheckboxChange}
           >
             <span>Show grid</span>
@@ -142,7 +142,7 @@ export function DropdownMenuScenarioCanvas({
             className="playground-menu-radio-group"
             value={state.radioValue}
             data-menu-radio-group=""
-            data-prop-check="radio-group"
+            {...partProps("radio-group", { propCheck: state.propCheck, customSlot: state.customRadioGroupSlot }, "dropdown-menu-radio-group-custom")}
             onValueChange={actions.handleRadioChange}
           >
             <DropdownMenu.RadioItem
@@ -152,7 +152,7 @@ export function DropdownMenuScenarioCanvas({
               disabled={state.radioItemDisabled}
               closeOnSelect={state.closeRadioOnSelect}
               data-menu-radio-item=""
-              data-prop-check="radio-item"
+              {...partProps("radio-item", { propCheck: state.propCheck, customSlot: state.customRadioItemSlot }, "dropdown-menu-radio-item-custom")}
             >
               <span>Compact</span>
               <span className="playground-menu-radio" aria-hidden="true" />
@@ -173,10 +173,11 @@ export function DropdownMenuScenarioCanvas({
             data-menu-radio-separator=""
           />
           <DropdownMenu.RadioGroup
-            className="playground-menu-radio-group"
-            value={state.radioValueSecondary}
-            data-menu-radio-group-secondary=""
-            onValueChange={actions.handleRadioSecondaryChange}
+              className="playground-menu-radio-group"
+              value={state.radioValueSecondary}
+              data-menu-radio-group-secondary=""
+              {...partProps("radio-group-secondary", { propCheck: state.propCheck, customSlot: state.customRadioGroupSlot }, "dropdown-menu-radio-group-custom")}
+              onValueChange={actions.handleRadioSecondaryChange}
           >
             <DropdownMenu.RadioItem
               className="playground-menu-item"
@@ -184,7 +185,7 @@ export function DropdownMenuScenarioCanvas({
               textValue="Dense compact"
               closeOnSelect={state.closeRadioOnSelect}
               data-menu-radio-item-secondary=""
-              data-prop-check="radio-item-secondary"
+              {...partProps("radio-item-secondary", { propCheck: state.propCheck, customSlot: state.customRadioItemSlot }, "dropdown-menu-radio-item-custom")}
             >
               <span>Dense compact</span>
               <span className="playground-menu-radio" aria-hidden="true" />
@@ -216,6 +217,7 @@ export function DropdownMenuScenarioCanvas({
                   value="more"
                   textValue="More actions"
                   data-menu-sub-trigger=""
+                  {...partProps("sub-trigger", { propCheck: state.propCheck, customSlot: state.customSubTriggerSlot }, "dropdown-menu-sub-trigger-custom")}
                 >
                   <span>More actions</span>
                   <span className="playground-menu-sub-arrow" aria-hidden="true">›</span>
@@ -226,7 +228,7 @@ export function DropdownMenuScenarioCanvas({
                   sideOffset={state.subSideOffset}
                   loop={state.subContentLoopOff ? false : undefined}
                   data-menu-sub-content=""
-                  data-prop-check="sub-content"
+                  {...partProps("sub-content", { propCheck: state.propCheck, customSlot: state.customSubContentSlot }, "dropdown-menu-sub-content-custom")}
                   data-playground-inspect=""
                   ref={(element) => actions.markPartRef("subContent", element)}
                 >
@@ -234,6 +236,7 @@ export function DropdownMenuScenarioCanvas({
                     className="playground-menu-item"
                     value="archive"
                     data-menu-sub-item=""
+                    {...partProps("sub-item", { propCheck: state.propCheck, customSlot: state.customSubItemSlot }, "dropdown-menu-sub-item-custom")}
                     onSelect={() => actions.handleActionSelect("archive")}
                   >
                     Archive
@@ -242,6 +245,7 @@ export function DropdownMenuScenarioCanvas({
                     className="playground-menu-item"
                     value="duplicate"
                     data-menu-sub-item-extra=""
+                    {...partProps("sub-item-extra", { propCheck: state.propCheck, customSlot: state.customSubItemSlot }, "dropdown-menu-sub-item-custom")}
                     onSelect={() => actions.handleActionSelect("duplicate")}
                   >
                     Duplicate
@@ -253,6 +257,7 @@ export function DropdownMenuScenarioCanvas({
                         value="advanced"
                         textValue="Advanced"
                         data-menu-nested-sub-trigger=""
+                        {...partProps("nested-sub-trigger", { propCheck: state.propCheck, customSlot: state.customSubTriggerSlot }, "dropdown-menu-sub-trigger-custom")}
                       >
                         <span>Advanced</span>
                         <span className="playground-menu-sub-arrow" aria-hidden="true">›</span>
@@ -260,6 +265,7 @@ export function DropdownMenuScenarioCanvas({
                       <DropdownMenu.SubContent
                         className="playground-menu-content playground-submenu-content"
                         data-menu-nested-sub-content=""
+                        {...partProps("nested-sub-content", { propCheck: state.propCheck, customSlot: state.customSubContentSlot }, "dropdown-menu-sub-content-custom")}
                         data-playground-inspect=""
                         ref={(element) => actions.markPartRef("nestedSubContent", element)}
                       >
@@ -267,6 +273,7 @@ export function DropdownMenuScenarioCanvas({
                           className="playground-menu-item"
                           value="export"
                           data-menu-nested-sub-item=""
+                          {...partProps("nested-sub-item", { propCheck: state.propCheck, customSlot: state.customSubItemSlot }, "dropdown-menu-sub-item-custom")}
                           onSelect={() => actions.handleActionSelect("export")}
                         >
                           Export
@@ -285,6 +292,7 @@ export function DropdownMenuScenarioCanvas({
                   textValue="Share actions"
                   disabled={state.disableSecondSubmenu}
                   data-menu-sub-trigger-secondary=""
+                  {...partProps("sub-trigger-secondary", { propCheck: state.propCheck, customSlot: state.customSubTriggerSlot }, "dropdown-menu-sub-trigger-custom")}
                 >
                   <span>Share actions</span>
                   <span className="playground-menu-sub-arrow" aria-hidden="true">›</span>
@@ -293,6 +301,7 @@ export function DropdownMenuScenarioCanvas({
                   className="playground-menu-content playground-submenu-content"
                   sideOffset={state.subSideOffset}
                   data-menu-sub-content-secondary=""
+                  {...partProps("sub-content-secondary", { propCheck: state.propCheck, customSlot: state.customSubContentSlot }, "dropdown-menu-sub-content-custom")}
                   data-playground-inspect=""
                   ref={(element) => actions.markPartRef("subContentSecondary", element)}
                 >
@@ -300,6 +309,7 @@ export function DropdownMenuScenarioCanvas({
                     className="playground-menu-item"
                     value="copy-link"
                     data-menu-sub-item-secondary=""
+                    {...partProps("sub-item-secondary", { propCheck: state.propCheck, customSlot: state.customSubItemSlot }, "dropdown-menu-sub-item-custom")}
                     onSelect={() => actions.handleActionSelect("copy-link")}
                   >
                     Copy link
@@ -413,12 +423,28 @@ export function DropdownMenuScenarioToolbar({
         <MenuRadioControl label="Item" options={compositionOptions} value={state.itemComposition} onChange={actions.setItemComposition} />
         <MenuSection label="Events">
           <MenuCheckboxControl checked={state.triggerDisabled} label="Disabled trigger" value="disabled-trigger" onChange={actions.setTriggerDisabled} />
-          <MenuCheckboxControl checked={state.triggerSlotOverride} label="Override trigger slot" value="override-trigger-slot" onChange={actions.setTriggerSlotOverride} />
           <MenuCheckboxControl checked={state.blockTriggerEvent} label="Block trigger event" value="block-trigger-event" onChange={actions.setBlockTriggerEvent} />
           <MenuCheckboxControl checked={state.blockItemSelect} label="Block item select" value="block-item-select" onChange={actions.setBlockItemSelect} />
           <MenuCheckboxControl checked={state.logPointer} label="Log pointer" value="log-pointer" onChange={actions.setLogPointer} />
         </MenuSection>
       </ToolbarGroup>
+      <PropsToolbarGroup
+        propCheck={state.propCheck}
+        onPropCheckChange={actions.setPropCheck}
+        customSlots={[
+          { checked: state.customTriggerSlot, label: "Trigger Slot", value: "trigger-slot", onChange: actions.setCustomTriggerSlot },
+          { checked: state.customContentSlot, label: "Content Slot", value: "content-slot", onChange: actions.setCustomContentSlot },
+          { checked: state.customGroupSlot, label: "Group Slot", value: "group-slot", onChange: actions.setCustomGroupSlot },
+          { checked: state.customItemSlot, label: "Item Slot", value: "item-slot", onChange: actions.setCustomItemSlot },
+          { checked: state.customCheckboxItemSlot, label: "Checkbox Item Slot", value: "checkbox-item-slot", onChange: actions.setCustomCheckboxItemSlot },
+          { checked: state.customRadioGroupSlot, label: "Radio Group Slot", value: "radio-group-slot", onChange: actions.setCustomRadioGroupSlot },
+          { checked: state.customRadioItemSlot, label: "Radio Item Slot", value: "radio-item-slot", onChange: actions.setCustomRadioItemSlot },
+          { checked: state.customSeparatorSlot, label: "Separator Slot", value: "separator-slot", onChange: actions.setCustomSeparatorSlot },
+          { checked: state.customSubTriggerSlot, label: "Sub Trigger Slot", value: "sub-trigger-slot", onChange: actions.setCustomSubTriggerSlot },
+          { checked: state.customSubContentSlot, label: "Sub Content Slot", value: "sub-content-slot", onChange: actions.setCustomSubContentSlot },
+          { checked: state.customSubItemSlot, label: "Sub Item Slot", value: "sub-item-slot", onChange: actions.setCustomSubItemSlot },
+        ]}
+      />
     </ControlToolbar>
   );
 }
@@ -752,7 +778,7 @@ type DropdownMenuTriggerProps = {
   onClick: (event: { preventDefault: () => void }) => void;
   onKeyDown: (event: { key: string; preventDefault: () => void }) => void;
   "data-dropdown-menu-trigger": string;
-  "data-prop-check": string;
+  "data-prop-check"?: string;
   "data-slot"?: string;
 };
 
@@ -813,7 +839,8 @@ type DropdownMenuActionItemProps = {
   onPointerEnter: () => void;
   onPointerLeave: () => void;
   "data-menu-item-primary": string;
-  "data-prop-check": string;
+  "data-prop-check"?: string;
+  "data-slot"?: string;
 };
 
 function DropdownMenuActionItem({

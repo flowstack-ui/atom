@@ -21,6 +21,7 @@ export interface MenuRadioItemProps extends MenuRadioItemNativeProps {
   closeOnSelect?: boolean;
   className?: string;
   children: ReactNode;
+  "data-slot"?: string;
 }
 
 export function MenuRadioItem({
@@ -33,6 +34,7 @@ export function MenuRadioItem({
   onClick,
   onPointerEnter,
   onPointerLeave,
+  "data-slot": dataSlot = "menu-radio-item",
   ...restProps
 }: MenuRadioItemProps) {
   const ctx = useMenuContext();
@@ -78,7 +80,7 @@ export function MenuRadioItem({
       tabIndex={-1}
       aria-checked={isChecked}
       aria-disabled={disabled || undefined}
-      data-slot="menu-radio-item"
+      data-slot={dataSlot}
       data-highlighted={isHighlighted ? "" : undefined}
       data-disabled={disabled ? "" : undefined}
       data-checked={isChecked ? "" : undefined}

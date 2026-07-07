@@ -15,6 +15,7 @@ import {
   type RenderProp,
 } from "../../utils/slot.js";
 import { useRatingContext } from "./context.js";
+import { snapRatingPointerValue } from "./utils.js";
 
 type RatingItemNativeProps = NativeSpanProps<
   "children" | "onPointerDown" | "onPointerMove" | "onPointerUp" | "onPointerCancel"
@@ -23,6 +24,7 @@ type RatingItemNativeProps = NativeSpanProps<
 interface RatingPointerInteraction {
   initialValue: number;
   moved: boolean;
+  pointerValue: number;
   pointerId: number;
 }
 
@@ -65,11 +67,13 @@ export const RatingItem = forwardRef<HTMLSpanElement, RatingItemProps>(
   ) {
     const {
       disabled,
+      dir,
       getItemState,
       invalid,
       min,
       readOnly,
       setValue,
+      step,
       value: ratingValue,
     } = useRatingContext();
     const state = getItemState(value);
@@ -79,11 +83,16 @@ export const RatingItem = forwardRef<HTMLSpanElement, RatingItemProps>(
       (event: { currentTarget: EventTarget & HTMLElement; clientX: number }) => {
         const rect = event.currentTarget.getBoundingClientRect();
         const lowerBound = Math.max(min, value - 1);
-        const percent = rect.width > 0 ? (event.clientX - rect.left) / rect.width : 1;
+        const percent =
+          rect.width > 0
+            ? dir === "rtl"
+              ? (rect.right - event.clientX) / rect.width
+              : (event.clientX - rect.left) / rect.width
+            : 1;
         const rawValue = lowerBound + Math.min(Math.max(percent, 0), 1) * (value - lowerBound);
-        return rawValue;
+        return snapRatingPointerValue(rawValue, step, min);
       },
-      [min, value],
+      [dir, min, step, value],
     );
 
     const handlePointerDown = useCallback<PointerEventHandler<HTMLSpanElement>>(
@@ -91,14 +100,16 @@ export const RatingItem = forwardRef<HTMLSpanElement, RatingItemProps>(
         if (disabled || readOnly) return;
         event.preventDefault();
         event.currentTarget.setPointerCapture?.(event.pointerId);
+        const pointerValue = getPointerValue(event);
         interactionRef.current = {
           initialValue: ratingValue,
           moved: false,
+          pointerValue,
           pointerId: event.pointerId,
         };
-        setValue(value);
+        setValue(pointerValue);
       },
-      [disabled, ratingValue, readOnly, setValue, value],
+      [disabled, getPointerValue, ratingValue, readOnly, setValue],
     );
 
     const handlePointerMove = useCallback<PointerEventHandler<HTMLSpanElement>>(
@@ -124,6 +135,7 @@ export const RatingItem = forwardRef<HTMLSpanElement, RatingItemProps>(
         }
 
         if (
+          interaction.pointerValue === interaction.initialValue &&
           interaction.initialValue > min &&
           value === interaction.initialValue
         ) {

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Fixed Select part `data-slot` pass-through so Value, Icon, Content/Listbox,
+  Viewport, Group, Label, Item, ItemText, ItemIndicator, Separator, Arrow, and
+  scroll buttons can be overridden consistently.
 - Standardized Select typeahead so a single-character search cycles from the
   current matching option while multi-character buffers still match exact
   prefixes.

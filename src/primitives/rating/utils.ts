@@ -30,6 +30,15 @@ export function snapRatingValue(value: number, step = 1, min = 0): number {
   return Number.parseFloat(snapped.toFixed(decimals));
 }
 
+export function snapRatingPointerValue(value: number, step = 1, min = 0): number {
+  const safeStep = step > 0 ? step : 1;
+  const offset = value - min;
+  if (offset <= 0) return min;
+  const snapped = Math.ceil(offset / safeStep) * safeStep + min;
+  const decimals = countDecimals(safeStep);
+  return Number.parseFloat(snapped.toFixed(decimals));
+}
+
 export function getRatingValueLabel(value: number, min = 0, max = 5): string {
   const range = normalizeRatingRange(min, max);
   return `${value} out of ${range.max}`;

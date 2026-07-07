@@ -153,7 +153,7 @@ test("Menu source keeps selection and submenu close behavior stable", async () =
   assert.match(contentSource, /el\?\.dataset\.slot === "menu-sub-trigger"/);
   assert.match(contentSource, /useClickAway\(\{/);
   assert.match(contentSource, /ignore: \(target\) => openSubMenuId !== null && isMenuSubContent\(target\)/);
-  assert.match(contentSource, /target\.closest\('\[data-slot="menu-sub-content"\]'\) !== null/);
+  assert.match(contentSource, /target\.closest\("\[data-menu-sub-content\]"\) !== null/);
   assert.match(contentSource, /aria-labelledby=\{!ariaLabel && triggerRef\.current \? triggerId : undefined\}/);
   assert.doesNotMatch(contentSource, /aria-labelledby=\{!ariaLabel \? triggerId : undefined\}/);
   assert.doesNotMatch(contentSource, /document\.addEventListener\("pointerdown"/);
@@ -178,7 +178,7 @@ test("Menu source keeps selection and submenu close behavior stable", async () =
   );
   assert.match(subContentSource, /useClickAway\(\{/);
   assert.match(subContentSource, /ignore: \(target\) => nestedOpenSubMenuId !== null && isMenuSubContent\(target\)/);
-  assert.match(subContentSource, /target\.closest\('\[data-slot="menu-sub-content"\]'\) !== null/);
+  assert.match(subContentSource, /target\.closest\("\[data-menu-sub-content\]"\) !== null/);
   assert.doesNotMatch(subContentSource, /document\.addEventListener\("pointerdown"/);
   assert.match(subContentSource, /parentMenuContext\.onItemSelect\(value, \{ closeOnSelect: true \}\)/);
   assert.doesNotMatch(subContentSource, /parentMenuContext\.onClose\(\);\s*parentMenuContext\.triggerRef\.current\?\.focus\(\)/s);

@@ -3,8 +3,9 @@
 import {
   forwardRef,
   type CSSProperties,
+  type ForwardedRef,
+  useCallback,
   useEffect,
-  useMemo,
   useRef,
   type MouseEventHandler,
   type ReactNode,
@@ -13,7 +14,6 @@ import type { NativeButtonProps } from "../../utils/dom.js";
 import {
   cloneAndMerge,
   composeEventHandlers,
-  composeRefs,
   renderElement,
   type RenderProp,
 } from "../../utils/slot.js";
@@ -34,6 +34,28 @@ const hiddenInputStyle: CSSProperties = {
   whiteSpace: "nowrap",
   borderWidth: 0,
 };
+
+function isRegisteredRadioDisabled(element: HTMLElement): boolean {
+  return (
+    ("disabled" in element && element.disabled === true) ||
+    element.getAttribute("aria-disabled") === "true" ||
+    element.hasAttribute("data-disabled")
+  );
+}
+
+function assignForwardedRadioRef(
+  ref: ForwardedRef<HTMLButtonElement>,
+  node: HTMLElement | null,
+) {
+  if (typeof ref === "function") {
+    ref(node as HTMLButtonElement | null);
+    return;
+  }
+
+  if (ref) {
+    ref.current = node as HTMLButtonElement | null;
+  }
+}
 
 export interface RadioRootProps extends RadioRootNativeProps {
   /** Radio value, unique within the group. */
@@ -71,25 +93,48 @@ export const RadioRoot = forwardRef<HTMLButtonElement, RadioRootProps>(
     ref,
   ) {
     const context = useRadioGroupContext();
-    const internalRef = useRef<HTMLButtonElement>(null);
-    const composedRef = useMemo(
-      () => composeRefs(internalRef, ref),
-      [ref],
-    );
+    const internalRef = useRef<HTMLElement | null>(null);
+    const registeredValueRef = useRef<string | null>(null);
+    const registeredNodeRef = useRef<HTMLElement | null>(null);
 
     const isChecked = context.activeValue === value;
     const isDisabled = disabled || context.disabled;
     const isInvalid = context.invalid;
 
-    useEffect(() => {
-      const element = internalRef.current;
-      if (!element) return undefined;
+    const setRadioRef = useCallback(
+      (node: HTMLElement | null) => {
+        internalRef.current = node;
+        assignForwardedRadioRef(ref, node);
 
-      context.registerRadio(value, element);
+        if (!node) return;
+
+        if (
+          registeredValueRef.current === value &&
+          registeredNodeRef.current === node
+        ) {
+          return;
+        }
+
+        if (registeredValueRef.current !== null) {
+          context.unregisterRadio(registeredValueRef.current);
+        }
+
+        context.registerRadio(value, node);
+        registeredValueRef.current = value;
+        registeredNodeRef.current = node;
+      },
+      [context.registerRadio, context.unregisterRadio, ref, value],
+    );
+
+    useEffect(() => {
       return () => {
-        context.unregisterRadio(value);
+        if (registeredValueRef.current !== null) {
+          context.unregisterRadio(registeredValueRef.current);
+          registeredValueRef.current = null;
+          registeredNodeRef.current = null;
+        }
       };
-    }, [context.registerRadio, context.unregisterRadio, value]);
+    }, [context.unregisterRadio]);
 
     const values = context.getRadioValues();
     const isFirstFocusable =
@@ -97,7 +142,7 @@ export const RadioRoot = forwardRef<HTMLButtonElement, RadioRootProps>(
       values.length > 0 &&
       values.find((registeredValue) => {
         const element = context.getRadioElement(registeredValue);
-        return element && !element.disabled;
+        return element && !isRegisteredRadioDisabled(element);
       }) === value;
     const tabIndex = isChecked || isFirstFocusable ? 0 : -1;
 
@@ -110,7 +155,7 @@ export const RadioRoot = forwardRef<HTMLButtonElement, RadioRootProps>(
     // Native button props pass through first; group state and roving focus stay authoritative.
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
-      ref: composedRef,
+      ref: setRadioRef,
       type: "button",
       role: "radio",
       "aria-checked": isChecked,

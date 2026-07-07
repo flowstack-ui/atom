@@ -9,6 +9,7 @@ import {
 } from "react";
 import { useCollection } from "../../collection.js";
 import { useControllableState } from "../../hooks/useControllableState.js";
+import { useDirection, type DirectionValue } from "../direction/index.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import {
   cloneAndMerge,
@@ -27,13 +28,22 @@ type RadioGroupRootNativeProps = NativeDivProps<
 
 type RadioGroupOrientation = "horizontal" | "vertical";
 
+function isRadioElementDisabled(element: HTMLElement): boolean {
+  return (
+    ("disabled" in element && element.disabled === true) ||
+    element.getAttribute("aria-disabled") === "true" ||
+    element.hasAttribute("data-disabled")
+  );
+}
+
 export function getRadioGroupNavigationDirection(
   orientation: RadioGroupOrientation,
   key: string,
+  dir: DirectionValue = "ltr",
 ): 1 | -1 | null {
   if (orientation === "horizontal") {
-    if (key === "ArrowRight") return 1;
-    if (key === "ArrowLeft") return -1;
+    if (key === "ArrowRight") return dir === "rtl" ? -1 : 1;
+    if (key === "ArrowLeft") return dir === "rtl" ? 1 : -1;
     return null;
   }
 
@@ -101,6 +111,7 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
     },
     ref,
   ) {
+    const dir = useDirection();
     const [activeValue, setActiveValue] = useControllableState({
       value,
       defaultValue,
@@ -112,10 +123,10 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
       unregisterItem: unregisterCollectionRadio,
       getItem: getCollectionRadio,
       getValues: getCollectionRadioValues,
-    } = useCollection<string, HTMLButtonElement>();
+    } = useCollection<string, HTMLElement>();
 
     const registerRadio = useCallback(
-      (value: string, element: HTMLButtonElement) => {
+      (value: string, element: HTMLElement) => {
         registerCollectionRadio(value, element);
       },
       [registerCollectionRadio],
@@ -126,7 +137,7 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
       [unregisterCollectionRadio],
     );
 
-    const getRadioElement = useCallback((value: string): HTMLButtonElement | null => {
+    const getRadioElement = useCallback((value: string): HTMLElement | null => {
       return getCollectionRadio(value)?.element ?? null;
     }, [getCollectionRadio]);
 
@@ -148,7 +159,7 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
 
           const candidate = values[index];
           const element = getRadioElement(candidate);
-          if (element && !element.disabled) {
+          if (element && !isRadioElementDisabled(element)) {
             return candidate;
           }
 
@@ -164,7 +175,7 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
       const values = getRadioValues();
       if (values.length === 0) return;
 
-      const focusedElement = document.activeElement as HTMLButtonElement | null;
+      const focusedElement = document.activeElement as HTMLElement | null;
       const currentValue = focusedElement?.dataset.value;
       const currentIndex = currentValue
         ? values.indexOf(currentValue)
@@ -172,7 +183,7 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
 
       if (currentIndex === -1) return;
 
-      const navigationDirection = getRadioGroupNavigationDirection(orientation, event.key);
+      const navigationDirection = getRadioGroupNavigationDirection(orientation, event.key, dir);
 
       if (navigationDirection === 1) {
         event.preventDefault();
@@ -192,7 +203,7 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
         event.preventDefault();
         const first = values.find((value) => {
           const element = getRadioElement(value);
-          return element && !element.disabled;
+          return element && !isRadioElementDisabled(element);
         });
         if (first) {
           getRadioElement(first)?.focus();
@@ -202,7 +213,7 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
         event.preventDefault();
         const last = [...values].reverse().find((value) => {
           const element = getRadioElement(value);
-          return element && !element.disabled;
+          return element && !isRadioElementDisabled(element);
         });
         if (last) {
           getRadioElement(last)?.focus();
@@ -250,6 +261,7 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
       ref,
       role: "radiogroup",
       ...(ariaLabel !== undefined && { "aria-label": ariaLabel }),
+      "aria-disabled": disabled || undefined,
       "aria-required": required || undefined,
       "aria-invalid": invalid || undefined,
       "aria-orientation": orientation,

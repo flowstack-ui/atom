@@ -156,6 +156,17 @@ export type MenuScenarioState = {
   insideDialog: boolean;
   useAnchorPoint: boolean;
   anchorPoint: MenuAnchorPoint | null;
+  propCheck: boolean;
+  customContentSlot: boolean;
+  customGroupSlot: boolean;
+  customItemSlot: boolean;
+  customCheckboxItemSlot: boolean;
+  customRadioGroupSlot: boolean;
+  customRadioItemSlot: boolean;
+  customSeparatorSlot: boolean;
+  customSubTriggerSlot: boolean;
+  customSubContentSlot: boolean;
+  customSubItemSlot: boolean;
   checkboxChecked: boolean;
   radioValue: string;
   radioValueSecondary: string;
@@ -195,6 +206,17 @@ export type MenuScenarioActions = {
   setContentLoopOff: (value: boolean) => void;
   setInsideDialog: (value: boolean) => void;
   setCheckboxChecked: (value: boolean) => void;
+  setPropCheck: (value: boolean) => void;
+  setCustomContentSlot: (value: boolean) => void;
+  setCustomGroupSlot: (value: boolean) => void;
+  setCustomItemSlot: (value: boolean) => void;
+  setCustomCheckboxItemSlot: (value: boolean) => void;
+  setCustomRadioGroupSlot: (value: boolean) => void;
+  setCustomRadioItemSlot: (value: boolean) => void;
+  setCustomSeparatorSlot: (value: boolean) => void;
+  setCustomSubTriggerSlot: (value: boolean) => void;
+  setCustomSubContentSlot: (value: boolean) => void;
+  setCustomSubItemSlot: (value: boolean) => void;
   setRadioValue: (value: string) => void;
   setRadioValueSecondary: (value: string) => void;
   setShowDisabledItem: (value: boolean) => void;
@@ -240,6 +262,17 @@ export function useMenuScenario() {
   const [insideDialog, setInsideDialog] = useState(false);
   const [useAnchorPoint, setUseAnchorPoint] = useState(true);
   const [anchorPoint, setAnchorPointState] = useState<MenuAnchorPoint | null>(null);
+  const [propCheck, setPropCheck] = useState(false);
+  const [customContentSlot, setCustomContentSlot] = useState(false);
+  const [customGroupSlot, setCustomGroupSlot] = useState(false);
+  const [customItemSlot, setCustomItemSlot] = useState(false);
+  const [customCheckboxItemSlot, setCustomCheckboxItemSlot] = useState(false);
+  const [customRadioGroupSlot, setCustomRadioGroupSlot] = useState(false);
+  const [customRadioItemSlot, setCustomRadioItemSlot] = useState(false);
+  const [customSeparatorSlot, setCustomSeparatorSlot] = useState(false);
+  const [customSubTriggerSlot, setCustomSubTriggerSlot] = useState(false);
+  const [customSubContentSlot, setCustomSubContentSlot] = useState(false);
+  const [customSubItemSlot, setCustomSubItemSlot] = useState(false);
   const [checkboxChecked, setCheckboxChecked] = useState(true);
   const [radioValue, setRadioValue] = useState("comfortable");
   const [radioValueSecondary, setRadioValueSecondary] = useState("compact");
@@ -384,6 +417,17 @@ export function useMenuScenario() {
     insideDialog,
     useAnchorPoint,
     anchorPoint,
+    propCheck,
+    customContentSlot,
+    customGroupSlot,
+    customItemSlot,
+    customCheckboxItemSlot,
+    customRadioGroupSlot,
+    customRadioItemSlot,
+    customSeparatorSlot,
+    customSubTriggerSlot,
+    customSubContentSlot,
+    customSubItemSlot,
     checkboxChecked,
     radioValue,
     radioValueSecondary,
@@ -422,6 +466,17 @@ export function useMenuScenario() {
     setSideOffset,
     setContentLoopOff,
     setInsideDialog,
+    setPropCheck,
+    setCustomContentSlot,
+    setCustomGroupSlot,
+    setCustomItemSlot,
+    setCustomCheckboxItemSlot,
+    setCustomRadioGroupSlot,
+    setCustomRadioItemSlot,
+    setCustomSeparatorSlot,
+    setCustomSubTriggerSlot,
+    setCustomSubContentSlot,
+    setCustomSubItemSlot,
     setCheckboxChecked,
     setRadioValue,
     setRadioValueSecondary,

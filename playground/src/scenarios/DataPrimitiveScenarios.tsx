@@ -9,7 +9,7 @@ import { Tree } from "@flowstack-ui/atom/tree";
 import { TreeGrid } from "@flowstack-ui/atom/tree-grid";
 import { useCallback, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { AnatomyPanel, type AnatomySection } from "../AnatomyPanel";
-import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, ScenarioEventLog, ToolbarGroup } from "../WorkbenchPrimitives";
+import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup, partProps } from "../WorkbenchPrimitives";
 
 type CompositionMode = "default" | "asChild" | "render";
 type SelectionMode = "none" | "single" | "multiple";
@@ -19,6 +19,7 @@ type ScrollAreaRoleMode = "auto" | "region" | "group";
 type FeedSize = "known" | "unknown";
 type TableSortDirection = "ascending" | "descending" | "none" | "other";
 type TreeSelectionMode = "single" | "multiple";
+type FormControlType = "native" | "atom";
 
 type LogEntry = {
   id: number;
@@ -242,6 +243,9 @@ function useScrollAreaScenario() {
   const [longContent, setLongContent] = useState(true);
   const [composition, setComposition] = useState<CompositionMode>("default");
   const [viewportComposition, setViewportComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
+  const [customViewportSlot, setCustomViewportSlot] = useState(false);
   const [rootRef, setRootRef] = useState("none");
   const [viewportRef, setViewportRef] = useState("none");
   const { log, addLog, clearLog } = useScenarioLog();
@@ -253,8 +257,8 @@ function useScrollAreaScenario() {
   }, []);
 
   return {
-    state: { orientation, focusable, nameMode, roleMode, longContent, composition, viewportComposition, rootRef, viewportRef, log },
-    actions: { setOrientation, setFocusable, setNameMode, setRoleMode, setLongContent, setComposition, setViewportComposition, markRootRef, markViewportRef, clearLog, addLog },
+    state: { orientation, focusable, nameMode, roleMode, longContent, composition, viewportComposition, propCheck, customRootSlot, customViewportSlot, rootRef, viewportRef, log },
+    actions: { setOrientation, setFocusable, setNameMode, setRoleMode, setLongContent, setComposition, setViewportComposition, setPropCheck, setCustomRootSlot, setCustomViewportSlot, markRootRef, markViewportRef, clearLog, addLog },
   };
 }
 
@@ -262,7 +266,11 @@ function useFormScenario() {
   const [preventDefault, setPreventDefault] = useState(true);
   const [validation, setValidation] = useState<"none" | "pass" | "fail">("pass");
   const [asyncValidation, setAsyncValidation] = useState(false);
+  const [controlType, setControlType] = useState<FormControlType>("atom");
+  const [projectName, setProjectName] = useState("Atom");
   const [composition, setComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
   const [status, setStatus] = useState("idle");
   const [rootRef, setRootRef] = useState("none");
   const { log, addLog, clearLog } = useScenarioLog();
@@ -271,8 +279,8 @@ function useFormScenario() {
   }, []);
 
   return {
-    state: { preventDefault, validation, asyncValidation, composition, status, rootRef, log },
-    actions: { setPreventDefault, setValidation, setAsyncValidation, setComposition, setStatus, markRootRef, clearLog, addLog },
+    state: { preventDefault, validation, asyncValidation, controlType, projectName, composition, propCheck, customRootSlot, status, rootRef, log },
+    actions: { setPreventDefault, setValidation, setAsyncValidation, setControlType, setProjectName, setComposition, setPropCheck, setCustomRootSlot, setStatus, markRootRef, clearLog, addLog },
   };
 }
 
@@ -294,6 +302,18 @@ export function DataPrimitiveScenarioToolbar({
           <MenuCheckboxControl checked={scenario.state.footer} label="Footer" value="footer" onChange={scenario.actions.setFooter} />
         </ToolbarGroup>
         <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={[
+            {
+              checked: scenario.state.customRootSlot,
+              label: "Root Slot",
+              value: "root-slot",
+              onChange: scenario.actions.setCustomRootSlot,
+            },
+          ]}
+        />
       </ControlToolbar>
     );
   }
@@ -400,6 +420,14 @@ export function DataPrimitiveScenarioToolbar({
             onChange={(value) => scenario.actions.setViewportComposition(value as CompositionMode)}
           />
         </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={[
+            { checked: scenario.state.customRootSlot, label: "Root Slot", value: "root-slot", onChange: scenario.actions.setCustomRootSlot },
+            { checked: scenario.state.customViewportSlot, label: "Viewport Slot", value: "viewport-slot", onChange: scenario.actions.setCustomViewportSlot },
+          ]}
+        />
       </ControlToolbar>
     );
   }
@@ -409,7 +437,7 @@ export function DataPrimitiveScenarioToolbar({
     return (
       <ControlToolbar label="Form controls">
         <ToolbarGroup title="State" value="state">
-          <MenuCheckboxControl checked={scenario.state.preventDefault} label="Prevent default submit" value="prevent" onChange={scenario.actions.setPreventDefault} />
+          <MenuCheckboxControl checked={scenario.state.preventDefault} label="preventDefaultOnSubmit" value="prevent" onChange={scenario.actions.setPreventDefault} />
           <MenuRadioControl
             label="Validation"
             options={[
@@ -422,6 +450,7 @@ export function DataPrimitiveScenarioToolbar({
           />
           <div className="toolbar-menu-separator" role="separator" />
           <MenuCheckboxControl checked={scenario.state.asyncValidation} label="Async validation" value="async" onChange={scenario.actions.setAsyncValidation} />
+          <MenuRadioControl label="Control" options={formControlOptions} value={scenario.state.controlType} onChange={scenario.actions.setControlType} />
         </ToolbarGroup>
         <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
       </ControlToolbar>
@@ -533,7 +562,7 @@ export function getDataPrimitiveCanvasFooter(
 
   if (scenarioId === "form") {
     const state = scenarios.form.state;
-    return `Status ${state.status} | Prevent default ${state.preventDefault} | Validate ${state.validation}`;
+    return `Status ${state.status} | preventDefaultOnSubmit ${state.preventDefault} | Validate ${state.validation}`;
   }
 
   return "";
@@ -622,7 +651,9 @@ export function getDataPrimitiveSource(scenarioId: string, scenarios?: DataPrimi
     const label = nameMode === "aria-label" ? " aria-label=\"Scrollable project notes\"" : "";
     const labelledby = nameMode === "aria-labelledby" ? " aria-labelledby=\"scroll-area-title\"" : "";
     const role = roleMode === "auto" ? "" : ` role="${roleMode}"`;
-    const viewportOpen = `<ScrollArea.Viewport${focusable ? " focusable" : ""}${label}${labelledby}${role}`;
+    const rootDataProps = `${state?.customRootSlot ? " data-slot=\"scroll-area-custom\"" : ""}${state?.propCheck ? " data-prop-check=\"root\"" : ""}`;
+    const viewportDataProps = `${state?.customViewportSlot ? " data-slot=\"scroll-area-viewport-custom\"" : ""}${state?.propCheck ? " data-prop-check=\"viewport\"" : ""}`;
+    const viewportOpen = `<ScrollArea.Viewport${focusable ? " focusable" : ""}${label}${labelledby}${role}${viewportDataProps}`;
     const viewport = viewportComposition === "asChild"
       ? `${viewportOpen} asChild>
     <section>
@@ -639,7 +670,7 @@ export function getDataPrimitiveSource(scenarioId: string, scenarios?: DataPrimi
     const title = nameMode === "aria-labelledby" ? `<span id="scroll-area-title">Scrollable project notes</span>\n` : "";
 
     if (composition === "asChild") {
-      return `<ScrollArea.Root orientation="${orientation}" asChild>
+      return `<ScrollArea.Root orientation="${orientation}"${rootDataProps} asChild>
   <section>
     ${title}    ${viewport}
   </section>
@@ -649,6 +680,7 @@ export function getDataPrimitiveSource(scenarioId: string, scenarios?: DataPrimi
     if (composition === "render") {
       return `<ScrollArea.Root
   orientation="${orientation}"
+  ${rootDataProps.trim()}
   render={(props) => (
     <section {...props}>
       ${title}      ${viewport}
@@ -657,7 +689,7 @@ export function getDataPrimitiveSource(scenarioId: string, scenarios?: DataPrimi
 />`;
     }
 
-    return `<ScrollArea.Root orientation="${orientation}">
+    return `<ScrollArea.Root orientation="${orientation}"${rootDataProps}>
   ${title}  ${viewport}
 </ScrollArea.Root>`;
   }
@@ -670,22 +702,26 @@ export function getDataPrimitiveSource(scenarioId: string, scenarios?: DataPrimi
         : `
   validateOnSubmit={${state.asyncValidation ? "asyncValidate" : state.validation === "pass" ? "validatePass" : "validateFail"}}`;
     const props = `${state.preventDefault ? " preventDefaultOnSubmit" : ""}${validation}`;
+    const rootDataProps = `${state.customRootSlot ? " data-slot=\"form-custom\"" : ""}${state.propCheck ? " data-prop-check=\"root\"" : ""}`;
     const open = state.composition === "asChild"
       ? `<Form.Root${props} asChild>
-  <form data-prop-check="root">`
+  <form${rootDataProps}>`
       : state.composition === "render"
         ? `<Form.Root${props}
-  render={(props) => <form {...props} data-prop-check="root" />}
+  render={(props) => <form {...props}${rootDataProps} />}
 >`
-        : `<Form.Root${props} data-prop-check="root">`;
+        : `<Form.Root${props}${rootDataProps}>`;
     const close = state.composition === "asChild"
       ? `  </form>
 </Form.Root>`
       : state.composition === "render"
         ? `</Form.Root>`
         : `</Form.Root>`;
+    const control = state.controlType === "atom"
+      ? `<Input.Root name="project" required value={projectName} onValueChange={setProjectName} />`
+      : `<input name="project" required value={projectName} onChange={(event) => setProjectName(event.target.value)} />`;
     return `${open}
-  <Input.Root name="project" required />
+  ${control}
   <Button.Root type="submit">Submit</Button.Root>
 ${close}`;
   }
@@ -1022,15 +1058,15 @@ function ScrollAreaScenarioCanvas({ scenario }: { scenario: ReturnType<typeof us
     className: "playground-scroll-area-demo",
     "data-scroll-area-root": "",
     "data-playground-inspect": "",
-    "data-prop-check": "root",
+    ...partProps("root", { customSlot: state.customRootSlot, propCheck: state.propCheck }, "scroll-area-custom"),
     orientation: state.orientation,
     ref: scenario.actions.markRootRef,
   };
   const viewportProps: any = {
     className: "playground-scroll-area-viewport",
     "data-playground-inspect": "",
-    "data-prop-check": "viewport",
     "data-scroll-area-viewport": "",
+    ...partProps("viewport", { customSlot: state.customViewportSlot, propCheck: state.propCheck }, "scroll-area-viewport-custom"),
     focusable: state.focusable,
     "aria-label": state.nameMode === "aria-label" ? "Scrollable project notes" : undefined,
     "aria-labelledby": state.nameMode === "aria-labelledby" ? "scroll-area-title" : undefined,
@@ -1098,20 +1134,21 @@ function FormScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useFormS
     title: "Project form",
     "data-form-root": "",
     "data-playground-inspect": "",
-    "data-prop-check": "root",
+    ...partProps("root", { customSlot: state.customRootSlot, propCheck: state.propCheck }, "form-custom"),
     ref: scenario.actions.markRootRef,
     preventDefaultOnSubmit: state.preventDefault,
     ...(state.validation !== "none" && { validateOnSubmit: validate }),
     onSubmit: (event: FormEvent<HTMLFormElement>) => {
       const wasDefaultPrevented = event.defaultPrevented;
       scenario.actions.setStatus("submitted");
-      scenario.actions.addLog(`form submitted defaultPrevented ${bool(wasDefaultPrevented)}`);
+      scenario.actions.addLog(`form submitted defaultPrevented ${bool(wasDefaultPrevented)} preventDefaultOnSubmit ${bool(state.preventDefault)}`);
       if (!event.defaultPrevented) {
         event.preventDefault();
         scenario.actions.addLog("playground prevented navigation");
       }
     },
     onReset: () => {
+      scenario.actions.setProjectName("Atom");
       scenario.actions.setStatus("reset");
       scenario.actions.addLog("form reset");
     },
@@ -1119,7 +1156,29 @@ function FormScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useFormS
   const children = (
     <>
       <label htmlFor="form-project-name">Project name</label>
-      <Input.Root id="form-project-name" name="project" required defaultValue="Atom" data-playground-inspect="" data-form-input="" />
+      {state.controlType === "atom" ? (
+        <Input.Root
+          id="form-project-name"
+          name="project"
+          required
+          value={state.projectName}
+          onValueChange={scenario.actions.setProjectName}
+          data-playground-inspect=""
+          data-form-input=""
+          data-prop-check="atom-input"
+        />
+      ) : (
+        <input
+          id="form-project-name"
+          name="project"
+          required
+          value={state.projectName}
+          onChange={(event) => scenario.actions.setProjectName(event.target.value)}
+          data-playground-inspect=""
+          data-form-input=""
+          data-prop-check="native-input"
+        />
+      )}
       <div className="playground-form-actions">
         <Button.Root className="atom-button" type="submit" data-playground-inspect="" data-form-submit="">Submit</Button.Root>
         <Button.Root className="atom-button secondary" type="reset" data-playground-inspect="" data-form-reset="">Reset</Button.Root>
@@ -1279,9 +1338,10 @@ function getDataPrimitiveSections(
       section("Root", state.status, "[data-form-root]", [
         row("Ref target", state.rootRef, "identity"),
         row("Status", state.status, "state"),
-        row("Prevent default", bool(state.preventDefault), "behavior"),
+        row("preventDefaultOnSubmit", bool(state.preventDefault), "behavior"),
         row("Validation", state.validation, "behavior"),
         row("Async validation", bool(state.asyncValidation), "behavior"),
+        row("Control", state.controlType, "behavior"),
         row("Composition", state.composition, "composition"),
       ]),
     ];
@@ -1413,6 +1473,11 @@ const scrollAreaRoleOptions = [
   { label: "Auto", value: "auto" },
   { label: "Region", value: "region" },
   { label: "Group", value: "group" },
+];
+
+const formControlOptions = [
+  { label: "Native", value: "native" },
+  { label: "Atom", value: "atom" },
 ];
 
 const dataGridRows = [

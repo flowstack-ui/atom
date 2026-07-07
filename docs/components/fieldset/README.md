@@ -50,6 +50,10 @@ Renders a native fieldset and provides group context.
 | `[data-required]` | Present when required |
 | `[data-invalid]` | Present when invalid |
 
+Required state is exposed through Fieldset context and `[data-required]`.
+`Fieldset.Root` does not emit `aria-required` because native fieldset/group
+semantics do not support that ARIA state.
+
 ### Legend
 
 Renders a native legend for the grouped controls.
@@ -105,8 +109,8 @@ export default () => (
   <Fieldset.Root required invalid={invalidShipping}>
     <Fieldset.Legend>Shipping method</Fieldset.Legend>
     <RadioGroup.Root name="shipping">
-      <RadioGroup.Item value="standard">Standard</RadioGroup.Item>
-      <RadioGroup.Item value="express">Express</RadioGroup.Item>
+      <RadioGroup.Radio value="standard">Standard</RadioGroup.Radio>
+      <RadioGroup.Radio value="express">Express</RadioGroup.Radio>
     </RadioGroup.Root>
     <Fieldset.Error>Choose a shipping method.</Fieldset.Error>
   </Fieldset.Root>
@@ -116,6 +120,9 @@ export default () => (
 ## Accessibility
 
 - Use `Fieldset.Legend` to name the group.
+- Use visible legend text or child controls to communicate required state;
+  `Fieldset.Root` exposes `[data-required]` for styling but not
+  `aria-required`.
 - `Fieldset.Root` references mounted description and visible error content with
   `aria-describedby`.
 - Native `disabled` on the fieldset is inherited by descendant form controls.

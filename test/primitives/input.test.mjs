@@ -58,6 +58,7 @@ test("InputRoot renders native input props and Field-owned state", () => {
   assert.match(html, /data-slot="input"/);
   assert.match(html, /data-filled=""/);
   assert.match(html, /data-disabled=""/);
+  assert.match(html, /data-required=""/);
   assert.match(html, /data-readonly=""/);
   assert.match(html, /data-invalid=""/);
   assert.equal(Input.Root, InputRoot);

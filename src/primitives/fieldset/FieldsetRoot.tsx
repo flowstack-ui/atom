@@ -88,7 +88,6 @@ export const FieldsetRoot = forwardRef<HTMLFieldSetElement, FieldsetRootProps>(
       disabled: disabled || undefined,
       "aria-describedby": describedBy,
       "aria-invalid": invalid || undefined,
-      "aria-required": required || undefined,
       "data-slot": dataSlot,
       ...(invalid && { "data-invalid": "" }),
       ...(disabled && { "data-disabled": "" }),

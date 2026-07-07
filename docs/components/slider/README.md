@@ -9,6 +9,8 @@ Headless slider primitives for single-value and range inputs.
 - Supports horizontal and vertical orientation.
 - Supports pointer dragging, keyboard changes, and commit callbacks.
 - Supports hidden form inputs.
+- Supports `Direction.Provider` for horizontal right-to-left pointer and
+  keyboard behavior.
 - Exposes geometry through data attributes and inline offset styles.
 
 ## Import
@@ -47,6 +49,7 @@ Contains slider state.
 | `minStepsBetweenThumbs` | `number` | `0` |
 | `disabled` | `boolean` | `false` |
 | `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` |
+| `dir` | `"ltr" \| "rtl"` | Direction context |
 | `name` | `string` | - |
 | `form` | `string` | - |
 | `ariaLabel` | `string` | - |
@@ -137,8 +140,8 @@ Each `Slider.Thumb` receives `role="slider"` and value ARIA attributes.
 
 | Key | Description |
 | --- | --- |
-| `ArrowRight` / `ArrowUp` | Increases the focused thumb by `step`. |
-| `ArrowLeft` / `ArrowDown` | Decreases the focused thumb by `step`. |
+| `ArrowRight` / `ArrowUp` | Increases the focused thumb by `step`; `ArrowRight` decreases in horizontal RTL. |
+| `ArrowLeft` / `ArrowDown` | Decreases the focused thumb by `step`; `ArrowLeft` increases in horizontal RTL. |
 | `PageUp` | Increases the focused thumb by `largeStep`. |
 | `PageDown` | Decreases the focused thumb by `largeStep`. |
 | `Home` | Moves the focused thumb to `min`. |

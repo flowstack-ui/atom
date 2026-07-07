@@ -178,7 +178,9 @@ export function useCollection<
       if (
         nodeEnv !== "production" &&
         previousItem &&
-        previousItem.element !== element
+        previousItem.element !== element &&
+        previousItem.element.isConnected &&
+        element.isConnected
       ) {
         console.warn(
           `[Atom UI] Duplicate collection item value "${value}" registered. Values must be unique within a collection.`,

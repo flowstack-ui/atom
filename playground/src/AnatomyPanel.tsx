@@ -91,15 +91,22 @@ const hiddenNativeAttributes = new Set([
 ]);
 const emptyValues = new Set(["", "none", "not rendered", "-"]);
 const nativeAttributeLabels = new Set([
+  "accept",
   "checked",
   "disabled",
   "form",
+  "for",
   "href",
+  "maxlength",
+  "minlength",
+  "multiple",
   "name",
   "placeholder",
   "rel",
+  "required",
   "readonly",
   "role",
+  "rows",
   "selected",
   "tabindex",
   "tabindex attr",
@@ -120,7 +127,9 @@ const booleanRawAttributes = new Set([
   "data-disabled",
   "disabled",
   "hidden",
+  "multiple",
   "readonly",
+  "required",
   "selected",
 ]);
 
@@ -140,7 +149,7 @@ function isRawAttribute(row: AnatomyRow) {
   const label = getRowKey(row);
   return label.startsWith("aria-") ||
     label.startsWith("data-") ||
-    nativeAttributeLabels.has(label) ||
+    (row.category === "identity" && nativeAttributeLabels.has(label)) ||
     (row.category === "aria" && (label === "role" || label === "tabindex attr"));
 }
 

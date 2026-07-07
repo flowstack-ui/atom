@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Fixed Menu part `data-slot` pass-through so Content, Group, Separator,
+  CheckboxItem, RadioGroup, RadioItem, SubTrigger, and SubContent can be
+  overridden consistently.
 - Fixed submenu keyboard behavior under `Direction.Provider dir="rtl"` so
   ArrowLeft opens submenus, ArrowRight closes submenus, and submenu placement
   mirrors to the left side.

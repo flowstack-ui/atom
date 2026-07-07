@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 
 export type InspectorDetails = {
   aria: string;
+  checked: string;
   data: string;
   disabled: boolean;
   hidden: boolean;
@@ -30,23 +31,30 @@ const observedAttributes = [
   "aria-hidden",
   "aria-labelledby",
   "aria-modal",
+  "aria-required",
   "alt",
   "checked",
   "data-checked",
   "data-active",
+  "data-autoresize",
   "data-disabled",
+  "data-filled",
   "data-positioned",
   "data-pressed",
+  "data-prop-check",
   "data-state",
   "data-slot",
   "disabled",
   "hidden",
   "href",
+  "maxlength",
   "name",
   "placeholder",
+  "required",
   "readonly",
   "rel",
   "role",
+  "rows",
   "selected",
   "src",
   "tabindex",
@@ -61,6 +69,7 @@ const hiddenDataAttributes = new Set([
   "data-playground-inspect",
 ]);
 const hiddenNativeAttributes = new Set([
+  "checked",
   "class",
   "id",
   "style",
@@ -140,6 +149,17 @@ function getValue(element: Element | null): string {
   return element?.getAttribute("value") || EMPTY_VALUE;
 }
 
+function getChecked(element: Element | null): string {
+  if (
+    element instanceof HTMLInputElement &&
+    (element.type === "checkbox" || element.type === "radio")
+  ) {
+    return element.checked ? "true" : "false";
+  }
+
+  return EMPTY_VALUE;
+}
+
 function isInspectable(root: HTMLDivElement | null, element: Element | null): boolean {
   if (!element) return false;
   return Boolean(root?.contains(element) || element.closest("[data-playground-inspect]"));
@@ -159,6 +179,7 @@ function getInspectableEventTarget(
 function getElementDetails(element: Element | null): InspectorDetails {
   return {
     aria: getAttributes(element, "aria-"),
+    checked: getChecked(element),
     data: getAttributes(element, "data-"),
     disabled: getDisabledState(element),
     hidden: Boolean(element?.hasAttribute("hidden")),
@@ -220,12 +241,23 @@ export function useElementInspector(): ElementInspector {
     const updateSelectedElement = (event: PointerEvent | MouseEvent) => {
       const target = getInspectableEventTarget(rootRef.current, event);
       if (target) {
-        setSelectedElement(target);
+        requestAnimationFrame(() => {
+          setSelectedElement(target);
+          setRevision((currentRevision) => currentRevision + 1);
+        });
       }
+    };
+
+    const updateLiveProperties = () => {
+      requestAnimationFrame(() => {
+        setRevision((currentRevision) => currentRevision + 1);
+      });
     };
 
     document.addEventListener("focusin", updateFocusedElement);
     document.addEventListener("focusout", updateFocusedElement);
+    document.addEventListener("change", updateLiveProperties, true);
+    document.addEventListener("input", updateLiveProperties, true);
     document.addEventListener("pointerdown", updateSelectedElement, true);
     document.addEventListener("mousedown", updateSelectedElement, true);
     updateFocusedElement();
@@ -233,6 +265,8 @@ export function useElementInspector(): ElementInspector {
     return () => {
       document.removeEventListener("focusin", updateFocusedElement);
       document.removeEventListener("focusout", updateFocusedElement);
+      document.removeEventListener("change", updateLiveProperties, true);
+      document.removeEventListener("input", updateLiveProperties, true);
       document.removeEventListener("pointerdown", updateSelectedElement, true);
       document.removeEventListener("mousedown", updateSelectedElement, true);
     };

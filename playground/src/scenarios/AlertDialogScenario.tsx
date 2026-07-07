@@ -4,7 +4,7 @@ import {
   AnatomyPanel,
   type AnatomySection,
 } from "../AnatomyPanel";
-import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, ScenarioEventLog, ToolbarGroup } from "../WorkbenchPrimitives";
+import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup, partProps } from "../WorkbenchPrimitives";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import type {
   AlertDialogCompositionMode,
@@ -33,9 +33,11 @@ export function AlertDialogScenarioCanvas({
         closeOnEscape={state.closeOnEscape}
       >
         <AlertDialogTriggerExample
+          customSlot={state.customTriggerSlot}
           mode={state.triggerComposition}
           onClick={actions.handleTriggerClick}
           onKeyDown={actions.handleTriggerKeyDown}
+          propCheck={state.propCheck}
         />
         {state.controlled ? (
           <Button.Root
@@ -50,7 +52,7 @@ export function AlertDialogScenarioCanvas({
             className="atom-dialog-overlay"
             data-alert-dialog-overlay=""
             data-playground-inspect=""
-            data-prop-check="overlay"
+            {...partProps("overlay", { customSlot: state.customOverlaySlot, propCheck: state.propCheck }, "alert-dialog-overlay-custom")}
             onClick={actions.handleOverlayClick}
           />
           <AlertDialog.Content
@@ -58,20 +60,20 @@ export function AlertDialogScenarioCanvas({
             className="atom-dialog-content"
             data-alert-dialog-content=""
             data-playground-inspect=""
-            data-prop-check="content"
+            {...partProps("content", { customSlot: state.customContentSlot, propCheck: state.propCheck }, "alert-dialog-content-custom")}
           >
             {state.useAriaLabel ? null : (
               <AlertDialog.Title
                 as={state.titleHeadingLevel}
                 data-alert-dialog-title=""
-                data-prop-check="title"
+                {...partProps("title", { customSlot: state.customTitleSlot, propCheck: state.propCheck }, "alert-dialog-title-custom")}
               >
                 Delete project?
               </AlertDialog.Title>
             )}
             <AlertDialog.Description
               data-alert-dialog-description=""
-              data-prop-check="description"
+              {...partProps("description", { customSlot: state.customDescriptionSlot, propCheck: state.propCheck }, "alert-dialog-description-custom")}
             >
               This action cannot be undone. Test cancel autofocus, action reasons, Escape, and backdrop behavior.
             </AlertDialog.Description>
@@ -86,14 +88,18 @@ export function AlertDialogScenarioCanvas({
               ) : null}
               <AlertDialogCancelExample
                 autoFocus={state.cancelAutoFocus}
+                customSlot={state.customCancelSlot}
                 mode={state.cancelComposition}
                 onClick={actions.handleCancelClick}
+                propCheck={state.propCheck}
               >
                 Cancel
               </AlertDialogCancelExample>
               <AlertDialogActionExample
+                customSlot={state.customActionSlot}
                 mode={state.actionComposition}
                 onClick={actions.handleActionClick}
+                propCheck={state.propCheck}
               >
                 Delete
               </AlertDialogActionExample>
@@ -283,6 +289,19 @@ export function AlertDialogScenarioToolbar({
           <MenuCheckboxControl checked={state.blockActionClose} label="Block action close" value="block-action-close" onChange={actions.setBlockActionClose} />
         </MenuSection>
       </ToolbarGroup>
+      <PropsToolbarGroup
+        propCheck={state.propCheck}
+        onPropCheckChange={actions.setPropCheck}
+        customSlots={[
+          { checked: state.customTriggerSlot, label: "Trigger Slot", value: "trigger-slot", onChange: actions.setCustomTriggerSlot },
+          { checked: state.customOverlaySlot, label: "Overlay Slot", value: "overlay-slot", onChange: actions.setCustomOverlaySlot },
+          { checked: state.customContentSlot, label: "Content Slot", value: "content-slot", onChange: actions.setCustomContentSlot },
+          { checked: state.customTitleSlot, label: "Title Slot", value: "title-slot", onChange: actions.setCustomTitleSlot },
+          { checked: state.customDescriptionSlot, label: "Description Slot", value: "description-slot", onChange: actions.setCustomDescriptionSlot },
+          { checked: state.customCancelSlot, label: "Cancel Slot", value: "cancel-slot", onChange: actions.setCustomCancelSlot },
+          { checked: state.customActionSlot, label: "Action Slot", value: "action-slot", onChange: actions.setCustomActionSlot },
+        ]}
+      />
     </ControlToolbar>
   );
 }
@@ -303,10 +322,23 @@ export function getAlertDialogSource(state: AlertDialogScenarioState) {
 >
   ${getAlertDialogTriggerSource(state)}
   <AlertDialog.Portal>
-    <AlertDialog.Overlay />
-    <AlertDialog.Content ${state.useAriaLabel ? `ariaLabel="Delete project confirmation"` : ""}>
-      ${state.useAriaLabel ? "" : `<AlertDialog.Title as="${state.titleHeadingLevel}">Delete project?</AlertDialog.Title>`}
-      <AlertDialog.Description>
+    <AlertDialog.Overlay${sourceProps([
+      state.customOverlaySlot ? `data-slot="alert-dialog-overlay-custom"` : null,
+      state.propCheck ? `data-prop-check="overlay"` : null,
+    ])} />
+    <AlertDialog.Content ${[
+      state.useAriaLabel ? `ariaLabel="Delete project confirmation"` : "",
+      state.customContentSlot ? `data-slot="alert-dialog-content-custom"` : "",
+      state.propCheck ? `data-prop-check="content"` : "",
+    ].filter(Boolean).join(" ")}>
+      ${state.useAriaLabel ? "" : `<AlertDialog.Title as="${state.titleHeadingLevel}"${sourceProps([
+        state.customTitleSlot ? `data-slot="alert-dialog-title-custom"` : null,
+        state.propCheck ? `data-prop-check="title"` : null,
+      ])}>Delete project?</AlertDialog.Title>`}
+      <AlertDialog.Description${sourceProps([
+        state.customDescriptionSlot ? `data-slot="alert-dialog-description-custom"` : null,
+        state.propCheck ? `data-prop-check="description"` : null,
+      ])}>
         This action cannot be undone.
       </AlertDialog.Description>
       ${getAlertDialogCancelSource(state)}
@@ -317,19 +349,23 @@ export function getAlertDialogSource(state: AlertDialogScenarioState) {
 }
 
 function AlertDialogTriggerExample({
+  customSlot,
   mode,
   onClick,
   onKeyDown,
+  propCheck,
 }: {
+  customSlot: boolean;
   mode: AlertDialogCompositionMode;
   onClick: AlertDialogScenarioActions["handleTriggerClick"];
   onKeyDown: AlertDialogScenarioActions["handleTriggerKeyDown"];
+  propCheck: boolean;
 }) {
   const props = {
     className: "atom-button",
     "data-alert-dialog-trigger": "",
     "data-playground-inspect": "",
-    "data-prop-check": "trigger",
+    ...partProps("trigger", { customSlot, propCheck }, "alert-dialog-trigger-custom"),
     onClick,
     onKeyDown,
   };
@@ -356,20 +392,24 @@ function AlertDialogTriggerExample({
 function AlertDialogCancelExample({
   autoFocus,
   children,
+  customSlot,
   mode,
   onClick,
+  propCheck,
 }: {
   autoFocus: boolean;
   children: ReactNode;
+  customSlot: boolean;
   mode: AlertDialogCompositionMode;
   onClick: AlertDialogScenarioActions["handleCancelClick"];
+  propCheck: boolean;
 }) {
   const props = {
     autoFocus,
     className: "atom-button secondary",
     "data-alert-dialog-cancel": "",
     "data-playground-inspect": "",
-    "data-prop-check": "cancel",
+    ...partProps("cancel", { customSlot, propCheck }, "alert-dialog-cancel-custom"),
     onClick,
   };
 
@@ -394,18 +434,22 @@ function AlertDialogCancelExample({
 
 function AlertDialogActionExample({
   children,
+  customSlot,
   mode,
   onClick,
+  propCheck,
 }: {
   children: ReactNode;
+  customSlot: boolean;
   mode: AlertDialogCompositionMode;
   onClick: AlertDialogScenarioActions["handleActionClick"];
+  propCheck: boolean;
 }) {
   const props = {
     className: "atom-button",
     "data-alert-dialog-action": "",
     "data-playground-inspect": "",
-    "data-prop-check": "action",
+    ...partProps("action", { customSlot, propCheck }, "alert-dialog-action-custom"),
     onClick,
   };
 
@@ -429,51 +473,68 @@ function AlertDialogActionExample({
 }
 
 function getAlertDialogTriggerSource(state: AlertDialogScenarioState) {
+  const props = sourceProps([
+    state.customTriggerSlot ? `data-slot="alert-dialog-trigger-custom"` : null,
+    state.propCheck ? `data-prop-check="trigger"` : null,
+  ]);
   if (state.triggerComposition === "asChild") {
-    return `<AlertDialog.Trigger asChild>
+    return `<AlertDialog.Trigger${props} asChild>
     <span>Delete project</span>
   </AlertDialog.Trigger>`;
   }
 
   if (state.triggerComposition === "render") {
-    return `<AlertDialog.Trigger render={<section />}>
+    return `<AlertDialog.Trigger${props} render={<section />}>
     Delete project
   </AlertDialog.Trigger>`;
   }
 
-  return `<AlertDialog.Trigger>Delete project</AlertDialog.Trigger>`;
+  return `<AlertDialog.Trigger${props}>Delete project</AlertDialog.Trigger>`;
 }
 
 function getAlertDialogCancelSource(state: AlertDialogScenarioState) {
+  const props = sourceProps([
+    state.customCancelSlot ? `data-slot="alert-dialog-cancel-custom"` : null,
+    state.propCheck ? `data-prop-check="cancel"` : null,
+  ]);
   if (state.cancelComposition === "asChild") {
-    return `<AlertDialog.Cancel asChild autoFocus={${state.cancelAutoFocus}}>
+    return `<AlertDialog.Cancel${props} asChild autoFocus={${state.cancelAutoFocus}}>
         <span>Cancel</span>
       </AlertDialog.Cancel>`;
   }
 
   if (state.cancelComposition === "render") {
-    return `<AlertDialog.Cancel render={<section />} autoFocus={${state.cancelAutoFocus}}>
+    return `<AlertDialog.Cancel${props} render={<section />} autoFocus={${state.cancelAutoFocus}}>
         Cancel
       </AlertDialog.Cancel>`;
   }
 
-  return `<AlertDialog.Cancel autoFocus={${state.cancelAutoFocus}}>Cancel</AlertDialog.Cancel>`;
+  return `<AlertDialog.Cancel${props} autoFocus={${state.cancelAutoFocus}}>Cancel</AlertDialog.Cancel>`;
 }
 
 function getAlertDialogActionSource(state: AlertDialogScenarioState) {
+  const props = sourceProps([
+    state.customActionSlot ? `data-slot="alert-dialog-action-custom"` : null,
+    state.propCheck ? `data-prop-check="action"` : null,
+  ]);
   if (state.actionComposition === "asChild") {
-    return `<AlertDialog.Action asChild>
+    return `<AlertDialog.Action${props} asChild>
         <span>Delete</span>
       </AlertDialog.Action>`;
   }
 
   if (state.actionComposition === "render") {
-    return `<AlertDialog.Action render={<section />}>
+    return `<AlertDialog.Action${props} render={<section />}>
         Delete
       </AlertDialog.Action>`;
   }
 
-  return `<AlertDialog.Action>Delete</AlertDialog.Action>`;
+  return `<AlertDialog.Action${props}>Delete</AlertDialog.Action>`;
+}
+
+function sourceProps(props: Array<string | null | undefined | false>) {
+  const visibleProps = props.filter(Boolean);
+  return visibleProps.length > 0 ? ` ${visibleProps.join(" ")}` : "";
 }
 
 const compositionOptions = [

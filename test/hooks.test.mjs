@@ -128,6 +128,8 @@ test("collection hook source keeps registry version and DOM-order APIs stable", 
   assert.match(source, /compareDocumentPosition\(second\)/);
   assert.match(source, /registerItem/);
   assert.match(source, /nodeEnv !== "production"/);
+  assert.match(source, /previousItem\.element\.isConnected/);
+  assert.match(source, /element\.isConnected/);
   assert.match(source, /unregisterItem/);
   assert.match(source, /updateItem/);
   assert.match(source, /clearItems/);

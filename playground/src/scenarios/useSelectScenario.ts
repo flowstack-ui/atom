@@ -56,7 +56,21 @@ export type SelectScenarioState = {
   showScrollButtons: boolean;
   showArrow: boolean;
   useListboxAlias: boolean;
-  overrideTriggerSlot: boolean;
+  propCheck: boolean;
+  customTriggerSlot: boolean;
+  customValueSlot: boolean;
+  customIconSlot: boolean;
+  customContentSlot: boolean;
+  customViewportSlot: boolean;
+  customGroupSlot: boolean;
+  customLabelSlot: boolean;
+  customItemSlot: boolean;
+  customItemTextSlot: boolean;
+  customIndicatorSlot: boolean;
+  customSeparatorSlot: boolean;
+  customArrowSlot: boolean;
+  customScrollUpSlot: boolean;
+  customScrollDownSlot: boolean;
   logItemPointer: boolean;
   insideDialog: boolean;
   triggerComposition: SelectCompositionMode;
@@ -234,7 +248,21 @@ export type SelectScenarioActions = {
   setShowScrollButtons: (value: boolean) => void;
   setShowArrow: (value: boolean) => void;
   setUseListboxAlias: (value: boolean) => void;
-  setOverrideTriggerSlot: (value: boolean) => void;
+  setPropCheck: (value: boolean) => void;
+  setCustomTriggerSlot: (value: boolean) => void;
+  setCustomValueSlot: (value: boolean) => void;
+  setCustomIconSlot: (value: boolean) => void;
+  setCustomContentSlot: (value: boolean) => void;
+  setCustomViewportSlot: (value: boolean) => void;
+  setCustomGroupSlot: (value: boolean) => void;
+  setCustomLabelSlot: (value: boolean) => void;
+  setCustomItemSlot: (value: boolean) => void;
+  setCustomItemTextSlot: (value: boolean) => void;
+  setCustomIndicatorSlot: (value: boolean) => void;
+  setCustomSeparatorSlot: (value: boolean) => void;
+  setCustomArrowSlot: (value: boolean) => void;
+  setCustomScrollUpSlot: (value: boolean) => void;
+  setCustomScrollDownSlot: (value: boolean) => void;
   setLogItemPointer: (value: boolean) => void;
   setInsideDialog: (value: boolean) => void;
   setTriggerComposition: (value: SelectCompositionMode) => void;
@@ -281,7 +309,21 @@ export function useSelectScenario() {
   const [showScrollButtons, setShowScrollButtons] = useState(false);
   const [showArrow, setShowArrow] = useState(false);
   const [useListboxAlias, setUseListboxAlias] = useState(false);
-  const [overrideTriggerSlot, setOverrideTriggerSlot] = useState(false);
+  const [propCheck, setPropCheck] = useState(false);
+  const [customTriggerSlot, setCustomTriggerSlot] = useState(false);
+  const [customValueSlot, setCustomValueSlot] = useState(false);
+  const [customIconSlot, setCustomIconSlot] = useState(false);
+  const [customContentSlot, setCustomContentSlot] = useState(false);
+  const [customViewportSlot, setCustomViewportSlot] = useState(false);
+  const [customGroupSlot, setCustomGroupSlot] = useState(false);
+  const [customLabelSlot, setCustomLabelSlot] = useState(false);
+  const [customItemSlot, setCustomItemSlot] = useState(false);
+  const [customItemTextSlot, setCustomItemTextSlot] = useState(false);
+  const [customIndicatorSlot, setCustomIndicatorSlot] = useState(false);
+  const [customSeparatorSlot, setCustomSeparatorSlot] = useState(false);
+  const [customArrowSlot, setCustomArrowSlot] = useState(false);
+  const [customScrollUpSlot, setCustomScrollUpSlot] = useState(false);
+  const [customScrollDownSlot, setCustomScrollDownSlot] = useState(false);
   const [logItemPointer, setLogItemPointer] = useState(false);
   const [insideDialog, setInsideDialog] = useState(false);
   const [triggerComposition, setTriggerComposition] =
@@ -474,7 +516,21 @@ export function useSelectScenario() {
     showScrollButtons,
     showArrow,
     useListboxAlias,
-    overrideTriggerSlot,
+    propCheck,
+    customTriggerSlot,
+    customValueSlot,
+    customIconSlot,
+    customContentSlot,
+    customViewportSlot,
+    customGroupSlot,
+    customLabelSlot,
+    customItemSlot,
+    customItemTextSlot,
+    customIndicatorSlot,
+    customSeparatorSlot,
+    customArrowSlot,
+    customScrollUpSlot,
+    customScrollDownSlot,
     logItemPointer,
     insideDialog,
     triggerComposition,
@@ -529,7 +585,21 @@ export function useSelectScenario() {
     setShowScrollButtons,
     setShowArrow,
     setUseListboxAlias,
-    setOverrideTriggerSlot,
+    setPropCheck,
+    setCustomTriggerSlot,
+    setCustomValueSlot,
+    setCustomIconSlot,
+    setCustomContentSlot,
+    setCustomViewportSlot,
+    setCustomGroupSlot,
+    setCustomLabelSlot,
+    setCustomItemSlot,
+    setCustomItemTextSlot,
+    setCustomIndicatorSlot,
+    setCustomSeparatorSlot,
+    setCustomArrowSlot,
+    setCustomScrollUpSlot,
+    setCustomScrollDownSlot,
     setLogItemPointer,
     setInsideDialog,
     setTriggerComposition,

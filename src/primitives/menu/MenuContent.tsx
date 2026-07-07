@@ -49,6 +49,7 @@ export interface MenuContentProps extends MenuContentNativeProps {
   ariaLabel?: string;
   anchorPoint?: { x: number; y: number } | null;
   onKeyDownCapture?: KeyboardEventHandler<HTMLDivElement>;
+  "data-slot"?: string;
 }
 
 function toPlacement(side: MenuSide, align: MenuAlign): Placement {
@@ -79,6 +80,7 @@ function MenuContent(
     anchorPoint,
     onKeyDownCapture,
     style,
+    "data-slot": dataSlot = "menu-content",
     ...restProps
   },
   ref,
@@ -318,7 +320,7 @@ function MenuContent(
         aria-label={ariaLabel}
         aria-labelledby={!ariaLabel && triggerRef.current ? triggerId : undefined}
         tabIndex={-1}
-        data-slot="menu-content"
+        data-slot={dataSlot}
         data-state={dataState}
         data-side={sideFromPlacement(placement)}
         data-align={alignFromPlacement(placement)}
@@ -337,5 +339,5 @@ function MenuContent(
 });
 
 function isMenuSubContent(target: Node): boolean {
-  return target instanceof Element && target.closest('[data-slot="menu-sub-content"]') !== null;
+  return target instanceof Element && target.closest("[data-menu-sub-content]") !== null;
 }

@@ -163,6 +163,71 @@ test("ComboboxInput Escape closes first, then clears when closed", async () => {
   assert.match(inputSource, /value,/);
 });
 
+test("Combobox open-on-focus only opens empty state when Empty is mounted", async () => {
+  const rootSource = await readFile(
+    new URL("src/primitives/combobox/ComboboxRoot.tsx", packageRoot),
+    "utf8",
+  );
+  const inputSource = await readFile(
+    new URL("src/primitives/combobox/ComboboxInput.tsx", packageRoot),
+    "utf8",
+  );
+  const contentSource = await readFile(
+    new URL("src/primitives/combobox/ComboboxContent.tsx", packageRoot),
+    "utf8",
+  );
+
+  assert.match(rootSource, /const \[emptyMounted, setEmptyMounted\] = useState\(false\)/);
+  assert.match(rootSource, /registerEmpty/);
+  assert.match(rootSource, /unregisterEmpty/);
+  assert.match(inputSource, /filteredOptions\.length > 0 \|\| loading \|\| emptyMounted/);
+  assert.match(contentSource, /function hasComboboxEmptyPart/);
+  assert.match(contentSource, /child\.type === ComboboxEmpty/);
+  assert.match(contentSource, /registerEmpty\(\);\s*return unregisterEmpty;/);
+});
+
+test("Combobox free-solo commit honors clearOnSelect", async () => {
+  const inputSource = await readFile(
+    new URL("src/primitives/combobox/ComboboxInput.tsx", packageRoot),
+    "utf8",
+  );
+  const contextSource = await readFile(
+    new URL("src/primitives/combobox/context.ts", packageRoot),
+    "utf8",
+  );
+  const rootSource = await readFile(
+    new URL("src/primitives/combobox/ComboboxRoot.tsx", packageRoot),
+    "utf8",
+  );
+
+  assert.match(contextSource, /clearOnSelect: boolean/);
+  assert.match(rootSource, /clearOnSelect,/);
+  assert.match(inputSource, /else if \(freeSolo && inputValue\) \{/);
+  assert.match(inputSource, /onInputValueChange\(clearOnSelect \? "" : inputValue\);/);
+});
+
+test("Combobox pointer selection suppresses focus reopen", async () => {
+  const rootSource = await readFile(
+    new URL("src/primitives/combobox/ComboboxRoot.tsx", packageRoot),
+    "utf8",
+  );
+  const inputSource = await readFile(
+    new URL("src/primitives/combobox/ComboboxInput.tsx", packageRoot),
+    "utf8",
+  );
+  const itemSource = await readFile(
+    new URL("src/primitives/combobox/ComboboxItem.tsx", packageRoot),
+    "utf8",
+  );
+
+  assert.match(rootSource, /suppressInputFocusOpenRef/);
+  assert.match(rootSource, /suppressNextInputFocusOpen/);
+  assert.match(rootSource, /consumeInputFocusOpenSuppression/);
+  assert.match(inputSource, /if \(consumeInputFocusOpenSuppression\(\)\) return;/);
+  assert.match(itemSource, /onPointerDown=\{composeEventHandlers\(onPointerDown, handlePointerDown\)\}/);
+  assert.match(itemSource, /suppressNextInputFocusOpen\(\);/);
+});
+
 test("ComboboxContent keeps highlighted item scrolling inside the combobox", async () => {
   const contentSource = await readFile(
     new URL("src/primitives/combobox/ComboboxContent.tsx", packageRoot),

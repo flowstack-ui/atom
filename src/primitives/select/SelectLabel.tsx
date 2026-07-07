@@ -9,10 +9,11 @@ type SelectLabelNativeProps = NativeDivProps<"children">;
 export interface SelectLabelProps extends SelectLabelNativeProps {
   children: ReactNode;
   className?: string;
+  "data-slot"?: string;
 }
 
 export const SelectLabel = forwardRef<HTMLDivElement, SelectLabelProps>(
-  function SelectLabel({ children, className, id, ...restProps }, ref) {
+  function SelectLabel({ children, className, id, "data-slot": dataSlot = "select-label", ...restProps }, ref) {
     const generatedId = useId();
     const labelId = id ?? generatedId;
     const groupCtx = useSelectGroupContext();
@@ -27,7 +28,7 @@ export const SelectLabel = forwardRef<HTMLDivElement, SelectLabelProps>(
         {...restProps}
         ref={ref}
         id={labelId}
-        data-slot="select-label"
+        data-slot={dataSlot}
         className={className}
       >
         {children}

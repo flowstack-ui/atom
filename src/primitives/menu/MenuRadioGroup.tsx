@@ -11,6 +11,7 @@ export interface MenuRadioGroupProps extends MenuRadioGroupNativeProps {
   onValueChange?: (value: string) => void;
   className?: string;
   children: ReactNode;
+  "data-slot"?: string;
 }
 
 export function MenuRadioGroup({
@@ -18,6 +19,7 @@ export function MenuRadioGroup({
   onValueChange,
   className,
   children,
+  "data-slot": dataSlot = "menu-radio-group",
   ...restProps
 }: MenuRadioGroupProps) {
   const groupId = useId();
@@ -33,7 +35,7 @@ export function MenuRadioGroup({
       <div
         {...restProps}
         role="group"
-        data-slot="menu-radio-group"
+        data-slot={dataSlot}
         className={className}
       >
         {children}

@@ -232,6 +232,7 @@ Use the shared workbench primitives for repeated Canvas toolbar UI:
 - `MenuSection`
 - `MenuCheckboxControl`
 - `MenuRadioControl`
+- `PropsToolbarGroup`
 - `ScenarioEventLog`
 
 Do not copy these helpers into new scenario files. Add shared capability to
@@ -265,9 +266,33 @@ Menu rows should be easy to scan:
 - use `Menubar.Separator` for real group breaks
 - use subtle row dividers when a menu has many options
 - keep common top-level menus consistent across scenarios when they apply:
-  `State`, `Field`, `ARIA`, `Popup`, `Dismiss`, and `Composition`
+  `State`, `Field`, `Props`, `ARIA`, `Popup`, `Dismiss`, and `Composition`
 - keep event blocking and debug logging controls in a clearly labeled section,
   not mixed with normal composition controls
+
+## Props Menu
+
+Every scenario with rendered Atom parts should use a standard `Props` toolbar
+menu when it needs native prop or slot passthrough coverage.
+
+Rules:
+
+- Use the shared `PropsToolbarGroup` helper. Do not hand-build a visually
+  different prop menu in each scenario.
+- Keep `Prop Check` off by default.
+- When `Prop Check` is on, pass a real `data-prop-check="<part>"` prop to every
+  testable Atom public part in that scenario.
+- Keep custom slot checks off by default.
+- When a custom slot check is on, pass a real `data-slot` override to that Atom
+  part, such as `data-slot="input-custom"` or
+  `data-slot="input-clear-custom"`.
+- Use the shared `partProps(part, options, customSlot)` helper when possible so
+  the prop-check and custom-slot rules stay consistent.
+- Do not add curated rows such as `Props passed: true`. The raw `Data` group in
+  Anatomy and Inspector is the proof.
+- If a scenario currently uses `data-prop-check` as a selector, migrate that
+  selector to a stable `data-slot`, public state attribute, or scenario-specific
+  selector before making the prop check optional.
 
 ## Anatomy
 
@@ -353,9 +378,14 @@ Rules:
 - Filter playground plumbing from raw groups. Do not show `class`, `style`,
   duplicated `id` inside `Attributes`, or `data-playground-inspect`.
 - Use `data-prop-check="<part>"` as the standard playground marker for native
-  prop pass-through tests. Keep it visible in raw `Data` so testers can verify
-  the real DOM received the prop. Do not add separate curated rows like
-  `Native props: passed`; the raw `data-prop-check` evidence is the test.
+  prop pass-through tests. Keep it behind a `Props > Prop Check` toolbar option
+  when practical so the default DOM stays quiet. When enabled, keep it visible
+  in raw `Data` so testers can verify the real DOM received the prop. Do not add
+  separate curated rows like `Native props: passed`; the raw `data-prop-check`
+  evidence is the test.
+- Use `Props > Custom Slot` controls for `data-slot` override checks on
+  slot-owning parts. Custom slots should be real props passed to Atom parts and
+  verified through raw `Data`, not fake Anatomy status rows.
 - Use lowercase generated values in curated rows: `true`, `false`, `none`,
   `open`, `closed`, `body`.
 - Keep group headers visually stable between collapsed and expanded states.
@@ -511,9 +541,13 @@ Rules:
 - Add direction rows for components whose behavior changes in RTL. Include
   provider context, direct `dir` override, and mirrored keyboard/pointer
   behavior where relevant.
-- Native prop coverage should point testers to the relevant part's raw `Data`
-  group and its `data-prop-check="<part>"` marker. One non-Atom-owned marker is
-  enough to prove rest props pass through for that part.
+- Native prop coverage should point testers to the relevant part's `Props >
+  Prop Check` control and raw `Data` group. One non-Atom-owned
+  `data-prop-check="<part>"` marker is enough to prove rest props pass through
+  for that part.
+- Custom slot coverage should point testers to the relevant part's `Props`
+  custom slot control and raw `Data` group. Components with no rendered
+  slot-owning parts should not get custom slot rows.
 - Use `covered`, `partial`, or `missing`.
 - Treat `partial` as half covered in the percentage.
 - Update the tracker when a scenario gains or loses coverage.

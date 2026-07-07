@@ -7,7 +7,16 @@ import {
   AnatomyPanel,
   type AnatomySection,
 } from "../AnatomyPanel";
-import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, ScenarioEventLog, ToolbarGroup } from "../WorkbenchPrimitives";
+import {
+  ControlToolbar,
+  MenuCheckboxControl,
+  MenuRadioControl,
+  MenuSection,
+  partProps,
+  PropsToolbarGroup,
+  ScenarioEventLog,
+  ToolbarGroup,
+} from "../WorkbenchPrimitives";
 import type {
   Dispatch,
   HTMLAttributes,
@@ -51,8 +60,8 @@ export function SelectScenarioCanvas({
       className="atom-select-content playground-select-content"
       container={!state.usePortalWrapper && state.useCustomContainer ? portalContainerRef.current : undefined}
       data-playground-inspect=""
-      data-prop-check="listbox"
       data-select-listbox=""
+      {...partProps("listbox", { propCheck: state.propCheck, customSlot: state.customContentSlot }, "select-content-custom")}
       disablePortal={state.disablePortal}
       title="listbox prop"
       ref={(element) => actions.markPartRef("listbox", element)}
@@ -60,8 +69,8 @@ export function SelectScenarioCanvas({
       {state.showArrow ? (
         <Select.Arrow
           className="playground-select-arrow"
-          data-prop-check="arrow"
           data-select-arrow=""
+          {...partProps("arrow", { propCheck: state.propCheck, customSlot: state.customArrowSlot }, "select-arrow-custom")}
           title="arrow prop"
           ref={(element) => actions.markPartRef("arrow", element)}
         />
@@ -69,8 +78,8 @@ export function SelectScenarioCanvas({
       {state.showScrollButtons ? (
         <Select.ScrollUpButton
           className="playground-select-scroll-button"
-          data-prop-check="scroll-up"
           data-select-scroll-up=""
+          {...partProps("scroll-up", { propCheck: state.propCheck, customSlot: state.customScrollUpSlot }, "select-scroll-up-custom")}
           title="scroll up prop"
           ref={(element) => actions.markPartRef("scrollUpButton", element)}
           onClick={() => actions.addUserLog("scroll up user onClick")}
@@ -80,21 +89,21 @@ export function SelectScenarioCanvas({
       ) : null}
       <Select.Viewport
         className="atom-select-viewport playground-select-viewport"
-        data-prop-check="viewport"
         data-select-viewport=""
+        {...partProps("viewport", { propCheck: state.propCheck, customSlot: state.customViewportSlot }, "select-viewport-custom")}
         title="viewport prop"
         ref={(element) => actions.markPartRef("viewport", element)}
       >
         <Select.Group
-          data-prop-check="group"
           data-select-group=""
+          {...partProps("group", { propCheck: state.propCheck, customSlot: state.customGroupSlot }, "select-group-custom")}
           title="group prop"
           ref={(element) => actions.markPartRef("group", element)}
         >
           <Select.Label
             className="playground-select-label"
-            data-prop-check="label"
             data-select-label=""
+            {...partProps("label", { propCheck: state.propCheck, customSlot: state.customLabelSlot }, "select-label-custom")}
             title="label prop"
             ref={(element) => actions.markPartRef("label", element)}
           >
@@ -102,16 +111,16 @@ export function SelectScenarioCanvas({
           </Select.Label>
           <Select.Separator
             className="playground-select-separator"
-            data-prop-check="separator"
             data-select-separator=""
+            {...partProps("separator", { propCheck: state.propCheck, customSlot: state.customSeparatorSlot }, "select-separator-custom")}
             title="separator prop"
             ref={(element) => actions.markPartRef("separator", element)}
           />
           {getSelectItems(state.longList, state.rawItemText).map((item) => (
             <Select.Item
               className="atom-select-item playground-select-item"
-              data-prop-check="item"
               data-select-item=""
+              {...partProps("item", { propCheck: state.propCheck, customSlot: state.customItemSlot }, "select-item-custom")}
               data-select-raw-item={item.raw ? "" : undefined}
               data-testid={`select-item-${item.value}`}
               disabled={item.disabled}
@@ -137,8 +146,8 @@ export function SelectScenarioCanvas({
               {item.raw ? item.visible : (
                 <>
                   <Select.ItemText
-                    data-prop-check="item-text"
                     data-select-item-text=""
+                    {...partProps("item-text", { propCheck: state.propCheck, customSlot: state.customItemTextSlot }, "select-item-text-custom")}
                     title="item text prop"
                     ref={(element) => actions.markPartRef("itemText", element)}
                   >
@@ -146,8 +155,8 @@ export function SelectScenarioCanvas({
                   </Select.ItemText>
                   <Select.ItemIndicator
                     className="playground-select-indicator"
-                    data-prop-check="indicator"
                     data-select-indicator=""
+                    {...partProps("indicator", { propCheck: state.propCheck, customSlot: state.customIndicatorSlot }, "select-indicator-custom")}
                     forceMount={state.forceMountIndicator}
                     title="indicator prop"
                     ref={(element) => actions.markPartRef("itemIndicator", element)}
@@ -163,8 +172,8 @@ export function SelectScenarioCanvas({
       {state.showScrollButtons ? (
         <Select.ScrollDownButton
           className="playground-select-scroll-button"
-          data-prop-check="scroll-down"
           data-select-scroll-down=""
+          {...partProps("scroll-down", { propCheck: state.propCheck, customSlot: state.customScrollDownSlot }, "select-scroll-down-custom")}
           title="scroll down prop"
           ref={(element) => actions.markPartRef("scrollDownButton", element)}
           onClick={() => actions.addUserLog("scroll down user onClick")}
@@ -204,7 +213,10 @@ export function SelectScenarioCanvas({
           customValueChildren={state.customValueChildren}
           triggerAriaLabel={state.triggerAriaLabel}
           useTriggerIdProp={state.useTriggerIdProp}
-          overrideTriggerSlot={state.overrideTriggerSlot}
+          propCheck={state.propCheck}
+          customTriggerSlot={state.customTriggerSlot}
+          customValueSlot={state.customValueSlot}
+          customIconSlot={state.customIconSlot}
         />
         {state.usePortalWrapper ? (
           <Select.Portal container={state.useCustomContainer ? portalContainerRef.current : undefined}>
@@ -452,14 +464,6 @@ export function SelectScenarioToolbar({
             onChange={actions.setForceMountIndicator}
           />
         </MenuSection>
-        <MenuSection label="Props">
-          <MenuCheckboxControl
-            checked={state.overrideTriggerSlot}
-            label="Trigger slot override"
-            value="trigger-slot-override"
-            onChange={actions.setOverrideTriggerSlot}
-          />
-        </MenuSection>
         <MenuSection label="Events">
           <MenuCheckboxControl
             checked={state.logItemPointer}
@@ -475,6 +479,26 @@ export function SelectScenarioToolbar({
           />
         </MenuSection>
       </ToolbarGroup>
+      <PropsToolbarGroup
+        propCheck={state.propCheck}
+        onPropCheckChange={actions.setPropCheck}
+        customSlots={[
+          { checked: state.customTriggerSlot, label: "Trigger slot", value: "trigger-slot", onChange: actions.setCustomTriggerSlot },
+          { checked: state.customValueSlot, label: "Value slot", value: "value-slot", onChange: actions.setCustomValueSlot },
+          { checked: state.customIconSlot, label: "Icon slot", value: "icon-slot", onChange: actions.setCustomIconSlot },
+          { checked: state.customContentSlot, label: "Content slot", value: "content-slot", onChange: actions.setCustomContentSlot },
+          { checked: state.customViewportSlot, label: "Viewport slot", value: "viewport-slot", onChange: actions.setCustomViewportSlot },
+          { checked: state.customGroupSlot, label: "Group slot", value: "group-slot", onChange: actions.setCustomGroupSlot },
+          { checked: state.customLabelSlot, label: "Label slot", value: "label-slot", onChange: actions.setCustomLabelSlot },
+          { checked: state.customItemSlot, label: "Item slot", value: "item-slot", onChange: actions.setCustomItemSlot },
+          { checked: state.customItemTextSlot, label: "Item Text slot", value: "item-text-slot", onChange: actions.setCustomItemTextSlot },
+          { checked: state.customIndicatorSlot, label: "Indicator slot", value: "indicator-slot", onChange: actions.setCustomIndicatorSlot },
+          { checked: state.customSeparatorSlot, label: "Separator slot", value: "separator-slot", onChange: actions.setCustomSeparatorSlot },
+          { checked: state.customArrowSlot, label: "Arrow slot", value: "arrow-slot", onChange: actions.setCustomArrowSlot },
+          { checked: state.customScrollUpSlot, label: "Scroll Up slot", value: "scroll-up-slot", onChange: actions.setCustomScrollUpSlot },
+          { checked: state.customScrollDownSlot, label: "Scroll Down slot", value: "scroll-down-slot", onChange: actions.setCustomScrollDownSlot },
+        ]}
+      />
     </ControlToolbar>
   );
 }
@@ -812,7 +836,10 @@ function SelectTriggerExample({
   customValueChildren,
   triggerAriaLabel,
   useTriggerIdProp,
-  overrideTriggerSlot,
+  propCheck,
+  customTriggerSlot,
+  customValueSlot,
+  customIconSlot,
 }: {
   mode: SelectCompositionMode;
   onClick: (event: ReactMouseEvent<HTMLElement>) => void;
@@ -823,13 +850,15 @@ function SelectTriggerExample({
   customValueChildren: boolean;
   triggerAriaLabel: boolean;
   useTriggerIdProp: boolean;
-  overrideTriggerSlot: boolean;
+  propCheck: boolean;
+  customTriggerSlot: boolean;
+  customValueSlot: boolean;
+  customIconSlot: boolean;
 }) {
   const triggerProps = {
     className: "atom-select-trigger playground-select-trigger",
-    "data-prop-check": "trigger",
-    ...(overrideTriggerSlot ? { "data-slot": "select-trigger-override" } : {}),
     "data-select-trigger": "",
+    ...partProps("trigger", { propCheck, customSlot: customTriggerSlot }, "select-trigger-custom"),
     ...(triggerAriaLabel ? { ariaLabel: "Plan selector" } : {}),
     ...(useTriggerIdProp ? { id: "select-trigger-prop" } : {}),
     name: "select-trigger-name",
@@ -839,8 +868,8 @@ function SelectTriggerExample({
   };
   const valueElement = (
     <Select.Value
-      data-prop-check="value"
       data-select-value=""
+      {...partProps("value", { propCheck, customSlot: customValueSlot }, "select-value-custom")}
       placeholder="Choose plan"
       ref={valueRefCallback}
       title="value prop"
@@ -850,8 +879,8 @@ function SelectTriggerExample({
   );
   const iconElement = (
     <Select.Icon
-      data-prop-check="icon"
       data-select-icon=""
+      {...partProps("icon", { propCheck, customSlot: customIconSlot }, "select-icon-custom")}
       ref={iconRefCallback}
       title="icon prop"
     >

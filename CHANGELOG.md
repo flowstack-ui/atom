@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- Fixed Rating fractional pointer selection and RTL direction behavior for
+  horizontal pointer and keyboard interactions.
+- Fixed Combobox option selection so pointer clicks close consistently,
+  `clearOnSelect` applies to every successful selection and free-solo Enter
+  commit, and mounted empty states can open on focus.
+- Fixed FileUpload read-only Trigger, Dropzone, and ItemDeleteTrigger parts so
+  they expose `data-readonly` separately from disabled state, and documented
+  the native HiddenInput attributes derived from Root and Field context.
+- Fixed `Fieldset.Root` required semantics so it no longer emits invalid
+  `aria-required`; required state remains exposed through context and
+  `[data-required]`.
+- Added `data-required` to `Input.Root` when required state is inherited from
+  Field context or provided directly.
 - Fixed Menu, DropdownMenu, and ContextMenu submenu keyboard behavior under
   `Direction.Provider dir="rtl"` so ArrowLeft opens submenus, ArrowRight closes
   submenus, and submenu placement mirrors to the left side.

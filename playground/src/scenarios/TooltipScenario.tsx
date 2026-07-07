@@ -4,7 +4,7 @@ import {
   AnatomyPanel,
   type AnatomySection,
 } from "../AnatomyPanel";
-import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, ScenarioEventLog, ToolbarGroup } from "../WorkbenchPrimitives";
+import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup, partProps } from "../WorkbenchPrimitives";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import type {
   TooltipAlign,
@@ -39,12 +39,14 @@ export function TooltipScenarioCanvas({
           variant={state.variant}
         >
           <TooltipTriggerExample
+            customSlot={state.customTriggerSlot}
             mode={state.triggerComposition}
             onBlur={actions.handleTriggerBlur}
             onFocus={actions.handleTriggerFocus}
             onKeyDown={actions.handleTriggerKeyDown}
             onMouseEnter={actions.handleTriggerMouseEnter}
             onMouseLeave={actions.handleTriggerMouseLeave}
+            propCheck={state.propCheck}
             onTouchEnd={actions.handleTriggerTouchEnd}
             onTouchStart={actions.handleTriggerTouchStart}
           />
@@ -71,8 +73,8 @@ export function TooltipScenarioCanvas({
               ariaLabel={state.useAriaLabel ? "Save changes tooltip" : undefined}
               className="atom-tooltip-content"
               data-playground-inspect=""
-              data-prop-check="content"
               data-tooltip-content=""
+              {...partProps("content", { customSlot: state.customContentSlot, propCheck: state.propCheck }, "tooltip-content-custom")}
               side={state.side}
               align={state.align}
               sideOffset={state.sideOffset}
@@ -80,8 +82,8 @@ export function TooltipScenarioCanvas({
               Save changes
               <Tooltip.Arrow
                 className="atom-popover-arrow"
-                data-prop-check="arrow"
                 data-tooltip-arrow=""
+                {...partProps("arrow", { customSlot: state.customArrowSlot, propCheck: state.propCheck }, "tooltip-arrow-custom")}
               />
             </Tooltip.Content>
           </Tooltip.Portal>
@@ -210,6 +212,15 @@ export function TooltipScenarioToolbar({
       <ToolbarGroup title="Composition" value="composition">
         <MenuRadioControl label="Trigger" options={compositionOptions} value={state.triggerComposition} onChange={actions.setTriggerComposition} />
       </ToolbarGroup>
+      <PropsToolbarGroup
+        propCheck={state.propCheck}
+        onPropCheckChange={actions.setPropCheck}
+        customSlots={[
+          { checked: state.customTriggerSlot, label: "Trigger Slot", value: "trigger-slot", onChange: actions.setCustomTriggerSlot },
+          { checked: state.customContentSlot, label: "Content Slot", value: "content-slot", onChange: actions.setCustomContentSlot },
+          { checked: state.customArrowSlot, label: "Arrow Slot", value: "arrow-slot", onChange: actions.setCustomArrowSlot },
+        ]}
+      />
     </ControlToolbar>
   );
 }
@@ -236,12 +247,19 @@ export function getTooltipSource(state: TooltipScenarioState) {
     <Tooltip.Portal>
       <Tooltip.Content
         ${state.useAriaLabel ? `ariaLabel="Save changes tooltip"` : ""}
+        ${sourceProps([
+          state.customContentSlot ? `data-slot="tooltip-content-custom"` : null,
+          state.propCheck ? `data-prop-check="content"` : null,
+        ]).trim()}
         side="${state.side}"
         align="${state.align}"
         sideOffset={${state.sideOffset}}
       >
         Save changes
-        <Tooltip.Arrow />
+        <Tooltip.Arrow${sourceProps([
+          state.customArrowSlot ? `data-slot="tooltip-arrow-custom"` : null,
+          state.propCheck ? `data-prop-check="arrow"` : null,
+        ])} />
       </Tooltip.Content>
     </Tooltip.Portal>
   </Tooltip.Root>
@@ -249,29 +267,33 @@ export function getTooltipSource(state: TooltipScenarioState) {
 }
 
 function TooltipTriggerExample({
+  customSlot,
   mode,
   onBlur,
   onFocus,
   onKeyDown,
   onMouseEnter,
   onMouseLeave,
+  propCheck,
   onTouchEnd,
   onTouchStart,
 }: {
+  customSlot: boolean;
   mode: TooltipCompositionMode;
   onBlur: TooltipScenarioActions["handleTriggerBlur"];
   onFocus: TooltipScenarioActions["handleTriggerFocus"];
   onKeyDown: TooltipScenarioActions["handleTriggerKeyDown"];
   onMouseEnter: TooltipScenarioActions["handleTriggerMouseEnter"];
   onMouseLeave: TooltipScenarioActions["handleTriggerMouseLeave"];
+  propCheck: boolean;
   onTouchEnd: TooltipScenarioActions["handleTriggerTouchEnd"];
   onTouchStart: TooltipScenarioActions["handleTriggerTouchStart"];
 }) {
   const props = {
     className: "atom-button",
     "data-playground-inspect": "",
-    "data-prop-check": "trigger",
     "data-tooltip-trigger": "",
+    ...partProps("trigger", { customSlot, propCheck }, "tooltip-trigger-custom"),
     tabIndex: 0,
     onBlur,
     onFocus,
@@ -302,19 +324,28 @@ function TooltipTriggerExample({
 }
 
 function getTooltipTriggerSource(state: TooltipScenarioState) {
+  const props = sourceProps([
+    state.customTriggerSlot ? `data-slot="tooltip-trigger-custom"` : null,
+    state.propCheck ? `data-prop-check="trigger"` : null,
+  ]);
   if (state.triggerComposition === "asChild") {
-    return `<Tooltip.Trigger asChild>
+    return `<Tooltip.Trigger${props} asChild>
       <span>Save</span>
     </Tooltip.Trigger>`;
   }
 
   if (state.triggerComposition === "render") {
-    return `<Tooltip.Trigger render="section">
+    return `<Tooltip.Trigger${props} render="section">
       Save
     </Tooltip.Trigger>`;
   }
 
-  return `<Tooltip.Trigger>Save</Tooltip.Trigger>`;
+  return `<Tooltip.Trigger${props}>Save</Tooltip.Trigger>`;
+}
+
+function sourceProps(props: Array<string | null | undefined | false>) {
+  const visibleProps = props.filter(Boolean);
+  return visibleProps.length > 0 ? ` ${visibleProps.join(" ")}` : "";
 }
 
 const compositionOptions = [

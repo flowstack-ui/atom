@@ -15,10 +15,11 @@ type SelectItemTextNativeProps = NativeSpanProps<"children">;
 export interface SelectItemTextProps extends SelectItemTextNativeProps {
   children: ReactNode;
   className?: string;
+  "data-slot"?: string;
 }
 
 export const SelectItemText = forwardRef<HTMLSpanElement, SelectItemTextProps>(
-  function SelectItemText({ children, className, ...restProps }, ref) {
+  function SelectItemText({ children, className, "data-slot": dataSlot = "select-item-text", ...restProps }, ref) {
     const ctx = useSelectItemContext();
     const internalRef = useRef<HTMLSpanElement>(null);
 
@@ -32,7 +33,7 @@ export const SelectItemText = forwardRef<HTMLSpanElement, SelectItemTextProps>(
         {...restProps}
         ref={composeRefs(internalRef, ref)}
         id={ctx.textId}
-        data-slot="select-item-text"
+        data-slot={dataSlot}
         className={className}
       >
         {children}

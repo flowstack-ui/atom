@@ -102,9 +102,13 @@ test("SwipeableItem source handles pointer capture and keyboard close", async ()
   assert.match(contentSource, /const handleLostPointerCapture = useCallback/);
   assert.match(contentSource, /event\.key === "Escape"/);
   assert.match(contentSource, /getSwipeableItemSideFromKey\(event\.key, dir\)/);
+  assert.match(contentSource, /openSide === side && onFullSwipe/);
   assert.doesNotMatch(contentSource, /\[ctx\]/);
   assert.match(actionsSource, /ResizeObserver/);
   assert.match(actionsSource, /const \[actionsElement, setActionsElement\] = useState/);
   assert.match(actionsSource, /composeRefs\(setActionsRef, ref\)/);
+  assert.match(actionsSource, /closeOnClick = true/);
+  assert.match(actionsSource, /if \(event\.defaultPrevented \|\| !closeOnClick\) return/);
+  assert.match(actionsSource, /close\(\)/);
   assert.match(actionsSource, /inert: isOpen \? undefined : true/);
 });

@@ -30,6 +30,10 @@ export type TooltipScenarioState = {
   align: TooltipAlign;
   sideOffset: number;
   triggerComposition: TooltipCompositionMode;
+  propCheck: boolean;
+  customTriggerSlot: boolean;
+  customContentSlot: boolean;
+  customArrowSlot: boolean;
   open: boolean;
   log: TooltipLogEntry[];
 };
@@ -46,6 +50,10 @@ export type TooltipScenarioActions = {
   setAlign: (value: TooltipAlign) => void;
   setSideOffset: (value: number) => void;
   setTriggerComposition: (value: TooltipCompositionMode) => void;
+  setPropCheck: (value: boolean) => void;
+  setCustomTriggerSlot: (value: boolean) => void;
+  setCustomContentSlot: (value: boolean) => void;
+  setCustomArrowSlot: (value: boolean) => void;
   setControlledOpen: (value: boolean) => void;
   handleOpenChange: (open: boolean) => void;
   handleTriggerMouseEnter: (event: ReactMouseEvent<HTMLElement>) => void;
@@ -72,6 +80,10 @@ export function useTooltipScenario() {
   const [sideOffset, setSideOffset] = useState(4);
   const [triggerComposition, setTriggerComposition] =
     useState<TooltipCompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customTriggerSlot, setCustomTriggerSlot] = useState(false);
+  const [customContentSlot, setCustomContentSlot] = useState(false);
+  const [customArrowSlot, setCustomArrowSlot] = useState(false);
   const [open, setOpen] = useState(false);
   const [log, setLog] = useState<TooltipLogEntry[]>([]);
 
@@ -137,6 +149,10 @@ export function useTooltipScenario() {
       align,
       sideOffset,
       triggerComposition,
+      propCheck,
+      customTriggerSlot,
+      customContentSlot,
+      customArrowSlot,
       open,
       log,
     },
@@ -152,6 +168,10 @@ export function useTooltipScenario() {
       setAlign,
       setSideOffset,
       setTriggerComposition,
+      setPropCheck,
+      setCustomTriggerSlot,
+      setCustomContentSlot,
+      setCustomArrowSlot,
       setControlledOpen,
       handleOpenChange,
       handleTriggerMouseEnter,

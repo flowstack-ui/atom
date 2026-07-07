@@ -20,6 +20,7 @@ It currently owns:
 - `MenuSection`
 - `MenuCheckboxControl`
 - `MenuRadioControl`
+- `PropsToolbarGroup`
 - `ScenarioEventLog`
 
 The shared module is for playground UI only. It must not own component-specific
@@ -323,3 +324,39 @@ Target responsibilities:
 Do not build a giant global registry yet. The shared layer should reduce
 repetition and enforce naming/order, while each scenario still owns its own
 state and behavior meaning.
+
+## Prop And Slot Coverage Migration
+
+New rule: `data-prop-check` and custom `data-slot` checks are real Atom prop
+tests, but they should not be always-on DOM noise.
+
+Shared pieces now exist in `src/WorkbenchPrimitives.tsx`:
+
+- `PropsToolbarGroup`
+- `partProps`
+- `propCheckAttr`
+- `customSlotAttr`
+
+Migration target for each component page:
+
+1. Add a `Props` toolbar menu when the component renders Atom DOM parts.
+2. Add `Prop Check`, off by default.
+3. When enabled, pass `data-prop-check="<part>"` to every public part that
+   should accept native/data props.
+4. Add custom slot toggles for every slot-owning anatomy part that should allow
+   `data-slot` override.
+5. Keep custom slot toggles off by default.
+6. Verify raw `Data` in Anatomy and Inspector shows the live DOM evidence.
+7. Update `component-coverage.xlsx`.
+
+Important migration note:
+
+- Many older scenarios still use `data-prop-check` as an Anatomy selector. Do
+  not simply make those markers optional. First move selectors to stable
+  `data-slot`, real state attributes, or explicit scenario selectors. Then make
+  the prop marker controlled by `Props > Prop Check`.
+
+Current reference implementation:
+
+- `Input` uses the shared `PropsToolbarGroup` and `partProps` helper for root
+  and clear button coverage.

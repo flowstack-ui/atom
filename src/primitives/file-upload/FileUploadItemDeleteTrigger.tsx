@@ -76,7 +76,8 @@ export const FileUploadItemDeleteTrigger = forwardRef<
     disabled: isInactive || undefined,
     "aria-label": ariaLabel ?? `Remove ${file.name}`,
     "data-slot": dataSlot,
-    ...(isInactive && { "data-disabled": "" }),
+    ...(disabled && { "data-disabled": "" }),
+    ...(readOnly && { "data-readonly": "" }),
     onClick: handleClick,
   };
 

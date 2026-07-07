@@ -7,13 +7,14 @@ import { Label } from "@flowstack-ui/atom/label";
 import { List } from "@flowstack-ui/atom/list";
 import { useCallback, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { AnatomyPanel, type AnatomySection } from "../AnatomyPanel";
-import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, ScenarioEventLog, ToolbarGroup } from "../WorkbenchPrimitives";
+import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup, partProps } from "../WorkbenchPrimitives";
 
 type CompositionMode = "default" | "asChild" | "render";
 type DividerOrientation = "horizontal" | "vertical";
 type AspectRatioValue = "16:9" | "4:3" | "1:1" | "invalid";
 type AvatarImageMode = "loaded" | "broken" | "loading";
 type AvatarAltMode = "meaningful" | "decorative";
+type LabelControlType = "native" | "atom";
 
 type LogEntry = {
   id: number;
@@ -73,14 +74,18 @@ function useBadgeScenario() {
   const [composition, setComposition] = useState<CompositionMode>("default");
   const [tone, setTone] = useState("neutral");
   const [content, setContent] = useState("Ready");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
   const { log, addLog, clearLog } = useScenarioLog();
 
   return {
-    state: { composition, tone, content, log },
+    state: { composition, tone, content, propCheck, customRootSlot, log },
     actions: {
       setComposition,
       setTone,
       setContent,
+      setPropCheck,
+      setCustomRootSlot,
       clearLog,
       noteClick: () => addLog("badge clicked"),
     },
@@ -92,6 +97,8 @@ function useDividerScenario() {
   const [decorative, setDecorative] = useState(true);
   const [withContent, setWithContent] = useState(false);
   const [composition, setComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
   const [rootRef, setRootRef] = useState("none");
   const { log, addLog, clearLog } = useScenarioLog();
   const markRootRef = useCallback((node: HTMLDivElement | HTMLHRElement | null) => {
@@ -99,12 +106,14 @@ function useDividerScenario() {
   }, []);
 
   return {
-    state: { orientation, decorative, withContent, composition, rootRef, log },
+    state: { orientation, decorative, withContent, composition, propCheck, customRootSlot, rootRef, log },
     actions: {
       setOrientation,
       setDecorative,
       setWithContent,
       setComposition,
+      setPropCheck,
+      setCustomRootSlot,
       markRootRef,
       clearLog,
       noteToggle: () => addLog("divider options changed"),
@@ -115,11 +124,13 @@ function useDividerScenario() {
 function useAspectRatioScenario() {
   const [ratio, setRatio] = useState<AspectRatioValue>("16:9");
   const [composition, setComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
   const { log, clearLog } = useScenarioLog();
 
   return {
-    state: { ratio, composition, log },
-    actions: { setRatio, setComposition, clearLog },
+    state: { ratio, composition, propCheck, customRootSlot, log },
+    actions: { setRatio, setComposition, setPropCheck, setCustomRootSlot, clearLog },
   };
 }
 
@@ -132,6 +143,11 @@ function useAvatarScenario() {
   const [imageComposition, setImageComposition] = useState<CompositionMode>("default");
   const [fallbackComposition, setFallbackComposition] = useState<CompositionMode>("default");
   const [groupComposition, setGroupComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customGroupSlot, setCustomGroupSlot] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
+  const [customImageSlot, setCustomImageSlot] = useState(false);
+  const [customFallbackSlot, setCustomFallbackSlot] = useState(false);
   const [status, setStatus] = useState("idle");
   const [rootRef, setRootRef] = useState("none");
   const [imageRef, setImageRef] = useState("none");
@@ -169,6 +185,11 @@ function useAvatarScenario() {
       imageComposition,
       fallbackComposition,
       groupComposition,
+      propCheck,
+      customGroupSlot,
+      customRootSlot,
+      customImageSlot,
+      customFallbackSlot,
       status,
       rootRef,
       imageRef,
@@ -185,6 +206,11 @@ function useAvatarScenario() {
       setImageComposition,
       setFallbackComposition,
       setGroupComposition,
+      setPropCheck,
+      setCustomGroupSlot,
+      setCustomRootSlot,
+      setCustomImageSlot,
+      setCustomFallbackSlot,
       handleStatusChange,
       markRootRef,
       markImageRef,
@@ -201,7 +227,11 @@ function useLabelScenario() {
   const [required, setRequired] = useState(false);
   const [readOnly, setReadOnly] = useState(false);
   const [withHtmlFor, setWithHtmlFor] = useState(true);
+  const [controlType, setControlType] = useState<LabelControlType>("native");
   const [composition, setComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
+  const [value, setValue] = useState("hello@flowstack.dev");
   const [rootRef, setRootRef] = useState("none");
   const { log, addLog, clearLog } = useScenarioLog();
   const markRootRef = useCallback((node: HTMLElement | null) => {
@@ -209,17 +239,22 @@ function useLabelScenario() {
   }, []);
 
   return {
-    state: { disabled, invalid, required, readOnly, withHtmlFor, composition, rootRef, log },
+    state: { disabled, invalid, required, readOnly, withHtmlFor, controlType, composition, propCheck, customRootSlot, value, rootRef, log },
     actions: {
       setDisabled,
       setInvalid,
       setRequired,
       setReadOnly,
       setWithHtmlFor,
+      setControlType,
       setComposition,
+      setPropCheck,
+      setCustomRootSlot,
+      setValue,
       markRootRef,
       clearLog,
       noteLabelClick: () => addLog("label clicked"),
+      noteValue: (next: string) => addLog(`value changed to ${next || "empty"}`),
       noteInputFocus: () => addLog("input focused"),
     },
   };
@@ -230,6 +265,9 @@ function useListScenario() {
   const [disabledItem, setDisabledItem] = useState(true);
   const [rootComposition, setRootComposition] = useState<CompositionMode>("default");
   const [itemComposition, setItemComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
+  const [customItemSlot, setCustomItemSlot] = useState(false);
   const [rootRef, setRootRef] = useState("none");
   const [itemRef, setItemRef] = useState("none");
   const { log, addLog, clearLog } = useScenarioLog();
@@ -241,12 +279,15 @@ function useListScenario() {
   }, []);
 
   return {
-    state: { ordered, disabledItem, rootComposition, itemComposition, rootRef, itemRef, log },
+    state: { ordered, disabledItem, rootComposition, itemComposition, propCheck, customRootSlot, customItemSlot, rootRef, itemRef, log },
     actions: {
       setOrdered,
       setDisabledItem,
       setRootComposition,
       setItemComposition,
+      setPropCheck,
+      setCustomRootSlot,
+      setCustomItemSlot,
       markRootRef,
       markItemRef,
       clearLog,
@@ -273,6 +314,13 @@ export function DisplayPrimitiveScenarioToolbar({
           <MenuRadioControl label="Tone" options={badgeToneOptions} value={scenario.state.tone} onChange={scenario.actions.setTone} />
         </ToolbarGroup>
         <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={[
+            { checked: scenario.state.customRootSlot, label: "Root Slot", value: "root-slot", onChange: scenario.actions.setCustomRootSlot },
+          ]}
+        />
       </ControlToolbar>
     );
   }
@@ -289,6 +337,13 @@ export function DisplayPrimitiveScenarioToolbar({
           <MenuRadioControl label="Orientation" options={dividerOrientationOptions} value={scenario.state.orientation} onChange={scenario.actions.setOrientation} />
         </ToolbarGroup>
         <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={[
+            { checked: scenario.state.customRootSlot, label: "Root Slot", value: "root-slot", onChange: scenario.actions.setCustomRootSlot },
+          ]}
+        />
       </ControlToolbar>
     );
   }
@@ -301,6 +356,13 @@ export function DisplayPrimitiveScenarioToolbar({
           <MenuRadioControl label="Ratio" options={aspectRatioOptions} value={scenario.state.ratio} onChange={scenario.actions.setRatio} />
         </ToolbarGroup>
         <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={[
+            { checked: scenario.state.customRootSlot, label: "Root Slot", value: "root-slot", onChange: scenario.actions.setCustomRootSlot },
+          ]}
+        />
       </ControlToolbar>
     );
   }
@@ -323,6 +385,16 @@ export function DisplayPrimitiveScenarioToolbar({
           <MenuRadioControl label="Fallback" options={compositionOptions} value={scenario.state.fallbackComposition} onChange={scenario.actions.setFallbackComposition} />
           <MenuRadioControl label="Group" options={compositionOptions} value={scenario.state.groupComposition} onChange={scenario.actions.setGroupComposition} />
         </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={[
+            { checked: scenario.state.customGroupSlot, label: "Group Slot", value: "group-slot", onChange: scenario.actions.setCustomGroupSlot },
+            { checked: scenario.state.customRootSlot, label: "Root Slot", value: "root-slot", onChange: scenario.actions.setCustomRootSlot },
+            { checked: scenario.state.customImageSlot, label: "Image Slot", value: "image-slot", onChange: scenario.actions.setCustomImageSlot },
+            { checked: scenario.state.customFallbackSlot, label: "Fallback Slot", value: "fallback-slot", onChange: scenario.actions.setCustomFallbackSlot },
+          ]}
+        />
       </ControlToolbar>
     );
   }
@@ -339,8 +411,21 @@ export function DisplayPrimitiveScenarioToolbar({
         </ToolbarGroup>
         <ToolbarGroup title="Association" value="association">
           <MenuCheckboxControl checked={scenario.state.withHtmlFor} label="Use htmlFor" value="html-for" onChange={scenario.actions.setWithHtmlFor} />
+          <MenuRadioControl label="Control" options={labelControlOptions} value={scenario.state.controlType} onChange={scenario.actions.setControlType} />
         </ToolbarGroup>
         <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={[
+            {
+              checked: scenario.state.customRootSlot,
+              label: "Root Slot",
+              value: "root-slot",
+              onChange: scenario.actions.setCustomRootSlot,
+            },
+          ]}
+        />
       </ControlToolbar>
     );
   }
@@ -357,6 +442,14 @@ export function DisplayPrimitiveScenarioToolbar({
           <MenuRadioControl label="Root" options={compositionOptions} value={scenario.state.rootComposition} onChange={scenario.actions.setRootComposition} />
           <MenuRadioControl label="Item" options={compositionOptions} value={scenario.state.itemComposition} onChange={scenario.actions.setItemComposition} />
         </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={[
+            { checked: scenario.state.customRootSlot, label: "Root Slot", value: "root-slot", onChange: scenario.actions.setCustomRootSlot },
+            { checked: scenario.state.customItemSlot, label: "Item Slot", value: "item-slot", onChange: scenario.actions.setCustomItemSlot },
+          ]}
+        />
       </ControlToolbar>
     );
   }
@@ -453,7 +546,7 @@ export function getDisplayPrimitiveCanvasFooter(
 
   if (scenarioId === "label") {
     const state = scenarios.label.state;
-    return `htmlFor ${state.withHtmlFor} | Required ${state.required} | Invalid ${state.invalid}`;
+    return `Control ${state.controlType} | htmlFor ${state.withHtmlFor} | Required ${state.required} | Invalid ${state.invalid}`;
   }
 
   if (scenarioId === "list") {
@@ -470,7 +563,11 @@ export function getDisplayPrimitiveSource(
 ) {
   if (scenarioId === "badge") {
     const state = scenarios.badge.state;
-    return `<Badge.Root>
+    const props = sourceProps([
+      state.customRootSlot ? `data-slot="badge-custom"` : null,
+      state.propCheck ? `data-prop-check="root"` : null,
+    ]);
+    return `<Badge.Root${props}>
   ${state.content}
 </Badge.Root>`;
   }
@@ -478,11 +575,16 @@ export function getDisplayPrimitiveSource(
   if (scenarioId === "divider") {
     const state = scenarios.divider.state;
     const content = state.withContent ? "<span>OR</span>" : "";
+    const props = sourceProps([
+      state.customRootSlot ? `data-slot="divider-custom"` : null,
+      state.propCheck ? `data-prop-check="root"` : null,
+    ]);
 
     if (state.composition === "asChild") {
       return `<Divider.Root
   orientation="${state.orientation}"
   decorative={${state.decorative}}
+  ${props.trim()}
   asChild
 >
   <div>${content}</div>
@@ -500,6 +602,7 @@ export function getDisplayPrimitiveSource(
     return `<Divider.Root
   orientation="${state.orientation}"
   decorative={${state.decorative}}
+  ${props.trim()}
 >
   ${content}
 </Divider.Root>`;
@@ -507,8 +610,12 @@ export function getDisplayPrimitiveSource(
 
   if (scenarioId === "aspect-ratio") {
     const state = scenarios.aspectRatio.state;
+    const props = sourceProps([
+      state.customRootSlot ? `data-slot="aspect-ratio-custom"` : null,
+      state.propCheck ? `data-prop-check="root"` : null,
+    ]);
     if (state.composition === "asChild") {
-      return `<AspectRatio.Root ratio={${getRatioValue(state.ratio)}} asChild>
+      return `<AspectRatio.Root ratio={${getRatioValue(state.ratio)}}${props} asChild>
   <section>${state.ratio}</section>
 </AspectRatio.Root>`;
     }
@@ -516,11 +623,12 @@ export function getDisplayPrimitiveSource(
     if (state.composition === "render") {
       return `<AspectRatio.Root
   ratio={${getRatioValue(state.ratio)}}
+  ${props.trim()}
   render={(props) => <article {...props}>${state.ratio}</article>}
 />`;
     }
 
-    return `<AspectRatio.Root ratio={${getRatioValue(state.ratio)}}>
+    return `<AspectRatio.Root ratio={${getRatioValue(state.ratio)}}${props}>
   <span>${state.ratio}</span>
 </AspectRatio.Root>`;
   }
@@ -528,10 +636,14 @@ export function getDisplayPrimitiveSource(
   if (scenarioId === "avatar") {
     const state = scenarios.avatar.state;
     const avatar = getAvatarRootSource(state);
+    const groupProps = sourceProps([
+      state.customGroupSlot ? `data-slot="avatar-group-custom"` : null,
+      state.propCheck ? `data-prop-check="group"` : null,
+    ]);
     if (!state.group) return avatar;
 
     if (state.groupComposition === "asChild") {
-      return `<Avatar.Group asChild>
+      return `<Avatar.Group${groupProps} asChild>
   <div>
 ${indent(avatar, 4)}
     <Avatar.Root src="/backup.png">
@@ -542,7 +654,7 @@ ${indent(avatar, 4)}
     }
 
     if (state.groupComposition === "render") {
-      return `<Avatar.Group render={(props) => <section {...props} />}>
+      return `<Avatar.Group${groupProps} render={(props) => <section {...props} />}>
 ${indent(avatar, 2)}
   <Avatar.Root src="/backup.png">
     <Avatar.Fallback>FS</Avatar.Fallback>
@@ -550,7 +662,7 @@ ${indent(avatar, 2)}
 </Avatar.Group>`;
     }
 
-    return `<Avatar.Group>
+    return `<Avatar.Group${groupProps}>
 ${indent(avatar, 2)}
   <Avatar.Root src="/backup.png">
     <Avatar.Fallback>FS</Avatar.Fallback>
@@ -561,6 +673,8 @@ ${indent(avatar, 2)}
   if (scenarioId === "label") {
     const state = scenarios.label.state;
     const props = [
+      state.customRootSlot ? `data-slot="label-custom"` : "",
+      state.propCheck ? `data-prop-check="root"` : "",
       state.withHtmlFor ? `htmlFor="display-label-input"` : "",
       state.disabled ? "disabled" : "",
       state.invalid ? "invalid" : "",
@@ -568,12 +682,15 @@ ${indent(avatar, 2)}
       state.readOnly ? "readOnly" : "",
     ].filter(Boolean);
     const propText = props.length > 0 ? ` ${props.join(" ")}` : "";
+    const controlSource = state.controlType === "atom"
+      ? `<Input.Root id="display-label-input" value={value} onValueChange={setValue} />`
+      : `<input id="display-label-input" value={value} onChange={(event) => setValue(event.target.value)} />`;
 
     if (state.composition === "asChild") {
       return `<Label.Root${propText} asChild>
   <span>Email</span>
 </Label.Root>
-<Input.Root id="display-label-input" />`;
+${controlSource}`;
     }
 
     if (state.composition === "render") {
@@ -581,28 +698,45 @@ ${indent(avatar, 2)}
       return `<Label.Root${renderedProps}
   render={(props) => <span {...props}>Email</span>}
 />
-<Input.Root id="display-label-input" />`;
+${controlSource}`;
     }
 
     return `<Label.Root${propText}>Email</Label.Root>
-<Input.Root id="display-label-input" />`;
+${controlSource}`;
   }
 
   if (scenarioId === "list") {
     const state = scenarios.list.state;
-    const rootOpen = `<List.Root ordered={${state.ordered}}`;
+    const rootProps = sourceProps([
+      state.customRootSlot ? `data-slot="list-custom"` : null,
+      state.propCheck ? `data-prop-check="root"` : null,
+    ]);
+    const itemProps = sourceProps([
+      state.customItemSlot ? `data-slot="list-item-custom"` : null,
+      state.propCheck ? `data-prop-check="item"` : null,
+    ]);
+    const disabledItemProps = sourceProps([
+      state.customItemSlot ? `data-slot="list-item-custom"` : null,
+      state.propCheck ? `data-prop-check="disabled-item"` : null,
+    ]);
+    const reviewItemProps = sourceProps([
+      state.customItemSlot ? `data-slot="list-item-custom"` : null,
+      state.propCheck ? `data-prop-check="review-item"` : null,
+    ]);
+    const rootOpen = `<List.Root ordered={${state.ordered}}${rootProps}`;
     const rootClose = `</List.Root>`;
-    const planItem = getListItemSource(state.itemComposition);
+    const planItem = getListItemSource(state.itemComposition, itemProps);
     const billingItem = state.disabledItem
-      ? `<List.Item disabled>Billing</List.Item>`
-      : `<List.Item>Billing</List.Item>`;
+      ? `<List.Item${disabledItemProps} disabled>Billing</List.Item>`
+      : `<List.Item${disabledItemProps}>Billing</List.Item>`;
+    const reviewItem = `<List.Item${reviewItemProps}>Review</List.Item>`;
 
     if (state.rootComposition === "asChild") {
       return `${rootOpen} asChild>
   <${state.ordered ? "ol" : "ul"}>
 ${indent(planItem, 4)}
     ${billingItem}
-    <List.Item>Review</List.Item>
+    ${reviewItem}
   </${state.ordered ? "ol" : "ul"}>
 ${rootClose}`;
     }
@@ -613,14 +747,14 @@ ${rootClose}`;
 >
 ${indent(planItem, 2)}
   ${billingItem}
-  <List.Item>Review</List.Item>
+  ${reviewItem}
 </List.Root>`;
     }
 
     return `${rootOpen}>
 ${indent(planItem, 2)}
   ${billingItem}
-  <List.Item>Review</List.Item>
+  ${reviewItem}
 ${rootClose}`;
   }
 
@@ -632,7 +766,7 @@ function BadgeScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useBadg
     className: `display-badge display-badge-${scenario.state.tone}`,
     "data-badge-root": "",
     "data-playground-inspect": "",
-    "data-prop-check": "root",
+    ...partProps("root", { customSlot: scenario.state.customRootSlot, propCheck: scenario.state.propCheck }, "badge-custom"),
     onClick: scenario.actions.noteClick,
   };
 
@@ -656,7 +790,7 @@ function DividerScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useDi
     className: `display-divider ${scenario.state.orientation === "vertical" ? "vertical" : ""}`,
     "data-divider-root": "",
     "data-playground-inspect": "",
-    "data-prop-check": "root",
+    ...partProps("root", { customSlot: scenario.state.customRootSlot, propCheck: scenario.state.propCheck }, "divider-custom"),
     decorative: scenario.state.decorative,
     orientation: scenario.state.orientation,
     ref: scenario.actions.markRootRef,
@@ -685,7 +819,7 @@ function AspectRatioScenarioCanvas({ scenario }: { scenario: ReturnType<typeof u
     className: "display-aspect-ratio",
     "data-aspect-ratio-root": "",
     "data-playground-inspect": "",
-    "data-prop-check": "root",
+    ...partProps("root", { customSlot: scenario.state.customRootSlot, propCheck: scenario.state.propCheck }, "aspect-ratio-custom"),
     ratio: getRatioValue(scenario.state.ratio),
   };
 
@@ -719,6 +853,10 @@ function AvatarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useAva
       primary
       rootComposition={scenario.state.rootComposition}
       fallbackText="WD"
+      propCheck={scenario.state.propCheck}
+      customRootSlot={scenario.state.customRootSlot}
+      customImageSlot={scenario.state.customImageSlot}
+      customFallbackSlot={scenario.state.customFallbackSlot}
     />
   );
 
@@ -735,6 +873,10 @@ function AvatarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useAva
       onRootRef={() => undefined}
       rootComposition="default"
       fallbackText="FS"
+      propCheck={scenario.state.propCheck}
+      customRootSlot={false}
+      customImageSlot={false}
+      customFallbackSlot={false}
     />
   );
 
@@ -742,7 +884,7 @@ function AvatarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useAva
     className: "display-avatar-group",
     "data-avatar-group": "",
     "data-playground-inspect": "",
-    "data-prop-check": "group",
+    ...partProps("group", { customSlot: scenario.state.customGroupSlot, propCheck: scenario.state.propCheck }, "avatar-group-custom"),
     ref: scenario.actions.markGroupRef,
   };
 
@@ -773,7 +915,7 @@ function LabelScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useLabe
     className: "display-label",
     "data-label-root": "",
     "data-playground-inspect": "",
-    "data-prop-check": "root",
+    ...partProps("root", { customSlot: scenario.state.customRootSlot, propCheck: scenario.state.propCheck }, "label-custom"),
     disabled: scenario.state.disabled,
     invalid: scenario.state.invalid,
     required: scenario.state.required,
@@ -795,19 +937,43 @@ function LabelScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useLabe
         ) : (
           <Label.Root {...labelProps}>Email</Label.Root>
         )}
-        <Input.Root
-          className="display-input"
-          data-input-root=""
-          data-playground-inspect=""
-          data-prop-check="input"
-          defaultValue="hello@flowstack.dev"
-          disabled={scenario.state.disabled}
-          id="display-label-input"
-          invalid={scenario.state.invalid}
-          readOnly={scenario.state.readOnly}
-          required={scenario.state.required}
-          onFocus={scenario.actions.noteInputFocus}
-        />
+        {scenario.state.controlType === "atom" ? (
+          <Input.Root
+            className="display-input"
+            data-input-root=""
+            data-playground-inspect=""
+            data-prop-check="atom-input"
+            disabled={scenario.state.disabled}
+            id="display-label-input"
+            invalid={scenario.state.invalid}
+            readOnly={scenario.state.readOnly}
+            required={scenario.state.required}
+            onFocus={scenario.actions.noteInputFocus}
+            value={scenario.state.value}
+            onValueChange={(next) => {
+              scenario.actions.setValue(next);
+              scenario.actions.noteValue(next);
+            }}
+          />
+        ) : (
+          <input
+            aria-invalid={scenario.state.invalid || undefined}
+            className="display-input"
+            data-native-input=""
+            data-playground-inspect=""
+            data-prop-check="native-input"
+            disabled={scenario.state.disabled}
+            id="display-label-input"
+            readOnly={scenario.state.readOnly}
+            required={scenario.state.required}
+            onFocus={scenario.actions.noteInputFocus}
+            value={scenario.state.value}
+            onChange={(event) => {
+              scenario.actions.setValue(event.target.value);
+              scenario.actions.noteValue(event.target.value);
+            }}
+          />
+        )}
       </div>
     </div>
   );
@@ -818,7 +984,7 @@ function ListScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useListS
     className: "display-list",
     "data-list-root": "",
     "data-playground-inspect": "",
-    "data-prop-check": "root",
+    ...partProps("root", { customSlot: scenario.state.customRootSlot, propCheck: scenario.state.propCheck }, "list-custom"),
     ordered: scenario.state.ordered,
     ref: scenario.actions.markRootRef,
   };
@@ -829,7 +995,7 @@ function ListScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useListS
       <List.Item
         data-list-disabled-item=""
         data-playground-inspect=""
-        data-prop-check="disabled-item"
+        {...partProps("disabled-item", { customSlot: scenario.state.customItemSlot, propCheck: scenario.state.propCheck }, "list-item-custom")}
         data-value="billing"
         disabled={scenario.state.disabledItem}
         onClick={() => scenario.actions.noteItemClick("billing")}
@@ -839,6 +1005,7 @@ function ListScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useListS
       <List.Item
         data-list-last-item=""
         data-playground-inspect=""
+        {...partProps("review-item", { customSlot: scenario.state.customItemSlot, propCheck: scenario.state.propCheck }, "list-item-custom")}
         data-value="review"
         onClick={() => scenario.actions.noteItemClick("review")}
       >
@@ -866,7 +1033,7 @@ function ListItemExample({ scenario }: { scenario: ReturnType<typeof useListScen
   const props = {
     "data-list-item": "",
     "data-playground-inspect": "",
-    "data-prop-check": "item",
+    ...partProps("item", { customSlot: scenario.state.customItemSlot, propCheck: scenario.state.propCheck }, "list-item-custom"),
     "data-value": "plan",
     ref: scenario.actions.markItemRef,
     onClick: () => scenario.actions.noteItemClick("plan"),
@@ -900,6 +1067,10 @@ function AvatarExample({
   primary = false,
   rootComposition,
   fallbackText,
+  propCheck,
+  customRootSlot,
+  customImageSlot,
+  customFallbackSlot,
 }: {
   altMode: AvatarAltMode;
   delay: boolean;
@@ -913,21 +1084,25 @@ function AvatarExample({
   onRootRef: (node: HTMLElement | null) => void;
   primary?: boolean;
   rootComposition: CompositionMode;
+  propCheck: boolean;
+  customRootSlot: boolean;
+  customImageSlot: boolean;
+  customFallbackSlot: boolean;
 }) {
   const src = getAvatarSrc(imageMode);
   const props = {
     className: "display-avatar",
     "data-avatar-root": primary ? "" : undefined,
     "data-playground-inspect": primary ? "" : undefined,
-    "data-prop-check": primary ? "root" : undefined,
+    ...(primary ? partProps("root", { customSlot: customRootSlot, propCheck }, "avatar-custom") : {}),
     ref: primary ? onRootRef : undefined,
     src,
     onLoadingStatusChange,
   };
   const children = (
     <>
-      <AvatarImageExample altMode={altMode} imageComposition={imageComposition} onRef={onImageRef} primary={primary} src={src} />
-      <AvatarFallbackExample delay={delay} fallbackComposition={fallbackComposition} onRef={onFallbackRef} primary={primary} text={fallbackText} />
+      <AvatarImageExample altMode={altMode} customSlot={customImageSlot} imageComposition={imageComposition} onRef={onImageRef} primary={primary} propCheck={propCheck} src={src} />
+      <AvatarFallbackExample customSlot={customFallbackSlot} delay={delay} fallbackComposition={fallbackComposition} onRef={onFallbackRef} primary={primary} propCheck={propCheck} text={fallbackText} />
     </>
   );
 
@@ -946,15 +1121,19 @@ function AvatarExample({
 
 function AvatarImageExample({
   altMode,
+  customSlot,
   imageComposition,
   onRef,
   primary,
+  propCheck,
   src,
 }: {
   altMode: AvatarAltMode;
+  customSlot: boolean;
   imageComposition: CompositionMode;
   onRef: (node: HTMLElement | null) => void;
   primary: boolean;
+  propCheck: boolean;
   src: string;
 }) {
   const props = {
@@ -962,7 +1141,7 @@ function AvatarImageExample({
     className: "display-avatar-image",
     "data-avatar-image": primary ? "" : undefined,
     "data-playground-inspect": primary ? "" : undefined,
-    "data-prop-check": primary ? "image" : undefined,
+    ...(primary ? partProps("image", { customSlot, propCheck }, "avatar-image-custom") : {}),
     ref: primary ? onRef : undefined,
     src,
   };
@@ -984,16 +1163,20 @@ function AvatarImageExample({
 }
 
 function AvatarFallbackExample({
+  customSlot,
   delay,
   fallbackComposition,
   onRef,
   primary,
+  propCheck,
   text,
 }: {
+  customSlot: boolean;
   delay: boolean;
   fallbackComposition: CompositionMode;
   onRef: (node: HTMLElement | null) => void;
   primary: boolean;
+  propCheck: boolean;
   text: string;
 }) {
   const props = {
@@ -1001,7 +1184,7 @@ function AvatarFallbackExample({
     "data-avatar-fallback": primary ? "" : undefined,
     "data-avatar-fallback-secondary": primary ? undefined : "",
     "data-playground-inspect": "",
-    "data-prop-check": primary ? "fallback" : "fallback-secondary",
+    ...(primary ? partProps("fallback", { customSlot, propCheck }, "avatar-fallback-custom") : {}),
     delayMs: delay ? 600 : 0,
     ref: primary ? onRef : undefined,
   };
@@ -1165,6 +1348,7 @@ function getDisplayPrimitiveSections(
           { label: "Read only", value: bool(scenarios.label.state.readOnly), category: "state" },
           { label: "htmlFor", value: scenarios.label.state.withHtmlFor ? "display-label-input" : "none", category: "behavior" },
           { label: "for", value: label?.getAttribute("for") ?? "none", category: "identity" },
+          { label: "Control", value: scenarios.label.state.controlType, category: "behavior" },
           { label: "Matches input", value: bool(hasNativeLabelBehavior && !!label && !!input && label.getAttribute("for") === input.id), category: "behavior" },
           { label: "Composition", value: scenarios.label.state.composition, category: "composition" },
         ],
@@ -1222,18 +1406,18 @@ function getDisplayPrimitiveSections(
   return [];
 }
 
-function getListItemSource(composition: CompositionMode) {
+function getListItemSource(composition: CompositionMode, props = "") {
   if (composition === "asChild") {
-    return `<List.Item asChild>
+    return `<List.Item${props} asChild>
   <li>Plan setup</li>
 </List.Item>`;
   }
 
   if (composition === "render") {
-    return `<List.Item render={(props) => <li {...props}>Plan setup</li>} />`;
+    return `<List.Item${props} render={(props) => <li {...props}>Plan setup</li>} />`;
   }
 
-  return `<List.Item>Plan setup</List.Item>`;
+  return `<List.Item${props}>Plan setup</List.Item>`;
 }
 
 function indent(source: string, spaces: number) {
@@ -1258,7 +1442,11 @@ function getAvatarAlt(altMode: AvatarAltMode) {
 }
 
 function getAvatarRootSource(state: ReturnType<typeof useAvatarScenario>["state"]) {
-  const rootOpen = `<Avatar.Root src="${getAvatarSourceLabel(state.imageMode)}"`;
+  const rootProps = sourceProps([
+    state.customRootSlot ? `data-slot="avatar-custom"` : null,
+    state.propCheck ? `data-prop-check="root"` : null,
+  ]);
+  const rootOpen = `<Avatar.Root src="${getAvatarSourceLabel(state.imageMode)}"${rootProps}`;
   const image = getAvatarImageSource(state);
   const fallback = getAvatarFallbackSource(state);
 
@@ -1289,34 +1477,47 @@ ${indent(fallback, 2)}
 function getAvatarImageSource(state: ReturnType<typeof useAvatarScenario>["state"]) {
   const alt = getAvatarAlt(state.altMode);
   const src = getAvatarSourceLabel(state.imageMode);
+  const props = sourceProps([
+    state.customImageSlot ? `data-slot="avatar-image-custom"` : null,
+    state.propCheck ? `data-prop-check="image"` : null,
+  ]);
 
   if (state.imageComposition === "asChild") {
-    return `<Avatar.Image src="${src}" alt="${alt}" asChild>
+    return `<Avatar.Image src="${src}" alt="${alt}"${props} asChild>
   <img />
 </Avatar.Image>`;
   }
 
   if (state.imageComposition === "render") {
-    return `<Avatar.Image src="${src}" alt="${alt}" render={(props) => <img {...props} />} />`;
+    return `<Avatar.Image src="${src}" alt="${alt}"${props} render={(props) => <img {...props} />} />`;
   }
 
-  return `<Avatar.Image src="${src}" alt="${alt}" />`;
+  return `<Avatar.Image src="${src}" alt="${alt}"${props} />`;
 }
 
 function getAvatarFallbackSource(state: ReturnType<typeof useAvatarScenario>["state"]) {
   const delay = state.delay ? " delayMs={600}" : "";
+  const props = sourceProps([
+    state.customFallbackSlot ? `data-slot="avatar-fallback-custom"` : null,
+    state.propCheck ? `data-prop-check="fallback"` : null,
+  ]);
 
   if (state.fallbackComposition === "asChild") {
-    return `<Avatar.Fallback${delay} asChild>
+    return `<Avatar.Fallback${delay}${props} asChild>
   <span>WD</span>
 </Avatar.Fallback>`;
   }
 
   if (state.fallbackComposition === "render") {
-    return `<Avatar.Fallback${delay} render={(props) => <span {...props}>WD</span>} />`;
+    return `<Avatar.Fallback${delay}${props} render={(props) => <span {...props}>WD</span>} />`;
   }
 
-  return `<Avatar.Fallback${delay}>WD</Avatar.Fallback>`;
+  return `<Avatar.Fallback${delay}${props}>WD</Avatar.Fallback>`;
+}
+
+function sourceProps(props: Array<string | null | undefined | false>) {
+  const visibleProps = props.filter(Boolean);
+  return visibleProps.length > 0 ? ` ${visibleProps.join(" ")}` : "";
 }
 
 function getDisplayPrimitiveLog(
@@ -1377,3 +1578,4 @@ const dividerOrientationOptions = ["horizontal", "vertical"] as const;
 const aspectRatioOptions = ["16:9", "4:3", "1:1", "invalid"] as const;
 const avatarImageOptions = ["loaded", "broken", "loading"] as const;
 const avatarAltOptions = ["meaningful", "decorative"] as const;
+const labelControlOptions = ["native", "atom"] as const;

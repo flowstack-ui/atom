@@ -6,6 +6,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  type MouseEventHandler,
   type ReactNode,
 } from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
@@ -20,7 +21,7 @@ import {
   type SwipeableItemSide,
 } from "./context.js";
 
-type SwipeableItemActionsNativeProps = NativeDivProps<"children">;
+type SwipeableItemActionsNativeProps = NativeDivProps<"children" | "onClick">;
 
 export interface SwipeableItemActionsProps extends SwipeableItemActionsNativeProps {
   /** Logical side where these actions are revealed. */
@@ -31,6 +32,10 @@ export interface SwipeableItemActionsProps extends SwipeableItemActionsNativePro
   asChild?: boolean;
   /** Action controls. */
   children?: ReactNode;
+  /** Close the item after an action panel click. */
+  closeOnClick?: boolean;
+  /** Consumer click handler. Runs before close-on-click behavior. */
+  onClick?: MouseEventHandler<HTMLElement>;
   /** Data slot identifier. */
   "data-slot"?: string;
 }
@@ -42,6 +47,8 @@ export const SwipeableItemActions = forwardRef<HTMLElement, SwipeableItemActions
       render,
       asChild,
       children,
+      closeOnClick = true,
+      onClick,
       "aria-label": ariaLabel,
       "data-slot": dataSlot = "swipeable-item-actions",
       ...restProps
@@ -53,6 +60,7 @@ export const SwipeableItemActions = forwardRef<HTMLElement, SwipeableItemActions
     const {
       endActionsRef,
       openSide,
+      close,
       setActionSize,
       startActionsRef,
     } = ctx;
@@ -90,9 +98,17 @@ export const SwipeableItemActions = forwardRef<HTMLElement, SwipeableItemActions
       return () => observer.disconnect();
     }, [actionsElement, setActionSize, side]);
 
+    const handleClick = useCallback<MouseEventHandler<HTMLElement>>((event) => {
+      onClick?.(event);
+      if (event.defaultPrevented || !closeOnClick) return;
+
+      close();
+    }, [close, closeOnClick, onClick]);
+
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref: composedRef,
+      onClick: handleClick,
       "data-slot": dataSlot,
       "data-side": side,
       "data-state": state,

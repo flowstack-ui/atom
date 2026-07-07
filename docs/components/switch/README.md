@@ -98,10 +98,10 @@ Root renders `role="switch"` and owns `aria-checked`.
 
 | Key | Description |
 | --- | --- |
-| `Enter` | Toggles checked state through native button activation. |
-| `Space` | Toggles checked state through native button activation. |
+| `Enter` | Toggles checked state. |
+| `Space` | Toggles checked state. |
 
-Provide visible text, `ariaLabel`, or `aria-labelledby`. Read-only switches remain focusable but cannot toggle. Disabled switches use native button disabled behavior.
+Provide visible text, `ariaLabel`, or `aria-labelledby`. Read-only switches remain focusable but cannot toggle. Disabled switches use native button disabled behavior. Non-native `asChild` and `render` switches receive Atom keyboard activation.
 
 ## Changelog
 

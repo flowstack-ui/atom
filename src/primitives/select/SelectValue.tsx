@@ -10,10 +10,11 @@ export interface SelectValueProps extends SelectValueNativeProps {
   placeholder?: ReactNode;
   children?: ReactNode;
   className?: string;
+  "data-slot"?: string;
 }
 
 export const SelectValue = forwardRef<HTMLSpanElement, SelectValueProps>(
-  function SelectValue({ placeholder, children, className, ...restProps }, ref) {
+  function SelectValue({ placeholder, children, className, "data-slot": dataSlot = "select-value", ...restProps }, ref) {
     const ctx = useSelectContext();
     const selectedLabel = ctx.value ? ctx.getLabel(ctx.value) ?? ctx.value : undefined;
 
@@ -21,7 +22,7 @@ export const SelectValue = forwardRef<HTMLSpanElement, SelectValueProps>(
       <span
         {...restProps}
         ref={ref}
-        data-slot="select-value"
+        data-slot={dataSlot}
         data-placeholder={!selectedLabel ? "" : undefined}
         className={className}
       >

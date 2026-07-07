@@ -9,6 +9,7 @@ Text input with popup listbox, filtering helpers, option collection, selection s
 - Controlled and uncontrolled open state.
 - Keyboard navigation with `aria-activedescendant`.
 - Escape closes first, then clears when closed.
+- Selection closes the listbox from keyboard and pointer interactions.
 - Stack-aware Escape dismissal when nested inside parent overlays.
 - Option groups, labels, empty/loading states, portal, and clear control.
 - Hidden input for native form submission.
@@ -61,7 +62,7 @@ Provides combobox state, filtering, and form integration.
 | `open` | `boolean` | - |
 | `defaultOpen` | `boolean` | `false` |
 | `onOpenChange` | `(open: boolean) => void` | - |
-| `openOnFocus` | `boolean` | `false` |
+| `openOnFocus` | `boolean` | `true` |
 | `clearOnSelect` | `boolean` | `false` |
 | `disabled` | `boolean` | `false` |
 | `readOnly` | `boolean` | `false` |
@@ -171,6 +172,9 @@ Selectable option.
 
 Empty-state slot.
 
+When `openOnFocus` is enabled, mounting `Combobox.Empty` allows the popup to
+open on focus even when the filtered option list is empty.
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"combobox-empty"` |
@@ -221,6 +225,11 @@ const options = [
 ## Accessibility
 
 Implements an editable combobox that controls a listbox. Focus stays on the input while `aria-activedescendant` points at the highlighted option.
+
+Selecting an option closes the listbox. When `clearOnSelect` is enabled, the
+input value is cleared after every successful option selection or free-solo
+Enter commit, regardless of whether option selection happened by keyboard or
+pointer.
 
 | Key | Description |
 | --- | --- |

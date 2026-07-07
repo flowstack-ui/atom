@@ -17,6 +17,7 @@ export interface SelectScrollButtonProps extends SelectScrollButtonNativeProps {
   children?: ReactNode;
   direction: "up" | "down";
   className?: string;
+  "data-slot"?: string;
 }
 
 export const SelectScrollButton = forwardRef<HTMLButtonElement, SelectScrollButtonProps>(
@@ -26,6 +27,7 @@ export const SelectScrollButton = forwardRef<HTMLButtonElement, SelectScrollButt
       direction,
       className,
       onClick,
+      "data-slot": dataSlot = `select-scroll-${direction}-button`,
       ...restProps
     },
     ref,
@@ -83,7 +85,7 @@ export const SelectScrollButton = forwardRef<HTMLButtonElement, SelectScrollButt
         type="button"
         aria-hidden="true"
         tabIndex={-1}
-        data-slot={`select-scroll-${direction}-button`}
+        data-slot={dataSlot}
         className={className}
         onClick={composeEventHandlers(onClick, handleClick)}
       >

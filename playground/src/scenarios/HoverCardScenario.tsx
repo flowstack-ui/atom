@@ -4,7 +4,7 @@ import {
   AnatomyPanel,
   type AnatomySection,
 } from "../AnatomyPanel";
-import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, ScenarioEventLog, ToolbarGroup } from "../WorkbenchPrimitives";
+import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup, partProps } from "../WorkbenchPrimitives";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import type {
   HoverCardAlign,
@@ -34,12 +34,14 @@ export function HoverCardScenarioCanvas({
         disabled={state.disabled}
       >
         <HoverCardTriggerExample
+          customSlot={state.customTriggerSlot}
           mode={state.triggerComposition}
           onBlur={actions.handleTriggerBlur}
           onFocus={actions.handleTriggerFocus}
           onKeyDown={actions.handleTriggerKeyDown}
           onMouseEnter={actions.handleTriggerMouseEnter}
           onMouseLeave={actions.handleTriggerMouseLeave}
+          propCheck={state.propCheck}
         />
         {state.controlled ? (
           <div className="controlled-actions">
@@ -65,7 +67,7 @@ export function HoverCardScenarioCanvas({
             className="atom-popover-content"
             data-hover-card-content=""
             data-playground-inspect=""
-            data-prop-check="content"
+            {...partProps("content", { customSlot: state.customContentSlot, propCheck: state.propCheck }, "hover-card-content-custom")}
             side={state.side}
             align={state.align}
             sideOffset={state.sideOffset}
@@ -78,7 +80,7 @@ export function HoverCardScenarioCanvas({
             <HoverCard.Arrow
               className="atom-popover-arrow"
               data-hover-card-arrow=""
-              data-prop-check="arrow"
+              {...partProps("arrow", { customSlot: state.customArrowSlot, propCheck: state.propCheck }, "hover-card-arrow-custom")}
             />
           </HoverCard.Content>
         </HoverCard.Portal>
@@ -195,6 +197,15 @@ export function HoverCardScenarioToolbar({
       <ToolbarGroup title="Composition" value="composition">
         <MenuRadioControl label="Trigger" options={compositionOptions} value={state.triggerComposition} onChange={actions.setTriggerComposition} />
       </ToolbarGroup>
+      <PropsToolbarGroup
+        propCheck={state.propCheck}
+        customSlots={[
+          { checked: state.customTriggerSlot, label: "Trigger Slot", value: "trigger-slot", onChange: actions.setCustomTriggerSlot },
+          { checked: state.customContentSlot, label: "Content Slot", value: "content-slot", onChange: actions.setCustomContentSlot },
+          { checked: state.customArrowSlot, label: "Arrow Slot", value: "arrow-slot", onChange: actions.setCustomArrowSlot },
+        ]}
+        onPropCheckChange={actions.setPropCheck}
+      />
     </ControlToolbar>
   );
 }
@@ -217,38 +228,43 @@ export function getHoverCardSource(state: HoverCardScenarioState) {
   <HoverCard.Portal>
     <HoverCard.Content
       ${state.useAriaLabel ? `ariaLabel="Contributor preview"` : ""}
+      ${sourceProps("content", state.customContentSlot, state.propCheck, "hover-card-content-custom")}
       side="${state.side}"
       align="${state.align}"
       sideOffset={${state.sideOffset}}
     >
       <h2>Ada Lovelace</h2>
       <p>Mathematician, writer, and early computing collaborator.</p>
-      <HoverCard.Arrow />
+      <HoverCard.Arrow${sourceInlineProps("arrow", state.customArrowSlot, state.propCheck, "hover-card-arrow-custom")} />
     </HoverCard.Content>
   </HoverCard.Portal>
 </HoverCard.Root>`;
 }
 
 function HoverCardTriggerExample({
+  customSlot,
   mode,
   onBlur,
   onFocus,
   onKeyDown,
   onMouseEnter,
   onMouseLeave,
+  propCheck,
 }: {
+  customSlot: boolean;
   mode: HoverCardCompositionMode;
   onBlur: HoverCardScenarioActions["handleTriggerBlur"];
   onFocus: HoverCardScenarioActions["handleTriggerFocus"];
   onKeyDown: HoverCardScenarioActions["handleTriggerKeyDown"];
   onMouseEnter: HoverCardScenarioActions["handleTriggerMouseEnter"];
   onMouseLeave: HoverCardScenarioActions["handleTriggerMouseLeave"];
+  propCheck: boolean;
 }) {
   const props = {
     className: "atom-button",
     "data-hover-card-trigger": "",
     "data-playground-inspect": "",
-    "data-prop-check": "trigger",
+    ...partProps("trigger", { customSlot, propCheck }, "hover-card-trigger-custom"),
     tabIndex: 0,
     onBlur,
     onFocus,
@@ -277,19 +293,33 @@ function HoverCardTriggerExample({
 }
 
 function getHoverCardTriggerSource(state: HoverCardScenarioState) {
+  const props = sourceInlineProps("trigger", state.customTriggerSlot, state.propCheck, "hover-card-trigger-custom");
+
   if (state.triggerComposition === "asChild") {
-    return `<HoverCard.Trigger asChild>
+    return `<HoverCard.Trigger asChild${props}>
     <span>Preview contributor</span>
   </HoverCard.Trigger>`;
   }
 
   if (state.triggerComposition === "render") {
-    return `<HoverCard.Trigger render="section">
+    return `<HoverCard.Trigger render="section"${props}>
     Preview contributor
   </HoverCard.Trigger>`;
   }
 
-  return `<HoverCard.Trigger>Preview contributor</HoverCard.Trigger>`;
+  return `<HoverCard.Trigger${props}>Preview contributor</HoverCard.Trigger>`;
+}
+
+function sourceProps(part: string, customSlot: boolean, propCheck: boolean, slot: string) {
+  return [
+    customSlot ? `data-slot="${slot}"` : null,
+    propCheck ? `data-prop-check="${part}"` : null,
+  ].filter(Boolean).join("\n      ");
+}
+
+function sourceInlineProps(part: string, customSlot: boolean, propCheck: boolean, slot: string) {
+  const props = sourceProps(part, customSlot, propCheck, slot).split("\n      ").join(" ");
+  return props ? ` ${props}` : "";
 }
 
 const compositionOptions = [

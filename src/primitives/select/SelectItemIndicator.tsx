@@ -10,6 +10,7 @@ export interface SelectItemIndicatorProps extends SelectItemIndicatorNativeProps
   children?: ReactNode;
   forceMount?: boolean;
   className?: string;
+  "data-slot"?: string;
 }
 
 export const SelectItemIndicator = forwardRef<HTMLSpanElement, SelectItemIndicatorProps>(
@@ -18,6 +19,7 @@ export const SelectItemIndicator = forwardRef<HTMLSpanElement, SelectItemIndicat
       children,
       forceMount = false,
       className,
+      "data-slot": dataSlot = "select-item-indicator",
       ...restProps
     },
     ref,
@@ -31,7 +33,7 @@ export const SelectItemIndicator = forwardRef<HTMLSpanElement, SelectItemIndicat
         {...restProps}
         ref={ref}
         aria-hidden="true"
-        data-slot="select-item-indicator"
+        data-slot={dataSlot}
         data-state={ctx.selected ? "checked" : "unchecked"}
         className={className}
       >

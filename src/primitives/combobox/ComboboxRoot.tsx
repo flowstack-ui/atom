@@ -96,6 +96,7 @@ export function ComboboxRoot({
   });
 
   const [highlightedValue, setHighlightedValue] = useState<string | null>(null);
+  const [emptyMounted, setEmptyMounted] = useState(false);
 
   const idPrefix = useId();
   const comboboxId = `combobox-${idPrefix}`;
@@ -104,6 +105,7 @@ export function ComboboxRoot({
 
   const inputRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const suppressInputFocusOpenRef = useRef(false);
   const {
     version: registryVersion,
     registerItem: registerCollectionItem,
@@ -173,6 +175,24 @@ export function ComboboxRoot({
     [options],
   );
 
+  const registerEmpty = useCallback(() => {
+    setEmptyMounted(true);
+  }, []);
+
+  const unregisterEmpty = useCallback(() => {
+    setEmptyMounted(false);
+  }, []);
+
+  const suppressNextInputFocusOpen = useCallback(() => {
+    suppressInputFocusOpenRef.current = true;
+  }, []);
+
+  const consumeInputFocusOpenSuppression = useCallback(() => {
+    if (!suppressInputFocusOpenRef.current) return false;
+    suppressInputFocusOpenRef.current = false;
+    return true;
+  }, []);
+
   const selectOption = useCallback(
     (option: ComboboxOption) => {
       if (disabled || readOnly || option.disabled) return;
@@ -221,12 +241,18 @@ export function ComboboxRoot({
       getEnabledItemValues,
       getOption,
       selectOption,
+      registerEmpty,
+      unregisterEmpty,
+      emptyMounted,
+      suppressNextInputFocusOpen,
+      consumeInputFocusOpenSuppression,
       clearSelection,
       disabled,
       readOnly,
       required,
       invalid,
       freeSolo,
+      clearOnSelect,
       openOnFocus,
       loading,
       noOptionsText,
@@ -235,9 +261,12 @@ export function ComboboxRoot({
     [
       comboboxId,
       clearSelection,
+      clearOnSelect,
       disabled,
+      emptyMounted,
       filteredOptions,
       freeSolo,
+      consumeInputFocusOpenSuppression,
       getEnabledItemValues,
       getItemElement,
       getItemId,
@@ -258,12 +287,15 @@ export function ComboboxRoot({
       openOnFocus,
       options,
       readOnly,
+      registerEmpty,
       registerItem,
       registryVersion,
       required,
       selectOption,
       setInputValue,
       setValue,
+      suppressNextInputFocusOpen,
+      unregisterEmpty,
       unregisterItem,
       value,
     ],

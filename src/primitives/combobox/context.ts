@@ -39,12 +39,18 @@ export interface ComboboxContextValue {
   getEnabledItemValues: () => string[];
   getOption: (value: string) => ComboboxOption | undefined;
   selectOption: (option: ComboboxOption) => void;
+  registerEmpty: () => void;
+  unregisterEmpty: () => void;
+  emptyMounted: boolean;
+  suppressNextInputFocusOpen: () => void;
+  consumeInputFocusOpenSuppression: () => boolean;
   clearSelection: () => void;
   disabled: boolean;
   readOnly: boolean;
   required: boolean;
   invalid: boolean;
   freeSolo: boolean;
+  clearOnSelect: boolean;
   openOnFocus: boolean;
   loading: boolean;
   noOptionsText: string;

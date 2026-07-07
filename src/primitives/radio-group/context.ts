@@ -22,11 +22,11 @@ export interface RadioGroupContextValue {
   /** Arrow-key wrapping. */
   loop: boolean;
   /** Register a radio element for roving tabindex. */
-  registerRadio: (value: string, element: HTMLButtonElement) => void;
+  registerRadio: (value: string, element: HTMLElement) => void;
   /** Unregister a radio element. */
   unregisterRadio: (value: string) => void;
   /** Get a registered radio element by value. */
-  getRadioElement: (value: string) => HTMLButtonElement | null;
+  getRadioElement: (value: string) => HTMLElement | null;
   /** Get registered radio values in DOM order. */
   getRadioValues: () => string[];
 }

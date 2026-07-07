@@ -7,6 +7,7 @@ Headless single-selection radio group with roving focus.
 - Manages one selected value.
 - Can be controlled or uncontrolled.
 - Supports horizontal and vertical keyboard navigation.
+- Mirrors horizontal arrow-key navigation in RTL when wrapped in `Direction.Provider`.
 - Supports optional looping.
 - Renders hidden native radio inputs for form submission when named.
 - Keeps only the selected or first enabled item in the tab order.
@@ -22,8 +23,8 @@ import { RadioGroup } from "@flowstack-ui/atom";
 ```tsx
 export default () => (
   <RadioGroup.Root>
-    <RadioGroup.Item value="one" />
-    <RadioGroup.Item value="two" />
+    <RadioGroup.Radio value="one" />
+    <RadioGroup.Radio value="two" />
   </RadioGroup.Root>
 );
 ```
@@ -86,8 +87,8 @@ import { RadioGroup } from "@flowstack-ui/atom";
 
 export default () => (
   <RadioGroup.Root orientation="horizontal" defaultValue="email">
-    <RadioGroup.Item value="email">Email</RadioGroup.Item>
-    <RadioGroup.Item value="phone">Phone</RadioGroup.Item>
+    <RadioGroup.Radio value="email">Email</RadioGroup.Radio>
+    <RadioGroup.Radio value="phone">Phone</RadioGroup.Radio>
   </RadioGroup.Root>
 );
 ```
@@ -97,6 +98,8 @@ export default () => (
 - Root renders `role="radiogroup"`.
 - Items render `role="radio"` and own `aria-checked`.
 - Arrow keys move focus and selection according to orientation.
+- Horizontal arrow keys mirror in RTL when a parent `Direction.Provider`
+  supplies `dir="rtl"`.
 - Home and End move to the first and last enabled item.
 - Provide a group name with visible text plus `aria-labelledby`, or use
   `ariaLabel`.

@@ -6,6 +6,7 @@ import {
   type PointerEvent,
   type RefObject,
 } from "react";
+import type { DirectionValue } from "../direction/index.js";
 import type { SliderOrientation, SliderThumbBehaviorProps } from "./SliderRoot.js";
 
 export interface SliderRangeState {
@@ -28,6 +29,7 @@ export interface SliderContextValue {
   max: number;
   step: number;
   orientation: SliderOrientation;
+  dir: DirectionValue;
   disabled: boolean;
   trackRef: RefObject<HTMLDivElement | null>;
   valueToPercent: (value: number) => number;

@@ -3,6 +3,7 @@
 import {
   forwardRef,
   type CSSProperties,
+  type KeyboardEventHandler,
   type MouseEventHandler,
   type ReactNode,
   useMemo,
@@ -96,6 +97,7 @@ export const SwitchRoot = forwardRef<HTMLButtonElement, SwitchRootProps>(
       className,
       "data-slot": dataSlot = "switch",
       onClick,
+      onKeyDown,
       ...restProps
     },
     ref,
@@ -107,6 +109,14 @@ export const SwitchRoot = forwardRef<HTMLButtonElement, SwitchRootProps>(
     });
 
     const handleClick: MouseEventHandler<HTMLButtonElement> = () => {
+      if (disabled || readOnly) return;
+      setIsChecked((currentChecked) => !currentChecked);
+    };
+
+    const handleKeyDown: KeyboardEventHandler<HTMLElement> = (event) => {
+      if (event.currentTarget instanceof HTMLButtonElement) return;
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
       if (disabled || readOnly) return;
       setIsChecked((currentChecked) => !currentChecked);
     };
@@ -139,6 +149,7 @@ export const SwitchRoot = forwardRef<HTMLButtonElement, SwitchRootProps>(
       "data-state": isChecked ? "checked" : "unchecked",
       "data-slot": dataSlot,
       onClick: composeEventHandlers(onClick, handleClick),
+      onKeyDown: composeEventHandlers(onKeyDown, handleKeyDown),
       className,
     };
 

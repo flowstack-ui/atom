@@ -52,6 +52,22 @@ test("RatingRoot renders slider semantics and fractional item fill", () => {
   assert.equal(Rating.Item, RatingItem);
 });
 
+test("RatingRoot resolves direction for mirrored keyboard and pointer behavior", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Rating.Root,
+      {
+        value: 2,
+        dir: "rtl",
+        "aria-label": "Rating",
+      },
+      React.createElement(Rating.Item, { value: 1 }, "★"),
+    ),
+  );
+
+  assert.match(html, /dir="rtl"/);
+});
+
 test("RatingRoot exposes disabled readonly invalid and required state", () => {
   const html = renderToStaticMarkup(
     React.createElement(
@@ -103,14 +119,29 @@ test("Rating source keeps pointer capture and clear behavior stable", async () =
   assert.match(rootSource, /step \* Math\.ceil\(\(range\.max - range\.min\) \/ 2 \/ step\)/);
   assert.match(itemSource, /setPointerCapture\?\.\(event\.pointerId\)/);
   assert.match(itemSource, /releasePointerCapture\?\.\(event\.pointerId\)/);
-  assert.match(itemSource, /setValue\(value\)/);
+  assert.match(rootSource, /useDirection/);
+  assert.match(rootSource, /dir === "rtl" \? -step : step/);
+  assert.match(itemSource, /snapRatingPointerValue/);
+  assert.match(itemSource, /const pointerValue = getPointerValue\(event\)/);
+  assert.match(itemSource, /setValue\(pointerValue\)/);
+  assert.match(itemSource, /interaction\.pointerValue === interaction\.initialValue/);
+  assert.match(itemSource, /rect\.right - event\.clientX/);
   assert.match(itemSource, /interaction\.initialValue > min/);
   assert.match(itemSource, /value === interaction\.initialValue/);
   assert.match(itemSource, /setValue\(min\)/);
-  assert.doesNotMatch(itemSource, /snappedPointerValue/);
   assert.doesNotMatch(itemSource, /\[context, /);
   assert.match(itemSource, /onPointerCancel: composeEventHandlers/);
   assert.doesNotMatch(indexSource, /^"use client";/);
+});
+
+test("Rating helpers snap pointer values to the touched segment", async () => {
+  const utilsSource = await readFile(
+    new URL("src/primitives/rating/utils.ts", packageRoot),
+    "utf8",
+  );
+
+  assert.match(utilsSource, /export function snapRatingPointerValue/);
+  assert.match(utilsSource, /Math\.ceil\(offset \/ safeStep\)/);
 });
 
 test("Rating helpers report item fill states", () => {

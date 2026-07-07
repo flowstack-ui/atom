@@ -1,5 +1,7 @@
 import {
   assert,
+  packageRoot,
+  readFile,
   test,
   React,
   renderToStaticMarkup,
@@ -257,4 +259,14 @@ test("SwitchRoot asChild merges behavior without replacing child content", () =>
   assert.match(html, /data-state="unchecked"/);
   assert.match(html, /class="child-class root-class"/);
   assert.match(html, />Power<\/span>$/);
+});
+
+test("SwitchRoot source keeps keyboard activation for non-native renders", async () => {
+  const source = await readFile(new URL("src/primitives/switch/SwitchRoot.tsx", packageRoot), "utf8");
+
+  assert.match(source, /handleKeyDown/);
+  assert.match(source, /event\.currentTarget instanceof HTMLButtonElement/);
+  assert.match(source, /event\.key !== "Enter" && event\.key !== " "/);
+  assert.match(source, /event\.preventDefault\(\)/);
+  assert.match(source, /onKeyDown: composeEventHandlers\(onKeyDown, handleKeyDown\)/);
 });

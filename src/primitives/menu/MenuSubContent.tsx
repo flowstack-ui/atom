@@ -44,6 +44,7 @@ export interface MenuSubContentProps extends MenuSubContentNativeProps {
   loop?: boolean;
   className?: string;
   ariaLabel?: string;
+  "data-slot"?: string;
 }
 
 export const MenuSubContent = forwardRef<HTMLDivElement, MenuSubContentProps>(
@@ -56,6 +57,7 @@ function MenuSubContent(
     ariaLabel,
     onKeyDown,
     style,
+    "data-slot": dataSlot = "menu-sub-content",
     ...restProps
   },
   ref,
@@ -381,7 +383,8 @@ function MenuSubContent(
           aria-label={ariaLabel}
           aria-labelledby={!ariaLabel ? subTriggerId : undefined}
           tabIndex={-1}
-          data-slot="menu-sub-content"
+          data-menu-sub-content=""
+          data-slot={dataSlot}
           data-state={isOpen ? "open" : "closed"}
           data-side={placement.split("-")[0]}
           {...(isPositioned ? { "data-positioned": "" } : {})}
@@ -400,5 +403,5 @@ function MenuSubContent(
 });
 
 function isMenuSubContent(target: Node): boolean {
-  return target instanceof Element && target.closest('[data-slot="menu-sub-content"]') !== null;
+  return target instanceof Element && target.closest("[data-menu-sub-content]") !== null;
 }

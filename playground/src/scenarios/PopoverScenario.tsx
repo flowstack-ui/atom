@@ -4,7 +4,7 @@ import {
   AnatomyPanel,
   type AnatomySection,
 } from "../AnatomyPanel";
-import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, ScenarioEventLog, ToolbarGroup } from "../WorkbenchPrimitives";
+import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup, partProps } from "../WorkbenchPrimitives";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import type {
   PopoverAlign,
@@ -36,12 +36,18 @@ export function PopoverScenarioCanvas({
         disabled={state.disabled}
       >
         {state.useAnchor ? (
-          <PopoverAnchorExample mode={state.anchorComposition} />
+          <PopoverAnchorExample
+            customSlot={state.customAnchorSlot}
+            mode={state.anchorComposition}
+            propCheck={state.propCheck}
+          />
         ) : null}
         <PopoverTriggerExample
+          customSlot={state.customTriggerSlot}
           mode={state.triggerComposition}
           onClick={actions.handleTriggerClick}
           onKeyDown={actions.handleTriggerKeyDown}
+          propCheck={state.propCheck}
         />
         {state.controlled ? (
           <div className="controlled-actions">
@@ -67,7 +73,7 @@ export function PopoverScenarioCanvas({
             className="atom-popover-content"
             data-popover-content=""
             data-playground-inspect=""
-            data-prop-check="content"
+            {...partProps("content", { customSlot: state.customContentSlot, propCheck: state.propCheck }, "popover-content-custom")}
             side={state.side}
             align={state.align}
             sideOffset={state.sideOffset}
@@ -83,7 +89,9 @@ export function PopoverScenarioCanvas({
               </Button.Root>
               <PopoverCloseExample
                 mode={state.closeComposition}
+                customSlot={state.customCloseSlot}
                 onClick={actions.handleCloseClick}
+                propCheck={state.propCheck}
               >
                 Close
               </PopoverCloseExample>
@@ -91,7 +99,7 @@ export function PopoverScenarioCanvas({
             <Popover.Arrow
               className="atom-popover-arrow"
               data-popover-arrow=""
-              data-prop-check="arrow"
+              {...partProps("arrow", { customSlot: state.customArrowSlot, propCheck: state.propCheck }, "popover-arrow-custom")}
             />
           </Popover.Content>
         </Popover.Portal>
@@ -253,6 +261,17 @@ export function PopoverScenarioToolbar({
           <MenuCheckboxControl checked={state.blockCloseEvent} label="Block close event" value="block-close-event" onChange={actions.setBlockCloseEvent} />
         </MenuSection>
       </ToolbarGroup>
+      <PropsToolbarGroup
+        propCheck={state.propCheck}
+        customSlots={[
+          { checked: state.customAnchorSlot, label: "Anchor Slot", value: "anchor-slot", onChange: actions.setCustomAnchorSlot },
+          { checked: state.customTriggerSlot, label: "Trigger Slot", value: "trigger-slot", onChange: actions.setCustomTriggerSlot },
+          { checked: state.customContentSlot, label: "Content Slot", value: "content-slot", onChange: actions.setCustomContentSlot },
+          { checked: state.customArrowSlot, label: "Arrow Slot", value: "arrow-slot", onChange: actions.setCustomArrowSlot },
+          { checked: state.customCloseSlot, label: "Close Slot", value: "close-slot", onChange: actions.setCustomCloseSlot },
+        ]}
+        onPropCheckChange={actions.setPropCheck}
+      />
     </ControlToolbar>
   );
 }
@@ -281,6 +300,7 @@ export function getPopoverSource(state: PopoverScenarioState) {
   <Popover.Portal>
     <Popover.Content
       ${state.useAriaLabel ? `ariaLabel="Project quick actions"` : ""}
+      ${sourceProps("content", state.customContentSlot, state.propCheck, "popover-content-custom")}
       side="${state.side}"
       align="${state.align}"
       sideOffset={${state.sideOffset}}
@@ -288,26 +308,30 @@ export function getPopoverSource(state: PopoverScenarioState) {
       <h2>Quick actions</h2>
       <p>Change placement, anchor behavior, modal focus, and dismiss rules.</p>
       ${getPopoverCloseSource(state)}
-      <Popover.Arrow />
+      <Popover.Arrow${sourceInlineProps("arrow", state.customArrowSlot, state.propCheck, "popover-arrow-custom")} />
     </Popover.Content>
   </Popover.Portal>
 </Popover.Root>`;
 }
 
 function PopoverTriggerExample({
+  customSlot,
   mode,
   onClick,
   onKeyDown,
+  propCheck,
 }: {
+  customSlot: boolean;
   mode: PopoverCompositionMode;
   onClick: PopoverScenarioActions["handleTriggerClick"];
   onKeyDown: PopoverScenarioActions["handleTriggerKeyDown"];
+  propCheck: boolean;
 }) {
   const props = {
     className: "atom-button",
     "data-popover-trigger": "",
     "data-playground-inspect": "",
-    "data-prop-check": "trigger",
+    ...partProps("trigger", { customSlot, propCheck }, "popover-trigger-custom"),
     onClick,
     onKeyDown,
   };
@@ -331,12 +355,20 @@ function PopoverTriggerExample({
   return <Popover.Trigger {...props}>Open popover</Popover.Trigger>;
 }
 
-function PopoverAnchorExample({ mode }: { mode: PopoverCompositionMode }) {
+function PopoverAnchorExample({
+  customSlot,
+  mode,
+  propCheck,
+}: {
+  customSlot: boolean;
+  mode: PopoverCompositionMode;
+  propCheck: boolean;
+}) {
   const props = {
     className: "popover-anchor-box",
     "data-popover-anchor": "",
     "data-playground-inspect": "",
-    "data-prop-check": "anchor",
+    ...partProps("anchor", { customSlot, propCheck }, "popover-anchor-custom"),
   };
 
   if (mode === "asChild") {
@@ -360,18 +392,22 @@ function PopoverAnchorExample({ mode }: { mode: PopoverCompositionMode }) {
 
 function PopoverCloseExample({
   children,
+  customSlot,
   mode,
   onClick,
+  propCheck,
 }: {
   children: ReactNode;
+  customSlot: boolean;
   mode: PopoverCompositionMode;
   onClick: PopoverScenarioActions["handleCloseClick"];
+  propCheck: boolean;
 }) {
   const props = {
     className: "atom-button",
     "data-popover-close": "",
     "data-playground-inspect": "",
-    "data-prop-check": "close",
+    ...partProps("close", { customSlot, propCheck }, "popover-close-custom"),
     onClick,
   };
 
@@ -395,51 +431,69 @@ function PopoverCloseExample({
 }
 
 function getPopoverTriggerSource(state: PopoverScenarioState) {
+  const props = sourceInlineProps("trigger", state.customTriggerSlot, state.propCheck, "popover-trigger-custom");
+
   if (state.triggerComposition === "asChild") {
-    return `<Popover.Trigger asChild>
+    return `<Popover.Trigger asChild${props}>
     <span>Open popover</span>
   </Popover.Trigger>`;
   }
 
   if (state.triggerComposition === "render") {
-    return `<Popover.Trigger render={<section />}>
+    return `<Popover.Trigger render={<section />}${props}>
     Open popover
   </Popover.Trigger>`;
   }
 
-  return `<Popover.Trigger>Open popover</Popover.Trigger>`;
+  return `<Popover.Trigger${props}>Open popover</Popover.Trigger>`;
 }
 
 function getPopoverAnchorSource(state: PopoverScenarioState) {
+  const props = sourceInlineProps("anchor", state.customAnchorSlot, state.propCheck, "popover-anchor-custom");
+
   if (state.anchorComposition === "asChild") {
-    return `<Popover.Anchor asChild>
+    return `<Popover.Anchor asChild${props}>
     <span>Anchor point</span>
   </Popover.Anchor>`;
   }
 
   if (state.anchorComposition === "render") {
-    return `<Popover.Anchor render={<section />}>
+    return `<Popover.Anchor render={<section />}${props}>
     Anchor point
   </Popover.Anchor>`;
   }
 
-  return `<Popover.Anchor>Anchor point</Popover.Anchor>`;
+  return `<Popover.Anchor${props}>Anchor point</Popover.Anchor>`;
 }
 
 function getPopoverCloseSource(state: PopoverScenarioState) {
+  const props = sourceInlineProps("close", state.customCloseSlot, state.propCheck, "popover-close-custom");
+
   if (state.closeComposition === "asChild") {
-    return `<Popover.Close asChild>
+    return `<Popover.Close asChild${props}>
         <span>Close</span>
       </Popover.Close>`;
   }
 
   if (state.closeComposition === "render") {
-    return `<Popover.Close render={<section />}>
+    return `<Popover.Close render={<section />}${props}>
         Close
       </Popover.Close>`;
   }
 
-  return `<Popover.Close>Close</Popover.Close>`;
+  return `<Popover.Close${props}>Close</Popover.Close>`;
+}
+
+function sourceProps(part: string, customSlot: boolean, propCheck: boolean, slot: string) {
+  return [
+    customSlot ? `data-slot="${slot}"` : null,
+    propCheck ? `data-prop-check="${part}"` : null,
+  ].filter(Boolean).join("\n      ");
+}
+
+function sourceInlineProps(part: string, customSlot: boolean, propCheck: boolean, slot: string) {
+  const props = sourceProps(part, customSlot, propCheck, slot).split("\n      ").join(" ");
+  return props ? ` ${props}` : "";
 }
 
 const compositionOptions = [

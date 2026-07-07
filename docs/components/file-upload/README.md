@@ -71,7 +71,7 @@ Provides file state, validation, and Field integration.
 | --- | --- |
 | `[data-slot]` | `"file-upload"` |
 | `[data-state]` | `"filled" | "empty"` |
-| `[data-drag]` | `"idle" | "over" | "reject"` |
+| `[data-drag]` | `"idle" | "accept" | "reject"` |
 | `[data-filled]` | Present when files are selected |
 | `[data-rejected]` | Present when files were rejected |
 | `[data-disabled]` | Present when disabled |
@@ -82,6 +82,10 @@ Provides file state, validation, and Field integration.
 ### HiddenInput
 
 Native `input[type="file"]` connected to Root state.
+
+`HiddenInput` gets native file input attributes from `Root` and Field context.
+That includes `id`, `name`, `form`, `accept`, `multiple`, `disabled`,
+`required`, `aria-describedby`, and `aria-invalid`.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -116,7 +120,7 @@ Drop target for files.
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"file-upload-dropzone"` |
-| `[data-drag]` | `"idle" | "over" | "reject"` |
+| `[data-drag]` | `"idle" | "accept" | "reject"` |
 | `[data-disabled]` | Present when disabled |
 | `[data-readonly]` | Present when read-only |
 

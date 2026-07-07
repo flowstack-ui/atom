@@ -22,6 +22,7 @@ test("RadioGroupRoot renders WAI-ARIA radiogroup attributes", () => {
       RadioGroupRoot,
       {
         value: "email",
+        disabled: true,
         required: true,
         invalid: true,
         orientation: "horizontal",
@@ -38,6 +39,7 @@ test("RadioGroupRoot renders WAI-ARIA radiogroup attributes", () => {
   assert.match(html, /^<div/);
   assert.match(html, /role="radiogroup"/);
   assert.match(html, /aria-label="Contact method"/);
+  assert.match(html, /aria-disabled="true"/);
   assert.match(html, /aria-required="true"/);
   assert.match(html, /aria-invalid="true"/);
   assert.match(html, /aria-describedby="contact-help"/);
@@ -57,6 +59,8 @@ test("RadioGroupRoot restricts arrow-key navigation by orientation", () => {
 
   assert.equal(getRadioGroupNavigationDirection("horizontal", "ArrowRight"), 1);
   assert.equal(getRadioGroupNavigationDirection("horizontal", "ArrowLeft"), -1);
+  assert.equal(getRadioGroupNavigationDirection("horizontal", "ArrowRight", "rtl"), -1);
+  assert.equal(getRadioGroupNavigationDirection("horizontal", "ArrowLeft", "rtl"), 1);
   assert.equal(getRadioGroupNavigationDirection("horizontal", "ArrowDown"), null);
   assert.equal(getRadioGroupNavigationDirection("horizontal", "ArrowUp"), null);
 });
@@ -170,13 +174,37 @@ test("RadioRoot asChild merges behavior inside group", () => {
   assert.match(html, />SMS<\/span>/);
 });
 
+test("RadioRoot asChild exposes disabled state on non-native elements", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      RadioGroupRoot,
+      { defaultValue: "email", ariaLabel: "Contact method" },
+      React.createElement(
+        RadioRoot,
+        { asChild: true, value: "email" },
+        React.createElement("span", null, "Email"),
+      ),
+      React.createElement(
+        RadioRoot,
+        { asChild: true, value: "sms", disabled: true },
+        React.createElement("span", null, "SMS"),
+      ),
+    ),
+  );
+
+  assert.match(html, /role="radio"/);
+  assert.match(html, /aria-disabled="true"/);
+  assert.match(html, /data-disabled=""/);
+  assert.match(html, /data-value="sms"/);
+});
+
 test("RadioGroupRoot invalidates consumers when radios register", async () => {
   const source = await readFile(
     new URL("src/primitives/radio-group/RadioGroupRoot.tsx", packageRoot),
     "utf8",
   );
 
-  assert.match(source, /useCollection<string, HTMLButtonElement>\(\)/);
+  assert.match(source, /useCollection<string, HTMLElement>\(\)/);
   assert.match(source, /version: registryVersion/);
   assert.match(source, /registryVersion/);
 });

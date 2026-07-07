@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
+import { useDirection, type DirectionValue } from "../direction/index.js";
 import {
   clampSliderValue,
   getClosestThumbIndex,
@@ -48,6 +49,8 @@ export interface SliderRootProps extends SliderRootNativeProps {
   disabled?: boolean;
   /** Slider orientation. */
   orientation?: SliderOrientation;
+  /** Text direction used for horizontal pointer and keyboard behavior. */
+  dir?: DirectionValue;
   /** HTML name attribute for hidden inputs. */
   name?: string;
   /** Associates hidden inputs with a form by ID. */
@@ -105,6 +108,7 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
       minStepsBetweenThumbs,
       disabled: disabledProp,
       orientation: orientationProp,
+      dir: dirProp,
       name,
       form,
       ariaLabel,
@@ -120,6 +124,8 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
     const largeStep = largeStepProp ?? step * 10;
     const minStepsBetween = minStepsBetweenThumbs ?? 0;
     const orientation = orientationProp ?? "horizontal";
+    const contextDir = useDirection();
+    const dir = dirProp ?? contextDir;
     const isHorizontal = orientation === "horizontal";
     const disabled = disabledProp ?? false;
     const isControlled = value !== undefined;
@@ -177,14 +183,16 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
       const rect = track.getBoundingClientRect();
       const percent = isHorizontal
         ? rect.width > 0
-          ? ((clientX - rect.left) / rect.width) * 100
+          ? (dir === "rtl"
+              ? ((rect.right - clientX) / rect.width) * 100
+              : ((clientX - rect.left) / rect.width) * 100)
           : 0
         : rect.height > 0
           ? ((rect.bottom - clientY) / rect.height) * 100
           : 0;
 
       return percentToValue(Math.max(0, Math.min(100, percent)), min, max, step);
-    }, [isHorizontal, max, min, step]);
+    }, [dir, isHorizontal, max, min, step]);
 
     const handleTrackPointerDown = useCallback((event: PointerEvent) => {
       if (disabled) return;
@@ -235,10 +243,14 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
 
       switch (event.key) {
         case "ArrowRight":
+          newValue += isHorizontal && dir === "rtl" ? -step : step;
+          break;
+        case "ArrowLeft":
+          newValue += isHorizontal && dir === "rtl" ? step : -step;
+          break;
         case "ArrowUp":
           newValue += step;
           break;
-        case "ArrowLeft":
         case "ArrowDown":
           newValue -= step;
           break;
@@ -269,6 +281,8 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
       commitValues,
       constrainValue,
       disabled,
+      dir,
+      isHorizontal,
       largeStep,
       max,
       min,
@@ -358,6 +372,7 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
         max,
         step,
         orientation,
+        dir,
         disabled,
         trackRef,
         valueToPercent: sliderValueToPercent,
@@ -375,6 +390,7 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
         max,
         step,
         orientation,
+        dir,
         disabled,
         sliderValueToPercent,
         getThumbProps,
@@ -404,6 +420,7 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
       <div
         {...restProps}
         ref={ref}
+        dir={dir}
         data-slot={dataSlot}
         data-orientation={orientation}
         {...(disabled ? { "data-disabled": "" } : {})}

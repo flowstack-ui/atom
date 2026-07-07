@@ -26,6 +26,10 @@ export type HoverCardScenarioState = {
   align: HoverCardAlign;
   sideOffset: number;
   triggerComposition: HoverCardCompositionMode;
+  propCheck: boolean;
+  customTriggerSlot: boolean;
+  customContentSlot: boolean;
+  customArrowSlot: boolean;
   open: boolean;
   log: HoverCardLogEntry[];
 };
@@ -40,6 +44,10 @@ export type HoverCardScenarioActions = {
   setAlign: (value: HoverCardAlign) => void;
   setSideOffset: (value: number) => void;
   setTriggerComposition: (value: HoverCardCompositionMode) => void;
+  setPropCheck: (value: boolean) => void;
+  setCustomTriggerSlot: (value: boolean) => void;
+  setCustomContentSlot: (value: boolean) => void;
+  setCustomArrowSlot: (value: boolean) => void;
   setControlledOpen: (value: boolean) => void;
   handleOpenChange: (open: boolean) => void;
   handleTriggerMouseEnter: (event: ReactMouseEvent<HTMLElement>) => void;
@@ -62,6 +70,10 @@ export function useHoverCardScenario() {
   const [sideOffset, setSideOffset] = useState(8);
   const [triggerComposition, setTriggerComposition] =
     useState<HoverCardCompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customTriggerSlot, setCustomTriggerSlot] = useState(false);
+  const [customContentSlot, setCustomContentSlot] = useState(false);
+  const [customArrowSlot, setCustomArrowSlot] = useState(false);
   const [open, setOpen] = useState(false);
   const [log, setLog] = useState<HoverCardLogEntry[]>([]);
 
@@ -117,6 +129,10 @@ export function useHoverCardScenario() {
       align,
       sideOffset,
       triggerComposition,
+      propCheck,
+      customTriggerSlot,
+      customContentSlot,
+      customArrowSlot,
       open,
       log,
     },
@@ -130,6 +146,10 @@ export function useHoverCardScenario() {
       setAlign,
       setSideOffset,
       setTriggerComposition,
+      setPropCheck,
+      setCustomTriggerSlot,
+      setCustomContentSlot,
+      setCustomArrowSlot,
       setControlledOpen,
       handleOpenChange,
       handleTriggerMouseEnter,

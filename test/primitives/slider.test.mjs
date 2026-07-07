@@ -6,6 +6,7 @@ import {
 } from "../test-utils.mjs";
 
 import {
+  Direction,
   Slider,
   SliderRange,
   SliderRoot,
@@ -108,4 +109,33 @@ test("Slider percent geometry is normalized for data attributes", () => {
   assert.match(html, /inset-inline-start:55%/);
   assert.doesNotMatch(html, /55\.00000000000001%/);
   assert.doesNotMatch(html, /data-percent="55\.00000000000001"/);
+});
+
+test("Slider consumes Direction.Provider for horizontal RTL behavior", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Direction.Provider,
+      { dir: "rtl" },
+      React.createElement(
+        SliderRoot,
+        {
+          value: 25,
+          min: 0,
+          max: 100,
+          ariaLabel: "Volume",
+        },
+        React.createElement(
+          SliderTrack,
+          null,
+          React.createElement(SliderRange, null),
+        ),
+        React.createElement(SliderThumb, null),
+      ),
+    ),
+  );
+
+  assert.match(html, /dir="rtl"/);
+  assert.match(html, /aria-valuenow="25"/);
+  assert.match(html, /data-percent="25"/);
+  assert.match(html, /inset-inline-start:25%/);
 });

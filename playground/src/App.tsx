@@ -589,12 +589,12 @@ const scenarios: Scenario[] = [
 
 const categories = ["Fields", "Controls", "Selection", "Overlays", "Navigation", "Data", "Display", "Utilities"];
 const focusableSelector = [
-  "button:not([disabled])",
-  "[href]",
-  "input:not([disabled])",
-  "select:not([disabled])",
-  "textarea:not([disabled])",
-  "[tabindex]:not([tabindex='-1'])",
+  "button:not([disabled]):not([hidden])",
+  "[href]:not([hidden])",
+  "input:not([disabled]):not([type='hidden']):not([hidden])",
+  "select:not([disabled]):not([hidden])",
+  "textarea:not([disabled]):not([hidden])",
+  "[tabindex]:not([tabindex='-1']):not([hidden])",
 ].join(",");
 
 function getScenario(id: string) {
@@ -650,7 +650,8 @@ export function App() {
   const toggleScenario = useToggleScenario();
   const toggleGroupScenario = useToggleGroupScenario();
   const focusCanvas = () => {
-    const focusTarget = inspector.rootRef.current?.querySelector<HTMLElement>(focusableSelector);
+    const preferredFocusTarget = inspector.rootRef.current?.querySelector<HTMLElement>("[data-canvas-focus]");
+    const focusTarget = preferredFocusTarget ?? inspector.rootRef.current?.querySelector<HTMLElement>(focusableSelector);
     if (!focusTarget) return;
 
     requestAnimationFrame(() => {
@@ -1200,6 +1201,7 @@ function InspectorPanel({ details }: { details: ReturnType<typeof useElementInsp
           <InspectorRow label="ID" value={details.id} />
           {details.text !== "-" ? <InspectorBlock label="Text" value={details.text} /> : null}
           {details.value !== "-" ? <InspectorBlock label="Value" value={details.value} /> : null}
+          {details.checked !== "-" ? <InspectorRow label="Checked" value={details.checked} /> : null}
           <InspectorAttributeBlock tag={details.tag} value={details.native} />
           <InspectorBlock label="ARIA" value={details.aria} />
           <InspectorBlock label="Data" value={details.data} />
@@ -2036,7 +2038,7 @@ function getScenarioSource({
     return getFormFieldSource(scenarioId, formFieldScenarios);
   }
   if (selectionPrimitiveScenarioIds.has(scenarioId)) {
-    return getSelectionPrimitiveSource(scenarioId);
+    return getSelectionPrimitiveSource(scenarioId, selectionPrimitiveScenarios);
   }
   if (dataPrimitiveScenarioIds.has(scenarioId)) {
     return getDataPrimitiveSource(scenarioId, dataPrimitiveScenarios);
@@ -2123,7 +2125,8 @@ function getDialogSource(state: ReturnType<typeof useDialogScenario>["state"]) {
 
 function getDialogTriggerSource(state: ReturnType<typeof useDialogScenario>["state"]) {
   const triggerProps = [
-    state.overrideSlots ? `data-slot="playground-dialog-trigger"` : "",
+    state.customTriggerSlot ? `data-slot="playground-dialog-trigger"` : "",
+    state.propCheck ? `data-prop-check="trigger"` : "",
     state.blockTriggerEvent ? "onClick={handleBlockedTriggerClick}" : "onClick={handleTriggerClick}",
     state.blockTriggerEvent ? "onKeyDown={handleBlockedTriggerKeyDown}" : "onKeyDown={handleTriggerKeyDown}",
   ].filter(Boolean);

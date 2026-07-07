@@ -23,6 +23,7 @@ export interface MenuCheckboxItemProps extends MenuCheckboxItemNativeProps {
   closeOnSelect?: boolean;
   className?: string;
   children: ReactNode;
+  "data-slot"?: string;
 }
 
 export function MenuCheckboxItem({
@@ -37,6 +38,7 @@ export function MenuCheckboxItem({
   onClick,
   onPointerEnter,
   onPointerLeave,
+  "data-slot": dataSlot = "menu-checkbox-item",
   ...restProps
 }: MenuCheckboxItemProps) {
   const ctx = useMenuContext();
@@ -79,7 +81,7 @@ export function MenuCheckboxItem({
       tabIndex={-1}
       aria-checked={checked}
       aria-disabled={disabled || undefined}
-      data-slot="menu-checkbox-item"
+      data-slot={dataSlot}
       data-highlighted={isHighlighted ? "" : undefined}
       data-disabled={disabled ? "" : undefined}
       data-checked={checked ? "" : undefined}

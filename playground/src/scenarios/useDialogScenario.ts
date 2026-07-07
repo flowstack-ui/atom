@@ -37,7 +37,13 @@ export type DialogScenarioState = {
   blockTriggerEvent: boolean;
   blockSaveClose: boolean;
   blockBackdropClose: boolean;
-  overrideSlots: boolean;
+  propCheck: boolean;
+  customTriggerSlot: boolean;
+  customOverlaySlot: boolean;
+  customContentSlot: boolean;
+  customTitleSlot: boolean;
+  customDescriptionSlot: boolean;
+  customCloseSlot: boolean;
   open: boolean;
   log: DialogLogEntry[];
   refs: DialogRefSnapshot;
@@ -118,7 +124,13 @@ export type DialogScenarioActions = {
   setBlockTriggerEvent: (value: boolean) => void;
   setBlockSaveClose: (value: boolean) => void;
   setBlockBackdropClose: (value: boolean) => void;
-  setOverrideSlots: (value: boolean) => void;
+  setPropCheck: (value: boolean) => void;
+  setCustomTriggerSlot: (value: boolean) => void;
+  setCustomOverlaySlot: (value: boolean) => void;
+  setCustomContentSlot: (value: boolean) => void;
+  setCustomTitleSlot: (value: boolean) => void;
+  setCustomDescriptionSlot: (value: boolean) => void;
+  setCustomCloseSlot: (value: boolean) => void;
   setControlledOpen: (value: boolean) => void;
   markCloseSource: (source: "cancel" | "save") => void;
   handleTriggerClick: (event: ReactMouseEvent<HTMLElement>) => void;
@@ -153,7 +165,13 @@ export function useDialogScenario() {
   const [blockTriggerEvent, setBlockTriggerEvent] = useState(false);
   const [blockSaveClose, setBlockSaveClose] = useState(false);
   const [blockBackdropClose, setBlockBackdropClose] = useState(false);
-  const [overrideSlots, setOverrideSlots] = useState(false);
+  const [propCheck, setPropCheck] = useState(false);
+  const [customTriggerSlot, setCustomTriggerSlot] = useState(false);
+  const [customOverlaySlot, setCustomOverlaySlot] = useState(false);
+  const [customContentSlot, setCustomContentSlot] = useState(false);
+  const [customTitleSlot, setCustomTitleSlot] = useState(false);
+  const [customDescriptionSlot, setCustomDescriptionSlot] = useState(false);
+  const [customCloseSlot, setCustomCloseSlot] = useState(false);
   const [log, setLog] = useState<DialogLogEntry[]>([]);
   const [refs, setRefs] = useState<DialogRefSnapshot>(emptyDialogRefSnapshot);
   const parts = getDialogPartsSnapshot(revision);
@@ -404,7 +422,13 @@ export function useDialogScenario() {
     blockTriggerEvent,
     blockSaveClose,
     blockBackdropClose,
-    overrideSlots,
+    propCheck,
+    customTriggerSlot,
+    customOverlaySlot,
+    customContentSlot,
+    customTitleSlot,
+    customDescriptionSlot,
+    customCloseSlot,
     open,
     log,
     refs,
@@ -426,7 +450,13 @@ export function useDialogScenario() {
     setBlockTriggerEvent,
     setBlockSaveClose,
     setBlockBackdropClose,
-    setOverrideSlots,
+    setPropCheck,
+    setCustomTriggerSlot,
+    setCustomOverlaySlot,
+    setCustomContentSlot,
+    setCustomTitleSlot,
+    setCustomDescriptionSlot,
+    setCustomCloseSlot,
     setControlledOpen,
     markCloseSource: (source) => {
       closeSource.current = source;

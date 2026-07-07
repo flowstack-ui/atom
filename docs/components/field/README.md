@@ -20,16 +20,14 @@ import { Field } from "@flowstack-ui/atom";
 ## Anatomy
 
 ```tsx
-export default () => (
-  <Field.Root>
-    <Field.Label>
-      Label
-      <Field.RequiredIndicator />
-    </Field.Label>
-    <Field.Description />
-    <Field.Error />
-  </Field.Root>
-);
+<Field.Root>
+  <Field.Label requiredIndicator={null}>
+    Label
+    <Field.RequiredIndicator />
+  </Field.Label>
+  <Field.Description />
+  <Field.Error />
+</Field.Root>
 ```
 
 ## API Reference
@@ -130,14 +128,12 @@ Renders required or optional label adornment text.
 ```tsx
 import { Field, Input } from "@flowstack-ui/atom";
 
-export default () => (
-  <Field.Root id="email" required invalid={emailInvalid}>
-    <Field.Label>Email</Field.Label>
-    <Input.Root name="email" type="email" />
-    <Field.Description>Use a work email.</Field.Description>
-    <Field.Error>Email is required.</Field.Error>
-  </Field.Root>
-);
+<Field.Root id="email" required invalid>
+  <Field.Label>Email</Field.Label>
+  <Input.Root name="email" type="email" />
+  <Field.Description>Use a work email.</Field.Description>
+  <Field.Error>Email is required.</Field.Error>
+</Field.Root>
 ```
 
 ## Accessibility

@@ -105,7 +105,8 @@ export const FileUploadTrigger = forwardRef<HTMLElement, FileUploadTriggerProps>
         ? { type: "button", disabled: isInactive || undefined }
         : { role: "button", tabIndex: 0, "aria-disabled": isInactive || undefined }),
       "data-slot": dataSlot,
-      ...(isInactive && { "data-disabled": "" }),
+      ...(disabled && { "data-disabled": "" }),
+      ...(readOnly && { "data-readonly": "" }),
       onClick: handleClick,
       onKeyDown: handleKeyDown,
     };

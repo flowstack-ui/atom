@@ -32,6 +32,12 @@ export type PopoverScenarioState = {
   closeComposition: PopoverCompositionMode;
   blockTriggerEvent: boolean;
   blockCloseEvent: boolean;
+  propCheck: boolean;
+  customAnchorSlot: boolean;
+  customTriggerSlot: boolean;
+  customContentSlot: boolean;
+  customArrowSlot: boolean;
+  customCloseSlot: boolean;
   open: boolean;
   log: PopoverLogEntry[];
 };
@@ -52,6 +58,12 @@ export type PopoverScenarioActions = {
   setCloseComposition: (value: PopoverCompositionMode) => void;
   setBlockTriggerEvent: (value: boolean) => void;
   setBlockCloseEvent: (value: boolean) => void;
+  setPropCheck: (value: boolean) => void;
+  setCustomAnchorSlot: (value: boolean) => void;
+  setCustomTriggerSlot: (value: boolean) => void;
+  setCustomContentSlot: (value: boolean) => void;
+  setCustomArrowSlot: (value: boolean) => void;
+  setCustomCloseSlot: (value: boolean) => void;
   setControlledOpen: (value: boolean) => void;
   handleOpenChange: (open: boolean) => void;
   handleTriggerClick: (event: ReactMouseEvent<HTMLElement>) => void;
@@ -80,6 +92,12 @@ export function usePopoverScenario() {
     useState<PopoverCompositionMode>("default");
   const [blockTriggerEvent, setBlockTriggerEvent] = useState(false);
   const [blockCloseEvent, setBlockCloseEvent] = useState(false);
+  const [propCheck, setPropCheck] = useState(false);
+  const [customAnchorSlot, setCustomAnchorSlot] = useState(false);
+  const [customTriggerSlot, setCustomTriggerSlot] = useState(false);
+  const [customContentSlot, setCustomContentSlot] = useState(false);
+  const [customArrowSlot, setCustomArrowSlot] = useState(false);
+  const [customCloseSlot, setCustomCloseSlot] = useState(false);
   const [open, setOpen] = useState(false);
   const [log, setLog] = useState<PopoverLogEntry[]>([]);
 
@@ -154,6 +172,12 @@ export function usePopoverScenario() {
       closeComposition,
       blockTriggerEvent,
       blockCloseEvent,
+      propCheck,
+      customAnchorSlot,
+      customTriggerSlot,
+      customContentSlot,
+      customArrowSlot,
+      customCloseSlot,
       open,
       log,
     },
@@ -173,6 +197,12 @@ export function usePopoverScenario() {
       setCloseComposition,
       setBlockTriggerEvent,
       setBlockCloseEvent,
+      setPropCheck,
+      setCustomAnchorSlot,
+      setCustomTriggerSlot,
+      setCustomContentSlot,
+      setCustomArrowSlot,
+      setCustomCloseSlot,
       setControlledOpen,
       handleOpenChange,
       handleTriggerClick,

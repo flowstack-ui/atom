@@ -9,6 +9,7 @@ import {
 } from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
 import type { NativeDivProps } from "../../utils/dom.js";
+import { useDirection, type DirectionValue } from "../direction/index.js";
 import {
   cloneAndMerge,
   composeEventHandlers,
@@ -63,6 +64,8 @@ export interface RatingRootProps extends RatingRootNativeProps {
   invalid?: boolean;
   /** Mark the rating required. */
   required?: boolean;
+  /** Text direction used for horizontal pointer and keyboard behavior. */
+  dir?: DirectionValue;
   /** HTML name attribute for hidden form input. */
   name?: string;
   /** Hidden input value. */
@@ -101,6 +104,7 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
       readOnly = false,
       invalid = false,
       required = false,
+      dir: dirProp,
       name,
       formValue,
       form,
@@ -120,6 +124,8 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
       () => normalizeRatingRange(minProp, maxProp),
       [maxProp, minProp],
     );
+    const contextDir = useDirection();
+    const dir = dirProp ?? contextDir;
     const step = stepProp > 0 ? stepProp : 1;
     const largeStep =
       largeStepProp ??
@@ -161,10 +167,14 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
 
         switch (event.key) {
           case "ArrowRight":
+            nextValue += dir === "rtl" ? -step : step;
+            break;
+          case "ArrowLeft":
+            nextValue += dir === "rtl" ? step : -step;
+            break;
           case "ArrowUp":
             nextValue += step;
             break;
-          case "ArrowLeft":
           case "ArrowDown":
             nextValue -= step;
             break;
@@ -191,6 +201,7 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
       [
         clampedValue,
         disabled,
+        dir,
         largeStep,
         range.max,
         range.min,
@@ -210,6 +221,7 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
         readOnly,
         invalid,
         required,
+        dir,
         setValue,
         getItemState,
       }),
@@ -222,6 +234,7 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
         range.min,
         readOnly,
         required,
+        dir,
         setValue,
         step,
       ],
@@ -241,6 +254,7 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
       ...(invalid && { "aria-invalid": true, "data-invalid": "" }),
       ...(required && { "aria-required": true, "data-required": "" }),
       "data-slot": dataSlot,
+      dir,
       "data-value": clampedValue,
       "data-min": range.min,
       "data-max": range.max,

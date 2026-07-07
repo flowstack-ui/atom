@@ -36,6 +36,7 @@ export const ComboboxItem = forwardRef<HTMLDivElement, ComboboxItemProps>(
       className,
       "data-slot": dataSlot = "combobox-item",
       onClick,
+      onPointerDown,
       onPointerMove,
       onPointerLeave,
       ...restProps
@@ -48,6 +49,7 @@ export const ComboboxItem = forwardRef<HTMLDivElement, ComboboxItemProps>(
     const itemId = `${ctx.comboboxId}-option-${generatedId}`;
     const isSelected = ctx.value === value;
     const isHighlighted = ctx.highlightedValue === value;
+    const { suppressNextInputFocusOpen } = ctx;
 
     const composedRef = useMemo(() => composeRefs(internalRef, ref), [internalRef, ref]);
 
@@ -65,9 +67,14 @@ export const ComboboxItem = forwardRef<HTMLDivElement, ComboboxItemProps>(
 
     const handleClick: MouseEventHandler<HTMLDivElement> = useCallback(() => {
       if (disabled) return;
+      suppressNextInputFocusOpen();
       const option = ctx.getOption(value) ?? { value, label, disabled };
       ctx.selectOption(option);
-    }, [ctx.getOption, ctx.selectOption, disabled, label, value]);
+    }, [ctx.getOption, ctx.selectOption, disabled, label, suppressNextInputFocusOpen, value]);
+
+    const handlePointerDown: PointerEventHandler<HTMLDivElement> = useCallback(() => {
+      if (!disabled) suppressNextInputFocusOpen();
+    }, [disabled, suppressNextInputFocusOpen]);
 
     const handlePointerMove: PointerEventHandler<HTMLDivElement> = useCallback(() => {
       if (!disabled && ctx.highlightedValue !== value) ctx.onHighlight(value);
@@ -92,6 +99,7 @@ export const ComboboxItem = forwardRef<HTMLDivElement, ComboboxItemProps>(
         data-disabled={disabled ? "" : undefined}
         className={className}
         onClick={composeEventHandlers(onClick, handleClick)}
+        onPointerDown={composeEventHandlers(onPointerDown, handlePointerDown)}
         onPointerMove={composeEventHandlers(onPointerMove, handlePointerMove)}
         onPointerLeave={composeEventHandlers(onPointerLeave, handlePointerLeave)}
       >

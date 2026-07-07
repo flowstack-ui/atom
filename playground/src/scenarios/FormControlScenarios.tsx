@@ -10,7 +10,16 @@ import {
   AnatomyPanel,
   type AnatomySection,
 } from "../AnatomyPanel";
-import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, ScenarioEventLog as ScenarioEventLogBase, ToolbarGroup } from "../WorkbenchPrimitives";
+import {
+  ControlToolbar,
+  MenuCheckboxControl,
+  MenuRadioControl,
+  MenuSection,
+  partProps,
+  PropsToolbarGroup,
+  ScenarioEventLog as ScenarioEventLogBase,
+  ToolbarGroup,
+} from "../WorkbenchPrimitives";
 
 type LogEntry = {
   id: number;
@@ -57,6 +66,8 @@ export function useButtonScenario() {
   const [blockClick, setBlockClick] = useState(false);
   const [type, setType] = useState<ButtonType>("button");
   const [composition, setComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
   const [pressCount, setPressCount] = useState(0);
   const [rootRef, setRootRef] = useState("none");
   const { log, addLog, clearLog } = useScenarioLog();
@@ -85,7 +96,7 @@ export function useButtonScenario() {
   };
 
   return {
-    state: { disabled, loading, linkMode, newTab, customRel, blockClick, type, composition, pressCount, rootRef, log },
+    state: { disabled, loading, linkMode, newTab, customRel, blockClick, type, composition, propCheck, customRootSlot, pressCount, rootRef, log },
     actions: {
       setDisabled,
       setLoading,
@@ -95,6 +106,8 @@ export function useButtonScenario() {
       setBlockClick,
       setType,
       setComposition,
+      setPropCheck,
+      setCustomRootSlot,
       markRootRef,
       handleClick,
       handleKeyDown,
@@ -113,6 +126,9 @@ export function useCheckboxScenario() {
   const [required, setRequired] = useState(false);
   const [forceMount, setForceMount] = useState(false);
   const [composition, setComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
+  const [customIndicatorSlot, setCustomIndicatorSlot] = useState(false);
   const { log, addLog, clearLog } = useScenarioLog();
 
   const handleCheckedChange = (next: CheckboxCheckedState) => {
@@ -130,6 +146,9 @@ export function useCheckboxScenario() {
       required,
       forceMount,
       composition,
+      propCheck,
+      customRootSlot,
+      customIndicatorSlot,
       log,
     },
     actions: {
@@ -141,6 +160,9 @@ export function useCheckboxScenario() {
       setRequired,
       setForceMount,
       setComposition,
+      setPropCheck,
+      setCustomRootSlot,
+      setCustomIndicatorSlot,
       handleCheckedChange,
       clearLog,
     },
@@ -155,6 +177,9 @@ export function useSwitchScenario() {
   const [invalid, setInvalid] = useState(false);
   const [required, setRequired] = useState(false);
   const [composition, setComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
+  const [customThumbSlot, setCustomThumbSlot] = useState(false);
   const { log, addLog, clearLog } = useScenarioLog();
 
   const handleCheckedChange = (next: boolean) => {
@@ -163,7 +188,7 @@ export function useSwitchScenario() {
   };
 
   return {
-    state: { controlled, checked, disabled, readOnly, invalid, required, composition, log },
+    state: { controlled, checked, disabled, readOnly, invalid, required, composition, propCheck, customRootSlot, customThumbSlot, log },
     actions: {
       setControlled,
       setChecked,
@@ -172,6 +197,9 @@ export function useSwitchScenario() {
       setInvalid,
       setRequired,
       setComposition,
+      setPropCheck,
+      setCustomRootSlot,
+      setCustomThumbSlot,
       handleCheckedChange,
       clearLog,
     },
@@ -184,6 +212,8 @@ export function useToggleScenario() {
   const [disabled, setDisabled] = useState(false);
   const [blockToggle, setBlockToggle] = useState(false);
   const [composition, setComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
   const [rootRef, setRootRef] = useState("none");
   const { log, addLog, clearLog } = useScenarioLog();
 
@@ -214,13 +244,15 @@ export function useToggleScenario() {
   };
 
   return {
-    state: { controlled, pressed, disabled, blockToggle, composition, rootRef, log },
+    state: { controlled, pressed, disabled, blockToggle, composition, propCheck, customRootSlot, rootRef, log },
     actions: {
       setControlled,
       setPressed,
       setDisabled,
       setBlockToggle,
       setComposition,
+      setPropCheck,
+      setCustomRootSlot,
       markRootRef,
       handlePressedChange,
       handleClick,
@@ -238,8 +270,13 @@ export function useRadioGroupScenario() {
   const [invalid, setInvalid] = useState(false);
   const [loop, setLoop] = useState(true);
   const [orientation, setOrientation] = useState<Orientation>("vertical");
-  const [disabledItem, setDisabledItem] = useState(true);
-  const [composition, setComposition] = useState<CompositionMode>("default");
+  const [direction, setDirection] = useState<DirectionValue>("ltr");
+  const [disabledItem, setDisabledItem] = useState(false);
+  const [rootComposition, setRootComposition] = useState<CompositionMode>("default");
+  const [radioComposition, setRadioComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
+  const [customRadioSlot, setCustomRadioSlot] = useState(false);
   const { log, addLog, clearLog } = useScenarioLog();
 
   const handleValueChange = (next: string) => {
@@ -256,8 +293,13 @@ export function useRadioGroupScenario() {
       invalid,
       loop,
       orientation,
+      direction,
       disabledItem,
-      composition,
+      rootComposition,
+      radioComposition,
+      propCheck,
+      customRootSlot,
+      customRadioSlot,
       log,
     },
     actions: {
@@ -268,8 +310,13 @@ export function useRadioGroupScenario() {
       setInvalid,
       setLoop,
       setOrientation,
+      setDirection,
       setDisabledItem,
-      setComposition,
+      setRootComposition,
+      setRadioComposition,
+      setPropCheck,
+      setCustomRootSlot,
+      setCustomRadioSlot,
       handleValueChange,
       clearLog,
     },
@@ -288,6 +335,9 @@ export function useToggleGroupScenario() {
   const [blockItemPress, setBlockItemPress] = useState(false);
   const [rootComposition, setRootComposition] = useState<CompositionMode>("default");
   const [itemComposition, setItemComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
+  const [customItemSlot, setCustomItemSlot] = useState(false);
   const [rootRef, setRootRef] = useState("none");
   const [itemRefs, setItemRefs] = useState<Record<string, string>>({});
   const { log, addLog, clearLog } = useScenarioLog();
@@ -349,6 +399,9 @@ export function useToggleGroupScenario() {
       blockItemPress,
       rootComposition,
       itemComposition,
+      propCheck,
+      customRootSlot,
+      customItemSlot,
       rootRef,
       itemRefs,
       log,
@@ -365,6 +418,9 @@ export function useToggleGroupScenario() {
       setBlockItemPress,
       setRootComposition,
       setItemComposition,
+      setPropCheck,
+      setCustomRootSlot,
+      setCustomItemSlot,
       markRootRef,
       markItemRef,
       handleRootKeyDown,
@@ -395,7 +451,7 @@ export function ButtonScenarioCanvas({ scenario }: { scenario: ButtonScenario })
     type: state.type,
     "data-button-root": "",
     "data-playground-inspect": "",
-    "data-prop-check": "root",
+    ...partProps("root", { propCheck: state.propCheck, customSlot: state.customRootSlot }, "button-root-custom"),
     ref: actions.markRootRef,
     onClick: actions.handleClick,
     onKeyDown: actions.handleKeyDown,
@@ -436,12 +492,14 @@ export function CheckboxScenarioCanvas({ scenario }: { scenario: CheckboxScenari
           readOnly={state.readOnly}
           invalid={state.invalid}
           required={state.required}
+          propCheck={state.propCheck}
+          customRootSlot={state.customRootSlot}
         >
           <Checkbox.Indicator
             className="control-checkbox-indicator"
             data-checkbox-indicator=""
             data-playground-inspect=""
-            data-prop-check="indicator"
+            {...partProps("indicator", { propCheck: state.propCheck, customSlot: state.customIndicatorSlot }, "checkbox-indicator-custom")}
             forceMount={state.forceMount}
           />
         </CheckboxRootExample>
@@ -459,7 +517,7 @@ export function SwitchScenarioCanvas({ scenario }: { scenario: SwitchScenario })
 
   return (
     <div className="form-control-stage">
-      <label className="control-row">
+      <div className="control-row">
         <SwitchRootExample
           mode={state.composition}
           rootProps={rootProps}
@@ -467,16 +525,18 @@ export function SwitchScenarioCanvas({ scenario }: { scenario: SwitchScenario })
           readOnly={state.readOnly}
           invalid={state.invalid}
           required={state.required}
+          propCheck={state.propCheck}
+          customRootSlot={state.customRootSlot}
         >
           <Switch.Thumb
             className="control-switch-thumb"
             data-playground-inspect=""
-            data-prop-check="thumb"
             data-switch-thumb=""
+            {...partProps("thumb", { propCheck: state.propCheck, customSlot: state.customThumbSlot }, "switch-thumb-custom")}
           />
         </SwitchRootExample>
         <span>Notifications</span>
-      </label>
+      </div>
     </div>
   );
 }
@@ -493,6 +553,8 @@ export function ToggleScenarioCanvas({ scenario }: { scenario: ToggleScenario })
         mode={state.composition}
         rootProps={rootProps}
         disabled={state.disabled}
+        propCheck={state.propCheck}
+        customRootSlot={state.customRootSlot}
         refCallback={actions.markRootRef}
         onClick={actions.handleClick}
         onKeyDown={actions.handleKeyDown}
@@ -506,27 +568,44 @@ export function RadioGroupScenarioCanvas({ scenario }: { scenario: RadioGroupSce
   const rootProps = state.controlled
     ? { value: state.value, onValueChange: actions.handleValueChange }
     : { defaultValue: "email", onValueChange: actions.handleValueChange };
+  const radioItems = (
+    <>
+      <RadioItem value="email" label="Email" mode={state.radioComposition} propCheck={state.propCheck} customSlot={state.customRadioSlot} />
+      <RadioItem value="sms" label="SMS" mode={state.radioComposition} disabled={state.disabledItem} propCheck={state.propCheck} customSlot={state.customRadioSlot} />
+      <RadioItem value="push" label="Push" mode={state.radioComposition} propCheck={state.propCheck} customSlot={state.customRadioSlot} />
+    </>
+  );
+  const groupProps = {
+    ...rootProps,
+    className: "control-choice-group",
+    ariaLabel: "Notification channel",
+    "data-playground-inspect": "",
+    "data-radio-group-root": "",
+    ...partProps("root", { propCheck: state.propCheck, customSlot: state.customRootSlot }, "radio-group-root-custom"),
+    disabled: state.disabled,
+    invalid: state.invalid,
+    loop: state.loop,
+    name: "notification-channel",
+    orientation: state.orientation,
+    required: state.required,
+  };
+  const group = state.rootComposition === "asChild" ? (
+    <RadioGroup.Root {...groupProps} asChild>
+      <section>{radioItems}</section>
+    </RadioGroup.Root>
+  ) : state.rootComposition === "render" ? (
+    <RadioGroup.Root {...groupProps} render={(renderProps) => <section {...renderProps} />}>
+      {radioItems}
+    </RadioGroup.Root>
+  ) : (
+    <RadioGroup.Root {...groupProps}>{radioItems}</RadioGroup.Root>
+  );
 
   return (
     <div className="form-control-stage">
-      <RadioGroup.Root
-        {...rootProps}
-        className="control-choice-group"
-        ariaLabel="Notification channel"
-        data-playground-inspect=""
-        data-prop-check="root"
-        data-radio-group-root=""
-        disabled={state.disabled}
-        invalid={state.invalid}
-        loop={state.loop}
-        name="notification-channel"
-        orientation={state.orientation}
-        required={state.required}
-      >
-        <RadioItem value="email" label="Email" mode={state.composition} />
-        <RadioItem value="sms" label="SMS" mode={state.composition} disabled={state.disabledItem} />
-        <RadioItem value="push" label="Push" mode={state.composition} />
-      </RadioGroup.Root>
+      <Direction.Provider dir={state.direction}>
+        {group}
+      </Direction.Provider>
     </div>
   );
 }
@@ -541,8 +620,8 @@ export function ToggleGroupScenarioCanvas({ scenario }: { scenario: ToggleGroupS
     className: "control-toggle-group",
     ariaLabel: "Text formatting",
     "data-playground-inspect": "",
-    "data-prop-check": "root",
     "data-toggle-group-root": "",
+    ...partProps("root", { propCheck: state.propCheck, customSlot: state.customRootSlot }, "toggle-group-root-custom"),
     disabled: state.disabled,
     loop: state.loop,
     onKeyDown: actions.handleRootKeyDown,
@@ -560,6 +639,8 @@ export function ToggleGroupScenarioCanvas({ scenario }: { scenario: ToggleGroupS
         onClick={actions.handleItemClick}
         onKeyDown={actions.handleItemKeyDown}
         onRef={actions.markItemRef}
+        propCheck={state.propCheck}
+        customSlot={state.customItemSlot}
       />
       <ToggleGroupItem
         value="italic"
@@ -570,6 +651,8 @@ export function ToggleGroupScenarioCanvas({ scenario }: { scenario: ToggleGroupS
         onClick={actions.handleItemClick}
         onKeyDown={actions.handleItemKeyDown}
         onRef={actions.markItemRef}
+        propCheck={state.propCheck}
+        customSlot={state.customItemSlot}
       />
       <ToggleGroupItem
         value="underline"
@@ -579,6 +662,8 @@ export function ToggleGroupScenarioCanvas({ scenario }: { scenario: ToggleGroupS
         onClick={actions.handleItemClick}
         onKeyDown={actions.handleItemKeyDown}
         onRef={actions.markItemRef}
+        propCheck={state.propCheck}
+        customSlot={state.customItemSlot}
       />
     </>
   );
@@ -648,7 +733,7 @@ export function CheckboxScenarioAnatomy({
 }) {
   const root = document.querySelector<HTMLElement>("[data-checkbox-root]");
   const indicator = document.querySelector<HTMLElement>("[data-checkbox-indicator]");
-  const input = document.querySelector<HTMLInputElement>("[data-checkbox-hidden-input]");
+  const input = document.querySelector<HTMLInputElement>("input[name='email-updates']");
   const sections: AnatomySection[] = [
     {
       title: "Root",
@@ -692,7 +777,7 @@ export function SwitchScenarioAnatomy({
 }) {
   const root = document.querySelector<HTMLElement>("[data-switch-root]");
   const thumb = document.querySelector<HTMLElement>("[data-switch-thumb]");
-  const input = document.querySelector<HTMLInputElement>("[data-switch-hidden-input]");
+  const input = document.querySelector<HTMLInputElement>("input[name='notifications']");
   const sections: AnatomySection[] = [
     {
       title: "Root",
@@ -701,7 +786,7 @@ export function SwitchScenarioAnatomy({
       rows: [
         { label: "Exists", value: yesNo(root), category: "presence" },
         { label: "Mode", value: scenario.state.controlled ? "controlled" : "uncontrolled", category: "state" },
-        { label: "Checked", value: bool(scenario.state.checked), category: "state" },
+        { label: "Checked", value: String(root?.getAttribute("aria-checked") === "true"), category: "state" },
         { label: "Disabled", value: bool(scenario.state.disabled), category: "state" },
         { label: "Invalid", value: bool(scenario.state.invalid), category: "state" },
         { label: "Read only", value: bool(scenario.state.readOnly), category: "state" },
@@ -766,49 +851,50 @@ export function RadioGroupScenarioAnatomy({
 }) {
   const root = document.querySelector<HTMLElement>("[data-radio-group-root]");
   const selected = document.querySelector<HTMLElement>("[data-radio-root][data-state='checked']");
-  const disabled = document.querySelector<HTMLElement>("[data-radio-root][data-value='sms']");
-  const input = document.querySelector<HTMLInputElement>("[data-radio-hidden-input][value='email']");
+  const selectedValue = selected?.dataset.value ?? scenario.state.value;
+  const input = document.querySelector<HTMLInputElement>(`input[name='notification-channel'][value='${selectedValue}']`);
+  const itemSections: AnatomySection[] = [
+    { title: "Item: Email", value: "email", label: "Email" },
+    { title: "Item: SMS", value: "sms", label: "SMS" },
+    { title: "Item: Push", value: "push", label: "Push" },
+  ].map(({ title, value: itemValue, label }): AnatomySection => {
+    const item = document.querySelector<HTMLElement>(`[data-radio-root][data-value='${itemValue}']`);
+    const isDisabled = item?.matches(":disabled,[aria-disabled='true'],[data-disabled]") ?? false;
+
+    return {
+      title,
+      selector: `[data-radio-root][data-value='${itemValue}']`,
+      summary: item?.dataset.state ?? "not rendered",
+      rows: [
+        { label: "Exists", value: yesNo(item), category: "presence" },
+        { label: "Text", value: item?.textContent?.trim() || label, category: "identity" },
+        { label: "Value", value: itemValue, category: "state" },
+        { label: "Checked", value: bool(item?.dataset.state === "checked"), category: "state" },
+        { label: "Disabled", value: bool(isDisabled), category: "state" },
+        { label: "Composition", value: scenario.state.radioComposition, category: "composition" },
+      ],
+    };
+  });
   const sections: AnatomySection[] = [
     {
       title: "Root",
       selector: "[data-radio-group-root]",
-      summary: scenario.state.value,
+      summary: selectedValue,
       rows: [
         { label: "Exists", value: yesNo(root), category: "presence" },
         { label: "Mode", value: scenario.state.controlled ? "controlled" : "uncontrolled", category: "state" },
-        { label: "Value", value: scenario.state.value, category: "state" },
+        { label: "Value", value: selectedValue, category: "state" },
         { label: "Disabled", value: bool(scenario.state.disabled), category: "state" },
         { label: "Invalid", value: bool(scenario.state.invalid), category: "state" },
         { label: "Required", value: bool(scenario.state.required), category: "state" },
         { label: "Loop", value: bool(scenario.state.loop), category: "behavior" },
         { label: "Orientation", value: scenario.state.orientation, category: "behavior" },
+        { label: "Direction", value: scenario.state.direction, category: "behavior" },
+        { label: "Composition", value: scenario.state.rootComposition, category: "composition" },
       ],
     },
-    {
-      title: "Item",
-      selector: "[data-radio-root][data-state='checked']",
-      summary: selected?.dataset.value ?? "none",
-      groups: [
-        {
-          title: "Selected item",
-          selector: "[data-radio-root][data-state='checked']",
-          rows: [
-            { label: "Exists", value: yesNo(selected), category: "presence" },
-            { label: "Value", value: selected?.dataset.value ?? "none", category: "state" },
-            { label: "Composition", value: scenario.state.composition, category: "composition" },
-          ],
-        },
-        {
-          title: "Disabled item",
-          selector: "[data-radio-root][data-value='sms']",
-          rows: [
-            { label: "Exists", value: yesNo(disabled), category: "presence" },
-            { label: "Disabled option", value: bool(scenario.state.disabledItem), category: "state" },
-          ],
-        },
-      ],
-    },
-    hiddenInputSection("Generated hidden input", "input[name='notification-channel'][value='email']", input),
+    ...itemSections,
+    hiddenInputSection("Generated hidden input", `input[name='notification-channel'][value='${selectedValue}']`, input),
   ];
 
   return <AnatomyPanel footer={`${sections.length} parts`} openGroups={openGroups} sections={sections} onOpenGroupsChange={onOpenGroupsChange} />;
@@ -891,6 +977,18 @@ export function ButtonScenarioToolbar({ scenario }: { scenario: ButtonScenario }
         <MenuCheckboxControl checked={scenario.state.blockClick} label="Block click" value="block-click" onChange={scenario.actions.setBlockClick} />
       </ToolbarGroup>
       <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+      <PropsToolbarGroup
+        propCheck={scenario.state.propCheck}
+        onPropCheckChange={scenario.actions.setPropCheck}
+        customSlots={[
+          {
+            checked: scenario.state.customRootSlot,
+            label: "Root slot",
+            value: "root-slot",
+            onChange: scenario.actions.setCustomRootSlot,
+          },
+        ]}
+      />
     </ControlToolbar>
   );
 }
@@ -907,9 +1005,19 @@ export function CheckboxScenarioToolbar({ scenario }: { scenario: CheckboxScenar
       </ToolbarGroup>
       <ToolbarGroup title="Content" value="content">
         <MenuCheckboxControl checked={scenario.state.forceMount} label="Force indicator" value="force-indicator" onChange={scenario.actions.setForceMount} />
-        <MenuRadioControl label="Checked" options={checkboxStateOptions} value={String(scenario.state.checked)} onChange={(value) => scenario.actions.setChecked(parseCheckboxState(value))} />
+        {scenario.state.controlled ? (
+          <MenuRadioControl label="Checked" options={checkboxStateOptions} value={String(scenario.state.checked)} onChange={(value) => scenario.actions.setChecked(parseCheckboxState(value))} />
+        ) : null}
       </ToolbarGroup>
       <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+      <PropsToolbarGroup
+        propCheck={scenario.state.propCheck}
+        onPropCheckChange={scenario.actions.setPropCheck}
+        customSlots={[
+          { checked: scenario.state.customRootSlot, label: "Root", value: "root-slot", onChange: scenario.actions.setCustomRootSlot },
+          { checked: scenario.state.customIndicatorSlot, label: "Indicator", value: "indicator-slot", onChange: scenario.actions.setCustomIndicatorSlot },
+        ]}
+      />
     </ControlToolbar>
   );
 }
@@ -919,13 +1027,23 @@ export function SwitchScenarioToolbar({ scenario }: { scenario: SwitchScenario }
     <ControlToolbar label="Switch controls">
       <ToolbarGroup title="State" value="state">
         <MenuCheckboxControl checked={scenario.state.controlled} label="Controlled" value="controlled" onChange={scenario.actions.setControlled} />
-        <MenuCheckboxControl checked={scenario.state.checked} label="Checked" value="checked" onChange={scenario.actions.setChecked} />
+        {scenario.state.controlled ? (
+          <MenuCheckboxControl checked={scenario.state.checked} label="Checked" value="checked" onChange={scenario.actions.setChecked} />
+        ) : null}
         <MenuCheckboxControl checked={scenario.state.disabled} label="Disabled" value="disabled" onChange={scenario.actions.setDisabled} />
         <MenuCheckboxControl checked={scenario.state.readOnly} label="Read only" value="read-only" onChange={scenario.actions.setReadOnly} />
         <MenuCheckboxControl checked={scenario.state.invalid} label="Invalid" value="invalid" onChange={scenario.actions.setInvalid} />
         <MenuCheckboxControl checked={scenario.state.required} label="Required" value="required" onChange={scenario.actions.setRequired} />
       </ToolbarGroup>
       <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+      <PropsToolbarGroup
+        propCheck={scenario.state.propCheck}
+        onPropCheckChange={scenario.actions.setPropCheck}
+        customSlots={[
+          { checked: scenario.state.customRootSlot, label: "Root", value: "root-slot", onChange: scenario.actions.setCustomRootSlot },
+          { checked: scenario.state.customThumbSlot, label: "Thumb", value: "thumb-slot", onChange: scenario.actions.setCustomThumbSlot },
+        ]}
+      />
     </ControlToolbar>
   );
 }
@@ -942,6 +1060,18 @@ export function ToggleScenarioToolbar({ scenario }: { scenario: ToggleScenario }
         <MenuCheckboxControl checked={scenario.state.blockToggle} label="Block toggle" value="block-toggle" onChange={scenario.actions.setBlockToggle} />
       </ToolbarGroup>
       <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+      <PropsToolbarGroup
+        propCheck={scenario.state.propCheck}
+        onPropCheckChange={scenario.actions.setPropCheck}
+        customSlots={[
+          {
+            checked: scenario.state.customRootSlot,
+            label: "Root slot",
+            value: "root-slot",
+            onChange: scenario.actions.setCustomRootSlot,
+          },
+        ]}
+      />
     </ControlToolbar>
   );
 }
@@ -958,12 +1088,26 @@ export function RadioGroupScenarioToolbar({ scenario }: { scenario: RadioGroupSc
       </ToolbarGroup>
       <ToolbarGroup title="Items" value="items">
         <MenuCheckboxControl checked={scenario.state.disabledItem} label="SMS disabled" value="sms-disabled" onChange={scenario.actions.setDisabledItem} />
-        <MenuRadioControl label="Value" options={choiceOptions} value={scenario.state.value} onChange={scenario.actions.setValue} />
+        {scenario.state.controlled ? (
+          <MenuRadioControl label="Controlled value" options={choiceOptions} value={scenario.state.value} onChange={scenario.actions.setValue} />
+        ) : null}
       </ToolbarGroup>
       <ToolbarGroup title="Content" value="content">
         <MenuRadioControl label="Orientation" options={orientationOptions} value={scenario.state.orientation} onChange={scenario.actions.setOrientation} />
+        <MenuRadioControl label="Direction" options={directionOptions} value={scenario.state.direction} onChange={scenario.actions.setDirection} />
       </ToolbarGroup>
-      <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+      <ToolbarGroup title="Composition" value="composition">
+        <MenuRadioControl label="Root" options={compositionOptions} value={scenario.state.rootComposition} onChange={scenario.actions.setRootComposition} />
+        <MenuRadioControl label="Radio" options={compositionOptions} value={scenario.state.radioComposition} onChange={scenario.actions.setRadioComposition} />
+      </ToolbarGroup>
+      <PropsToolbarGroup
+        propCheck={scenario.state.propCheck}
+        onPropCheckChange={scenario.actions.setPropCheck}
+        customSlots={[
+          { checked: scenario.state.customRootSlot, label: "Root", value: "root-slot", onChange: scenario.actions.setCustomRootSlot },
+          { checked: scenario.state.customRadioSlot, label: "Radio", value: "radio-slot", onChange: scenario.actions.setCustomRadioSlot },
+        ]}
+      />
     </ControlToolbar>
   );
 }
@@ -1015,6 +1159,24 @@ export function ToggleGroupScenarioToolbar({ scenario }: { scenario: ToggleGroup
         <MenuRadioControl label="Root" options={compositionOptions} value={scenario.state.rootComposition} onChange={scenario.actions.setRootComposition} />
         <MenuRadioControl label="Item" options={compositionOptions} value={scenario.state.itemComposition} onChange={scenario.actions.setItemComposition} />
       </ToolbarGroup>
+      <PropsToolbarGroup
+        propCheck={scenario.state.propCheck}
+        onPropCheckChange={scenario.actions.setPropCheck}
+        customSlots={[
+          {
+            checked: scenario.state.customRootSlot,
+            label: "Root slot",
+            value: "root-slot",
+            onChange: scenario.actions.setCustomRootSlot,
+          },
+          {
+            checked: scenario.state.customItemSlot,
+            label: "Item slot",
+            value: "item-slot",
+            onChange: scenario.actions.setCustomItemSlot,
+          },
+        ]}
+      />
     </ControlToolbar>
   );
 }
@@ -1031,6 +1193,8 @@ export function getButtonSource(state: ButtonScenario["state"]) {
     state.linkMode ? `href="#button-link"` : "",
     state.linkMode && state.newTab ? `target="_blank"` : "",
     state.linkMode && state.customRel ? `rel="author"` : "",
+    state.customRootSlot ? `data-slot="button-root-custom"` : "",
+    state.propCheck ? `data-prop-check="root"` : "",
     "onClick={handleClick}",
     "onPress={handlePress}",
   ].filter(Boolean);
@@ -1052,35 +1216,75 @@ export function getButtonSource(state: ButtonScenario["state"]) {
 }
 
 export function getCheckboxSource(state: CheckboxScenario["state"]) {
+  const rootExtras = [
+    state.composition === "asChild" ? "asChild" : "",
+    state.composition === "render" ? `render={(props) => <span {...props} />}` : "",
+    state.disabled ? "disabled" : "",
+    state.readOnly ? "readOnly" : "",
+    state.invalid ? "invalid" : "",
+    state.required ? "required" : "",
+    state.customRootSlot ? `data-slot="checkbox-root-custom"` : "",
+    state.propCheck ? `data-prop-check="root"` : "",
+  ].filter(Boolean).join("\n  ");
+  const indicatorExtras = [
+    state.forceMount ? "forceMount" : "",
+    state.customIndicatorSlot ? `data-slot="checkbox-indicator-custom"` : "",
+    state.propCheck ? `data-prop-check="indicator"` : "",
+  ].filter(Boolean).join(" ");
+  const rootChildren = state.composition === "asChild"
+    ? `\n  <span>\n    <Checkbox.Indicator${indicatorExtras ? ` ${indicatorExtras}` : ""}>✓</Checkbox.Indicator>\n  </span>`
+    : `\n  <Checkbox.Indicator${indicatorExtras ? ` ${indicatorExtras}` : ""}>✓</Checkbox.Indicator>`;
+  const closing = state.composition === "asChild" ? "\n</Checkbox.Root>" : "\n</Checkbox.Root>";
+  const controlledLine = state.controlled ? `checked={checked}` : "";
+  const defaultLine = !state.controlled && state.checked !== false ? `defaultChecked={${JSON.stringify(state.checked)}}` : "";
+  const stateLine = [controlledLine, defaultLine].filter(Boolean).join("\n  ");
+
   return `<Checkbox.Root
-  ${state.controlled ? `checked={checked}` : `defaultChecked={false}`}
-  disabled={${state.disabled}}
-  readOnly={${state.readOnly}}
-  invalid={${state.invalid}}
-  required={${state.required}}
+  ${stateLine}
   name="email-updates"
   value="yes"
   ariaLabel="Email updates"
+  ${rootExtras}
   onCheckedChange={setChecked}
->
-  <Checkbox.Indicator forceMount={${state.forceMount}}>✓</Checkbox.Indicator>
-</Checkbox.Root>`;
+>${rootChildren}${closing}`;
 }
 
 export function getSwitchSource(state: SwitchScenario["state"]) {
-  return `<Switch.Root
-  ${state.controlled ? `checked={checked}` : `defaultChecked={false}`}
-  disabled={${state.disabled}}
-  readOnly={${state.readOnly}}
-  invalid={${state.invalid}}
-  required={${state.required}}
-  name="notifications"
-  value="enabled"
-  ariaLabel="Notifications"
-  onCheckedChange={setChecked}
->
-  <Switch.Thumb />
-</Switch.Root>`;
+  const rootExtras = [
+    state.disabled ? "disabled" : "",
+    state.readOnly ? "readOnly" : "",
+    state.invalid ? "invalid" : "",
+    state.required ? "required" : "",
+    state.customRootSlot ? `data-slot="switch-root-custom"` : "",
+    state.propCheck ? `data-prop-check="root"` : "",
+  ].filter(Boolean);
+  const thumbExtras = [
+    state.customThumbSlot ? `data-slot="switch-thumb-custom"` : "",
+    state.propCheck ? `data-prop-check="thumb"` : "",
+  ].filter(Boolean).join(" ");
+  const rootProps = [
+    state.controlled ? `checked={checked}` : `defaultChecked={false}`,
+    `name="notifications"`,
+    `value="enabled"`,
+    `ariaLabel="Notifications"`,
+    ...rootExtras,
+    `onCheckedChange={setChecked}`,
+  ];
+  const rootPropSource = rootProps.map((prop) => `  ${prop}`).join("\n");
+  const thumbSource = `  <Switch.Thumb${thumbExtras ? ` ${thumbExtras}` : ""} />`;
+  const rootOpen = state.composition === "asChild"
+    ? `<Switch.Root\n${rootPropSource}\n  asChild\n>\n  <span>`
+    : state.composition === "render"
+      ? `<Switch.Root\n${rootPropSource}\n  render={(props) => <span {...props} />}\n>`
+      : `<Switch.Root\n${rootPropSource}\n>`;
+  const rootClose = state.composition === "asChild" ? `  </span>\n</Switch.Root>` : `</Switch.Root>`;
+
+  return `<div>
+${rootOpen}
+${thumbSource}
+${rootClose}
+  <span>Notifications</span>
+</div>`;
 }
 
 export function getToggleSource(state: ToggleScenario["state"]) {
@@ -1091,6 +1295,8 @@ export function getToggleSource(state: ToggleScenario["state"]) {
     `value="bold"`,
     state.blockToggle ? "onClick={blockToggle}" : "onClick={handleClick}",
     state.blockToggle ? "onKeyDown={blockToggle}" : "onKeyDown={handleKeyDown}",
+    state.customRootSlot ? `data-slot="toggle-root-custom"` : "",
+    state.propCheck ? `data-prop-check="root"` : "",
     "onPressedChange={setPressed}",
     state.composition === "asChild" ? "asChild" : "",
   ].filter(Boolean).join(" ");
@@ -1113,21 +1319,62 @@ export function getToggleSource(state: ToggleScenario["state"]) {
 }
 
 export function getRadioGroupSource(state: RadioGroupScenario["state"]) {
-  return `<RadioGroup.Root
-  ${state.controlled ? `value="${state.value}"` : `defaultValue="email"`}
-  disabled={${state.disabled}}
-  required={${state.required}}
-  invalid={${state.invalid}}
-  orientation="${state.orientation}"
-  loop={${state.loop}}
-  name="notification-channel"
-  ariaLabel="Notification channel"
-  onValueChange={setValue}
+  const rootProps = [
+    state.controlled ? `value="${state.value}"` : `defaultValue="email"`,
+    state.disabled ? "disabled" : "",
+    state.required ? "required" : "",
+    state.invalid ? "invalid" : "",
+    state.orientation !== "vertical" ? `orientation="${state.orientation}"` : "",
+    !state.loop ? "loop={false}" : "",
+    `name="notification-channel"`,
+    `ariaLabel="Notification channel"`,
+    state.customRootSlot ? `data-slot="radio-group-root-custom"` : "",
+    state.propCheck ? `data-prop-check="root"` : "",
+    "onValueChange={setValue}",
+  ].filter(Boolean);
+
+  const radioProps = (value: string, disabled = false) => [
+    `value="${value}"`,
+    disabled ? "disabled" : "",
+    state.customRadioSlot ? `data-slot="radio-custom"` : "",
+    state.propCheck ? `data-prop-check="radio-${value}"` : "",
+  ].filter(Boolean).join(" ");
+
+  const radio = (value: string, label: string, disabled = false) => {
+    const props = radioProps(value, disabled);
+    if (state.radioComposition === "asChild") {
+      return `  <RadioGroup.Radio ${props} asChild>\n    <span>${label}</span>\n  </RadioGroup.Radio>`;
+    }
+    if (state.radioComposition === "render") {
+      return `  <RadioGroup.Radio ${props} render={(props) => <span {...props}>${label}</span>} />`;
+    }
+    return `  <RadioGroup.Radio ${props}>${label}</RadioGroup.Radio>`;
+  };
+
+  const rootOpen = state.rootComposition === "asChild"
+    ? `<RadioGroup.Root
+  ${rootProps.join("\n  ")}
+  asChild
 >
-  <RadioGroup.Radio value="email">Email</RadioGroup.Radio>
-  <RadioGroup.Radio value="sms" disabled={${state.disabledItem}}>SMS</RadioGroup.Radio>
-  <RadioGroup.Radio value="push">Push</RadioGroup.Radio>
-</RadioGroup.Root>`;
+  <section>`
+    : state.rootComposition === "render"
+      ? `<RadioGroup.Root
+  ${rootProps.join("\n  ")}
+  render={(props) => <section {...props} />}
+>`
+      : `<RadioGroup.Root
+  ${rootProps.join("\n  ")}
+>`;
+  const rootClose = state.rootComposition === "asChild" ? `  </section>\n</RadioGroup.Root>` : "</RadioGroup.Root>";
+  const source = `${rootOpen}
+${radio("email", "Email")}
+${radio("sms", "SMS", state.disabledItem)}
+${radio("push", "Push")}
+${rootClose}`;
+
+  return state.direction === "rtl"
+    ? `<Direction.Provider dir="rtl">\n${source}\n</Direction.Provider>`
+    : source;
 }
 
 export function getToggleGroupSource(state: ToggleGroupScenario["state"]) {
@@ -1140,6 +1387,8 @@ export function getToggleGroupSource(state: ToggleGroupScenario["state"]) {
     state.orientation !== "horizontal" ? `orientation="${state.orientation}"` : "",
     !state.loop ? "loop={false}" : "",
     `ariaLabel="Text formatting"`,
+    state.customRootSlot ? `data-slot="toggle-group-root-custom"` : "",
+    state.propCheck ? `data-prop-check="root"` : "",
     "onValueChange={setValue}",
   ].filter(Boolean);
   const rootOpen = state.rootComposition === "asChild"
@@ -1153,12 +1402,12 @@ export function getToggleGroupSource(state: ToggleGroupScenario["state"]) {
   const itemProp = state.disabledItem ? " disabled" : "";
   const item = (value: string, label: string, ariaLabel: string, extra = "") => {
     if (state.itemComposition === "asChild") {
-      return `  <ToggleGroup.Item value="${value}" ariaLabel="${ariaLabel}"${extra} asChild>\n    <span>${label}</span>\n  </ToggleGroup.Item>`;
+      return `  <ToggleGroup.Item value="${value}" ariaLabel="${ariaLabel}"${extra}${state.customItemSlot ? ` data-slot="toggle-group-item-custom"` : ""}${state.propCheck ? ` data-prop-check="item"` : ""} asChild>\n    <span>${label}</span>\n  </ToggleGroup.Item>`;
     }
     if (state.itemComposition === "render") {
-      return `  <ToggleGroup.Item value="${value}" ariaLabel="${ariaLabel}"${extra} render={(props) => <span {...props}>${label}</span>} />`;
+      return `  <ToggleGroup.Item value="${value}" ariaLabel="${ariaLabel}"${extra}${state.customItemSlot ? ` data-slot="toggle-group-item-custom"` : ""}${state.propCheck ? ` data-prop-check="item"` : ""} render={(props) => <span {...props}>${label}</span>} />`;
     }
-    return `  <ToggleGroup.Item value="${value}" ariaLabel="${ariaLabel}"${extra}>${label}</ToggleGroup.Item>`;
+    return `  <ToggleGroup.Item value="${value}" ariaLabel="${ariaLabel}"${extra}${state.customItemSlot ? ` data-slot="toggle-group-item-custom"` : ""}${state.propCheck ? ` data-prop-check="item"` : ""}>${label}</ToggleGroup.Item>`;
   };
   const source = `${rootOpen}
 ${item("bold", "B", "Bold")}
@@ -1178,6 +1427,8 @@ function CheckboxRootExample({
   readOnly,
   invalid,
   required,
+  propCheck,
+  customRootSlot,
   children,
 }: {
   mode: CompositionMode;
@@ -1186,6 +1437,8 @@ function CheckboxRootExample({
   readOnly: boolean;
   invalid: boolean;
   required: boolean;
+  propCheck: boolean;
+  customRootSlot: boolean;
   children: ReactNode;
 }) {
   const props = {
@@ -1194,7 +1447,7 @@ function CheckboxRootExample({
     "aria-label": "Email updates",
     "data-checkbox-root": "",
     "data-playground-inspect": "",
-    "data-prop-check": "root",
+    ...partProps("root", { propCheck, customSlot: customRootSlot }, "checkbox-root-custom"),
     disabled,
     readOnly,
     invalid,
@@ -1221,6 +1474,8 @@ function SwitchRootExample({
   readOnly,
   invalid,
   required,
+  propCheck,
+  customRootSlot,
   children,
 }: {
   mode: CompositionMode;
@@ -1229,6 +1484,8 @@ function SwitchRootExample({
   readOnly: boolean;
   invalid: boolean;
   required: boolean;
+  propCheck: boolean;
+  customRootSlot: boolean;
   children: ReactNode;
 }) {
   const props = {
@@ -1236,8 +1493,8 @@ function SwitchRootExample({
     className: "control-switch",
     ariaLabel: "Notifications",
     "data-playground-inspect": "",
-    "data-prop-check": "root",
     "data-switch-root": "",
+    ...partProps("root", { propCheck, customSlot: customRootSlot }, "switch-root-custom"),
     disabled,
     readOnly,
     invalid,
@@ -1261,6 +1518,8 @@ function ToggleRootExample({
   mode,
   rootProps,
   disabled,
+  propCheck,
+  customRootSlot,
   refCallback,
   onClick,
   onKeyDown,
@@ -1268,6 +1527,8 @@ function ToggleRootExample({
   mode: CompositionMode;
   rootProps: Record<string, unknown>;
   disabled: boolean;
+  propCheck: boolean;
+  customRootSlot: boolean;
   refCallback: (node: HTMLElement | null) => void;
   onClick: (event: MouseEvent<HTMLElement>) => void;
   onKeyDown: (event: KeyboardEvent<HTMLElement>) => void;
@@ -1277,8 +1538,8 @@ function ToggleRootExample({
     className: "control-toggle",
     ariaLabel: "Bold",
     "data-playground-inspect": "",
-    "data-prop-check": "root",
     "data-toggle-root": "",
+    ...partProps("root", { propCheck, customSlot: customRootSlot }, "toggle-root-custom"),
     disabled,
     ref: refCallback,
     onClick,
@@ -1302,18 +1563,22 @@ function RadioItem({
   label,
   disabled = false,
   mode,
+  propCheck,
+  customSlot,
 }: {
   value: string;
   label: string;
   disabled?: boolean;
   mode: CompositionMode;
+  propCheck: boolean;
+  customSlot: boolean;
 }) {
   const props = {
     className: "control-radio",
     "data-playground-inspect": "",
-    "data-prop-check": value === "email" ? "radio" : undefined,
     "data-radio-root": "",
     "data-value": value,
+    ...partProps(`radio-${value}`, { propCheck, customSlot }, "radio-custom"),
     disabled,
     value,
   };
@@ -1345,6 +1610,8 @@ function ToggleGroupItem({
   onClick,
   onKeyDown,
   onRef,
+  propCheck,
+  customSlot,
 }: {
   value: string;
   label: string;
@@ -1354,12 +1621,14 @@ function ToggleGroupItem({
   onClick: (value: string, event: MouseEvent<HTMLElement>) => void;
   onKeyDown: (value: string, event: KeyboardEvent<HTMLElement>) => void;
   onRef: (value: string, node: HTMLElement | null) => void;
+  propCheck: boolean;
+  customSlot: boolean;
 }) {
   const props = {
     className: "control-toggle-group-item",
     "data-playground-inspect": "",
-    "data-prop-check": "item",
     "data-toggle-group-item": "",
+    ...partProps("item", { propCheck, customSlot }, "toggle-group-item-custom"),
     ariaLabel,
     disabled,
     onClick: (event: MouseEvent<HTMLElement>) => onClick(value, event),
@@ -1394,14 +1663,15 @@ function CompositionToolbarGroup({
 }
 
 function hiddenInputSection(title: string, selector: string, input: HTMLInputElement | null): AnatomySection {
+  const checked = input ? bool(input.checked) : "false";
   return {
     title,
     selector,
     inactive: !input,
-    summary: input?.value ?? "not rendered",
+    summary: input ? `checked ${checked}` : "not rendered",
     rows: [
       { label: "Exists", value: yesNo(input), category: "presence" },
-      { label: "Checked", value: input ? bool(input.checked) : "false", category: "state" },
+      { label: "Checked", value: checked, category: "state" },
       { label: "Name", value: input?.name ?? "none", category: "identity" },
       { label: "Value", value: input?.value ?? "none", category: "state" },
     ],

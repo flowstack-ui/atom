@@ -144,6 +144,7 @@ export const InputRoot = forwardRef<HTMLInputElement, InputRootProps>(
       ...(resolvedValue !== "" && { "data-filled": "" }),
       ...(focused && { "data-focused": "" }),
       ...(isDisabled && { "data-disabled": "" }),
+      ...(isRequired && { "data-required": "" }),
       ...(isReadOnly && { "data-readonly": "" }),
       ...(isInvalid && { "data-invalid": "" }),
       onChange: composeEventHandlers(onChange, handleChange),

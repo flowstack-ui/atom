@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Inherited fixed Menu part `data-slot` pass-through so DropdownMenu Content,
+  Group, Separator, CheckboxItem, RadioGroup, RadioItem, SubTrigger, and
+  SubContent can be overridden consistently.
 - Inherited fixed submenu keyboard behavior under `Direction.Provider dir="rtl"`
   so ArrowLeft opens submenus, ArrowRight closes submenus, and submenu
   placement mirrors to the left side.

@@ -44,8 +44,6 @@ Renders the native input element and provides context to `Input.Clear`.
 | `readOnly` | `boolean` | Field context or `false` |
 | `invalid` | `boolean` | Field context or `false` |
 | `id` | `string` | Field control ID |
-| `asChild` | `boolean` | `false` |
-| `render` | `RenderProp` | - |
 
 | Data attribute | Values |
 | --- | --- |
@@ -53,6 +51,7 @@ Renders the native input element and provides context to `Input.Clear`.
 | `[data-filled]` | Present when value is not empty |
 | `[data-focused]` | Present when focused |
 | `[data-disabled]` | Present when disabled |
+| `[data-required]` | Present when required |
 | `[data-readonly]` | Present when read-only |
 | `[data-invalid]` | Present when invalid |
 

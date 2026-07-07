@@ -56,6 +56,7 @@ export const ComboboxInput = forwardRef<HTMLInputElement, ComboboxInputProps>(
     const composedRef = useMemo(() => composeRefs(ctx.inputRef, ref), [ctx.inputRef, ref]);
     const {
       clearSelection,
+      clearOnSelect,
       disabled,
       filteredOptions,
       freeSolo,
@@ -63,6 +64,7 @@ export const ComboboxInput = forwardRef<HTMLInputElement, ComboboxInputProps>(
       getItemId,
       getOption,
       highlightedValue,
+      emptyMounted,
       inputValue,
       invalid,
       isOpen,
@@ -77,6 +79,7 @@ export const ComboboxInput = forwardRef<HTMLInputElement, ComboboxInputProps>(
       readOnly,
       required,
       selectOption,
+      consumeInputFocusOpenSuppression,
       value,
     } = ctx;
 
@@ -89,10 +92,25 @@ export const ComboboxInput = forwardRef<HTMLInputElement, ComboboxInputProps>(
     );
 
     const handleFocus: FocusEventHandler<HTMLInputElement> = useCallback(() => {
-      if (openOnFocus && !disabled && !readOnly && (filteredOptions.length > 0 || loading)) {
+      if (consumeInputFocusOpenSuppression()) return;
+      if (
+        openOnFocus &&
+        !disabled &&
+        !readOnly &&
+        (filteredOptions.length > 0 || loading || emptyMounted)
+      ) {
         onOpen();
       }
-    }, [disabled, filteredOptions.length, loading, onOpen, openOnFocus, readOnly]);
+    }, [
+      consumeInputFocusOpenSuppression,
+      disabled,
+      emptyMounted,
+      filteredOptions.length,
+      loading,
+      onOpen,
+      openOnFocus,
+      readOnly,
+    ]);
 
     const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = useCallback(
       (event) => {
@@ -136,6 +154,7 @@ export const ComboboxInput = forwardRef<HTMLInputElement, ComboboxInputProps>(
               if (option) selectOption(option);
             } else if (freeSolo && inputValue) {
               onValueChange(inputValue);
+              onInputValueChange(clearOnSelect ? "" : inputValue);
               onClose();
             }
             break;
@@ -158,6 +177,7 @@ export const ComboboxInput = forwardRef<HTMLInputElement, ComboboxInputProps>(
       },
       [
         clearSelection,
+        clearOnSelect,
         disabled,
         freeSolo,
         getEnabledItemValues,

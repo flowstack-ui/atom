@@ -24,6 +24,7 @@ export interface MenuSubTriggerProps extends MenuSubTriggerNativeProps {
   disabled?: boolean;
   className?: string;
   children: ReactNode;
+  "data-slot"?: string;
 }
 
 export function MenuSubTrigger({
@@ -36,6 +37,7 @@ export function MenuSubTrigger({
   onPointerEnter,
   onPointerLeave,
   onKeyDown,
+  "data-slot": dataSlot = "menu-sub-trigger",
   ...restProps
 }: MenuSubTriggerProps) {
   const ctx = useMenuContext();
@@ -100,7 +102,7 @@ export function MenuSubTrigger({
       aria-haspopup="menu"
       aria-expanded={subCtx.isOpen}
       aria-disabled={disabled || undefined}
-      data-slot="menu-sub-trigger"
+      data-slot={dataSlot}
       data-state={subCtx.isOpen ? "open" : "closed"}
       data-highlighted={isHighlighted ? "" : undefined}
       data-disabled={disabled ? "" : undefined}

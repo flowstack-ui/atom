@@ -28,6 +28,7 @@ export interface SelectItemProps extends SelectItemNativeProps {
   children?: ReactNode;
   disabled?: boolean;
   className?: string;
+  "data-slot"?: string;
 }
 
 export const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
@@ -41,6 +42,7 @@ export const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
       onClick,
       onPointerMove,
       onPointerLeave,
+      "data-slot": dataSlot = "select-item",
       ...restProps
     },
     ref,
@@ -138,7 +140,7 @@ export const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
           aria-selected={isSelected}
           aria-disabled={disabled || undefined}
           aria-labelledby={hasItemText ? textId : undefined}
-          data-slot="select-item"
+          data-slot={dataSlot}
           data-state={isSelected ? "checked" : "unchecked"}
           data-highlighted={isHighlighted ? "" : undefined}
           data-value={value}

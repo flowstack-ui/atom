@@ -10,10 +10,11 @@ type SelectViewportNativeProps = NativeDivProps<"children">;
 export interface SelectViewportProps extends SelectViewportNativeProps {
   children: ReactNode;
   className?: string;
+  "data-slot"?: string;
 }
 
 export const SelectViewport = forwardRef<HTMLDivElement, SelectViewportProps>(
-  function SelectViewport({ children, className, ...restProps }, ref) {
+  function SelectViewport({ children, className, "data-slot": dataSlot = "select-viewport", ...restProps }, ref) {
     const ctx = useSelectContext();
     const composedRef = useMemo(() => composeRefs(ctx.viewportRef, ref), [ctx.viewportRef, ref]);
 
@@ -21,7 +22,7 @@ export const SelectViewport = forwardRef<HTMLDivElement, SelectViewportProps>(
       <div
         {...restProps}
         ref={composedRef}
-        data-slot="select-viewport"
+        data-slot={dataSlot}
         className={className}
       >
         {children}

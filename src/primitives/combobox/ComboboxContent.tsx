@@ -2,8 +2,10 @@
 
 import {
   forwardRef,
+  Children,
   useCallback,
   useEffect,
+  isValidElement,
   useMemo,
   useState,
   type ReactNode,
@@ -20,6 +22,7 @@ import { useClickAway } from "../../hooks/useClickAway.js";
 import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { composeRefs } from "../../utils/slot.js";
+import { ComboboxEmpty } from "./ComboboxEmpty.js";
 import { useComboboxContext } from "./context.js";
 
 type ComboboxContentNativeProps = NativeDivProps<"children" | "role">;
@@ -66,6 +69,15 @@ function scrollComboboxItemIntoView(
   }
 }
 
+function hasComboboxEmptyPart(children: ReactNode): boolean {
+  return Children.toArray(children).some((child) => {
+    if (!isValidElement(child)) return false;
+    if (child.type === ComboboxEmpty) return true;
+    const childProps = child.props as { children?: ReactNode };
+    return hasComboboxEmptyPart(childProps.children);
+  });
+}
+
 export const ComboboxContent = forwardRef<HTMLDivElement, ComboboxContentProps>(
   function ComboboxContent(
     {
@@ -90,7 +102,17 @@ export const ComboboxContent = forwardRef<HTMLDivElement, ComboboxContentProps>(
       loading,
       noOptionsText,
       onClose,
+      registerEmpty,
+      unregisterEmpty,
     } = ctx;
+
+    const hasEmptyPart = useMemo(() => hasComboboxEmptyPart(children), [children]);
+
+    useEffect(() => {
+      if (!hasEmptyPart) return undefined;
+      registerEmpty();
+      return unregisterEmpty;
+    }, [hasEmptyPart, registerEmpty, unregisterEmpty]);
 
     useDismissableLayer({
       enabled: isOpen,

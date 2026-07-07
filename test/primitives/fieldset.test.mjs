@@ -34,7 +34,7 @@ test("Fieldset parts render native fieldset semantics and state data attributes"
   assert.match(html, /id="shipping"/);
   assert.match(html, /disabled=""/);
   assert.match(html, /aria-invalid="true"/);
-  assert.match(html, /aria-required="true"/);
+  assert.doesNotMatch(html, /aria-required=/);
   assert.match(html, /data-testid="fieldset-root"/);
   assert.match(html, /data-slot="fieldset"/);
   assert.match(html, /data-invalid=""/);

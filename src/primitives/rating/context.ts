@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
+import type { DirectionValue } from "../direction/index.js";
 import type { RatingItemState } from "./utils.js";
 
 export interface RatingContextValue {
@@ -12,6 +13,7 @@ export interface RatingContextValue {
   readOnly: boolean;
   invalid: boolean;
   required: boolean;
+  dir: DirectionValue;
   setValue: (value: number) => void;
   getItemState: (itemValue: number) => RatingItemState;
 }

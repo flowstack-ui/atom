@@ -17,10 +17,11 @@ type SelectGroupNativeProps = NativeDivProps<"children" | "role">;
 export interface SelectGroupProps extends SelectGroupNativeProps {
   children: ReactNode;
   className?: string;
+  "data-slot"?: string;
 }
 
 export const SelectGroup = forwardRef<HTMLDivElement, SelectGroupProps>(
-  function SelectGroup({ children, className, ...restProps }, ref) {
+  function SelectGroup({ children, className, "data-slot": dataSlot = "select-group", ...restProps }, ref) {
     const [labelId, setLabelId] = useState<string | undefined>(undefined);
     const groupContext = useMemo<SelectGroupContextValue>(
       () => ({
@@ -37,7 +38,7 @@ export const SelectGroup = forwardRef<HTMLDivElement, SelectGroupProps>(
           ref={ref}
           role="group"
           aria-labelledby={labelId}
-          data-slot="select-group"
+          data-slot={dataSlot}
           className={className}
         >
           {children}

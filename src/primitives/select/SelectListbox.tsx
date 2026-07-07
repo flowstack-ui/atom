@@ -33,6 +33,7 @@ export interface SelectListboxProps extends SelectListboxNativeProps {
   ariaLabel?: string;
   container?: HTMLElement | null;
   disablePortal?: boolean;
+  "data-slot"?: string;
 }
 
 export const SelectListbox = forwardRef<HTMLDivElement, SelectListboxProps>(
@@ -44,6 +45,7 @@ function SelectListbox(
     container,
     disablePortal = false,
     style,
+    "data-slot": dataSlot = "select-listbox",
     ...restProps
   },
   ref,
@@ -147,7 +149,7 @@ function SelectListbox(
         role="listbox"
         aria-label={ariaLabel}
         tabIndex={-1}
-        data-slot="select-listbox"
+        data-slot={dataSlot}
         data-state="open"
         {...(isPositioned ? { "data-positioned": "" } : {})}
         className={className}

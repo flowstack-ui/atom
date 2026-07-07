@@ -108,7 +108,7 @@ export const SwipeableItemContent = forwardRef<HTMLElement, SwipeableItemContent
     const state = openSide ? "open" : "closed";
 
     const clampDragOffset = useCallback((nextOffset: number, contentWidth: number) => {
-      if (!onFullSwipe || contentWidth <= 0) return clampOffset(nextOffset);
+      if (contentWidth <= 0) return clampOffset(nextOffset);
 
       const side = getSideForOffset(nextOffset);
       const actionSize = getSwipeableItemSizeForSide(side, startSize, endSize);
@@ -179,15 +179,29 @@ export const SwipeableItemContent = forwardRef<HTMLElement, SwipeableItemContent
       if (size <= 0) return;
 
       event.preventDefault();
-      setOpenSide((currentSide) => currentSide === side ? null : side);
+      if (openSide) {
+        if (openSide === side && onFullSwipe) {
+          setOpenSide(null);
+          setOffset(0);
+          onFullSwipe(side);
+          return;
+        }
+
+        close();
+        return;
+      }
+
+      setOpenSide(side);
     }, [
       close,
       dir,
       disabled,
       endSize,
+      onFullSwipe,
       onKeyDown,
       openSide,
       readOnly,
+      setOffset,
       setOpenSide,
       startSize,
     ]);

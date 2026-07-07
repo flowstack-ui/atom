@@ -8,6 +8,7 @@ Headless slider-like rating input with fractional values and decorative item par
 - Supports controlled and uncontrolled values.
 - Supports fractional values with configurable `step`.
 - Supports pointer selection, drag updates, keyboard control, and click-to-clear.
+- Mirrors horizontal pointer and keyboard behavior in RTL direction.
 - Supports disabled, read-only, invalid, and required states.
 - Renders an optional hidden input for form submission.
 
@@ -48,6 +49,7 @@ Contains rating state and slider semantics.
 | `readOnly` | `boolean` | `false` |
 | `invalid` | `boolean` | `false` |
 | `required` | `boolean` | `false` |
+| `dir` | `"ltr" \| "rtl"` | Direction context |
 | `name` | `string` | - |
 | `formValue` | `string` | Current value |
 | `form` | `string` | - |
@@ -129,8 +131,8 @@ Rating uses a slider model so the group is one tab stop. Items are decorative an
 
 | Key | Description |
 | --- | --- |
-| `ArrowRight` / `ArrowUp` | Increases value by `step`. |
-| `ArrowLeft` / `ArrowDown` | Decreases value by `step`. |
+| `ArrowRight` / `ArrowUp` | Increases value by `step`; `ArrowRight` decreases in RTL. |
+| `ArrowLeft` / `ArrowDown` | Decreases value by `step`; `ArrowLeft` increases in RTL. |
 | `PageUp` | Increases value by `largeStep`. |
 | `PageDown` | Decreases value by `largeStep`. |
 | `Home` | Moves value to `min`. |

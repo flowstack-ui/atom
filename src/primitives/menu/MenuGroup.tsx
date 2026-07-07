@@ -6,14 +6,15 @@ type MenuGroupNativeProps = NativeDivProps<"children" | "role">;
 export interface MenuGroupProps extends MenuGroupNativeProps {
   className?: string;
   children: ReactNode;
+  "data-slot"?: string;
 }
 
-export function MenuGroup({ className, children, ...restProps }: MenuGroupProps) {
+export function MenuGroup({ className, children, "data-slot": dataSlot = "menu-group", ...restProps }: MenuGroupProps) {
   return (
     <div
       {...restProps}
       role="group"
-      data-slot="menu-group"
+      data-slot={dataSlot}
       className={className}
     >
       {children}

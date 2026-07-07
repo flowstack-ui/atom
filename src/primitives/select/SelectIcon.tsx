@@ -6,16 +6,17 @@ type SelectIconNativeProps = NativeSpanProps<"children">;
 export interface SelectIconProps extends SelectIconNativeProps {
   children?: ReactNode;
   className?: string;
+  "data-slot"?: string;
 }
 
 export const SelectIcon = forwardRef<HTMLSpanElement, SelectIconProps>(
-  function SelectIcon({ children, className, ...restProps }, ref) {
+  function SelectIcon({ children, className, "data-slot": dataSlot = "select-icon", ...restProps }, ref) {
     return (
       <span
         {...restProps}
         ref={ref}
         aria-hidden="true"
-        data-slot="select-icon"
+        data-slot={dataSlot}
         className={className}
       >
         {children}

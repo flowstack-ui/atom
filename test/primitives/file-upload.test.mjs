@@ -41,7 +41,9 @@ test("FileUpload renders native file input, Field state, and file item parts", (
         FileUpload.Root,
         {
           name: "avatar",
+          form: "profile-form",
           accept: "image/*",
+          multiple: true,
           defaultFiles: [avatar],
           maxFiles: 1,
           maxSize: 5000,
@@ -81,7 +83,9 @@ test("FileUpload renders native file input, Field state, and file item parts", (
   assert.match(html, /hidden=""/);
   assert.match(html, /id="avatar-control"/);
   assert.match(html, /name="avatar"/);
+  assert.match(html, /form="profile-form"/);
   assert.match(html, /accept="image\/\*"/);
+  assert.match(html, /multiple=""/);
   assert.match(html, /disabled=""/);
   assert.match(html, /required=""/);
   assert.match(html, /aria-invalid="true"/);
@@ -109,6 +113,37 @@ test("FileUpload renders native file input, Field state, and file item parts", (
   assert.equal(FileUpload.ItemName, FileUploadItemName);
   assert.equal(FileUpload.ItemSize, FileUploadItemSize);
   assert.equal(FileUpload.ItemDeleteTrigger, FileUploadItemDeleteTrigger);
+});
+
+test("FileUpload read-only parts expose read-only state without disabled data", () => {
+  const file = new File(["hello"], "notes.txt", { type: "text/plain" });
+  const html = renderToStaticMarkup(
+    React.createElement(
+      FileUpload.Root,
+      {
+        readOnly: true,
+        defaultFiles: [file],
+      },
+      React.createElement(FileUpload.Trigger, null, "Choose file"),
+      React.createElement(FileUpload.Dropzone, null, "Drop file"),
+      React.createElement(
+        FileUpload.ItemGroup,
+        null,
+        React.createElement(
+          FileUpload.Item,
+          { file },
+          React.createElement(FileUpload.ItemDeleteTrigger, null, "Remove"),
+        ),
+      ),
+    ),
+  );
+
+  assert.match(html, /data-slot="file-upload-trigger"[^>]*data-readonly=""/);
+  assert.match(html, /data-slot="file-upload-dropzone"[^>]*data-readonly=""/);
+  assert.match(html, /data-slot="file-upload-item-delete-trigger"[^>]*data-readonly=""/);
+  assert.doesNotMatch(html, /data-slot="file-upload-trigger"[^>]*data-disabled=""/);
+  assert.doesNotMatch(html, /data-slot="file-upload-dropzone"[^>]*data-disabled=""/);
+  assert.doesNotMatch(html, /data-slot="file-upload-item-delete-trigger"[^>]*data-disabled=""/);
 });
 
 test("FileUpload helpers validate accept, max size, max files, and custom errors", () => {

@@ -25,10 +25,11 @@ import {
   type Dispatch,
   type KeyboardEvent,
   type MouseEvent,
+  type ReactNode,
   type SetStateAction,
 } from "react";
 import { AnatomyPanel, type AnatomySection } from "../AnatomyPanel";
-import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, ScenarioEventLog, ToolbarGroup } from "../WorkbenchPrimitives";
+import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup, partProps } from "../WorkbenchPrimitives";
 
 type CompositionMode = "default" | "asChild" | "render";
 type ProgressMode = "determinate" | "complete" | "indeterminate" | "invalid";
@@ -115,13 +116,15 @@ export function useUtilityPrimitiveScenarios() {
 function useDirectionScenario() {
   const [dir, setDir] = useState<TextDirection>("ltr");
   const [nested, setNested] = useState(false);
+  const [propCheck, setPropCheck] = useState(false);
   const { log, addLog, clearLog } = useScenarioLog();
 
   return {
-    state: { dir, nested, log },
+    state: { dir, nested, propCheck, log },
     actions: {
       setDir,
       setNested,
+      setPropCheck,
       clearLog,
       noteDirection: (value: string) => addLog(`direction ${value}`),
     },
@@ -285,6 +288,16 @@ function useSwipeableItemScenario() {
   const [readOnly, setReadOnly] = useState(false);
   const [dir, setDir] = useState<TextDirection>("ltr");
   const [fullSwipe, setFullSwipe] = useState(true);
+  const [closeOnActionClick, setCloseOnActionClick] = useState(true);
+  const [threshold, setThreshold] = useState("0.35");
+  const [fullSwipeThreshold, setFullSwipeThreshold] = useState("0.6");
+  const [composition, setComposition] = useState<CompositionMode>("default");
+  const [contentComposition, setContentComposition] = useState<CompositionMode>("default");
+  const [actionsComposition, setActionsComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
+  const [customContentSlot, setCustomContentSlot] = useState(false);
+  const [customActionsSlot, setCustomActionsSlot] = useState(false);
   const { log, addLog, clearLog } = useScenarioLog();
 
   const handleOpenSideChange = (nextSide: "start" | "end" | null) => {
@@ -293,7 +306,7 @@ function useSwipeableItemScenario() {
   };
 
   return {
-    state: { controlled, openSide, disabled, readOnly, dir, fullSwipe, log },
+    state: { controlled, openSide, disabled, readOnly, dir, fullSwipe, closeOnActionClick, threshold, fullSwipeThreshold, composition, contentComposition, actionsComposition, propCheck, customRootSlot, customContentSlot, customActionsSlot, log },
     actions: {
       setControlled,
       setOpenSide: handleOpenSideChange,
@@ -301,6 +314,16 @@ function useSwipeableItemScenario() {
       setReadOnly,
       setDir,
       setFullSwipe,
+      setCloseOnActionClick,
+      setThreshold,
+      setFullSwipeThreshold,
+      setComposition,
+      setContentComposition,
+      setActionsComposition,
+      setPropCheck,
+      setCustomRootSlot,
+      setCustomContentSlot,
+      setCustomActionsSlot,
       clearLog,
       noteFullSwipe: (side: "start" | "end") => addLog(`full swipe ${side}`),
       noteAction: (label: string) => addLog(`action ${label}`),
@@ -352,6 +375,9 @@ function useProgressScenario() {
   const [customLabel, setCustomLabel] = useState(false);
   const [composition, setComposition] = useState<CompositionMode>("default");
   const [indicatorComposition, setIndicatorComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
+  const [customIndicatorSlot, setCustomIndicatorSlot] = useState(false);
   const [rootRef, setRootRef] = useState("none");
   const [indicatorRef, setIndicatorRef] = useState("none");
   const { log, clearLog } = useScenarioLog();
@@ -363,8 +389,8 @@ function useProgressScenario() {
   }, []);
 
   return {
-    state: { mode, value, customLabel, composition, indicatorComposition, rootRef, indicatorRef, log },
-    actions: { setMode, setValue, setCustomLabel, setComposition, setIndicatorComposition, markRootRef, markIndicatorRef, clearLog },
+    state: { mode, value, customLabel, composition, indicatorComposition, propCheck, customRootSlot, customIndicatorSlot, rootRef, indicatorRef, log },
+    actions: { setMode, setValue, setCustomLabel, setComposition, setIndicatorComposition, setPropCheck, setCustomRootSlot, setCustomIndicatorSlot, markRootRef, markIndicatorRef, clearLog },
   };
 }
 
@@ -374,6 +400,8 @@ function usePressableScenario() {
   const [blockClick, setBlockClick] = useState(false);
   const [showPointerCancelHelper, setShowPointerCancelHelper] = useState(false);
   const [composition, setComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
   const [pressCount, setPressCount] = useState(0);
   const [pressed, setPressed] = useState(false);
   const [rootRef, setRootRef] = useState("none");
@@ -403,19 +431,21 @@ function usePressableScenario() {
   };
 
   return {
-    state: { disabled, blockClick, showPointerCancelHelper, composition, pressCount, pressed, rootRef, log },
-    actions: { setDisabled, setBlockClick, setShowPointerCancelHelper, setComposition, setPressed, markRootRef, handlePress, testPointerCancel, note, clearLog },
+    state: { disabled, blockClick, showPointerCancelHelper, composition, propCheck, customRootSlot, pressCount, pressed, rootRef, log },
+    actions: { setDisabled, setBlockClick, setShowPointerCancelHelper, setComposition, setPropCheck, setCustomRootSlot, setPressed, markRootRef, handlePress, testPointerCancel, note, clearLog },
   };
 }
 
 function useVisuallyHiddenScenario() {
   const [composition, setComposition] = useState<CompositionMode>("default");
   const [customStyle, setCustomStyle] = useState(false);
+  const [propCheck, setPropCheck] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
   const { log, clearLog } = useScenarioLog();
 
   return {
-    state: { composition, customStyle, log },
-    actions: { setComposition, setCustomStyle, clearLog },
+    state: { composition, customStyle, propCheck, customRootSlot, log },
+    actions: { setComposition, setCustomStyle, setPropCheck, setCustomRootSlot, clearLog },
   };
 }
 
@@ -425,6 +455,9 @@ function useSkipLinkScenario() {
   const [blockClick, setBlockClick] = useState(false);
   const [composition, setComposition] = useState<CompositionMode>("default");
   const [targetComposition, setTargetComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
+  const [customTargetSlot, setCustomTargetSlot] = useState(false);
   const [rootRef, setRootRef] = useState("none");
   const [targetRef, setTargetRef] = useState("none");
   const [defaultPrevented, setDefaultPrevented] = useState("not clicked");
@@ -456,13 +489,16 @@ function useSkipLinkScenario() {
   }, [addLog]);
 
   return {
-    state: { focusTarget, targetMode, blockClick, composition, targetComposition, rootRef, targetRef, defaultPrevented, hash, log },
+    state: { focusTarget, targetMode, blockClick, composition, targetComposition, propCheck, customRootSlot, customTargetSlot, rootRef, targetRef, defaultPrevented, hash, log },
     actions: {
       setFocusTarget,
       setTargetMode,
       setBlockClick,
       setComposition,
       setTargetComposition,
+      setPropCheck,
+      setCustomRootSlot,
+      setCustomTargetSlot,
       markRootRef,
       markTargetRef,
       clearLog,
@@ -555,14 +591,16 @@ function usePortalScenario() {
   const [mounted, setMounted] = useState(true);
   const [disabled, setDisabled] = useState(false);
   const [customContainer, setCustomContainer] = useState(false);
+  const [propCheck, setPropCheck] = useState(false);
   const { log, addLog, clearLog } = useScenarioLog();
 
   return {
-    state: { mounted, disabled, customContainer, log },
+    state: { mounted, disabled, customContainer, propCheck, log },
     actions: {
       setMounted,
       setDisabled,
       setCustomContainer,
+      setPropCheck,
       clearLog,
       noteMount: (nextMounted: boolean) => {
         setMounted(nextMounted);
@@ -691,6 +729,10 @@ export function UtilityPrimitiveScenarioToolbar({
           <MenuRadioControl label="Direction" options={directionOptions} value={scenario.state.dir} onChange={scenario.actions.setDir} />
           <MenuCheckboxControl checked={scenario.state.nested} label="Nested override" value="nested" onChange={scenario.actions.setNested} />
         </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+        />
       </ControlToolbar>
     );
   }
@@ -797,12 +839,31 @@ export function UtilityPrimitiveScenarioToolbar({
           <MenuCheckboxControl checked={scenario.state.readOnly} label="Read only" value="read-only" onChange={scenario.actions.setReadOnly} />
           <MenuCheckboxControl checked={scenario.state.fullSwipe} label="Full swipe" value="full-swipe" onChange={scenario.actions.setFullSwipe} />
         </ToolbarGroup>
+        <ToolbarGroup title="Behavior" value="behavior">
+          <MenuCheckboxControl checked={scenario.state.closeOnActionClick} label="Action click closes" value="action-click-closes" onChange={scenario.actions.setCloseOnActionClick} />
+          <MenuRadioControl label="Open threshold" options={swipeThresholdOptions} value={scenario.state.threshold} onChange={scenario.actions.setThreshold} />
+          <MenuRadioControl label="Full-swipe threshold" options={swipeFullThresholdOptions} value={scenario.state.fullSwipeThreshold} onChange={scenario.actions.setFullSwipeThreshold} />
+        </ToolbarGroup>
         <ToolbarGroup title="Open" value="open">
           <MenuRadioControl label="Side" options={swipeOpenSideOptions} value={scenario.state.openSide ?? "none"} onChange={(value) => scenario.actions.setOpenSide(value === "none" ? null : value)} />
         </ToolbarGroup>
         <ToolbarGroup title="Layout" value="layout">
           <MenuRadioControl label="Direction" options={directionOptions} value={scenario.state.dir} onChange={scenario.actions.setDir} />
         </ToolbarGroup>
+        <ToolbarGroup title="Composition" value="composition">
+          <MenuRadioControl label="Root" options={compositionOptions} value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+          <MenuRadioControl label="Content" options={compositionOptions} value={scenario.state.contentComposition} onChange={scenario.actions.setContentComposition} />
+          <MenuRadioControl label="Actions" options={compositionOptions} value={scenario.state.actionsComposition} onChange={scenario.actions.setActionsComposition} />
+        </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={[
+            { checked: scenario.state.customRootSlot, label: "Root", value: "root-slot", onChange: scenario.actions.setCustomRootSlot },
+            { checked: scenario.state.customContentSlot, label: "Content", value: "content-slot", onChange: scenario.actions.setCustomContentSlot },
+            { checked: scenario.state.customActionsSlot, label: "Actions", value: "actions-slot", onChange: scenario.actions.setCustomActionsSlot },
+          ]}
+        />
       </ControlToolbar>
     );
   }
@@ -839,6 +900,14 @@ export function UtilityPrimitiveScenarioToolbar({
           <MenuRadioControl label="Root" options={compositionOptions} value={scenario.state.composition} onChange={scenario.actions.setComposition} />
           <MenuRadioControl label="Indicator" options={compositionOptions} value={scenario.state.indicatorComposition} onChange={scenario.actions.setIndicatorComposition} />
         </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={[
+            { checked: scenario.state.customRootSlot, label: "Root Slot", value: "root-slot", onChange: scenario.actions.setCustomRootSlot },
+            { checked: scenario.state.customIndicatorSlot, label: "Indicator Slot", value: "indicator-slot", onChange: scenario.actions.setCustomIndicatorSlot },
+          ]}
+        />
       </ControlToolbar>
     );
   }
@@ -855,6 +924,13 @@ export function UtilityPrimitiveScenarioToolbar({
           <MenuCheckboxControl checked={scenario.state.showPointerCancelHelper} label="Show pointer cancel helper" value="show-pointer-cancel-helper" onChange={scenario.actions.setShowPointerCancelHelper} />
         </ToolbarGroup>
         <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={[
+            { checked: scenario.state.customRootSlot, label: "Root Slot", value: "root-slot", onChange: scenario.actions.setCustomRootSlot },
+          ]}
+        />
       </ControlToolbar>
     );
   }
@@ -867,6 +943,13 @@ export function UtilityPrimitiveScenarioToolbar({
           <MenuCheckboxControl checked={scenario.state.customStyle} label="Custom style" value="custom-style" onChange={scenario.actions.setCustomStyle} />
         </ToolbarGroup>
         <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={[
+            { checked: scenario.state.customRootSlot, label: "Root Slot", value: "root-slot", onChange: scenario.actions.setCustomRootSlot },
+          ]}
+        />
       </ControlToolbar>
     );
   }
@@ -895,6 +978,14 @@ export function UtilityPrimitiveScenarioToolbar({
           <MenuRadioControl label="Root" options={compositionOptions} value={scenario.state.composition} onChange={scenario.actions.setComposition} />
           <MenuRadioControl label="Target" options={compositionOptions} value={scenario.state.targetComposition} onChange={scenario.actions.setTargetComposition} />
         </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={[
+            { checked: scenario.state.customRootSlot, label: "Root Slot", value: "root-slot", onChange: scenario.actions.setCustomRootSlot },
+            { checked: scenario.state.customTargetSlot, label: "Target Slot", value: "target-slot", onChange: scenario.actions.setCustomTargetSlot },
+          ]}
+        />
       </ControlToolbar>
     );
   }
@@ -948,6 +1039,10 @@ export function UtilityPrimitiveScenarioToolbar({
           <MenuCheckboxControl checked={scenario.state.disabled} label="Disable portal" value="disabled" onChange={scenario.actions.setDisabled} />
           <MenuCheckboxControl checked={scenario.state.customContainer} label="Custom container" value="custom-container" onChange={scenario.actions.setCustomContainer} />
         </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+        />
       </ControlToolbar>
     );
   }
@@ -1099,7 +1194,7 @@ export function getUtilityPrimitiveCanvasFooter(
 
   if (scenarioId === "swipeable-item") {
     const state = scenarios.swipeableItem.state;
-    return `Open ${state.openSide ?? "none"} | ${state.dir} | Read only ${state.readOnly}`;
+    return `Open ${state.openSide ?? "none"} | Direction ${state.dir} | Read only ${state.readOnly}`;
   }
 
   if (scenarioId === "toast") {
@@ -1164,11 +1259,17 @@ export function getUtilityPrimitiveSource(
   if (scenarioId === "direction") {
     const state = scenarios.direction.state;
     const nestedDir = state.dir === "ltr" ? "rtl" : "ltr";
+    const regionProps = sourceProps([
+      state.propCheck ? `data-prop-check="region"` : null,
+    ]);
+    const nestedProps = sourceProps([
+      state.propCheck ? `data-prop-check="nested"` : null,
+    ]);
     return `<Direction.Provider dir="${state.dir}">
-  <div dir="${state.dir}">
+  <div dir="${state.dir}"${regionProps}>
     Outer direction: ${state.dir}
     ${state.nested ? `<Direction.Provider dir="${nestedDir}">
-      <div dir="${nestedDir}">
+      <div dir="${nestedDir}"${nestedProps}>
         Nested direction: ${nestedDir}
       </div>
     </Direction.Provider>` : ""}
@@ -1275,18 +1376,64 @@ export function getUtilityPrimitiveSource(
 
   if (scenarioId === "swipeable-item") {
     const state = scenarios.swipeableItem.state;
-    return `<SwipeableItem.Root
-  ${state.controlled ? "openSide={openSide}" : `defaultOpenSide={${state.openSide === null ? "null" : `"${state.openSide}"`}}`}
-  disabled={${state.disabled}}
-  readOnly={${state.readOnly}}
-  dir="${state.dir}"
-  onOpenSideChange={setOpenSide}
-  ${state.fullSwipe ? "onFullSwipe={handleFullSwipe}" : ""}
->
-  <SwipeableItem.Actions side="start">Archive</SwipeableItem.Actions>
-  <SwipeableItem.Content>Swipeable message</SwipeableItem.Content>
-  <SwipeableItem.Actions side="end">Delete</SwipeableItem.Actions>
-</SwipeableItem.Root>`;
+    const rootProps = sourceProps([
+      state.controlled ? "openSide={openSide}" : state.openSide ? `defaultOpenSide="${state.openSide}"` : null,
+      state.disabled ? "disabled" : null,
+      state.readOnly ? "readOnly" : null,
+      state.threshold !== "0.35" ? `threshold={${state.threshold}}` : null,
+      state.fullSwipeThreshold !== "0.6" ? `fullSwipeThreshold={${state.fullSwipeThreshold}}` : null,
+      state.customRootSlot ? `data-slot="swipeable-item-root-custom"` : "",
+      state.propCheck ? `data-prop-check="root"` : "",
+      "onOpenSideChange={setOpenSide}",
+      state.fullSwipe ? "onFullSwipe={handleFullSwipe}" : "",
+    ]);
+    const contentExtras = sourceProps([
+      state.customContentSlot ? `data-slot="swipeable-item-content-custom"` : "",
+      state.propCheck ? `data-prop-check="content"` : "",
+    ]);
+    const actionsExtras = (side: "start" | "end") => sourceProps([
+      state.closeOnActionClick ? "" : "closeOnClick={false}",
+      state.customActionsSlot ? `data-slot="swipeable-item-actions-custom"` : "",
+      state.propCheck ? `data-prop-check="actions-${side}"` : "",
+    ]);
+    const contentSource = state.contentComposition === "asChild"
+      ? `<SwipeableItem.Content${contentExtras} asChild>
+    <article>Swipeable message</article>
+  </SwipeableItem.Content>`
+      : state.contentComposition === "render"
+        ? `<SwipeableItem.Content${contentExtras} render={(props) => <article {...props}>Swipeable message</article>} />`
+        : `<SwipeableItem.Content${contentExtras}>Swipeable message</SwipeableItem.Content>`;
+    const actionSource = (side: "start" | "end", label: string) => {
+      const props = ` side="${side}"${actionsExtras(side)}`;
+      if (state.actionsComposition === "asChild") {
+        return `<SwipeableItem.Actions${props} asChild>
+    <aside>${label}</aside>
+  </SwipeableItem.Actions>`;
+      }
+      if (state.actionsComposition === "render") {
+        return `<SwipeableItem.Actions${props} render={(props) => <aside {...props}>${label}</aside>} />`;
+      }
+      return `<SwipeableItem.Actions${props}>${label}</SwipeableItem.Actions>`;
+    };
+    const rootOpen = state.composition === "asChild"
+      ? `<SwipeableItem.Root${rootProps} asChild>\n  <section>`
+      : `<SwipeableItem.Root${rootProps}>`;
+    const rootClose = state.composition === "asChild" ? `  </section>\n</SwipeableItem.Root>` : `</SwipeableItem.Root>`;
+    const source = state.composition === "render"
+      ? `<SwipeableItem.Root${rootProps} render={(props) => (
+  <section {...props}>
+    ${indent(actionSource("start", "Archive"), 4).trim()}
+    ${indent(contentSource, 4).trim()}
+    ${indent(actionSource("end", "Delete"), 4).trim()}
+  </section>
+)} />`
+      : `${rootOpen}
+  ${indent(actionSource("start", "Archive"), 2).trim()}
+  ${indent(contentSource, 2).trim()}
+  ${indent(actionSource("end", "Delete"), 2).trim()}
+${rootClose}`;
+
+    return state.dir === "rtl" ? `<Direction.Provider dir="rtl">\n${source}\n</Direction.Provider>` : source;
   }
 
   if (scenarioId === "toast") {
@@ -1313,9 +1460,11 @@ export function getUtilityPrimitiveSource(
       min !== 0 ? `min={${min}}` : "",
       max !== 100 ? `max={${max}}` : "",
       state.customLabel ? `getValueLabel={(value, min, max) => \`\${value - min} of \${max - min} steps\`}` : "",
+      state.customRootSlot ? `data-slot="progress-custom"` : "",
+      state.propCheck ? `data-prop-check="root"` : "",
     ].filter(Boolean);
     const rootOpen = `<Progress.Root${rootProps.length ? `\n  ${rootProps.join("\n  ")}` : ""}`;
-    const indicator = getProgressIndicatorSource(state.indicatorComposition);
+    const indicator = getProgressIndicatorSource(state);
 
     if (state.composition === "asChild") {
       return `${rootOpen}
@@ -1346,9 +1495,13 @@ ${indent(indicator, 2)}
     const state = scenarios.pressable.state;
     const disabledProp = state.disabled ? " disabled" : "";
     const clickHandler = state.blockClick ? " onClick={(event) => event.preventDefault()}" : "";
+    const rootProps = sourceProps([
+      state.customRootSlot ? `data-slot="pressable-root-custom"` : null,
+      state.propCheck ? `data-prop-check="root"` : null,
+    ]);
 
     if (state.composition === "asChild") {
-      return `<Pressable.Root${disabledProp}${clickHandler}
+      return `<Pressable.Root${rootProps}${disabledProp}${clickHandler}
   asChild
   onKeyUp={handleKeyUp}
   onPointerCancel={handlePointerCancel}
@@ -1362,7 +1515,7 @@ ${indent(indicator, 2)}
     }
 
     if (state.composition === "render") {
-      return `<Pressable.Root${disabledProp}${clickHandler}
+      return `<Pressable.Root${rootProps}${disabledProp}${clickHandler}
   render={(props) => (
     <div {...props}>
       <strong>Project Alpha</strong>
@@ -1375,7 +1528,7 @@ ${indent(indicator, 2)}
 />`;
     }
 
-    return `<Pressable.Root${disabledProp}${clickHandler}
+    return `<Pressable.Root${rootProps}${disabledProp}${clickHandler}
   onKeyUp={handleKeyUp}
   onPointerCancel={handlePointerCancel}
   onPress={handlePress}
@@ -1387,15 +1540,19 @@ ${indent(indicator, 2)}
 
   if (scenarioId === "visually-hidden") {
     const state = scenarios.visuallyHidden.state;
+    const rootProps = sourceProps([
+      state.customRootSlot ? `data-slot="visually-hidden-custom"` : null,
+      state.propCheck ? `data-prop-check="root"` : null,
+    ]);
     const visuallyHiddenSource = state.composition === "asChild"
-      ? `<VisuallyHidden.Root asChild>
+      ? `<VisuallyHidden.Root${rootProps} asChild>
     <strong>Search the workspace</strong>
   </VisuallyHidden.Root>`
       : state.composition === "render"
-        ? `<VisuallyHidden.Root
+        ? `<VisuallyHidden.Root${rootProps}
     render={(props) => <em {...props}>Search the workspace</em>}
   />`
-        : `<VisuallyHidden.Root>Search the workspace</VisuallyHidden.Root>`;
+        : `<VisuallyHidden.Root${rootProps}>Search the workspace</VisuallyHidden.Root>`;
 
     return `<button type="button">
   Search
@@ -1406,29 +1563,39 @@ ${indent(indicator, 2)}
   if (scenarioId === "skip-link") {
     const state = scenarios.skipLink.state;
     const href = state.targetMode === "missing" ? "#missing-target" : state.targetMode === "malformed" ? "#bad%EA" : "#playground-skip-target";
+    const rootProps = sourceProps([
+      state.customRootSlot ? `data-slot="skip-link-custom"` : null,
+      state.propCheck ? `data-prop-check="root"` : null,
+    ]);
+    const targetProps = sourceProps([
+      state.customTargetSlot ? `data-slot="skip-link-target-custom"` : null,
+      state.propCheck ? `data-prop-check="target"` : null,
+    ]);
     const rootSource = state.composition === "asChild"
-      ? `<SkipLink.Root href="${href}" focusTarget={${state.focusTarget}} asChild>
+      ? `<SkipLink.Root href="${href}" focusTarget={${state.focusTarget}}${rootProps} asChild>
   <a>Skip to content</a>
 </SkipLink.Root>`
       : state.composition === "render"
         ? `<SkipLink.Root
   href="${href}"
   focusTarget={${state.focusTarget}}
+  ${rootProps.trim()}
   render={(props) => <a {...props}>Skip to content</a>}
 />`
-        : `<SkipLink.Root href="${href}" focusTarget={${state.focusTarget}}>
+        : `<SkipLink.Root href="${href}" focusTarget={${state.focusTarget}}${rootProps}>
   Skip to content
 </SkipLink.Root>`;
     const targetSource = state.targetComposition === "asChild"
-      ? `<SkipLink.Target id="playground-skip-target" asChild>
+      ? `<SkipLink.Target id="playground-skip-target"${targetProps} asChild>
   <section>Main content</section>
 </SkipLink.Target>`
       : state.targetComposition === "render"
         ? `<SkipLink.Target
   id="playground-skip-target"
+  ${targetProps.trim()}
   render={(props) => <section {...props}>Main content</section>}
 />`
-        : `<SkipLink.Target id="playground-skip-target">
+        : `<SkipLink.Target id="playground-skip-target"${targetProps}>
   Main content
 </SkipLink.Target>`;
     return `${rootSource}
@@ -1470,11 +1637,14 @@ ${targetSource}`;
 
   if (scenarioId === "portal") {
     const state = scenarios.portal.state;
+    const contentProps = sourceProps([
+      state.propCheck ? `data-prop-check="content"` : null,
+    ]);
     return `<Portal
   disabled={${state.disabled}}
   container={${state.customContainer ? "containerElement" : "undefined"}}
 >
-  <div>Portaled content</div>
+  <div${contentProps}>Portaled content</div>
 </Portal>`;
   }
 
@@ -1535,7 +1705,7 @@ function DirectionScenarioCanvas({ scenario }: { scenario: ReturnType<typeof use
           dir={scenario.state.dir}
           data-direction-region=""
           data-playground-inspect=""
-          data-prop-check="region"
+          data-prop-check={scenario.state.propCheck ? "region" : undefined}
           onClick={() => scenario.actions.noteDirection(scenario.state.dir)}
         >
           <DirectionValueProbe label="Outer direction" />
@@ -1546,7 +1716,7 @@ function DirectionScenarioCanvas({ scenario }: { scenario: ReturnType<typeof use
                 dir={scenario.state.dir === "ltr" ? "rtl" : "ltr"}
                 data-direction-nested=""
                 data-playground-inspect=""
-                data-prop-check="nested"
+                data-prop-check={scenario.state.propCheck ? "nested" : undefined}
                 onClick={(event) => {
                   event.stopPropagation();
                   scenario.actions.noteDirection(scenario.state.dir === "ltr" ? "rtl" : "ltr");
@@ -1807,33 +1977,156 @@ function SwipeableItemScenarioCanvas({ scenario }: { scenario: ReturnType<typeof
     className: "utility-swipeable",
     "data-swipeable-root": "",
     "data-playground-inspect": "",
-    "data-prop-check": "root",
-    dir: scenario.state.dir,
+    ...partProps("root", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customRootSlot }, "swipeable-item-root-custom"),
     disabled: scenario.state.disabled,
     readOnly: scenario.state.readOnly,
     onFullSwipe: scenario.state.fullSwipe ? scenario.actions.noteFullSwipe : undefined,
+    threshold: Number(scenario.state.threshold),
+    fullSwipeThreshold: Number(scenario.state.fullSwipeThreshold),
     onOpenSideChange: scenario.actions.setOpenSide,
     ...(scenario.state.controlled ? { openSide: scenario.state.openSide } : { defaultOpenSide: scenario.state.openSide }),
   };
 
+  const startActions = (
+    <SwipeableActionsExample
+      className="utility-swipe-actions start"
+      customSlot={scenario.state.customActionsSlot}
+      closeOnClick={scenario.state.closeOnActionClick}
+      mode={scenario.state.actionsComposition}
+      onAction={() => scenario.actions.noteAction("archive")}
+      propCheck={scenario.state.propCheck}
+      side="start"
+    >
+      Archive
+    </SwipeableActionsExample>
+  );
+  const content = (
+    <SwipeableContentExample
+      customSlot={scenario.state.customContentSlot}
+      mode={scenario.state.contentComposition}
+      propCheck={scenario.state.propCheck}
+    />
+  );
+  const endActions = (
+    <SwipeableActionsExample
+      className="utility-swipe-actions end"
+      customSlot={scenario.state.customActionsSlot}
+      closeOnClick={scenario.state.closeOnActionClick}
+      mode={scenario.state.actionsComposition}
+      onAction={() => scenario.actions.noteAction("delete")}
+      propCheck={scenario.state.propCheck}
+      side="end"
+    >
+      Delete
+    </SwipeableActionsExample>
+  );
+  const children = (
+    <>
+      {startActions}
+      {content}
+      {endActions}
+    </>
+  );
+
   return (
     <div className="utility-primitive-stage">
-      <Direction.Provider dir={scenario.state.dir}>
-        <SwipeableItem.Root {...rootProps}>
-          <SwipeableItem.Actions className="utility-swipe-actions start" side="start" data-swipeable-actions-start="" data-playground-inspect="" data-prop-check="actions-start">
-            <button className="atom-button secondary" type="button" onClick={() => scenario.actions.noteAction("archive")}>Archive</button>
-          </SwipeableItem.Actions>
-          <SwipeableItem.Content className="utility-swipe-content" data-swipeable-content="" data-playground-inspect="" data-prop-check="content">
-            <strong>Design review</strong>
-            <span>Swipe horizontally or use ArrowLeft and ArrowRight.</span>
-          </SwipeableItem.Content>
-          <SwipeableItem.Actions className="utility-swipe-actions end" side="end" data-swipeable-actions-end="" data-playground-inspect="">
-            <button className="atom-button secondary" type="button" onClick={() => scenario.actions.noteAction("delete")}>Delete</button>
-          </SwipeableItem.Actions>
-        </SwipeableItem.Root>
-      </Direction.Provider>
+      <SwipeableDirectionProvider dir={scenario.state.dir}>
+        {scenario.state.composition === "asChild" ? (
+          <SwipeableItem.Root {...rootProps} asChild>
+            <section>{children}</section>
+          </SwipeableItem.Root>
+        ) : scenario.state.composition === "render" ? (
+          <SwipeableItem.Root {...rootProps} render={(renderProps) => <section {...renderProps}>{children}</section>} />
+        ) : (
+          <SwipeableItem.Root {...rootProps}>{children}</SwipeableItem.Root>
+        )}
+      </SwipeableDirectionProvider>
     </div>
   );
+}
+
+function SwipeableDirectionProvider({ children, dir }: { children: ReactNode; dir: TextDirection }) {
+  if (dir === "ltr") return <>{children}</>;
+  return <Direction.Provider dir="rtl">{children}</Direction.Provider>;
+}
+
+function SwipeableContentExample({
+  customSlot,
+  mode,
+  propCheck,
+}: {
+  customSlot: boolean;
+  mode: CompositionMode;
+  propCheck: boolean;
+}) {
+  const props = {
+    className: "utility-swipe-content",
+    "data-canvas-focus": "",
+    "data-swipeable-content": "",
+    "data-playground-inspect": "",
+    ...partProps("content", { propCheck, customSlot }, "swipeable-item-content-custom"),
+  };
+  const children = (
+    <>
+      <strong>Design review</strong>
+      <span>Swipe horizontally or use ArrowLeft and ArrowRight.</span>
+    </>
+  );
+
+  if (mode === "asChild") {
+    return (
+      <SwipeableItem.Content {...props} asChild>
+        <article>{children}</article>
+      </SwipeableItem.Content>
+    );
+  }
+  if (mode === "render") {
+    return <SwipeableItem.Content {...props} render={(renderProps) => <article {...renderProps}>{children}</article>} />;
+  }
+  return <SwipeableItem.Content {...props}>{children}</SwipeableItem.Content>;
+}
+
+function SwipeableActionsExample({
+  children,
+  className,
+  customSlot,
+  closeOnClick,
+  mode,
+  onAction,
+  propCheck,
+  side,
+}: {
+  children: string;
+  className: string;
+  customSlot: boolean;
+  closeOnClick: boolean;
+  mode: CompositionMode;
+  onAction: () => void;
+  propCheck: boolean;
+  side: "start" | "end";
+}) {
+  const inspectAttr = side === "start" ? { "data-swipeable-actions-start": "" } : { "data-swipeable-actions-end": "" };
+  const props = {
+    className,
+    closeOnClick,
+    side,
+    "data-playground-inspect": "",
+    ...inspectAttr,
+    ...partProps(`actions-${side}`, { propCheck, customSlot }, "swipeable-item-actions-custom"),
+  };
+  const actionButton = <button className="atom-button secondary" type="button" onClick={onAction}>{children}</button>;
+
+  if (mode === "asChild") {
+    return (
+      <SwipeableItem.Actions {...props} asChild>
+        <aside>{actionButton}</aside>
+      </SwipeableItem.Actions>
+    );
+  }
+  if (mode === "render") {
+    return <SwipeableItem.Actions {...props} render={(renderProps) => <aside {...renderProps}>{actionButton}</aside>} />;
+  }
+  return <SwipeableItem.Actions {...props}>{actionButton}</SwipeableItem.Actions>;
 }
 
 function ToastScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useToastScenario> }) {
@@ -1889,7 +2182,6 @@ function ProgressScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useP
     className: "utility-progress",
     "data-progress-root": "",
     "data-playground-inspect": "",
-    "data-prop-check": "root",
     "aria-label": "Task progress",
     value,
     min,
@@ -1898,12 +2190,15 @@ function ProgressScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useP
       ? (nextValue: number, nextMin: number, nextMax: number) => `${nextValue - nextMin} of ${nextMax - nextMin} steps`
       : undefined,
     ref: scenario.actions.markRootRef,
+    ...partProps("root", { customSlot: scenario.state.customRootSlot, propCheck: scenario.state.propCheck }, "progress-custom"),
   };
   const indicator = (
     <ProgressIndicatorExample
+      customSlot={scenario.state.customIndicatorSlot}
       mode={scenario.state.indicatorComposition}
       onRef={scenario.actions.markIndicatorRef}
       percent={getProgressVisualPercent(value, min, max)}
+      propCheck={scenario.state.propCheck}
     />
   );
 
@@ -1922,14 +2217,26 @@ function ProgressScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useP
   );
 }
 
-function ProgressIndicatorExample({ mode, onRef, percent }: { mode: CompositionMode; onRef: (node: HTMLElement | null) => void; percent: number | null }) {
+function ProgressIndicatorExample({
+  customSlot,
+  mode,
+  onRef,
+  percent,
+  propCheck,
+}: {
+  customSlot: boolean;
+  mode: CompositionMode;
+  onRef: (node: HTMLElement | null) => void;
+  percent: number | null;
+  propCheck: boolean;
+}) {
   const props = {
     className: "utility-progress-indicator",
     "data-progress-indicator": "",
     "data-playground-inspect": "",
-    "data-prop-check": "indicator",
     ref: onRef,
     style: percent === null ? undefined : { width: `${percent}%` },
+    ...partProps("indicator", { customSlot, propCheck }, "progress-indicator-custom"),
   };
 
   if (mode === "asChild") {
@@ -1953,7 +2260,7 @@ function PressableScenarioCanvas({ scenario }: { scenario: ReturnType<typeof use
     className: "utility-pressable",
     "data-pressable-root": "",
     "data-playground-inspect": "",
-    "data-prop-check": "root",
+    ...partProps("root", { customSlot: scenario.state.customRootSlot, propCheck: scenario.state.propCheck }, "pressable-root-custom"),
     disabled: scenario.state.disabled,
     ref: scenario.actions.markRootRef,
     onClick: (event: MouseEvent<HTMLElement>) => {
@@ -2025,8 +2332,8 @@ function PressableScenarioCanvas({ scenario }: { scenario: ReturnType<typeof use
 function VisuallyHiddenScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useVisuallyHiddenScenario> }) {
   const hiddenProps = {
     "data-playground-inspect": "",
-    "data-prop-check": "root",
     "data-visually-hidden-root": "",
+    ...partProps("root", { customSlot: scenario.state.customRootSlot, propCheck: scenario.state.propCheck }, "visually-hidden-custom"),
     style: scenario.state.customStyle ? { color: "red", width: 12 } : undefined,
   };
 
@@ -2057,8 +2364,8 @@ function SkipLinkScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useS
   const rootProps = {
     className: "utility-skip-link",
     "data-playground-inspect": "",
-    "data-prop-check": "root",
     "data-skip-link-root": "",
+    ...partProps("root", { customSlot: scenario.state.customRootSlot, propCheck: scenario.state.propCheck }, "skip-link-custom"),
     ref: scenario.actions.markRootRef,
     focusTarget: scenario.state.focusTarget,
     href: href as `#${string}`,
@@ -2073,8 +2380,8 @@ function SkipLinkScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useS
   const targetProps = {
     className: "utility-skip-target",
     "data-playground-inspect": "",
-    "data-prop-check": "target",
     "data-skip-link-target": "",
+    ...partProps("target", { customSlot: scenario.state.customTargetSlot, propCheck: scenario.state.propCheck }, "skip-link-target-custom"),
     id: "playground-skip-target",
     ref: scenario.actions.markTargetRef,
     onFocus: scenario.actions.noteFocus,
@@ -2307,7 +2614,7 @@ function PortalScenarioCanvas({ scenario }: { scenario: ReturnType<typeof usePor
       className={`utility-portal-content${bodyPortal ? " body-portal" : ""}`}
       data-playground-inspect=""
       data-portal-content=""
-      data-prop-check="content"
+      data-prop-check={scenario.state.propCheck ? "content" : undefined}
       role="region"
       aria-label="Portaled content preview"
       style={bodyPortal ? {
@@ -2436,7 +2743,6 @@ function CollectionDemoItem({
       data-collection-item={value}
       data-disabled={disabled ? "" : undefined}
       data-playground-inspect=""
-      data-prop-check="item"
       disabled={disabled}
       onClick={() => onSelect(value)}
       ref={buttonRef}
@@ -2776,16 +3082,29 @@ function getUtilityPrimitiveSections(
           { label: "Disabled", value: bool(scenarios.swipeableItem.state.disabled), category: "state" },
           { label: "Read only", value: bool(scenarios.swipeableItem.state.readOnly), category: "state" },
           { label: "Full swipe", value: bool(scenarios.swipeableItem.state.fullSwipe), category: "behavior" },
+          { label: "Action click closes", value: bool(scenarios.swipeableItem.state.closeOnActionClick), category: "behavior" },
+          { label: "Threshold", value: scenarios.swipeableItem.state.threshold, category: "behavior" },
+          { label: "Full swipe threshold", value: scenarios.swipeableItem.state.fullSwipeThreshold, category: "behavior" },
+          { label: "Mode", value: scenarios.swipeableItem.state.composition, category: "composition" },
         ],
       },
-      { title: "Content", selector: "[data-swipeable-content]", summary: content?.dataset.state ?? "not rendered", rows: [{ label: "Exists", value: bool(!!content), category: "presence" }] },
       {
-        title: "Actions",
+        title: "Action: Start",
         selector: "[data-swipeable-actions-start]",
-        summary: scenarios.swipeableItem.state.openSide ?? "closed",
-        groups: [
-          { title: "Start actions", selector: "[data-swipeable-actions-start]", rows: [{ label: "Exists", value: bool(!!startActions), category: "presence" }] },
-          { title: "End actions", selector: "[data-swipeable-actions-end]", rows: [{ label: "Exists", value: bool(!!endActions), category: "presence" }] },
+        summary: startActions?.dataset.state ?? "not rendered",
+        rows: [
+          { label: "Exists", value: bool(!!startActions), category: "presence" },
+          { label: "Mode", value: scenarios.swipeableItem.state.actionsComposition, category: "composition" },
+        ],
+      },
+      { title: "Content", selector: "[data-swipeable-content]", summary: content?.dataset.state ?? "not rendered", rows: [{ label: "Exists", value: bool(!!content), category: "presence" }, { label: "Mode", value: scenarios.swipeableItem.state.contentComposition, category: "composition" }] },
+      {
+        title: "Action: End",
+        selector: "[data-swipeable-actions-end]",
+        summary: endActions?.dataset.state ?? "not rendered",
+        rows: [
+          { label: "Exists", value: bool(!!endActions), category: "presence" },
+          { label: "Mode", value: scenarios.swipeableItem.state.actionsComposition, category: "composition" },
         ],
       },
     ];
@@ -3265,23 +3584,33 @@ function getProgressVisualPercent(value: number | null, min: number, max: number
   return ((clampedValue - min) / (normalizedMax - min)) * 100;
 }
 
-function getProgressIndicatorSource(composition: CompositionMode) {
-  if (composition === "asChild") {
-    return `<Progress.Indicator asChild>
+function getProgressIndicatorSource(state: ReturnType<typeof useProgressScenario>["state"]) {
+  const props = sourceProps([
+    state.customIndicatorSlot ? `data-slot="progress-indicator-custom"` : null,
+    state.propCheck ? `data-prop-check="indicator"` : null,
+  ]);
+
+  if (state.indicatorComposition === "asChild") {
+    return `<Progress.Indicator${props} asChild>
   <span />
 </Progress.Indicator>`;
   }
 
-  if (composition === "render") {
-    return `<Progress.Indicator render={(props) => <span {...props} />} />`;
+  if (state.indicatorComposition === "render") {
+    return `<Progress.Indicator${props} render={(props) => <span {...props} />} />`;
   }
 
-  return `<Progress.Indicator />`;
+  return `<Progress.Indicator${props} />`;
 }
 
 function indent(source: string, spaces: number) {
   const prefix = " ".repeat(spaces);
   return source.split("\n").map((line) => `${prefix}${line}`).join("\n");
+}
+
+function sourceProps(props: Array<string | null | undefined | false>) {
+  const visibleProps = props.filter(Boolean);
+  return visibleProps.length > 0 ? ` ${visibleProps.join(" ")}` : "";
 }
 
 function getToolbarValue(value: string | string[]) {
@@ -3342,6 +3671,8 @@ const sidebarStateOptions = ["expanded", "rail", "offcanvas"] as const;
 const sidebarCollapsedStateOptions = ["rail", "offcanvas"] as const;
 const sidebarSideOptions = ["left", "right"] as const;
 const swipeOpenSideOptions = ["none", "start", "end"] as const;
+const swipeThresholdOptions = ["0.2", "0.35", "0.6"] as const;
+const swipeFullThresholdOptions = ["0.4", "0.6", "0.8"] as const;
 const toastKindOptions = ["default", "success", "error", "warning", "info", "loading"] as const;
 const toastPositionOptions = ["top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right"] as const;
 const toastDurationOptions = ["short", "infinite"] as const;

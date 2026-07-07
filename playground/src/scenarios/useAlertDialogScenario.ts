@@ -27,6 +27,14 @@ export type AlertDialogScenarioState = {
   blockTriggerEvent: boolean;
   blockCancelClose: boolean;
   blockActionClose: boolean;
+  propCheck: boolean;
+  customTriggerSlot: boolean;
+  customOverlaySlot: boolean;
+  customContentSlot: boolean;
+  customTitleSlot: boolean;
+  customDescriptionSlot: boolean;
+  customCancelSlot: boolean;
+  customActionSlot: boolean;
   open: boolean;
   log: AlertDialogLogEntry[];
 };
@@ -45,6 +53,14 @@ export type AlertDialogScenarioActions = {
   setBlockTriggerEvent: (value: boolean) => void;
   setBlockCancelClose: (value: boolean) => void;
   setBlockActionClose: (value: boolean) => void;
+  setPropCheck: (value: boolean) => void;
+  setCustomTriggerSlot: (value: boolean) => void;
+  setCustomOverlaySlot: (value: boolean) => void;
+  setCustomContentSlot: (value: boolean) => void;
+  setCustomTitleSlot: (value: boolean) => void;
+  setCustomDescriptionSlot: (value: boolean) => void;
+  setCustomCancelSlot: (value: boolean) => void;
+  setCustomActionSlot: (value: boolean) => void;
   setControlledOpen: (value: boolean) => void;
   handleOpenChange: (open: boolean, reason?: string) => void;
   handleTriggerClick: (event: ReactMouseEvent<HTMLElement>) => void;
@@ -74,6 +90,14 @@ export function useAlertDialogScenario() {
   const [blockTriggerEvent, setBlockTriggerEvent] = useState(false);
   const [blockCancelClose, setBlockCancelClose] = useState(false);
   const [blockActionClose, setBlockActionClose] = useState(false);
+  const [propCheck, setPropCheck] = useState(false);
+  const [customTriggerSlot, setCustomTriggerSlot] = useState(false);
+  const [customOverlaySlot, setCustomOverlaySlot] = useState(false);
+  const [customContentSlot, setCustomContentSlot] = useState(false);
+  const [customTitleSlot, setCustomTitleSlot] = useState(false);
+  const [customDescriptionSlot, setCustomDescriptionSlot] = useState(false);
+  const [customCancelSlot, setCustomCancelSlot] = useState(false);
+  const [customActionSlot, setCustomActionSlot] = useState(false);
   const [open, setOpen] = useState(false);
   const [log, setLog] = useState<AlertDialogLogEntry[]>([]);
 
@@ -165,6 +189,14 @@ export function useAlertDialogScenario() {
       blockTriggerEvent,
       blockCancelClose,
       blockActionClose,
+      propCheck,
+      customTriggerSlot,
+      customOverlaySlot,
+      customContentSlot,
+      customTitleSlot,
+      customDescriptionSlot,
+      customCancelSlot,
+      customActionSlot,
       open,
       log,
     },
@@ -182,6 +214,14 @@ export function useAlertDialogScenario() {
       setBlockTriggerEvent,
       setBlockCancelClose,
       setBlockActionClose,
+      setPropCheck,
+      setCustomTriggerSlot,
+      setCustomOverlaySlot,
+      setCustomContentSlot,
+      setCustomTitleSlot,
+      setCustomDescriptionSlot,
+      setCustomCancelSlot,
+      setCustomActionSlot,
       setControlledOpen,
       handleOpenChange,
       handleTriggerClick,

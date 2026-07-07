@@ -9,6 +9,7 @@ Headless swipe actions for list-like items.
 - Supports controlled and uncontrolled open side state.
 - Supports left-to-right and right-to-left direction.
 - Supports optional full-swipe actions.
+- Closes open action panels after action clicks by default.
 - Supports `asChild` and `render` on every part.
 
 ## Import
@@ -91,6 +92,7 @@ Action panel revealed from one side.
 | `render` | `RenderProp` | - |
 | `side` | `"start" \| "end"` | Required |
 | `aria-label` | `string` | `"<side> actions"` |
+| `closeOnClick` | `boolean` | `true` |
 
 | Data attribute | Values |
 | --- | --- |
@@ -127,13 +129,14 @@ Action panel revealed from one side.
 
 ## Accessibility
 
-`SwipeableItem.Content` is keyboard focusable. Arrow keys open and close action
-panels, and `Escape` closes the item. Hidden action panels are removed from the
-accessibility tree and made inert until open.
+`SwipeableItem.Content` is keyboard focusable. Arrow keys open, close, and can
+full-swipe action panels when `onFullSwipe` is provided. `Escape` closes the
+item. Hidden action panels are removed from the accessibility tree and made
+inert until open.
 
 | Key | Description |
 | --- | --- |
-| `ArrowLeft` / `ArrowRight` | Opens or closes the direction-aware action side. |
+| `ArrowLeft` / `ArrowRight` | Opens a direction-aware action side. When a side is open, the opposite arrow closes it. Pressing the same arrow again triggers `onFullSwipe` when available. |
 | `Escape` | Closes an open item. |
 
 ## Changelog
