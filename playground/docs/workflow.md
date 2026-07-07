@@ -59,3 +59,25 @@ npm run playground:build
 When changes reveal or require package source fixes, follow the package-level
 verification rules from the Atom package docs and changelogs.
 
+## Playground Finding To Package Fix
+
+Manual testing can reveal different kinds of work. Classify the finding before
+editing:
+
+- **Playground-only issue**: fix the scenario, shared workbench helper, Source
+  snippet, Anatomy/Inspector wiring, styling, or workbook row inside
+  `package/playground/`.
+- **Package source bug**: stop treating it as playground work, inspect the Atom
+  component source, update package tests when practical, and follow the package
+  docs/changelog rules before release.
+- **Package docs issue**: update package docs only when the public API or
+  documented behavior is stale or misleading. Do not track docs-only checks in
+  the playground workbook.
+- **Missing package test**: add or plan a package test when the behavior is a
+  contract that should not rely only on manual playground verification.
+- **Release-note-worthy behavior change**: update the relevant package
+  changelog/release notes when the public behavior changes, even if the bug was
+  found through the playground.
+
+If a task starts as playground-only but requires package source changes, say so
+before changing package files unless the user has already approved that scope.

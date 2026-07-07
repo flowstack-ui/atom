@@ -82,6 +82,15 @@ playground. Package export checks, npm publishing, changelogs, and docs
 existence are intentionally excluded. This keeps the workbook useful as a
 manual test plan instead of turning it into a release checklist.
 
+## Workbook Is The Manual Coverage Source Of Truth
+
+The workbook is the authoritative status view for playground manual coverage.
+Scenario files show how behavior is exercised, but completion status lives in
+`component-coverage.xlsx` so each component can be reviewed from one index.
+Keeping coverage status outside source code avoids scattering manual test state
+through scenario implementations. The alternative is relying on TODO lists or
+comments, which become stale and do not give a component-by-component summary.
+
 ## Shared Workbench Primitives Grow From Repetition
 
 Shared workbench UI lives in `src/WorkbenchPrimitives.tsx`, but scenario files

@@ -51,6 +51,42 @@ Completed rows should have:
 The index should derive totals from each component sheet. If adding or removing
 rows changes a sheet, the index should update automatically.
 
+## Column Semantics
+
+The workbook is the manual coverage source of truth. Component sheets should
+keep these concepts clear even if the exact column labels evolve:
+
+- **Category or Area**: the behavior group, such as Public API, Anatomy,
+  Keyboard, Pointer, Source, Props, or Slots.
+- **Part**: the public Atom part being tested, such as Root, Trigger, Item, or
+  Hidden Input. Use the real component part, not a playground-only helper.
+- **Test**: the specific behavior or evidence being checked.
+- **Implemented**: whether the playground exposes the scenario needed to test
+  the row.
+- **Tested**: whether the row was manually verified in the browser.
+- **Coverage Status**: `covered`, `partial`, or `missing`.
+- **Notes or Evidence**: a short result, open issue, or pointer to where the
+  behavior is visible.
+
+Do not mark a row complete unless both implementation and manual testing are
+complete. If a component gets new behavior later, add or reopen rows so the
+index drops below 100% until the new work is tested.
+
+## Index And Formatting Expectations
+
+The exact formulas and conditional-formatting rules must be verified in the
+workbook before changing them. The maintenance expectation is:
+
+- each component row in the index derives totals from its component sheet
+- completion is based on tested covered rows, not only implemented rows
+- `missing`, `partial`, and untested rows keep a component below 100%
+- `Open` is zero only when no rows remain missing, partial, or untested
+- rows and index status colors match the calculated state
+- adding or removing rows from a component sheet updates the index totals
+
+If Excel reports formula or circular-reference problems, repair the workbook
+before trusting the index.
+
 ## Workbook Maintenance
 
 - Keep tabs organized and readable.
@@ -74,4 +110,3 @@ Examples:
 
 Do not add these rows to `Collection`, `Virtualizer`, or other APIs that do not
 render Atom DOM parts.
-

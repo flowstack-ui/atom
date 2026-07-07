@@ -10,6 +10,8 @@ listing every document individually.
   shared styling direction.
 - [setup.md](setup.md) - local install, dev server, build commands, and
   generated folders.
+- [code-map.md](code-map.md) - key source files, scenario locations, shared
+  workbench helpers, and workbook location.
 - [component-testing.md](component-testing.md) - scenario structure, Anatomy,
   Canvas toolbar, Inspector, Logs, Source, props, slots, direction, hooks, and
   utilities.
