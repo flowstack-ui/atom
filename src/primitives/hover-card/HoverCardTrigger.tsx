@@ -41,6 +41,7 @@ function HoverCardTrigger(
     onMouseLeave,
     onFocus,
     onBlur,
+    tabIndex,
     ...restProps
   },
   ref,
@@ -77,6 +78,7 @@ function HoverCardTrigger(
     ref: composedRef,
     "data-slot": dataSlot,
     "data-state": isOpen ? "open" : "closed",
+    tabIndex: asChild ? tabIndex : (tabIndex ?? (disabled ? -1 : 0)),
     onMouseEnter: composeEventHandlers(onMouseEnter, handleMouseEnter),
     onMouseLeave: composeEventHandlers(onMouseLeave, handleMouseLeave),
     onFocus: composeEventHandlers(onFocus, handleFocus),

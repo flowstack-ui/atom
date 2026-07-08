@@ -1,8 +1,10 @@
 import {
   assert,
+  readFile,
   test,
   React,
   renderToStaticMarkup,
+  packageRoot,
 } from "../test-utils.mjs";
 
 import {
@@ -29,6 +31,7 @@ test("HoverCard primitives render trigger state attributes", () => {
 
   assert.match(html, /data-slot="hover-card-trigger"/);
   assert.match(html, /data-state="open"/);
+  assert.match(html, /tabindex="0"/);
   assert.match(html, /class="hover-trigger-class"/);
   assert.match(html, />Profile<\/span>/);
 });
@@ -73,4 +76,14 @@ test("HoverCardArrow geometry keeps width as triangle spread and height as protr
     outwardSize: 6,
     points: "0,0 6,6 0,12",
   });
+});
+
+test("HoverCardContent updates Floating UI after the trigger ref commits", async () => {
+  const source = await readFile(
+    new URL("src/primitives/hover-card/HoverCardContent.tsx", packageRoot),
+    "utf8",
+  );
+
+  assert.match(source, /setReferenceElement\(triggerRef\.current\)/);
+  assert.match(source, /elements: \{ reference: referenceElement \}/);
 });

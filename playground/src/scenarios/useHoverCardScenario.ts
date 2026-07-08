@@ -8,7 +8,9 @@ import type { HoverCardAlign, HoverCardSide } from "@flowstack-ui/atom/hover-car
 
 export type { HoverCardAlign, HoverCardSide };
 
+export type HoverCardArrowSize = "default" | "wide";
 export type HoverCardCompositionMode = "default" | "asChild" | "render";
+export type HoverCardPortalMode = "body" | "container" | "disabled";
 
 export type HoverCardLogEntry = {
   id: number;
@@ -18,13 +20,16 @@ export type HoverCardLogEntry = {
 
 export type HoverCardScenarioState = {
   controlled: boolean;
+  defaultOpen: boolean;
   disabled: boolean;
   useAriaLabel: boolean;
+  portalMode: HoverCardPortalMode;
   openDelay: number;
   closeDelay: number;
   side: HoverCardSide;
   align: HoverCardAlign;
   sideOffset: number;
+  arrowSize: HoverCardArrowSize;
   triggerComposition: HoverCardCompositionMode;
   propCheck: boolean;
   customTriggerSlot: boolean;
@@ -36,13 +41,16 @@ export type HoverCardScenarioState = {
 
 export type HoverCardScenarioActions = {
   setControlled: (value: boolean) => void;
+  setDefaultOpen: (value: boolean) => void;
   setDisabled: (value: boolean) => void;
   setUseAriaLabel: (value: boolean) => void;
+  setPortalMode: (value: HoverCardPortalMode) => void;
   setOpenDelay: (value: number) => void;
   setCloseDelay: (value: number) => void;
   setSide: (value: HoverCardSide) => void;
   setAlign: (value: HoverCardAlign) => void;
   setSideOffset: (value: number) => void;
+  setArrowSize: (value: HoverCardArrowSize) => void;
   setTriggerComposition: (value: HoverCardCompositionMode) => void;
   setPropCheck: (value: boolean) => void;
   setCustomTriggerSlot: (value: boolean) => void;
@@ -61,13 +69,16 @@ export type HoverCardScenarioActions = {
 export function useHoverCardScenario() {
   const nextLogId = useRef(1);
   const [controlled, setControlled] = useState(false);
+  const [defaultOpen, setDefaultOpenState] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const [useAriaLabel, setUseAriaLabel] = useState(true);
+  const [portalMode, setPortalMode] = useState<HoverCardPortalMode>("body");
   const [openDelay, setOpenDelay] = useState(0);
-  const [closeDelay, setCloseDelay] = useState(150);
+  const [closeDelay, setCloseDelay] = useState(300);
   const [side, setSide] = useState<HoverCardSide>("bottom");
   const [align, setAlign] = useState<HoverCardAlign>("center");
   const [sideOffset, setSideOffset] = useState(8);
+  const [arrowSize, setArrowSize] = useState<HoverCardArrowSize>("default");
   const [triggerComposition, setTriggerComposition] =
     useState<HoverCardCompositionMode>("default");
   const [propCheck, setPropCheck] = useState(false);
@@ -83,6 +94,14 @@ export function useHoverCardScenario() {
       ...currentLog,
     ].slice(0, 10));
   }, []);
+
+  const setDefaultOpen = useCallback((value: boolean) => {
+    setDefaultOpenState(value);
+    if (!controlled) {
+      setOpen(value);
+      addLog(`uncontrolled defaultOpen set ${value}`);
+    }
+  }, [addLog, controlled]);
 
   const setControlledOpen = useCallback((nextOpen: boolean) => {
     setOpen(nextOpen);
@@ -121,13 +140,16 @@ export function useHoverCardScenario() {
   return {
     state: {
       controlled,
+      defaultOpen,
       disabled,
       useAriaLabel,
+      portalMode,
       openDelay,
       closeDelay,
       side,
       align,
       sideOffset,
+      arrowSize,
       triggerComposition,
       propCheck,
       customTriggerSlot,
@@ -138,13 +160,16 @@ export function useHoverCardScenario() {
     },
     actions: {
       setControlled,
+      setDefaultOpen,
       setDisabled,
       setUseAriaLabel,
+      setPortalMode,
       setOpenDelay,
       setCloseDelay,
       setSide,
       setAlign,
       setSideOffset,
+      setArrowSize,
       setTriggerComposition,
       setPropCheck,
       setCustomTriggerSlot,

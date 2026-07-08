@@ -96,8 +96,8 @@ Decorative SVG arrow positioned by content context.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `width` | `number` | `12` |
-| `height` | `number` | `6` |
+| `width` | `number` | `10` |
+| `height` | `number` | `5` |
 | `data-slot` | `string` | `"hover-card-arrow"` |
 
 | Data attribute | Values |

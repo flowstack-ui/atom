@@ -82,6 +82,7 @@ function HoverCardContent(
   const arrowRef = useRef<SVGSVGElement>(null);
   const { isPresent, ref: presenceRef } = usePresence({ present: isOpen });
   const [isPositioned, setIsPositioned] = useState(false);
+  const [referenceElement, setReferenceElement] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!isPresent) return undefined;
@@ -89,6 +90,10 @@ function HoverCardContent(
     const raf = requestAnimationFrame(() => setIsPositioned(true));
     return () => cancelAnimationFrame(raf);
   }, [isPresent]);
+
+  useEffect(() => {
+    setReferenceElement(triggerRef.current);
+  }, [isOpen, triggerRef]);
 
   const middleware = useMemo(
     () => [
@@ -101,7 +106,7 @@ function HoverCardContent(
   );
 
   const { refs, floatingStyles, placement, middlewareData } = useFloating({
-    elements: { reference: triggerRef.current },
+    elements: { reference: referenceElement },
     placement: toPlacement(side, align),
     middleware,
     whileElementsMounted: autoUpdate,
