@@ -194,13 +194,12 @@ export const ToastViewport = forwardRef<HTMLDivElement, ToastViewportProps>(
       return () => clearTimeout(clearTimer);
     }, [visibleToasts]);
 
-    const content =
-      children ??
-      orderedVisibleToastEntries.map(({ toast, index }) =>
-        renderToast
-          ? <Fragment key={toast.id}>{renderToast({ toast, index, expanded })}</Fragment>
-          : renderDefaultToast(toast, index, expanded),
-      );
+    const generatedContent = orderedVisibleToastEntries.map(({ toast, index }) =>
+      renderToast
+        ? <Fragment key={toast.id}>{renderToast({ toast, index, expanded })}</Fragment>
+        : renderDefaultToast(toast, index, expanded),
+    );
+    const content = asChild ? generatedContent : (children ?? generatedContent);
 
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
@@ -213,7 +212,7 @@ export const ToastViewport = forwardRef<HTMLDivElement, ToastViewportProps>(
     };
 
     const viewport = asChild
-      ? cloneAndMerge(children, behaviorProps)
+      ? cloneAndMerge(children, { ...behaviorProps, children: content })
       : renderElement(render, "div", { ...behaviorProps, children: content });
 
     return (

@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- No unreleased changes.
+- Fixed `Viewport asChild` so the cloned viewport element receives generated
+  queued toast content.
 
 ## 0.1.0
 

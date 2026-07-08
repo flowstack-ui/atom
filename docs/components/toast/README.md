@@ -148,6 +148,8 @@ Dismiss button.
 ### Viewport
 
 Portaled viewport that renders visible queued toasts.
+When `asChild` is used, the child element becomes the viewport and queued
+toasts still render inside that child.
 
 | Prop | Type | Default |
 | --- | --- | --- |

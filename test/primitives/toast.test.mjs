@@ -112,6 +112,35 @@ test("ToastViewport renders queued bottom stacks nearest the viewport anchor", (
   toast.dismiss();
 });
 
+test("ToastViewport asChild inserts generated toasts into the child viewport element", () => {
+  toast.dismiss();
+  toast.success("Saved", { id: "atom-toast-as-child" });
+
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Toast.Provider,
+      null,
+      React.createElement(
+        ToastViewport,
+        {
+          asChild: true,
+          portalDisabled: true,
+          renderToast: ({ toast: toastData }) =>
+            React.createElement("span", { "data-toast-id": toastData.id }, toastData.title),
+        },
+        React.createElement("section", { "data-testid": "toast-viewport" }),
+      ),
+    ),
+  );
+
+  assert.match(html, /<section[^>]*data-testid="toast-viewport"/);
+  assert.match(html, /data-slot="toast-viewport"/);
+  assert.match(html, /data-toast-id="atom-toast-as-child"/);
+  assert.match(html, />Saved<\/span>/);
+
+  toast.dismiss();
+});
+
 test("Toast asChild parts preserve child content without nesting elements", () => {
   const html = renderToStaticMarkup(
     React.createElement(

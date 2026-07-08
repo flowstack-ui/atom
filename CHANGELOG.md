@@ -16,6 +16,8 @@
   `variant` Root prop.
 - Fixed `ContextMenu.Trigger` so custom `data-slot` values override the
   default `context-menu-trigger` slot.
+- Fixed `Toast.Viewport asChild` so the cloned viewport element receives
+  generated queued toast content.
 - Fixed Rating fractional pointer selection and RTL direction behavior for
   horizontal pointer and keyboard interactions.
 - Fixed Combobox option selection so pointer clicks close consistently,
