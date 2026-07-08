@@ -4,6 +4,19 @@
 release checklist and should not include rows that cannot be tested in the
 playground.
 
+## Required Tooling
+
+For every read or write of `component-coverage.xlsx`:
+
+1. Read [../../docs/tooling.md](../../docs/tooling.md).
+2. Activate the shared developer tooling environment.
+3. Verify `openpyxl` is available.
+4. Use `openpyxl` for workbook inspection and edits.
+
+Use LibreOffice for workbook inspection or verification when appropriate. Do not
+inspect or edit raw XLSX XML unless `openpyxl` or LibreOffice cannot perform the
+task.
+
 ## What Belongs
 
 Rows should cover behavior visible through the playground:

@@ -36,7 +36,12 @@ update.
 
 ## 2. Read Workbook Rows
 
-- Read the component sheet in `component-coverage.xlsx`.
+- Before reading `component-coverage.xlsx`, read
+  [../../docs/tooling.md](../../docs/tooling.md), activate the shared developer
+  tooling environment, and verify `openpyxl` is available.
+- Use `openpyxl` to inspect the component sheet in `component-coverage.xlsx`.
+- Do not inspect raw XLSX XML unless `openpyxl` or LibreOffice cannot perform
+  the task.
 - Identify missing, partial, implemented-but-untested, and stale rows.
 - Check whether existing rows use real public parts and playground-verifiable
   behavior.
@@ -156,10 +161,13 @@ has passed and the component is complete.
 
 After manual verification:
 
-- read [../../docs/tooling.md](../../docs/tooling.md)
-- use the documented shared developer tooling
-- use `openpyxl` for workbook editing
-- never edit raw XLSX XML unless `openpyxl` cannot accomplish the task
+- Before writing `component-coverage.xlsx`, read
+  [../../docs/tooling.md](../../docs/tooling.md), activate the shared developer
+  tooling environment, and verify `openpyxl` is available.
+- Use `openpyxl` for workbook edits.
+- Preserve formulas, formatting, conditional formatting, and workbook structure.
+- Do not inspect or edit raw XLSX XML unless `openpyxl` or LibreOffice cannot
+  perform the task.
 - mark rows `Implemented yes`
 - mark rows `Tested yes`
 - set coverage to `covered`

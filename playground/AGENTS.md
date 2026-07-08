@@ -25,3 +25,9 @@ This folder is the repo-only browser playground for testing Atom UI primitives.
 - Keep `README.md` and this file short. Put detailed rules in `docs/` and add
   them to `docs/README.md`.
 - Keep `component-coverage.xlsx` updated when playground coverage changes.
+- Before reading or writing `component-coverage.xlsx`, read
+  `../../docs/tooling.md`, activate the shared developer tooling environment,
+  verify `openpyxl` is available, and use `openpyxl` for workbook inspection and
+  edits.
+- Do not inspect or edit raw XLSX XML unless `openpyxl` or LibreOffice cannot
+  perform the task.
