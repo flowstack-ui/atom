@@ -133,6 +133,16 @@ const booleanRawAttributes = new Set([
   "required",
   "selected",
 ]);
+const textBearingTags = new Set([
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "p",
+  "span",
+]);
 
 function getRowKey(row: AnatomyRow) {
   const label = row.label.toLowerCase();
@@ -187,16 +197,36 @@ function getLiveElement(selector?: string) {
   return document.querySelector(selector);
 }
 
+function getDirectText(element: Element) {
+  const text = Array.from(element.childNodes)
+    .filter((node) => node.nodeType === 3)
+    .map((node) => node.textContent ?? "")
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!text) return "";
+  return text.length > 80 ? `${text.slice(0, 77)}...` : text;
+}
+
 function getLiveRows(selector?: string): AnatomyRow[] {
   const element = getLiveElement(selector);
   if (!element) return [];
 
+  const tag = element.tagName.toLowerCase();
   const baseRows: AnatomyRow[] = [
-    { label: "tag", value: element.tagName.toLowerCase(), category: "identity" },
+    { label: "tag", value: tag, category: "identity" },
   ];
 
   if (element.id) {
     baseRows.push({ label: "id", value: element.id, category: "identity" });
+  }
+
+  if (textBearingTags.has(tag)) {
+    const text = getDirectText(element);
+    if (text) {
+      baseRows.push({ label: "Text", value: text, category: "state" });
+    }
   }
 
   const attributeRows: AnatomyRow[] = [];

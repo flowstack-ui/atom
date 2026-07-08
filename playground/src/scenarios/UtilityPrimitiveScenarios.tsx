@@ -38,6 +38,7 @@ type Orientation = "horizontal" | "vertical";
 type TextDirection = "ltr" | "rtl";
 type ToggleType = "single" | "multiple";
 type OverlayPlacement = "start" | "end" | "top" | "bottom";
+type DrawerTitleLevel = "h2" | "h3" | "h4";
 type SidebarStateValue = "expanded" | "rail" | "offcanvas";
 type SidebarSideValue = "left" | "right";
 type ToastKind = "default" | "success" | "error" | "warning" | "info" | "loading";
@@ -216,29 +217,102 @@ function useModalScenario() {
 function useDrawerScenario() {
   const [controlled, setControlled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [defaultOpen, setDefaultOpen] = useState(false);
+  const [nestedOpen, setNestedOpen] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const [keepMounted, setKeepMounted] = useState(false);
   const [closeOnEscape, setCloseOnEscape] = useState(true);
   const [closeOnBackdropClick, setCloseOnBackdropClick] = useState(true);
+  const [overlayDisabled, setOverlayDisabled] = useState(false);
+  const [portalDisabled, setPortalDisabled] = useState(false);
+  const [customContainer, setCustomContainer] = useState(false);
   const [placement, setPlacement] = useState<OverlayPlacement>("end");
+  const [titleAs, setTitleAs] = useState<DrawerTitleLevel>("h2");
+  const [triggerComposition, setTriggerComposition] = useState<CompositionMode>("default");
+  const [closeComposition, setCloseComposition] = useState<CompositionMode>("default");
+  const [blockTriggerEvent, setBlockTriggerEvent] = useState(false);
+  const [blockCloseEvent, setBlockCloseEvent] = useState(false);
+  const [propCheck, setPropCheck] = useState(false);
+  const [customTriggerSlot, setCustomTriggerSlot] = useState(false);
+  const [customOverlaySlot, setCustomOverlaySlot] = useState(false);
+  const [customContentSlot, setCustomContentSlot] = useState(false);
+  const [customTitleSlot, setCustomTitleSlot] = useState(false);
+  const [customDescriptionSlot, setCustomDescriptionSlot] = useState(false);
+  const [customCloseSlot, setCustomCloseSlot] = useState(false);
   const { log, addLog, clearLog } = useScenarioLog();
 
   const handleOpenChange = (nextOpen: boolean, reason?: string) => {
     setOpen(nextOpen);
+    if (!nextOpen) setNestedOpen(false);
     addLog(nextOpen ? "opened" : `closed${reason ? ` by ${reason}` : ""}`);
   };
 
+  const handleNestedOpenChange = (nextOpen: boolean, reason?: string) => {
+    setNestedOpen(nextOpen);
+    addLog(nextOpen ? "nested opened" : `nested closed${reason ? ` by ${reason}` : ""}`);
+  };
+
+  const handleDefaultOpenChange = (nextDefaultOpen: boolean) => {
+    setDefaultOpen(nextDefaultOpen);
+    if (!controlled) setOpen(nextDefaultOpen);
+  };
+
   return {
-    state: { controlled, open, disabled, keepMounted, closeOnEscape, closeOnBackdropClick, placement, log },
+    state: {
+      controlled,
+      open,
+      defaultOpen,
+      nestedOpen,
+      disabled,
+      keepMounted,
+      closeOnEscape,
+      closeOnBackdropClick,
+      overlayDisabled,
+      portalDisabled,
+      customContainer,
+      placement,
+      titleAs,
+      triggerComposition,
+      closeComposition,
+      blockTriggerEvent,
+      blockCloseEvent,
+      propCheck,
+      customTriggerSlot,
+      customOverlaySlot,
+      customContentSlot,
+      customTitleSlot,
+      customDescriptionSlot,
+      customCloseSlot,
+      log,
+    },
     actions: {
       setControlled,
       setOpen,
+      setDefaultOpen: handleDefaultOpenChange,
+      setNestedOpen,
       setDisabled,
       setKeepMounted,
       setCloseOnEscape,
       setCloseOnBackdropClick,
+      setOverlayDisabled,
+      setPortalDisabled,
+      setCustomContainer,
       setPlacement,
+      setTitleAs,
+      setTriggerComposition,
+      setCloseComposition,
+      setBlockTriggerEvent,
+      setBlockCloseEvent,
+      setPropCheck,
+      setCustomTriggerSlot,
+      setCustomOverlaySlot,
+      setCustomContentSlot,
+      setCustomTitleSlot,
+      setCustomDescriptionSlot,
+      setCustomCloseSlot,
       handleOpenChange,
+      handleNestedOpenChange,
+      noteDrawerEvent: addLog,
       clearLog,
     },
   };
@@ -944,17 +1018,83 @@ export function UtilityPrimitiveScenarioToolbar({
       <ControlToolbar label="Drawer controls">
         <ToolbarGroup title="State" value="state">
           <MenuCheckboxControl checked={scenario.state.controlled} label="Controlled" value="controlled" onChange={scenario.actions.setControlled} />
-          <MenuCheckboxControl checked={scenario.state.open} label="Open" value="open" onChange={scenario.actions.setOpen} />
+          {scenario.state.controlled ? (
+            <MenuCheckboxControl checked={scenario.state.open} label="Open" value="open" onChange={scenario.actions.setOpen} />
+          ) : (
+            <MenuCheckboxControl checked={scenario.state.defaultOpen} label="Default open" value="default-open" onChange={scenario.actions.setDefaultOpen} />
+          )}
           <MenuCheckboxControl checked={scenario.state.disabled} label="Disabled" value="disabled" onChange={scenario.actions.setDisabled} />
           <MenuCheckboxControl checked={scenario.state.keepMounted} label="Keep mounted" value="keep-mounted" onChange={scenario.actions.setKeepMounted} />
+        </ToolbarGroup>
+        <ToolbarGroup title="Popup" value="popup">
+          <MenuCheckboxControl checked={scenario.state.portalDisabled} label="Disable Portal" value="portal-disabled" onChange={scenario.actions.setPortalDisabled} />
+          <MenuCheckboxControl checked={scenario.state.customContainer} label="Custom Container" value="custom-container" onChange={scenario.actions.setCustomContainer} />
+          <MenuRadioControl label="Placement" options={placementOptions} value={scenario.state.placement} onChange={(value) => scenario.actions.setPlacement(value as OverlayPlacement)} />
+        </ToolbarGroup>
+        <ToolbarGroup title="Content" value="content">
+          <MenuRadioControl label="Title Element" options={drawerTitleLevelOptions} value={scenario.state.titleAs} onChange={(value) => scenario.actions.setTitleAs(value as DrawerTitleLevel)} />
         </ToolbarGroup>
         <ToolbarGroup title="Dismiss" value="dismiss">
           <MenuCheckboxControl checked={scenario.state.closeOnEscape} label="Escape closes" value="escape" onChange={scenario.actions.setCloseOnEscape} />
           <MenuCheckboxControl checked={scenario.state.closeOnBackdropClick} label="Backdrop closes" value="backdrop" onChange={scenario.actions.setCloseOnBackdropClick} />
+          <MenuCheckboxControl checked={scenario.state.overlayDisabled} label="Disable Overlay" value="overlay-disabled" onChange={scenario.actions.setOverlayDisabled} />
         </ToolbarGroup>
-        <ToolbarGroup title="Layout" value="layout">
-          <MenuRadioControl label="Placement" options={placementOptions} value={scenario.state.placement} onChange={(value) => scenario.actions.setPlacement(value as OverlayPlacement)} />
+        <ToolbarGroup title="Composition" value="composition">
+          <MenuSection label="Trigger Element">
+            <CompositionModeRadioGroup value={scenario.state.triggerComposition} onChange={scenario.actions.setTriggerComposition} />
+          </MenuSection>
+          <MenuSection label="Trigger Behavior">
+            <MenuCheckboxControl checked={scenario.state.blockTriggerEvent} label="Prevent Trigger Click" value="block-trigger" onChange={scenario.actions.setBlockTriggerEvent} />
+          </MenuSection>
+          <MenuSection label="Close Element">
+            <CompositionModeRadioGroup value={scenario.state.closeComposition} onChange={scenario.actions.setCloseComposition} />
+          </MenuSection>
+          <MenuSection label="Close Behavior">
+            <MenuCheckboxControl checked={scenario.state.blockCloseEvent} label="Prevent Close Click" value="block-close" onChange={scenario.actions.setBlockCloseEvent} />
+          </MenuSection>
         </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          customSlots={[
+            {
+              checked: scenario.state.customTriggerSlot,
+              label: "Trigger Slot",
+              value: "trigger-slot",
+              onChange: scenario.actions.setCustomTriggerSlot,
+            },
+            {
+              checked: scenario.state.customOverlaySlot,
+              label: "Overlay Slot",
+              value: "overlay-slot",
+              onChange: scenario.actions.setCustomOverlaySlot,
+            },
+            {
+              checked: scenario.state.customContentSlot,
+              label: "Content Slot",
+              value: "content-slot",
+              onChange: scenario.actions.setCustomContentSlot,
+            },
+            {
+              checked: scenario.state.customTitleSlot,
+              label: "Title Slot",
+              value: "title-slot",
+              onChange: scenario.actions.setCustomTitleSlot,
+            },
+            {
+              checked: scenario.state.customDescriptionSlot,
+              label: "Description Slot",
+              value: "description-slot",
+              onChange: scenario.actions.setCustomDescriptionSlot,
+            },
+            {
+              checked: scenario.state.customCloseSlot,
+              label: "Close Slot",
+              value: "close-slot",
+              onChange: scenario.actions.setCustomCloseSlot,
+            },
+          ]}
+          onPropCheckChange={scenario.actions.setPropCheck}
+        />
       </ControlToolbar>
     );
   }
@@ -1526,19 +1666,94 @@ ${indent(closeSource, 6)}
 
   if (scenarioId === "drawer") {
     const state = scenarios.drawer.state;
-    return `<Drawer.Root
-  ${state.controlled ? "open={open}" : "defaultOpen={false}"}
-  disabled={${state.disabled}}
-  keepMounted={${state.keepMounted}}
-  onOpenChange={handleOpenChange}
+    const rootProps = [
+      state.controlled ? "open={open}" : state.defaultOpen ? "defaultOpen" : null,
+      state.disabled ? "disabled" : null,
+      state.keepMounted ? "keepMounted" : null,
+      state.closeOnEscape ? null : "closeOnEscape={false}",
+      state.closeOnBackdropClick ? null : "closeOnBackdropClick={false}",
+      "onOpenChange={handleOpenChange}",
+    ];
+    const portalProps = [
+      state.portalDisabled ? "disabled" : null,
+      state.customContainer ? "container={containerNode}" : null,
+    ];
+    const overlayProps = [
+      state.overlayDisabled ? "disabled" : null,
+      state.customOverlaySlot ? `data-slot="drawer-overlay-custom"` : null,
+      state.propCheck ? `data-prop-check="overlay"` : null,
+    ];
+    const contentProps = [
+      `placement="${state.placement}"`,
+      `ariaLabel="Project drawer"`,
+      state.customContentSlot ? `data-slot="drawer-content-custom"` : null,
+      state.propCheck ? `data-prop-check="content"` : null,
+    ];
+    const titleProps = [
+      state.titleAs !== "h2" ? `as="${state.titleAs}"` : null,
+      state.customTitleSlot ? `data-slot="drawer-title-custom"` : null,
+      state.propCheck ? `data-prop-check="title"` : null,
+    ];
+    const descriptionProps = [
+      state.customDescriptionSlot ? `data-slot="drawer-description-custom"` : null,
+      state.propCheck ? `data-prop-check="description"` : null,
+    ];
+    const triggerProps = [
+      state.triggerComposition === "asChild" ? "asChild" : null,
+      state.blockTriggerEvent ? "onClick={(event) => event.preventDefault()}" : null,
+      state.customTriggerSlot ? `data-slot="drawer-trigger-custom"` : null,
+      state.propCheck ? `data-prop-check="trigger"` : null,
+    ];
+    const closeProps = [
+      state.closeComposition === "asChild" ? "asChild" : null,
+      state.blockCloseEvent ? "onClick={(event) => event.preventDefault()}" : null,
+      state.customCloseSlot ? `data-slot="drawer-close-custom"` : null,
+      state.propCheck ? `data-prop-check="close"` : null,
+    ];
+    const triggerSource =
+      state.triggerComposition === "render"
+        ? `<Drawer.Trigger${sourceProps(triggerProps)}
+  render={(props) => <button {...props}>Open Drawer</button>}
 >
-  <Drawer.Trigger>Open Drawer</Drawer.Trigger>
-  <Drawer.Portal>
-    <Drawer.Overlay />
-    <Drawer.Content placement="${state.placement}">
-      <Drawer.Title>Project drawer</Drawer.Title>
-      <Drawer.Description>Drawer content with focus behavior.</Drawer.Description>
-      <Drawer.Close>Close</Drawer.Close>
+  Open Drawer
+</Drawer.Trigger>`
+        : state.triggerComposition === "asChild"
+          ? `<Drawer.Trigger${sourceProps(triggerProps)}>
+  <span>Open Drawer</span>
+</Drawer.Trigger>`
+          : `<Drawer.Trigger${sourceProps(triggerProps)}>Open Drawer</Drawer.Trigger>`;
+    const closeSource =
+      state.closeComposition === "render"
+        ? `<Drawer.Close${sourceProps(closeProps)}
+        render={(props) => <button {...props}>Close Drawer</button>}
+      >
+        Close Drawer
+      </Drawer.Close>`
+        : state.closeComposition === "asChild"
+          ? `<Drawer.Close${sourceProps(closeProps)}>
+        <span>Close Drawer</span>
+      </Drawer.Close>`
+          : `<Drawer.Close${sourceProps(closeProps)}>Close Drawer</Drawer.Close>`;
+
+    return `<Drawer.Root${rootProps.length > 0 ? `\n  ${rootProps.filter(Boolean).join("\n  ")}\n` : ""}>
+${indent(triggerSource, 2)}
+  <Drawer.Portal${sourceProps(portalProps)}>
+    <Drawer.Overlay${sourceProps(overlayProps)} />
+    <Drawer.Content${sourceProps(contentProps)}>
+      <Drawer.Title${sourceProps(titleProps)}>Project drawer</Drawer.Title>
+      <Drawer.Description${sourceProps(descriptionProps)}>
+        Change a project setting, then close the drawer.
+      </Drawer.Description>
+      <Drawer.Root open={nestedOpen} onOpenChange={handleNestedOpenChange}>
+        <Drawer.Trigger>Open Nested</Drawer.Trigger>
+        <Drawer.Portal disabled>
+          <Drawer.Content ariaLabel="Nested drawer" placement="bottom">
+            <Drawer.Title>Nested drawer</Drawer.Title>
+            <Drawer.Close>Close Nested</Drawer.Close>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
+      ${closeSource}
     </Drawer.Content>
   </Drawer.Portal>
 </Drawer.Root>`;
@@ -2239,43 +2454,183 @@ function ModalNestedContent() {
 }
 
 function DrawerScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useDrawerScenario> }) {
+  const [customContainerNode, setCustomContainerNode] = useState<HTMLDivElement | null>(null);
   const rootProps = {
     disabled: scenario.state.disabled,
     keepMounted: scenario.state.keepMounted,
     closeOnEscape: scenario.state.closeOnEscape,
     closeOnBackdropClick: scenario.state.closeOnBackdropClick,
     onOpenChange: scenario.actions.handleOpenChange,
-    ...(scenario.state.controlled ? { open: scenario.state.open } : { defaultOpen: false }),
+    ...(scenario.state.controlled ? { open: scenario.state.open } : { defaultOpen: scenario.state.defaultOpen }),
+  };
+  const portalProps = {
+    disabled: scenario.state.portalDisabled,
+    container: scenario.state.customContainer ? customContainerNode : undefined,
   };
 
   return (
     <div className="utility-primitive-stage">
-      <Drawer.Root {...rootProps}>
-        <Drawer.Trigger className="atom-button" data-drawer-trigger="" data-playground-inspect="" data-prop-check="trigger">
-          Open Drawer
-        </Drawer.Trigger>
-        <Drawer.Portal>
-          <Drawer.Overlay className="utility-drawer-overlay" data-drawer-overlay="" data-playground-inspect="" />
+      {scenario.state.customContainer ? (
+        <div
+          className="utility-modal-container"
+          data-drawer-container=""
+          data-playground-inspect=""
+          ref={setCustomContainerNode}
+        />
+      ) : null}
+      <Drawer.Root key={`${scenario.state.controlled}-${scenario.state.defaultOpen}`} {...rootProps}>
+        <DrawerTriggerDemo scenario={scenario} />
+        <Drawer.Portal {...portalProps}>
+          <Drawer.Overlay
+            className="utility-drawer-overlay"
+            data-drawer-overlay=""
+            data-playground-inspect=""
+            disabled={scenario.state.overlayDisabled}
+            {...partProps("overlay", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customOverlaySlot }, "drawer-overlay-custom")}
+          />
           <Drawer.Content
             ariaLabel="Project drawer"
             className={`utility-drawer-content ${scenario.state.placement}`}
             data-drawer-content=""
             data-playground-inspect=""
-            data-prop-check="content"
             placement={scenario.state.placement}
+            {...partProps("content", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customContentSlot }, "drawer-content-custom")}
           >
-            <Drawer.Title className="utility-modal-title" data-playground-inspect="">Project drawer</Drawer.Title>
-            <Drawer.Description className="utility-modal-description" data-playground-inspect="">
+            <Drawer.Title
+              as={scenario.state.titleAs}
+              className="utility-modal-title"
+              data-drawer-title=""
+              data-playground-inspect=""
+              {...partProps("title", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customTitleSlot }, "drawer-title-custom")}
+            >
+              Project drawer
+            </Drawer.Title>
+            <Drawer.Description
+              className="utility-modal-description"
+              data-drawer-description=""
+              data-playground-inspect=""
+              {...partProps("description", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customDescriptionSlot }, "drawer-description-custom")}
+            >
               Change a project setting, then close the drawer.
             </Drawer.Description>
             <button className="atom-button secondary" type="button">Focusable action</button>
-            <Drawer.Close className="atom-button" data-drawer-close="" data-playground-inspect="" data-prop-check="close">
-              Close Drawer
-            </Drawer.Close>
+            <Drawer.Root
+              open={scenario.state.nestedOpen}
+              onOpenChange={scenario.actions.handleNestedOpenChange}
+            >
+              <Drawer.Trigger className="atom-button secondary" data-drawer-nested-trigger="" data-playground-inspect="">
+                Open Nested
+              </Drawer.Trigger>
+              <Drawer.Portal disabled>
+                <Drawer.Content
+                  ariaLabel="Nested drawer"
+                  className="utility-drawer-content bottom nested"
+                  data-drawer-nested-content=""
+                  data-playground-inspect=""
+                  placement="bottom"
+                >
+                  <Drawer.Title className="utility-modal-title" data-drawer-nested-title="" data-playground-inspect="">
+                    Nested drawer
+                  </Drawer.Title>
+                  <Drawer.Close className="atom-button" data-drawer-nested-close="" data-playground-inspect="">
+                    Close Nested
+                  </Drawer.Close>
+                </Drawer.Content>
+              </Drawer.Portal>
+            </Drawer.Root>
+            <DrawerCloseDemo scenario={scenario} />
           </Drawer.Content>
         </Drawer.Portal>
       </Drawer.Root>
     </div>
+  );
+}
+
+function DrawerTriggerDemo({ scenario }: { scenario: ReturnType<typeof useDrawerScenario> }) {
+  const triggerProps = {
+    className: "atom-button",
+    "data-drawer-trigger": "",
+    "data-playground-inspect": "",
+    onClick: scenario.state.blockTriggerEvent
+      ? (event: MouseEvent<HTMLElement>) => {
+          event.preventDefault();
+          scenario.actions.noteDrawerEvent("trigger event prevented");
+        }
+      : undefined,
+    ...partProps("trigger", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customTriggerSlot }, "drawer-trigger-custom"),
+  };
+
+  if (scenario.state.triggerComposition === "asChild") {
+    return (
+      <Drawer.Trigger {...triggerProps} asChild>
+        <span className="atom-button">Open Drawer</span>
+      </Drawer.Trigger>
+    );
+  }
+
+  if (scenario.state.triggerComposition === "render") {
+    return (
+      <Drawer.Trigger
+        {...triggerProps}
+        render={(props: Record<string, unknown>) => (
+          <button {...(props as ButtonHTMLAttributes<HTMLButtonElement>)} type="button">
+            Open Drawer
+          </button>
+        )}
+      >
+        Open Drawer
+      </Drawer.Trigger>
+    );
+  }
+
+  return (
+    <Drawer.Trigger {...triggerProps}>
+      Open Drawer
+    </Drawer.Trigger>
+  );
+}
+
+function DrawerCloseDemo({ scenario }: { scenario: ReturnType<typeof useDrawerScenario> }) {
+  const closeProps = {
+    className: "atom-button",
+    "data-drawer-close": "",
+    "data-playground-inspect": "",
+    onClick: scenario.state.blockCloseEvent
+      ? (event: MouseEvent<HTMLElement>) => {
+          event.preventDefault();
+          scenario.actions.noteDrawerEvent("close event prevented");
+        }
+      : undefined,
+    ...partProps("close", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customCloseSlot }, "drawer-close-custom"),
+  };
+
+  if (scenario.state.closeComposition === "asChild") {
+    return (
+      <Drawer.Close {...closeProps} asChild>
+        <span className="atom-button">Close Drawer</span>
+      </Drawer.Close>
+    );
+  }
+
+  if (scenario.state.closeComposition === "render") {
+    return (
+      <Drawer.Close
+        {...closeProps}
+        render={(props: Record<string, unknown>) => (
+          <button {...(props as ButtonHTMLAttributes<HTMLButtonElement>)} type="button">
+            Close Drawer
+          </button>
+        )}
+      >
+        Close Drawer
+      </Drawer.Close>
+    );
+  }
+
+  return (
+    <Drawer.Close {...closeProps}>
+      Close Drawer
+    </Drawer.Close>
   );
 }
 
@@ -3436,12 +3791,24 @@ function getUtilityPrimitiveSections(
   }
 
   if (scenarioId === "drawer") {
+    const container = document.querySelector<HTMLElement>("[data-drawer-container]");
     const trigger = document.querySelector<HTMLElement>("[data-drawer-trigger]");
     const overlay = document.querySelector<HTMLElement>("[data-drawer-overlay]");
     const content = document.querySelector<HTMLElement>("[data-drawer-content]");
-    const title = document.querySelector<HTMLElement>("[data-slot='drawer-title']");
-    const description = document.querySelector<HTMLElement>("[data-slot='drawer-description']");
+    const title = document.querySelector<HTMLElement>("[data-drawer-title]");
+    const description = document.querySelector<HTMLElement>("[data-drawer-description]");
     const close = document.querySelector<HTMLElement>("[data-drawer-close]");
+    const nestedContent = document.querySelector<HTMLElement>("[data-drawer-nested-content]");
+    const contentParent = content?.parentElement;
+    const contentParentLabel = !content
+      ? "not rendered"
+      : contentParent === document.body
+        ? "body"
+        : contentParent === container
+          ? "custom container"
+          : content.closest(".canvas")
+            ? "inline"
+            : contentParent?.tagName.toLowerCase() ?? "unknown";
     return [
       {
         title: "Root",
@@ -3450,12 +3817,48 @@ function getUtilityPrimitiveSections(
         rows: [
           { label: "Mode", value: scenarios.drawer.state.controlled ? "controlled" : "uncontrolled", category: "state" },
           { label: "Open", value: bool(scenarios.drawer.state.open), category: "state" },
+          { label: "Default open", value: bool(scenarios.drawer.state.defaultOpen), category: "state" },
           { label: "Disabled", value: bool(scenarios.drawer.state.disabled), category: "state" },
           { label: "Keep mounted", value: bool(scenarios.drawer.state.keepMounted), category: "behavior" },
+          { label: "Escape closes", value: bool(scenarios.drawer.state.closeOnEscape), category: "behavior" },
+          { label: "Backdrop closes", value: bool(scenarios.drawer.state.closeOnBackdropClick), category: "behavior" },
         ],
       },
-      { title: "Trigger", selector: "[data-drawer-trigger]", summary: trigger?.dataset.state ?? "not rendered", rows: [{ label: "Exists", value: bool(!!trigger), category: "presence" }] },
-      { title: "Overlay", selector: "[data-drawer-overlay]", inactive: !overlay, summary: overlay?.dataset.state ?? "not rendered", rows: [{ label: "Exists", value: bool(!!overlay), category: "presence" }] },
+      {
+        title: "Trigger",
+        selector: "[data-drawer-trigger]",
+        summary: trigger?.dataset.state ?? "not rendered",
+        rows: [
+          { label: "Exists", value: bool(!!trigger), category: "presence" },
+          { label: "Composition", value: scenarios.drawer.state.triggerComposition, category: "composition" },
+          { label: "Block event", value: bool(scenarios.drawer.state.blockTriggerEvent), category: "behavior" },
+        ],
+      },
+      {
+        title: "Portal",
+        selector: "[data-drawer-container]",
+        inactive: !container,
+        summary: contentParentLabel,
+        rows: [
+          { label: "Content rendered", value: bool(!!content), category: "presence" },
+          { label: "Parent", value: contentParentLabel, category: "behavior" },
+          { label: "Inside canvas", value: bool(!!content?.closest(".canvas")), category: "behavior" },
+          { label: "In custom target", value: bool(!!content && contentParent === container), category: "behavior" },
+          { label: "Disabled", value: bool(scenarios.drawer.state.portalDisabled), category: "state" },
+          { label: "Custom container", value: bool(scenarios.drawer.state.customContainer), category: "state" },
+          { label: "Container rendered", value: bool(!!container), category: "presence" },
+        ],
+      },
+      {
+        title: "Overlay",
+        selector: "[data-drawer-overlay]",
+        inactive: !overlay,
+        summary: overlay?.dataset.state ?? "not rendered",
+        rows: [
+          { label: "Exists", value: bool(!!overlay), category: "presence" },
+          { label: "Disabled", value: bool(scenarios.drawer.state.overlayDisabled), category: "state" },
+        ],
+      },
       {
         title: "Content",
         selector: "[data-drawer-content]",
@@ -3465,11 +3868,32 @@ function getUtilityPrimitiveSections(
           { label: "Exists", value: bool(!!content), category: "presence" },
           { label: "Placement", value: scenarios.drawer.state.placement, category: "state" },
           { label: "State", value: content?.dataset.state ?? "not rendered", category: "state" },
+          { label: "Nested open", value: bool(scenarios.drawer.state.nestedOpen), category: "state" },
+          { label: "Nested content", value: bool(!!nestedContent), category: "presence" },
         ],
       },
-      { title: "Title", selector: "[data-slot='drawer-title']", inactive: !title, summary: title?.id ?? "not rendered", rows: [{ label: "Exists", value: bool(!!title), category: "presence" }] },
-      { title: "Description", selector: "[data-slot='drawer-description']", inactive: !description, summary: description?.id ?? "not rendered", rows: [{ label: "Exists", value: bool(!!description), category: "presence" }] },
-      { title: "Close", selector: "[data-drawer-close]", inactive: !close, summary: close?.tagName.toLowerCase() ?? "not rendered", rows: [{ label: "Exists", value: bool(!!close), category: "presence" }] },
+      {
+        title: "Title",
+        selector: "[data-drawer-title]",
+        inactive: !title,
+        summary: title?.tagName.toLowerCase() ?? "not rendered",
+        rows: [
+          { label: "Exists", value: bool(!!title), category: "presence" },
+          { label: "Element", value: scenarios.drawer.state.titleAs, category: "identity" },
+        ],
+      },
+      { title: "Description", selector: "[data-drawer-description]", inactive: !description, summary: description?.id ?? "not rendered", rows: [{ label: "Exists", value: bool(!!description), category: "presence" }] },
+      {
+        title: "Close",
+        selector: "[data-drawer-close]",
+        inactive: !close,
+        summary: close?.tagName.toLowerCase() ?? "not rendered",
+        rows: [
+          { label: "Exists", value: bool(!!close), category: "presence" },
+          { label: "Composition", value: scenarios.drawer.state.closeComposition, category: "composition" },
+          { label: "Block event", value: bool(scenarios.drawer.state.blockCloseEvent), category: "behavior" },
+        ],
+      },
     ];
   }
 
@@ -4294,6 +4718,7 @@ const progressValueOptions = ["0", "42", "75"] as const;
 const orientationOptions = ["horizontal", "vertical"] as const;
 const directionOptions = ["ltr", "rtl"] as const;
 const placementOptions = ["start", "end", "top", "bottom"] as const;
+const drawerTitleLevelOptions = ["h2", "h3", "h4"] as const;
 const densityOptions = ["compact", "comfortable"] as const;
 const toggleTypeOptions = ["single", "multiple"] as const;
 const toolbarValueOptions = ["bold", "italic"] as const;
