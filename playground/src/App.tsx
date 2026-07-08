@@ -2046,6 +2046,9 @@ function getScenarioSource({
   if (utilityPrimitiveScenarioIds.has(scenarioId)) {
     return getUtilityPrimitiveSource(scenarioId, utilityPrimitiveScenarios);
   }
+  if (navigationPrimitiveScenarioIds.has(scenarioId)) {
+    return getNavigationPrimitiveSource(scenarioId, navigationPrimitiveScenarios);
+  }
   if (scenarioId === "alert-dialog") return getAlertDialogSource(alertDialogScenario.state);
   if (scenarioId === "popover") return getPopoverSource(popoverScenario.state);
   if (scenarioId === "hover-card") return getHoverCardSource(hoverCardScenario.state);

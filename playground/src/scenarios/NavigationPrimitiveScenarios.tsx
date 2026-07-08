@@ -3,18 +3,21 @@ import { AppBar } from "@flowstack-ui/atom/app-bar";
 import { BottomNavigation } from "@flowstack-ui/atom/bottom-navigation";
 import { Breadcrumb } from "@flowstack-ui/atom/breadcrumb";
 import { Button } from "@flowstack-ui/atom/button";
+import { Direction } from "@flowstack-ui/atom/direction";
 import { NavList } from "@flowstack-ui/atom/nav-list";
 import { Pagination, usePaginationContext } from "@flowstack-ui/atom/pagination";
 import { Tabs } from "@flowstack-ui/atom/tabs";
 import { useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { AnatomyPanel, type AnatomySection } from "../AnatomyPanel";
-import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, ScenarioEventLog, ToolbarGroup } from "../WorkbenchPrimitives";
+import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, partProps, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup } from "../WorkbenchPrimitives";
 
 type CompositionMode = "default" | "asChild" | "render";
 type Orientation = "horizontal" | "vertical";
+type DirectionMode = "ltr" | "rtl";
 type ActivationMode = "automatic" | "manual";
 type AppBarPosition = "static" | "absolute" | "sticky" | "fixed";
 type AppBarDensity = "compact" | "comfortable";
+type AccordionSlotPart = "root" | "item" | "header" | "trigger" | "content";
 type LogEntry = {
   id: number;
   time: string;
@@ -138,7 +141,20 @@ function useAccordionScenario() {
   const [disabledItem, setDisabledItem] = useState(true);
   const [keepMounted, setKeepMounted] = useState(false);
   const [orientation, setOrientation] = useState<Orientation>("vertical");
+  const [dir, setDir] = useState<DirectionMode>("ltr");
+  const [rootComposition, setRootComposition] = useState<CompositionMode>("default");
+  const [itemComposition, setItemComposition] = useState<CompositionMode>("default");
+  const [headerComposition, setHeaderComposition] = useState<CompositionMode>("default");
   const [triggerComposition, setTriggerComposition] = useState<CompositionMode>("default");
+  const [contentComposition, setContentComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customSlots, setCustomSlots] = useState<Record<AccordionSlotPart, boolean>>({
+    root: false,
+    item: false,
+    header: false,
+    trigger: false,
+    content: false,
+  });
   const { log, addLog, clearLog } = useScenarioLog();
 
   const setTypeMultiple = (next: boolean) => {
@@ -146,9 +162,21 @@ function useAccordionScenario() {
     setValue(next ? ["general"] : "general");
   };
 
+  const setControlledValue = (next: string) => {
+    const nextValue = multiple
+      ? next === "none"
+        ? []
+        : next.split(", ")
+      : next === "none"
+        ? ""
+        : next;
+    setValue(nextValue);
+    addLog(`external value set to ${formatAccordionValueLabel(nextValue)}`);
+  };
+
   const handleValueChange = (next: string | string[]) => {
     setValue(next);
-    addLog(`value changed to ${Array.isArray(next) ? next.join(", ") || "none" : next || "none"}`);
+    addLog(`value changed to ${formatAccordionValueLabel(next)}`);
   };
 
   return {
@@ -161,18 +189,33 @@ function useAccordionScenario() {
       disabledItem,
       keepMounted,
       orientation,
+      dir,
+      rootComposition,
+      itemComposition,
+      headerComposition,
       triggerComposition,
+      contentComposition,
+      propCheck,
+      customSlots,
       log,
     },
     actions: {
       setControlled,
       setMultiple: setTypeMultiple,
+      setControlledValue,
       setCollapsible,
       setDisabled,
       setDisabledItem,
       setKeepMounted,
       setOrientation,
+      setDir,
+      setRootComposition,
+      setItemComposition,
+      setHeaderComposition,
       setTriggerComposition,
+      setContentComposition,
+      setPropCheck,
+      setCustomSlot: (part: AccordionSlotPart, checked: boolean) => setCustomSlots((slots) => ({ ...slots, [part]: checked })),
       handleValueChange,
       clearLog,
     },
@@ -349,15 +392,37 @@ export function NavigationPrimitiveScenarioToolbar({
         <ToolbarGroup title="State" value="state">
           <MenuCheckboxControl checked={scenario.state.controlled} label="Controlled" value="controlled" onChange={scenario.actions.setControlled} />
           <MenuCheckboxControl checked={scenario.state.multiple} label="Multiple" value="multiple" onChange={scenario.actions.setMultiple} />
-          <MenuCheckboxControl checked={scenario.state.collapsible} label="Collapsible" value="collapsible" onChange={scenario.actions.setCollapsible} />
+          {scenario.state.controlled ? (
+            <MenuRadioControl label="Value" options={scenario.state.multiple ? accordionMultipleValueOptions : accordionSingleValueOptions} value={getAccordionControlledValueOption(scenario.state.value)} onChange={scenario.actions.setControlledValue} />
+          ) : null}
+          {!scenario.state.multiple ? (
+            <MenuCheckboxControl checked={scenario.state.collapsible} label="Collapsible" value="collapsible" onChange={scenario.actions.setCollapsible} />
+          ) : null}
           <MenuCheckboxControl checked={scenario.state.disabled} label="Disabled" value="disabled" onChange={scenario.actions.setDisabled} />
           <MenuCheckboxControl checked={scenario.state.disabledItem} label="Disabled Item" value="disabled-item" onChange={scenario.actions.setDisabledItem} />
           <MenuCheckboxControl checked={scenario.state.keepMounted} label="Keep Mounted" value="keep-mounted" onChange={scenario.actions.setKeepMounted} />
         </ToolbarGroup>
         <ToolbarGroup title="Keyboard" value="keyboard">
           <MenuRadioControl label="Orientation" options={orientationOptions} value={scenario.state.orientation} onChange={scenario.actions.setOrientation} />
+          <MenuRadioControl label="Direction" options={directionOptions} value={scenario.state.dir} onChange={scenario.actions.setDir} />
         </ToolbarGroup>
-        <CompositionToolbarGroup label="Trigger" value={scenario.state.triggerComposition} onChange={scenario.actions.setTriggerComposition} />
+        <ToolbarGroup title="Composition" value="composition">
+          <MenuRadioControl label="Root" options={compositionOptions} value={scenario.state.rootComposition} onChange={scenario.actions.setRootComposition} />
+          <MenuRadioControl label="Item" options={compositionOptions} value={scenario.state.itemComposition} onChange={scenario.actions.setItemComposition} />
+          <MenuRadioControl label="Header" options={compositionOptions} value={scenario.state.headerComposition} onChange={scenario.actions.setHeaderComposition} />
+          <MenuRadioControl label="Trigger" options={compositionOptions} value={scenario.state.triggerComposition} onChange={scenario.actions.setTriggerComposition} />
+          <MenuRadioControl label="Content" options={compositionOptions} value={scenario.state.contentComposition} onChange={scenario.actions.setContentComposition} />
+        </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={accordionSlotParts.map((part) => ({
+            checked: scenario.state.customSlots[part],
+            label: `${formatAccordionSlotLabel(part)} Slot`,
+            value: `${part}-slot`,
+            onChange: (checked) => scenario.actions.setCustomSlot(part, checked),
+          }))}
+        />
       </ControlToolbar>
     );
   }
@@ -534,76 +599,201 @@ function AccordionCanvas({ scenario }: { scenario: ReturnType<typeof useAccordio
   const commonProps = {
     className: "playground-accordion",
     collapsible: state.collapsible,
-    "data-prop-check": "root",
     disabled: state.disabled,
+    dir: state.dir,
     orientation: state.orientation,
     onValueChange: scenario.actions.handleValueChange as never,
+    ...partProps("root", { propCheck: state.propCheck, customSlot: state.customSlots.root }, "accordion-root-custom"),
   };
 
   const items = (
     <>
-      <AccordionItem label="General" triggerMode={state.triggerComposition} value="general" keepMounted={state.keepMounted}>General settings content</AccordionItem>
-      <AccordionItem label="Billing" triggerMode={state.triggerComposition} value="billing" keepMounted={state.keepMounted}>Billing settings content</AccordionItem>
-      <AccordionItem disabled={state.disabledItem} label="Danger" triggerMode={state.triggerComposition} value="danger" keepMounted={state.keepMounted}>Danger zone content</AccordionItem>
+      {accordionItems.map((item) => (
+        <AccordionItem
+          description={item.description}
+          disabled={item.disabled && state.disabledItem}
+          key={item.value}
+          label={item.label}
+          state={state}
+          value={item.value}
+        >
+          <AccordionPanelContent item={item} />
+        </AccordionItem>
+      ))}
     </>
   );
 
-  if (state.multiple) {
-    return (
+  const uncontrolledValue = Array.isArray(state.value) ? state.value[0] ?? "" : state.value;
+  const uncontrolledValues = Array.isArray(state.value) ? state.value : state.value ? [state.value] : [];
+  const preserveStateForComposition = [
+    state.rootComposition,
+    state.itemComposition,
+    state.headerComposition,
+    state.triggerComposition,
+    state.contentComposition,
+  ].some((mode) => mode !== "default");
+  const controlledForRuntime = state.controlled || preserveStateForComposition;
+  const rootChildren = state.rootComposition === "asChild" ? <section className="playground-accordion" dir={state.dir}>{items}</section> : items;
+  const accordion =
+    state.multiple ? (
       <Accordion.Root
         {...commonProps}
-        defaultValue={state.controlled ? undefined : ["general"]}
+        asChild={state.rootComposition === "asChild" ? true : undefined}
+        defaultValue={controlledForRuntime ? undefined : uncontrolledValues}
+        render={state.rootComposition === "render" ? (props) => <section {...props} dir={state.dir} /> : undefined}
         type="multiple"
-        value={state.controlled ? (Array.isArray(state.value) ? state.value : [state.value]) : undefined}
+        value={controlledForRuntime ? (Array.isArray(state.value) ? state.value : [state.value]) : undefined}
       >
-        {items}
+        {rootChildren}
+      </Accordion.Root>
+    ) : (
+      <Accordion.Root
+        {...commonProps}
+        asChild={state.rootComposition === "asChild" ? true : undefined}
+        defaultValue={controlledForRuntime ? undefined : uncontrolledValue}
+        render={state.rootComposition === "render" ? (props) => <section {...props} dir={state.dir} /> : undefined}
+        type="single"
+        value={controlledForRuntime ? (Array.isArray(state.value) ? state.value[0] ?? "" : state.value) : undefined}
+      >
+        {rootChildren}
       </Accordion.Root>
     );
-  }
 
   return (
-    <Accordion.Root
-      {...commonProps}
-      defaultValue={state.controlled ? undefined : "general"}
-      type="single"
-      value={state.controlled ? (Array.isArray(state.value) ? state.value[0] ?? "" : state.value) : undefined}
-    >
-      {items}
-    </Accordion.Root>
+    <Direction.Provider dir={state.dir}>
+      <section className="playground-accordion-shell" dir={state.dir}>
+        <div>{accordion}</div>
+      </section>
+    </Direction.Provider>
   );
 }
 
-function AccordionItem({ children, disabled, keepMounted, label, triggerMode, value }: { children: ReactNode; disabled?: boolean; keepMounted: boolean; label: string; triggerMode: CompositionMode; value: string }) {
-  return (
-    <Accordion.Item className="playground-accordion-item" data-prop-check={`item-${value}`} disabled={disabled} value={value}>
-      <Accordion.Header as="h3" className="playground-accordion-header" data-prop-check={`header-${value}`}>
-        <AccordionTrigger mode={triggerMode} value={value}>{label}</AccordionTrigger>
+function AccordionItem({ children, description, disabled, label, state, value }: { children: ReactNode; description: string; disabled?: boolean; label: string; state: ReturnType<typeof useAccordionScenario>["state"]; value: string }) {
+  const itemProps = {
+    className: "playground-accordion-item",
+    disabled,
+    value,
+    ...partProps(`item-${value}`, { propCheck: state.propCheck, customSlot: state.customSlots.item }, "accordion-item-custom"),
+  };
+  const header = <AccordionHeader description={description} disabled={disabled} label={label} state={state} value={value} />;
+  const content = <AccordionContent state={state}>{children}</AccordionContent>;
+
+  if (state.itemComposition === "asChild") {
+    return (
+      <Accordion.Item {...itemProps} asChild>
+        <section>
+          {header}
+          {content}
+        </section>
+      </Accordion.Item>
+    );
+  }
+
+  if (state.itemComposition === "render") {
+    return (
+      <Accordion.Item {...itemProps} render={(props) => <section {...props} />}>
+        {header}
+        {content}
+      </Accordion.Item>
+    );
+  }
+
+  return <Accordion.Item {...itemProps}>{header}{content}</Accordion.Item>;
+}
+
+function AccordionHeader({ description, disabled, label, state, value }: { description: string; disabled?: boolean; label: string; state: ReturnType<typeof useAccordionScenario>["state"]; value: string }) {
+  const props = {
+    as: "h3" as const,
+    className: "playground-accordion-header",
+    ...partProps(`header-${value}`, { propCheck: state.propCheck, customSlot: state.customSlots.header }, "accordion-header-custom"),
+  };
+  const trigger = <AccordionTrigger description={description} disabled={disabled} state={state} value={value}>{label}</AccordionTrigger>;
+
+  if (state.headerComposition === "asChild") {
+    return (
+      <Accordion.Header {...props} asChild>
+        <h4>{trigger}</h4>
       </Accordion.Header>
-      <Accordion.Content className="playground-accordion-content" data-prop-check={`content-${value}`} keepMounted={keepMounted}>
+    );
+  }
+
+  if (state.headerComposition === "render") {
+    return (
+      <Accordion.Header {...props} render={(renderProps) => <h4 {...renderProps} />}>
+        {trigger}
+      </Accordion.Header>
+    );
+  }
+
+  return <Accordion.Header {...props}>{trigger}</Accordion.Header>;
+}
+
+function AccordionTrigger({ children, description, disabled, state, value }: { children: ReactNode; description: string; disabled?: boolean; state: ReturnType<typeof useAccordionScenario>["state"]; value: string }) {
+  const props = {
+    className: "playground-accordion-trigger",
+    ...partProps(`trigger-${value}`, { propCheck: state.propCheck, customSlot: state.customSlots.trigger }, "accordion-trigger-custom"),
+  };
+  const content = (
+    <>
+      <span className="playground-accordion-trigger-copy">
+        <span>{children}</span>
+        <span>{description}</span>
+      </span>
+      <span className="playground-accordion-trigger-icon" aria-hidden="true">+</span>
+    </>
+  );
+
+  if (state.triggerComposition === "asChild") {
+    return (
+      <Accordion.Trigger {...props} asChild>
+        <button type="button">{content}</button>
+      </Accordion.Trigger>
+    );
+  }
+
+  if (state.triggerComposition === "render") {
+    return (
+      <Accordion.Trigger {...props} render={(renderProps) => <button {...renderProps} />}>
+        {content}
+      </Accordion.Trigger>
+    );
+  }
+
+  return <Accordion.Trigger {...props}>{content}</Accordion.Trigger>;
+}
+
+function AccordionContent({ children, state }: { children: ReactNode; state: ReturnType<typeof useAccordionScenario>["state"] }) {
+  const props = {
+    className: "playground-accordion-content",
+    keepMounted: state.keepMounted,
+    ...partProps("content", { propCheck: state.propCheck, customSlot: state.customSlots.content }, "accordion-content-custom"),
+  };
+
+  if (state.contentComposition === "asChild") {
+    return (
+      <Accordion.Content {...props} asChild>
+        <div>{children}</div>
+      </Accordion.Content>
+    );
+  }
+
+  if (state.contentComposition === "render") {
+    return (
+      <Accordion.Content {...props} render={(renderProps) => <section {...renderProps} />}>
         {children}
       </Accordion.Content>
-    </Accordion.Item>
-  );
+    );
+  }
+
+  return <Accordion.Content {...props}>{children}</Accordion.Content>;
 }
 
-function AccordionTrigger({ children, mode, value }: { children: ReactNode; mode: CompositionMode; value: string }) {
-  if (mode === "asChild") {
-    return (
-      <Accordion.Trigger asChild data-prop-check={`trigger-${value}`}>
-        <button type="button">{children}</button>
-      </Accordion.Trigger>
-    );
-  }
-
-  if (mode === "render") {
-    return (
-      <Accordion.Trigger data-prop-check={`trigger-${value}`} render={(props) => <button {...props} />}>
-        {children}
-      </Accordion.Trigger>
-    );
-  }
-
-  return <Accordion.Trigger className="playground-accordion-trigger" data-prop-check={`trigger-${value}`}>{children}</Accordion.Trigger>;
+function AccordionPanelContent({ item }: { item: (typeof accordionItems)[number] }) {
+  return (
+    <div className="playground-accordion-panel">
+      <p>{item.content}</p>
+    </div>
+  );
 }
 
 function BreadcrumbCanvas({ scenario }: { scenario: ReturnType<typeof useBreadcrumbScenario> }) {
@@ -849,19 +1039,31 @@ function tabsSections(state: ReturnType<typeof useTabsScenario>["state"]): Anato
 }
 
 function accordionSections(state: ReturnType<typeof useAccordionScenario>["state"]): AnatomySection[] {
-  const active = Array.isArray(state.value) ? state.value.join(", ") || "none" : state.value || "none";
+  const active = formatAccordionValueLabel(state.value);
+  const activeValues = Array.isArray(state.value) ? state.value : state.value ? [state.value] : [];
+  const [defaultItem, stateItem, disabledItem] = accordionItems;
   return [
-    baseSection("Root", state.multiple ? "multiple" : "single", "[data-slot='accordion-root']", [
+    baseSection("Root", state.multiple ? "multiple" : "single", ".playground-accordion", [
       row("Controlled", bool(state.controlled), "state"),
       row("Collapsible", bool(state.collapsible), "behavior"),
       row("Disabled", bool(state.disabled), "state"),
       row("Orientation", state.orientation, "state"),
+      row("Direction", state.dir, "state"),
       row("Value", active, "state"),
+      row("Composition", state.rootComposition, "composition"),
     ]),
-    baseSection("Item: General", "general", "[data-prop-check='item-general']"),
-    baseSection("Trigger: General", "general", "[data-prop-check='trigger-general']"),
-    baseSection("Content: General", state.keepMounted ? "keep mounted" : "mounted when open", "[data-prop-check='content-general']"),
-    baseSection("Item: Disabled", state.disabledItem ? "disabled" : "enabled", "[data-prop-check='item-danger']"),
+    baseSection("Item: 1", defaultItem.value, ".playground-accordion-item:nth-of-type(1)", [row("Composition", state.itemComposition, "composition")]),
+    baseSection("Header: 1", state.headerComposition === "default" ? "h3" : "h4", ".playground-accordion-item:nth-of-type(1) .playground-accordion-header", [row("Composition", state.headerComposition, "composition")]),
+    baseSection("Trigger: 1", defaultItem.value, ".playground-accordion-item:nth-of-type(1) .playground-accordion-trigger", [row("Composition", state.triggerComposition, "composition")]),
+    baseSection("Content: 1", state.keepMounted ? "keep mounted" : "mounted when open", ".playground-accordion-item:nth-of-type(1) .playground-accordion-content", [row("Composition", state.contentComposition, "composition")]),
+    baseSection("Item: 2", stateItem.value, ".playground-accordion-item:nth-of-type(2)"),
+    baseSection("Header: 2", state.headerComposition === "default" ? "h3" : "h4", ".playground-accordion-item:nth-of-type(2) .playground-accordion-header"),
+    baseSection("Trigger: 2", stateItem.value, ".playground-accordion-item:nth-of-type(2) .playground-accordion-trigger"),
+    baseSection("Content: 2", state.keepMounted ? "keep mounted" : "mounted when open", ".playground-accordion-item:nth-of-type(2) .playground-accordion-content", undefined, !state.keepMounted && !activeValues.includes(stateItem.value)),
+    baseSection("Item: 3", state.disabledItem ? "disabled" : "enabled", ".playground-accordion-item:nth-of-type(3)"),
+    baseSection("Header: 3", state.headerComposition === "default" ? "h3" : "h4", ".playground-accordion-item:nth-of-type(3) .playground-accordion-header"),
+    baseSection("Trigger: 3", state.disabledItem ? "disabled" : "enabled", ".playground-accordion-item:nth-of-type(3) .playground-accordion-trigger"),
+    baseSection("Content: 3", state.keepMounted ? "keep mounted" : "mounted when open", ".playground-accordion-item:nth-of-type(3) .playground-accordion-content", undefined, !state.keepMounted && !activeValues.includes(disabledItem.value)),
   ];
 }
 
@@ -962,7 +1164,7 @@ export function clearNavigationPrimitiveLog(scenarioId: string, scenarios: Navig
 export function getNavigationPrimitiveCanvasFooter(scenarioId: string, scenarios: NavigationPrimitiveScenarios) {
   if (scenarioId === "app-bar") return `${scenarios.appBar.state.position} | ${scenarios.appBar.state.density}`;
   if (scenarioId === "tabs") return `Value ${scenarios.tabs.state.value} | ${scenarios.tabs.state.activationMode} | ${scenarios.tabs.state.orientation}`;
-  if (scenarioId === "accordion") return `${scenarios.accordion.state.multiple ? "multiple" : "single"} | ${Array.isArray(scenarios.accordion.state.value) ? scenarios.accordion.state.value.join(", ") : scenarios.accordion.state.value}`;
+  if (scenarioId === "accordion") return `${scenarios.accordion.state.multiple ? "multiple" : "single"} | ${formatAccordionValueLabel(scenarios.accordion.state.value)}`;
   if (scenarioId === "breadcrumb") return `Ellipsis ${scenarios.breadcrumb.state.showEllipsis} | Separator ${scenarios.breadcrumb.state.customSeparator ? "custom" : "default"}`;
   if (scenarioId === "pagination") return `Page ${scenarios.pagination.state.page} | Total ${scenarios.pagination.state.totalPages}`;
   if (scenarioId === "bottom-navigation") return `Value ${scenarios.bottomNavigation.state.value} | Labels ${scenarios.bottomNavigation.state.showLabels}`;
@@ -970,7 +1172,7 @@ export function getNavigationPrimitiveCanvasFooter(scenarioId: string, scenarios
   return "";
 }
 
-export function getNavigationPrimitiveSource(scenarioId: string) {
+export function getNavigationPrimitiveSource(scenarioId: string, scenarios?: NavigationPrimitiveScenarios) {
   if (scenarioId === "app-bar") {
     return `<AppBar.Root aria-label="Demo app bar">
   <AppBar.Toolbar>
@@ -994,13 +1196,8 @@ export function getNavigationPrimitiveSource(scenarioId: string) {
 </Tabs.Root>`;
   }
 
-  if (scenarioId === "accordion") {
-    return `<Accordion.Root type="single" defaultValue="general">
-  <Accordion.Item value="general">
-    <Accordion.Header><Accordion.Trigger>General</Accordion.Trigger></Accordion.Header>
-    <Accordion.Content>General settings content</Accordion.Content>
-  </Accordion.Item>
-</Accordion.Root>`;
+  if (scenarioId === "accordion" && scenarios) {
+    return getAccordionSource(scenarios.accordion.state);
   }
 
   if (scenarioId === "breadcrumb") {
@@ -1045,6 +1242,121 @@ export function getNavigationPrimitiveSource(scenarioId: string) {
 </NavList.Root>`;
 }
 
+function getAccordionSource(state: ReturnType<typeof useAccordionScenario>["state"]) {
+  const active = Array.isArray(state.value) ? state.value : state.value ? [state.value] : [];
+  const rootProps = [
+    state.multiple ? `type="multiple"` : `type="single"`,
+    state.controlled
+      ? `value={${state.multiple ? "value" : `"${active[0] ?? ""}"`}}`
+      : `defaultValue={${state.multiple ? `["${active.join('", "')}"]` : `"${active[0] ?? "general"}"`}}`,
+    state.controlled ? "onValueChange={setValue}" : "",
+    !state.collapsible ? "collapsible={false}" : "",
+    state.disabled ? "disabled" : "",
+    state.orientation !== "vertical" ? `orientation="${state.orientation}"` : "",
+    sourcePartProps("root", state.propCheck, state.customSlots.root, "accordion-root-custom"),
+  ].filter(Boolean).join(" ");
+  const rootOpen = renderAccordionSourcePart("Root", state.rootComposition, rootProps, "section");
+  const rootClose = state.rootComposition === "asChild" ? "  </section>\n</Accordion.Root>" : "</Accordion.Root>";
+  const items = accordionItems.map((item) => indent(getAccordionItemSource(item, state), 2)).join("\n");
+  const source = `<Accordion.${rootOpen}
+${items}
+${rootClose}`;
+
+  return state.dir === "rtl"
+    ? `<Direction.Provider dir="rtl">
+  ${source.split("\n").join("\n  ")}
+</Direction.Provider>`
+    : source;
+}
+
+function getAccordionItemSource(item: { value: string; label: string; content: string; disabled?: boolean }, state: ReturnType<typeof useAccordionScenario>["state"]) {
+  const itemProps = [
+    `value="${item.value}"`,
+    item.disabled && state.disabledItem ? "disabled" : "",
+    sourcePartProps(`item-${item.value}`, state.propCheck, state.customSlots.item, "accordion-item-custom"),
+  ].filter(Boolean).join(" ");
+  const itemOpen = renderAccordionSourcePart("Item", state.itemComposition, itemProps, "section");
+  const itemClose = state.itemComposition === "asChild" ? "  </section>\n</Accordion.Item>" : "</Accordion.Item>";
+  const children = [
+    indent(getAccordionHeaderSource(item.label, item.value, state), 2),
+    indent(getAccordionContentSource(item.content, state), 2),
+  ].join("\n");
+
+  return `<Accordion.${itemOpen}
+${children}
+${itemClose}`;
+}
+
+function getAccordionHeaderSource(label: string, value: string, state: ReturnType<typeof useAccordionScenario>["state"]) {
+  const props = [
+    sourcePartProps(`header-${value}`, state.propCheck, state.customSlots.header, "accordion-header-custom"),
+  ].filter(Boolean).join(" ");
+  const headerOpen = renderAccordionSourcePart("Header", state.headerComposition, props, "h4");
+  const headerClose = state.headerComposition === "asChild" ? "  </h4>\n</Accordion.Header>" : "</Accordion.Header>";
+
+  return `<Accordion.${headerOpen}
+  ${getAccordionTriggerSource(label, value, state)}
+${headerClose}`;
+}
+
+function getAccordionTriggerSource(label: string, value: string, state: ReturnType<typeof useAccordionScenario>["state"]) {
+  const props = sourcePartProps(`trigger-${value}`, state.propCheck, state.customSlots.trigger, "accordion-trigger-custom");
+  const inlineProps = props ? ` ${props}` : "";
+
+  if (state.triggerComposition === "asChild") {
+    return `<Accordion.Trigger${inlineProps} asChild><button type="button">${label}</button></Accordion.Trigger>`;
+  }
+
+  if (state.triggerComposition === "render") {
+    return `<Accordion.Trigger${inlineProps} render={(props) => <button {...props} />}>${label}</Accordion.Trigger>`;
+  }
+
+  return `<Accordion.Trigger${inlineProps}>${label}</Accordion.Trigger>`;
+}
+
+function getAccordionContentSource(content: string, state: ReturnType<typeof useAccordionScenario>["state"]) {
+  const props = [
+    state.keepMounted ? "keepMounted" : "",
+    sourcePartProps("content", state.propCheck, state.customSlots.content, "accordion-content-custom"),
+  ].filter(Boolean).join(" ");
+  const contentOpen = renderAccordionSourcePart("Content", state.contentComposition, props, "section");
+  const contentClose = state.contentComposition === "asChild" ? "  </section>\n</Accordion.Content>" : "</Accordion.Content>";
+
+  if (state.contentComposition === "asChild") {
+    return `<Accordion.${contentOpen}
+  ${content}
+${contentClose}`;
+  }
+
+  return `<Accordion.${contentOpen}${content}</Accordion.Content>`;
+}
+
+function renderAccordionSourcePart(part: string, mode: CompositionMode, props: string, tag: "section" | "h4") {
+  const inlineProps = props ? ` ${props}` : "";
+
+  if (mode === "asChild") {
+    return `${part}${inlineProps} asChild>\n  <${tag}>`;
+  }
+
+  if (mode === "render") {
+    return `${part}${inlineProps} render={(props) => <${tag} {...props} />}>`;
+  }
+
+  return `${part}${inlineProps}>`;
+}
+
+function sourcePartProps(part: string, propCheck: boolean, customSlot: boolean, customSlotValue: string) {
+  return [
+    propCheck ? `data-prop-check="${part}"` : "",
+    customSlot ? `data-slot="${customSlotValue}"` : "",
+  ].filter(Boolean).join(" ");
+}
+
+function indent(source: string, spaces: number) {
+  const padding = " ".repeat(spaces);
+  return source.split("\n").map((line) => `${padding}${line}`).join("\n");
+}
+
 function CompositionToolbarGroup({ label = "Root", value, onChange }: { label?: string; value: CompositionMode; onChange: (value: CompositionMode) => void }) {
   return (
     <ToolbarGroup title="Composition" value="composition">
@@ -1057,8 +1369,63 @@ function bool(value: boolean) {
   return value ? "true" : "false";
 }
 
+function getAccordionControlledValueOption(value: string | string[]) {
+  if (Array.isArray(value)) return value.length ? value.join(", ") : "none";
+  return value || "none";
+}
+
+function formatAccordionValueLabel(value: string | string[]) {
+  const values = Array.isArray(value) ? value : value ? [value] : [];
+  if (values.length === 0) return "none";
+  return values.map((itemValue) => accordionValueLabels[itemValue] ?? itemValue).join(", ");
+}
+
+function formatAccordionSlotLabel(part: AccordionSlotPart) {
+  return part.charAt(0).toUpperCase() + part.slice(1);
+}
+
+const accordionItems = [
+  {
+    value: "general",
+    label: "What does Accordion render by default?",
+    description: "Default tags, data attributes, and ARIA relationships.",
+    content: "Accordion.Root renders a div, Item renders a div, Header renders a heading, Trigger renders a button, and Content renders a region linked back to its trigger.",
+  },
+  {
+    value: "billing",
+    label: "How does state behave?",
+    description: "Single, multiple, controlled, uncontrolled, and collapsible modes.",
+    content: "Use the toolbar to switch between single and multiple selection, controlled and uncontrolled state, disabled behavior, orientation, and mounted closed content.",
+  },
+  {
+    value: "danger",
+    label: "Can disabled items be tested?",
+    description: "Disabled item evidence and keyboard navigation behavior.",
+    content: "The disabled item should expose disabled data and ARIA state, block activation, and be skipped by keyboard navigation where the collection pattern applies.",
+    disabled: true,
+  },
+];
+const accordionSlotParts: AccordionSlotPart[] = ["root", "item", "header", "trigger", "content"];
+const accordionValueLabels: Record<string, string> = {
+  general: "Item 1",
+  billing: "Item 2",
+  danger: "Item 3",
+};
+const accordionSingleValueOptions = [
+  { label: "Item 1", value: "general" },
+  { label: "Item 2", value: "billing" },
+  { label: "Item 3", value: "danger" },
+  { label: "None", value: "none" },
+] as const;
+const accordionMultipleValueOptions = [
+  { label: "Item 1", value: "general" },
+  { label: "Item 1 + Item 2", value: "general, billing" },
+  { label: "Item 2 + Item 3", value: "billing, danger" },
+  { label: "None", value: "none" },
+] as const;
 const compositionOptions = ["default", "asChild", "render"] as const;
 const orientationOptions = ["horizontal", "vertical"] as const;
+const directionOptions = ["ltr", "rtl"] as const;
 const activationModeOptions = ["automatic", "manual"] as const;
 const appBarPositionOptions = ["static", "sticky", "fixed", "absolute"] as const;
 const appBarDensityOptions = ["compact", "comfortable"] as const;

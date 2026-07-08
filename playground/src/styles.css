@@ -317,6 +317,10 @@ h2 {
   place-items: start center;
 }
 
+.canvas:has(.playground-accordion-shell) {
+  place-items: start center;
+}
+
 .canvas-tab-panel {
   min-height: 0;
   overflow: hidden;
@@ -3538,16 +3542,55 @@ h2 {
   padding: 18px;
 }
 
+.playground-accordion-shell {
+  width: min(640px, 100%);
+  min-width: min(100%, 520px);
+}
+
+.playground-accordion-shell:has(.playground-accordion[data-orientation="horizontal"]) {
+  width: min(900px, 100%);
+}
+
 .playground-accordion {
-  width: min(620px, 100%);
+  width: 100%;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   background: #ffffff;
   overflow: hidden;
 }
 
+.playground-accordion[data-orientation="horizontal"] {
+  display: flex;
+  align-items: stretch;
+  min-height: 236px;
+  background: #f1f5f9;
+}
+
+.playground-accordion[data-orientation="horizontal"] .playground-accordion-item {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 0fr);
+  min-width: 0;
+  flex: 0 0 72px;
+  transition: flex-basis 180ms ease, grid-template-columns 180ms ease;
+}
+
+.playground-accordion[data-orientation="horizontal"] .playground-accordion-item[data-state="open"] {
+  grid-template-columns: 72px minmax(320px, 1fr);
+  flex: 1 1 480px;
+}
+
+.playground-accordion[data-orientation="horizontal"] .playground-accordion-header {
+  display: flex;
+  min-width: 0;
+}
+
 .playground-accordion-item + .playground-accordion-item {
   border-top: 1px solid #e5e7eb;
+}
+
+.playground-accordion[data-orientation="horizontal"] .playground-accordion-item + .playground-accordion-item {
+  border-top: 0;
+  border-left: 1px solid #dbe3ee;
 }
 
 .playground-accordion-header {
@@ -3555,32 +3598,211 @@ h2 {
 }
 
 .playground-accordion-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   width: 100%;
-  min-height: 46px;
+  min-height: 64px;
   border: 0;
   background: #ffffff;
   color: #1f2a37;
   cursor: pointer;
   font: inherit;
-  font-weight: 700;
-  padding: 0 14px;
+  padding: 14px 16px;
   text-align: left;
+}
+
+.playground-accordion[data-orientation="horizontal"] .playground-accordion-trigger {
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  min-height: 236px;
+  height: 100%;
+  border-right: 1px solid #dbe3ee;
+  background: #ffffff;
+  padding: 18px 10px;
+  text-align: center;
+}
+
+.playground-accordion[data-orientation="horizontal"] .playground-accordion-item[data-state="open"] .playground-accordion-trigger {
+  background: #f8fafc;
+}
+
+.playground-accordion[data-orientation="horizontal"] .playground-accordion-item[data-state="open"] .playground-accordion-trigger-icon {
+  transform: rotate(45deg);
 }
 
 .playground-accordion-trigger:hover {
   background: #f8fafc;
 }
 
-.playground-accordion-trigger:disabled {
+.playground-accordion-trigger:disabled,
+.playground-accordion-trigger[data-disabled] {
   cursor: not-allowed;
   opacity: 0.48;
+}
+
+.playground-accordion-trigger-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.playground-accordion[data-orientation="horizontal"] .playground-accordion-trigger-copy {
+  display: block;
+  width: 190px;
+  min-width: 190px;
+  transform: rotate(-90deg);
+}
+
+.playground-accordion-trigger-copy > span:first-child {
+  color: #111827;
+  font-size: 0.94rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.playground-accordion[data-orientation="horizontal"] .playground-accordion-trigger-copy > span:first-child {
+  display: block;
+  line-height: 1.15;
+  white-space: normal;
+}
+
+.playground-accordion-trigger-copy > span:last-child {
+  color: #64748b;
+  font-size: 0.84rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.playground-accordion[data-orientation="horizontal"] .playground-accordion-trigger-copy > span:last-child {
+  display: none;
+}
+
+.playground-accordion-trigger-icon {
+  flex: 0 0 auto;
+  color: #64748b;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  transition: transform 160ms ease;
+}
+
+.playground-accordion[data-orientation="horizontal"] .playground-accordion-trigger-icon {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.playground-accordion[data-orientation="horizontal"] .playground-accordion-item[data-state="open"] .playground-accordion-trigger-icon {
+  transform: translateX(-50%) rotate(45deg);
 }
 
 .playground-accordion-content {
   border-top: 1px solid #e5e7eb;
   background: #f8fafc;
+  color: #374151;
+  overflow: hidden;
+  padding: 0;
+}
+
+.playground-accordion[data-orientation="horizontal"] .playground-accordion-content {
+  min-width: 0;
+  border-top: 0;
+  border-left: 0;
+  background: #ffffff;
+}
+
+.playground-accordion-content[data-state="open"] {
+  animation: playground-accordion-open 180ms ease-out both;
+}
+
+.playground-accordion-content[data-state="closed"] {
+  animation: playground-accordion-close 160ms ease-in both;
+}
+
+.playground-accordion[data-orientation="horizontal"] .playground-accordion-content[data-state="open"] {
+  animation: playground-accordion-open-horizontal 180ms ease-out both;
+}
+
+.playground-accordion[data-orientation="horizontal"] .playground-accordion-content[data-state="closed"] {
+  animation: playground-accordion-close-horizontal 160ms ease-in both;
+}
+
+.playground-accordion-panel {
+  padding: 16px;
+}
+
+.playground-accordion[data-orientation="horizontal"] .playground-accordion-panel {
+  display: grid;
+  min-width: 320px;
+  height: 100%;
+  align-content: center;
+  padding: 20px;
+}
+
+.playground-accordion-panel p {
+  margin: 0;
+  max-width: 62ch;
   color: #4b5563;
-  padding: 14px;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 720px) {
+  .playground-accordion-shell {
+    min-width: 0;
+  }
+}
+
+@keyframes playground-accordion-open {
+  from {
+    max-height: 0;
+    opacity: 0.96;
+  }
+
+  to {
+    max-height: var(--content-height);
+    opacity: 1;
+  }
+}
+
+@keyframes playground-accordion-close {
+  from {
+    max-height: var(--content-height);
+    opacity: 1;
+  }
+
+  to {
+    max-height: 0;
+    opacity: 0.96;
+  }
+}
+
+@keyframes playground-accordion-open-horizontal {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes playground-accordion-close-horizontal {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
 }
 
 .playground-breadcrumb {
