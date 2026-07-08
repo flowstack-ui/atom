@@ -14,8 +14,8 @@ update.
    - Atom package
    - Workbook
    - Documentation
-6. Generate manual checklist.
-7. Manual testing.
+6. Create or update Manual Test Protocol.
+7. Execute Manual Test Protocol.
 8. Fix discovered issues.
 9. Repeat manual testing until complete.
 10. Update workbook.
@@ -64,8 +64,8 @@ Manual testing and implementation can reveal different kinds of work. Classify
 each finding before proposing a fix:
 
 - **Playground**: scenario behavior, shared workbench helper,
-  Source snippet, Anatomy/Inspector wiring, logs, styling, or manual testing
-  checklist issue inside `package/playground/`.
+  Source snippet, Anatomy/Inspector wiring, logs, styling, or Manual Test
+  Protocol issue inside `package/playground/`.
 - **Atom package**: primitive behavior, public API behavior, generated DOM,
   accessibility wiring, event handling, or ref behavior that requires package
   source changes.
@@ -78,20 +78,58 @@ If a package implementation issue is discovered, stop before changing package
 source unless the user has already approved that scope. Package source changes
 must follow package-level test, documentation, and changelog rules.
 
-## 6. Generate Manual Checklist
+## 6. Create Or Update Manual Test Protocol
 
-Create a tester-first manual checklist before final testing. Each item should
-state the action and expected result. Use explicit stable values and
-relationship-based expectations for dynamic ids or generated attributes.
+Create or update the component's Manual Test Protocol before final testing.
+Protocols are saved, step-by-step QA procedures for one component.
 
-Organize the checklist so the tester can complete one public part before
-moving to the next. Keep workbook cleanup or rewrite notes separate from manual
-testing steps. Follow the checklist format in `component-testing.md`.
+Use this lifecycle:
 
-## 7. Manual Testing
+1. Generate the draft protocol in `.manual-tests/`.
+2. Execute the protocol during manual testing.
+3. Improve the protocol based on real testing.
+4. After review, promote the stable protocol to `manual-tests/<component>.md`.
 
-Run the manual checklist in the browser. Record discovered issues with their
-classification before deciding where to fix them.
+Files under `manual-tests/` are reviewed, version-controlled regression
+protocols. Do not promote a draft protocol just because it exists.
+
+Write protocol steps in the structure from `component-testing.md`:
+
+- `Playground Smoke Check`
+- `Feature-Wide State`
+- `Root`
+- each public part in public anatomy order
+- `Source`
+- `Inspector / Logs`
+- `Nested / Portal / Focus Behavior`, when applicable
+- `Workbook Cleanup / Rewrite Notes`
+
+Keep steps part-first and concise. Separate action from expectation, use
+checkbox-style expected results, and prefer short setup blocks over long prose.
+Each step should have one testing target. Do not put Trigger or Content checks
+inside Root, do not mix feature-wide behavior into part-specific steps, and do
+not repeat the same check in multiple steps.
+
+## 7. Execute Manual Test Protocol
+
+Run the Manual Test Protocol in the browser one step at a time.
+
+Agent behavior:
+
+1. Create or update the draft in `.manual-tests/`.
+2. Show only Step 0 first.
+3. Wait for tester confirmation.
+4. When the tester says `next`, show only the next step.
+5. If the tester reports an issue, classify it before deciding where to fix it:
+   - `Playground issue`
+   - `Atom package issue`
+   - `Workbook issue`
+   - `Documentation/process issue`
+6. Do not continue until the current step passes or the issue is resolved or
+   triaged.
+7. Do not update `component-coverage.xlsx` until every protocol step passes.
+8. Promote to `manual-tests/<component>.md` only after the protocol is reviewed
+   and considered stable.
 
 ## 8. Fix Discovered Issues
 
@@ -104,9 +142,9 @@ cleanup separate from manual testing execution.
 
 ## 9. Repeat Manual Testing Until Complete
 
-After each fix, rerun the affected manual checklist items and any adjacent
-checks that could regress. Do not update the workbook until manual testing has
-passed and the component is complete.
+After each fix, rerun the affected Manual Test Protocol step and any adjacent
+steps that could regress. Do not update the workbook until every protocol step
+has passed and the component is complete.
 
 ## 10. Update Workbook
 

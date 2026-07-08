@@ -110,23 +110,79 @@ mutation refresh path. Scenario files should provide selectors plus curated
 behavior rows; they should not manually copy every live `aria-*` and `data-*`
 attribute.
 
-## Manual Testing Output
+## Manual Test Protocol
 
-Manual testing checklists should be optimized for the tester, not for mirroring
-the documentation structure. A tester should be able to finish one public part
-before moving to the next.
+A Manual Test Protocol is a saved, step-by-step QA procedure for one component.
+Use this term instead of `manual checklist`.
 
-Preferred checklist structure:
+Use two protocol locations:
 
-- `Playground Smoke Check`
-- `Feature-Wide Behavior`
-- `Part-by-Part Verification` in public anatomy order
-- `Source Verification`
-- `Inspector / Logs`
-- `Portal / Nested Behavior`
-- `Workbook Cleanup / Rewrite Notes`
+- `.manual-tests/` for draft protocols generated during active component work
+- `manual-tests/` for reviewed, version-controlled regression protocols
 
-Use only the sections that apply for each public part:
+Lifecycle:
+
+1. Codex generates a draft protocol in `.manual-tests/`.
+2. The tester and Codex execute the protocol during manual testing.
+3. The protocol is improved based on real testing results.
+4. Once reviewed and considered stable, promote it to
+   `manual-tests/<component>.md`.
+
+Reviewed protocol examples:
+
+- `manual-tests/popover.md`
+- `manual-tests/alert-dialog.md`
+
+Keep only reviewed Manual Test Protocol files under `manual-tests/`. These
+files are living regression documentation for retesting after package changes,
+updating workbook coverage, generating automated Playwright tests, and
+comparing old and new behavior.
+
+Write protocols as QA procedures, not narrative instructions. Prefer:
+
+- short setup blocks
+- checkbox-style expected results
+- action separated from expectation
+- part-first organization
+- static verification separated from behavior verification when useful
+
+Avoid long prose and long numbered narratives when a concise checklist is
+easier to execute.
+
+### Protocol Structure
+
+Every component protocol should use this order:
+
+1. `Playground Smoke Check`
+2. `Feature-Wide State`
+3. `Root`
+4. each public part in public anatomy order
+5. `Source`
+6. `Inspector / Logs`
+7. `Nested / Portal / Focus Behavior`, when applicable
+8. `Workbook Cleanup / Rewrite Notes`
+
+The exact public part steps depend on the component.
+
+### Step Design
+
+Each step has one clear testing target.
+
+- `Root` tests only Root anatomy and state rows.
+- Part steps test only that part.
+- `Feature-Wide State` owns cross-part behavior such as controlled and
+  uncontrolled state, `defaultOpen`, disabled, modal, outside close, trigger
+  mode, and keep-mounted behavior.
+- `Workbook Cleanup / Rewrite Notes` is not manual testing.
+
+Do not put Trigger checks inside Root. Do not put Content checks inside Root.
+Do not mix feature-wide behavior into part-specific steps. Do not repeat the
+same check in multiple steps unless a later step verifies a different surface,
+such as Source output instead of live DOM.
+
+### Part Step Format
+
+Use only applicable sections for each public part:
 
 - `Identity`
 - `ARIA`
@@ -134,34 +190,34 @@ Use only the sections that apply for each public part:
 - `Composition`
 - `Interaction`
 
-Do not generate empty sections such as `Composition: none` or
-`Interaction: none`.
+Do not include empty sections such as `Composition: none`.
 
-Manual checklist items should state both the action and the expected result. If
-the expected value is stable, name it explicitly.
+Separate static verification from behavior verification when it makes the step
+easier to execute. For example, verify `data-slot`, role, and ARIA before
+keyboard or pointer behavior.
 
-Stable expected values include:
+State exact expected values when stable:
 
 - default HTML tag
-- exact `data-slot` value
-- expected role
-- expected `data-state`
-- exact `data-prop-check` value
-- exact custom `data-slot` value
-- expected `aria-*` attributes
+- `type`
+- role
+- `data-slot`
+- `data-state`
+- `data-side`
+- `data-align`
+- `data-positioned`
+- `data-disabled`
+- `data-prop-check`
+- custom `data-slot`
+- ARIA attributes
 
-Do not invent dynamic values. Describe the relationship instead:
+Describe dynamic values by relationship instead of inventing exact values:
 
-- `aria-labelledby` should match the rendered title id.
-- `aria-describedby` should match the rendered description id.
-- `aria-controls` should reference the current content id.
-- a generated id should be stable for the mounted instance and used by the
-  element that references it.
-
-Avoid duplicate verification. Each expected value or behavior should appear in
-one checklist location unless a later check intentionally verifies a different
-surface, such as Source output instead of live DOM. Keep workbook cleanup and
-rewrite notes separate from manual testing steps.
+- `aria-controls` matches the Content id.
+- `aria-labelledby` matches the Title id.
+- `aria-describedby` matches the Description id.
+- generated ids stay stable for the mounted instance and are used by the
+  elements that reference them.
 
 Composition testing should include every supported public part. Do not cover
 only the root/default path when other public parts support composition.
@@ -171,6 +227,48 @@ For each supported part, cover the applicable modes:
 - `Default`
 - `As Child`
 - `Render`
+
+### Interactive Execution
+
+Execute Manual Test Protocols one step at a time.
+
+Agent behavior:
+
+1. Create or update the draft component protocol in `.manual-tests/`.
+2. Show only Step 0 first.
+3. Wait for tester confirmation.
+4. When the tester says `next`, show only the next step.
+5. If the tester reports an issue, classify it as:
+   - `Playground issue`
+   - `Atom package issue`
+   - `Workbook issue`
+   - `Documentation/process issue`
+6. Do not continue until the current step passes or the issue is resolved or
+   triaged.
+7. Do not update `component-coverage.xlsx` until every protocol step passes.
+8. Promote the protocol to `manual-tests/<component>.md` only after it has been
+   reviewed and considered stable.
+
+### Automation Readiness
+
+Write static protocol checks so they can later become Playwright assertions:
+
+- default tags
+- `data-slot`
+- `data-state`
+- ARIA attributes and relationships
+- prop pass-through
+- custom slot overrides
+- Source output
+- provider and non-DOM rules
+
+Keep manual-only checks focused on:
+
+- keyboard feel
+- focus management
+- nested layer behavior
+- touch and pointer behavior
+- visual and browser behavior
 
 ## Canvas Toolbar
 
