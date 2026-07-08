@@ -8,8 +8,9 @@ playground.
 
 For every read or write of `component-coverage.xlsx`:
 
-1. Read [../../docs/tooling.md](../../docs/tooling.md).
-2. Activate the shared developer tooling environment.
+1. Read [../../../docs/tooling.md](../../../docs/tooling.md).
+2. Activate the shared developer tooling environment using the command
+   documented there.
 3. Verify `openpyxl` is available.
 4. Use `openpyxl` for workbook inspection and edits.
 

@@ -37,8 +37,9 @@ update.
 ## 2. Read Workbook Rows
 
 - Before reading `component-coverage.xlsx`, read
-  [../../docs/tooling.md](../../docs/tooling.md), activate the shared developer
-  tooling environment, and verify `openpyxl` is available.
+  [../../../docs/tooling.md](../../../docs/tooling.md), activate the shared
+  developer tooling environment using the command documented there, and verify
+  `openpyxl` is available.
 - Use `openpyxl` to inspect the component sheet in `component-coverage.xlsx`.
 - Do not inspect raw XLSX XML unless `openpyxl` or LibreOffice cannot perform
   the task.
@@ -162,8 +163,9 @@ has passed and the component is complete.
 After manual verification:
 
 - Before writing `component-coverage.xlsx`, read
-  [../../docs/tooling.md](../../docs/tooling.md), activate the shared developer
-  tooling environment, and verify `openpyxl` is available.
+  [../../../docs/tooling.md](../../../docs/tooling.md), activate the shared
+  developer tooling environment using the command documented there, and verify
+  `openpyxl` is available.
 - Use `openpyxl` for workbook edits.
 - Preserve formulas, formatting, conditional formatting, and workbook structure.
 - Do not inspect or edit raw XLSX XML unless `openpyxl` or LibreOffice cannot
