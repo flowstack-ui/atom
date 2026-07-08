@@ -17,6 +17,7 @@ type ScrollOrientation = "vertical" | "horizontal" | "both";
 type ScrollAreaNameMode = "none" | "aria-label" | "aria-labelledby";
 type ScrollAreaRoleMode = "auto" | "region" | "group";
 type FeedSize = "known" | "unknown";
+type FeedPositionMode = "index" | "position";
 type TableSortDirection = "ascending" | "descending" | "none" | "other";
 type TreeSelectionMode = "single" | "multiple";
 type FormControlType = "native" | "atom";
@@ -226,12 +227,27 @@ function useFeedScenario() {
   const [busy, setBusy] = useState(false);
   const [setSize, setSetSize] = useState<FeedSize>("known");
   const [itemCount, setItemCount] = useState(3);
+  const [positionMode, setPositionMode] = useState<FeedPositionMode>("index");
+  const [itemSetSize, setItemSetSize] = useState(false);
   const [composition, setComposition] = useState<CompositionMode>("default");
+  const [itemComposition, setItemComposition] = useState<CompositionMode>("default");
+  const [preventKeys, setPreventKeys] = useState(false);
+  const [propCheck, setPropCheck] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
+  const [customItemSlot, setCustomItemSlot] = useState(false);
+  const [rootRef, setRootRef] = useState("none");
+  const [itemRef, setItemRef] = useState("none");
   const { log, addLog, clearLog } = useScenarioLog();
+  const markRootRef = useCallback((element: HTMLElement | null) => {
+    setRootRef(formatRef(element));
+  }, []);
+  const markItemRef = useCallback((element: HTMLElement | null) => {
+    setItemRef(formatRef(element));
+  }, []);
 
   return {
-    state: { busy, setSize, itemCount, composition, log },
-    actions: { setBusy, setSetSize, setItemCount, setComposition, clearLog, addLog },
+    state: { busy, setSize, itemCount, positionMode, itemSetSize, composition, itemComposition, preventKeys, propCheck, customRootSlot, customItemSlot, rootRef, itemRef, log },
+    actions: { setBusy, setSetSize, setItemCount, setPositionMode, setItemSetSize, setComposition, setItemComposition, setPreventKeys, setPropCheck, setCustomRootSlot, setCustomItemSlot, markRootRef, markItemRef, clearLog, addLog },
   };
 }
 
@@ -387,8 +403,24 @@ export function DataPrimitiveScenarioToolbar({
           <MenuCheckboxControl checked={scenario.state.busy} label="Busy" value="busy" onChange={scenario.actions.setBusy} />
           <MenuRadioControl label="Set size" options={feedSizeOptions} value={scenario.state.setSize} onChange={(value) => scenario.actions.setSetSize(value as FeedSize)} />
           <MenuRadioControl label="Items" options={feedCountOptions} value={String(scenario.state.itemCount)} onChange={(value) => scenario.actions.setItemCount(Number(value))} />
+          <MenuRadioControl label="Position" options={feedPositionOptions} value={scenario.state.positionMode} onChange={(value) => scenario.actions.setPositionMode(value as FeedPositionMode)} />
+          <MenuCheckboxControl checked={scenario.state.itemSetSize} label="Item set size" value="item-set-size" onChange={scenario.actions.setItemSetSize} />
         </ToolbarGroup>
-        <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+        <ToolbarGroup title="Keyboard" value="keyboard">
+          <MenuCheckboxControl checked={scenario.state.preventKeys} label="Prevent key handling" value="prevent-keys" onChange={scenario.actions.setPreventKeys} />
+        </ToolbarGroup>
+        <ToolbarGroup title="Composition" value="composition">
+          <MenuRadioControl label="Root" options={compositionOptions} value={scenario.state.composition} onChange={(value) => scenario.actions.setComposition(value as CompositionMode)} />
+          <MenuRadioControl label="Item" options={compositionOptions} value={scenario.state.itemComposition} onChange={(value) => scenario.actions.setItemComposition(value as CompositionMode)} />
+        </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={[
+            { checked: scenario.state.customRootSlot, label: "Root Slot", value: "root-slot", onChange: scenario.actions.setCustomRootSlot },
+            { checked: scenario.state.customItemSlot, label: "Item Slot", value: "item-slot", onChange: scenario.actions.setCustomItemSlot },
+          ]}
+        />
       </ControlToolbar>
     );
   }
@@ -552,7 +584,7 @@ export function getDataPrimitiveCanvasFooter(
 
   if (scenarioId === "feed") {
     const state = scenarios.feed.state;
-    return `Busy ${state.busy} | Size ${state.setSize} | Items ${state.itemCount}`;
+    return `Busy ${state.busy} | Size ${state.setSize} | Items ${state.itemCount} | Position ${state.positionMode}`;
   }
 
   if (scenarioId === "scroll-area") {
@@ -633,10 +665,57 @@ export function getDataPrimitiveSource(scenarioId: string, scenarios?: DataPrimi
   }
 
   if (scenarioId === "feed") {
-    return `<Feed.Root setSize={3}>
-  <Feed.Item index={0}>
+    const state = scenarios?.feed.state;
+    const busy = state?.busy ? " busy" : "";
+    const itemCount = state?.itemCount ?? 3;
+    const rootSetSize = state?.positionMode === "position" && state?.setSize === "known" ? 100 : itemCount;
+    const setSize = state?.setSize === "unknown" ? "\"unknown\"" : String(rootSetSize);
+    const rootDataProps = `${state?.customRootSlot ? " data-slot=\"feed-custom\"" : ""}${state?.propCheck ? " data-prop-check=\"root\"" : ""}`;
+    const itemDataProps = `${state?.customItemSlot ? " data-slot=\"feed-item-custom\"" : ""}${state?.propCheck ? " data-prop-check=\"item\"" : ""}`;
+    const onKeyDown = state?.preventKeys ? "\n  onKeyDown={(event) => event.preventDefault()}" : "";
+    const itemPositionProp = state?.positionMode === "position" ? " position={11}" : " index={0}";
+    const itemSetSizeProp = state?.itemSetSize ? " setSize={10}" : "";
+    const itemOpen = `<Feed.Item${itemPositionProp}${itemSetSizeProp}${itemDataProps}`;
+    const itemChildren = `
     <h3>Deploy reviewed</h3>
-  </Feed.Item>
+    <p>Production checklist was reviewed by operations.</p>`;
+    const item = state?.itemComposition === "asChild"
+      ? `${itemOpen} asChild>
+    <article>${itemChildren}
+    </article>
+  </Feed.Item>`
+      : state?.itemComposition === "render"
+        ? `${itemOpen}
+    render={(props) => (
+      <section {...props}>${itemChildren}
+      </section>
+    )}
+  />`
+        : `${itemOpen}>${itemChildren}
+  </Feed.Item>`;
+
+    if (state?.composition === "asChild") {
+      return `<Feed.Root setSize={${setSize}}${busy}${rootDataProps}${onKeyDown} asChild>
+  <section>
+    ${item}
+  </section>
+</Feed.Root>`;
+    }
+
+    if (state?.composition === "render") {
+      return `<Feed.Root
+  setSize={${setSize}}${busy}
+  ${rootDataProps.trim()}${onKeyDown}
+  render={(props) => (
+    <section {...props}>
+      ${item}
+    </section>
+  )}
+/>`;
+    }
+
+    return `<Feed.Root setSize={${setSize}}${busy}${rootDataProps}${onKeyDown}>
+  ${item}
 </Feed.Root>`;
   }
 
@@ -1017,18 +1096,56 @@ function FeedScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useFeedS
     className: "playground-feed",
     "data-feed-root": "",
     "data-playground-inspect": "",
-    "data-prop-check": "root",
+    ...partProps("root", { customSlot: state.customRootSlot, propCheck: state.propCheck }, "feed-custom"),
     busy: state.busy,
-    setSize: state.setSize === "unknown" ? "unknown" as const : state.itemCount,
-    onKeyDown: () => scenario.actions.addLog("feed keydown"),
+    setSize: state.setSize === "unknown" ? "unknown" as const : state.positionMode === "position" ? 100 : state.itemCount,
+    ref: scenario.actions.markRootRef,
+    onKeyDown: (event: any) => {
+      scenario.actions.addLog(`feed keydown ${event.key}`);
+      if (state.preventKeys) {
+        event.preventDefault();
+      }
+    },
   };
-  const children = feedItems.slice(0, state.itemCount).map((item, index) => (
-    <Feed.Item className="playground-feed-item" data-feed-item={item.id} data-playground-inspect="" index={index} key={item.id}>
-      <h3>{item.title}</h3>
-      <p>{item.body}</p>
-      <Button.Root className="playground-data-small-button" onPress={() => scenario.actions.addLog(`opened ${item.id}`)}>Open</Button.Root>
-    </Feed.Item>
-  ));
+  const children = feedItems.slice(0, state.itemCount).map((item, index) => {
+    const itemProps: any = {
+      className: "playground-feed-item",
+      "data-feed-item": item.id,
+      "data-playground-inspect": "",
+      ...partProps("item", { customSlot: state.customItemSlot, propCheck: state.propCheck }, "feed-item-custom"),
+      index: state.positionMode === "index" ? index : undefined,
+      position: state.positionMode === "position" ? index + 11 : undefined,
+      setSize: index === 0 && state.itemSetSize ? 10 : undefined,
+      ref: index === 0 ? scenario.actions.markItemRef : undefined,
+    };
+    const content = (
+      <>
+        <h3>{item.title}</h3>
+        <p>{item.body}</p>
+        <Button.Root className="playground-data-small-button" onPress={() => scenario.actions.addLog(`opened ${item.id}`)}>Open</Button.Root>
+      </>
+    );
+
+    if (state.itemComposition === "asChild") {
+      return (
+        <Feed.Item {...itemProps} asChild key={item.id}>
+          <article>{content}</article>
+        </Feed.Item>
+      );
+    }
+
+    if (state.itemComposition === "render") {
+      return (
+        <Feed.Item
+          {...itemProps}
+          key={item.id}
+          render={(renderProps) => <section {...renderProps}>{content}</section>}
+        />
+      );
+    }
+
+    return <Feed.Item {...itemProps} key={item.id}>{content}</Feed.Item>;
+  });
   const feed = state.composition === "asChild" ? (
     <Feed.Root {...props} asChild>
       <section>{children}</section>
@@ -1043,7 +1160,7 @@ function FeedScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useFeedS
     <div className="data-primitive-stage">
       <Button.Root className="playground-data-small-button">Before feed</Button.Root>
       <ScrollArea.Root className="playground-feed-scroll" orientation="vertical">
-        <ScrollArea.Viewport className="playground-feed-scroll-viewport" focusable aria-label="Feed preview">
+        <ScrollArea.Viewport className="playground-feed-scroll-viewport" aria-label="Feed preview">
           {feed}
         </ScrollArea.Viewport>
       </ScrollArea.Root>
@@ -1304,12 +1421,19 @@ function getDataPrimitiveSections(
     const state = scenarios.feed.state;
     return [
       section("Root", state.busy ? "busy" : "ready", "[data-feed-root]", [
+        row("Ref target", state.rootRef, "identity"),
         row("Busy", bool(state.busy), "state"),
         row("Set size", state.setSize, "state"),
         row("Item count", String(state.itemCount), "state"),
+        row("Position mode", state.positionMode, "state"),
+        row("Item set size override", bool(state.itemSetSize), "state"),
         row("Composition", state.composition, "composition"),
+        row("Prevent key handling", bool(state.preventKeys), "behavior"),
       ]),
-      section("Item: First", "article", "[data-feed-item='deploy']"),
+      section("Item: First", "article", "[data-feed-item='deploy']", [
+        row("Ref target", state.itemRef, "identity"),
+        row("Composition", state.itemComposition, "composition"),
+      ]),
       section("Item: Last", `${state.itemCount} of ${state.setSize}`, `[data-feed-item='${feedItems[state.itemCount - 1]?.id ?? "deploy"}']`),
     ];
   }
@@ -1449,6 +1573,11 @@ const compositionOptions = [
 const feedSizeOptions = [
   { label: "Known", value: "known" },
   { label: "Unknown", value: "unknown" },
+];
+
+const feedPositionOptions = [
+  { label: "Index", value: "index" },
+  { label: "Position", value: "position" },
 ];
 
 const feedCountOptions = [
