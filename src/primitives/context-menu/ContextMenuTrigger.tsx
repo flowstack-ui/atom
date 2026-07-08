@@ -27,6 +27,7 @@ export interface ContextMenuTriggerProps extends ContextMenuTriggerNativeProps {
   disabled?: boolean;
   asChild?: boolean;
   render?: RenderProp;
+  "data-slot"?: string;
 }
 
 export const ContextMenuTrigger = forwardRef<
@@ -38,6 +39,7 @@ export const ContextMenuTrigger = forwardRef<
     disabled = false,
     asChild = false,
     render,
+    "data-slot": dataSlot = "context-menu-trigger",
     onContextMenu,
     onKeyDown,
     style,
@@ -91,7 +93,7 @@ export const ContextMenuTrigger = forwardRef<
     ...restProps,
     ref: composedRef,
     id: ctx.triggerId,
-    "data-slot": "context-menu-trigger",
+    "data-slot": dataSlot,
     "data-state": ctx.isOpen ? "open" : "closed",
     "data-disabled": disabled ? "" : undefined,
     onContextMenu: composeEventHandlers(onContextMenu, handleContextMenu),

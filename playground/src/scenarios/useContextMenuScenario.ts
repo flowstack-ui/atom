@@ -180,7 +180,18 @@ export type ContextMenuScenarioState = {
   contentLoopOff: boolean;
   insideDialog: boolean;
   triggerDisabled: boolean;
-  triggerSlotOverride: boolean;
+  propCheck: boolean;
+  customTriggerSlot: boolean;
+  customContentSlot: boolean;
+  customGroupSlot: boolean;
+  customItemSlot: boolean;
+  customCheckboxItemSlot: boolean;
+  customRadioGroupSlot: boolean;
+  customRadioItemSlot: boolean;
+  customSeparatorSlot: boolean;
+  customSubTriggerSlot: boolean;
+  customSubContentSlot: boolean;
+  customSubItemSlot: boolean;
   triggerComposition: ContextMenuItemCompositionMode;
   blockTriggerEvent: boolean;
   blockContentKeyDown: boolean;
@@ -225,7 +236,18 @@ export type ContextMenuScenarioActions = {
   setContentLoopOff: (value: boolean) => void;
   setInsideDialog: (value: boolean) => void;
   setTriggerDisabled: (value: boolean) => void;
-  setTriggerSlotOverride: (value: boolean) => void;
+  setPropCheck: (value: boolean) => void;
+  setCustomTriggerSlot: (value: boolean) => void;
+  setCustomContentSlot: (value: boolean) => void;
+  setCustomGroupSlot: (value: boolean) => void;
+  setCustomItemSlot: (value: boolean) => void;
+  setCustomCheckboxItemSlot: (value: boolean) => void;
+  setCustomRadioGroupSlot: (value: boolean) => void;
+  setCustomRadioItemSlot: (value: boolean) => void;
+  setCustomSeparatorSlot: (value: boolean) => void;
+  setCustomSubTriggerSlot: (value: boolean) => void;
+  setCustomSubContentSlot: (value: boolean) => void;
+  setCustomSubItemSlot: (value: boolean) => void;
   setTriggerComposition: (value: ContextMenuItemCompositionMode) => void;
   setBlockTriggerEvent: (value: boolean) => void;
   setBlockContentKeyDown: (value: boolean) => void;
@@ -266,7 +288,7 @@ export type ContextMenuScenarioActions = {
 
 export function useContextMenuScenario() {
   const [revision, setRevision] = useState(0);
-  const [controlled, setControlled] = useState(true);
+  const [controlled, setControlled] = useState(false);
   const [defaultOpen, setDefaultOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const [modal, setModal] = useState(true);
@@ -281,11 +303,22 @@ export function useContextMenuScenario() {
   const [contentLoopOff, setContentLoopOff] = useState(false);
   const [insideDialog, setInsideDialog] = useState(false);
   const [triggerDisabled, setTriggerDisabled] = useState(false);
-  const [triggerSlotOverride, setTriggerSlotOverride] = useState(false);
+  const [propCheck, setPropCheck] = useState(false);
+  const [customTriggerSlot, setCustomTriggerSlot] = useState(false);
+  const [customContentSlot, setCustomContentSlot] = useState(false);
+  const [customGroupSlot, setCustomGroupSlot] = useState(false);
+  const [customItemSlot, setCustomItemSlot] = useState(false);
+  const [customCheckboxItemSlot, setCustomCheckboxItemSlot] = useState(false);
+  const [customRadioGroupSlot, setCustomRadioGroupSlot] = useState(false);
+  const [customRadioItemSlot, setCustomRadioItemSlot] = useState(false);
+  const [customSeparatorSlot, setCustomSeparatorSlot] = useState(false);
+  const [customSubTriggerSlot, setCustomSubTriggerSlot] = useState(false);
+  const [customSubContentSlot, setCustomSubContentSlot] = useState(false);
+  const [customSubItemSlot, setCustomSubItemSlot] = useState(false);
   const [triggerComposition, setTriggerComposition] = useState<ContextMenuItemCompositionMode>("default");
   const [blockTriggerEvent, setBlockTriggerEvent] = useState(false);
   const [blockContentKeyDown, setBlockContentKeyDown] = useState(false);
-  const [checkboxChecked, setCheckboxChecked] = useState(true);
+  const [checkboxChecked, setCheckboxChecked] = useState(false);
   const [checkboxDisabled, setCheckboxDisabled] = useState(false);
   const [radioValue, setRadioValue] = useState("comfortable");
   const [radioValueSecondary, setRadioValueSecondary] = useState("compact");
@@ -454,7 +487,18 @@ export function useContextMenuScenario() {
     contentLoopOff,
     insideDialog,
     triggerDisabled,
-    triggerSlotOverride,
+    propCheck,
+    customTriggerSlot,
+    customContentSlot,
+    customGroupSlot,
+    customItemSlot,
+    customCheckboxItemSlot,
+    customRadioGroupSlot,
+    customRadioItemSlot,
+    customSeparatorSlot,
+    customSubTriggerSlot,
+    customSubContentSlot,
+    customSubItemSlot,
     triggerComposition,
     blockTriggerEvent,
     blockContentKeyDown,
@@ -499,7 +543,18 @@ export function useContextMenuScenario() {
     setContentLoopOff,
     setInsideDialog,
     setTriggerDisabled,
-    setTriggerSlotOverride,
+    setPropCheck,
+    setCustomTriggerSlot,
+    setCustomContentSlot,
+    setCustomGroupSlot,
+    setCustomItemSlot,
+    setCustomCheckboxItemSlot,
+    setCustomRadioGroupSlot,
+    setCustomRadioItemSlot,
+    setCustomSeparatorSlot,
+    setCustomSubTriggerSlot,
+    setCustomSubContentSlot,
+    setCustomSubItemSlot,
     setTriggerComposition,
     setBlockTriggerEvent,
     setBlockContentKeyDown,

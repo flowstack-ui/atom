@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed `Trigger` so custom `data-slot` values override the default
+  `context-menu-trigger` slot.
 - Inherited fixed submenu keyboard behavior under `Direction.Provider dir="rtl"`
   so ArrowLeft opens submenus, ArrowRight closes submenus, and submenu
   placement mirrors to the left side.

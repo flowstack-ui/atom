@@ -62,6 +62,7 @@ Wraps the area that owns the context menu.
 | `disabled` | `boolean` | `false` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
+| `data-slot` | `string` | `"context-menu-trigger"` |
 
 | Data attribute | Values |
 | --- | --- |

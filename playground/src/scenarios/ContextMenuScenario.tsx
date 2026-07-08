@@ -5,9 +5,10 @@ import { Direction } from "@flowstack-ui/atom/direction";
 import { useEffect, type ReactNode } from "react";
 import {
   AnatomyPanel,
+  type AnatomyRow,
   type AnatomySection,
 } from "../AnatomyPanel";
-import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, ScenarioEventLog, ToolbarGroup } from "../WorkbenchPrimitives";
+import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup, partProps } from "../WorkbenchPrimitives";
 import type { Dispatch, SetStateAction } from "react";
 import type {
   ContextMenuAlign,
@@ -45,8 +46,7 @@ export function ContextMenuScenarioCanvas({
           mode={state.triggerComposition}
           disabled={state.triggerDisabled}
           data-context-menu-trigger=""
-          data-prop-check="trigger"
-          data-slot={state.triggerSlotOverride ? "context-menu-trigger-custom" : undefined}
+          {...partProps("trigger", { propCheck: state.propCheck, customSlot: state.customTriggerSlot }, "context-menu-trigger-custom")}
           onContextMenu={actions.handleTriggerContextMenu}
           onKeyDown={actions.handleTriggerKeyDown}
         >
@@ -57,7 +57,7 @@ export function ContextMenuScenarioCanvas({
           ariaLabel={state.contentAriaLabel ? "Project actions" : undefined}
           className="playground-menu-content"
           data-menu-content=""
-          data-prop-check="content"
+          {...partProps("content", { propCheck: state.propCheck, customSlot: state.customContentSlot }, "context-menu-content-custom")}
           data-playground-inspect=""
           side={state.side}
           align={state.align}
@@ -69,14 +69,14 @@ export function ContextMenuScenarioCanvas({
           <ContextMenu.Group
             className="playground-menu-group"
             data-menu-group=""
-            data-prop-check="group"
+            {...partProps("group", { propCheck: state.propCheck, customSlot: state.customGroupSlot }, "context-menu-group-custom")}
           >
             <ContextMenuActionItem
               mode={state.itemComposition}
               value="new"
               disabled={false}
               data-menu-item-primary=""
-              data-prop-check="item"
+              {...partProps("item", { propCheck: state.propCheck, customSlot: state.customItemSlot }, "context-menu-item-custom")}
               onSelect={() => actions.handleActionSelect("new")}
               onClick={actions.handleActionClick("new")}
               onPointerEnter={() => actions.handlePointer("new", "enter")}
@@ -98,6 +98,7 @@ export function ContextMenuScenarioCanvas({
           <ContextMenu.Separator
             className="playground-menu-separator"
             data-menu-separator=""
+            {...partProps("separator", { propCheck: state.propCheck, customSlot: state.customSeparatorSlot }, "context-menu-separator-custom")}
           />
           <ContextMenu.CheckboxItem
             className="playground-menu-item"
@@ -107,7 +108,7 @@ export function ContextMenuScenarioCanvas({
             disabled={state.checkboxDisabled}
             closeOnSelect={state.closeCheckboxOnSelect}
             data-menu-checkbox=""
-            data-prop-check="checkbox-item"
+            {...partProps("checkbox-item", { propCheck: state.propCheck, customSlot: state.customCheckboxItemSlot }, "context-menu-checkbox-item-custom")}
             onCheckedChange={actions.handleCheckboxChange}
           >
             <span>Show grid</span>
@@ -121,7 +122,7 @@ export function ContextMenuScenarioCanvas({
             className="playground-menu-radio-group"
             value={state.radioValue}
             data-menu-radio-group=""
-            data-prop-check="radio-group"
+            {...partProps("radio-group", { propCheck: state.propCheck, customSlot: state.customRadioGroupSlot }, "context-menu-radio-group-custom")}
             onValueChange={actions.handleRadioChange}
           >
             <ContextMenu.RadioItem
@@ -131,7 +132,7 @@ export function ContextMenuScenarioCanvas({
               disabled={state.radioItemDisabled}
               closeOnSelect={state.closeRadioOnSelect}
               data-menu-radio-item=""
-              data-prop-check="radio-item"
+              {...partProps("radio-item", { propCheck: state.propCheck, customSlot: state.customRadioItemSlot }, "context-menu-radio-item-custom")}
             >
               <span>Compact</span>
               <span className="playground-menu-radio" aria-hidden="true" />
@@ -155,6 +156,7 @@ export function ContextMenuScenarioCanvas({
             className="playground-menu-radio-group"
             value={state.radioValueSecondary}
             data-menu-radio-group-secondary=""
+            {...partProps("radio-group-secondary", { propCheck: state.propCheck, customSlot: state.customRadioGroupSlot }, "context-menu-radio-group-custom")}
             onValueChange={actions.handleRadioSecondaryChange}
           >
             <ContextMenu.RadioItem
@@ -163,7 +165,7 @@ export function ContextMenuScenarioCanvas({
               textValue="Dense compact"
               closeOnSelect={state.closeRadioOnSelect}
               data-menu-radio-item-secondary=""
-              data-prop-check="radio-item-secondary"
+              {...partProps("radio-item-secondary", { propCheck: state.propCheck, customSlot: state.customRadioItemSlot }, "context-menu-radio-item-custom")}
             >
               <span>Dense compact</span>
               <span className="playground-menu-radio" aria-hidden="true" />
@@ -195,6 +197,7 @@ export function ContextMenuScenarioCanvas({
                   value="more"
                   textValue="More actions"
                   data-menu-sub-trigger=""
+                  {...partProps("sub-trigger", { propCheck: state.propCheck, customSlot: state.customSubTriggerSlot }, "context-menu-sub-trigger-custom")}
                 >
                   <span>More actions</span>
                   <span className="playground-menu-sub-arrow" aria-hidden="true">›</span>
@@ -205,7 +208,7 @@ export function ContextMenuScenarioCanvas({
                   sideOffset={state.subSideOffset}
                   loop={state.subContentLoopOff ? false : undefined}
                   data-menu-sub-content=""
-                  data-prop-check="sub-content"
+                  {...partProps("sub-content", { propCheck: state.propCheck, customSlot: state.customSubContentSlot }, "context-menu-sub-content-custom")}
                   data-playground-inspect=""
                   ref={(element) => actions.markPartRef("subContent", element)}
                 >
@@ -213,6 +216,7 @@ export function ContextMenuScenarioCanvas({
                     className="playground-menu-item"
                     value="archive"
                     data-menu-sub-item=""
+                    {...partProps("sub-item", { propCheck: state.propCheck, customSlot: state.customSubItemSlot }, "context-menu-sub-item-custom")}
                     onSelect={() => actions.handleActionSelect("archive")}
                   >
                     Archive
@@ -221,6 +225,7 @@ export function ContextMenuScenarioCanvas({
                     className="playground-menu-item"
                     value="duplicate"
                     data-menu-sub-item-extra=""
+                    {...partProps("sub-item-extra", { propCheck: state.propCheck, customSlot: state.customSubItemSlot }, "context-menu-sub-item-custom")}
                     onSelect={() => actions.handleActionSelect("duplicate")}
                   >
                     Duplicate
@@ -232,6 +237,7 @@ export function ContextMenuScenarioCanvas({
                         value="advanced"
                         textValue="Advanced"
                         data-menu-nested-sub-trigger=""
+                        {...partProps("nested-sub-trigger", { propCheck: state.propCheck, customSlot: state.customSubTriggerSlot }, "context-menu-sub-trigger-custom")}
                       >
                         <span>Advanced</span>
                         <span className="playground-menu-sub-arrow" aria-hidden="true">›</span>
@@ -239,6 +245,7 @@ export function ContextMenuScenarioCanvas({
                       <ContextMenu.SubContent
                         className="playground-menu-content playground-submenu-content"
                         data-menu-nested-sub-content=""
+                        {...partProps("nested-sub-content", { propCheck: state.propCheck, customSlot: state.customSubContentSlot }, "context-menu-sub-content-custom")}
                         data-playground-inspect=""
                         ref={(element) => actions.markPartRef("nestedSubContent", element)}
                       >
@@ -246,6 +253,7 @@ export function ContextMenuScenarioCanvas({
                           className="playground-menu-item"
                           value="export"
                           data-menu-nested-sub-item=""
+                          {...partProps("nested-sub-item", { propCheck: state.propCheck, customSlot: state.customSubItemSlot }, "context-menu-sub-item-custom")}
                           onSelect={() => actions.handleActionSelect("export")}
                         >
                           Export
@@ -264,6 +272,7 @@ export function ContextMenuScenarioCanvas({
                   textValue="Share actions"
                   disabled={state.disableSecondSubmenu}
                   data-menu-sub-trigger-secondary=""
+                  {...partProps("sub-trigger-secondary", { propCheck: state.propCheck, customSlot: state.customSubTriggerSlot }, "context-menu-sub-trigger-custom")}
                 >
                   <span>Share actions</span>
                   <span className="playground-menu-sub-arrow" aria-hidden="true">›</span>
@@ -272,6 +281,7 @@ export function ContextMenuScenarioCanvas({
                   className="playground-menu-content playground-submenu-content"
                   sideOffset={state.subSideOffset}
                   data-menu-sub-content-secondary=""
+                  {...partProps("sub-content-secondary", { propCheck: state.propCheck, customSlot: state.customSubContentSlot }, "context-menu-sub-content-custom")}
                   data-playground-inspect=""
                   ref={(element) => actions.markPartRef("subContentSecondary", element)}
                 >
@@ -279,6 +289,7 @@ export function ContextMenuScenarioCanvas({
                     className="playground-menu-item"
                     value="copy-link"
                     data-menu-sub-item-secondary=""
+                    {...partProps("sub-item-secondary", { propCheck: state.propCheck, customSlot: state.customSubItemSlot }, "context-menu-sub-item-custom")}
                     onSelect={() => actions.handleActionSelect("copy-link")}
                   >
                     Copy link
@@ -470,12 +481,28 @@ export function ContextMenuScenarioToolbar({
         <MenuRadioControl label="Item" options={compositionOptions} value={state.itemComposition} onChange={actions.setItemComposition} />
         <MenuSection label="Events">
           <MenuCheckboxControl checked={state.triggerDisabled} label="Disabled trigger" value="disabled-trigger" onChange={actions.setTriggerDisabled} />
-          <MenuCheckboxControl checked={state.triggerSlotOverride} label="Override trigger slot" value="override-trigger-slot" onChange={actions.setTriggerSlotOverride} />
           <MenuCheckboxControl checked={state.blockTriggerEvent} label="Block trigger event" value="block-trigger-event" onChange={actions.setBlockTriggerEvent} />
           <MenuCheckboxControl checked={state.blockItemSelect} label="Block item select" value="block-item-select" onChange={actions.setBlockItemSelect} />
           <MenuCheckboxControl checked={state.logPointer} label="Log pointer" value="log-pointer" onChange={actions.setLogPointer} />
         </MenuSection>
       </ToolbarGroup>
+      <PropsToolbarGroup
+        propCheck={state.propCheck}
+        onPropCheckChange={actions.setPropCheck}
+        customSlots={[
+          { checked: state.customTriggerSlot, label: "Trigger Slot", value: "trigger-slot", onChange: actions.setCustomTriggerSlot },
+          { checked: state.customContentSlot, label: "Content Slot", value: "content-slot", onChange: actions.setCustomContentSlot },
+          { checked: state.customGroupSlot, label: "Group Slot", value: "group-slot", onChange: actions.setCustomGroupSlot },
+          { checked: state.customItemSlot, label: "Item Slot", value: "item-slot", onChange: actions.setCustomItemSlot },
+          { checked: state.customCheckboxItemSlot, label: "Checkbox Item Slot", value: "checkbox-item-slot", onChange: actions.setCustomCheckboxItemSlot },
+          { checked: state.customRadioGroupSlot, label: "Radio Group Slot", value: "radio-group-slot", onChange: actions.setCustomRadioGroupSlot },
+          { checked: state.customRadioItemSlot, label: "Radio Item Slot", value: "radio-item-slot", onChange: actions.setCustomRadioItemSlot },
+          { checked: state.customSeparatorSlot, label: "Separator Slot", value: "separator-slot", onChange: actions.setCustomSeparatorSlot },
+          { checked: state.customSubTriggerSlot, label: "Sub Trigger Slot", value: "sub-trigger-slot", onChange: actions.setCustomSubTriggerSlot },
+          { checked: state.customSubContentSlot, label: "Sub Content Slot", value: "sub-content-slot", onChange: actions.setCustomSubContentSlot },
+          { checked: state.customSubItemSlot, label: "Sub Item Slot", value: "sub-item-slot", onChange: actions.setCustomSubItemSlot },
+        ]}
+      />
     </ControlToolbar>
   );
 }
@@ -489,6 +516,42 @@ export function ContextMenuScenarioAnatomy({
   openGroups: Record<string, boolean>;
   onOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
 }) {
+  const selectorExists = (selector: string) => Boolean(queryPlaygroundElement(selector));
+  const selectorAttr = (selector: string, name: string, fallback = "none") => {
+    return queryPlaygroundElement(selector)?.getAttribute(name) ?? fallback;
+  };
+  const partSection = ({
+    title,
+    selector,
+    summary,
+    rows,
+    inactive,
+  }: {
+    title: string;
+    selector: string;
+    summary?: string;
+    rows?: AnatomyRow[];
+    inactive?: boolean;
+  }): AnatomySection => {
+    const exists = selectorExists(selector);
+
+    return {
+      title,
+      selector,
+      inactive: inactive ?? !exists,
+      summary: summary ?? (exists ? selectorAttr(selector, "data-state", selectorAttr(selector, "data-value", "rendered")) : "not rendered"),
+      rows: [
+        { label: "Exists", value: exists ? "yes" : "no", category: "presence" },
+        ...(rows ?? []),
+      ],
+    };
+  };
+
+  const itemRows = (selector: string): AnatomyRow[] => [
+    { label: "Value", value: selectorAttr(selector, "data-value"), category: "data" },
+    { label: "Highlighted", value: selectorAttr(selector, "data-highlighted", "no") === "yes" ? "yes" : "no", category: "state" },
+  ];
+
   const sections: AnatomySection[] = [
     {
       title: "Root",
@@ -504,13 +567,12 @@ export function ContextMenuScenarioAnatomy({
         { label: "Direction", value: state.dir, category: "state" },
       ],
     },
-    {
-      title: "Trigger",
+    partSection({
+      title: "Trigger: Project canvas",
       selector: "[data-context-menu-trigger]",
-      inactive: state.parts.triggerExists !== "yes",
       summary: state.parts.triggerExists === "yes" ? state.parts.triggerState : "not rendered",
+      inactive: state.parts.triggerExists !== "yes",
       rows: [
-        { label: "Exists", value: state.parts.triggerExists, category: "presence" },
         { label: "Ref", value: state.parts.triggerRef, category: "identity" },
         { label: "Composition", value: state.triggerComposition, category: "composition" },
         { label: "Disabled", value: state.parts.triggerDisabled, category: "state" },
@@ -527,14 +589,13 @@ export function ContextMenuScenarioAnatomy({
         { label: "data-state", value: state.parts.triggerState, category: "data" },
         { label: "data-prop-check", value: state.parts.triggerDataPropCheck, category: "data" },
       ],
-    },
-    {
-      title: "Content",
+    }),
+    partSection({
+      title: "Content: Menu",
       selector: "[data-menu-content]",
-      inactive: state.parts.contentExists !== "yes",
       summary: state.parts.contentExists === "yes" ? state.parts.contentState : "not rendered",
+      inactive: state.parts.contentExists !== "yes",
       rows: [
-        { label: "Exists", value: state.parts.contentExists, category: "presence" },
         { label: "Ref", value: state.parts.contentRef, category: "identity" },
         { label: "Parent", value: state.parts.contentParent, category: "behavior" },
         { label: "role", value: state.parts.contentRole, category: "aria" },
@@ -551,134 +612,135 @@ export function ContextMenuScenarioAnatomy({
         { label: "data-positioned", value: state.parts.contentPositioned, category: "data" },
         { label: "data-prop-check", value: state.parts.contentDataPropCheck, category: "data" },
       ],
-    },
-    {
-      title: "Group",
+    }),
+    partSection({
+      title: "Group: Primary actions",
       selector: "[data-menu-group]",
-      inactive: state.parts.groupExists !== "yes",
       summary: state.parts.groupExists === "yes" ? state.parts.groupRole : "not rendered",
+      inactive: state.parts.groupExists !== "yes",
       rows: [
-        { label: "Exists", value: state.parts.groupExists, category: "presence" },
         { label: "Ref", value: state.parts.groupRef, category: "identity" },
         { label: "role", value: state.parts.groupRole, category: "aria" },
         { label: "data-slot", value: state.parts.groupSlot, category: "data" },
         { label: "data-prop-check", value: state.parts.groupDataPropCheck, category: "data" },
       ],
-    },
-    {
-      title: "Item",
-      inactive: state.parts.itemExists !== "yes" && state.parts.disabledItemExists !== "yes",
-      summary: state.parts.itemExists === "yes" ? state.parts.itemValue : "not rendered",
-      groups: [
-        {
-          title: "Primary item",
-          selector: "[data-menu-item-primary]",
-          rows: [
-            { label: "Exists", value: state.parts.itemExists, category: "presence" },
-            { label: "Ref", value: state.parts.itemRef, category: "identity" },
-            { label: "role", value: state.parts.itemRole, category: "aria" },
-            { label: "data-slot", value: state.parts.itemSlot, category: "data" },
-            { label: "data-value", value: state.parts.itemValue, category: "data" },
-            { label: "data-prop-check", value: state.parts.itemDataPropCheck, category: "data" },
-            { label: "Highlighted", value: state.parts.itemHighlighted, category: "state" },
-          ],
-        },
-        {
-          title: "Disabled item",
-          selector: "[data-menu-item-disabled]",
-          rows: [
-            { label: "Exists", value: state.parts.disabledItemExists, category: "presence" },
-            { label: "Ref", value: state.parts.disabledItemRef, category: "identity" },
-            { label: "Disabled", value: state.parts.disabledItemDisabled, category: "state" },
-          ],
-        },
-      ],
-    },
-    {
-      title: "Checkbox Item",
-      selector: "[data-menu-checkbox]",
-      inactive: state.parts.checkboxExists !== "yes",
-      summary: state.parts.checkboxExists === "yes" ? state.parts.checkboxChecked : "not rendered",
+    }),
+    partSection({
+      title: "Item: New project",
+      selector: "[data-menu-item-primary]",
+      summary: state.parts.itemExists === "yes" ? "new" : "not rendered",
+      inactive: state.parts.itemExists !== "yes",
       rows: [
-        { label: "Exists", value: state.parts.checkboxExists, category: "presence" },
+        { label: "Ref", value: state.parts.itemRef, category: "identity" },
+        { label: "Composition", value: state.itemComposition, category: "composition" },
+        { label: "role", value: state.parts.itemRole, category: "aria" },
+        { label: "data-slot", value: state.parts.itemSlot, category: "data" },
+        { label: "data-value", value: state.parts.itemValue, category: "data" },
+        { label: "data-prop-check", value: state.parts.itemDataPropCheck, category: "data" },
+        { label: "Highlighted", value: state.parts.itemHighlighted, category: "state" },
+      ],
+    }),
+    partSection({
+      title: "Item: Disabled action",
+      selector: "[data-menu-item-disabled]",
+      summary: state.showDisabledItem ? "disabled" : "not rendered",
+      inactive: state.parts.disabledItemExists !== "yes",
+      rows: [
+        { label: "Ref", value: state.parts.disabledItemRef, category: "identity" },
+        { label: "Disabled", value: state.parts.disabledItemDisabled, category: "state" },
+      ],
+    }),
+    partSection({
+      title: "Separator: Actions",
+      selector: "[data-menu-separator]",
+      summary: state.parts.separatorExists === "yes" ? state.parts.separatorRole : "not rendered",
+      inactive: state.parts.separatorExists !== "yes",
+      rows: [
+        { label: "Ref", value: state.parts.separatorRef, category: "identity" },
+        { label: "role", value: state.parts.separatorRole, category: "aria" },
+        { label: "aria-orientation", value: state.parts.separatorOrientation, category: "aria" },
+      ],
+    }),
+    partSection({
+      title: "Checkbox Item: Show grid",
+      selector: "[data-menu-checkbox]",
+      summary: state.parts.checkboxExists === "yes" ? state.parts.checkboxChecked : "not rendered",
+      inactive: state.parts.checkboxExists !== "yes",
+      rows: [
         { label: "Ref", value: state.parts.checkboxRef, category: "identity" },
         { label: "aria-checked", value: state.parts.checkboxChecked, category: "aria" },
         { label: "data-checked", value: state.parts.checkboxDataChecked, category: "data" },
         { label: "Disabled", value: state.parts.checkboxDisabled, category: "state" },
       ],
-    },
-    {
-      title: "Radio Group",
+    }),
+    partSection({
+      title: "Separator: Selection",
+      selector: "[data-menu-selection-separator]",
+      summary: selectorExists("[data-menu-selection-separator]") ? "separator" : "not rendered",
+    }),
+    partSection({
+      title: "Radio Group: Density",
+      selector: "[data-menu-radio-group]",
+      summary: state.parts.radioGroupExists === "yes" ? state.parts.radioGroupValue : "not rendered",
       inactive: state.parts.radioGroupExists !== "yes",
-      summary: state.parts.radioGroupExists === "yes" ? state.parts.radioGroupRole : "not rendered",
-      groups: [
-        {
-          title: "Group 1",
-          selector: "[data-menu-radio-group]",
-          rows: [
-            { label: "Exists", value: state.parts.radioGroupExists, category: "presence" },
-            { label: "Ref", value: state.parts.radioGroupRef, category: "identity" },
-            { label: "Value", value: state.parts.radioGroupValue, category: "state" },
-            { label: "role", value: state.parts.radioGroupRole, category: "aria" },
-            { label: "data-prop-check", value: state.parts.radioGroupDataPropCheck, category: "data" },
-          ],
-        },
-        {
-          title: "Group 2",
-          selector: "[data-menu-radio-group-secondary]",
-          rows: [
-            { label: "Exists", value: state.parts.radioGroupSecondaryExists, category: "presence" },
-            { label: "Ref", value: state.parts.radioGroupSecondaryRef, category: "identity" },
-            { label: "Value", value: state.parts.radioGroupSecondaryValue, category: "state" },
-            { label: "role", value: state.parts.radioGroupSecondaryRole, category: "aria" },
-          ],
-        },
-      ],
-    },
-    {
-      title: "Radio Item",
-      inactive: state.parts.radioItemExists !== "yes",
-      summary: state.parts.radioItemExists === "yes" ? state.parts.radioItemChecked : "not rendered",
-      groups: [
-        {
-          title: "Group 1 item",
-          selector: "[data-menu-radio-item][aria-checked='true']",
-          rows: [
-            { label: "Exists", value: state.parts.radioItemExists, category: "presence" },
-            { label: "Ref", value: state.parts.radioItemRef, category: "identity" },
-            { label: "data-value", value: state.parts.radioItemValue, category: "data" },
-            { label: "aria-checked", value: state.parts.radioItemChecked, category: "aria" },
-            { label: "data-checked", value: state.parts.radioItemDataChecked, category: "data" },
-            { label: "Compact disabled", value: state.parts.radioItemDisabledSkipped, category: "state" },
-          ],
-        },
-        {
-          title: "Group 2 item",
-          selector: "[data-menu-radio-item-secondary][aria-checked='true']",
-          rows: [
-            { label: "Exists", value: state.parts.radioItemSecondaryExists, category: "presence" },
-            { label: "Ref", value: state.parts.radioItemSecondaryRef, category: "identity" },
-            { label: "data-value", value: state.parts.radioItemSecondaryValue, category: "data" },
-            { label: "aria-checked", value: state.parts.radioItemSecondaryChecked, category: "aria" },
-            { label: "data-checked", value: state.parts.radioItemSecondaryDataChecked, category: "data" },
-          ],
-        },
-      ],
-    },
-    {
-      title: "Separator",
-      selector: "[data-menu-separator]",
-      inactive: state.parts.separatorExists !== "yes",
-      summary: state.parts.separatorExists === "yes" ? state.parts.separatorRole : "not rendered",
       rows: [
-        { label: "Exists", value: state.parts.separatorExists, category: "presence" },
-        { label: "Ref", value: state.parts.separatorRef, category: "identity" },
-        { label: "role", value: state.parts.separatorRole, category: "aria" },
-        { label: "aria-orientation", value: state.parts.separatorOrientation, category: "aria" },
+        { label: "Ref", value: state.parts.radioGroupRef, category: "identity" },
+        { label: "Value", value: state.parts.radioGroupValue, category: "state" },
+        { label: "role", value: state.parts.radioGroupRole, category: "aria" },
+        { label: "data-prop-check", value: state.parts.radioGroupDataPropCheck, category: "data" },
       ],
-    },
+    }),
+    partSection({
+      title: "Radio Item: Compact",
+      selector: "[data-menu-radio-item][data-value='compact']",
+      summary: selectorAttr("[data-menu-radio-item][data-value='compact']", "aria-checked"),
+      rows: [
+        ...itemRows("[data-menu-radio-item][data-value='compact']"),
+        { label: "Compact disabled", value: state.parts.radioItemDisabledSkipped, category: "state" },
+      ],
+    }),
+    partSection({
+      title: "Radio Item: Comfortable",
+      selector: "[data-menu-radio-item][data-value='comfortable']",
+      summary: selectorAttr("[data-menu-radio-item][data-value='comfortable']", "aria-checked"),
+      rows: itemRows("[data-menu-radio-item][data-value='comfortable']"),
+    }),
+    partSection({
+      title: "Separator: Density",
+      selector: "[data-menu-radio-separator]",
+      summary: selectorExists("[data-menu-radio-separator]") ? "separator" : "not rendered",
+    }),
+    partSection({
+      title: "Radio Group: Dense density",
+      selector: "[data-menu-radio-group-secondary]",
+      summary: state.parts.radioGroupSecondaryExists === "yes" ? state.parts.radioGroupSecondaryValue : "not rendered",
+      inactive: state.parts.radioGroupSecondaryExists !== "yes",
+      rows: [
+        { label: "Ref", value: state.parts.radioGroupSecondaryRef, category: "identity" },
+        { label: "Value", value: state.parts.radioGroupSecondaryValue, category: "state" },
+        { label: "role", value: state.parts.radioGroupSecondaryRole, category: "aria" },
+      ],
+    }),
+    partSection({
+      title: "Radio Item: Dense compact",
+      selector: "[data-menu-radio-item-secondary][data-value='compact']",
+      summary: selectorAttr("[data-menu-radio-item-secondary][data-value='compact']", "aria-checked"),
+      rows: itemRows("[data-menu-radio-item-secondary][data-value='compact']"),
+    }),
+    partSection({
+      title: "Radio Item: Dense comfortable",
+      selector: "[data-menu-radio-item-secondary][data-value='comfortable']",
+      summary: selectorAttr("[data-menu-radio-item-secondary][data-value='comfortable']", "aria-checked"),
+      rows: itemRows("[data-menu-radio-item-secondary][data-value='comfortable']"),
+    }),
+    partSection({
+      title: "Separator: Submenu",
+      selector: "[data-menu-submenu-separator]",
+      summary: state.showSubmenu ? "separator" : "not rendered",
+      inactive: !state.showSubmenu,
+    }),
     {
-      title: "Sub",
+      title: "Sub: More actions",
       inactive: state.parts.subTriggerExists !== "yes",
       summary: state.parts.subTriggerExists === "yes" ? state.parts.subTriggerState : "not rendered",
       rows: [
@@ -687,109 +749,150 @@ export function ContextMenuScenarioAnatomy({
         { label: "Open", value: state.subOpen ? "yes" : "no", category: "state" },
       ],
     },
-    {
-      title: "Sub Trigger",
-      inactive: state.parts.subTriggerExists !== "yes",
+    partSection({
+      title: "Sub Trigger: More actions",
+      selector: "[data-menu-sub-trigger]",
       summary: state.parts.subTriggerExists === "yes" ? state.parts.subTriggerState : "not rendered",
-      groups: [
-        {
-          title: "More actions trigger",
-          selector: "[data-menu-sub-trigger]",
-          rows: [
-            { label: "Exists", value: state.parts.subTriggerExists, category: "presence" },
-            { label: "Ref", value: state.parts.subTriggerRef, category: "identity" },
-            { label: "aria-expanded", value: state.parts.subTriggerExpanded, category: "aria" },
-            { label: "data-state", value: state.parts.subTriggerState, category: "data" },
-          ],
-        },
-        {
-          title: "Share actions trigger",
-          selector: "[data-menu-sub-trigger-secondary]",
-          rows: [
-            { label: "Exists", value: state.parts.subTriggerSecondaryExists, category: "presence" },
-            { label: "Ref", value: state.parts.subTriggerSecondaryRef, category: "identity" },
-            { label: "aria-expanded", value: state.parts.subTriggerSecondaryExpanded, category: "aria" },
-            { label: "data-state", value: state.parts.subTriggerSecondaryState, category: "data" },
-            { label: "Disabled", value: state.parts.subTriggerSecondaryDisabled, category: "state" },
-          ],
-        },
+      inactive: state.parts.subTriggerExists !== "yes",
+      rows: [
+        { label: "Ref", value: state.parts.subTriggerRef, category: "identity" },
+        { label: "aria-expanded", value: state.parts.subTriggerExpanded, category: "aria" },
+        { label: "data-state", value: state.parts.subTriggerState, category: "data" },
       ],
-    },
-    {
-      title: "Sub Content",
-      inactive: state.parts.subContentExists !== "yes",
+    }),
+    partSection({
+      title: "Sub Content: More actions",
+      selector: "[data-menu-sub-content]",
       summary: state.parts.subContentExists === "yes" ? state.parts.subContentState : "not rendered",
-      groups: [
-        {
-          title: "More actions content",
-          selector: "[data-menu-sub-content]",
-          rows: [
-            { label: "Exists", value: state.parts.subContentExists, category: "presence" },
-            { label: "Ref", value: state.parts.subContentRef, category: "identity" },
-            { label: "Parent", value: state.parts.subContentParent, category: "behavior" },
-            { label: "role", value: state.parts.subContentRole, category: "aria" },
-            { label: "aria-label", value: state.parts.subContentLabel, category: "aria" },
-            { label: "aria-labelledby", value: state.parts.subContentLabelledBy, category: "aria" },
-            { label: "data-state", value: state.parts.subContentState, category: "data" },
-            { label: "data-side", value: state.parts.subContentSide, category: "data" },
-            { label: "data-positioned", value: state.parts.subContentPositioned, category: "data" },
-            { label: "Loop", value: state.subContentLoopOff ? "off" : "on", category: "state" },
-            { label: "Item exists", value: state.parts.subItemExists, category: "presence" },
-            { label: "Item ref", value: state.parts.subItemRef, category: "identity" },
-          ],
-        },
-        {
-          title: "Share actions content",
-          selector: "[data-menu-sub-content-secondary]",
-          rows: [
-            { label: "Exists", value: state.parts.subContentSecondaryExists, category: "presence" },
-            { label: "Ref", value: state.parts.subContentSecondaryRef, category: "identity" },
-            { label: "Parent", value: state.parts.subContentSecondaryParent, category: "behavior" },
-            { label: "role", value: state.parts.subContentSecondaryRole, category: "aria" },
-            { label: "data-state", value: state.parts.subContentSecondaryState, category: "data" },
-            { label: "Item exists", value: state.parts.subItemSecondaryExists, category: "presence" },
-            { label: "Item ref", value: state.parts.subItemSecondaryRef, category: "identity" },
-          ],
-        },
+      inactive: state.parts.subContentExists !== "yes",
+      rows: [
+        { label: "Ref", value: state.parts.subContentRef, category: "identity" },
+        { label: "Parent", value: state.parts.subContentParent, category: "behavior" },
+        { label: "role", value: state.parts.subContentRole, category: "aria" },
+        { label: "aria-label", value: state.parts.subContentLabel, category: "aria" },
+        { label: "aria-labelledby", value: state.parts.subContentLabelledBy, category: "aria" },
+        { label: "data-state", value: state.parts.subContentState, category: "data" },
+        { label: "data-side", value: state.parts.subContentSide, category: "data" },
+        { label: "data-positioned", value: state.parts.subContentPositioned, category: "data" },
+        { label: "Loop", value: state.subContentLoopOff ? "off" : "on", category: "state" },
       ],
-    },
+    }),
+    partSection({
+      title: "Item: Archive",
+      selector: "[data-menu-sub-item]",
+      summary: state.parts.subItemExists === "yes" ? "archive" : "not rendered",
+      inactive: state.parts.subItemExists !== "yes",
+      rows: [
+        { label: "Ref", value: state.parts.subItemRef, category: "identity" },
+        ...itemRows("[data-menu-sub-item]"),
+      ],
+    }),
+    partSection({
+      title: "Item: Duplicate",
+      selector: "[data-menu-sub-item-extra]",
+      summary: selectorExists("[data-menu-sub-item-extra]") ? "duplicate" : "not rendered",
+      rows: itemRows("[data-menu-sub-item-extra]"),
+    }),
     {
-      title: "Nested Sub Trigger",
-      selector: "[data-menu-nested-sub-trigger]",
+      title: "Sub: Advanced",
       inactive: state.parts.nestedSubTriggerExists !== "yes",
       summary: state.parts.nestedSubTriggerExists === "yes" ? state.parts.nestedSubTriggerState : "not rendered",
       rows: [
-        { label: "Exists", value: state.parts.nestedSubTriggerExists, category: "presence" },
+        { label: "Controlled", value: "no", category: "state" },
+        { label: "Open", value: state.parts.nestedSubContentExists, category: "state" },
+      ],
+    },
+    partSection({
+      title: "Sub Trigger: Advanced",
+      selector: "[data-menu-nested-sub-trigger]",
+      summary: state.parts.nestedSubTriggerExists === "yes" ? state.parts.nestedSubTriggerState : "not rendered",
+      inactive: state.parts.nestedSubTriggerExists !== "yes",
+      rows: [
         { label: "Ref", value: state.parts.nestedSubTriggerRef, category: "identity" },
         { label: "aria-expanded", value: state.parts.nestedSubTriggerExpanded, category: "aria" },
         { label: "data-state", value: state.parts.nestedSubTriggerState, category: "data" },
       ],
-    },
-    {
-      title: "Nested Sub Content",
+    }),
+    partSection({
+      title: "Sub Content: Advanced",
       selector: "[data-menu-nested-sub-content]",
-      inactive: state.parts.nestedSubContentExists !== "yes",
       summary: state.parts.nestedSubContentExists === "yes" ? state.parts.nestedSubContentState : "not rendered",
+      inactive: state.parts.nestedSubContentExists !== "yes",
       rows: [
-        { label: "Exists", value: state.parts.nestedSubContentExists, category: "presence" },
         { label: "Ref", value: state.parts.nestedSubContentRef, category: "identity" },
         { label: "Parent", value: state.parts.nestedSubContentParent, category: "behavior" },
         { label: "role", value: state.parts.nestedSubContentRole, category: "aria" },
         { label: "data-state", value: state.parts.nestedSubContentState, category: "data" },
-        { label: "Nested item exists", value: state.parts.nestedSubItemExists, category: "presence" },
-        { label: "Nested item ref", value: state.parts.nestedSubItemRef, category: "identity" },
+      ],
+    }),
+    partSection({
+      title: "Item: Export",
+      selector: "[data-menu-nested-sub-item]",
+      summary: state.parts.nestedSubItemExists === "yes" ? "export" : "not rendered",
+      inactive: state.parts.nestedSubItemExists !== "yes",
+      rows: [
+        { label: "Ref", value: state.parts.nestedSubItemRef, category: "identity" },
+        ...itemRows("[data-menu-nested-sub-item]"),
+      ],
+    }),
+    {
+      title: "Sub: Share actions",
+      inactive: state.parts.subTriggerSecondaryExists !== "yes",
+      summary: state.parts.subTriggerSecondaryExists === "yes" ? state.parts.subTriggerSecondaryState : "not rendered",
+      rows: [
+        { label: "Controlled", value: "no", category: "state" },
+        { label: "Open", value: state.parts.subContentSecondaryExists, category: "state" },
       ],
     },
+    partSection({
+      title: "Sub Trigger: Share actions",
+      selector: "[data-menu-sub-trigger-secondary]",
+      summary: state.parts.subTriggerSecondaryExists === "yes" ? state.parts.subTriggerSecondaryState : "not rendered",
+      inactive: state.parts.subTriggerSecondaryExists !== "yes",
+      rows: [
+        { label: "Ref", value: state.parts.subTriggerSecondaryRef, category: "identity" },
+        { label: "aria-expanded", value: state.parts.subTriggerSecondaryExpanded, category: "aria" },
+        { label: "data-state", value: state.parts.subTriggerSecondaryState, category: "data" },
+        { label: "Disabled", value: state.parts.subTriggerSecondaryDisabled, category: "state" },
+      ],
+    }),
+    partSection({
+      title: "Sub Content: Share actions",
+      selector: "[data-menu-sub-content-secondary]",
+      summary: state.parts.subContentSecondaryExists === "yes" ? state.parts.subContentSecondaryState : "not rendered",
+      inactive: state.parts.subContentSecondaryExists !== "yes",
+      rows: [
+        { label: "Ref", value: state.parts.subContentSecondaryRef, category: "identity" },
+        { label: "Parent", value: state.parts.subContentSecondaryParent, category: "behavior" },
+        { label: "role", value: state.parts.subContentSecondaryRole, category: "aria" },
+        { label: "data-state", value: state.parts.subContentSecondaryState, category: "data" },
+      ],
+    }),
+    partSection({
+      title: "Item: Copy link",
+      selector: "[data-menu-sub-item-secondary]",
+      summary: state.parts.subItemSecondaryExists === "yes" ? "copy-link" : "not rendered",
+      inactive: state.parts.subItemSecondaryExists !== "yes",
+      rows: [
+        { label: "Ref", value: state.parts.subItemSecondaryRef, category: "identity" },
+        ...itemRows("[data-menu-sub-item-secondary]"),
+      ],
+    }),
   ];
 
   return (
     <AnatomyPanel
-      footer="13 groups"
+      footer={`${sections.length} parts`}
       onOpenGroupsChange={onOpenGroupsChange}
       openGroups={openGroups}
       sections={sections}
     />
   );
+}
+
+function queryPlaygroundElement(selector: string) {
+  if (typeof document === "undefined") return null;
+  return document.querySelector<HTMLElement>(selector);
 }
 
 export function ContextMenuScenarioLog({ state }: { state: ContextMenuScenarioState }) {
@@ -809,7 +912,7 @@ type ContextMenuTriggerProps = {
   onContextMenu: (event: { preventDefault: () => void }) => void;
   onKeyDown: (event: { key: string; shiftKey?: boolean; preventDefault: () => void }) => void;
   "data-context-menu-trigger": string;
-  "data-prop-check": string;
+  "data-prop-check"?: string;
   "data-slot"?: string;
 };
 
@@ -881,7 +984,8 @@ type ContextMenuActionItemProps = {
   onPointerEnter: () => void;
   onPointerLeave: () => void;
   "data-menu-item-primary": string;
-  "data-prop-check": string;
+  "data-prop-check"?: string;
+  "data-slot"?: string;
 };
 
 function ContextMenuActionItem({

@@ -30,6 +30,23 @@ test("ContextMenu primitives render right-click trigger state", () => {
   assert.match(html, />Canvas<\/span>/);
 });
 
+test("ContextMenuTrigger supports custom data-slot", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      ContextMenuRoot,
+      { defaultOpen: true },
+      React.createElement(
+        ContextMenuTrigger,
+        { "data-slot": "context-menu-trigger-custom" },
+        "Canvas",
+      ),
+    ),
+  );
+
+  assert.match(html, /data-slot="context-menu-trigger-custom"/);
+  assert.doesNotMatch(html, /data-slot="context-menu-trigger"/);
+});
+
 test("ContextMenu wires anchor point into menu content", async () => {
   const rootSource = await readFile(
     new URL("src/primitives/context-menu/ContextMenuRoot.tsx", packageRoot),
@@ -52,6 +69,8 @@ test("ContextMenu wires anchor point into menu content", async () => {
   assert.match(triggerSource, /ctx\.onInitialHighlight\(null\)/);
   assert.match(triggerSource, /ctx\.onInitialHighlight\("first"\)/);
   assert.match(triggerSource, /ctx\.onHighlight\(null\)/);
+  assert.match(triggerSource, /"data-slot": dataSlot = "context-menu-trigger"/);
+  assert.match(triggerSource, /"data-slot": dataSlot/);
   assert.match(triggerSource, /"data-disabled": disabled \? "" : undefined/);
   assert.match(triggerSource, /if \(asChild\) \{\s*return cloneAndMerge\(children, triggerProps\);/s);
   assert.match(triggerSource, /return renderElement\(render, "span", \{ \.\.\.triggerProps, children \}\)/);

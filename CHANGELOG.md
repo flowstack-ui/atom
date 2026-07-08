@@ -14,6 +14,8 @@
   trigger ref commits.
 - Added `data-variant="plain|rich"` to Tooltip content and documented the
   `variant` Root prop.
+- Fixed `ContextMenu.Trigger` so custom `data-slot` values override the
+  default `context-menu-trigger` slot.
 - Fixed Rating fractional pointer selection and RTL direction behavior for
   horizontal pointer and keyboard interactions.
 - Fixed Combobox option selection so pointer clicks close consistently,

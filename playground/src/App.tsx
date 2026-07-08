@@ -2469,109 +2469,167 @@ ${item}${state.showDisabledItem ? `
 }
 
 function getContextMenuSource(state: ReturnType<typeof useContextMenuScenario>["state"]) {
-  const rootMode = state.controlled
-    ? `open={open}`
-    : `defaultOpen={${state.defaultOpen}}`;
+  const triggerProps = getContextMenuSourcePartProps(state, "trigger", state.customTriggerSlot, "context-menu-trigger-custom");
+  const contentProps = getContextMenuSourcePartProps(state, "content", state.customContentSlot, "context-menu-content-custom");
+  const groupProps = getContextMenuSourcePartProps(state, "group", state.customGroupSlot, "context-menu-group-custom");
+  const itemProps = getContextMenuSourcePartProps(state, "item", state.customItemSlot, "context-menu-item-custom");
+  const checkboxItemProps = getContextMenuSourcePartProps(state, "checkbox-item", state.customCheckboxItemSlot, "context-menu-checkbox-item-custom");
+  const radioGroupProps = getContextMenuSourcePartProps(state, "radio-group", state.customRadioGroupSlot, "context-menu-radio-group-custom");
+  const radioGroupSecondaryProps = getContextMenuSourcePartProps(state, "radio-group-secondary", state.customRadioGroupSlot, "context-menu-radio-group-custom");
+  const radioItemProps = getContextMenuSourcePartProps(state, "radio-item", state.customRadioItemSlot, "context-menu-radio-item-custom");
+  const radioItemSecondaryProps = getContextMenuSourcePartProps(state, "radio-item-secondary", state.customRadioItemSlot, "context-menu-radio-item-custom");
+  const separatorProps = getContextMenuSourcePartProps(state, "separator", state.customSeparatorSlot, "context-menu-separator-custom");
+  const subTriggerProps = getContextMenuSourcePartProps(state, "sub-trigger", state.customSubTriggerSlot, "context-menu-sub-trigger-custom");
+  const subContentProps = getContextMenuSourcePartProps(state, "sub-content", state.customSubContentSlot, "context-menu-sub-content-custom");
+  const subItemProps = getContextMenuSourcePartProps(state, "sub-item", state.customSubItemSlot, "context-menu-sub-item-custom");
+  const subItemExtraProps = getContextMenuSourcePartProps(state, "sub-item-extra", state.customSubItemSlot, "context-menu-sub-item-custom");
+  const subTriggerSecondaryProps = getContextMenuSourcePartProps(state, "sub-trigger-secondary", state.customSubTriggerSlot, "context-menu-sub-trigger-custom");
+  const subContentSecondaryProps = getContextMenuSourcePartProps(state, "sub-content-secondary", state.customSubContentSlot, "context-menu-sub-content-custom");
+  const subItemSecondaryProps = getContextMenuSourcePartProps(state, "sub-item-secondary", state.customSubItemSlot, "context-menu-sub-item-custom");
+  const nestedSubTriggerProps = getContextMenuSourcePartProps(state, "nested-sub-trigger", state.customSubTriggerSlot, "context-menu-sub-trigger-custom");
+  const nestedSubContentProps = getContextMenuSourcePartProps(state, "nested-sub-content", state.customSubContentSlot, "context-menu-sub-content-custom");
+  const nestedSubItemProps = getContextMenuSourcePartProps(state, "nested-sub-item", state.customSubItemSlot, "context-menu-sub-item-custom");
+  const rootProps = [
+    state.controlled ? `open={open}` : "",
+    state.controlled ? `onOpenChange={setOpen}` : "",
+    !state.controlled && state.defaultOpen ? `defaultOpen` : "",
+    !state.modal ? `modal={false}` : "",
+    !state.closeOnSelect ? `closeOnSelect={false}` : "",
+    !state.closeOnEscape ? `closeOnEscape={false}` : "",
+    !state.loop ? `loop={false}` : "",
+  ].filter(Boolean);
+  const contentSourceProps = [
+    state.contentAriaLabel ? `ariaLabel="Project actions"` : "",
+    state.side !== "bottom" ? `side="${state.side}"` : "",
+    state.align !== "start" ? `align="${state.align}"` : "",
+    state.sideOffset !== 4 ? `sideOffset={${state.sideOffset}}` : "",
+    state.contentLoopOff ? `loop={false}` : "",
+    contentProps.trim(),
+  ].filter(Boolean);
+  const subContentSourceProps = [
+    state.subContentAriaLabel ? `ariaLabel="More actions"` : "",
+    state.subSideOffset !== 4 ? `sideOffset={${state.subSideOffset}}` : "",
+    state.subContentLoopOff ? `loop={false}` : "",
+    subContentProps.trim(),
+  ].filter(Boolean);
+  const shareSubContentSourceProps = [
+    state.subSideOffset !== 4 ? `sideOffset={${state.subSideOffset}}` : "",
+    subContentSecondaryProps.trim(),
+  ].filter(Boolean);
+  const checkboxSourceProps = [
+    `value="grid"`,
+    `onCheckedChange={setCheckboxChecked}`,
+    state.checkboxChecked ? "checked" : "",
+    state.checkboxDisabled ? "disabled" : "",
+    state.closeCheckboxOnSelect ? "closeOnSelect" : "",
+    checkboxItemProps.trim(),
+  ].filter(Boolean);
+  const triggerStateProps = [
+    state.triggerDisabled ? "disabled" : "",
+    triggerProps.trim(),
+  ].filter(Boolean);
   const trigger = state.triggerComposition === "default"
-    ? `<ContextMenu.Trigger disabled={${state.triggerDisabled}}>
+    ? `<ContextMenu.Trigger${sourceInlineProps(triggerStateProps)}>
     <div tabIndex={0}>
       Project canvas
     </div>
   </ContextMenu.Trigger>`
     : state.triggerComposition === "asChild"
-      ? `<ContextMenu.Trigger asChild disabled={${state.triggerDisabled}}>
+      ? `<ContextMenu.Trigger${sourceInlineProps(["asChild", ...triggerStateProps])}>
     <div tabIndex={0}>Project canvas</div>
   </ContextMenu.Trigger>`
-      : `<ContextMenu.Trigger render="section" tabIndex={0} disabled={${state.triggerDisabled}}>
+      : `<ContextMenu.Trigger${sourceInlineProps([`render="section"`, `tabIndex={0}`, ...triggerStateProps])}>
     Project canvas
   </ContextMenu.Trigger>`;
   const submenu = state.showSubmenu
     ? `
-    <ContextMenu.Sub${state.controlledSubmenu ? ` open={subOpen} onOpenChange={setSubOpen}` : ""}>
-      <ContextMenu.SubTrigger value="more">
+    <ContextMenu.Sub${sourceInlineProps([
+      state.controlledSubmenu ? `open={subOpen}` : "",
+      state.controlledSubmenu ? `onOpenChange={setSubOpen}` : "",
+      !state.controlledSubmenu && state.defaultSubmenuOpen ? `defaultOpen` : "",
+    ].filter(Boolean))}>
+      <ContextMenu.SubTrigger value="more"${subTriggerProps}>
         <span>More actions</span>
         <span aria-hidden="true">›</span>
       </ContextMenu.SubTrigger>
-      <ContextMenu.SubContent${state.subContentAriaLabel ? ` ariaLabel="More actions"` : ""} sideOffset={${state.subSideOffset}}>
-        <ContextMenu.Item value="archive" onSelect={handleArchive}>
+      <ContextMenu.SubContent${sourceInlineProps(subContentSourceProps)}>
+        <ContextMenu.Item value="archive" onSelect={handleArchive}${subItemProps}>
           Archive
         </ContextMenu.Item>${state.showNestedSubmenu ? `
         <ContextMenu.Sub>
-          <ContextMenu.SubTrigger value="advanced">
+          <ContextMenu.SubTrigger value="advanced"${nestedSubTriggerProps}>
             <span>Advanced</span>
             <span aria-hidden="true">›</span>
           </ContextMenu.SubTrigger>
-          <ContextMenu.SubContent>
-            <ContextMenu.Item value="export" onSelect={handleExport}>
+          <ContextMenu.SubContent${nestedSubContentProps}>
+            <ContextMenu.Item value="export" onSelect={handleExport}${nestedSubItemProps}>
               Export
             </ContextMenu.Item>
           </ContextMenu.SubContent>
         </ContextMenu.Sub>` : ""}
+        <ContextMenu.Item value="duplicate" onSelect={handleDuplicate}${subItemExtraProps}>
+          Duplicate
+        </ContextMenu.Item>
       </ContextMenu.SubContent>
     </ContextMenu.Sub>
     <ContextMenu.Sub>
-      <ContextMenu.SubTrigger value="share" disabled={${state.disableSecondSubmenu}}>
+      <ContextMenu.SubTrigger value="share"${sourceInlineProps([
+        state.disableSecondSubmenu ? "disabled" : "",
+        subTriggerSecondaryProps.trim(),
+      ].filter(Boolean))}>
         <span>Share actions</span>
         <span aria-hidden="true">›</span>
       </ContextMenu.SubTrigger>
-      <ContextMenu.SubContent sideOffset={${state.subSideOffset}}>
-        <ContextMenu.Item value="copy-link" onSelect={handleCopyLink}>
+      <ContextMenu.SubContent${sourceInlineProps(shareSubContentSourceProps)}>
+        <ContextMenu.Item value="copy-link" onSelect={handleCopyLink}${subItemSecondaryProps}>
           Copy link
         </ContextMenu.Item>
       </ContextMenu.SubContent>
     </ContextMenu.Sub>` : "";
-  const item = getMenuItemSource("ContextMenu", state.itemComposition);
+  const item = getMenuItemSource("ContextMenu", state.itemComposition).replace(
+    '<ContextMenu.Item value="new" onSelect={handleNew}',
+    `<ContextMenu.Item value="new" onSelect={handleNew}${itemProps}`,
+  );
 
-  const source = `<ContextMenu.Root
-  ${rootMode}
-  modal={${state.modal}}
-  closeOnSelect={${state.closeOnSelect}}
-  closeOnEscape={${state.closeOnEscape}}
-  loop={${state.loop}}
-  onOpenChange={setOpen}
->
+  const source = `<ContextMenu.Root${sourceMultilineProps(rootProps)}
   ${trigger}
-  <ContextMenu.Content
-    ${state.contentAriaLabel ? `ariaLabel="Project actions"` : ""}
-    side="${state.side}"
-    align="${state.align}"
-    sideOffset={${state.sideOffset}}
-    loop={${state.contentLoopOff ? false : "undefined"}}
-  >
-    <ContextMenu.Group>
+  <ContextMenu.Content${sourceMultilineProps(contentSourceProps, 4)}
+    <ContextMenu.Group${groupProps}>
 ${item}${state.showDisabledItem ? `
       <ContextMenu.Item value="disabled" disabled>
         Disabled action
       </ContextMenu.Item>` : ""}
     </ContextMenu.Group>
-    <ContextMenu.Separator />
-    <ContextMenu.CheckboxItem
-      value="grid"
-      checked={${state.checkboxChecked}}
-      closeOnSelect={${state.closeCheckboxOnSelect}}
-      onCheckedChange={setCheckboxChecked}
-    >
+    <ContextMenu.Separator${separatorProps} />
+    <ContextMenu.CheckboxItem${sourceMultilineProps(checkboxSourceProps, 6)}
       <span>Show grid</span>
       <span aria-hidden="true" />
     </ContextMenu.CheckboxItem>
-    <ContextMenu.Separator />
-    <ContextMenu.RadioGroup value="${state.radioValue}" onValueChange={setRadioValue}>
-      <ContextMenu.RadioItem value="compact" closeOnSelect={${state.closeRadioOnSelect}}>
+    <ContextMenu.Separator${separatorProps} />
+    <ContextMenu.RadioGroup value="${state.radioValue}" onValueChange={setRadioValue}${radioGroupProps}>
+      <ContextMenu.RadioItem value="compact"${sourceInlineProps([
+        state.radioItemDisabled ? "disabled" : "",
+        state.closeRadioOnSelect ? "closeOnSelect" : "",
+        radioItemProps.trim(),
+      ].filter(Boolean))}>
         <span>Compact</span>
         <span aria-hidden="true" />
       </ContextMenu.RadioItem>
-      <ContextMenu.RadioItem value="comfortable" closeOnSelect={${state.closeRadioOnSelect}}>
+      <ContextMenu.RadioItem value="comfortable"${sourceInlineProps(state.closeRadioOnSelect ? ["closeOnSelect"] : [])}>
         <span>Comfortable</span>
         <span aria-hidden="true" />
       </ContextMenu.RadioItem>
     </ContextMenu.RadioGroup>
-    <ContextMenu.Separator />
-    <ContextMenu.RadioGroup value="${state.radioValueSecondary}" onValueChange={setDenseValue}>
-      <ContextMenu.RadioItem value="compact" closeOnSelect={${state.closeRadioOnSelect}}>
+    <ContextMenu.Separator${separatorProps} />
+    <ContextMenu.RadioGroup value="${state.radioValueSecondary}" onValueChange={setDenseValue}${radioGroupSecondaryProps}>
+      <ContextMenu.RadioItem value="compact"${sourceInlineProps([
+        state.closeRadioOnSelect ? "closeOnSelect" : "",
+        radioItemSecondaryProps.trim(),
+      ].filter(Boolean))}>
         <span>Dense compact</span>
         <span aria-hidden="true" />
       </ContextMenu.RadioItem>
-      <ContextMenu.RadioItem value="comfortable" closeOnSelect={${state.closeRadioOnSelect}}>
+      <ContextMenu.RadioItem value="comfortable"${sourceInlineProps(state.closeRadioOnSelect ? ["closeOnSelect"] : [])}>
         <span>Dense comfortable</span>
         <span aria-hidden="true" />
       </ContextMenu.RadioItem>
@@ -2580,6 +2638,33 @@ ${item}${state.showDisabledItem ? `
 </ContextMenu.Root>`;
 
   return wrapDirectionSource(source, state.dir);
+}
+
+function getContextMenuSourcePartProps(
+  state: ReturnType<typeof useContextMenuScenario>["state"],
+  part: string,
+  customSlot: boolean,
+  customSlotValue: string,
+) {
+  const props = [
+    state.propCheck ? `data-prop-check="${part}"` : "",
+    customSlot ? `data-slot="${customSlotValue}"` : "",
+  ].filter(Boolean);
+
+  return props.length > 0 ? ` ${props.join(" ")}` : "";
+}
+
+function sourceInlineProps(props: string[]) {
+  const cleanProps = props.filter(Boolean);
+  return cleanProps.length > 0 ? ` ${cleanProps.join(" ")}` : "";
+}
+
+function sourceMultilineProps(props: string[], indent = 2) {
+  const cleanProps = props.filter(Boolean);
+  if (cleanProps.length === 0) return ">";
+
+  const prefix = " ".repeat(indent);
+  return `\n${cleanProps.map((prop) => `${prefix}${prop}`).join("\n")}\n${" ".repeat(Math.max(0, indent - 2))}>`;
 }
 
 function wrapDirectionSource(source: string, dir: "ltr" | "rtl") {
