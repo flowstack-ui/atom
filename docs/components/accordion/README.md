@@ -47,6 +47,7 @@ Contains all accordion items.
 | `collapsible` | `boolean` | `true` |
 | `disabled` | `boolean` | `false` |
 | `orientation` | `"vertical" \| "horizontal"` | `"vertical"` |
+| `dir` | `"ltr" \| "rtl"` | `Direction.Provider` |
 
 | Data attribute | Values |
 | --- | --- |
@@ -158,8 +159,8 @@ Content panels render `role="region"` and `aria-labelledby`.
 | `Space` / `Enter` | Toggles the focused trigger. |
 | `ArrowDown` | Moves to the next trigger when vertical. |
 | `ArrowUp` | Moves to the previous trigger when vertical. |
-| `ArrowRight` | Moves to the next trigger when horizontal. |
-| `ArrowLeft` | Moves to the previous trigger when horizontal. |
+| `ArrowRight` | Moves to the next trigger when horizontal in LTR, or previous in RTL. |
+| `ArrowLeft` | Moves to the previous trigger when horizontal in LTR, or next in RTL. |
 | `Home` | Moves to the first enabled trigger. |
 | `End` | Moves to the last enabled trigger. |
 

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed Accordion horizontal arrow-key navigation so it mirrors ArrowLeft and
+  ArrowRight under `Direction.Provider dir="rtl"` or `Accordion.Root dir="rtl"`.
 - Fixed Popover positioning when `Anchor` uses its default `display: contents`
   wrapper by resolving the usable child element as the Floating UI reference
   and refreshing the reference after refs commit.

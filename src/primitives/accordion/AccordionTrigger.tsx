@@ -81,8 +81,12 @@ export const AccordionTrigger = forwardRef<HTMLButtonElement, AccordionTriggerPr
       }
 
       const isVertical = group.orientation === "vertical";
-      const nextKey = isVertical ? "ArrowDown" : "ArrowRight";
-      const previousKey = isVertical ? "ArrowUp" : "ArrowLeft";
+      const nextKey = isVertical
+        ? "ArrowDown"
+        : group.dir === "rtl" ? "ArrowLeft" : "ArrowRight";
+      const previousKey = isVertical
+        ? "ArrowUp"
+        : group.dir === "rtl" ? "ArrowRight" : "ArrowLeft";
 
       if (event.key === nextKey) {
         event.preventDefault();

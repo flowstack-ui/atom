@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
+import type { DirectionValue } from "../direction/index.js";
 
 export interface AccordionContextValue {
   /** Currently expanded item values. */
@@ -15,6 +16,8 @@ export interface AccordionContextValue {
   disabled: boolean;
   /** Orientation for keyboard navigation. */
   orientation: "vertical" | "horizontal";
+  /** Text direction for horizontal keyboard navigation. */
+  dir: DirectionValue;
   /** Register a trigger for keyboard navigation. */
   registerTrigger: (
     value: string,

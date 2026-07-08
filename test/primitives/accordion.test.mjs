@@ -13,6 +13,7 @@ import {
   AccordionItem,
   AccordionRoot,
   AccordionTrigger,
+  Direction,
 } from "../../dist/index.js";
 
 test("Accordion primitives render linked trigger and panel", () => {
@@ -140,6 +141,54 @@ test("AccordionContent keepMounted renders closed content as hidden", () => {
   assert.match(html, /hidden=""/);
 });
 
+test("AccordionRoot accepts local dir override", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      AccordionRoot,
+      { orientation: "horizontal", dir: "rtl" },
+      React.createElement(
+        AccordionItem,
+        { value: "shipping" },
+        React.createElement(
+          AccordionHeader,
+          null,
+          React.createElement(AccordionTrigger, null, "Shipping"),
+        ),
+        React.createElement(AccordionContent, null, "Shipping content"),
+      ),
+    ),
+  );
+
+  assert.match(html, /data-orientation="horizontal"/);
+  assert.match(html, /dir="rtl"/);
+});
+
+test("AccordionRoot consumes Direction.Provider", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Direction.Provider,
+      { dir: "rtl" },
+      React.createElement(
+        AccordionRoot,
+        { orientation: "horizontal" },
+        React.createElement(
+          AccordionItem,
+          { value: "shipping" },
+          React.createElement(
+            AccordionHeader,
+            null,
+            React.createElement(AccordionTrigger, null, "Shipping"),
+          ),
+          React.createElement(AccordionContent, null, "Shipping content"),
+        ),
+      ),
+    ),
+  );
+
+  assert.match(html, /data-orientation="horizontal"/);
+  assert.match(html, /dir="rtl"/);
+});
+
 test("AccordionRoot source uses Collection for trigger keyboard navigation", async () => {
   const rootSource = await readFile(
     new URL("src/primitives/accordion/AccordionRoot.tsx", packageRoot),
@@ -155,10 +204,14 @@ test("AccordionRoot source uses Collection for trigger keyboard navigation", asy
   );
 
   assert.match(rootSource, /useCollection<string, HTMLButtonElement>\(\)/);
+  assert.match(rootSource, /const contextDir = useDirection\(\)/);
+  assert.match(rootSource, /const dir = dirProp \?\? contextDir/);
   assert.match(rootSource, /registerCollectionTrigger\(itemValue, element, \{ disabled: triggerDisabled \}\)/);
   assert.match(rootSource, /getNextCollectionTrigger\(itemValue, direction\)\?\.value \?\? null/);
   assert.match(triggerSource, /group\.registerTrigger\(item\.value, element, item\.disabled\)/);
   assert.match(triggerSource, /group\.getNextTriggerValue\(item\.value, "next"\)/);
+  assert.match(triggerSource, /group\.dir === "rtl" \? "ArrowLeft" : "ArrowRight"/);
+  assert.match(triggerSource, /group\.dir === "rtl" \? "ArrowRight" : "ArrowLeft"/);
   assert.doesNotMatch(rootSource, /triggerRefs/);
   assert.doesNotMatch(rootSource, /itemValues/);
   assert.doesNotMatch(rootSource, /disabledItems/);

@@ -5,6 +5,7 @@ import { useCollection } from "../../collection.js";
 import { useControllableState } from "../../hooks/useControllableState.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
+import { useDirection, type DirectionValue } from "../direction/index.js";
 import {
   AccordionContextProvider,
   type AccordionContextValue,
@@ -19,6 +20,8 @@ interface AccordionRootCommonProps extends AccordionRootNativeProps {
   disabled?: boolean;
   /** Arrow-key navigation direction. */
   orientation?: "vertical" | "horizontal";
+  /** Text direction used for horizontal arrow-key navigation. Defaults to DirectionProvider. */
+  dir?: DirectionValue;
   /** Override the rendered element. */
   render?: RenderProp;
   /** Merge behavior props onto a single child element. */
@@ -67,6 +70,7 @@ export const AccordionRoot = forwardRef<HTMLDivElement, AccordionRootProps>(
       collapsible = true,
       disabled = false,
       orientation = "vertical",
+      dir: dirProp,
       render,
       asChild,
       children,
@@ -76,6 +80,8 @@ export const AccordionRoot = forwardRef<HTMLDivElement, AccordionRootProps>(
     },
     ref,
   ) {
+    const contextDir = useDirection();
+    const dir = dirProp ?? contextDir;
     const isMultiple = type === "multiple";
     const normalizedValue: string[] | undefined =
       value === undefined
@@ -186,6 +192,7 @@ export const AccordionRoot = forwardRef<HTMLDivElement, AccordionRootProps>(
       collapsible,
       disabled,
       orientation,
+      dir,
       registerTrigger,
       unregisterTrigger,
       getTriggerValues,
@@ -198,6 +205,7 @@ export const AccordionRoot = forwardRef<HTMLDivElement, AccordionRootProps>(
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref,
+      dir,
       "data-slot": dataSlot,
       "data-orientation": orientation,
       ...(disabled ? { "data-disabled": "" } : {}),
