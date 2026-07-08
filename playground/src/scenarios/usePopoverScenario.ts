@@ -8,6 +8,8 @@ import type { PopoverAlign, PopoverSide } from "@flowstack-ui/atom/popover";
 export type { PopoverAlign, PopoverSide };
 
 export type PopoverCompositionMode = "default" | "asChild" | "render";
+export type PopoverArrowSize = "default" | "wide";
+export type PopoverPortalMode = "body" | "container" | "disabled";
 export type PopoverTriggerMode = "click" | "hover";
 
 export type PopoverLogEntry = {
@@ -18,17 +20,22 @@ export type PopoverLogEntry = {
 
 export type PopoverScenarioState = {
   controlled: boolean;
+  defaultOpen: boolean;
   disabled: boolean;
   modal: boolean;
   closeOnInteractOutside: boolean;
   useAnchor: boolean;
   useAriaLabel: boolean;
+  nestedPopover: boolean;
   triggerMode: PopoverTriggerMode;
+  portalMode: PopoverPortalMode;
   side: PopoverSide;
   align: PopoverAlign;
   sideOffset: number;
   triggerComposition: PopoverCompositionMode;
   anchorComposition: PopoverCompositionMode;
+  arrowComposition: PopoverCompositionMode;
+  arrowSize: PopoverArrowSize;
   closeComposition: PopoverCompositionMode;
   blockTriggerEvent: boolean;
   blockCloseEvent: boolean;
@@ -44,17 +51,22 @@ export type PopoverScenarioState = {
 
 export type PopoverScenarioActions = {
   setControlled: (value: boolean) => void;
+  setDefaultOpen: (value: boolean) => void;
   setDisabled: (value: boolean) => void;
   setModal: (value: boolean) => void;
   setCloseOnInteractOutside: (value: boolean) => void;
   setUseAnchor: (value: boolean) => void;
   setUseAriaLabel: (value: boolean) => void;
+  setNestedPopover: (value: boolean) => void;
   setTriggerMode: (value: PopoverTriggerMode) => void;
+  setPortalMode: (value: PopoverPortalMode) => void;
   setSide: (value: PopoverSide) => void;
   setAlign: (value: PopoverAlign) => void;
   setSideOffset: (value: number) => void;
   setTriggerComposition: (value: PopoverCompositionMode) => void;
   setAnchorComposition: (value: PopoverCompositionMode) => void;
+  setArrowComposition: (value: PopoverCompositionMode) => void;
+  setArrowSize: (value: PopoverArrowSize) => void;
   setCloseComposition: (value: PopoverCompositionMode) => void;
   setBlockTriggerEvent: (value: boolean) => void;
   setBlockCloseEvent: (value: boolean) => void;
@@ -75,12 +87,15 @@ export type PopoverScenarioActions = {
 export function usePopoverScenario() {
   const nextLogId = useRef(1);
   const [controlled, setControlled] = useState(false);
+  const [defaultOpen, setDefaultOpenState] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const [modal, setModal] = useState(false);
   const [closeOnInteractOutside, setCloseOnInteractOutside] = useState(true);
   const [useAnchor, setUseAnchor] = useState(false);
   const [useAriaLabel, setUseAriaLabel] = useState(true);
+  const [nestedPopover, setNestedPopover] = useState(false);
   const [triggerMode, setTriggerMode] = useState<PopoverTriggerMode>("click");
+  const [portalMode, setPortalMode] = useState<PopoverPortalMode>("body");
   const [side, setSide] = useState<PopoverSide>("bottom");
   const [align, setAlign] = useState<PopoverAlign>("center");
   const [sideOffset, setSideOffset] = useState(8);
@@ -88,6 +103,9 @@ export function usePopoverScenario() {
     useState<PopoverCompositionMode>("default");
   const [anchorComposition, setAnchorComposition] =
     useState<PopoverCompositionMode>("default");
+  const [arrowComposition, setArrowComposition] =
+    useState<PopoverCompositionMode>("default");
+  const [arrowSize, setArrowSize] = useState<PopoverArrowSize>("default");
   const [closeComposition, setCloseComposition] =
     useState<PopoverCompositionMode>("default");
   const [blockTriggerEvent, setBlockTriggerEvent] = useState(false);
@@ -107,6 +125,14 @@ export function usePopoverScenario() {
       ...currentLog,
     ].slice(0, 10));
   }, []);
+
+  const setDefaultOpen = useCallback((value: boolean) => {
+    setDefaultOpenState(value);
+    if (!controlled) {
+      setOpen(value);
+      addLog(`uncontrolled defaultOpen set ${value}`);
+    }
+  }, [addLog, controlled]);
 
   const setControlledOpen = useCallback((nextOpen: boolean) => {
     setOpen(nextOpen);
@@ -158,17 +184,22 @@ export function usePopoverScenario() {
   return {
     state: {
       controlled,
+      defaultOpen,
       disabled,
       modal,
       closeOnInteractOutside,
       useAnchor,
       useAriaLabel,
+      nestedPopover,
       triggerMode,
+      portalMode,
       side,
       align,
       sideOffset,
       triggerComposition,
       anchorComposition,
+      arrowComposition,
+      arrowSize,
       closeComposition,
       blockTriggerEvent,
       blockCloseEvent,
@@ -183,17 +214,22 @@ export function usePopoverScenario() {
     },
     actions: {
       setControlled,
+      setDefaultOpen,
       setDisabled,
       setModal,
       setCloseOnInteractOutside,
       setUseAnchor,
       setUseAriaLabel,
+      setNestedPopover,
       setTriggerMode,
+      setPortalMode,
       setSide,
       setAlign,
       setSideOffset,
       setTriggerComposition,
       setAnchorComposition,
+      setArrowComposition,
+      setArrowSize,
       setCloseComposition,
       setBlockTriggerEvent,
       setBlockCloseEvent,

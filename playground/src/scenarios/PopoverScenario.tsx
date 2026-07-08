@@ -5,10 +5,12 @@ import {
   type AnatomySection,
 } from "../AnatomyPanel";
 import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup, partProps } from "../WorkbenchPrimitives";
-import type { Dispatch, ReactNode, SetStateAction } from "react";
+import { useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import type {
+  PopoverArrowSize,
   PopoverAlign,
   PopoverCompositionMode,
+  PopoverPortalMode,
   PopoverScenarioActions,
   PopoverScenarioState,
   PopoverSide,
@@ -22,13 +24,19 @@ export function PopoverScenarioCanvas({
   state: PopoverScenarioState;
   actions: PopoverScenarioActions;
 }) {
+  const [portalContainer, setPortalContainer] = useState<HTMLDivElement | null>(null);
   const rootProps = state.controlled
     ? { open: state.open, onOpenChange: actions.handleOpenChange }
-    : { defaultOpen: false, onOpenChange: actions.handleOpenChange };
+    : { defaultOpen: state.defaultOpen, onOpenChange: actions.handleOpenChange };
+  const portalContainerProp = state.portalMode === "container"
+    ? portalContainer
+    : undefined;
+  const portalDisabled = state.portalMode === "disabled";
 
   return (
     <div className="popover-stage">
       <Popover.Root
+        key={`${state.controlled ? "controlled" : "uncontrolled"}-${state.defaultOpen}`}
         {...rootProps}
         modal={state.modal}
         triggerMode={state.triggerMode}
@@ -67,7 +75,7 @@ export function PopoverScenarioCanvas({
             </Button.Root>
           </div>
         ) : null}
-        <Popover.Portal disabled={false}>
+        <Popover.Portal container={portalContainerProp} disabled={portalDisabled}>
           <Popover.Content
             ariaLabel={state.useAriaLabel ? "Project quick actions" : undefined}
             className="atom-popover-content"
@@ -83,6 +91,7 @@ export function PopoverScenarioCanvas({
             <p className="popover-copy">
               Change placement, anchor behavior, modal focus, and dismiss rules.
             </p>
+            {state.nestedPopover ? <NestedPopoverExample /> : null}
             <div className="dialog-actions">
               <Button.Root className="atom-button secondary">
                 Secondary action
@@ -96,14 +105,21 @@ export function PopoverScenarioCanvas({
                 Close
               </PopoverCloseExample>
             </div>
-            <Popover.Arrow
-              className="atom-popover-arrow"
-              data-popover-arrow=""
-              {...partProps("arrow", { customSlot: state.customArrowSlot, propCheck: state.propCheck }, "popover-arrow-custom")}
+            <PopoverArrowExample
+              customSlot={state.customArrowSlot}
+              mode={state.arrowComposition}
+              propCheck={state.propCheck}
+              size={state.arrowSize}
             />
           </Popover.Content>
         </Popover.Portal>
       </Popover.Root>
+      <div
+        className="popover-portal-target"
+        data-playground-inspect=""
+        data-popover-portal-target=""
+        ref={setPortalContainer}
+      />
       <Button.Root className="behind-dialog-button" tabIndex={-1}>
         Outside focus target
       </Button.Root>
@@ -124,6 +140,9 @@ export function PopoverScenarioAnatomy({
   const content = document.querySelector<HTMLElement>("[data-popover-content]");
   const anchor = document.querySelector<HTMLElement>("[data-popover-anchor]");
   const arrow = document.querySelector<HTMLElement>("[data-popover-arrow]");
+  const portalTarget = document.querySelector<HTMLElement>("[data-popover-portal-target]");
+  const close = document.querySelector<HTMLElement>("[data-popover-close]");
+  const nestedContent = document.querySelector<HTMLElement>("[data-nested-popover-content]");
 
   const sections: AnatomySection[] = [
     {
@@ -132,6 +151,7 @@ export function PopoverScenarioAnatomy({
       rows: [
         { label: "Mode", value: state.controlled ? "controlled" : "uncontrolled", category: "state" },
         { label: "Open", value: state.open ? "yes" : "no", category: "state" },
+        { label: "Default open", value: state.defaultOpen ? "yes" : "no", category: "state" },
         { label: "Disabled", value: state.disabled ? "yes" : "no", category: "state" },
         { label: "Modal", value: state.modal ? "yes" : "no", category: "state" },
         { label: "Trigger mode", value: state.triggerMode, category: "state" },
@@ -168,11 +188,14 @@ export function PopoverScenarioAnatomy({
     {
       title: "Portal",
       inactive: !content,
-      summary: content?.parentElement?.tagName.toLowerCase() ?? "not rendered",
+      summary: state.portalMode,
       rows: [
         { label: "Content exists", value: content ? "yes" : "no", category: "presence" },
+        { label: "Mode", value: state.portalMode, category: "state" },
+        { label: "Target exists", value: portalTarget ? "yes" : "no", category: "presence" },
         { label: "Parent", value: content?.parentElement?.tagName.toLowerCase() ?? "none", category: "behavior" },
         { label: "Inside canvas", value: content?.closest(".canvas") ? "yes" : "no", category: "behavior" },
+        { label: "In custom target", value: content?.parentElement === portalTarget ? "yes" : "no", category: "behavior" },
       ],
     },
     {
@@ -190,6 +213,8 @@ export function PopoverScenarioAnatomy({
         { label: "Side", value: state.side, category: "behavior" },
         { label: "Align", value: state.align, category: "behavior" },
         { label: "Offset", value: String(state.sideOffset), category: "behavior" },
+        { label: "Nested enabled", value: state.nestedPopover ? "yes" : "no", category: "behavior" },
+        { label: "Nested content", value: nestedContent ? "yes" : "no", category: "presence" },
       ],
     },
     {
@@ -199,6 +224,10 @@ export function PopoverScenarioAnatomy({
       summary: arrow?.dataset.side ?? "not rendered",
       rows: [
         { label: "Exists", value: arrow ? "yes" : "no", category: "presence" },
+        { label: "Composition", value: state.arrowComposition, category: "composition" },
+        { label: "Size", value: state.arrowSize, category: "behavior" },
+        { label: "width", value: arrow?.getAttribute("width") ?? "none", category: "identity" },
+        { label: "height", value: arrow?.getAttribute("height") ?? "none", category: "identity" },
         { label: "data-side", value: arrow?.dataset.side ?? "none", category: "data" },
       ],
     },
@@ -208,9 +237,9 @@ export function PopoverScenarioAnatomy({
       inactive: !content,
       summary: state.closeComposition,
       rows: [
-        { label: "Exists", value: document.querySelector("[data-popover-close]") ? "yes" : "no", category: "presence" },
+        { label: "Exists", value: close ? "yes" : "no", category: "presence" },
         { label: "Composition", value: state.closeComposition, category: "composition" },
-        { label: "data-slot", value: document.querySelector<HTMLElement>("[data-popover-close]")?.dataset.slot ?? "none", category: "data" },
+        { label: "data-slot", value: close?.dataset.slot ?? "none", category: "data" },
       ],
     },
   ];
@@ -237,6 +266,9 @@ export function PopoverScenarioToolbar({
       <ToolbarGroup title="State" value="state">
         <MenuSection label="Root">
           <MenuCheckboxControl checked={state.controlled} label="Controlled" value="controlled" onChange={actions.setControlled} />
+          {!state.controlled ? (
+            <MenuCheckboxControl checked={state.defaultOpen} label="Default Open" value="default-open" onChange={actions.setDefaultOpen} />
+          ) : null}
           <MenuCheckboxControl checked={state.disabled} label="Disabled" value="disabled" onChange={actions.setDisabled} />
           <MenuCheckboxControl checked={state.modal} label="Modal" value="modal" onChange={actions.setModal} />
           <MenuCheckboxControl checked={state.closeOnInteractOutside} label="Outside closes" value="outside-closes" onChange={actions.setCloseOnInteractOutside} />
@@ -247,7 +279,9 @@ export function PopoverScenarioToolbar({
         <MenuSection label="Anchor">
           <MenuCheckboxControl checked={state.useAnchor} label="Use anchor" value="use-anchor" onChange={actions.setUseAnchor} />
           <MenuCheckboxControl checked={state.useAriaLabel} label="Use ariaLabel" value="use-aria-label" onChange={actions.setUseAriaLabel} />
+          <MenuCheckboxControl checked={state.nestedPopover} label="Nested Popover" value="nested-popover" onChange={actions.setNestedPopover} />
         </MenuSection>
+        <MenuRadioControl label="Portal" options={portalModeOptions} value={state.portalMode} onChange={actions.setPortalMode} />
         <MenuRadioControl label="Side" options={sideOptions} value={state.side} onChange={actions.setSide} />
         <MenuRadioControl label="Align" options={alignOptions} value={state.align} onChange={actions.setAlign} />
         <MenuRadioControl label="Offset" options={offsetOptions} value={String(state.sideOffset)} onChange={(value) => actions.setSideOffset(Number(value))} />
@@ -255,6 +289,8 @@ export function PopoverScenarioToolbar({
       <ToolbarGroup title="Composition" value="composition">
         <MenuRadioControl label="Trigger" options={compositionOptions} value={state.triggerComposition} onChange={actions.setTriggerComposition} />
         <MenuRadioControl label="Anchor" options={compositionOptions} value={state.anchorComposition} onChange={actions.setAnchorComposition} />
+        <MenuRadioControl label="Arrow" options={compositionOptions} value={state.arrowComposition} onChange={actions.setArrowComposition} />
+        <MenuRadioControl label="Arrow Size" options={arrowSizeOptions} value={state.arrowSize} onChange={actions.setArrowSize} />
         <MenuRadioControl label="Close button" options={compositionOptions} value={state.closeComposition} onChange={actions.setCloseComposition} />
         <MenuSection label="Blocked events">
           <MenuCheckboxControl checked={state.blockTriggerEvent} label="Block trigger event" value="block-trigger-event" onChange={actions.setBlockTriggerEvent} />
@@ -285,19 +321,25 @@ export function PopoverScenarioLog({
 }
 
 export function getPopoverSource(state: PopoverScenarioState) {
-  const rootMode = state.controlled ? "open={open}" : "defaultOpen={false}";
+  const rootProps = [
+    state.controlled ? "open={open}" : state.defaultOpen ? "defaultOpen" : null,
+    state.modal ? "modal" : null,
+    state.triggerMode !== "click" ? `triggerMode="${state.triggerMode}"` : null,
+    !state.closeOnInteractOutside ? "closeOnInteractOutside={false}" : null,
+    state.disabled ? "disabled" : null,
+    "onOpenChange={setOpen}",
+  ].filter(Boolean).join("\n  ");
+  const portalProps = [
+    state.portalMode === "container" ? "container={portalContainer}" : null,
+    state.portalMode === "disabled" ? "disabled" : null,
+  ].filter(Boolean).join(" ");
 
   return `<Popover.Root
-  ${rootMode}
-  modal={${state.modal}}
-  triggerMode="${state.triggerMode}"
-  closeOnInteractOutside={${state.closeOnInteractOutside}}
-  disabled={${state.disabled}}
-  onOpenChange={setOpen}
+  ${rootProps}
 >
   ${state.useAnchor ? getPopoverAnchorSource(state) : ""}
   ${getPopoverTriggerSource(state)}
-  <Popover.Portal>
+  <Popover.Portal${portalProps ? ` ${portalProps}` : ""}>
     <Popover.Content
       ${state.useAriaLabel ? `ariaLabel="Project quick actions"` : ""}
       ${sourceProps("content", state.customContentSlot, state.propCheck, "popover-content-custom")}
@@ -307,8 +349,9 @@ export function getPopoverSource(state: PopoverScenarioState) {
     >
       <h2>Quick actions</h2>
       <p>Change placement, anchor behavior, modal focus, and dismiss rules.</p>
+      ${state.nestedPopover ? getNestedPopoverSource() : ""}
       ${getPopoverCloseSource(state)}
-      <Popover.Arrow${sourceInlineProps("arrow", state.customArrowSlot, state.propCheck, "popover-arrow-custom")} />
+      ${getPopoverArrowSource(state)}
     </Popover.Content>
   </Popover.Portal>
 </Popover.Root>`;
@@ -387,7 +430,11 @@ function PopoverAnchorExample({
     );
   }
 
-  return <Popover.Anchor {...props}>Anchor point</Popover.Anchor>;
+  return (
+    <Popover.Anchor {...props}>
+      <span className="popover-anchor-box">Anchor point</span>
+    </Popover.Anchor>
+  );
 }
 
 function PopoverCloseExample({
@@ -430,8 +477,81 @@ function PopoverCloseExample({
   return <Popover.Close {...props}>{children}</Popover.Close>;
 }
 
+function PopoverArrowExample({
+  customSlot,
+  mode,
+  propCheck,
+  size,
+}: {
+  customSlot: boolean;
+  mode: PopoverCompositionMode;
+  propCheck: boolean;
+  size: PopoverArrowSize;
+}) {
+  const sizeProps = getArrowSizeProps(size);
+  const props = {
+    className: "atom-popover-arrow",
+    "data-popover-arrow": "",
+    ...partProps("arrow", { customSlot, propCheck }, "popover-arrow-custom"),
+    ...sizeProps,
+  };
+
+  if (mode === "asChild") {
+    return (
+      <Popover.Arrow asChild {...props}>
+        <svg>
+          <polygon points="0,5 5,0 10,5" />
+        </svg>
+      </Popover.Arrow>
+    );
+  }
+
+  if (mode === "render") {
+    return <Popover.Arrow render={<svg />} {...props} />;
+  }
+
+  return <Popover.Arrow {...props} />;
+}
+
+function NestedPopoverExample() {
+  return (
+    <Popover.Root>
+      <Popover.Trigger
+        className="atom-button secondary"
+        data-nested-popover-trigger=""
+        data-playground-inspect=""
+      >
+        Nested popover
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content
+          ariaLabel="Nested quick actions"
+          className="atom-popover-content nested-popover-content"
+          data-nested-popover-content=""
+          data-playground-inspect=""
+          side="right"
+          align="start"
+          sideOffset={8}
+        >
+          <p className="popover-kicker">Nested</p>
+          <p className="popover-copy">Escape should close this layer before the outer popover.</p>
+          <Popover.Close className="atom-button secondary" data-nested-popover-close="" data-playground-inspect="">
+            Close nested
+          </Popover.Close>
+          <Popover.Arrow className="atom-popover-arrow" data-nested-popover-arrow="" />
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
+  );
+}
+
 function getPopoverTriggerSource(state: PopoverScenarioState) {
-  const props = sourceInlineProps("trigger", state.customTriggerSlot, state.propCheck, "popover-trigger-custom");
+  const props = [
+    sourceInlineProps("trigger", state.customTriggerSlot, state.propCheck, "popover-trigger-custom"),
+    state.blockTriggerEvent
+      ? ` onClick={(event) => event.preventDefault()} onKeyDown={(event) => event.preventDefault()}`
+      : "",
+  ].join("");
 
   if (state.triggerComposition === "asChild") {
     return `<Popover.Trigger asChild${props}>
@@ -463,11 +583,16 @@ function getPopoverAnchorSource(state: PopoverScenarioState) {
   </Popover.Anchor>`;
   }
 
-  return `<Popover.Anchor${props}>Anchor point</Popover.Anchor>`;
+  return `<Popover.Anchor${props}>
+    <span>Anchor point</span>
+  </Popover.Anchor>`;
 }
 
 function getPopoverCloseSource(state: PopoverScenarioState) {
-  const props = sourceInlineProps("close", state.customCloseSlot, state.propCheck, "popover-close-custom");
+  const props = [
+    sourceInlineProps("close", state.customCloseSlot, state.propCheck, "popover-close-custom"),
+    state.blockCloseEvent ? ` onClick={(event) => event.preventDefault()}` : "",
+  ].join("");
 
   if (state.closeComposition === "asChild") {
     return `<Popover.Close asChild${props}>
@@ -482,6 +607,49 @@ function getPopoverCloseSource(state: PopoverScenarioState) {
   }
 
   return `<Popover.Close${props}>Close</Popover.Close>`;
+}
+
+function getPopoverArrowSource(state: PopoverScenarioState) {
+  const props = [
+    sourceInlineProps("arrow", state.customArrowSlot, state.propCheck, "popover-arrow-custom"),
+    sourceArrowSizeProps(state.arrowSize),
+  ].filter(Boolean).join("");
+
+  if (state.arrowComposition === "asChild") {
+    return `<Popover.Arrow asChild${props}>
+        <svg>
+          <polygon points="0,5 5,0 10,5" />
+        </svg>
+      </Popover.Arrow>`;
+  }
+
+  if (state.arrowComposition === "render") {
+    return `<Popover.Arrow render={<svg />}${props} />`;
+  }
+
+  return `<Popover.Arrow${props} />`;
+}
+
+function getNestedPopoverSource() {
+  return `<Popover.Root>
+        <Popover.Trigger>Nested popover</Popover.Trigger>
+        <Popover.Portal>
+          <Popover.Content ariaLabel="Nested quick actions" side="right" align="start">
+            <Popover.Close>Close nested</Popover.Close>
+            <Popover.Arrow />
+          </Popover.Content>
+        </Popover.Portal>
+      </Popover.Root>`;
+}
+
+function getArrowSizeProps(size: PopoverArrowSize) {
+  if (size === "wide") return { width: 16, height: 8 };
+  return {};
+}
+
+function sourceArrowSizeProps(size: PopoverArrowSize) {
+  if (size === "wide") return " width={16} height={8}";
+  return "";
 }
 
 function sourceProps(part: string, customSlot: boolean, propCheck: boolean, slot: string) {
@@ -501,6 +669,17 @@ const compositionOptions = [
   { label: "As Child", value: "asChild" },
   { label: "Render", value: "render" },
 ] as const;
+
+const arrowSizeOptions = [
+  { label: "Default", value: "default" },
+  { label: "Wide", value: "wide" },
+] as const satisfies readonly { label: string; value: PopoverArrowSize }[];
+
+const portalModeOptions = [
+  { label: "Body", value: "body" },
+  { label: "Container", value: "container" },
+  { label: "Disabled", value: "disabled" },
+] as const satisfies readonly { label: string; value: PopoverPortalMode }[];
 
 const triggerModeOptions = [
   { label: "Click", value: "click" },

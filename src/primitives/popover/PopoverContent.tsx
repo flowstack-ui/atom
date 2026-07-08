@@ -101,6 +101,58 @@ function focusNextElementAfterTrigger(
   trigger.blur();
 }
 
+function getPopoverReferenceElement(
+  anchor: HTMLElement | null,
+  trigger: HTMLElement | null,
+): HTMLElement | null {
+  if (!anchor) return trigger;
+
+  const anchorStyle = window.getComputedStyle(anchor);
+  const child = anchor.firstElementChild;
+
+  if (anchorStyle.display === "contents" && child instanceof HTMLElement) {
+    return child;
+  }
+
+  return anchor;
+}
+
+function getElementFromNode(target: Node): Element | null {
+  return target instanceof Element ? target : target.parentElement;
+}
+
+function getPopoverController(layer: HTMLElement): HTMLElement | null {
+  if (!layer.id) return null;
+
+  const controllers = Array.from(
+    document.querySelectorAll<HTMLElement>("[aria-controls]"),
+  );
+
+  return controllers.find((controller) => (
+    controller.getAttribute("aria-controls") === layer.id
+  )) ?? null;
+}
+
+function isInsideNestedPopoverLayer(
+  target: Node,
+  ownerContent: HTMLElement | null,
+): boolean {
+  if (!ownerContent) return false;
+
+  let layer = getElementFromNode(target)?.closest<HTMLElement>("[role='dialog'][id]");
+
+  while (layer && layer !== ownerContent) {
+    const controller = getPopoverController(layer);
+
+    if (!controller) return false;
+    if (ownerContent.contains(controller)) return true;
+
+    layer = controller.closest<HTMLElement>("[role='dialog'][id]");
+  }
+
+  return false;
+}
+
 export const PopoverContent = forwardRef<HTMLDivElement, PopoverContentProps>(
 function PopoverContent(
   {
@@ -160,6 +212,7 @@ function PopoverContent(
     refs: clickAwayRefs,
     onClickAway: onClose,
     enabled: isOpen && closeOnInteractOutside,
+    ignore: (target) => isInsideNestedPopoverLayer(target, contentRef.current),
   });
 
   useEffect(() => {
@@ -177,6 +230,7 @@ function PopoverContent(
         !relatedTarget ||
         (!content.contains(relatedTarget) &&
           !trigger.contains(relatedTarget) &&
+          !isInsideNestedPopoverLayer(relatedTarget, content) &&
           relatedTarget !== beforeGuard &&
           relatedTarget !== afterGuard)
       ) {
@@ -192,7 +246,7 @@ function PopoverContent(
     };
   }, [isOpen, modal, onClose, triggerRef]);
 
-  const referenceElement = anchorRef.current ?? triggerRef.current;
+  const referenceElement = getPopoverReferenceElement(anchorRef.current, triggerRef.current);
   const middleware = useMemo(
     () => [
       offset(sideOffset),
@@ -212,6 +266,10 @@ function PopoverContent(
     onOpenChange: (open) => {
       if (!open) onClose();
     },
+  });
+
+  useEffect(() => {
+    refs.setReference(getPopoverReferenceElement(anchorRef.current, triggerRef.current));
   });
 
   const composedRef = useMemo(

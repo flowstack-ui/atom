@@ -1,6 +1,8 @@
 import {
   assert,
+  readFile,
   test,
+  packageRoot,
   React,
   renderToStaticMarkup,
 } from "../test-utils.mjs";
@@ -67,6 +69,32 @@ test("PopoverAnchor asChild keeps the child layout box for positioning", () => {
   assert.match(html, /display:inline-block/);
   assert.match(html, /color:red/);
   assert.doesNotMatch(html, /display:contents/);
+});
+
+test("PopoverContent resolves a display contents anchor to its child reference", async () => {
+  const source = await readFile(
+    new URL("src/primitives/popover/PopoverContent.tsx", packageRoot),
+    "utf8",
+  );
+
+  assert.match(source, /function getPopoverReferenceElement/);
+  assert.match(source, /anchorStyle\.display === "contents"/);
+  assert.match(source, /child instanceof HTMLElement/);
+  assert.match(source, /return child/);
+  assert.match(source, /refs\.setReference\(getPopoverReferenceElement\(anchorRef\.current, triggerRef\.current\)\)/);
+});
+
+test("PopoverContent treats portalled descendant popover layers as inside", async () => {
+  const source = await readFile(
+    new URL("src/primitives/popover/PopoverContent.tsx", packageRoot),
+    "utf8",
+  );
+
+  assert.match(source, /function isInsideNestedPopoverLayer/);
+  assert.match(source, /controller\.getAttribute\("aria-controls"\) === layer\.id/);
+  assert.match(source, /ownerContent\.contains\(controller\)/);
+  assert.match(source, /ignore: \(target\) => isInsideNestedPopoverLayer\(target, contentRef\.current\)/);
+  assert.match(source, /!isInsideNestedPopoverLayer\(relatedTarget, content\)/);
 });
 
 test("Popover trigger supports asChild and exposes portal arrow and close parts", () => {
