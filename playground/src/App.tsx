@@ -588,6 +588,7 @@ const scenarios: Scenario[] = [
 ];
 
 const categories = ["Fields", "Controls", "Selection", "Overlays", "Navigation", "Data", "Display", "Utilities"];
+const scenarioLabelCollator = new Intl.Collator("en", { sensitivity: "base" });
 const focusableSelector = [
   "button:not([disabled]):not([hidden])",
   "[href]:not([hidden])",
@@ -682,6 +683,7 @@ export function App() {
                   <Menubar.Content className="menu-popover" sideOffset={4}>
                     {scenarios
                       .filter((scenario) => scenario.category === category)
+                      .sort((left, right) => scenarioLabelCollator.compare(left.label, right.label))
                       .map((scenario) => (
                         <Menubar.Item
                           className="menu-item"
