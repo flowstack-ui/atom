@@ -96,6 +96,7 @@ const nativeAttributeLabels = new Set([
   "disabled",
   "form",
   "for",
+  "hidden",
   "href",
   "maxlength",
   "minlength",

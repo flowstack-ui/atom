@@ -567,14 +567,36 @@ function useCollapsibleScenario() {
   const [open, setOpen] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const [keepMounted, setKeepMounted] = useState(false);
+  const [blockTriggerEvent, setBlockTriggerEvent] = useState(false);
   const [composition, setComposition] = useState<CompositionMode>("default");
   const [triggerComposition, setTriggerComposition] = useState<CompositionMode>("default");
   const [contentComposition, setContentComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
+  const [customTriggerSlot, setCustomTriggerSlot] = useState(false);
+  const [customContentSlot, setCustomContentSlot] = useState(false);
+  const [rootRef, setRootRef] = useState("none");
+  const [triggerRef, setTriggerRef] = useState("none");
+  const [contentRef, setContentRef] = useState("none");
   const { log, addLog, clearLog } = useScenarioLog();
+  const markRootRef = useCallback((node: HTMLElement | null) => {
+    setRootRef(node?.tagName.toLowerCase() ?? "none");
+  }, []);
+  const markTriggerRef = useCallback((node: HTMLElement | null) => {
+    setTriggerRef(node?.tagName.toLowerCase() ?? "none");
+  }, []);
+  const markContentRef = useCallback((node: HTMLElement | null) => {
+    setContentRef(node?.tagName.toLowerCase() ?? "none");
+  }, []);
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen);
     addLog(nextOpen ? "opened" : "closed");
+  };
+
+  const handleBlockedTrigger = (event: MouseEvent<HTMLElement>) => {
+    event.preventDefault();
+    addLog("trigger click blocked");
   };
 
   return {
@@ -583,9 +605,17 @@ function useCollapsibleScenario() {
       open,
       disabled,
       keepMounted,
+      blockTriggerEvent,
       composition,
       triggerComposition,
       contentComposition,
+      propCheck,
+      customRootSlot,
+      customTriggerSlot,
+      customContentSlot,
+      rootRef,
+      triggerRef,
+      contentRef,
       log,
     },
     actions: {
@@ -593,10 +623,19 @@ function useCollapsibleScenario() {
       setOpen,
       setDisabled,
       setKeepMounted,
+      setBlockTriggerEvent,
       setComposition,
       setTriggerComposition,
       setContentComposition,
+      setPropCheck,
+      setCustomRootSlot,
+      setCustomTriggerSlot,
+      setCustomContentSlot,
+      markRootRef,
+      markTriggerRef,
+      markContentRef,
       handleOpenChange,
+      handleBlockedTrigger,
       clearLog,
     },
   };
@@ -1139,16 +1178,36 @@ export function UtilityPrimitiveScenarioToolbar({
     return (
       <ControlToolbar label="Collapsible controls">
         <ToolbarGroup title="State" value="state">
-          <MenuCheckboxControl checked={scenario.state.controlled} label="Controlled" value="controlled" onChange={scenario.actions.setControlled} />
-          <MenuCheckboxControl checked={scenario.state.open} label="Open" value="open" onChange={scenario.actions.setOpen} />
-          <MenuCheckboxControl checked={scenario.state.disabled} label="Disabled" value="disabled" onChange={scenario.actions.setDisabled} />
-          <MenuCheckboxControl checked={scenario.state.keepMounted} label="Keep mounted" value="keep-mounted" onChange={scenario.actions.setKeepMounted} />
+          <MenuSection label="Root State">
+            <MenuCheckboxControl checked={scenario.state.controlled} label="Controlled" value="controlled" onChange={scenario.actions.setControlled} />
+          </MenuSection>
+          {scenario.state.controlled ? (
+            <MenuSection label="Controlled Value">
+              <MenuCheckboxControl checked={scenario.state.open} label="Open" value="open" onChange={scenario.actions.setOpen} />
+            </MenuSection>
+          ) : null}
+          <MenuSection label="Availability">
+            <MenuCheckboxControl checked={scenario.state.disabled} label="Disabled" value="disabled" onChange={scenario.actions.setDisabled} />
+          </MenuSection>
+          <MenuSection label="Behavior">
+            <MenuCheckboxControl checked={scenario.state.keepMounted} label="Keep mounted" value="keep-mounted" onChange={scenario.actions.setKeepMounted} />
+            <MenuCheckboxControl checked={scenario.state.blockTriggerEvent} label="Block trigger" value="block-trigger" onChange={scenario.actions.setBlockTriggerEvent} />
+          </MenuSection>
         </ToolbarGroup>
         <ToolbarGroup title="Composition" value="composition">
           <MenuRadioControl label="Root" options={compositionOptions} value={scenario.state.composition} onChange={scenario.actions.setComposition} />
           <MenuRadioControl label="Trigger" options={compositionOptions} value={scenario.state.triggerComposition} onChange={scenario.actions.setTriggerComposition} />
           <MenuRadioControl label="Content" options={compositionOptions} value={scenario.state.contentComposition} onChange={scenario.actions.setContentComposition} />
         </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={[
+            { checked: scenario.state.customRootSlot, label: "Root Slot", value: "root-slot", onChange: scenario.actions.setCustomRootSlot },
+            { checked: scenario.state.customTriggerSlot, label: "Trigger Slot", value: "trigger-slot", onChange: scenario.actions.setCustomTriggerSlot },
+            { checked: scenario.state.customContentSlot, label: "Content Slot", value: "content-slot", onChange: scenario.actions.setCustomContentSlot },
+          ]}
+        />
       </ControlToolbar>
     );
   }
@@ -1771,15 +1830,42 @@ ${targetSource}`;
 
   if (scenarioId === "collapsible") {
     const state = scenarios.collapsible.state;
-    return `<Collapsible.Root
-  ${state.controlled ? `open={open}` : `defaultOpen={false}`}
-  disabled={${state.disabled}}
-  onOpenChange={setOpen}
+    const rootProps = [
+      state.controlled ? `open={open}` : `defaultOpen={false}`,
+      state.disabled ? `disabled` : "",
+      `onOpenChange={setOpen}`,
+      state.customRootSlot ? `data-slot="collapsible-root-custom"` : "",
+      state.propCheck ? `data-prop-check="root"` : "",
+    ].filter(Boolean);
+    const rootOpen = `<Collapsible.Root${rootProps.length ? `\n  ${rootProps.join("\n  ")}` : ""}`;
+    const trigger = getCollapsibleTriggerSource(state);
+    const content = getCollapsibleContentSource(state);
+
+    if (state.composition === "asChild") {
+      return `${rootOpen}
+  asChild
 >
-  <Collapsible.Trigger>Details</Collapsible.Trigger>
-  <Collapsible.Content keepMounted={${state.keepMounted}}>
-    More information
-  </Collapsible.Content>
+  <section>
+${indent(trigger, 4)}
+${indent(content, 4)}
+  </section>
+</Collapsible.Root>`;
+    }
+
+    if (state.composition === "render") {
+      return `${rootOpen}
+  render={(props) => (
+    <section {...props}>
+${indent(trigger, 6)}
+${indent(content, 6)}
+    </section>
+  )}
+/>`;
+    }
+
+    return `${rootOpen}>
+${indent(trigger, 2)}
+${indent(content, 2)}
 </Collapsible.Root>`;
   }
 
@@ -2786,22 +2872,35 @@ function CollapsibleScenarioCanvas({ scenario }: { scenario: ReturnType<typeof u
     className: "utility-collapsible",
     "data-collapsible-root": "",
     "data-playground-inspect": "",
-    "data-prop-check": "root",
     disabled: scenario.state.disabled,
+    ref: scenario.actions.markRootRef,
+    ...partProps("root", { customSlot: scenario.state.customRootSlot, propCheck: scenario.state.propCheck }, "collapsible-root-custom"),
     ...(scenario.state.controlled
       ? { open: scenario.state.open, onOpenChange: scenario.actions.handleOpenChange }
       : { defaultOpen: false, onOpenChange: scenario.actions.handleOpenChange }),
   };
-  const trigger = <CollapsibleTriggerExample mode={scenario.state.triggerComposition} />;
+  const trigger = (
+    <CollapsibleTriggerExample
+      blockTriggerEvent={scenario.state.blockTriggerEvent}
+      customSlot={scenario.state.customTriggerSlot}
+      mode={scenario.state.triggerComposition}
+      onBlockedTrigger={scenario.actions.handleBlockedTrigger}
+      onRef={scenario.actions.markTriggerRef}
+      propCheck={scenario.state.propCheck}
+    />
+  );
   const content = (
     <CollapsibleContentExample
+      customSlot={scenario.state.customContentSlot}
       keepMounted={scenario.state.keepMounted}
       mode={scenario.state.contentComposition}
+      onRef={scenario.actions.markContentRef}
+      propCheck={scenario.state.propCheck}
     />
   );
 
   return (
-    <div className="utility-primitive-stage">
+    <div className="utility-primitive-stage utility-collapsible-stage">
       {scenario.state.composition === "asChild" ? (
         <Collapsible.Root {...rootProps} asChild>
           <section>{trigger}{content}</section>
@@ -2815,12 +2914,28 @@ function CollapsibleScenarioCanvas({ scenario }: { scenario: ReturnType<typeof u
   );
 }
 
-function CollapsibleTriggerExample({ mode }: { mode: CompositionMode }) {
+function CollapsibleTriggerExample({
+  blockTriggerEvent,
+  customSlot,
+  mode,
+  onBlockedTrigger,
+  onRef,
+  propCheck,
+}: {
+  blockTriggerEvent: boolean;
+  customSlot: boolean;
+  mode: CompositionMode;
+  onBlockedTrigger: (event: MouseEvent<HTMLElement>) => void;
+  onRef: (node: HTMLElement | null) => void;
+  propCheck: boolean;
+}) {
   const props = {
     className: "utility-collapsible-trigger",
     "data-collapsible-trigger": "",
     "data-playground-inspect": "",
-    "data-prop-check": "trigger",
+    onClick: blockTriggerEvent ? onBlockedTrigger : undefined,
+    ref: onRef,
+    ...partProps("trigger", { customSlot, propCheck }, "collapsible-trigger-custom"),
   };
 
   if (mode === "asChild") {
@@ -2839,18 +2954,25 @@ function CollapsibleTriggerExample({ mode }: { mode: CompositionMode }) {
 }
 
 function CollapsibleContentExample({
+  customSlot,
   keepMounted,
   mode,
+  onRef,
+  propCheck,
 }: {
+  customSlot: boolean;
   keepMounted: boolean;
   mode: CompositionMode;
+  onRef: (node: HTMLElement | null) => void;
+  propCheck: boolean;
 }) {
   const props = {
     className: "utility-collapsible-content",
     "data-collapsible-content": "",
     "data-playground-inspect": "",
-    "data-prop-check": "content",
     keepMounted,
+    ref: onRef,
+    ...partProps("content", { customSlot, propCheck }, "collapsible-content-custom"),
   };
 
   if (mode === "asChild") {
@@ -3668,6 +3790,7 @@ function getUtilityPrimitiveSections(
         summary: root?.dataset.state ?? "closed",
         rows: [
           { label: "Exists", value: bool(!!root), category: "presence" },
+          { label: "Ref target", value: scenarios.collapsible.state.rootRef, category: "identity" },
           { label: "Mode", value: scenarios.collapsible.state.controlled ? "controlled" : "uncontrolled", category: "state" },
           { label: "Open", value: bool(scenarios.collapsible.state.open), category: "state" },
           { label: "Disabled", value: bool(scenarios.collapsible.state.disabled), category: "state" },
@@ -3680,8 +3803,10 @@ function getUtilityPrimitiveSections(
         summary: trigger?.dataset.state ?? "not rendered",
         rows: [
           { label: "Exists", value: bool(!!trigger), category: "presence" },
+          { label: "Ref target", value: scenarios.collapsible.state.triggerRef, category: "identity" },
           { label: "Controls match", value: bool(!!trigger && !!content && trigger.getAttribute("aria-controls") === content.id), category: "behavior" },
           { label: "Composition", value: scenarios.collapsible.state.triggerComposition, category: "composition" },
+          { label: "Block trigger", value: bool(scenarios.collapsible.state.blockTriggerEvent), category: "behavior" },
         ],
       },
       {
@@ -3691,6 +3816,7 @@ function getUtilityPrimitiveSections(
         summary: content?.dataset.state ?? "not rendered",
         rows: [
           { label: "Exists", value: bool(!!content), category: "presence" },
+          { label: "Ref target", value: scenarios.collapsible.state.contentRef, category: "identity" },
           { label: "Keep mounted", value: bool(scenarios.collapsible.state.keepMounted), category: "behavior" },
           { label: "Labelledby match", value: bool(!!trigger && !!content && content.getAttribute("aria-labelledby") === trigger.id), category: "behavior" },
           { label: "Composition", value: scenarios.collapsible.state.contentComposition, category: "composition" },
@@ -4061,6 +4187,50 @@ function getModalCloseSource(state: ReturnType<typeof useModalScenario>["state"]
   }
 
   return `<Modal.Close${props}>Close Modal</Modal.Close>`;
+}
+
+function getCollapsibleTriggerSource(state: ReturnType<typeof useCollapsibleScenario>["state"]) {
+  const props = sourceProps([
+    state.customTriggerSlot ? `data-slot="collapsible-trigger-custom"` : null,
+    state.propCheck ? `data-prop-check="trigger"` : null,
+    state.blockTriggerEvent ? `onClick={(event) => event.preventDefault()}` : null,
+  ]);
+
+  if (state.triggerComposition === "asChild") {
+    return `<Collapsible.Trigger${props} asChild>
+  <span>Details</span>
+</Collapsible.Trigger>`;
+  }
+
+  if (state.triggerComposition === "render") {
+    return `<Collapsible.Trigger${props}
+  render={(props) => <div {...props}>Details</div>}
+/>`;
+  }
+
+  return `<Collapsible.Trigger${props}>Details</Collapsible.Trigger>`;
+}
+
+function getCollapsibleContentSource(state: ReturnType<typeof useCollapsibleScenario>["state"]) {
+  const props = sourceProps([
+    state.keepMounted ? `keepMounted` : null,
+    state.customContentSlot ? `data-slot="collapsible-content-custom"` : null,
+    state.propCheck ? `data-prop-check="content"` : null,
+  ]);
+
+  if (state.contentComposition === "asChild") {
+    return `<Collapsible.Content${props} asChild>
+  <section>More information</section>
+</Collapsible.Content>`;
+  }
+
+  if (state.contentComposition === "render") {
+    return `<Collapsible.Content${props}
+  render={(props) => <section {...props}>More information</section>}
+/>`;
+  }
+
+  return `<Collapsible.Content${props}>More information</Collapsible.Content>`;
 }
 
 function indent(source: string, spaces: number) {

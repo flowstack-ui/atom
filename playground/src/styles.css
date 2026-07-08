@@ -1459,6 +1459,11 @@ h2 {
   gap: 0;
 }
 
+.utility-collapsible-stage {
+  align-self: start;
+  margin-top: 72px;
+}
+
 .utility-collapsible-trigger {
   width: 100%;
   justify-content: space-between;
