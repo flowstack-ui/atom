@@ -14,8 +14,9 @@ listing every document individually.
   workbench helpers, and workbook location.
 - [component-testing.md](component-testing.md) - canonical scenario authoring
   rules for Anatomy, Canvas toolbar, Inspector, Logs, Source, props, slots,
-  manual testing, direction, hooks, and utilities.
+  manual testing, automation readiness, direction, hooks, and utilities.
 - [coverage.md](coverage.md) - workbook purpose, row rules, statuses, formulas,
-  prop checks, slot overrides, and completion rules.
+  prop checks, slot overrides, completion rules, and automation candidates.
 - [decisions.md](decisions.md) - long-lived playground architecture decisions.
-- [workflow.md](workflow.md) - standard component completion workflow.
+- [workflow.md](workflow.md) - standard component completion workflow and issue
+  classification.

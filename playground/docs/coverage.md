@@ -24,6 +24,12 @@ Composition rows should cover each public part that supports composition. Do
 not treat a root/default composition check as complete coverage when Trigger,
 Close, Item, or another public part also supports `asChild` or `render`.
 
+Rows for stable DOM evidence should name exact expected values whenever useful:
+default rendered tag, `data-slot`, `data-state`, role, `aria-*` attributes,
+`data-prop-check`, and custom `data-slot` values. For generated ids or dynamic
+browser values, describe the expected relationship instead of inventing a
+literal value.
+
 ## What Does Not Belong
 
 Do not add playground rows for:
@@ -122,3 +128,23 @@ Examples:
 
 Do not add these rows to `Collection`, `Virtualizer`, or other APIs that do not
 render Atom DOM parts.
+
+## Automation Candidates
+
+Author workbook rows and playground scenarios so stable evidence can eventually
+move from manual verification into automated tests. The scenario should expose
+deterministic evidence whenever possible for:
+
+- default rendered tags
+- `data-slot` values
+- `data-state` values
+- ARIA attributes and relationships
+- prop pass-through
+- custom slot overrides
+- Source output
+- Anatomy order where practical
+- provider and non-DOM parts not receiving fake DOM identity
+
+Manual workbook coverage should remain focused on evidence available in the
+playground today. Do not add fake anatomy parts, fake attributes, or provider
+DOM wrappers only to make a future automated check easier.

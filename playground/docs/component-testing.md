@@ -38,7 +38,7 @@ Anatomy is for real component anatomy, not arbitrary example DOM.
 Rules:
 
 - Use public anatomy order from the component docs.
-- Show only public component parts as top-level groups.
+- Only public anatomy parts become top-level Anatomy groups.
 - If more than one instance of a part exists, name it clearly:
   `Item: Alpha`, `Item: Bravo`, `Action: Start`, `Action: End`.
 - Do not add fake parts such as `Disabled item` unless that is the real part
@@ -112,8 +112,33 @@ attribute.
 
 ## Manual Testing Output
 
-Manual testing checklists should state both the action and the expected result.
-If the expected value is stable, name it explicitly.
+Manual testing checklists should be optimized for the tester, not for mirroring
+the documentation structure. A tester should be able to finish one public part
+before moving to the next.
+
+Preferred checklist structure:
+
+- `Playground Smoke Check`
+- `Feature-Wide Behavior`
+- `Part-by-Part Verification` in public anatomy order
+- `Source Verification`
+- `Inspector / Logs`
+- `Portal / Nested Behavior`
+- `Workbook Cleanup / Rewrite Notes`
+
+Use only the sections that apply for each public part:
+
+- `Identity`
+- `ARIA`
+- `Props / Slots`
+- `Composition`
+- `Interaction`
+
+Do not generate empty sections such as `Composition: none` or
+`Interaction: none`.
+
+Manual checklist items should state both the action and the expected result. If
+the expected value is stable, name it explicitly.
 
 Stable expected values include:
 
@@ -121,6 +146,8 @@ Stable expected values include:
 - exact `data-slot` value
 - expected role
 - expected `data-state`
+- exact `data-prop-check` value
+- exact custom `data-slot` value
 - expected `aria-*` attributes
 
 Do not invent dynamic values. Describe the relationship instead:
@@ -130,6 +157,11 @@ Do not invent dynamic values. Describe the relationship instead:
 - `aria-controls` should reference the current content id.
 - a generated id should be stable for the mounted instance and used by the
   element that references it.
+
+Avoid duplicate verification. Each expected value or behavior should appear in
+one checklist location unless a later check intentionally verifies a different
+surface, such as Source output instead of live DOM. Keep workbook cleanup and
+rewrite notes separate from manual testing steps.
 
 Composition testing should include every supported public part. Do not cover
 only the root/default path when other public parts support composition.
@@ -174,15 +206,17 @@ example, prefer `Disable Item` over `Disable Team`.
 Authoring rules:
 
 - Group controls by test meaning, not by whichever state object owns them.
+- Group controls so the toolbar is readable without implying false
+  relationships between unrelated behaviors.
 - Keep radio selections separate from toggles.
 - Keep toggles separate from actions.
 - Avoid visually grouping controls that imply a relationship the component does
   not have.
 - Use clear section titles inside larger menus.
 - Keep ordering consistent across components when groups and controls repeat.
-- Keep desktop menus consistent throughout the playground.
-- Use nested menus only when they make the choices clearer. Do not nest only to
-  reduce visible list length.
+- Keep desktop menu structure and visual rhythm consistent across components.
+- Use nested menus only when they make the choices clearer. Do not create
+  unnecessary nesting only to reduce visible list length.
 
 ## Toolbar Group Taxonomy
 
@@ -285,6 +319,51 @@ Generated Source should represent consumer code, not playground implementation.
 Controlled props should appear only when controlled mode is active. Enabled
 boolean props should use shorthand syntax, and disabled/default boolean props
 should be omitted.
+
+Playground plumbing must never appear in Source. This includes inspection refs,
+event-log handlers that are not part of the consumer example, internal state
+used only to drive toolbar controls, and layout wrappers that do not belong to
+the rendered Atom example.
+
+## Automation Readiness
+
+Author new component scenarios so stable DOM and Source evidence can be
+verified automatically later. Automation readiness is a design goal for every
+scenario, not a backlog wish.
+
+Expose deterministic evidence whenever possible for:
+
+- default rendered tag
+- `data-slot`
+- `data-state`
+- ARIA attributes
+- ARIA relationships
+- prop pass-through
+- custom slot overrides
+- Source output
+- Anatomy order
+- provider or non-DOM behavior without fake DOM identity
+
+Use stable values when the component contract allows them. For generated ids or
+browser-provided values, expose a deterministic relationship instead of a
+literal value, such as one element's `aria-labelledby` referencing the current
+title id.
+
+Static verification should gradually move toward automated tests for stable
+contracts. Future automated tests should verify default rendered tags,
+`data-slot` values, `data-state` values, ARIA attributes and relationships,
+prop pass-through, custom slot overrides, Source output, Anatomy order where
+practical, and provider/non-DOM parts not receiving fake DOM identity.
+
+Manual testing should primarily verify behavior automation cannot confidently
+prove:
+
+- keyboard flow
+- pointer and touch behavior
+- focus management
+- nested layer behavior
+- browser-specific behavior
+- overall user experience
 
 ## Native And Atom Variants
 
