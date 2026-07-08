@@ -6,6 +6,15 @@ import type {
 
 export type AlertDialogCompositionMode = "default" | "asChild" | "render";
 export type AlertDialogHeadingLevel = "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+export type AlertDialogRefPart =
+  | "trigger"
+  | "overlay"
+  | "content"
+  | "title"
+  | "description"
+  | "cancel"
+  | "action";
+export type AlertDialogRefSnapshot = Record<AlertDialogRefPart, string>;
 
 export type AlertDialogLogEntry = {
   id: number;
@@ -17,9 +26,12 @@ export type AlertDialogScenarioState = {
   controlled: boolean;
   disabled: boolean;
   keepMounted: boolean;
+  portalDisabled: boolean;
+  overlayDisabled: boolean;
   closeOnEscape: boolean;
   useAriaLabel: boolean;
   cancelAutoFocus: boolean;
+  showNestedSelect: boolean;
   titleHeadingLevel: AlertDialogHeadingLevel;
   triggerComposition: AlertDialogCompositionMode;
   cancelComposition: AlertDialogCompositionMode;
@@ -37,15 +49,19 @@ export type AlertDialogScenarioState = {
   customActionSlot: boolean;
   open: boolean;
   log: AlertDialogLogEntry[];
+  refs: AlertDialogRefSnapshot;
 };
 
 export type AlertDialogScenarioActions = {
   setControlled: (value: boolean) => void;
   setDisabled: (value: boolean) => void;
   setKeepMounted: (value: boolean) => void;
+  setPortalDisabled: (value: boolean) => void;
+  setOverlayDisabled: (value: boolean) => void;
   setCloseOnEscape: (value: boolean) => void;
   setUseAriaLabel: (value: boolean) => void;
   setCancelAutoFocus: (value: boolean) => void;
+  setShowNestedSelect: (value: boolean) => void;
   setTitleHeadingLevel: (value: AlertDialogHeadingLevel) => void;
   setTriggerComposition: (value: AlertDialogCompositionMode) => void;
   setCancelComposition: (value: AlertDialogCompositionMode) => void;
@@ -68,6 +84,9 @@ export type AlertDialogScenarioActions = {
   handleCancelClick: (event: ReactMouseEvent<HTMLElement>) => void;
   handleActionClick: (event: ReactMouseEvent<HTMLElement>) => void;
   handleOverlayClick: () => void;
+  markPartRef: (part: AlertDialogRefPart, element: HTMLElement | null) => void;
+  testDisabledTriggerKey: (key: "Enter" | " ") => void;
+  testFocusEscape: () => void;
   clearLog: () => void;
 };
 
@@ -76,9 +95,12 @@ export function useAlertDialogScenario() {
   const [controlled, setControlled] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const [keepMounted, setKeepMounted] = useState(false);
+  const [portalDisabled, setPortalDisabled] = useState(false);
+  const [overlayDisabled, setOverlayDisabled] = useState(false);
   const [closeOnEscape, setCloseOnEscape] = useState(true);
   const [useAriaLabel, setUseAriaLabel] = useState(false);
   const [cancelAutoFocus, setCancelAutoFocus] = useState(true);
+  const [showNestedSelect, setShowNestedSelect] = useState(false);
   const [titleHeadingLevel, setTitleHeadingLevel] =
     useState<AlertDialogHeadingLevel>("h2");
   const [triggerComposition, setTriggerComposition] =
@@ -100,6 +122,7 @@ export function useAlertDialogScenario() {
   const [customActionSlot, setCustomActionSlot] = useState(false);
   const [open, setOpen] = useState(false);
   const [log, setLog] = useState<AlertDialogLogEntry[]>([]);
+  const [refs, setRefs] = useState<AlertDialogRefSnapshot>(emptyAlertDialogRefSnapshot);
 
   const addLog = useCallback((text: string) => {
     setLog((currentLog) => [
@@ -170,6 +193,62 @@ export function useAlertDialogScenario() {
     addLog("overlay clicked; alert dialog stays open");
   }, [addLog]);
 
+  const markPartRef = useCallback((part: AlertDialogRefPart, element: HTMLElement | null) => {
+    if (!element) return;
+
+    const nextValue = element.tagName.toLowerCase();
+
+    setRefs((currentRefs) => {
+      if (currentRefs[part] === nextValue) return currentRefs;
+
+      return {
+        ...currentRefs,
+        [part]: nextValue,
+      };
+    });
+  }, []);
+
+  const testDisabledTriggerKey = useCallback((key: "Enter" | " ") => {
+    const trigger = document.querySelector<HTMLElement>("[data-alert-dialog-trigger]");
+    if (!trigger) {
+      addLog("disabled trigger probe failed: no trigger");
+      return;
+    }
+
+    trigger.dispatchEvent(new KeyboardEvent("keydown", {
+      bubbles: true,
+      cancelable: true,
+      key,
+    }));
+
+    requestAnimationFrame(() => {
+      const content = document.querySelector("[data-alert-dialog-content]");
+      const stayedClosed = !content || content.getAttribute("data-state") === "closed";
+      addLog(
+        stayedClosed
+          ? `disabled trigger blocked ${key === " " ? "Space" : "Enter"}`
+          : `disabled trigger opened with ${key === " " ? "Space" : "Enter"}`,
+      );
+    });
+  }, [addLog]);
+
+  const testFocusEscape = useCallback(() => {
+    const behindButton = document.querySelector<HTMLButtonElement>("[data-alert-dialog-behind]");
+    const content = document.querySelector<HTMLElement>("[data-alert-dialog-content]");
+
+    if (!behindButton || !content) {
+      addLog("focus escape probe skipped");
+      return;
+    }
+
+    behindButton.focus();
+
+    requestAnimationFrame(() => {
+      const activeElement = document.activeElement;
+      addLog(`focus stayed inside alert dialog: ${content.contains(activeElement) ? "yes" : "no"}`);
+    });
+  }, [addLog]);
+
   const clearLog = useCallback(() => {
     setLog([]);
   }, []);
@@ -179,9 +258,12 @@ export function useAlertDialogScenario() {
       controlled,
       disabled,
       keepMounted,
+      portalDisabled,
+      overlayDisabled,
       closeOnEscape,
       useAriaLabel,
       cancelAutoFocus,
+      showNestedSelect,
       titleHeadingLevel,
       triggerComposition,
       cancelComposition,
@@ -199,14 +281,18 @@ export function useAlertDialogScenario() {
       customActionSlot,
       open,
       log,
+      refs,
     },
     actions: {
       setControlled,
       setDisabled,
       setKeepMounted,
+      setPortalDisabled,
+      setOverlayDisabled,
       setCloseOnEscape,
       setUseAriaLabel,
       setCancelAutoFocus,
+      setShowNestedSelect,
       setTitleHeadingLevel,
       setTriggerComposition,
       setCancelComposition,
@@ -229,10 +315,23 @@ export function useAlertDialogScenario() {
       handleCancelClick,
       handleActionClick,
       handleOverlayClick,
+      markPartRef,
+      testDisabledTriggerKey,
+      testFocusEscape,
       clearLog,
     },
   };
 }
+
+const emptyAlertDialogRefSnapshot: AlertDialogRefSnapshot = {
+  trigger: "none",
+  overlay: "none",
+  content: "none",
+  title: "none",
+  description: "none",
+  cancel: "none",
+  action: "none",
+};
 
 function getLogTime() {
   return new Intl.DateTimeFormat("en-US", {

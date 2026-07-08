@@ -1,11 +1,13 @@
 import { AlertDialog } from "@flowstack-ui/atom/alert-dialog";
 import { Button } from "@flowstack-ui/atom/button";
+import { Select } from "@flowstack-ui/atom/select";
 import {
   AnatomyPanel,
   type AnatomySection,
 } from "../AnatomyPanel";
 import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup, partProps } from "../WorkbenchPrimitives";
-import type { Dispatch, ReactNode, SetStateAction } from "react";
+import { useCallback } from "react";
+import type { Dispatch, HTMLAttributes, ReactNode, RefAttributes, SetStateAction } from "react";
 import type {
   AlertDialogCompositionMode,
   AlertDialogHeadingLevel,
@@ -23,9 +25,44 @@ export function AlertDialogScenarioCanvas({
   const rootProps = state.controlled
     ? { open: state.open, onOpenChange: actions.handleOpenChange }
     : { defaultOpen: false, onOpenChange: actions.handleOpenChange };
+  const triggerRef = useCallback(
+    (element: HTMLElement | null) => actions.markPartRef("trigger", element),
+    [actions],
+  );
+  const overlayRef = useCallback(
+    (element: HTMLDivElement | null) => actions.markPartRef("overlay", element),
+    [actions],
+  );
+  const contentRef = useCallback(
+    (element: HTMLDivElement | null) => actions.markPartRef("content", element),
+    [actions],
+  );
+  const titleRef = useCallback(
+    (element: HTMLHeadingElement | null) => actions.markPartRef("title", element),
+    [actions],
+  );
+  const descriptionRef = useCallback(
+    (element: HTMLParagraphElement | null) => actions.markPartRef("description", element),
+    [actions],
+  );
+  const cancelRef = useCallback(
+    (element: HTMLElement | null) => actions.markPartRef("cancel", element),
+    [actions],
+  );
+  const actionRef = useCallback(
+    (element: HTMLElement | null) => actions.markPartRef("action", element),
+    [actions],
+  );
 
   return (
     <div className="dialog-stage">
+      <Button.Root
+        className="behind-dialog-button"
+        data-alert-dialog-behind
+        tabIndex={-1}
+      >
+        Behind alert dialog
+      </Button.Root>
       <AlertDialog.Root
         {...rootProps}
         disabled={state.disabled}
@@ -34,11 +71,22 @@ export function AlertDialogScenarioCanvas({
       >
         <AlertDialogTriggerExample
           customSlot={state.customTriggerSlot}
+          elementRef={triggerRef}
           mode={state.triggerComposition}
           onClick={actions.handleTriggerClick}
           onKeyDown={actions.handleTriggerKeyDown}
           propCheck={state.propCheck}
         />
+        {state.disabled && !state.open ? (
+          <div className="dialog-probes" aria-label="Disabled alert dialog trigger probes">
+            <Button.Root onPress={() => actions.testDisabledTriggerKey("Enter")}>
+              Test Enter
+            </Button.Root>
+            <Button.Root onPress={() => actions.testDisabledTriggerKey(" ")}>
+              Test Space
+            </Button.Root>
+          </div>
+        ) : null}
         {state.controlled ? (
           <Button.Root
             className="atom-button secondary"
@@ -47,13 +95,15 @@ export function AlertDialogScenarioCanvas({
             Open controlled
           </Button.Root>
         ) : null}
-        <AlertDialog.Portal>
+        <AlertDialog.Portal disabled={state.portalDisabled}>
           <AlertDialog.Overlay
             className="atom-dialog-overlay"
             data-alert-dialog-overlay=""
             data-playground-inspect=""
+            disabled={state.overlayDisabled}
             {...partProps("overlay", { customSlot: state.customOverlaySlot, propCheck: state.propCheck }, "alert-dialog-overlay-custom")}
             onClick={actions.handleOverlayClick}
+            ref={overlayRef}
           />
           <AlertDialog.Content
             ariaLabel={state.useAriaLabel ? "Delete project confirmation" : undefined}
@@ -61,12 +111,14 @@ export function AlertDialogScenarioCanvas({
             data-alert-dialog-content=""
             data-playground-inspect=""
             {...partProps("content", { customSlot: state.customContentSlot, propCheck: state.propCheck }, "alert-dialog-content-custom")}
+            ref={contentRef}
           >
             {state.useAriaLabel ? null : (
               <AlertDialog.Title
                 as={state.titleHeadingLevel}
                 data-alert-dialog-title=""
                 {...partProps("title", { customSlot: state.customTitleSlot, propCheck: state.propCheck }, "alert-dialog-title-custom")}
+                ref={titleRef}
               >
                 Delete project?
               </AlertDialog.Title>
@@ -74,10 +126,35 @@ export function AlertDialogScenarioCanvas({
             <AlertDialog.Description
               data-alert-dialog-description=""
               {...partProps("description", { customSlot: state.customDescriptionSlot, propCheck: state.propCheck }, "alert-dialog-description-custom")}
+              ref={descriptionRef}
             >
               This action cannot be undone. Test cancel autofocus, action reasons, Escape, and backdrop behavior.
             </AlertDialog.Description>
+            {state.showNestedSelect ? (
+              <Select.Root defaultValue="archive">
+                <Select.Trigger className="atom-select-trigger" data-alert-dialog-nested-trigger="">
+                  <Select.Value />
+                  <Select.Icon>v</Select.Icon>
+                </Select.Trigger>
+                <Select.Content className="atom-select-content" ariaLabel="Nested action">
+                  <Select.Viewport className="atom-select-viewport">
+                    <Select.Item className="atom-select-item" value="archive">
+                      <Select.ItemText>Archive instead</Select.ItemText>
+                    </Select.Item>
+                    <Select.Item className="atom-select-item" value="delete">
+                      <Select.ItemText>Delete permanently</Select.ItemText>
+                    </Select.Item>
+                  </Select.Viewport>
+                </Select.Content>
+              </Select.Root>
+            ) : null}
             <div className="dialog-actions">
+              <Button.Root
+                className="atom-button secondary"
+                onPress={actions.testFocusEscape}
+              >
+                Test focus escape
+              </Button.Root>
               {state.controlled ? (
                 <Button.Root
                   className="atom-button secondary"
@@ -89,6 +166,7 @@ export function AlertDialogScenarioCanvas({
               <AlertDialogCancelExample
                 autoFocus={state.cancelAutoFocus}
                 customSlot={state.customCancelSlot}
+                elementRef={cancelRef}
                 mode={state.cancelComposition}
                 onClick={actions.handleCancelClick}
                 propCheck={state.propCheck}
@@ -97,6 +175,7 @@ export function AlertDialogScenarioCanvas({
               </AlertDialogCancelExample>
               <AlertDialogActionExample
                 customSlot={state.customActionSlot}
+                elementRef={actionRef}
                 mode={state.actionComposition}
                 onClick={actions.handleActionClick}
                 propCheck={state.propCheck}
@@ -107,9 +186,6 @@ export function AlertDialogScenarioCanvas({
           </AlertDialog.Content>
         </AlertDialog.Portal>
       </AlertDialog.Root>
-      <Button.Root className="behind-dialog-button" tabIndex={-1}>
-        Behind alert dialog
-      </Button.Root>
     </div>
   );
 }
@@ -140,9 +216,12 @@ export function AlertDialogScenarioAnatomy({
         { label: "Open", value: state.open ? "yes" : "no", category: "state" },
         { label: "Disabled", value: state.disabled ? "yes" : "no", category: "state" },
         { label: "Keep mounted", value: state.keepMounted ? "yes" : "no", category: "state" },
+        { label: "Portal disabled", value: state.portalDisabled ? "yes" : "no", category: "state" },
+        { label: "Overlay disabled", value: state.overlayDisabled ? "yes" : "no", category: "state" },
         { label: "Escape closes", value: state.closeOnEscape ? "yes" : "no", category: "state" },
         { label: "Backdrop closes", value: "no", category: "state" },
         { label: "Cancel autofocus", value: state.cancelAutoFocus ? "yes" : "no", category: "state" },
+        { label: "Nested layer", value: state.showNestedSelect ? "select" : "none", category: "state" },
         { label: "Block trigger event", value: state.blockTriggerEvent ? "yes" : "no", category: "state" },
         { label: "Block cancel close", value: state.blockCancelClose ? "yes" : "no", category: "state" },
         { label: "Block action close", value: state.blockActionClose ? "yes" : "no", category: "state" },
@@ -154,6 +233,8 @@ export function AlertDialogScenarioAnatomy({
       summary: trigger?.dataset.state ?? "not rendered",
       rows: [
         { label: "Exists", value: trigger ? "yes" : "no", category: "presence" },
+        { label: "Ref", value: state.refs.trigger, category: "identity" },
+        { label: "tag", value: trigger?.tagName.toLowerCase() ?? "none", category: "identity" },
         { label: "Composition", value: state.triggerComposition, category: "composition" },
         { label: "aria-controls", value: trigger?.getAttribute("aria-controls") ?? "none", category: "aria" },
         { label: "aria-expanded", value: trigger?.getAttribute("aria-expanded") ?? "none", category: "aria" },
@@ -168,6 +249,7 @@ export function AlertDialogScenarioAnatomy({
         { label: "Content exists", value: content ? "yes" : "no", category: "presence" },
         { label: "Parent", value: content?.parentElement?.tagName.toLowerCase() ?? "none", category: "behavior" },
         { label: "Inside canvas", value: content?.closest(".canvas") ? "yes" : "no", category: "behavior" },
+        { label: "Disabled", value: state.portalDisabled ? "yes" : "no", category: "state" },
       ],
     },
     {
@@ -177,6 +259,8 @@ export function AlertDialogScenarioAnatomy({
       summary: overlay?.dataset.state ?? "not rendered",
       rows: [
         { label: "Exists", value: overlay ? "yes" : "no", category: "presence" },
+        { label: "Ref", value: state.refs.overlay, category: "identity" },
+        { label: "Disabled", value: state.overlayDisabled ? "yes" : "no", category: "state" },
         { label: "data-state", value: overlay?.dataset.state ?? "none", category: "data" },
         { label: "data-positioned", value: overlay?.hasAttribute("data-positioned") ? "yes" : "no", category: "data" },
         { label: "Backdrop closes", value: "no", category: "behavior" },
@@ -189,6 +273,8 @@ export function AlertDialogScenarioAnatomy({
       summary: content?.dataset.state ?? "not rendered",
       rows: [
         { label: "Exists", value: content ? "yes" : "no", category: "presence" },
+        { label: "Ref", value: state.refs.content, category: "identity" },
+        { label: "tag", value: content?.tagName.toLowerCase() ?? "none", category: "identity" },
         { label: "role", value: content?.getAttribute("role") ?? "none", category: "aria" },
         { label: "aria-modal", value: content?.getAttribute("aria-modal") ?? "none", category: "aria" },
         { label: "aria-label", value: content?.getAttribute("aria-label") ?? "none", category: "aria" },
@@ -196,6 +282,7 @@ export function AlertDialogScenarioAnatomy({
         { label: "aria-describedby", value: content?.getAttribute("aria-describedby") ?? "none", category: "aria" },
         { label: "data-state", value: content?.dataset.state ?? "none", category: "data" },
         { label: "data-positioned", value: content?.hasAttribute("data-positioned") ? "yes" : "no", category: "data" },
+        { label: "Nested layer", value: state.showNestedSelect ? "select" : "none", category: "behavior" },
       ],
     },
     {
@@ -205,6 +292,7 @@ export function AlertDialogScenarioAnatomy({
       summary: title ? title.tagName.toLowerCase() : "not rendered",
       rows: [
         { label: "Exists", value: title ? "yes" : "no", category: "presence" },
+        { label: "Ref", value: state.refs.title, category: "identity" },
         { label: "id", value: title?.id ?? "none", category: "identity" },
         { label: "Matches label", value: content?.getAttribute("aria-labelledby") === title?.id ? "yes" : "no", category: "behavior" },
       ],
@@ -216,6 +304,7 @@ export function AlertDialogScenarioAnatomy({
       summary: description ? "rendered" : "not rendered",
       rows: [
         { label: "Exists", value: description ? "yes" : "no", category: "presence" },
+        { label: "Ref", value: state.refs.description, category: "identity" },
         { label: "id", value: description?.id ?? "none", category: "identity" },
         { label: "Matches description", value: content?.getAttribute("aria-describedby") === description?.id ? "yes" : "no", category: "behavior" },
       ],
@@ -227,6 +316,8 @@ export function AlertDialogScenarioAnatomy({
       summary: state.cancelComposition,
       rows: [
         { label: "Exists", value: cancel ? "yes" : "no", category: "presence" },
+        { label: "Ref", value: state.refs.cancel, category: "identity" },
+        { label: "tag", value: cancel?.tagName.toLowerCase() ?? "none", category: "identity" },
         { label: "Composition", value: state.cancelComposition, category: "composition" },
         { label: "Autofocus", value: state.cancelAutoFocus ? "yes" : "no", category: "behavior" },
       ],
@@ -238,6 +329,8 @@ export function AlertDialogScenarioAnatomy({
       summary: state.actionComposition,
       rows: [
         { label: "Exists", value: action ? "yes" : "no", category: "presence" },
+        { label: "Ref", value: state.refs.action, category: "identity" },
+        { label: "tag", value: action?.tagName.toLowerCase() ?? "none", category: "identity" },
         { label: "Composition", value: state.actionComposition, category: "composition" },
       ],
     },
@@ -267,10 +360,28 @@ export function AlertDialogScenarioToolbar({
           <MenuCheckboxControl checked={state.controlled} label="Controlled" value="controlled" onChange={actions.setControlled} />
           <MenuCheckboxControl checked={state.disabled} label="Disabled" value="disabled" onChange={actions.setDisabled} />
           <MenuCheckboxControl checked={state.keepMounted} label="Keep mounted" value="keep-mounted" onChange={actions.setKeepMounted} />
-          <MenuCheckboxControl checked={state.closeOnEscape} label="Escape closes" value="escape-closes" onChange={actions.setCloseOnEscape} />
         </MenuSection>
         <MenuSection label="Focus">
           <MenuCheckboxControl checked={state.cancelAutoFocus} label="Cancel autofocus" value="cancel-autofocus" onChange={actions.setCancelAutoFocus} />
+        </MenuSection>
+      </ToolbarGroup>
+      <ToolbarGroup title="Popup" value="popup">
+        <MenuSection label="Portal">
+          <MenuCheckboxControl checked={state.portalDisabled} label="Disable portal" value="disable-portal" onChange={actions.setPortalDisabled} />
+        </MenuSection>
+        <MenuSection label="Overlay">
+          <MenuCheckboxControl checked={state.overlayDisabled} label="Disable overlay" value="disable-overlay" onChange={actions.setOverlayDisabled} />
+        </MenuSection>
+      </ToolbarGroup>
+      <ToolbarGroup title="Dismiss" value="dismiss">
+        <MenuSection label="Close behavior">
+          <MenuCheckboxControl checked={state.closeOnEscape} label="Escape closes" value="escape-closes" onChange={actions.setCloseOnEscape} />
+          <MenuCheckboxControl checked={state.showNestedSelect} label="Nested select" value="nested-select" onChange={actions.setShowNestedSelect} />
+        </MenuSection>
+        <MenuSection label="Blocked events">
+          <MenuCheckboxControl checked={state.blockTriggerEvent} label="Block trigger event" value="block-trigger-event" onChange={actions.setBlockTriggerEvent} />
+          <MenuCheckboxControl checked={state.blockCancelClose} label="Block cancel close" value="block-cancel-close" onChange={actions.setBlockCancelClose} />
+          <MenuCheckboxControl checked={state.blockActionClose} label="Block action close" value="block-action-close" onChange={actions.setBlockActionClose} />
         </MenuSection>
       </ToolbarGroup>
       <ToolbarGroup title="ARIA" value="aria">
@@ -283,11 +394,6 @@ export function AlertDialogScenarioToolbar({
         <MenuRadioControl label="Trigger" options={compositionOptions} value={state.triggerComposition} onChange={actions.setTriggerComposition} />
         <MenuRadioControl label="Cancel button" options={compositionOptions} value={state.cancelComposition} onChange={actions.setCancelComposition} />
         <MenuRadioControl label="Action button" options={compositionOptions} value={state.actionComposition} onChange={actions.setActionComposition} />
-        <MenuSection label="Blocked events">
-          <MenuCheckboxControl checked={state.blockTriggerEvent} label="Block trigger event" value="block-trigger-event" onChange={actions.setBlockTriggerEvent} />
-          <MenuCheckboxControl checked={state.blockCancelClose} label="Block cancel close" value="block-cancel-close" onChange={actions.setBlockCancelClose} />
-          <MenuCheckboxControl checked={state.blockActionClose} label="Block action close" value="block-action-close" onChange={actions.setBlockActionClose} />
-        </MenuSection>
       </ToolbarGroup>
       <PropsToolbarGroup
         propCheck={state.propCheck}
@@ -311,18 +417,22 @@ export function AlertDialogScenarioLog({ state }: { state: AlertDialogScenarioSt
 }
 
 export function getAlertDialogSource(state: AlertDialogScenarioState) {
-  const rootMode = state.controlled ? "open={open}" : "defaultOpen={false}";
+  const rootProps = sourceProps([
+    state.controlled ? "open={open}" : null,
+    state.disabled ? "disabled" : null,
+    state.keepMounted ? "keepMounted" : null,
+    state.closeOnEscape ? null : "closeOnEscape={false}",
+    "onOpenChange={handleOpenChange}",
+  ]);
+  const portalProps = sourceProps([
+    state.portalDisabled ? "disabled" : null,
+  ]);
 
-  return `<AlertDialog.Root
-  ${rootMode}
-  disabled={${state.disabled}}
-  keepMounted={${state.keepMounted}}
-  closeOnEscape={${state.closeOnEscape}}
-  onOpenChange={handleOpenChange}
->
+  return `<AlertDialog.Root${rootProps}>
   ${getAlertDialogTriggerSource(state)}
-  <AlertDialog.Portal>
+  <AlertDialog.Portal${portalProps}>
     <AlertDialog.Overlay${sourceProps([
+      state.overlayDisabled ? "disabled" : null,
       state.customOverlaySlot ? `data-slot="alert-dialog-overlay-custom"` : null,
       state.propCheck ? `data-prop-check="overlay"` : null,
     ])} />
@@ -341,6 +451,22 @@ export function getAlertDialogSource(state: AlertDialogScenarioState) {
       ])}>
         This action cannot be undone.
       </AlertDialog.Description>
+      ${state.showNestedSelect ? `<Select.Root defaultValue="archive">
+        <Select.Trigger>
+          <Select.Value />
+          <Select.Icon>v</Select.Icon>
+        </Select.Trigger>
+        <Select.Content ariaLabel="Nested action">
+          <Select.Viewport>
+            <Select.Item value="archive">
+              <Select.ItemText>Archive instead</Select.ItemText>
+            </Select.Item>
+            <Select.Item value="delete">
+              <Select.ItemText>Delete permanently</Select.ItemText>
+            </Select.Item>
+          </Select.Viewport>
+        </Select.Content>
+      </Select.Root>` : ""}
       ${getAlertDialogCancelSource(state)}
       ${getAlertDialogActionSource(state)}
     </AlertDialog.Content>
@@ -350,12 +476,14 @@ export function getAlertDialogSource(state: AlertDialogScenarioState) {
 
 function AlertDialogTriggerExample({
   customSlot,
+  elementRef,
   mode,
   onClick,
   onKeyDown,
   propCheck,
 }: {
   customSlot: boolean;
+  elementRef: (element: HTMLElement | null) => void;
   mode: AlertDialogCompositionMode;
   onClick: AlertDialogScenarioActions["handleTriggerClick"];
   onKeyDown: AlertDialogScenarioActions["handleTriggerKeyDown"];
@@ -368,6 +496,7 @@ function AlertDialogTriggerExample({
     ...partProps("trigger", { customSlot, propCheck }, "alert-dialog-trigger-custom"),
     onClick,
     onKeyDown,
+    ref: elementRef,
   };
 
   if (mode === "asChild") {
@@ -380,7 +509,7 @@ function AlertDialogTriggerExample({
 
   if (mode === "render") {
     return (
-      <AlertDialog.Trigger render={<section />} {...props}>
+      <AlertDialog.Trigger render={renderButtonControl} {...props}>
         Delete project
       </AlertDialog.Trigger>
     );
@@ -393,6 +522,7 @@ function AlertDialogCancelExample({
   autoFocus,
   children,
   customSlot,
+  elementRef,
   mode,
   onClick,
   propCheck,
@@ -400,6 +530,7 @@ function AlertDialogCancelExample({
   autoFocus: boolean;
   children: ReactNode;
   customSlot: boolean;
+  elementRef: (element: HTMLElement | null) => void;
   mode: AlertDialogCompositionMode;
   onClick: AlertDialogScenarioActions["handleCancelClick"];
   propCheck: boolean;
@@ -411,6 +542,7 @@ function AlertDialogCancelExample({
     "data-playground-inspect": "",
     ...partProps("cancel", { customSlot, propCheck }, "alert-dialog-cancel-custom"),
     onClick,
+    ref: elementRef,
   };
 
   if (mode === "asChild") {
@@ -423,7 +555,7 @@ function AlertDialogCancelExample({
 
   if (mode === "render") {
     return (
-      <AlertDialog.Cancel render={<section />} {...props}>
+      <AlertDialog.Cancel render={renderButtonControl} {...props}>
         {children}
       </AlertDialog.Cancel>
     );
@@ -435,12 +567,14 @@ function AlertDialogCancelExample({
 function AlertDialogActionExample({
   children,
   customSlot,
+  elementRef,
   mode,
   onClick,
   propCheck,
 }: {
   children: ReactNode;
   customSlot: boolean;
+  elementRef: (element: HTMLElement | null) => void;
   mode: AlertDialogCompositionMode;
   onClick: AlertDialogScenarioActions["handleActionClick"];
   propCheck: boolean;
@@ -451,6 +585,7 @@ function AlertDialogActionExample({
     "data-playground-inspect": "",
     ...partProps("action", { customSlot, propCheck }, "alert-dialog-action-custom"),
     onClick,
+    ref: elementRef,
   };
 
   if (mode === "asChild") {
@@ -463,7 +598,7 @@ function AlertDialogActionExample({
 
   if (mode === "render") {
     return (
-      <AlertDialog.Action render={<section />} {...props}>
+      <AlertDialog.Action render={renderButtonControl} {...props}>
         {children}
       </AlertDialog.Action>
     );
@@ -476,6 +611,8 @@ function getAlertDialogTriggerSource(state: AlertDialogScenarioState) {
   const props = sourceProps([
     state.customTriggerSlot ? `data-slot="alert-dialog-trigger-custom"` : null,
     state.propCheck ? `data-prop-check="trigger"` : null,
+    state.blockTriggerEvent ? `onClick={(event) => event.preventDefault()}` : null,
+    state.blockTriggerEvent ? `onKeyDown={(event) => event.preventDefault()}` : null,
   ]);
   if (state.triggerComposition === "asChild") {
     return `<AlertDialog.Trigger${props} asChild>
@@ -484,7 +621,7 @@ function getAlertDialogTriggerSource(state: AlertDialogScenarioState) {
   }
 
   if (state.triggerComposition === "render") {
-    return `<AlertDialog.Trigger${props} render={<section />}>
+    return `<AlertDialog.Trigger${props} render={(props) => <button {...props} />}>
     Delete project
   </AlertDialog.Trigger>`;
   }
@@ -496,26 +633,28 @@ function getAlertDialogCancelSource(state: AlertDialogScenarioState) {
   const props = sourceProps([
     state.customCancelSlot ? `data-slot="alert-dialog-cancel-custom"` : null,
     state.propCheck ? `data-prop-check="cancel"` : null,
+    state.blockCancelClose ? `onClick={(event) => event.preventDefault()}` : null,
   ]);
   if (state.cancelComposition === "asChild") {
-    return `<AlertDialog.Cancel${props} asChild autoFocus={${state.cancelAutoFocus}}>
+    return `<AlertDialog.Cancel${props} asChild${state.cancelAutoFocus ? "" : " autoFocus={false}"}>
         <span>Cancel</span>
       </AlertDialog.Cancel>`;
   }
 
   if (state.cancelComposition === "render") {
-    return `<AlertDialog.Cancel${props} render={<section />} autoFocus={${state.cancelAutoFocus}}>
+    return `<AlertDialog.Cancel${props} render={(props) => <button {...props} />}${state.cancelAutoFocus ? "" : " autoFocus={false}"}>
         Cancel
       </AlertDialog.Cancel>`;
   }
 
-  return `<AlertDialog.Cancel${props} autoFocus={${state.cancelAutoFocus}}>Cancel</AlertDialog.Cancel>`;
+  return `<AlertDialog.Cancel${props}${state.cancelAutoFocus ? "" : " autoFocus={false}"}>Cancel</AlertDialog.Cancel>`;
 }
 
 function getAlertDialogActionSource(state: AlertDialogScenarioState) {
   const props = sourceProps([
     state.customActionSlot ? `data-slot="alert-dialog-action-custom"` : null,
     state.propCheck ? `data-prop-check="action"` : null,
+    state.blockActionClose ? `onClick={(event) => event.preventDefault()}` : null,
   ]);
   if (state.actionComposition === "asChild") {
     return `<AlertDialog.Action${props} asChild>
@@ -524,7 +663,7 @@ function getAlertDialogActionSource(state: AlertDialogScenarioState) {
   }
 
   if (state.actionComposition === "render") {
-    return `<AlertDialog.Action${props} render={<section />}>
+    return `<AlertDialog.Action${props} render={(props) => <button {...props} />}>
         Delete
       </AlertDialog.Action>`;
   }
@@ -535,6 +674,20 @@ function getAlertDialogActionSource(state: AlertDialogScenarioState) {
 function sourceProps(props: Array<string | null | undefined | false>) {
   const visibleProps = props.filter(Boolean);
   return visibleProps.length > 0 ? ` ${visibleProps.join(" ")}` : "";
+}
+
+function renderButtonControl(props: Record<string, unknown>) {
+  const { className, children, ...elementProps } = props as HTMLAttributes<HTMLButtonElement> &
+    RefAttributes<HTMLButtonElement>;
+
+  return (
+    <button
+      {...elementProps}
+      className={["composition-control", className].filter(Boolean).join(" ")}
+    >
+      {children}
+    </button>
+  );
 }
 
 const compositionOptions = [
