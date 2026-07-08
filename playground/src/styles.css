@@ -1708,6 +1708,40 @@ h2 {
   transform: translate(-50%, -50%);
 }
 
+.utility-modal-surface.nested {
+  z-index: 100;
+  width: min(360px, calc(100vw - 48px));
+}
+
+.utility-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: rgba(24, 34, 50, 0.28);
+}
+
+.utility-modal-overlay.nested {
+  z-index: 90;
+  background: rgba(24, 34, 50, 0.38);
+}
+
+.utility-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.utility-modal-container {
+  position: fixed;
+  inset: 24px;
+  z-index: 65;
+  pointer-events: none;
+}
+
+.utility-modal-container > * {
+  pointer-events: auto;
+}
+
 .utility-drawer-overlay {
   position: fixed;
   inset: 0;

@@ -3,7 +3,7 @@ import { useCollection, type UseCollectionReturn } from "@flowstack-ui/atom/coll
 import { Direction, useDirection } from "@flowstack-ui/atom/direction";
 import { Drawer } from "@flowstack-ui/atom/drawer";
 import { Menubar } from "@flowstack-ui/atom/menubar";
-import { Modal } from "@flowstack-ui/atom/modal";
+import { Modal, useModalContent } from "@flowstack-ui/atom/modal";
 import { NavigationMenu } from "@flowstack-ui/atom/navigation-menu";
 import { Portal } from "@flowstack-ui/atom/portal";
 import { Pressable } from "@flowstack-ui/atom/pressable";
@@ -22,6 +22,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type ButtonHTMLAttributes,
   type Dispatch,
   type KeyboardEvent,
   type MouseEvent,
@@ -29,7 +30,7 @@ import {
   type SetStateAction,
 } from "react";
 import { AnatomyPanel, type AnatomySection } from "../AnatomyPanel";
-import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup, partProps } from "../WorkbenchPrimitives";
+import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup, partProps } from "../WorkbenchPrimitives";
 
 type CompositionMode = "default" | "asChild" | "render";
 type ProgressMode = "determinate" | "complete" | "indeterminate" | "invalid";
@@ -134,27 +135,79 @@ function useDirectionScenario() {
 function useModalScenario() {
   const [controlled, setControlled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [nestedOpen, setNestedOpen] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const [keepMounted, setKeepMounted] = useState(false);
   const [closeOnEscape, setCloseOnEscape] = useState(true);
   const [closeOnBackdropClick, setCloseOnBackdropClick] = useState(true);
+  const [portalDisabled, setPortalDisabled] = useState(false);
+  const [customContainer, setCustomContainer] = useState(false);
+  const [triggerComposition, setTriggerComposition] = useState<CompositionMode>("default");
+  const [closeComposition, setCloseComposition] = useState<CompositionMode>("default");
+  const [blockTriggerEvent, setBlockTriggerEvent] = useState(false);
+  const [blockCloseEvent, setBlockCloseEvent] = useState(false);
+  const [propCheck, setPropCheck] = useState(false);
+  const [customTriggerSlot, setCustomTriggerSlot] = useState(false);
+  const [customTitleSlot, setCustomTitleSlot] = useState(false);
+  const [customDescriptionSlot, setCustomDescriptionSlot] = useState(false);
+  const [customCloseSlot, setCustomCloseSlot] = useState(false);
   const { log, addLog, clearLog } = useScenarioLog();
 
   const handleOpenChange = (nextOpen: boolean, reason?: string) => {
     setOpen(nextOpen);
+    if (!nextOpen) setNestedOpen(false);
     addLog(nextOpen ? "opened" : `closed${reason ? ` by ${reason}` : ""}`);
   };
 
+  const handleNestedOpenChange = (nextOpen: boolean, reason?: string) => {
+    setNestedOpen(nextOpen);
+    addLog(nextOpen ? "nested opened" : `nested closed${reason ? ` by ${reason}` : ""}`);
+  };
+
   return {
-    state: { controlled, open, disabled, keepMounted, closeOnEscape, closeOnBackdropClick, log },
+    state: {
+      controlled,
+      open,
+      nestedOpen,
+      disabled,
+      keepMounted,
+      closeOnEscape,
+      closeOnBackdropClick,
+      portalDisabled,
+      customContainer,
+      triggerComposition,
+      closeComposition,
+      blockTriggerEvent,
+      blockCloseEvent,
+      propCheck,
+      customTriggerSlot,
+      customTitleSlot,
+      customDescriptionSlot,
+      customCloseSlot,
+      log,
+    },
     actions: {
       setControlled,
       setOpen,
+      setNestedOpen,
       setDisabled,
       setKeepMounted,
       setCloseOnEscape,
       setCloseOnBackdropClick,
+      setPortalDisabled,
+      setCustomContainer,
+      setTriggerComposition,
+      setCloseComposition,
+      setBlockTriggerEvent,
+      setBlockCloseEvent,
+      setPropCheck,
+      setCustomTriggerSlot,
+      setCustomTitleSlot,
+      setCustomDescriptionSlot,
+      setCustomCloseSlot,
       handleOpenChange,
+      handleNestedOpenChange,
+      noteModalEvent: addLog,
       clearLog,
     },
   };
@@ -714,6 +767,41 @@ function useVirtualizerScenario() {
 
 export type UtilityPrimitiveScenarios = ReturnType<typeof useUtilityPrimitiveScenarios>;
 
+function CompositionModeRadioGroup({
+  value,
+  onChange,
+}: {
+  value: CompositionMode;
+  onChange: (value: CompositionMode) => void;
+}) {
+  const labels: Record<CompositionMode, string> = {
+    default: "Default",
+    asChild: "As Child",
+    render: "Render",
+  };
+
+  return (
+    <Menubar.RadioGroup
+      className="toolbar-radio-group"
+      value={value}
+      onValueChange={(nextValue) => onChange(nextValue as CompositionMode)}
+    >
+      {compositionOptions.map((option) => (
+        <Menubar.RadioItem
+          className="toolbar-menu-item"
+          key={option}
+          value={option}
+        >
+          <span>{labels[option]}</span>
+          <span className="toolbar-menu-check" aria-hidden="true">
+            {value === option ? "✓" : ""}
+          </span>
+        </Menubar.RadioItem>
+      ))}
+    </Menubar.RadioGroup>
+  );
+}
+
 export function UtilityPrimitiveScenarioToolbar({
   scenarioId,
   scenarios,
@@ -742,15 +830,71 @@ export function UtilityPrimitiveScenarioToolbar({
     return (
       <ControlToolbar label="Modal controls">
         <ToolbarGroup title="State" value="state">
-          <MenuCheckboxControl checked={scenario.state.controlled} label="Controlled" value="controlled" onChange={scenario.actions.setControlled} />
-          <MenuCheckboxControl checked={scenario.state.open} label="Open" value="open" onChange={scenario.actions.setOpen} />
-          <MenuCheckboxControl checked={scenario.state.disabled} label="Disabled" value="disabled" onChange={scenario.actions.setDisabled} />
-          <MenuCheckboxControl checked={scenario.state.keepMounted} label="Keep mounted" value="keep-mounted" onChange={scenario.actions.setKeepMounted} />
+          <MenuSection label="Controlled State">
+            <MenuCheckboxControl checked={scenario.state.controlled} label="Controlled" value="controlled" onChange={scenario.actions.setControlled} />
+          </MenuSection>
+          {scenario.state.controlled ? (
+            <MenuSection label="Controlled Value">
+              <MenuCheckboxControl checked={scenario.state.open} label="Modal Open" value="open" onChange={scenario.actions.setOpen} />
+            </MenuSection>
+          ) : null}
+          <MenuSection label="Root Options">
+            <MenuCheckboxControl checked={scenario.state.disabled} label="Disabled" value="disabled" onChange={scenario.actions.setDisabled} />
+            <MenuCheckboxControl checked={scenario.state.keepMounted} label="Keep mounted" value="keep-mounted" onChange={scenario.actions.setKeepMounted} />
+          </MenuSection>
         </ToolbarGroup>
         <ToolbarGroup title="Dismiss" value="dismiss">
           <MenuCheckboxControl checked={scenario.state.closeOnEscape} label="Escape closes" value="escape" onChange={scenario.actions.setCloseOnEscape} />
           <MenuCheckboxControl checked={scenario.state.closeOnBackdropClick} label="Backdrop closes" value="backdrop" onChange={scenario.actions.setCloseOnBackdropClick} />
         </ToolbarGroup>
+        <ToolbarGroup title="Popup" value="popup">
+          <MenuCheckboxControl checked={scenario.state.portalDisabled} label="Disable portal" value="disable-portal" onChange={scenario.actions.setPortalDisabled} />
+          <MenuCheckboxControl checked={scenario.state.customContainer} label="Custom container" value="custom-container" onChange={scenario.actions.setCustomContainer} />
+        </ToolbarGroup>
+        <ToolbarGroup title="Composition" value="composition">
+          <MenuSection label="Trigger Element">
+            <CompositionModeRadioGroup value={scenario.state.triggerComposition} onChange={scenario.actions.setTriggerComposition} />
+          </MenuSection>
+          <MenuSection label="Trigger Behavior">
+            <MenuCheckboxControl checked={scenario.state.blockTriggerEvent} label="Prevent Trigger Click" value="block-trigger" onChange={scenario.actions.setBlockTriggerEvent} />
+          </MenuSection>
+          <MenuSection label="Close Element">
+            <CompositionModeRadioGroup value={scenario.state.closeComposition} onChange={scenario.actions.setCloseComposition} />
+          </MenuSection>
+          <MenuSection label="Close Behavior">
+            <MenuCheckboxControl checked={scenario.state.blockCloseEvent} label="Prevent Close Click" value="block-close" onChange={scenario.actions.setBlockCloseEvent} />
+          </MenuSection>
+        </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          customSlots={[
+            {
+              checked: scenario.state.customTriggerSlot,
+              label: "Trigger Slot",
+              value: "trigger-slot",
+              onChange: scenario.actions.setCustomTriggerSlot,
+            },
+            {
+              checked: scenario.state.customTitleSlot,
+              label: "Title Slot",
+              value: "title-slot",
+              onChange: scenario.actions.setCustomTitleSlot,
+            },
+            {
+              checked: scenario.state.customDescriptionSlot,
+              label: "Description Slot",
+              value: "description-slot",
+              onChange: scenario.actions.setCustomDescriptionSlot,
+            },
+            {
+              checked: scenario.state.customCloseSlot,
+              label: "Close Slot",
+              value: "close-slot",
+              onChange: scenario.actions.setCustomCloseSlot,
+            },
+          ]}
+          onPropCheckChange={scenario.actions.setPropCheck}
+        />
       </ControlToolbar>
     );
   }
@@ -1279,21 +1423,44 @@ export function getUtilityPrimitiveSource(
 
   if (scenarioId === "modal") {
     const state = scenarios.modal.state;
-    return `<Modal.Root
-  ${state.controlled ? "open={open}" : "defaultOpen={false}"}
-  disabled={${state.disabled}}
-  keepMounted={${state.keepMounted}}
-  closeOnEscape={${state.closeOnEscape}}
-  closeOnBackdropClick={${state.closeOnBackdropClick}}
-  onOpenChange={handleOpenChange}
->
-  <Modal.Trigger>Open Modal</Modal.Trigger>
-  <Modal.Portal>
-    <section role="dialog">
-      <Modal.Title>Modal foundation</Modal.Title>
-      <Modal.Description>Shared modal IDs and controls.</Modal.Description>
-      <Modal.Close>Close</Modal.Close>
-    </section>
+    const rootProps = [
+      state.controlled ? "open={open}" : null,
+      state.disabled ? "disabled" : null,
+      state.keepMounted ? "keepMounted" : null,
+      state.closeOnEscape ? null : "closeOnEscape={false}",
+      state.closeOnBackdropClick ? null : "closeOnBackdropClick={false}",
+      "onOpenChange={handleOpenChange}",
+    ].filter(Boolean);
+    const portalProps = sourceProps([
+      state.portalDisabled ? "disabled" : null,
+      state.customContainer ? "container={customContainer}" : null,
+    ]);
+    const triggerSource = getModalTriggerSource(state);
+    const closeSource = getModalCloseSource(state);
+    return `<Modal.Root${rootProps.length > 0 ? `\n  ${rootProps.join("\n  ")}\n` : ""}>
+${indent(triggerSource, 2)}
+  <Modal.Portal${portalProps}>
+    <ModalContent>
+      <Modal.Title${sourceProps([
+        state.customTitleSlot ? `data-slot="modal-title-custom"` : null,
+        state.propCheck ? `data-prop-check="title"` : null,
+      ])}>Modal foundation</Modal.Title>
+      <Modal.Description${sourceProps([
+        state.customDescriptionSlot ? `data-slot="modal-description-custom"` : null,
+        state.propCheck ? `data-prop-check="description"` : null,
+      ])}>
+        Shared modal IDs and controls.
+      </Modal.Description>
+      <Modal.Root open={nestedOpen} onOpenChange={handleNestedOpenChange}>
+        <Modal.Trigger>Open Nested</Modal.Trigger>
+        <Modal.Portal disabled>
+          <ModalContent ariaLabel="Nested modal">
+            <Modal.Close>Close Nested</Modal.Close>
+          </ModalContent>
+        </Modal.Portal>
+      </Modal.Root>
+${indent(closeSource, 6)}
+    </ModalContent>
   </Modal.Portal>
 </Modal.Root>`;
   }
@@ -1742,6 +1909,7 @@ function DirectionValueProbe({ label }: { label: string }) {
 }
 
 function ModalScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useModalScenario> }) {
+  const [customContainerNode, setCustomContainerNode] = useState<HTMLDivElement | null>(null);
   const rootProps = {
     disabled: scenario.state.disabled,
     keepMounted: scenario.state.keepMounted,
@@ -1750,35 +1918,237 @@ function ModalScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useModa
     onOpenChange: scenario.actions.handleOpenChange,
     ...(scenario.state.controlled ? { open: scenario.state.open } : { defaultOpen: false }),
   };
+  const portalProps = {
+    disabled: scenario.state.portalDisabled,
+    container: scenario.state.customContainer ? customContainerNode : undefined,
+  };
 
   return (
     <div className="utility-primitive-stage">
+      {scenario.state.customContainer ? (
+        <div
+          className="utility-modal-container"
+          data-modal-container=""
+          data-playground-inspect=""
+          ref={setCustomContainerNode}
+        />
+      ) : null}
       <Modal.Root {...rootProps}>
-        <Modal.Trigger className="atom-button" data-modal-trigger="" data-playground-inspect="" data-prop-check="trigger">
-          Open Modal
-        </Modal.Trigger>
-        <Modal.Portal>
-          {(scenario.state.open || scenario.state.keepMounted) ? (
-            <section
-              className="utility-modal-surface"
-              data-modal-surface=""
-              data-playground-inspect=""
-              data-state={scenario.state.open ? "open" : "closed"}
-              hidden={!scenario.state.open}
-              role="dialog"
-            >
-              <Modal.Title className="utility-modal-title" data-playground-inspect="">Modal foundation</Modal.Title>
-              <Modal.Description className="utility-modal-description" data-playground-inspect="">
-                Shared state, IDs, portal, title, description, and close behavior.
-              </Modal.Description>
-              <Modal.Close className="atom-button secondary" data-modal-close="" data-playground-inspect="" data-prop-check="close">
-                Close Modal
-              </Modal.Close>
-            </section>
-          ) : null}
+        <ModalTriggerDemo scenario={scenario} />
+        <Modal.Portal {...portalProps}>
+          <ModalScenarioContent scenario={scenario} />
         </Modal.Portal>
       </Modal.Root>
     </div>
+  );
+}
+
+function ModalTriggerDemo({ scenario }: { scenario: ReturnType<typeof useModalScenario> }) {
+  const triggerProps = {
+    className: "atom-button",
+    "data-modal-trigger": "",
+    "data-playground-inspect": "",
+    onClick: scenario.state.blockTriggerEvent
+      ? (event: MouseEvent<HTMLElement>) => {
+          event.preventDefault();
+          scenario.actions.noteModalEvent("trigger event prevented");
+        }
+      : undefined,
+    ...partProps("trigger", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customTriggerSlot }, "modal-trigger-custom"),
+  };
+
+  if (scenario.state.triggerComposition === "asChild") {
+    return (
+      <Modal.Trigger {...triggerProps} asChild>
+        <span className="atom-button">Open Modal</span>
+      </Modal.Trigger>
+    );
+  }
+
+  if (scenario.state.triggerComposition === "render") {
+    return (
+      <Modal.Trigger
+        {...triggerProps}
+        render={(props: Record<string, unknown>) => (
+          <button {...(props as ButtonHTMLAttributes<HTMLButtonElement>)} type="button">
+            Open Modal
+          </button>
+        )}
+      >
+        Open Modal
+      </Modal.Trigger>
+    );
+  }
+
+  return (
+    <Modal.Trigger {...triggerProps}>
+      Open Modal
+    </Modal.Trigger>
+  );
+}
+
+function ModalScenarioContent({ scenario }: { scenario: ReturnType<typeof useModalScenario> }) {
+  const {
+    isPresent,
+    isHidden,
+    dataState,
+    contentProps,
+    presenceRef,
+    onClose,
+    closeOnBackdropClick,
+  } = useModalContent({ role: "dialog" });
+
+  if (!isPresent) return null;
+
+  const content = (
+    <section
+      {...contentProps}
+      className="utility-modal-surface"
+      data-modal-surface=""
+      data-playground-inspect=""
+      data-state={dataState}
+      ref={presenceRef}
+      hidden={isHidden}
+      aria-hidden={isHidden ? "true" : undefined}
+    >
+      <Modal.Title
+        className="utility-modal-title"
+        data-modal-title=""
+        data-playground-inspect=""
+        {...partProps("title", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customTitleSlot }, "modal-title-custom")}
+      >
+        Modal foundation
+      </Modal.Title>
+      <Modal.Description
+        className="utility-modal-description"
+        data-modal-description=""
+        data-playground-inspect=""
+        {...partProps("description", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customDescriptionSlot }, "modal-description-custom")}
+      >
+        Shared state, IDs, portal, title, description, and close behavior.
+      </Modal.Description>
+      <Modal.Root
+        open={scenario.state.nestedOpen}
+        onOpenChange={scenario.actions.handleNestedOpenChange}
+      >
+        <Modal.Trigger className="atom-button secondary" data-modal-nested-trigger="" data-playground-inspect="">
+          Open Nested
+        </Modal.Trigger>
+        <Modal.Portal disabled>
+          <ModalNestedContent />
+        </Modal.Portal>
+      </Modal.Root>
+      <div className="utility-modal-actions">
+        <button className="atom-button secondary" data-modal-cancel="" data-playground-inspect="" type="button" onClick={() => onClose("cancelClick")}>
+          Cancel
+        </button>
+        <button className="atom-button secondary" data-modal-action="" data-playground-inspect="" type="button" onClick={() => onClose("actionClick")}>
+          Save
+        </button>
+        <ModalCloseDemo scenario={scenario} />
+      </div>
+    </section>
+  );
+
+  if (isHidden) {
+    return (
+      <div hidden aria-hidden="true" data-modal-hidden-wrapper="">
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div
+        aria-hidden="true"
+        className="utility-modal-overlay"
+        data-modal-overlay=""
+        data-playground-inspect=""
+        data-state={dataState}
+        onClick={() => {
+          if (closeOnBackdropClick) onClose("backdropClick");
+        }}
+      />
+      {content}
+    </>
+  );
+}
+
+function ModalCloseDemo({ scenario }: { scenario: ReturnType<typeof useModalScenario> }) {
+  const closeProps = {
+    className: "atom-button secondary",
+    "data-modal-close": "",
+    "data-playground-inspect": "",
+    onClick: scenario.state.blockCloseEvent
+      ? (event: MouseEvent<HTMLElement>) => {
+          event.preventDefault();
+          scenario.actions.noteModalEvent("close event prevented");
+        }
+      : undefined,
+    ...partProps("close", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customCloseSlot }, "modal-close-custom"),
+  };
+
+  if (scenario.state.closeComposition === "asChild") {
+    return (
+      <Modal.Close {...closeProps} asChild>
+        <span className="atom-button secondary">Close Modal</span>
+      </Modal.Close>
+    );
+  }
+
+  if (scenario.state.closeComposition === "render") {
+    return (
+      <Modal.Close
+        {...closeProps}
+        render={(props: Record<string, unknown>) => (
+          <button {...(props as ButtonHTMLAttributes<HTMLButtonElement>)} type="button">
+            Close Modal
+          </button>
+        )}
+      >
+        Close Modal
+      </Modal.Close>
+    );
+  }
+
+  return (
+    <Modal.Close {...closeProps}>
+      Close Modal
+    </Modal.Close>
+  );
+}
+
+function ModalNestedContent() {
+  const { isPresent, dataState, contentProps, presenceRef, onClose } = useModalContent({ role: "dialog", ariaLabel: "Nested modal" });
+
+  if (!isPresent) return null;
+
+  return (
+    <>
+      <div
+        aria-hidden="true"
+        className="utility-modal-overlay nested"
+        data-modal-nested-overlay=""
+        data-playground-inspect=""
+        data-state={dataState}
+        onClick={() => onClose("backdropClick")}
+      />
+      <section
+        {...contentProps}
+        className="utility-modal-surface nested"
+        data-modal-nested-surface=""
+        data-playground-inspect=""
+        data-state={dataState}
+        ref={presenceRef}
+      >
+        <h3 className="utility-modal-title">Nested modal</h3>
+        <p className="utility-modal-description">Use Escape to confirm the nested layer closes before the parent.</p>
+        <Modal.Close className="atom-button secondary" data-modal-nested-close="" data-playground-inspect="">
+          Close Nested
+        </Modal.Close>
+      </section>
+    </>
   );
 }
 
@@ -2854,14 +3224,14 @@ function getUtilityPrimitiveSections(
 
   if (scenarioId === "modal") {
     const trigger = document.querySelector<HTMLElement>("[data-modal-trigger]");
+    const overlay = document.querySelector<HTMLElement>("[data-modal-overlay]");
     const surface = document.querySelector<HTMLElement>("[data-modal-surface]");
-    const title = document.querySelector<HTMLElement>("[data-slot='modal-title']");
-    const description = document.querySelector<HTMLElement>("[data-slot='modal-description']");
+    const title = document.querySelector<HTMLElement>("[data-modal-title]");
+    const description = document.querySelector<HTMLElement>("[data-modal-description]");
     const close = document.querySelector<HTMLElement>("[data-modal-close]");
     return [
       {
         title: "Root",
-        selector: "[data-modal-trigger]",
         summary: scenarios.modal.state.controlled ? "controlled" : "uncontrolled",
         rows: [
           { label: "Mode", value: scenarios.modal.state.controlled ? "controlled" : "uncontrolled", category: "state" },
@@ -2870,6 +3240,7 @@ function getUtilityPrimitiveSections(
           { label: "Keep mounted", value: bool(scenarios.modal.state.keepMounted), category: "behavior" },
           { label: "Escape closes", value: bool(scenarios.modal.state.closeOnEscape), category: "behavior" },
           { label: "Backdrop closes", value: bool(scenarios.modal.state.closeOnBackdropClick), category: "behavior" },
+          { label: "Nested open", value: bool(scenarios.modal.state.nestedOpen), category: "state" },
         ],
       },
       {
@@ -2879,21 +3250,66 @@ function getUtilityPrimitiveSections(
         rows: [
           { label: "Exists", value: bool(!!trigger), category: "presence" },
           { label: "Disabled", value: bool(scenarios.modal.state.disabled), category: "state" },
+          { label: "Composition", value: scenarios.modal.state.triggerComposition, category: "composition" },
+          { label: "Block event", value: bool(scenarios.modal.state.blockTriggerEvent), category: "behavior" },
         ],
       },
       {
-        title: "Portal Content",
-        selector: "[data-modal-surface]",
+        title: "Portal",
         inactive: !surface,
-        summary: surface?.dataset.state ?? "not rendered",
+        summary: surface?.parentElement === document.body ? "body" : surface?.parentElement?.matches("[data-modal-container]") ? "custom container" : surface ? "inline" : "not rendered",
         rows: [
-          { label: "Exists", value: bool(!!surface), category: "presence" },
-          { label: "Parent", value: surface?.parentElement === document.body ? "body" : surface?.parentElement?.tagName.toLowerCase() ?? "not rendered", category: "behavior" },
+          { label: "Content rendered", value: bool(!!surface), category: "presence" },
+          { label: "Parent", value: surface?.parentElement === document.body ? "body" : surface?.parentElement?.matches("[data-modal-container]") ? "custom container" : surface?.parentElement?.tagName.toLowerCase() ?? "not rendered", category: "behavior" },
+          { label: "Disable portal", value: bool(scenarios.modal.state.portalDisabled), category: "behavior" },
+          { label: "Custom container", value: bool(scenarios.modal.state.customContainer), category: "behavior" },
+          { label: "Backdrop rendered", value: bool(!!overlay), category: "presence" },
+        ],
+        groups: [
+          {
+            title: "Content DOM",
+            selector: "[data-modal-surface]",
+            rows: [{ label: "Exists", value: bool(!!surface), category: "presence" }],
+          },
+          {
+            title: "Backdrop DOM",
+            selector: "[data-modal-overlay]",
+            rows: [
+              { label: "Exists", value: bool(!!overlay), category: "presence" },
+              { label: "Backdrop closes", value: bool(scenarios.modal.state.closeOnBackdropClick), category: "behavior" },
+            ],
+          },
         ],
       },
-      { title: "Title", selector: "[data-slot='modal-title']", inactive: !title, summary: title?.id ?? "not rendered", rows: [{ label: "Exists", value: bool(!!title), category: "presence" }] },
-      { title: "Description", selector: "[data-slot='modal-description']", inactive: !description, summary: description?.id ?? "not rendered", rows: [{ label: "Exists", value: bool(!!description), category: "presence" }] },
-      { title: "Close", selector: "[data-modal-close]", inactive: !close, summary: close?.tagName.toLowerCase() ?? "not rendered", rows: [{ label: "Exists", value: bool(!!close), category: "presence" }] },
+      {
+        title: "Title",
+        selector: "[data-modal-title]",
+        inactive: !title,
+        summary: title?.id ?? "not rendered",
+        rows: [
+          { label: "Exists", value: bool(!!title), category: "presence" },
+        ],
+      },
+      {
+        title: "Description",
+        selector: "[data-modal-description]",
+        inactive: !description,
+        summary: description?.id ?? "not rendered",
+        rows: [
+          { label: "Exists", value: bool(!!description), category: "presence" },
+        ],
+      },
+      {
+        title: "Close",
+        selector: "[data-modal-close]",
+        inactive: !close,
+        summary: close?.tagName.toLowerCase() ?? "not rendered",
+        rows: [
+          { label: "Exists", value: bool(!!close), category: "presence" },
+          { label: "Composition", value: scenarios.modal.state.closeComposition, category: "composition" },
+          { label: "Block event", value: bool(scenarios.modal.state.blockCloseEvent), category: "behavior" },
+        ],
+      },
     ];
   }
 
@@ -3601,6 +4017,50 @@ function getProgressIndicatorSource(state: ReturnType<typeof useProgressScenario
   }
 
   return `<Progress.Indicator${props} />`;
+}
+
+function getModalTriggerSource(state: ReturnType<typeof useModalScenario>["state"]) {
+  const props = sourceProps([
+    state.customTriggerSlot ? `data-slot="modal-trigger-custom"` : null,
+    state.propCheck ? `data-prop-check="trigger"` : null,
+    state.blockTriggerEvent ? `onClick={(event) => event.preventDefault()}` : null,
+  ]);
+
+  if (state.triggerComposition === "asChild") {
+    return `<Modal.Trigger${props} asChild>
+  <span>Open Modal</span>
+</Modal.Trigger>`;
+  }
+
+  if (state.triggerComposition === "render") {
+    return `<Modal.Trigger${props}
+  render={(props) => <button {...props}>Open Modal</button>}
+/>`;
+  }
+
+  return `<Modal.Trigger${props}>Open Modal</Modal.Trigger>`;
+}
+
+function getModalCloseSource(state: ReturnType<typeof useModalScenario>["state"]) {
+  const props = sourceProps([
+    state.customCloseSlot ? `data-slot="modal-close-custom"` : null,
+    state.propCheck ? `data-prop-check="close"` : null,
+    state.blockCloseEvent ? `onClick={(event) => event.preventDefault()}` : null,
+  ]);
+
+  if (state.closeComposition === "asChild") {
+    return `<Modal.Close${props} asChild>
+  <span>Close Modal</span>
+</Modal.Close>`;
+  }
+
+  if (state.closeComposition === "render") {
+    return `<Modal.Close${props}
+  render={(props) => <button {...props}>Close Modal</button>}
+/>`;
+  }
+
+  return `<Modal.Close${props}>Close Modal</Modal.Close>`;
 }
 
 function indent(source: string, spaces: number) {
