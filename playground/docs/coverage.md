@@ -60,11 +60,14 @@ Completed rows should have:
 - `Coverage Status` = `covered`
 - a short result note, such as `passed manual test`
 
-When the expected result is stable, include it in the note or checklist used to
-verify the row. Stable values include default tag, `data-slot`, role,
-`data-state`, and ARIA attributes. For dynamic values, describe the relationship
-instead of inventing a literal value, such as an ARIA relationship matching the
-rendered generated id.
+Do not update `component-coverage.xlsx` until every step in the component's
+Manual Test Protocol has passed or any issues have been resolved or triaged.
+
+When the expected result is stable, include it in the note or Manual Test
+Protocol used to verify the row. Stable values include default tag,
+`data-slot`, role, `data-state`, and ARIA attributes. For dynamic values,
+describe the relationship instead of inventing a literal value, such as an ARIA
+relationship matching the rendered generated id.
 
 The index should derive totals from each component sheet. If adding or removing
 rows changes a sheet, the index should update automatically.
@@ -144,6 +147,11 @@ deterministic evidence whenever possible for:
 - Source output
 - Anatomy order where practical
 - provider and non-DOM parts not receiving fake DOM identity
+
+Manual Test Protocols should use the same automation-ready wording for static
+checks. Write expected values so they can later become Playwright assertions
+for default tags, `data-slot`, `data-state`, ARIA, prop pass-through, custom
+slot overrides, Source output, and provider or non-DOM rules.
 
 Manual workbook coverage should remain focused on evidence available in the
 playground today. Do not add fake anatomy parts, fake attributes, or provider
