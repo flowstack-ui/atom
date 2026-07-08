@@ -20,6 +20,10 @@ Rows should cover behavior visible through the playground:
 - custom `data-slot` override when supported
 - Source, Anatomy, Inspector, and Logs evidence
 
+Composition rows should cover each public part that supports composition. Do
+not treat a root/default composition check as complete coverage when Trigger,
+Close, Item, or another public part also supports `asChild` or `render`.
+
 ## What Does Not Belong
 
 Do not add playground rows for:
@@ -30,6 +34,8 @@ Do not add playground rows for:
 - changelog checks
 - implementation details that have no playground-visible result
 - prop/slot checks for hooks or utilities that render no Atom DOM
+- generated DOM as a fake top-level anatomy part
+- fake evidence attributes added only to make a workbook row pass
 
 Those can be tracked elsewhere, but not in this workbook.
 
@@ -47,6 +53,12 @@ Completed rows should have:
 - `Tested` = `yes`
 - `Coverage Status` = `covered`
 - a short result note, such as `passed manual test`
+
+When the expected result is stable, include it in the note or checklist used to
+verify the row. Stable values include default tag, `data-slot`, role,
+`data-state`, and ARIA attributes. For dynamic values, describe the relationship
+instead of inventing a literal value, such as an ARIA relationship matching the
+rendered generated id.
 
 The index should derive totals from each component sheet. If adding or removing
 rows changes a sheet, the index should update automatically.

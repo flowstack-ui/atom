@@ -12,11 +12,10 @@ listing every document individually.
   generated folders.
 - [code-map.md](code-map.md) - key source files, scenario locations, shared
   workbench helpers, and workbook location.
-- [component-testing.md](component-testing.md) - scenario structure, Anatomy,
-  Canvas toolbar, Inspector, Logs, Source, props, slots, direction, hooks, and
-  utilities.
+- [component-testing.md](component-testing.md) - canonical scenario authoring
+  rules for Anatomy, Canvas toolbar, Inspector, Logs, Source, props, slots,
+  manual testing, direction, hooks, and utilities.
 - [coverage.md](coverage.md) - workbook purpose, row rules, statuses, formulas,
   prop checks, slot overrides, and completion rules.
 - [decisions.md](decisions.md) - long-lived playground architecture decisions.
-- [workflow.md](workflow.md) - practical steps for adding or updating a
-  playground scenario.
+- [workflow.md](workflow.md) - standard component completion workflow.

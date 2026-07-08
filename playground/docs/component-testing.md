@@ -45,6 +45,10 @@ Rules:
   being inspected. Prefer `Item: Team` with a toolbar option named
   `Disable Item`.
 - Keep generated DOM under the owning public part when it is not user-rendered.
+- Do not invent fake anatomy parts to expose generated DOM. Generated DOM should
+  be described inside the public part that owns it.
+- Do not introduce fake evidence attributes simply to prove refs. Use real DOM
+  evidence, focus behavior, or the existing ref row patterns instead.
 - Use human labels for camel-case parts, such as `Scroll Up Button`,
   `Item Text`, and `Item Indicator`.
 - Keep groups collapsed by default unless a scenario needs one open.
@@ -106,6 +110,36 @@ mutation refresh path. Scenario files should provide selectors plus curated
 behavior rows; they should not manually copy every live `aria-*` and `data-*`
 attribute.
 
+## Manual Testing Output
+
+Manual testing checklists should state both the action and the expected result.
+If the expected value is stable, name it explicitly.
+
+Stable expected values include:
+
+- default HTML tag
+- exact `data-slot` value
+- expected role
+- expected `data-state`
+- expected `aria-*` attributes
+
+Do not invent dynamic values. Describe the relationship instead:
+
+- `aria-labelledby` should match the rendered title id.
+- `aria-describedby` should match the rendered description id.
+- `aria-controls` should reference the current content id.
+- a generated id should be stable for the mounted instance and used by the
+  element that references it.
+
+Composition testing should include every supported public part. Do not cover
+only the root/default path when other public parts support composition.
+
+For each supported part, cover the applicable modes:
+
+- `Default`
+- `As Child`
+- `Render`
+
 ## Canvas Toolbar
 
 Use Atom `Menubar` through shared workbench helpers. Keep toolbar groups
@@ -136,6 +170,19 @@ Use generic labels for repeated item controls:
 
 Avoid component-specific names when a generic test meaning is clearer. For
 example, prefer `Disable Item` over `Disable Team`.
+
+Authoring rules:
+
+- Group controls by test meaning, not by whichever state object owns them.
+- Keep radio selections separate from toggles.
+- Keep toggles separate from actions.
+- Avoid visually grouping controls that imply a relationship the component does
+  not have.
+- Use clear section titles inside larger menus.
+- Keep ordering consistent across components when groups and controls repeat.
+- Keep desktop menus consistent throughout the playground.
+- Use nested menus only when they make the choices clearer. Do not nest only to
+  reduce visible list length.
 
 ## Toolbar Group Taxonomy
 
@@ -222,14 +269,22 @@ Include:
 
 Omit:
 
+- default props
+- default boolean `false` props
 - CSS classes
 - refs used only by playground inspection
 - event-log plumbing
 - layout-only wrappers
+- playground-only state, handlers, and helper props
 - `data-playground-inspect`
 
 Use boolean shorthand in Source when that is how a consumer should write it:
 `disabled`, not `disabled={true}`.
+
+Generated Source should represent consumer code, not playground implementation.
+Controlled props should appear only when controlled mode is active. Enabled
+boolean props should use shorthand syntax, and disabled/default boolean props
+should be omitted.
 
 ## Native And Atom Variants
 
