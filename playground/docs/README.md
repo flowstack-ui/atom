@@ -21,6 +21,16 @@ listing every document individually.
 - [workflow.md](workflow.md) - standard component completion workflow and issue
   classification, including step-by-step Manual Test Protocol execution.
 
+## Ownership
+
+- Playground-specific implementation rules live in this documentation set.
+- Shared developer tooling lives in [../../docs/tooling.md](../../docs/tooling.md).
+- Manual Test Protocol authoring rules live in
+  [component-testing.md](component-testing.md).
+- The component completion workflow lives in [workflow.md](workflow.md).
+- Future shared tooling, including Graphify, Playwright, PDF utilities, and
+  image processing, belongs in `../../docs/tooling.md`.
+
 ## Manual Tests
 
 - [../manual-tests/README.md](../manual-tests/README.md) - reviewed Manual Test

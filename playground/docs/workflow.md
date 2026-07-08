@@ -14,13 +14,16 @@ update.
    - Atom package
    - Workbook
    - Documentation
-6. Create or update Manual Test Protocol.
+6. Generate a draft Manual Test Protocol in `.manual-tests/<component>.md`.
 7. Execute Manual Test Protocol.
-8. Fix discovered issues.
+8. Fix implementation issues.
 9. Repeat manual testing until complete.
-10. Update workbook.
+10. Update `component-coverage.xlsx`.
 11. Commit the component.
-12. Capture reusable documentation improvements.
+12. Review the draft protocol.
+13. Promote the reviewed protocol to `manual-tests/<component>.md`.
+14. Commit the reviewed protocol.
+15. Capture reusable documentation improvements.
 
 ## 1. Read Component Documentation
 
@@ -78,21 +81,25 @@ If a package implementation issue is discovered, stop before changing package
 source unless the user has already approved that scope. Package source changes
 must follow package-level test, documentation, and changelog rules.
 
-## 6. Create Or Update Manual Test Protocol
+## 6. Generate Draft Manual Test Protocol
 
-Create or update the component's Manual Test Protocol before final testing.
-Protocols are saved, step-by-step QA procedures for one component.
-Use `component-testing.md` as the canonical authoring guide.
+Create or update the component's draft Manual Test Protocol before final
+testing. Use `component-testing.md` as the canonical authoring guide.
 
 Use this lifecycle:
 
-1. Generate the draft protocol in `.manual-tests/`.
+1. Generate the draft protocol in `.manual-tests/<component>.md`.
 2. Execute the protocol during manual testing.
-3. Improve the protocol based on real testing.
-4. After review, promote the stable protocol to `manual-tests/<component>.md`.
+3. Improve the draft based on real testing.
+4. Finish manual testing and workbook updates.
+5. Commit the completed component.
+6. Review the draft protocol.
+7. Promote the reviewed protocol to `manual-tests/<component>.md`.
+8. Commit the reviewed protocol.
 
 Files under `manual-tests/` are reviewed, version-controlled regression
-protocols. Do not promote a draft protocol just because it exists.
+protocols. Do not promote a draft protocol until the component has completed
+manual testing and workbook updates.
 
 Write protocol steps in the order from `component-testing.md`:
 
@@ -149,6 +156,10 @@ has passed and the component is complete.
 
 After manual verification:
 
+- read [../../docs/tooling.md](../../docs/tooling.md)
+- use the documented shared developer tooling
+- use `openpyxl` for workbook editing
+- never edit raw XLSX XML unless `openpyxl` cannot accomplish the task
 - mark rows `Implemented yes`
 - mark rows `Tested yes`
 - set coverage to `covered`
@@ -174,7 +185,23 @@ verification rules from the Atom package docs and changelogs.
 Commit the component only after implementation, manual testing, workbook status,
 and verification are complete.
 
-## 12. Capture Reusable Documentation Improvements
+## 12. Review Draft Protocol
+
+Review the draft protocol after the completed component is committed. Keep the
+review focused on whether the draft is stable regression coverage for future
+component work.
+
+## 13. Promote Reviewed Protocol
+
+Move the reviewed draft from `.manual-tests/<component>.md` to
+`manual-tests/<component>.md` only after successful manual testing, workbook
+updates, component verification, and draft review.
+
+## 14. Commit Reviewed Protocol
+
+Commit the promoted protocol separately from the completed component.
+
+## 15. Capture Reusable Documentation Improvements
 
 After the component is complete, capture only lessons proven by the component
 work. Put durable authoring rules in the detailed documentation, keep router
