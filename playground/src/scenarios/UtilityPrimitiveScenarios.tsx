@@ -12,7 +12,7 @@ import { ScrollArea } from "@flowstack-ui/atom/scroll-area";
 import { Sidebar } from "@flowstack-ui/atom/sidebar";
 import { SkipLink } from "@flowstack-ui/atom/skip-link";
 import { SwipeableItem } from "@flowstack-ui/atom/swipeable-item";
-import { Toast, toast, useToastStore } from "@flowstack-ui/atom/toast";
+import { Toast, getToasts, toast, useToastStore } from "@flowstack-ui/atom/toast";
 import { Toolbar } from "@flowstack-ui/atom/toolbar";
 import { useVirtualizer } from "@flowstack-ui/atom/virtualizer";
 import { VisuallyHidden } from "@flowstack-ui/atom/visually-hidden";
@@ -21,6 +21,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type ComponentPropsWithRef,
   type CSSProperties,
   type ButtonHTMLAttributes,
   type Dispatch,
@@ -43,6 +44,8 @@ type SidebarStateValue = "expanded" | "rail" | "offcanvas";
 type SidebarSideValue = "left" | "right";
 type ToastKind = "default" | "success" | "error" | "warning" | "info" | "loading";
 type ToastPositionValue = "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
+type ToastRenderMode = "imperative" | "declarative";
+type ToastViewportPortalMode = "body" | "local" | "disabled";
 type VirtualizerAlignValue = "start" | "center" | "end" | "auto";
 type SkipLinkTargetMode = "valid" | "missing" | "malformed";
 
@@ -459,19 +462,78 @@ function useSwipeableItemScenario() {
 }
 
 function useToastScenario() {
+  const [renderMode, setRenderMode] = useState<ToastRenderMode>("imperative");
+  const [declarativeVisible, setDeclarativeVisible] = useState(false);
   const [type, setType] = useState<ToastKind>("default");
   const [position, setPosition] = useState<ToastPositionValue>("bottom-right");
+  const [maxVisible, setMaxVisible] = useState("3");
   const [closeButton, setCloseButton] = useState(true);
   const [action, setAction] = useState(true);
   const [duration, setDuration] = useState<"short" | "infinite">("infinite");
+  const [dismissible, setDismissible] = useState(true);
+  const [paused, setPaused] = useState(false);
+  const [forceMount, setForceMount] = useState(false);
+  const [expandOnHover, setExpandOnHover] = useState(true);
+  const [pauseOnHover, setPauseOnHover] = useState(true);
+  const [pauseOnFocusLoss, setPauseOnFocusLoss] = useState(true);
+  const [portalMode, setPortalMode] = useState<ToastViewportPortalMode>("body");
+  const [rootComposition, setRootComposition] = useState<CompositionMode>("default");
+  const [titleComposition, setTitleComposition] = useState<CompositionMode>("default");
+  const [descriptionComposition, setDescriptionComposition] = useState<CompositionMode>("default");
+  const [actionComposition, setActionComposition] = useState<CompositionMode>("default");
+  const [cancelComposition, setCancelComposition] = useState<CompositionMode>("default");
+  const [closeComposition, setCloseComposition] = useState<CompositionMode>("default");
+  const [viewportComposition, setViewportComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
+  const [customViewportSlot, setCustomViewportSlot] = useState(false);
+  const [customTitleSlot, setCustomTitleSlot] = useState(false);
+  const [customDescriptionSlot, setCustomDescriptionSlot] = useState(false);
+  const [customActionSlot, setCustomActionSlot] = useState(false);
+  const [customCancelSlot, setCustomCancelSlot] = useState(false);
+  const [customCloseSlot, setCustomCloseSlot] = useState(false);
+  const [rootRef, setRootRef] = useState("none");
+  const [viewportRef, setViewportRef] = useState("none");
+  const [titleRef, setTitleRef] = useState("none");
+  const [descriptionRef, setDescriptionRef] = useState("none");
+  const [actionRef, setActionRef] = useState("none");
+  const [cancelRef, setCancelRef] = useState("none");
+  const [closeRef, setCloseRef] = useState("none");
   const { log, addLog, clearLog } = useScenarioLog();
+  const handleRenderModeChange = (nextMode: ToastRenderMode) => {
+    setRenderMode(nextMode);
+    addLog(`rendering ${nextMode}`);
+  };
+  const markRootRef = useCallback((node: HTMLElement | null) => {
+    setRootRef(node?.tagName.toLowerCase() ?? "none");
+  }, []);
+  const markViewportRef = useCallback((node: HTMLElement | null) => {
+    setViewportRef(node?.tagName.toLowerCase() ?? "none");
+  }, []);
+  const markTitleRef = useCallback((node: HTMLElement | null) => {
+    setTitleRef(node?.tagName.toLowerCase() ?? "none");
+  }, []);
+  const markDescriptionRef = useCallback((node: HTMLElement | null) => {
+    setDescriptionRef(node?.tagName.toLowerCase() ?? "none");
+  }, []);
+  const markActionRef = useCallback((node: HTMLElement | null) => {
+    setActionRef(node?.tagName.toLowerCase() ?? "none");
+  }, []);
+  const markCancelRef = useCallback((node: HTMLElement | null) => {
+    setCancelRef(node?.tagName.toLowerCase() ?? "none");
+  }, []);
+  const markCloseRef = useCallback((node: HTMLElement | null) => {
+    setCloseRef(node?.tagName.toLowerCase() ?? "none");
+  }, []);
 
   const showToast = () => {
     const options = {
       title: `${formatOption(type)} toast`,
       description: "Playground notification body.",
       duration: duration === "infinite" ? Infinity : 3500,
-      closeButton,
+      dismissible,
+      onDismiss: () => addLog("toast dismissed"),
+      onAutoClose: () => addLog("toast auto closed"),
       action: action ? { label: "Undo", onClick: () => addLog("toast action") } : undefined,
       cancel: action ? { label: "Dismiss", onClick: () => addLog("toast cancel") } : undefined,
     };
@@ -487,12 +549,114 @@ function useToastScenario() {
 
   const dismissAll = () => {
     toast.dismiss();
+    setDeclarativeVisible(false);
     addLog("dismiss all");
   };
 
+  const showDeclarative = () => {
+    setDeclarativeVisible(true);
+    addLog("declarative show");
+  };
+
+  const hideDeclarative = () => {
+    setDeclarativeVisible(false);
+    addLog("declarative hide");
+  };
+
   return {
-    state: { type, position, closeButton, action, duration, log },
-    actions: { setType, setPosition, setCloseButton, setAction, setDuration, showToast, dismissAll, clearLog },
+    state: {
+      renderMode,
+      declarativeVisible,
+      type,
+      position,
+      maxVisible,
+      closeButton,
+      action,
+      duration,
+      dismissible,
+      paused,
+      forceMount,
+      expandOnHover,
+      pauseOnHover,
+      pauseOnFocusLoss,
+      portalMode,
+      rootComposition,
+      titleComposition,
+      descriptionComposition,
+      actionComposition,
+      cancelComposition,
+      closeComposition,
+      viewportComposition,
+      propCheck,
+      customRootSlot,
+      customViewportSlot,
+      customTitleSlot,
+      customDescriptionSlot,
+      customActionSlot,
+      customCancelSlot,
+      customCloseSlot,
+      rootRef,
+      viewportRef,
+      titleRef,
+      descriptionRef,
+      actionRef,
+      cancelRef,
+      closeRef,
+      log,
+    },
+    actions: {
+      setRenderMode: handleRenderModeChange,
+      setType,
+      setPosition,
+      setMaxVisible,
+      setCloseButton,
+      setAction,
+      setDuration,
+      setDismissible,
+      setPaused,
+      setForceMount,
+      setExpandOnHover,
+      setPauseOnHover,
+      setPauseOnFocusLoss,
+      setPortalMode,
+      setRootComposition,
+      setTitleComposition,
+      setDescriptionComposition,
+      setActionComposition,
+      setCancelComposition,
+      setCloseComposition,
+      setViewportComposition,
+      setPropCheck,
+      setCustomRootSlot,
+      setCustomViewportSlot,
+      setCustomTitleSlot,
+      setCustomDescriptionSlot,
+      setCustomActionSlot,
+      setCustomCancelSlot,
+      setCustomCloseSlot,
+      markRootRef,
+      markViewportRef,
+      markTitleRef,
+      markDescriptionRef,
+      markActionRef,
+      markCancelRef,
+      markCloseRef,
+      noteRootAutoClose: () => addLog("root auto closed"),
+      noteRootDismiss: () => addLog("root dismissed"),
+      noteDeclarativeAutoClose: () => {
+        if (!forceMount) setDeclarativeVisible(false);
+        addLog("declarative auto closed");
+      },
+      noteDeclarativeDismiss: () => {
+        if (!forceMount) setDeclarativeVisible(false);
+        addLog("declarative dismissed");
+      },
+      showToast,
+      showDeclarative,
+      hideDeclarative,
+      dismissAll,
+      clearLog,
+    },
   };
 }
 
@@ -1195,17 +1359,56 @@ export function UtilityPrimitiveScenarioToolbar({
     const scenario = scenarios.toast;
     return (
       <ControlToolbar label="Toast controls">
+        <ToolbarGroup title="Rendering" value="rendering">
+          <MenuRadioControl label="Mode" options={toastRenderModeOptions} value={scenario.state.renderMode} onChange={scenario.actions.setRenderMode} />
+        </ToolbarGroup>
         <ToolbarGroup title="State" value="state">
+          <MenuSection label="Root">
+            <MenuCheckboxControl checked={scenario.state.dismissible} label="Dismissible" value="dismissible" onChange={scenario.actions.setDismissible} />
+            <MenuCheckboxControl checked={scenario.state.paused} label="Paused" value="paused" onChange={scenario.actions.setPaused} />
+            <MenuCheckboxControl checked={scenario.state.forceMount} label="Force mount" value="force-mount" onChange={scenario.actions.setForceMount} />
+          </MenuSection>
+          <MenuSection label="Children">
+            <MenuCheckboxControl checked={scenario.state.action} label="Action buttons" value="action" onChange={scenario.actions.setAction} />
+          </MenuSection>
+        </ToolbarGroup>
+        <ToolbarGroup title="Provider" value="provider">
           <MenuCheckboxControl checked={scenario.state.closeButton} label="Close button" value="close-button" onChange={scenario.actions.setCloseButton} />
-          <MenuCheckboxControl checked={scenario.state.action} label="Action buttons" value="action" onChange={scenario.actions.setAction} />
+          <MenuCheckboxControl checked={scenario.state.expandOnHover} label="Expand on hover" value="expand-on-hover" onChange={scenario.actions.setExpandOnHover} />
+          <MenuCheckboxControl checked={scenario.state.pauseOnHover} label="Pause on hover" value="pause-on-hover" onChange={scenario.actions.setPauseOnHover} />
+          <MenuCheckboxControl checked={scenario.state.pauseOnFocusLoss} label="Pause on focus loss" value="pause-on-focus-loss" onChange={scenario.actions.setPauseOnFocusLoss} />
+          <MenuRadioControl label="Max visible" options={toastMaxVisibleOptions} value={scenario.state.maxVisible} onChange={scenario.actions.setMaxVisible} />
+        </ToolbarGroup>
+        <ToolbarGroup title="Message" value="message">
+          <MenuRadioControl label="Type" options={toastKindOptions} value={scenario.state.type} onChange={scenario.actions.setType} />
           <MenuRadioControl label="Duration" options={toastDurationOptions} value={scenario.state.duration} onChange={scenario.actions.setDuration} />
         </ToolbarGroup>
-        <ToolbarGroup title="Type" value="type">
-          <MenuRadioControl label="Kind" options={toastKindOptions} value={scenario.state.type} onChange={scenario.actions.setType} />
-        </ToolbarGroup>
         <ToolbarGroup title="Position" value="position">
-          <MenuRadioControl label="Viewport" options={toastPositionOptions} value={scenario.state.position} onChange={scenario.actions.setPosition} />
+          <MenuRadioControl label="Side" options={toastPositionOptions} value={scenario.state.position} onChange={scenario.actions.setPosition} />
+          <MenuRadioControl label="Portal" options={toastPortalModeOptions} value={scenario.state.portalMode} onChange={scenario.actions.setPortalMode} />
         </ToolbarGroup>
+        <ToolbarGroup title="Composition" value="composition">
+          <MenuRadioControl label="Root" options={compositionOptions} value={scenario.state.rootComposition} onChange={scenario.actions.setRootComposition} />
+          <MenuRadioControl label="Title" options={compositionOptions} value={scenario.state.titleComposition} onChange={scenario.actions.setTitleComposition} />
+          <MenuRadioControl label="Description" options={compositionOptions} value={scenario.state.descriptionComposition} onChange={scenario.actions.setDescriptionComposition} />
+          <MenuRadioControl label="Action" options={compositionOptions} value={scenario.state.actionComposition} onChange={scenario.actions.setActionComposition} />
+          <MenuRadioControl label="Cancel" options={compositionOptions} value={scenario.state.cancelComposition} onChange={scenario.actions.setCancelComposition} />
+          <MenuRadioControl label="Close" options={compositionOptions} value={scenario.state.closeComposition} onChange={scenario.actions.setCloseComposition} />
+          <MenuRadioControl label="Viewport" options={toastViewportCompositionOptions} value={scenario.state.viewportComposition} onChange={scenario.actions.setViewportComposition} />
+        </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={[
+            { checked: scenario.state.customRootSlot, label: "Root", value: "root-slot", onChange: scenario.actions.setCustomRootSlot },
+            { checked: scenario.state.customViewportSlot, label: "Viewport", value: "viewport-slot", onChange: scenario.actions.setCustomViewportSlot },
+            { checked: scenario.state.customTitleSlot, label: "Title", value: "title-slot", onChange: scenario.actions.setCustomTitleSlot },
+            { checked: scenario.state.customDescriptionSlot, label: "Description", value: "description-slot", onChange: scenario.actions.setCustomDescriptionSlot },
+            { checked: scenario.state.customActionSlot, label: "Action", value: "action-slot", onChange: scenario.actions.setCustomActionSlot },
+            { checked: scenario.state.customCancelSlot, label: "Cancel", value: "cancel-slot", onChange: scenario.actions.setCustomCancelSlot },
+            { checked: scenario.state.customCloseSlot, label: "Close", value: "close-slot", onChange: scenario.actions.setCustomCloseSlot },
+          ]}
+        />
       </ControlToolbar>
     );
   }
@@ -1542,7 +1745,7 @@ export function getUtilityPrimitiveCanvasFooter(
 
   if (scenarioId === "toast") {
     const state = scenarios.toast.state;
-    return `${state.type} | ${state.position} | ${state.duration}`;
+    return `${state.renderMode} | ${state.type} | ${state.position} | ${state.duration}`;
   }
 
   if (scenarioId === "progress") {
@@ -1879,14 +2082,91 @@ ${rootClose}`;
 
   if (scenarioId === "toast") {
     const state = scenarios.toast.state;
+    const providerProps = sourceProps([
+      state.closeButton ? `closeButton` : "",
+      state.maxVisible !== "3" ? `maxVisible={${state.maxVisible}}` : "",
+      !state.expandOnHover ? `expandOnHover={false}` : "",
+      !state.pauseOnHover ? `pauseOnHover={false}` : "",
+      !state.pauseOnFocusLoss ? `pauseOnFocusLoss={false}` : "",
+    ]);
+    const toastOptions = [
+      state.duration === "short" ? `duration: 3500` : "",
+      !state.dismissible ? `dismissible: false` : "",
+      state.action ? `action: { label: "Undo", onClick: handleUndo }` : "",
+      state.action ? `cancel: { label: "Dismiss", onClick: handleCancel }` : "",
+    ].filter(Boolean);
     const toastCall = state.type === "default"
-      ? `toast({ type: "default", title: "Default toast" })`
-      : `toast.${state.type}("${formatOption(state.type)} toast")`;
-    return `<Toast.Provider closeButton={${state.closeButton}} maxVisible={3}>
-  <button onClick={() => ${toastCall}}>
+      ? `toast({
+    title: "Default toast"${toastOptions.length ? `,\n    ${toastOptions.join(",\n    ")}` : ""}
+  })`
+      : `toast.${state.type}("` + `${formatOption(state.type)} toast` + `"${toastOptions.length ? `, {\n    ${toastOptions.join(",\n    ")}\n  }` : ""})`;
+    const showToastHandler = `const handleShowToast = () => {
+  ${toastCall}
+};`;
+    const rootProps = sourceProps([
+      state.customRootSlot ? `data-slot="toast-custom"` : "",
+      state.propCheck ? `data-prop-check="root"` : "",
+      state.renderMode === "declarative" && state.type !== "default" ? `type="${state.type}"` : "",
+      state.renderMode === "declarative" && state.duration === "short" ? `duration={3500}` : "",
+      state.paused ? `paused` : "",
+      !state.dismissible ? `dismissible={false}` : "",
+      state.closeButton ? `closeButton` : "",
+      state.forceMount ? `forceMount` : "",
+    ]);
+    const viewportProps = sourceProps([
+      state.customViewportSlot ? `data-slot="toast-viewport-custom"` : "",
+      state.propCheck ? `data-prop-check="viewport"` : "",
+      state.position !== "bottom-right" ? `position="${state.position}"` : "",
+      state.portalMode === "disabled" ? `portalDisabled` : "",
+      state.portalMode === "local" ? `container={localContainer}` : "",
+      state.viewportComposition === "asChild" ? `asChild` : "",
+      state.viewportComposition === "render" ? `render={(props) => <section {...props} />}` : "",
+    ]);
+    const title = getToastTitleSource(state);
+    const description = getToastDescriptionSource(state);
+    const action = state.action ? `\n    ${getToastActionSource(state)}\n    ${getToastCancelSource(state)}` : "";
+    const close = getToastCloseSource(state);
+    const children = `${title}
+    ${description}${action}
+    ${close}`;
+    const root = getToastRootSource(state, rootProps, children);
+    if (state.renderMode === "declarative") {
+      return `<Toast.Provider${providerProps}>
+  <button onClick={() => setDeclarativeVisible(true)}>
+    Show Declarative
+  </button>
+  <button onClick={() => setDeclarativeVisible(false)}>
+    Hide Declarative
+  </button>
+  {declarativeVisible ? (
+    ${root}
+  ) : null}
+  ${getToastViewportSource(state, viewportProps)}
+</Toast.Provider>`;
+    }
+    const renderedRoot = getToastRootSource(
+      state,
+      sourceProps([
+        `toast={toastData}`,
+        `index={index}`,
+        `expanded={expanded}`,
+        state.customRootSlot ? `data-slot="toast-custom"` : "",
+        state.propCheck ? `data-prop-check="root"` : "",
+        state.paused ? `paused` : "",
+        state.closeButton ? `closeButton` : "",
+        state.forceMount ? `forceMount` : "",
+      ]),
+      children,
+    );
+    return `${showToastHandler}
+
+<Toast.Provider${providerProps}>
+  <button onClick={handleShowToast}>
     Show Toast
   </button>
-  <Toast.Viewport position="${state.position}" />
+  ${getToastViewportSource(state, viewportProps, `renderToast={({ toast: toastData, index, expanded }) => (
+    ${renderedRoot}
+  )}`)}
 </Toast.Provider>`;
   }
 
@@ -2940,49 +3220,336 @@ function SwipeableActionsExample({
   return <SwipeableItem.Actions {...props}>{actionButton}</SwipeableItem.Actions>;
 }
 
+type ToastScenarioState = ReturnType<typeof useToastScenario>["state"];
+type ToastEvidenceProps = Record<`data-${string}`, string | undefined>;
+type ToastRootPartProps = ComponentPropsWithRef<typeof Toast.Root> & ToastEvidenceProps;
+type ToastViewportPartProps = ComponentPropsWithRef<typeof Toast.Viewport> & ToastEvidenceProps;
+type ToastTitlePartProps = ComponentPropsWithRef<typeof Toast.Title> & ToastEvidenceProps;
+type ToastDescriptionPartProps = ComponentPropsWithRef<typeof Toast.Description> & ToastEvidenceProps;
+type ToastActionPartProps = ComponentPropsWithRef<typeof Toast.Action> & ToastEvidenceProps;
+type ToastCancelPartProps = ComponentPropsWithRef<typeof Toast.Cancel> & ToastEvidenceProps;
+type ToastClosePartProps = ComponentPropsWithRef<typeof Toast.Close> & ToastEvidenceProps;
+
 function ToastScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useToastScenario> }) {
+  const portalContainerRef = useRef<HTMLDivElement | null>(null);
+  const providerProps = {
+    closeButton: scenario.state.closeButton,
+    expandOnHover: scenario.state.expandOnHover,
+    maxVisible: Number(scenario.state.maxVisible),
+    pauseOnFocusLoss: scenario.state.pauseOnFocusLoss,
+    pauseOnHover: scenario.state.pauseOnHover,
+  };
+  const viewportProps = {
+    ...partProps("viewport", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customViewportSlot }, "toast-viewport-custom"),
+    className: "utility-toast-viewport",
+    container: scenario.state.portalMode === "local" ? portalContainerRef.current : undefined,
+    "data-toast-viewport": "",
+    "data-playground-inspect": "",
+    portalDisabled: scenario.state.portalMode === "disabled",
+    position: scenario.state.position,
+    ref: scenario.actions.markViewportRef,
+  } satisfies ToastViewportPartProps;
+
   return (
-    <Toast.Provider closeButton={scenario.state.closeButton} maxVisible={3}>
+    <Toast.Provider {...providerProps}>
       <div className="utility-primitive-stage">
-        <div className="utility-toast-stage" data-toast-stage="" data-playground-inspect="">
-          <button className="atom-button" type="button" data-toast-show="" data-playground-inspect="" onClick={scenario.actions.showToast}>
-            Show Toast
-          </button>
-          <button className="atom-button secondary" type="button" data-toast-dismiss-all="" data-playground-inspect="" onClick={scenario.actions.dismissAll}>
-            Dismiss All
-          </button>
-          <ToastCountProbe />
-        </div>
-        <Toast.Viewport
-          className="utility-toast-viewport"
-          data-toast-viewport=""
-          data-playground-inspect=""
-          data-prop-check="viewport"
-          position={scenario.state.position}
-          renderToast={({ toast: toastData, index, expanded }) => (
-            <Toast.Root className="utility-toast" toast={toastData} index={index} expanded={expanded} data-toast-root="" data-playground-inspect="" data-prop-check="root">
-              <Toast.Title className="utility-toast-title" data-toast-title="" data-playground-inspect="" data-prop-check="title" />
-              <Toast.Description className="utility-toast-description" data-toast-description="" data-playground-inspect="" data-prop-check="description" />
-              <div className="utility-toast-actions">
-                <Toast.Action className="atom-button secondary" data-toast-action="" data-playground-inspect="" data-prop-check="action" />
-                <Toast.Cancel className="atom-button secondary" data-toast-cancel="" data-playground-inspect="" data-prop-check="cancel" />
-                <Toast.Close className="atom-button secondary" data-toast-close="" data-playground-inspect="" data-prop-check="close">Close</Toast.Close>
+        <div ref={portalContainerRef} className="utility-toast-stage" data-toast-stage="" data-playground-inspect="">
+          {scenario.state.renderMode === "imperative" ? (
+            <div className="utility-toast-command-row">
+              <button className="atom-button" type="button" data-toast-show="" data-playground-inspect="" onClick={scenario.actions.showToast}>
+                Show Toast
+              </button>
+              <button className="atom-button secondary" type="button" data-toast-dismiss-all="" data-playground-inspect="" onClick={scenario.actions.dismissAll}>
+                Dismiss All
+              </button>
+              <ToastCountProbe />
+            </div>
+          ) : (
+            <>
+              <div className="utility-toast-command-row">
+                <button className="atom-button" type="button" data-toast-show-declarative="" data-playground-inspect="" onClick={scenario.actions.showDeclarative}>
+                  Show Declarative
+                </button>
+                <button className="atom-button secondary" type="button" data-toast-hide-declarative="" data-playground-inspect="" onClick={scenario.actions.hideDeclarative}>
+                  Hide Declarative
+                </button>
+                <button className="atom-button secondary" type="button" data-toast-dismiss-all="" data-playground-inspect="" onClick={scenario.actions.dismissAll}>
+                  Dismiss All
+                </button>
               </div>
-            </Toast.Root>
+              <div className="utility-toast-declarative-preview">
+                {scenario.state.declarativeVisible ? <ToastScenarioRoot scenario={scenario} /> : null}
+              </div>
+            </>
           )}
-        />
+        </div>
+        <ToastScenarioViewport scenario={scenario} viewportProps={viewportProps} />
       </div>
     </Toast.Provider>
   );
 }
 
+function ToastScenarioViewport({
+  scenario,
+  viewportProps,
+}: {
+  scenario: ReturnType<typeof useToastScenario>;
+  viewportProps: ToastViewportPartProps;
+}) {
+  if (scenario.state.viewportComposition === "asChild") {
+    return (
+      <Toast.Viewport
+        {...viewportProps}
+        asChild
+        renderToast={({ toast: toastData, index, expanded }) => (
+          <ToastScenarioRoot scenario={scenario} toastData={toastData} index={index} expanded={expanded} />
+        )}
+      >
+        <section />
+      </Toast.Viewport>
+    );
+  }
+
+  if (scenario.state.viewportComposition === "render") {
+    return (
+      <Toast.Viewport
+        {...viewportProps}
+        render={(renderProps) => <section {...renderProps}>{renderProps.children as ReactNode}</section>}
+        renderToast={({ toast: toastData, index, expanded }) => (
+          <ToastScenarioRoot scenario={scenario} toastData={toastData} index={index} expanded={expanded} />
+        )}
+      />
+    );
+  }
+
+  return (
+    <Toast.Viewport
+      {...viewportProps}
+      renderToast={({ toast: toastData, index, expanded }) => (
+        <ToastScenarioRoot scenario={scenario} toastData={toastData} index={index} expanded={expanded} />
+      )}
+    />
+  );
+}
+
+function ToastScenarioRoot({
+  scenario,
+  toastData,
+  index,
+  expanded,
+}: {
+  scenario: ReturnType<typeof useToastScenario>;
+  toastData?: NonNullable<Parameters<NonNullable<ToastViewportPartProps["renderToast"]>>[0]["toast"]>;
+  index?: number;
+  expanded?: boolean;
+}) {
+  const rootProps = {
+    ...partProps("root", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customRootSlot }, "toast-custom"),
+    className: "utility-toast",
+    "data-toast-root": "",
+    "data-playground-inspect": "",
+    closeButton: scenario.state.closeButton,
+    dismissible: toastData ? undefined : scenario.state.dismissible,
+    duration: toastData ? undefined : getToastDuration(scenario.state.duration),
+    expanded,
+    forceMount: scenario.state.forceMount,
+    index,
+    onAutoClose: toastData ? scenario.actions.noteRootAutoClose : scenario.actions.noteDeclarativeAutoClose,
+    onDismiss: toastData ? scenario.actions.noteRootDismiss : scenario.actions.noteDeclarativeDismiss,
+    paused: scenario.state.paused || undefined,
+    ref: scenario.actions.markRootRef,
+    removeDelay: 200,
+    toast: toastData,
+    type: toastData ? undefined : scenario.state.type,
+  } satisfies ToastRootPartProps;
+  const content = <ToastScenarioParts state={scenario.state} actions={scenario.actions} toastData={toastData} />;
+
+  if (scenario.state.rootComposition === "asChild") {
+    return (
+      <Toast.Root {...rootProps} asChild>
+        <section>{content}</section>
+      </Toast.Root>
+    );
+  }
+
+  if (scenario.state.rootComposition === "render") {
+    return (
+      <Toast.Root {...rootProps} render={(renderProps) => <section {...renderProps}>{renderProps.children as ReactNode}</section>}>
+        {content}
+      </Toast.Root>
+    );
+  }
+
+  return <Toast.Root {...rootProps}>{content}</Toast.Root>;
+}
+
+function ToastScenarioParts({
+  state,
+  actions,
+  toastData,
+}: {
+  state: ToastScenarioState;
+  actions: ReturnType<typeof useToastScenario>["actions"];
+  toastData?: NonNullable<Parameters<NonNullable<ToastViewportPartProps["renderToast"]>>[0]["toast"]>;
+}) {
+  const showAction = state.action;
+  return (
+    <>
+      <ToastScenarioTitle state={state} markRef={actions.markTitleRef} title={toastData?.title} />
+      <ToastScenarioDescription state={state} markRef={actions.markDescriptionRef} description={toastData?.description} />
+      <div className="utility-toast-actions">
+        {showAction ? (
+          <>
+            <ToastScenarioAction state={state} markRef={actions.markActionRef} label={toastData?.action?.label} />
+            <ToastScenarioCancel state={state} markRef={actions.markCancelRef} label={toastData?.cancel?.label} />
+          </>
+        ) : null}
+        <ToastScenarioClose state={state} markRef={actions.markCloseRef} />
+      </div>
+    </>
+  );
+}
+
+function ToastScenarioTitle({ state, markRef, title }: { state: ToastScenarioState; markRef: (node: HTMLElement | null) => void; title?: ReactNode }) {
+  const content = title ?? `${formatOption(state.type)} toast`;
+  const props = {
+    ...partProps("title", { propCheck: state.propCheck, customSlot: state.customTitleSlot }, "toast-title-custom"),
+    className: "utility-toast-title",
+    "data-toast-title": "",
+    "data-playground-inspect": "",
+    ref: markRef,
+  } satisfies ToastTitlePartProps;
+
+  if (state.titleComposition === "asChild") {
+    return (
+      <Toast.Title {...props} asChild>
+        <h3>{content}</h3>
+      </Toast.Title>
+    );
+  }
+
+  if (state.titleComposition === "render") {
+    return <Toast.Title {...props} render={(renderProps) => <h3 {...renderProps}>{renderProps.children as ReactNode}</h3>} />;
+  }
+
+  return <Toast.Title {...props}>{content}</Toast.Title>;
+}
+
+function ToastScenarioDescription({ state, markRef, description }: { state: ToastScenarioState; markRef: (node: HTMLElement | null) => void; description?: ReactNode }) {
+  const content = description ?? "Playground notification body.";
+  const props = {
+    ...partProps("description", { propCheck: state.propCheck, customSlot: state.customDescriptionSlot }, "toast-description-custom"),
+    className: "utility-toast-description",
+    "data-toast-description": "",
+    "data-playground-inspect": "",
+    ref: markRef,
+  } satisfies ToastDescriptionPartProps;
+
+  if (state.descriptionComposition === "asChild") {
+    return (
+      <Toast.Description {...props} asChild>
+        <p>{content}</p>
+      </Toast.Description>
+    );
+  }
+
+  if (state.descriptionComposition === "render") {
+    return <Toast.Description {...props} render={(renderProps) => <p {...renderProps}>{renderProps.children as ReactNode}</p>} />;
+  }
+
+  return <Toast.Description {...props}>{content}</Toast.Description>;
+}
+
+function ToastScenarioAction({ state, markRef, label }: { state: ToastScenarioState; markRef: (node: HTMLElement | null) => void; label?: ReactNode }) {
+  const content = label ?? "Undo";
+  const props = {
+    ...partProps("action", { propCheck: state.propCheck, customSlot: state.customActionSlot }, "toast-action-custom"),
+    altText: "Undo change",
+    className: "atom-button secondary",
+    "data-toast-action": "",
+    "data-playground-inspect": "",
+    ref: markRef,
+  } satisfies ToastActionPartProps;
+
+  if (state.actionComposition === "asChild") {
+    return (
+      <Toast.Action {...props} asChild>
+        <button type="button">{content}</button>
+      </Toast.Action>
+    );
+  }
+
+  if (state.actionComposition === "render") {
+    return <Toast.Action {...props} render={(renderProps) => <button {...renderProps}>{renderProps.children as ReactNode}</button>} />;
+  }
+
+  return <Toast.Action {...props}>{content}</Toast.Action>;
+}
+
+function ToastScenarioCancel({ state, markRef, label }: { state: ToastScenarioState; markRef: (node: HTMLElement | null) => void; label?: ReactNode }) {
+  const content = label ?? "Dismiss";
+  const props = {
+    ...partProps("cancel", { propCheck: state.propCheck, customSlot: state.customCancelSlot }, "toast-cancel-custom"),
+    altText: "Dismiss undo",
+    className: "atom-button secondary",
+    "data-toast-cancel": "",
+    "data-playground-inspect": "",
+    ref: markRef,
+  } satisfies ToastCancelPartProps;
+
+  if (state.cancelComposition === "asChild") {
+    return (
+      <Toast.Cancel {...props} asChild>
+        <button type="button">{content}</button>
+      </Toast.Cancel>
+    );
+  }
+
+  if (state.cancelComposition === "render") {
+    return <Toast.Cancel {...props} render={(renderProps) => <button {...renderProps}>{renderProps.children as ReactNode}</button>} />;
+  }
+
+  return <Toast.Cancel {...props}>{content}</Toast.Cancel>;
+}
+
+function ToastScenarioClose({ state, markRef }: { state: ToastScenarioState; markRef: (node: HTMLElement | null) => void }) {
+  const props = {
+    ...partProps("close", { propCheck: state.propCheck, customSlot: state.customCloseSlot }, "toast-close-custom"),
+    "aria-label": "Dismiss notification",
+    className: "atom-button secondary",
+    "data-toast-close": "",
+    "data-playground-inspect": "",
+    ref: markRef,
+  } satisfies ToastClosePartProps;
+
+  if (state.closeComposition === "asChild") {
+    return (
+      <Toast.Close {...props} asChild>
+        <button type="button">Close</button>
+      </Toast.Close>
+    );
+  }
+
+  if (state.closeComposition === "render") {
+    return <Toast.Close {...props} render={(renderProps) => <button {...renderProps}>{renderProps.children as ReactNode}</button>}>Close</Toast.Close>;
+  }
+
+  return <Toast.Close {...props}>Close</Toast.Close>;
+}
+
 function ToastCountProbe() {
   const toasts = useToastStore();
+  const pausedCount = toasts.filter((toastData) => toastData.paused).length;
   return (
     <span className="utility-toast-count" data-toast-count="" data-playground-inspect="">
       {toasts.length} {toasts.length === 1 ? "toast" : "toasts"}
+      {pausedCount > 0 ? ` · ${pausedCount} paused` : ""}
     </span>
   );
+}
+
+function getToastDuration(duration: ToastScenarioState["duration"]) {
+  return duration === "infinite" ? Infinity : 3500;
 }
 
 function ProgressScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useProgressScenario> }) {
@@ -4081,26 +4648,129 @@ function getUtilityPrimitiveSections(
     const cancel = document.querySelector<HTMLElement>("[data-toast-cancel]");
     const close = document.querySelector<HTMLElement>("[data-toast-close]");
     const count = document.querySelector<HTMLElement>("[data-toast-count]");
+    const storeToasts = getToasts();
+    const pausedCount = storeToasts.filter((toastData) => toastData.paused).length;
     return [
       {
         title: "Provider",
         selector: "[data-toast-stage]",
-        summary: scenarios.toast.state.type,
+        summary: `max ${scenarios.toast.state.maxVisible}`,
         rows: [
+          { label: "Rendering", value: scenarios.toast.state.renderMode, category: "state" },
           { label: "Type", value: scenarios.toast.state.type, category: "state" },
+          { label: "Max visible", value: scenarios.toast.state.maxVisible, category: "state" },
           { label: "Close button", value: bool(scenarios.toast.state.closeButton), category: "state" },
           { label: "Action buttons", value: bool(scenarios.toast.state.action), category: "state" },
+          { label: "Dismissible", value: bool(scenarios.toast.state.dismissible), category: "state" },
+          { label: "Paused", value: bool(scenarios.toast.state.paused), category: "state" },
+          { label: "Force mount", value: bool(scenarios.toast.state.forceMount), category: "state" },
           { label: "Duration", value: scenarios.toast.state.duration, category: "state" },
+          { label: "Expand on hover", value: bool(scenarios.toast.state.expandOnHover), category: "state" },
+          { label: "Pause on hover", value: bool(scenarios.toast.state.pauseOnHover), category: "state" },
+          { label: "Pause on focus loss", value: bool(scenarios.toast.state.pauseOnFocusLoss), category: "state" },
         ],
       },
-      { title: "Viewport", selector: "[data-toast-viewport]", inactive: !viewport, summary: viewport?.dataset.position ?? "not rendered", rows: [{ label: "Exists", value: bool(!!viewport), category: "presence" }] },
-      { title: "Toast", selector: "[data-toast-root]", inactive: !root, summary: root?.dataset.type ?? "not rendered", rows: [{ label: "Exists", value: bool(!!root), category: "presence" }] },
-      { title: "Title", selector: "[data-toast-title]", inactive: !title, summary: title?.textContent?.trim() || "not rendered", rows: [{ label: "Exists", value: bool(!!title), category: "presence" }] },
-      { title: "Description", selector: "[data-toast-description]", inactive: !description, summary: description?.textContent?.trim() || "not rendered", rows: [{ label: "Exists", value: bool(!!description), category: "presence" }] },
-      { title: "Action", selector: "[data-toast-action]", inactive: !action, summary: action?.textContent?.trim() || "not rendered", rows: [{ label: "Exists", value: bool(!!action), category: "presence" }] },
-      { title: "Cancel", selector: "[data-toast-cancel]", inactive: !cancel, summary: cancel?.textContent?.trim() || "not rendered", rows: [{ label: "Exists", value: bool(!!cancel), category: "presence" }] },
-      { title: "Close", selector: "[data-toast-close]", inactive: !close, summary: close?.textContent?.trim() || "not rendered", rows: [{ label: "Exists", value: bool(!!close), category: "presence" }] },
-      { title: "Store", selector: "[data-toast-count]", summary: count?.textContent?.trim() || "0 toasts", rows: [{ label: "Count", value: count?.textContent?.trim() || "0 toasts", category: "state" }] },
+      {
+        title: "Root",
+        selector: "[data-toast-root]",
+        inactive: !root,
+        summary: root?.dataset.type ?? "not rendered",
+        rows: [
+          { label: "Exists", value: bool(!!root), category: "presence" },
+          { label: "Mode", value: scenarios.toast.state.rootComposition, category: "composition" },
+          { label: "Expanded", value: bool(root?.dataset.expanded !== undefined), category: "state" },
+          { label: "Ref", value: scenarios.toast.state.rootRef, category: "behavior" },
+        ],
+      },
+      {
+        title: "Title",
+        selector: "[data-toast-title]",
+        inactive: !title,
+        summary: title?.textContent?.trim() || "not rendered",
+        rows: [
+          { label: "Exists", value: bool(!!title), category: "presence" },
+          { label: "Mode", value: scenarios.toast.state.titleComposition, category: "composition" },
+          { label: "Ref", value: scenarios.toast.state.titleRef, category: "behavior" },
+        ],
+      },
+      {
+        title: "Description",
+        selector: "[data-toast-description]",
+        inactive: !description,
+        summary: description?.textContent?.trim() || "not rendered",
+        rows: [
+          { label: "Exists", value: bool(!!description), category: "presence" },
+          { label: "Mode", value: scenarios.toast.state.descriptionComposition, category: "composition" },
+          { label: "Ref", value: scenarios.toast.state.descriptionRef, category: "behavior" },
+        ],
+      },
+      {
+        title: "Action",
+        selector: "[data-toast-action]",
+        inactive: !action,
+        summary: action?.textContent?.trim() || "not rendered",
+        rows: [
+          { label: "Exists", value: bool(!!action), category: "presence" },
+          { label: "Mode", value: scenarios.toast.state.actionComposition, category: "composition" },
+          { label: "Ref", value: scenarios.toast.state.actionRef, category: "behavior" },
+        ],
+      },
+      {
+        title: "Cancel",
+        selector: "[data-toast-cancel]",
+        inactive: !cancel,
+        summary: cancel?.textContent?.trim() || "not rendered",
+        rows: [
+          { label: "Exists", value: bool(!!cancel), category: "presence" },
+          { label: "Mode", value: scenarios.toast.state.cancelComposition, category: "composition" },
+          { label: "Ref", value: scenarios.toast.state.cancelRef, category: "behavior" },
+        ],
+      },
+      {
+        title: "Close",
+        selector: "[data-toast-close]",
+        inactive: !close,
+        summary: close?.textContent?.trim() || "not rendered",
+        rows: [
+          { label: "Exists", value: bool(!!close), category: "presence" },
+          { label: "Mode", value: scenarios.toast.state.closeComposition, category: "composition" },
+          { label: "Ref", value: scenarios.toast.state.closeRef, category: "behavior" },
+        ],
+      },
+      {
+        title: "Viewport",
+        selector: "[data-toast-viewport]",
+        inactive: !viewport,
+        summary: viewport?.dataset.position ?? "not rendered",
+        rows: [
+          { label: "Exists", value: bool(!!viewport), category: "presence" },
+          { label: "Mode", value: scenarios.toast.state.viewportComposition, category: "composition" },
+          { label: "Portal", value: scenarios.toast.state.portalMode, category: "state" },
+          { label: "Expanded", value: bool(viewport?.dataset.expanded !== undefined), category: "state" },
+          { label: "Ref", value: scenarios.toast.state.viewportRef, category: "behavior" },
+        ],
+      },
+      {
+        title: "Announcer: Polite",
+        selector: "[data-slot='toast-announcer-polite']",
+        summary: "live region",
+        rows: [{ label: "Exists", value: bool(!!document.querySelector("[data-slot='toast-announcer-polite']")), category: "presence" }],
+      },
+      {
+        title: "Announcer: Assertive",
+        selector: "[data-slot='toast-announcer-assertive']",
+        summary: "live region",
+        rows: [{ label: "Exists", value: bool(!!document.querySelector("[data-slot='toast-announcer-assertive']")), category: "presence" }],
+      },
+      {
+        title: "Store",
+        selector: "[data-toast-count]",
+        summary: count?.textContent?.trim() || "0 toasts",
+        rows: [
+          { label: "Count", value: String(storeToasts.length), category: "state" },
+          { label: "Paused", value: String(pausedCount), category: "state" },
+        ],
+      },
     ];
   }
 
@@ -4657,6 +5327,115 @@ function getCollapsibleContentSource(state: ReturnType<typeof useCollapsibleScen
   return `<Collapsible.Content${props}>More information</Collapsible.Content>`;
 }
 
+function getToastRootSource(state: ToastScenarioState, props: string, children: string) {
+  if (state.rootComposition === "asChild") {
+    return `<Toast.Root${props} asChild>
+  <section>
+${indent(children, 4)}
+  </section>
+</Toast.Root>`;
+  }
+
+  if (state.rootComposition === "render") {
+    return `<Toast.Root${props} render={(props) => <section {...props} />}>
+${indent(children, 2)}
+</Toast.Root>`;
+  }
+
+  return `<Toast.Root${props}>
+${indent(children, 2)}
+</Toast.Root>`;
+}
+
+function getToastViewportSource(state: ToastScenarioState, props: string, renderToast?: string) {
+  const renderToastBlock = renderToast ? `\n  ${renderToast}` : "";
+
+  if (state.viewportComposition === "asChild") {
+    return `<Toast.Viewport${props}${renderToastBlock}>
+  <section />
+</Toast.Viewport>`;
+  }
+
+  return `<Toast.Viewport${props}${renderToastBlock} />`;
+}
+
+function getToastTitleSource(state: ToastScenarioState) {
+  const props = sourceProps([
+    state.customTitleSlot ? `data-slot="toast-title-custom"` : null,
+    state.propCheck ? `data-prop-check="title"` : null,
+    state.titleComposition === "asChild" ? "asChild" : null,
+    state.titleComposition === "render" ? `render={(props) => <h3 {...props} />}` : null,
+  ]);
+
+  if (state.titleComposition === "asChild") {
+    return `<Toast.Title${props}><h3>${formatOption(state.type)} toast</h3></Toast.Title>`;
+  }
+
+  return `<Toast.Title${props}>${formatOption(state.type)} toast</Toast.Title>`;
+}
+
+function getToastDescriptionSource(state: ToastScenarioState) {
+  const props = sourceProps([
+    state.customDescriptionSlot ? `data-slot="toast-description-custom"` : null,
+    state.propCheck ? `data-prop-check="description"` : null,
+    state.descriptionComposition === "asChild" ? "asChild" : null,
+    state.descriptionComposition === "render" ? `render={(props) => <p {...props} />}` : null,
+  ]);
+
+  if (state.descriptionComposition === "asChild") {
+    return `<Toast.Description${props}><p>Playground notification body.</p></Toast.Description>`;
+  }
+
+  return `<Toast.Description${props}>Playground notification body.</Toast.Description>`;
+}
+
+function getToastActionSource(state: ToastScenarioState) {
+  const props = sourceProps([
+    state.customActionSlot ? `data-slot="toast-action-custom"` : null,
+    state.propCheck ? `data-prop-check="action"` : null,
+    `altText="Undo change"`,
+    state.actionComposition === "asChild" ? "asChild" : null,
+    state.actionComposition === "render" ? `render={(props) => <button {...props} />}` : null,
+  ]);
+
+  if (state.actionComposition === "asChild") {
+    return `<Toast.Action${props}><button>Undo</button></Toast.Action>`;
+  }
+
+  return `<Toast.Action${props}>Undo</Toast.Action>`;
+}
+
+function getToastCancelSource(state: ToastScenarioState) {
+  const props = sourceProps([
+    state.customCancelSlot ? `data-slot="toast-cancel-custom"` : null,
+    state.propCheck ? `data-prop-check="cancel"` : null,
+    `altText="Dismiss undo"`,
+    state.cancelComposition === "asChild" ? "asChild" : null,
+    state.cancelComposition === "render" ? `render={(props) => <button {...props} />}` : null,
+  ]);
+
+  if (state.cancelComposition === "asChild") {
+    return `<Toast.Cancel${props}><button>Dismiss</button></Toast.Cancel>`;
+  }
+
+  return `<Toast.Cancel${props}>Dismiss</Toast.Cancel>`;
+}
+
+function getToastCloseSource(state: ToastScenarioState) {
+  const props = sourceProps([
+    state.customCloseSlot ? `data-slot="toast-close-custom"` : null,
+    state.propCheck ? `data-prop-check="close"` : null,
+    state.closeComposition === "asChild" ? "asChild" : null,
+    state.closeComposition === "render" ? `render={(props) => <button {...props} />}` : null,
+  ]);
+
+  if (state.closeComposition === "asChild") {
+    return `<Toast.Close${props}><button>Close</button></Toast.Close>`;
+  }
+
+  return `<Toast.Close${props}>Close</Toast.Close>`;
+}
+
 function indent(source: string, spaces: number) {
   const prefix = " ".repeat(spaces);
   return source.split("\n").map((line) => `${prefix}${line}`).join("\n");
@@ -4728,9 +5507,13 @@ const sidebarSideOptions = ["left", "right"] as const;
 const swipeOpenSideOptions = ["none", "start", "end"] as const;
 const swipeThresholdOptions = ["0.2", "0.35", "0.6"] as const;
 const swipeFullThresholdOptions = ["0.4", "0.6", "0.8"] as const;
+const toastRenderModeOptions = ["imperative", "declarative"] as const;
 const toastKindOptions = ["default", "success", "error", "warning", "info", "loading"] as const;
 const toastPositionOptions = ["top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right"] as const;
 const toastDurationOptions = ["short", "infinite"] as const;
+const toastMaxVisibleOptions = ["1", "3", "5"] as const;
+const toastPortalModeOptions = ["body", "local", "disabled"] as const;
+const toastViewportCompositionOptions = ["default", "asChild", "render"] as const;
 const virtualizerCountOptions = ["12", "40", "100"] as const;
 const virtualizerOverscanOptions = ["0", "1", "2", "5"] as const;
 const virtualizerAlignOptions = ["start", "center", "end", "auto"] as const;
