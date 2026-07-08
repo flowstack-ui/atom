@@ -832,9 +832,37 @@ h2 {
   box-shadow: 0 14px 34px rgba(12, 18, 26, 0.22), 0 4px 12px rgba(12, 18, 26, 0.12);
 }
 
+.atom-tooltip-content[data-variant="rich"] {
+  max-width: min(280px, calc(100vw - 32px));
+  padding: 10px 12px;
+  font-weight: 500;
+}
+
 .atom-tooltip-content:focus {
   outline: 3px solid rgba(57, 120, 216, 0.24);
   outline-offset: 2px;
+}
+
+.tooltip-rich-content {
+  display: grid;
+  gap: 4px;
+}
+
+.tooltip-rich-title,
+.tooltip-rich-copy {
+  margin: 0;
+}
+
+.tooltip-rich-title {
+  color: #121a24;
+  font-size: 13px;
+  font-weight: 720;
+}
+
+.tooltip-rich-copy {
+  color: #536171;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .form-control-stage {

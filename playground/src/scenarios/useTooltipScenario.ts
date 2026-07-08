@@ -9,7 +9,9 @@ import type { TooltipAlign, TooltipSide } from "@flowstack-ui/atom/tooltip";
 
 export type { TooltipAlign, TooltipSide };
 
+export type TooltipArrowSize = "default" | "wide";
 export type TooltipCompositionMode = "default" | "asChild" | "render";
+export type TooltipPortalMode = "body" | "container" | "disabled";
 export type TooltipVariant = "plain" | "rich";
 
 export type TooltipLogEntry = {
@@ -20,8 +22,10 @@ export type TooltipLogEntry = {
 
 export type TooltipScenarioState = {
   controlled: boolean;
+  defaultOpen: boolean;
   disabled: boolean;
   useAriaLabel: boolean;
+  portalMode: TooltipPortalMode;
   providerOpenDelay: number;
   providerCloseDelay: number;
   providerSkipDelay: number;
@@ -29,7 +33,9 @@ export type TooltipScenarioState = {
   side: TooltipSide;
   align: TooltipAlign;
   sideOffset: number;
+  arrowSize: TooltipArrowSize;
   triggerComposition: TooltipCompositionMode;
+  arrowComposition: TooltipCompositionMode;
   propCheck: boolean;
   customTriggerSlot: boolean;
   customContentSlot: boolean;
@@ -40,8 +46,10 @@ export type TooltipScenarioState = {
 
 export type TooltipScenarioActions = {
   setControlled: (value: boolean) => void;
+  setDefaultOpen: (value: boolean) => void;
   setDisabled: (value: boolean) => void;
   setUseAriaLabel: (value: boolean) => void;
+  setPortalMode: (value: TooltipPortalMode) => void;
   setProviderOpenDelay: (value: number) => void;
   setProviderCloseDelay: (value: number) => void;
   setProviderSkipDelay: (value: number) => void;
@@ -49,7 +57,9 @@ export type TooltipScenarioActions = {
   setSide: (value: TooltipSide) => void;
   setAlign: (value: TooltipAlign) => void;
   setSideOffset: (value: number) => void;
+  setArrowSize: (value: TooltipArrowSize) => void;
   setTriggerComposition: (value: TooltipCompositionMode) => void;
+  setArrowComposition: (value: TooltipCompositionMode) => void;
   setPropCheck: (value: boolean) => void;
   setCustomTriggerSlot: (value: boolean) => void;
   setCustomContentSlot: (value: boolean) => void;
@@ -69,16 +79,21 @@ export type TooltipScenarioActions = {
 export function useTooltipScenario() {
   const nextLogId = useRef(1);
   const [controlled, setControlled] = useState(false);
+  const [defaultOpen, setDefaultOpenState] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const [useAriaLabel, setUseAriaLabel] = useState(true);
-  const [providerOpenDelay, setProviderOpenDelay] = useState(0);
+  const [portalMode, setPortalMode] = useState<TooltipPortalMode>("body");
+  const [providerOpenDelay, setProviderOpenDelay] = useState(400);
   const [providerCloseDelay, setProviderCloseDelay] = useState(150);
   const [providerSkipDelay, setProviderSkipDelay] = useState(300);
   const [variant, setVariant] = useState<TooltipVariant>("plain");
   const [side, setSide] = useState<TooltipSide>("top");
   const [align, setAlign] = useState<TooltipAlign>("center");
   const [sideOffset, setSideOffset] = useState(4);
+  const [arrowSize, setArrowSize] = useState<TooltipArrowSize>("default");
   const [triggerComposition, setTriggerComposition] =
+    useState<TooltipCompositionMode>("default");
+  const [arrowComposition, setArrowComposition] =
     useState<TooltipCompositionMode>("default");
   const [propCheck, setPropCheck] = useState(false);
   const [customTriggerSlot, setCustomTriggerSlot] = useState(false);
@@ -93,6 +108,14 @@ export function useTooltipScenario() {
       ...currentLog,
     ].slice(0, 10));
   }, []);
+
+  const setDefaultOpen = useCallback((value: boolean) => {
+    setDefaultOpenState(value);
+    if (!controlled) {
+      setOpen(value);
+      addLog(`uncontrolled defaultOpen set ${value}`);
+    }
+  }, [addLog, controlled]);
 
   const setControlledOpen = useCallback((nextOpen: boolean) => {
     setOpen(nextOpen);
@@ -139,8 +162,10 @@ export function useTooltipScenario() {
   return {
     state: {
       controlled,
+      defaultOpen,
       disabled,
       useAriaLabel,
+      portalMode,
       providerOpenDelay,
       providerCloseDelay,
       providerSkipDelay,
@@ -148,7 +173,9 @@ export function useTooltipScenario() {
       side,
       align,
       sideOffset,
+      arrowSize,
       triggerComposition,
+      arrowComposition,
       propCheck,
       customTriggerSlot,
       customContentSlot,
@@ -158,8 +185,10 @@ export function useTooltipScenario() {
     },
     actions: {
       setControlled,
+      setDefaultOpen,
       setDisabled,
       setUseAriaLabel,
+      setPortalMode,
       setProviderOpenDelay,
       setProviderCloseDelay,
       setProviderSkipDelay,
@@ -167,7 +196,9 @@ export function useTooltipScenario() {
       setSide,
       setAlign,
       setSideOffset,
+      setArrowSize,
       setTriggerComposition,
+      setArrowComposition,
       setPropCheck,
       setCustomTriggerSlot,
       setCustomContentSlot,

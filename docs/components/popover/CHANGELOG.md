@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Fixed Popover positioning when `Anchor` uses its default `display: contents`
+  wrapper by resolving the usable child element as the Floating UI reference
+  and refreshing the reference after refs commit.
+- Fixed non-modal and modal Popover dismissal so clicks and focus movement
+  inside nested portalled Popover layers do not close the parent Popover.
 - Added shared dismissable layer Escape handling so nested overlays close
   before parent Popover layers.
 - Added scoped modal focus containment for modal Popover and registered

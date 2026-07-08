@@ -78,10 +78,12 @@ function TooltipContent(
     onContentLeave,
     tooltipId,
     triggerRef,
+    variant,
   } = useTooltipContext();
   const arrowRef = useRef<SVGSVGElement>(null);
   const { isPresent, ref: presenceRef } = usePresence({ present: isOpen });
   const [isPositioned, setIsPositioned] = useState(false);
+  const [referenceElement, setReferenceElement] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!isPresent) return undefined;
@@ -89,6 +91,10 @@ function TooltipContent(
     const raf = requestAnimationFrame(() => setIsPositioned(true));
     return () => cancelAnimationFrame(raf);
   }, [isPresent]);
+
+  useEffect(() => {
+    setReferenceElement(triggerRef.current);
+  }, [isOpen, triggerRef]);
 
   const middleware = useMemo(
     () => [
@@ -101,7 +107,7 @@ function TooltipContent(
   );
 
   const { refs, floatingStyles, placement, middlewareData } = useFloating({
-    elements: { reference: triggerRef.current },
+    elements: { reference: referenceElement },
     placement: toPlacement(side, align),
     middleware,
     whileElementsMounted: autoUpdate,
@@ -147,6 +153,7 @@ function TooltipContent(
         data-slot={dataSlot}
         data-state={isOpen ? "open" : "closed"}
         data-side={actualSide}
+        data-variant={variant}
         {...(isPositioned ? { "data-positioned": "" } : {})}
         aria-label={ariaLabel}
         className={className}

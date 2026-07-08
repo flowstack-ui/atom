@@ -42,9 +42,9 @@ Provides shared tooltip timing.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `openDelay` | `number` | `700` |
-| `closeDelay` | `number` | `0` |
-| `skipDelayDuration` | `number` | `300` |
+| `openDelay` | `number` | `400` |
+| `closeDelay` | `number` | `150` |
+| `skipDelay` | `number` | `300` |
 
 ### Root
 
@@ -56,6 +56,7 @@ Provides tooltip state.
 | `defaultOpen` | `boolean` | `false` |
 | `onOpenChange` | `(open: boolean) => void` | - |
 | `disabled` | `boolean` | `false` |
+| `variant` | `"plain" \| "rich"` | `"plain"` |
 
 ### Trigger
 
@@ -77,7 +78,7 @@ Renders tooltip content into a portal.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `container` | `Element | DocumentFragment | null` | `document.body` |
+| `container` | `Element \| DocumentFragment \| null` | `document.body` |
 | `disabled` | `boolean` | `false` |
 
 ### Content
@@ -86,8 +87,8 @@ Positioned tooltip bubble.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `side` | `"top" | "right" | "bottom" | "left"` | `"top"` |
-| `align` | `"start" | "center" | "end"` | `"center"` |
+| `side` | `"top" \| "right" \| "bottom" \| "left"` | `"top"` |
+| `align` | `"start" \| "center" \| "end"` | `"center"` |
 | `sideOffset` | `number` | `4` |
 | `ariaLabel` | `string` | - |
 | `data-slot` | `string` | `"tooltip"` |
@@ -95,8 +96,9 @@ Positioned tooltip bubble.
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"tooltip"` |
-| `[data-state]` | `"open" | "closed"` |
-| `[data-side]` | `"top" | "right" | "bottom" | "left"` |
+| `[data-state]` | `"open" \| "closed"` |
+| `[data-side]` | `"top" \| "right" \| "bottom" \| "left"` |
+| `[data-variant]` | `"plain" \| "rich"` |
 | `[data-positioned]` | Present after the first positioning frame |
 
 ### Arrow
@@ -105,14 +107,14 @@ Decorative SVG arrow positioned by content context.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `width` | `number` | `12` |
-| `height` | `number` | `6` |
+| `width` | `number` | `10` |
+| `height` | `number` | `5` |
 | `data-slot` | `string` | `"tooltip-arrow"` |
 
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"tooltip-arrow"` |
-| `[data-side]` | `"top" | "right" | "bottom" | "left"` |
+| `[data-side]` | `"top" \| "right" \| "bottom" \| "left"` |
 
 ## Examples
 

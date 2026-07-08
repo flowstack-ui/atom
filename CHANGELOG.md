@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Fixed Popover positioning when `Anchor` uses its default `display: contents`
+  wrapper by resolving the usable child element as the Floating UI reference
+  and refreshing the reference after refs commit.
+- Fixed non-modal and modal Popover dismissal so clicks and focus movement
+  inside nested portalled Popover layers do not close the parent Popover.
+- Fixed HoverCard render/default trigger positioning by updating Floating UI
+  after the trigger ref commits, and made default/rendered triggers keyboard
+  focusable while preserving focus-visible open behavior.
+- Fixed Tooltip render trigger positioning by updating Floating UI after the
+  trigger ref commits.
+- Added `data-variant="plain|rich"` to Tooltip content and documented the
+  `variant` Root prop.
 - Fixed Rating fractional pointer selection and RTL direction behavior for
   horizontal pointer and keyboard interactions.
 - Fixed Combobox option selection so pointer clicks close consistently,

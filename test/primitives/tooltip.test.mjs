@@ -1,8 +1,10 @@
 import {
   assert,
+  readFile,
   test,
   React,
   renderToStaticMarkup,
+  packageRoot,
 } from "../test-utils.mjs";
 
 import {
@@ -85,6 +87,7 @@ test("TooltipArrow renders a default SVG polygon with geometry props", () => {
   );
 
   assert.match(html, /data-slot="tooltip-arrow"/);
+  assert.match(html, /data-variant="plain"/);
   assert.match(html, /aria-hidden="true"/);
   assert.match(html, /width="12"/);
   assert.match(html, /height="6"/);
@@ -119,4 +122,31 @@ test("TooltipArrow geometry keeps width as triangle spread and height as protrus
     outwardSize: 6,
     points: "6,0 0,6 6,12",
   });
+});
+
+test("TooltipContent exposes the Root variant for styling", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      TooltipProvider,
+      { openDelay: 0 },
+      React.createElement(
+        TooltipRoot,
+        { defaultOpen: true, variant: "rich" },
+        React.createElement(TooltipTrigger, null, "Hover"),
+        React.createElement(TooltipContent, null, "Content"),
+      ),
+    ),
+  );
+
+  assert.match(html, /data-variant="rich"/);
+});
+
+test("TooltipContent updates Floating UI after the trigger ref commits", async () => {
+  const source = await readFile(
+    new URL("src/primitives/tooltip/TooltipContent.tsx", packageRoot),
+    "utf8",
+  );
+
+  assert.match(source, /setReferenceElement\(triggerRef\.current\)/);
+  assert.match(source, /elements: \{ reference: referenceElement \}/);
 });

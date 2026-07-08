@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Fixed HoverCard render/default trigger positioning by updating Floating UI
+  after the trigger ref commits.
+- Made default and `render` HoverCard triggers keyboard focusable while keeping
+  opening scoped to hover and focus-visible interactions.
 - Added shared dismissable layer Escape handling so HoverCard participates in
   topmost-layer dismissal with other overlays.
 

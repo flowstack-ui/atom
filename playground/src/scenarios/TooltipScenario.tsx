@@ -5,10 +5,12 @@ import {
   type AnatomySection,
 } from "../AnatomyPanel";
 import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup, partProps } from "../WorkbenchPrimitives";
-import type { Dispatch, ReactNode, SetStateAction } from "react";
+import { useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import type {
+  TooltipArrowSize,
   TooltipAlign,
   TooltipCompositionMode,
+  TooltipPortalMode,
   TooltipScenarioActions,
   TooltipScenarioState,
   TooltipSide,
@@ -22,9 +24,14 @@ export function TooltipScenarioCanvas({
   state: TooltipScenarioState;
   actions: TooltipScenarioActions;
 }) {
+  const [portalContainer, setPortalContainer] = useState<HTMLDivElement | null>(null);
   const rootProps = state.controlled
     ? { open: state.open, onOpenChange: actions.handleOpenChange }
-    : { defaultOpen: false, onOpenChange: actions.handleOpenChange };
+    : { defaultOpen: state.defaultOpen, onOpenChange: actions.handleOpenChange };
+  const portalContainerProp = state.portalMode === "container"
+    ? portalContainer
+    : undefined;
+  const portalDisabled = state.portalMode === "disabled";
 
   return (
     <div className="popover-stage">
@@ -34,6 +41,7 @@ export function TooltipScenarioCanvas({
         skipDelay={state.providerSkipDelay}
       >
         <Tooltip.Root
+          key={`${state.controlled ? "controlled" : "uncontrolled"}-${state.defaultOpen}`}
           {...rootProps}
           disabled={state.disabled}
           variant={state.variant}
@@ -68,7 +76,7 @@ export function TooltipScenarioCanvas({
               </Button.Root>
             </div>
           ) : null}
-          <Tooltip.Portal>
+          <Tooltip.Portal container={portalContainerProp} disabled={portalDisabled}>
             <Tooltip.Content
               ariaLabel={state.useAriaLabel ? "Save changes tooltip" : undefined}
               className="atom-tooltip-content"
@@ -79,16 +87,33 @@ export function TooltipScenarioCanvas({
               align={state.align}
               sideOffset={state.sideOffset}
             >
-              Save changes
-              <Tooltip.Arrow
-                className="atom-popover-arrow"
-                data-tooltip-arrow=""
-                {...partProps("arrow", { customSlot: state.customArrowSlot, propCheck: state.propCheck }, "tooltip-arrow-custom")}
+              {state.variant === "rich" ? (
+                <div className="tooltip-rich-content">
+                  <p className="tooltip-rich-title">Save changes</p>
+                  <p className="tooltip-rich-copy">
+                    Writes the current form state and keeps the tooltip open
+                    while the pointer is over this panel.
+                  </p>
+                </div>
+              ) : (
+                "Save changes"
+              )}
+              <TooltipArrowExample
+                customSlot={state.customArrowSlot}
+                mode={state.arrowComposition}
+                propCheck={state.propCheck}
+                size={state.arrowSize}
               />
             </Tooltip.Content>
           </Tooltip.Portal>
         </Tooltip.Root>
       </Tooltip.Provider>
+      <div
+        className="popover-portal-target"
+        data-playground-inspect=""
+        data-tooltip-portal-target=""
+        ref={setPortalContainer}
+      />
       <Button.Root className="behind-dialog-button" tabIndex={-1}>
         Outside focus target
       </Button.Root>
@@ -108,6 +133,7 @@ export function TooltipScenarioAnatomy({
   const trigger = document.querySelector<HTMLElement>("[data-tooltip-trigger]");
   const content = document.querySelector<HTMLElement>("[data-tooltip-content]");
   const arrow = document.querySelector<HTMLElement>("[data-tooltip-arrow]");
+  const portalTarget = document.querySelector<HTMLElement>("[data-tooltip-portal-target]");
 
   const sections: AnatomySection[] = [
     {
@@ -125,6 +151,7 @@ export function TooltipScenarioAnatomy({
       rows: [
         { label: "Mode", value: state.controlled ? "controlled" : "uncontrolled", category: "state" },
         { label: "Open", value: state.open ? "yes" : "no", category: "state" },
+        { label: "Default open", value: state.defaultOpen ? "yes" : "no", category: "state" },
         { label: "Disabled", value: state.disabled ? "yes" : "no", category: "state" },
         { label: "Variant", value: state.variant, category: "behavior" },
       ],
@@ -142,11 +169,14 @@ export function TooltipScenarioAnatomy({
     {
       title: "Portal",
       inactive: !content,
-      summary: content?.parentElement?.tagName.toLowerCase() ?? "not rendered",
+      summary: state.portalMode,
       rows: [
         { label: "Content exists", value: content ? "yes" : "no", category: "presence" },
+        { label: "Mode", value: state.portalMode, category: "state" },
+        { label: "Target exists", value: portalTarget ? "yes" : "no", category: "presence" },
         { label: "Parent", value: content?.parentElement?.tagName.toLowerCase() ?? "none", category: "behavior" },
         { label: "Inside canvas", value: content?.closest(".canvas") ? "yes" : "no", category: "behavior" },
+        { label: "In custom target", value: content?.parentElement === portalTarget ? "yes" : "no", category: "behavior" },
       ],
     },
     {
@@ -156,6 +186,11 @@ export function TooltipScenarioAnatomy({
       summary: content?.dataset.state ?? "not rendered",
       rows: [
         { label: "Exists", value: content ? "yes" : "no", category: "presence" },
+        { label: "aria-label", value: content?.getAttribute("aria-label") ?? "none", category: "aria" },
+        { label: "data-side", value: content?.dataset.side ?? "none", category: "data" },
+        { label: "data-state", value: content?.dataset.state ?? "none", category: "data" },
+        { label: "data-variant", value: content?.dataset.variant ?? "none", category: "data" },
+        { label: "data-positioned", value: content?.hasAttribute("data-positioned") ? "yes" : "no", category: "data" },
         { label: "Side", value: state.side, category: "behavior" },
         { label: "Align", value: state.align, category: "behavior" },
         { label: "Offset", value: String(state.sideOffset), category: "behavior" },
@@ -168,6 +203,11 @@ export function TooltipScenarioAnatomy({
       summary: arrow?.dataset.side ?? "not rendered",
       rows: [
         { label: "Exists", value: arrow ? "yes" : "no", category: "presence" },
+        { label: "Composition", value: state.arrowComposition, category: "composition" },
+        { label: "Size", value: state.arrowSize, category: "behavior" },
+        { label: "width", value: arrow?.getAttribute("width") ?? "none", category: "identity" },
+        { label: "height", value: arrow?.getAttribute("height") ?? "none", category: "identity" },
+        { label: "data-side", value: arrow?.dataset.side ?? "none", category: "data" },
       ],
     },
   ];
@@ -194,23 +234,31 @@ export function TooltipScenarioToolbar({
       <ToolbarGroup title="State" value="state">
         <MenuSection label="Root">
           <MenuCheckboxControl checked={state.controlled} label="Controlled" value="controlled" onChange={actions.setControlled} />
+          {!state.controlled ? (
+            <MenuCheckboxControl checked={state.defaultOpen} label="Default Open" value="default-open" onChange={actions.setDefaultOpen} />
+          ) : null}
           <MenuCheckboxControl checked={state.disabled} label="Disabled" value="disabled" onChange={actions.setDisabled} />
-          <MenuCheckboxControl checked={state.useAriaLabel} label="Use ariaLabel" value="use-aria-label" onChange={actions.setUseAriaLabel} />
         </MenuSection>
         <MenuRadioControl label="Variant" options={variantOptions} value={state.variant} onChange={actions.setVariant} />
       </ToolbarGroup>
       <ToolbarGroup title="Timing" value="timing">
         <MenuRadioControl label="Open delay" options={delayOptions} value={String(state.providerOpenDelay)} onChange={(value) => actions.setProviderOpenDelay(Number(value))} />
-        <MenuRadioControl label="Close delay" options={delayOptions} value={String(state.providerCloseDelay)} onChange={(value) => actions.setProviderCloseDelay(Number(value))} />
+        <MenuRadioControl label="Close delay" options={closeDelayOptions} value={String(state.providerCloseDelay)} onChange={(value) => actions.setProviderCloseDelay(Number(value))} />
         <MenuRadioControl label="Skip delay" options={skipDelayOptions} value={String(state.providerSkipDelay)} onChange={(value) => actions.setProviderSkipDelay(Number(value))} />
       </ToolbarGroup>
       <ToolbarGroup title="Popup" value="popup">
+        <MenuSection label="Naming">
+          <MenuCheckboxControl checked={state.useAriaLabel} label="Use ariaLabel" value="use-aria-label" onChange={actions.setUseAriaLabel} />
+        </MenuSection>
+        <MenuRadioControl label="Portal" options={portalModeOptions} value={state.portalMode} onChange={actions.setPortalMode} />
         <MenuRadioControl label="Side" options={sideOptions} value={state.side} onChange={actions.setSide} />
         <MenuRadioControl label="Align" options={alignOptions} value={state.align} onChange={actions.setAlign} />
         <MenuRadioControl label="Offset" options={offsetOptions} value={String(state.sideOffset)} onChange={(value) => actions.setSideOffset(Number(value))} />
+        <MenuRadioControl label="Arrow Size" options={arrowSizeOptions} value={state.arrowSize} onChange={actions.setArrowSize} />
       </ToolbarGroup>
       <ToolbarGroup title="Composition" value="composition">
         <MenuRadioControl label="Trigger" options={compositionOptions} value={state.triggerComposition} onChange={actions.setTriggerComposition} />
+        <MenuRadioControl label="Arrow" options={compositionOptions} value={state.arrowComposition} onChange={actions.setArrowComposition} />
       </ToolbarGroup>
       <PropsToolbarGroup
         propCheck={state.propCheck}
@@ -230,36 +278,47 @@ export function TooltipScenarioLog({ state }: { state: TooltipScenarioState }) {
 }
 
 export function getTooltipSource(state: TooltipScenarioState) {
-  const rootMode = state.controlled ? "open={open}" : "defaultOpen={false}";
+  const rootProps = [
+    state.controlled ? "open={open}" : state.defaultOpen ? "defaultOpen" : null,
+    state.disabled ? "disabled" : null,
+    state.variant !== "plain" ? `variant="${state.variant}"` : null,
+    "onOpenChange={setOpen}",
+  ].filter(Boolean).join("\n    ");
+  const providerProps = [
+    state.providerOpenDelay !== 400 ? `openDelay={${state.providerOpenDelay}}` : null,
+    state.providerCloseDelay !== 150 ? `closeDelay={${state.providerCloseDelay}}` : null,
+    state.providerSkipDelay !== 300 ? `skipDelay={${state.providerSkipDelay}}` : null,
+  ].filter(Boolean).join("\n  ");
+  const contentProps = [
+    state.useAriaLabel ? `ariaLabel="Save changes tooltip"` : null,
+    sourceProps([
+      state.customContentSlot ? `data-slot="tooltip-content-custom"` : null,
+      state.propCheck ? `data-prop-check="content"` : null,
+    ]).trim(),
+    state.side !== "top" ? `side="${state.side}"` : null,
+    state.align !== "center" ? `align="${state.align}"` : null,
+    state.sideOffset !== 4 ? `sideOffset={${state.sideOffset}}` : null,
+  ].filter(Boolean).join("\n        ");
+  const portalProps = [
+    state.portalMode === "container" ? "container={portalContainer}" : null,
+    state.portalMode === "disabled" ? "disabled" : null,
+  ].filter(Boolean).join(" ");
+  const contentChildren = state.variant === "rich"
+    ? `<div>
+          <p>Save changes</p>
+          <p>Writes the current form state and keeps the tooltip open while hovered.</p>
+        </div>`
+    : "Save changes";
 
-  return `<Tooltip.Provider
-  openDelay={${state.providerOpenDelay}}
-  closeDelay={${state.providerCloseDelay}}
-  skipDelay={${state.providerSkipDelay}}
->
+  return `<Tooltip.Provider${providerProps ? `\n  ${providerProps}\n` : ""}>
   <Tooltip.Root
-    ${rootMode}
-    disabled={${state.disabled}}
-    variant="${state.variant}"
-    onOpenChange={setOpen}
+    ${rootProps}
   >
     ${getTooltipTriggerSource(state)}
-    <Tooltip.Portal>
-      <Tooltip.Content
-        ${state.useAriaLabel ? `ariaLabel="Save changes tooltip"` : ""}
-        ${sourceProps([
-          state.customContentSlot ? `data-slot="tooltip-content-custom"` : null,
-          state.propCheck ? `data-prop-check="content"` : null,
-        ]).trim()}
-        side="${state.side}"
-        align="${state.align}"
-        sideOffset={${state.sideOffset}}
-      >
-        Save changes
-        <Tooltip.Arrow${sourceProps([
-          state.customArrowSlot ? `data-slot="tooltip-arrow-custom"` : null,
-          state.propCheck ? `data-prop-check="arrow"` : null,
-        ])} />
+    <Tooltip.Portal${portalProps ? ` ${portalProps}` : ""}>
+      <Tooltip.Content${contentProps ? `\n        ${contentProps}\n      ` : ""}>
+        ${contentChildren}
+        ${getTooltipArrowSource(state)}
       </Tooltip.Content>
     </Tooltip.Portal>
   </Tooltip.Root>
@@ -314,13 +373,49 @@ function TooltipTriggerExample({
 
   if (mode === "render") {
     return (
-      <Tooltip.Trigger render="section" {...props}>
+      <Tooltip.Trigger render={(renderProps) => <section {...renderProps} />} {...props}>
         Save
       </Tooltip.Trigger>
     );
   }
 
   return <Tooltip.Trigger {...props}>Save</Tooltip.Trigger>;
+}
+
+function TooltipArrowExample({
+  customSlot,
+  mode,
+  propCheck,
+  size,
+}: {
+  customSlot: boolean;
+  mode: TooltipCompositionMode;
+  propCheck: boolean;
+  size: TooltipArrowSize;
+}) {
+  const sizeProps = getTooltipArrowSizeProps(size);
+  const props = {
+    className: "atom-popover-arrow",
+    "data-tooltip-arrow": "",
+    ...partProps("arrow", { customSlot, propCheck }, "tooltip-arrow-custom"),
+    ...sizeProps,
+  };
+
+  if (mode === "asChild") {
+    return (
+      <Tooltip.Arrow asChild {...props}>
+        <svg>
+          <polygon points="0,0 5,5 10,0" />
+        </svg>
+      </Tooltip.Arrow>
+    );
+  }
+
+  if (mode === "render") {
+    return <Tooltip.Arrow render={<svg />} {...props} />;
+  }
+
+  return <Tooltip.Arrow {...props} />;
 }
 
 function getTooltipTriggerSource(state: TooltipScenarioState) {
@@ -335,12 +430,48 @@ function getTooltipTriggerSource(state: TooltipScenarioState) {
   }
 
   if (state.triggerComposition === "render") {
-    return `<Tooltip.Trigger${props} render="section">
+    return `<Tooltip.Trigger
+      render={(props) => <section {...props} />}${props}
+    >
       Save
     </Tooltip.Trigger>`;
   }
 
   return `<Tooltip.Trigger${props}>Save</Tooltip.Trigger>`;
+}
+
+function getTooltipArrowSource(state: TooltipScenarioState) {
+  const props = [
+    sourceProps([
+      state.customArrowSlot ? `data-slot="tooltip-arrow-custom"` : null,
+      state.propCheck ? `data-prop-check="arrow"` : null,
+    ]),
+    sourceArrowSizeProps(state.arrowSize),
+  ].filter(Boolean).join("");
+
+  if (state.arrowComposition === "asChild") {
+    return `<Tooltip.Arrow asChild${props}>
+          <svg>
+            <polygon points="0,0 5,5 10,0" />
+          </svg>
+        </Tooltip.Arrow>`;
+  }
+
+  if (state.arrowComposition === "render") {
+    return `<Tooltip.Arrow render={<svg />}${props} />`;
+  }
+
+  return `<Tooltip.Arrow${props} />`;
+}
+
+function getTooltipArrowSizeProps(size: TooltipArrowSize) {
+  if (size === "wide") return { width: 18, height: 9 };
+  return {};
+}
+
+function sourceArrowSizeProps(size: TooltipArrowSize) {
+  if (size === "wide") return " width={18} height={9}";
+  return "";
 }
 
 function sourceProps(props: Array<string | null | undefined | false>) {
@@ -354,6 +485,17 @@ const compositionOptions = [
   { label: "Render", value: "render" },
 ] as const satisfies readonly { label: string; value: TooltipCompositionMode }[];
 
+const arrowSizeOptions = [
+  { label: "Default", value: "default" },
+  { label: "Wide", value: "wide" },
+] as const satisfies readonly { label: string; value: TooltipArrowSize }[];
+
+const portalModeOptions = [
+  { label: "Body", value: "body" },
+  { label: "Container", value: "container" },
+  { label: "Disabled", value: "disabled" },
+] as const satisfies readonly { label: string; value: TooltipPortalMode }[];
+
 const variantOptions = [
   { label: "Plain", value: "plain" },
   { label: "Rich", value: "rich" },
@@ -362,7 +504,13 @@ const variantOptions = [
 const delayOptions = [
   { label: "None", value: "0" },
   { label: "Short", value: "150" },
-  { label: "Default", value: "700" },
+  { label: "Default", value: "400" },
+] as const;
+
+const closeDelayOptions = [
+  { label: "None", value: "0" },
+  { label: "Default", value: "150" },
+  { label: "Long", value: "700" },
 ] as const;
 
 const skipDelayOptions = [
