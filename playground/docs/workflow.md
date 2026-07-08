@@ -82,6 +82,7 @@ must follow package-level test, documentation, and changelog rules.
 
 Create or update the component's Manual Test Protocol before final testing.
 Protocols are saved, step-by-step QA procedures for one component.
+Use `component-testing.md` as the canonical authoring guide.
 
 Use this lifecycle:
 
@@ -93,22 +94,20 @@ Use this lifecycle:
 Files under `manual-tests/` are reviewed, version-controlled regression
 protocols. Do not promote a draft protocol just because it exists.
 
-Write protocol steps in the structure from `component-testing.md`:
+Write protocol steps in the order from `component-testing.md`:
 
-- `Playground Smoke Check`
-- `Feature-Wide State`
-- `Root`
-- each public part in public anatomy order
+- `Step 0: Playground Smoke Check`
+- `Step 1: Feature-Wide State`
+- `Step 2+: public parts in public anatomy order`
 - `Source`
 - `Inspector / Logs`
 - `Nested / Portal / Focus Behavior`, when applicable
 - `Workbook Cleanup / Rewrite Notes`
 
-Keep steps part-first and concise. Separate action from expectation, use
-checkbox-style expected results, and prefer short setup blocks over long prose.
-Each step should have one testing target. Do not put Trigger or Content checks
-inside Root, do not mix feature-wide behavior into part-specific steps, and do
-not repeat the same check in multiple steps.
+Keep the workflow reminder short: each step has one testing target, begins from
+a clearly defined state, separates setup, action, verification, and reset when
+needed, and reads like an executable QA test script rather than a component
+explanation.
 
 ## 7. Execute Manual Test Protocol
 

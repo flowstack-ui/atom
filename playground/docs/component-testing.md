@@ -110,10 +110,21 @@ mutation refresh path. Scenario files should provide selectors plus curated
 behavior rows; they should not manually copy every live `aria-*` and `data-*`
 attribute.
 
-## Manual Test Protocol
+## Manual Test Protocol Authoring
 
 A Manual Test Protocol is a saved, step-by-step QA procedure for one component.
 Use this term instead of `manual checklist`.
+
+The goal is executable verification, not readability alone. A protocol should
+guide a tester through checks in the browser; it should not explain how the
+component is implemented or describe the component in prose.
+
+A Manual Test Protocol is:
+
+- a QA procedure
+- not implementation documentation
+- not a prose explanation
+- not a copy of workbook rows
 
 Use two protocol locations:
 
@@ -138,41 +149,34 @@ files are living regression documentation for retesting after package changes,
 updating workbook coverage, generating automated Playwright tests, and
 comparing old and new behavior.
 
-Write protocols as QA procedures, not narrative instructions. Prefer:
-
-- short setup blocks
-- checkbox-style expected results
-- action separated from expectation
-- part-first organization
-- static verification separated from behavior verification when useful
-
-Avoid long prose and long numbered narratives when a concise checklist is
-easier to execute.
-
 ### Protocol Structure
 
 Every component protocol should use this order:
 
-1. `Playground Smoke Check`
-2. `Feature-Wide State`
-3. `Root`
-4. each public part in public anatomy order
-5. `Source`
-6. `Inspector / Logs`
-7. `Nested / Portal / Focus Behavior`, when applicable
-8. `Workbook Cleanup / Rewrite Notes`
+1. `Step 0: Playground Smoke Check`
+2. `Step 1: Feature-Wide State`
+3. `Step 2+: public anatomy parts in public order`
+4. `Source`
+5. `Inspector / Logs`
+6. `Nested / Portal / Focus Behavior`, when applicable
+7. `Workbook Cleanup / Rewrite Notes`
 
-The exact public part steps depend on the component.
+The exact public part steps depend on the component. Use public anatomy order
+from the component docs. After feature-wide state, finish one public part
+completely before moving to the next public part.
 
-### Step Design
+Each step should have exactly one testing target.
 
-Each step has one clear testing target.
-
-- `Root` tests only Root anatomy and state rows.
-- Part steps test only that part.
-- `Feature-Wide State` owns cross-part behavior such as controlled and
+- `Playground Smoke Check` tests only that the page loads, the scenario renders,
+  and core workbench panels respond.
+- `Feature-Wide State` tests cross-part behavior such as controlled and
   uncontrolled state, `defaultOpen`, disabled, modal, outside close, trigger
   mode, and keep-mounted behavior.
+- Public part steps test only that part.
+- `Source` tests only generated Source output.
+- `Inspector / Logs` tests only selected, focused, and event evidence.
+- `Nested / Portal / Focus Behavior` tests only cross-layer browser behavior
+  that does not belong to one public part.
 - `Workbook Cleanup / Rewrite Notes` is not manual testing.
 
 Do not put Trigger checks inside Root. Do not put Content checks inside Root.
@@ -180,9 +184,73 @@ Do not mix feature-wide behavior into part-specific steps. Do not repeat the
 same check in multiple steps unless a later step verifies a different surface,
 such as Source output instead of live DOM.
 
-### Part Step Format
+### Setup Discipline
 
-Use only applicable sections for each public part:
+Each step should begin from a clearly defined state. The tester should never
+have to guess the starting state for a step.
+
+Examples:
+
+- Popover closed
+- Controlled off
+- Default composition
+- Default props
+- Default toolbar state
+
+Avoid carrying hidden state between steps. If a previous step changes state,
+either reset it or explicitly state that the next step continues from that
+state.
+
+### Step Format
+
+Use this structure whenever applicable:
+
+```text
+Setup
+
+Action
+
+Verify
+
+Reset
+```
+
+`Reset` is optional and should appear only when the step must return the
+scenario to a known state.
+
+`Setup` describes only the minimum state required. Prefer short, concrete
+state statements over explanations.
+
+`Action` describes exactly what the tester should do. Prefer one action at a
+time.
+
+`Verify` should use concise QA-style assertions. Prefer checkbox-style expected
+results over narrative instructions.
+
+Example:
+
+```text
+Setup
+
+Popover closed
+
+Action
+
+Click Trigger
+
+Verify
+
+□ data-state="open"
+□ aria-expanded="true"
+□ aria-controls matches Content id
+```
+
+`Reset` returns to a known state only when necessary. Avoid unnecessary reset
+steps.
+
+### Public Part Verification
+
+For each public anatomy part, include only sections that apply:
 
 - `Identity`
 - `ARIA`
@@ -190,13 +258,21 @@ Use only applicable sections for each public part:
 - `Composition`
 - `Interaction`
 
-Do not include empty sections such as `Composition: none`.
+Do not generate empty sections. For example, omit `Composition` instead of
+writing `Composition: none`.
 
-Separate static verification from behavior verification when it makes the step
-easier to execute. For example, verify `data-slot`, role, and ARIA before
-keyboard or pointer behavior.
+Composition testing should include every supported public part. Do not cover
+only the root/default path when other public parts support composition.
 
-State exact expected values when stable:
+For each supported part, cover the applicable modes:
+
+- `Default`
+- `As Child`
+- `Render`
+
+### Expected Values
+
+Stable values should always be explicit:
 
 - default HTML tag
 - `type`
@@ -209,9 +285,9 @@ State exact expected values when stable:
 - `data-disabled`
 - `data-prop-check`
 - custom `data-slot`
-- ARIA attributes
+- ARIA attributes with stable literal values
 
-Describe dynamic values by relationship instead of inventing exact values:
+Dynamic values should never be invented. Describe relationships instead:
 
 - `aria-controls` matches the Content id.
 - `aria-labelledby` matches the Title id.
@@ -219,14 +295,58 @@ Describe dynamic values by relationship instead of inventing exact values:
 - generated ids stay stable for the mounted instance and are used by the
   elements that reference them.
 
-Composition testing should include every supported public part. Do not cover
-only the root/default path when other public parts support composition.
+### Tester Workflow
 
-For each supported part, cover the applicable modes:
+Optimize protocols for the tester's path through the UI. The tester should
+finish one public part completely before moving to the next.
 
-- `Default`
-- `As Child`
-- `Render`
+Prefer:
+
+```text
+Trigger -> complete Trigger -> Content -> complete Content -> Close
+```
+
+Avoid protocols that repeatedly jump between unrelated areas, such as Source,
+Props, Composition, Trigger, and Source again. Source has its own step after
+the public anatomy steps.
+
+### Static And Behavioral Verification
+
+Static verification covers deterministic DOM or workbench evidence:
+
+- tag
+- `data-slot`
+- role
+- `data-state`
+- ARIA attributes and relationships
+- prop pass-through
+- slot overrides
+- Source output
+
+Behavior verification covers browser and user interaction:
+
+- click
+- keyboard
+- focus
+- pointer
+- hover
+- dismiss
+- nested layers
+
+Separate static verification from behavior verification when it makes the step
+easier to execute. For example, verify `data-slot`, role, and ARIA before
+keyboard or pointer behavior.
+
+### Noise Reduction
+
+The protocol should read like a QA test script.
+
+- Avoid long numbered narratives.
+- Avoid repeatedly writing `Expected values:`.
+- Avoid explaining implementation details.
+- Avoid repeating the same verification in multiple places.
+- Use checkbox-style assertions for expected results.
+- Keep each setup, action, and verification block short.
 
 ### Interactive Execution
 
@@ -249,9 +369,12 @@ Agent behavior:
 8. Promote the protocol to `manual-tests/<component>.md` only after it has been
    reviewed and considered stable.
 
-### Automation Readiness
+### Protocol Automation Readiness
 
-Write static protocol checks so they can later become Playwright assertions:
+Write static protocol checks so they can later become Playwright assertions.
+Use exact values or explicit relationships that an automated test can assert.
+
+Future automation should cover:
 
 - default tags
 - `data-slot`
@@ -260,15 +383,17 @@ Write static protocol checks so they can later become Playwright assertions:
 - prop pass-through
 - custom slot overrides
 - Source output
+- anatomy order
 - provider and non-DOM rules
 
-Keep manual-only checks focused on:
+Manual testing should remain focused on:
 
-- keyboard feel
+- keyboard behavior
 - focus management
+- pointer behavior
 - nested layer behavior
-- touch and pointer behavior
-- visual and browser behavior
+- browser behavior
+- user experience
 
 ## Canvas Toolbar
 

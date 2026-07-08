@@ -5,6 +5,11 @@ components. Files here are version-controlled regression protocols.
 
 A Manual Test Protocol is a saved, step-by-step QA procedure for one component.
 Keep protocols part-first, concise, and executable one step at a time.
+Protocols should guide tester verification; they should not explain component
+implementation, become prose component documentation, or copy workbook rows.
+
+Follow the canonical authoring guide in
+[`docs/component-testing.md`](../docs/component-testing.md).
 
 ## Lifecycle
 

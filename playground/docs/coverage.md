@@ -134,9 +134,9 @@ render Atom DOM parts.
 
 ## Automation Candidates
 
-Author workbook rows and playground scenarios so stable evidence can eventually
-move from manual verification into automated tests. The scenario should expose
-deterministic evidence whenever possible for:
+Author workbook rows, playground scenarios, and Manual Test Protocols so stable
+evidence can eventually move from manual verification into automated tests. The
+scenario should expose deterministic evidence whenever possible for:
 
 - default rendered tags
 - `data-slot` values
@@ -145,14 +145,19 @@ deterministic evidence whenever possible for:
 - prop pass-through
 - custom slot overrides
 - Source output
-- Anatomy order where practical
+- anatomy order where practical
 - provider and non-DOM parts not receiving fake DOM identity
 
-Manual Test Protocols should use the same automation-ready wording for static
-checks. Write expected values so they can later become Playwright assertions
-for default tags, `data-slot`, `data-state`, ARIA, prop pass-through, custom
-slot overrides, Source output, and provider or non-DOM rules.
+Manual Test Protocols should use the canonical authoring rules from
+`component-testing.md`: static checks should use exact expected values when
+stable and relationship wording when values are dynamic. Write those checks so
+they can later become Playwright assertions for default tags, `data-slot`,
+`data-state`, ARIA, prop pass-through, custom slot overrides, Source output,
+anatomy order, and provider or non-DOM rules.
 
 Manual workbook coverage should remain focused on evidence available in the
 playground today. Do not add fake anatomy parts, fake attributes, or provider
 DOM wrappers only to make a future automated check easier.
+
+Manual testing should remain focused on behavior that still needs a tester:
+keyboard, focus, pointer, browser behavior, nested layers, and user experience.
