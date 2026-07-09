@@ -9,7 +9,9 @@ import {
   type BottomNavigationContextValue,
 } from "./context.js";
 
-type BottomNavigationRootNativeProps = NativeNavProps<"children" | "defaultValue" | "onChange">;
+type BottomNavigationRootNativeProps = NativeNavProps<
+  "children" | "defaultValue" | "onChange" | "aria-label"
+>;
 
 export interface BottomNavigationRootProps extends BottomNavigationRootNativeProps {
   /** Bottom navigation subtree. */
@@ -22,6 +24,8 @@ export interface BottomNavigationRootProps extends BottomNavigationRootNativePro
   onChange?: (value: string) => void;
   /** Show labels on all items. */
   showLabels?: boolean;
+  /** Accessible label for the navigation landmark. */
+  ariaLabel?: string;
   /** Override the rendered element. */
   render?: RenderProp;
   /** Merge behavior props onto a single child element. */
@@ -41,7 +45,7 @@ export const BottomNavigationRoot = forwardRef<HTMLElement, BottomNavigationRoot
       render,
       asChild,
       "data-slot": dataSlot = "bottom-nav-root",
-      "aria-label": ariaLabel = "Bottom navigation",
+      ariaLabel = "Bottom navigation",
       ...restProps
     },
     ref,

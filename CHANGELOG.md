@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Changed `BottomNavigation.Root` to use the Atom-style `ariaLabel` prop for
+  its navigation landmark label while still rendering native `aria-label`.
 - Fixed Accordion horizontal arrow-key navigation so it mirrors ArrowLeft and
   ArrowRight under `Direction.Provider dir="rtl"` or `Accordion.Root dir="rtl"`.
 - Fixed Popover positioning when `Anchor` uses its default `display: contents`

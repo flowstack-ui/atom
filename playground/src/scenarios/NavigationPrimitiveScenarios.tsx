@@ -7,7 +7,7 @@ import { Direction } from "@flowstack-ui/atom/direction";
 import { NavList } from "@flowstack-ui/atom/nav-list";
 import { Pagination, usePaginationContext } from "@flowstack-ui/atom/pagination";
 import { Tabs } from "@flowstack-ui/atom/tabs";
-import { useCallback, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { useCallback, useState, type Dispatch, type MouseEvent, type ReactNode, type SetStateAction } from "react";
 import { AnatomyPanel, type AnatomySection } from "../AnatomyPanel";
 import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, partProps, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup } from "../WorkbenchPrimitives";
 
@@ -19,6 +19,7 @@ type AppBarPosition = "static" | "absolute" | "sticky" | "fixed";
 type AppBarDensity = "compact" | "comfortable";
 type AppBarSlotPart = "root" | "toolbar" | "start" | "center" | "end";
 type AccordionSlotPart = "root" | "item" | "header" | "trigger" | "content";
+type BottomNavigationSlotPart = "root" | "item";
 type LogEntry = {
   id: number;
   time: string;
@@ -26,6 +27,7 @@ type LogEntry = {
 };
 
 const appBarSlotParts: AppBarSlotPart[] = ["root", "toolbar", "start", "center", "end"];
+const bottomNavigationSlotParts: BottomNavigationSlotPart[] = ["root", "item"];
 
 export const navigationPrimitiveScenarioIds = new Set([
   "app-bar",
@@ -344,21 +346,68 @@ function useBottomNavigationScenario() {
   const [showLabels, setShowLabels] = useState(true);
   const [disabledItem, setDisabledItem] = useState(true);
   const [linkItem, setLinkItem] = useState(false);
-  const [composition, setComposition] = useState<CompositionMode>("default");
+  const [blockSearchEvent, setBlockSearchEvent] = useState(false);
+  const [rootComposition, setRootComposition] = useState<CompositionMode>("default");
+  const [itemComposition, setItemComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customSlots, setCustomSlots] = useState<Record<BottomNavigationSlotPart, boolean>>({
+    root: false,
+    item: false,
+  });
+  const [refs, setRefs] = useState<Record<BottomNavigationSlotPart, string>>({
+    root: "none",
+    item: "none",
+  });
   const { log, addLog, clearLog } = useScenarioLog();
 
+  const markPartRef = useCallback((part: BottomNavigationSlotPart, element: HTMLElement | null) => {
+    if (!element) return;
+    const nextValue = element.tagName.toLowerCase();
+    setRefs((current) => {
+      if (current[part] === nextValue) return current;
+      return { ...current, [part]: nextValue };
+    });
+  }, []);
+  const markRootRef = useCallback((element: HTMLElement | null) => markPartRef("root", element), [markPartRef]);
+  const markItemRef = useCallback((element: HTMLElement | null) => markPartRef("item", element), [markPartRef]);
+
   return {
-    state: { controlled, value, showLabels, disabledItem, linkItem, composition, log },
+    state: {
+      controlled,
+      value,
+      showLabels,
+      disabledItem,
+      linkItem,
+      blockSearchEvent,
+      rootComposition,
+      itemComposition,
+      propCheck,
+      customSlots,
+      refs,
+      log,
+    },
     actions: {
       setControlled,
       setShowLabels,
       setDisabledItem,
       setLinkItem,
-      setComposition,
+      setBlockSearchEvent,
+      setRootComposition,
+      setItemComposition,
+      setPropCheck,
+      setCustomSlot: (part: BottomNavigationSlotPart, checked: boolean) => {
+        setCustomSlots((current) => ({ ...current, [part]: checked }));
+      },
+      markRootRef,
+      markItemRef,
       clearLog,
       setValue: (next: string) => {
         setValue(next);
         addLog(`destination changed to ${next}`);
+      },
+      preventSearch: (event: MouseEvent<HTMLElement>) => {
+        event.preventDefault();
+        addLog("search event prevented");
       },
     },
   };
@@ -542,8 +591,27 @@ export function NavigationPrimitiveScenarioToolbar({
           <MenuCheckboxControl checked={scenario.state.showLabels} label="Show Labels" value="show-labels" onChange={scenario.actions.setShowLabels} />
           <MenuCheckboxControl checked={scenario.state.disabledItem} label="Disabled Item" value="disabled-item" onChange={scenario.actions.setDisabledItem} />
           <MenuCheckboxControl checked={scenario.state.linkItem} label="Link Item" value="link-item" onChange={scenario.actions.setLinkItem} />
+          <MenuCheckboxControl checked={scenario.state.blockSearchEvent} label="Block Search Event" value="block-search-event" onChange={scenario.actions.setBlockSearchEvent} />
         </ToolbarGroup>
-        <CompositionToolbarGroup label="Item" value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+        {scenario.state.controlled ? (
+          <ToolbarGroup title="Value" value="value">
+            <MenuRadioControl label="Controlled Value" options={bottomNavigationValueOptions} value={scenario.state.value} onChange={scenario.actions.setValue} />
+          </ToolbarGroup>
+        ) : null}
+        <ToolbarGroup title="Composition" value="composition">
+          <MenuRadioControl label="Root" options={compositionOptions} value={scenario.state.rootComposition} onChange={scenario.actions.setRootComposition} />
+          <MenuRadioControl label="Item" options={compositionOptions} value={scenario.state.itemComposition} onChange={scenario.actions.setItemComposition} />
+        </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={bottomNavigationSlotParts.map((part) => ({
+            checked: scenario.state.customSlots[part],
+            label: `${formatBottomNavigationSlotLabel(part)} Slot`,
+            value: `${part}-slot`,
+            onChange: (checked) => scenario.actions.setCustomSlot(part, checked),
+          }))}
+        />
       </ControlToolbar>
     );
   }
@@ -1042,28 +1110,58 @@ function BottomNavigationCanvas({ scenario }: { scenario: ReturnType<typeof useB
   const state = scenario.state;
   const items = (
     <>
-      <BottomNavigationItem mode={state.composition} value="home">Home</BottomNavigationItem>
-      <BottomNavigationItem mode={state.composition} value="search" href={state.linkItem ? "#search" : undefined}>Search</BottomNavigationItem>
-      <BottomNavigationItem disabled={state.disabledItem} mode={state.composition} value="settings">Settings</BottomNavigationItem>
+      <BottomNavigationItem mode={state.itemComposition} scenario={scenario} value="home">Home</BottomNavigationItem>
+      <BottomNavigationItem mode={state.itemComposition} scenario={scenario} value="search" href={state.linkItem ? "#search" : undefined}>Search</BottomNavigationItem>
+      <BottomNavigationItem disabled={state.disabledItem} mode={state.itemComposition} scenario={scenario} value="settings">Settings</BottomNavigationItem>
     </>
   );
+  const props = {
+    ariaLabel: "Demo bottom navigation",
+    className: "playground-bottom-nav",
+    defaultValue: state.controlled ? undefined : "home",
+    onChange: scenario.actions.setValue,
+    ref: scenario.actions.markRootRef,
+    showLabels: state.showLabels,
+    value: state.controlled ? state.value : undefined,
+    ...partProps("root", { propCheck: state.propCheck, customSlot: state.customSlots.root }, "bottom-nav-root-custom"),
+  };
+
+  if (state.rootComposition === "asChild") {
+    return (
+      <BottomNavigation.Root {...props} asChild>
+        <nav>{items}</nav>
+      </BottomNavigation.Root>
+    );
+  }
+
+  if (state.rootComposition === "render") {
+    return (
+      <BottomNavigation.Root {...props} render={(renderProps) => <nav {...renderProps} />}>
+        {items}
+      </BottomNavigation.Root>
+    );
+  }
 
   return (
-    <BottomNavigation.Root
-      className="playground-bottom-nav"
-      data-prop-check="root"
-      defaultValue={state.controlled ? undefined : "home"}
-      onChange={scenario.actions.setValue}
-      showLabels={state.showLabels}
-      value={state.controlled ? state.value : undefined}
-    >
+    <BottomNavigation.Root {...props}>
       {items}
     </BottomNavigation.Root>
   );
 }
 
-function BottomNavigationItem({ children, disabled, href, mode, value }: { children: ReactNode; disabled?: boolean; href?: string; mode: CompositionMode; value: string }) {
-  const props = { className: "playground-bottom-nav-item", disabled, href, value, "data-prop-check": `item-${value}` };
+function BottomNavigationItem({ children, disabled, href, mode, scenario, value }: { children: ReactNode; disabled?: boolean; href?: string; mode: CompositionMode; scenario: ReturnType<typeof useBottomNavigationScenario>; value: string }) {
+  const props = {
+    className: "playground-bottom-nav-item",
+    disabled,
+    "data-playground-inspect": `bottom-nav-item-${value}`,
+    href,
+    onClick: value === "search" && scenario.state.blockSearchEvent ? scenario.actions.preventSearch : undefined,
+    rel: href ? "noreferrer" : undefined,
+    target: href ? "_blank" : undefined,
+    value,
+    ref: scenario.actions.markItemRef,
+    ...partProps(`item-${value}`, { propCheck: scenario.state.propCheck, customSlot: scenario.state.customSlots.item }, "bottom-nav-item-custom"),
+  };
   if (mode === "asChild") {
     return (
       <BottomNavigation.Item {...props} asChild>
@@ -1278,14 +1376,36 @@ function paginationSections(state: ReturnType<typeof usePaginationScenario>["sta
 
 function bottomNavigationSections(state: ReturnType<typeof useBottomNavigationScenario>["state"]): AnatomySection[] {
   return [
-    baseSection("Root", state.value, "[data-slot='bottom-nav-root']", [
+    baseSection("Root", state.value, bottomNavigationSlotSelector(state, "root"), [
       row("Controlled", bool(state.controlled), "state"),
       row("Show labels", bool(state.showLabels), "state"),
+      row("Block search event", bool(state.blockSearchEvent), "behavior"),
+      row("Composition", state.rootComposition, "composition"),
+      row("Ref target", state.refs.root, "identity"),
     ]),
-    baseSection("Item: Home", "home", "[data-prop-check='item-home']"),
-    baseSection("Item: Search", state.linkItem ? "anchor" : "button", "[data-prop-check='item-search']"),
-    baseSection("Item: Settings", state.disabledItem ? "disabled" : "enabled", "[data-prop-check='item-settings']"),
+    baseSection("Item: Home", "home", bottomNavigationItemSelector(state, "home"), [
+      row("Composition", state.itemComposition, "composition"),
+      row("Ref target", state.refs.item, "identity"),
+    ]),
+    baseSection("Item: Search", state.linkItem ? "anchor" : "button", bottomNavigationItemSelector(state, "search")),
+    baseSection("Item: Settings", state.disabledItem ? "disabled" : "enabled", bottomNavigationItemSelector(state, "settings")),
   ];
+}
+
+function bottomNavigationSlotSelector(state: ReturnType<typeof useBottomNavigationScenario>["state"], part: BottomNavigationSlotPart) {
+  const slots: Record<BottomNavigationSlotPart, [defaultSlot: string, customSlot: string]> = {
+    root: ["bottom-nav-root", "bottom-nav-root-custom"],
+    item: ["bottom-nav-item", "bottom-nav-item-custom"],
+  };
+  const slot = state.customSlots[part] ? slots[part][1] : slots[part][0];
+
+  return part === "root"
+    ? `.playground-bottom-nav[data-slot='${slot}']`
+    : `.playground-bottom-nav-item[data-slot='${slot}']`;
+}
+
+function bottomNavigationItemSelector(state: ReturnType<typeof useBottomNavigationScenario>["state"], value: string) {
+  return `${bottomNavigationSlotSelector(state, "item")}[data-value='${value}']`;
 }
 
 function navListSections(state: ReturnType<typeof useNavListScenario>["state"]): AnatomySection[] {
@@ -1402,7 +1522,7 @@ export function getNavigationPrimitiveSource(scenarioId: string, scenarios?: Nav
   }
 
   if (scenarioId === "bottom-navigation") {
-    return `<BottomNavigation.Root value={value} onChange={setValue}>
+    return scenarios ? getBottomNavigationSource(scenarios.bottomNavigation.state) : `<BottomNavigation.Root ariaLabel="Demo bottom navigation" value={value} onChange={setValue}>
   <BottomNavigation.Item value="home">Home</BottomNavigation.Item>
   <BottomNavigation.Item value="search">Search</BottomNavigation.Item>
   <BottomNavigation.Item value="settings" disabled>Settings</BottomNavigation.Item>
@@ -1599,6 +1719,67 @@ function sourcePartProps(part: string, propCheck: boolean, customSlot: boolean, 
   ].filter(Boolean).join(" ");
 }
 
+function getBottomNavigationSource(state: ReturnType<typeof useBottomNavigationScenario>["state"]) {
+  const rootProps = [
+    `ariaLabel="Demo bottom navigation"`,
+    state.controlled ? `value="${state.value}"` : `defaultValue="home"`,
+    state.controlled ? "onChange={setValue}" : "",
+    !state.showLabels ? "showLabels={false}" : "",
+    sourcePartProps("root", state.propCheck, state.customSlots.root, "bottom-nav-root-custom"),
+  ].filter(Boolean).join(" ");
+  const rootOpen = renderBottomNavigationSourcePart("Root", state.rootComposition, rootProps, "nav");
+  const rootClose = state.rootComposition === "asChild" ? "  </nav>\n</BottomNavigation.Root>" : "</BottomNavigation.Root>";
+  const items = [
+    getBottomNavigationItemSource({ value: "home", label: "Home" }, state),
+    getBottomNavigationItemSource({ value: "search", label: "Search", href: state.linkItem ? "#search" : undefined }, state),
+    getBottomNavigationItemSource({ value: "settings", label: "Settings", disabled: state.disabledItem }, state),
+  ].map((item) => indent(item, 2)).join("\n");
+
+  return `<BottomNavigation.${rootOpen}
+${items}
+${rootClose}`;
+}
+
+function getBottomNavigationItemSource(item: { value: string; label: string; disabled?: boolean; href?: string }, state: ReturnType<typeof useBottomNavigationScenario>["state"]) {
+  const props = [
+    `value="${item.value}"`,
+    item.href ? `href="${item.href}"` : "",
+    item.href ? `target="_blank"` : "",
+    item.href ? `rel="noreferrer"` : "",
+    item.value === "search" && state.blockSearchEvent ? `onClick={(event) => event.preventDefault()}` : "",
+    item.disabled ? "disabled" : "",
+    sourcePartProps(`item-${item.value}`, state.propCheck, state.customSlots.item, "bottom-nav-item-custom"),
+  ].filter(Boolean).join(" ");
+  const inlineProps = props ? ` ${props}` : "";
+
+  if (state.itemComposition === "asChild") {
+    const tag = item.href ? "a" : "button";
+    const buttonType = tag === "button" ? ` type="button"` : "";
+    return `<BottomNavigation.Item${inlineProps} asChild><${tag}${buttonType}>${item.label}</${tag}></BottomNavigation.Item>`;
+  }
+
+  if (state.itemComposition === "render") {
+    const tag = item.href ? "a" : "button";
+    return `<BottomNavigation.Item${inlineProps} render={(props) => <${tag} {...props} />}>${item.label}</BottomNavigation.Item>`;
+  }
+
+  return `<BottomNavigation.Item${inlineProps}>${item.label}</BottomNavigation.Item>`;
+}
+
+function renderBottomNavigationSourcePart(part: string, mode: CompositionMode, props: string, tag: "nav") {
+  const inlineProps = props ? ` ${props}` : "";
+
+  if (mode === "asChild") {
+    return `${part}${inlineProps} asChild>\n  <${tag}>`;
+  }
+
+  if (mode === "render") {
+    return `${part}${inlineProps} render={(props) => <${tag} {...props} />}>`;
+  }
+
+  return `${part}${inlineProps}>`;
+}
+
 function indent(source: string, spaces: number) {
   const padding = " ".repeat(spaces);
   return source.split("\n").map((line) => `${padding}${line}`).join("\n");
@@ -1634,6 +1815,11 @@ function formatAccordionSlotLabel(part: AccordionSlotPart) {
 function formatAppBarSlotLabel(part: AppBarSlotPart) {
   if (part === "root") return "Root";
   return part.charAt(0).toUpperCase() + part.slice(1);
+}
+
+function formatBottomNavigationSlotLabel(part: BottomNavigationSlotPart) {
+  if (part === "root") return "Root";
+  return "Item";
 }
 
 const accordionItems = [
@@ -1674,6 +1860,11 @@ const accordionMultipleValueOptions = [
   { label: "Item 1 + Item 2", value: "general, billing" },
   { label: "Item 2 + Item 3", value: "billing, danger" },
   { label: "None", value: "none" },
+] as const;
+const bottomNavigationValueOptions = [
+  { label: "Home", value: "home" },
+  { label: "Search", value: "search" },
+  { label: "Settings", value: "settings" },
 ] as const;
 const compositionOptions = ["default", "asChild", "render"] as const;
 const orientationOptions = ["horizontal", "vertical"] as const;

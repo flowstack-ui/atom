@@ -42,6 +42,7 @@ const observedAttributes = [
   "data-positioned",
   "data-pressed",
   "data-prop-check",
+  "data-value",
   "data-state",
   "data-slot",
   "disabled",
@@ -201,10 +202,15 @@ function cssEscape(value: string): string {
 }
 
 function getReplacementSelector(element: Element): string | null {
+  const inspectId = element.getAttribute("data-playground-inspect");
+  if (inspectId) return `[data-playground-inspect="${cssEscape(inspectId)}"]`;
+
   const propCheck = element.getAttribute("data-prop-check");
   if (propCheck) return `[data-prop-check="${cssEscape(propCheck)}"]`;
 
   const slot = element.getAttribute("data-slot");
+  const value = element.getAttribute("data-value");
+  if (slot && value) return `[data-slot="${cssEscape(slot)}"][data-value="${cssEscape(value)}"]`;
   if (slot) return `[data-slot="${cssEscape(slot)}"]`;
 
   const id = element.id;

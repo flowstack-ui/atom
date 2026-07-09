@@ -40,7 +40,7 @@ Contains bottom navigation destinations.
 | `defaultValue` | `string \| null` | `null` |
 | `onChange` | `(value: string) => void` | - |
 | `showLabels` | `boolean` | `true` |
-| `aria-label` | `string` | `"Bottom navigation"` |
+| `ariaLabel` | `string` | `"Bottom navigation"` |
 
 | Data attribute | Values |
 | --- | --- |

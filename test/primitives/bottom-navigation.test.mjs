@@ -37,7 +37,7 @@ test("BottomNavigationItem renders a button when href is omitted", () => {
   const html = renderToStaticMarkup(
     React.createElement(
       BottomNavigationRoot,
-      { defaultValue: "home", "aria-label": "Primary destinations" },
+      { defaultValue: "home", ariaLabel: "Primary destinations" },
       React.createElement(
         BottomNavigationItem,
         { value: "home", "aria-label": "Home destination" },
