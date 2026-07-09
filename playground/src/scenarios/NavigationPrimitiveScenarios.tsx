@@ -9,7 +9,7 @@ import { Pagination, usePaginationContext } from "@flowstack-ui/atom/pagination"
 import { Tabs } from "@flowstack-ui/atom/tabs";
 import { useCallback, useState, type Dispatch, type MouseEvent, type ReactNode, type SetStateAction } from "react";
 import { AnatomyPanel, type AnatomySection } from "../AnatomyPanel";
-import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, partProps, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup } from "../WorkbenchPrimitives";
+import { ControlToolbar, MenuActionControl, MenuCheckboxControl, MenuRadioControl, partProps, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup } from "../WorkbenchPrimitives";
 
 type CompositionMode = "default" | "asChild" | "render";
 type Orientation = "horizontal" | "vertical";
@@ -21,6 +21,8 @@ type AppBarSlotPart = "root" | "toolbar" | "start" | "center" | "end";
 type AccordionSlotPart = "root" | "item" | "header" | "trigger" | "content";
 type BottomNavigationSlotPart = "root" | "item";
 type BreadcrumbSlotPart = "root" | "list" | "item" | "link" | "page" | "separator" | "ellipsis";
+type NavListSlotPart = "root" | "section" | "sectionTrigger" | "sectionLabel" | "sectionContent" | "list" | "item" | "link";
+type NavListCurrentToken = "page" | "step" | "location";
 type LogEntry = {
   id: number;
   time: string;
@@ -30,6 +32,7 @@ type LogEntry = {
 const appBarSlotParts: AppBarSlotPart[] = ["root", "toolbar", "start", "center", "end"];
 const bottomNavigationSlotParts: BottomNavigationSlotPart[] = ["root", "item"];
 const breadcrumbSlotParts: BreadcrumbSlotPart[] = ["root", "list", "item", "link", "page", "separator", "ellipsis"];
+const navListSlotParts: NavListSlotPart[] = ["root", "section", "sectionTrigger", "sectionLabel", "sectionContent", "list", "item", "link"];
 
 export const navigationPrimitiveScenarioIds = new Set([
   "app-bar",
@@ -479,37 +482,128 @@ function useNavListScenario() {
   const [orientation, setOrientation] = useState<Orientation>("vertical");
   const [ordered, setOrdered] = useState(false);
   const [active, setActive] = useState("overview");
+  const [currentToken, setCurrentToken] = useState<NavListCurrentToken>("page");
   const [collapsible, setCollapsible] = useState(true);
+  const [sectionControlled, setSectionControlled] = useState(false);
   const [sectionOpen, setSectionOpen] = useState(true);
+  const [defaultSectionOpen, setDefaultSectionOpenState] = useState(true);
   const [forceMount, setForceMount] = useState(false);
-  const [disabledLink, setDisabledLink] = useState(true);
-  const [composition, setComposition] = useState<CompositionMode>("default");
+  const [disabledSection, setDisabledSection] = useState(false);
+  const [disabledLink, setDisabledLink] = useState(false);
+  const [rootComposition, setRootComposition] = useState<CompositionMode>("default");
+  const [sectionComposition, setSectionComposition] = useState<CompositionMode>("default");
+  const [sectionTriggerComposition, setSectionTriggerComposition] = useState<CompositionMode>("default");
+  const [sectionLabelComposition, setSectionLabelComposition] = useState<CompositionMode>("default");
+  const [sectionContentComposition, setSectionContentComposition] = useState<CompositionMode>("default");
+  const [listComposition, setListComposition] = useState<CompositionMode>("default");
+  const [itemComposition, setItemComposition] = useState<CompositionMode>("default");
+  const [linkComposition, setLinkComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customSlots, setCustomSlots] = useState<Record<NavListSlotPart, boolean>>({
+    root: false,
+    section: false,
+    sectionTrigger: false,
+    sectionLabel: false,
+    sectionContent: false,
+    list: false,
+    item: false,
+    link: false,
+  });
+  const [refs, setRefs] = useState<Record<NavListSlotPart, string>>({
+    root: "none",
+    section: "none",
+    sectionTrigger: "none",
+    sectionLabel: "none",
+    sectionContent: "none",
+    list: "none",
+    item: "none",
+    link: "none",
+  });
   const { log, addLog, clearLog } = useScenarioLog();
+
+  const markPartRef = useCallback((part: NavListSlotPart, element: HTMLElement | null) => {
+    if (!element) return;
+    const nextValue = element.tagName.toLowerCase();
+    setRefs((current) => {
+      if (current[part] === nextValue) return current;
+      return { ...current, [part]: nextValue };
+    });
+  }, []);
 
   return {
     state: {
       orientation,
       ordered,
       active,
+      currentToken,
       collapsible,
+      sectionControlled,
       sectionOpen,
+      defaultSectionOpen,
       forceMount,
+      disabledSection,
       disabledLink,
-      composition,
+      rootComposition,
+      sectionComposition,
+      sectionTriggerComposition,
+      sectionLabelComposition,
+      sectionContentComposition,
+      listComposition,
+      itemComposition,
+      linkComposition,
+      propCheck,
+      customSlots,
+      refs,
       log,
     },
     actions: {
       setOrientation,
       setOrdered,
+      setCurrentToken,
       setCollapsible,
-      setSectionOpen,
+      setSectionControlled: (controlled: boolean) => {
+        setSectionControlled(controlled);
+        if (!controlled) setSectionOpen(defaultSectionOpen);
+      },
+      setDefaultSectionOpen: (open: boolean) => {
+        setDefaultSectionOpenState(open);
+        setSectionOpen(open);
+      },
+      setControlledSectionOpen: (open: boolean) => {
+        setSectionOpen(open);
+        addLog(`section ${open ? "opened" : "closed"} by toolbar`);
+      },
       setForceMount,
+      setDisabledSection,
       setDisabledLink,
-      setComposition,
+      setRootComposition,
+      setSectionComposition,
+      setSectionTriggerComposition,
+      setSectionLabelComposition,
+      setSectionContentComposition,
+      setListComposition,
+      setItemComposition,
+      setLinkComposition,
+      setPropCheck,
+      setCustomSlot: (part: NavListSlotPart, checked: boolean) => {
+        setCustomSlots((current) => ({ ...current, [part]: checked }));
+      },
+      markRootRef: (element: HTMLElement | null) => markPartRef("root", element),
+      markSectionRef: (element: HTMLElement | null) => markPartRef("section", element),
+      markSectionTriggerRef: (element: HTMLElement | null) => markPartRef("sectionTrigger", element),
+      markSectionLabelRef: (element: HTMLElement | null) => markPartRef("sectionLabel", element),
+      markSectionContentRef: (element: HTMLElement | null) => markPartRef("sectionContent", element),
+      markListRef: (element: HTMLElement | null) => markPartRef("list", element),
+      markItemRef: (element: HTMLElement | null) => markPartRef("item", element),
+      markLinkRef: (element: HTMLElement | null) => markPartRef("link", element),
       clearLog,
       setActive: (next: string) => {
         setActive(next);
         addLog(`active link ${next}`);
+      },
+      noteSectionOpen: (open: boolean) => {
+        setSectionOpen(open);
+        addLog(`section ${open ? "opened" : "closed"}`);
       },
     },
   };
@@ -706,14 +800,45 @@ export function NavigationPrimitiveScenarioToolbar({
         <ToolbarGroup title="State" value="state">
           <MenuCheckboxControl checked={scenario.state.ordered} label="Ordered List" value="ordered" onChange={scenario.actions.setOrdered} />
           <MenuCheckboxControl checked={scenario.state.collapsible} label="Collapsible Section" value="collapsible" onChange={scenario.actions.setCollapsible} />
-          <MenuCheckboxControl checked={scenario.state.sectionOpen} label="Section Open" value="section-open" onChange={scenario.actions.setSectionOpen} />
           <MenuCheckboxControl checked={scenario.state.forceMount} label="Force Mount" value="force-mount" onChange={scenario.actions.setForceMount} />
-          <MenuCheckboxControl checked={scenario.state.disabledLink} label="Disabled Link" value="disabled-link" onChange={scenario.actions.setDisabledLink} />
+          <MenuCheckboxControl checked={scenario.state.disabledSection} label="Disable Project Trigger" value="disable-project-trigger" onChange={scenario.actions.setDisabledSection} />
+          <MenuCheckboxControl checked={scenario.state.disabledLink} label="Disable Archive" value="disable-archive" onChange={scenario.actions.setDisabledLink} />
+          <MenuRadioControl label="aria-current" options={navListCurrentTokenOptions} value={scenario.state.currentToken} onChange={scenario.actions.setCurrentToken} />
+        </ToolbarGroup>
+        <ToolbarGroup title="Section" value="section">
+          <MenuCheckboxControl checked={scenario.state.sectionControlled} label="Controlled" value="controlled-section" onChange={scenario.actions.setSectionControlled} />
+          {scenario.state.sectionControlled ? (
+            <>
+              <MenuActionControl disabled={scenario.state.sectionOpen} label="Open" value="open-section" onSelect={() => scenario.actions.setControlledSectionOpen(true)} />
+              <MenuActionControl disabled={!scenario.state.sectionOpen} label="Close" value="close-section" onSelect={() => scenario.actions.setControlledSectionOpen(false)} />
+            </>
+          ) : (
+            <MenuCheckboxControl checked={scenario.state.defaultSectionOpen} label="Default Open" value="default-open" onChange={scenario.actions.setDefaultSectionOpen} />
+          )}
         </ToolbarGroup>
         <ToolbarGroup title="Layout" value="layout">
           <MenuRadioControl label="Orientation" options={orientationOptions} value={scenario.state.orientation} onChange={scenario.actions.setOrientation} />
         </ToolbarGroup>
-        <CompositionToolbarGroup label="Root" value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+        <ToolbarGroup title="Composition" value="composition">
+          <MenuRadioControl label="Root" options={compositionOptions} value={scenario.state.rootComposition} onChange={scenario.actions.setRootComposition} />
+          <MenuRadioControl label="Section" options={compositionOptions} value={scenario.state.sectionComposition} onChange={scenario.actions.setSectionComposition} />
+          <MenuRadioControl label="Trigger" options={compositionOptions} value={scenario.state.sectionTriggerComposition} onChange={scenario.actions.setSectionTriggerComposition} />
+          <MenuRadioControl label="Label" options={compositionOptions} value={scenario.state.sectionLabelComposition} onChange={scenario.actions.setSectionLabelComposition} />
+          <MenuRadioControl label="Content" options={compositionOptions} value={scenario.state.sectionContentComposition} onChange={scenario.actions.setSectionContentComposition} />
+          <MenuRadioControl label="List" options={compositionOptions} value={scenario.state.listComposition} onChange={scenario.actions.setListComposition} />
+          <MenuRadioControl label="Item" options={compositionOptions} value={scenario.state.itemComposition} onChange={scenario.actions.setItemComposition} />
+          <MenuRadioControl label="Link" options={compositionOptions} value={scenario.state.linkComposition} onChange={scenario.actions.setLinkComposition} />
+        </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={navListSlotParts.map((part) => ({
+            checked: scenario.state.customSlots[part],
+            label: `${formatNavListSlotLabel(part)} Slot`,
+            value: `${part}-slot`,
+            onChange: (checked) => scenario.actions.setCustomSlot(part, checked),
+          }))}
+        />
       </ControlToolbar>
     );
   }
@@ -1455,39 +1580,266 @@ function BottomNavigationItem({ children, disabled, href, mode, scenario, value 
 function NavListCanvas({ scenario }: { scenario: ReturnType<typeof useNavListScenario> }) {
   const state = scenario.state;
   const content = (
-    <>
-      <NavList.Section className="playground-nav-list-section" collapsible={state.collapsible} data-prop-check="section" defaultOpen={true} onOpenChange={scenario.actions.setSectionOpen} open={state.sectionOpen}>
-        <NavList.SectionTrigger className="playground-nav-list-section-trigger" data-prop-check="section-trigger">Project</NavList.SectionTrigger>
-        <NavList.SectionLabel as="h3" className="playground-nav-list-section-label" data-prop-check="section-label">Project links</NavList.SectionLabel>
-        <NavList.SectionContent className="playground-nav-list-section-content" data-prop-check="section-content" forceMount={state.forceMount}>
-          <NavList.List className="playground-nav-list-list" data-prop-check="list" ordered={state.ordered}>
-            <NavList.Item data-prop-check="item-overview"><NavList.Link active={state.active === "overview"} href="#overview" onClick={() => scenario.actions.setActive("overview")}>Overview</NavList.Link></NavList.Item>
-            <NavList.Item data-prop-check="item-settings"><NavList.Link active={state.active === "settings"} href="#settings" onClick={() => scenario.actions.setActive("settings")}>Settings</NavList.Link></NavList.Item>
-            <NavList.Item data-prop-check="item-disabled" disabled={state.disabledLink}><NavList.Link disabled={state.disabledLink} href="#disabled">Disabled</NavList.Link></NavList.Item>
-          </NavList.List>
-        </NavList.SectionContent>
-      </NavList.Section>
-    </>
+    <NavListSectionPart scenario={scenario}>
+      <NavListSectionLabelPart scenario={scenario}>Workspace</NavListSectionLabelPart>
+      <NavListSectionTriggerPart scenario={scenario}>Project</NavListSectionTriggerPart>
+      <NavListSectionContentPart scenario={scenario}>
+        <NavListListPart scenario={scenario}>
+          <NavListItemPart label="overview" scenario={scenario}>
+            <NavListLinkPart href="#overview" label="overview" scenario={scenario}>Overview</NavListLinkPart>
+          </NavListItemPart>
+          <NavListItemPart label="settings" scenario={scenario}>
+            <NavListLinkPart href="#settings" label="settings" scenario={scenario}>Settings</NavListLinkPart>
+          </NavListItemPart>
+          <NavListItemPart disabled={state.disabledLink} label="archive" scenario={scenario}>
+            <NavListLinkPart disabled={state.disabledLink} href="#archive" label="archive" scenario={scenario}>Archive</NavListLinkPart>
+          </NavListItemPart>
+        </NavListListPart>
+      </NavListSectionContentPart>
+    </NavListSectionPart>
   );
-  const props = { className: "playground-nav-list", "data-prop-check": "root", orientation: state.orientation };
+  const props = {
+    "aria-label": "Project navigation",
+    className: "playground-nav-list",
+    orientation: state.orientation,
+    ref: scenario.actions.markRootRef,
+    ...partProps("root", { propCheck: state.propCheck, customSlot: state.customSlots.root }, "nav-list-root-custom"),
+  };
 
-  if (state.composition === "asChild") {
+  if (state.rootComposition === "asChild") {
     return (
-      <NavList.Root {...props} asChild>
-        <section>{content}</section>
-      </NavList.Root>
+      <div className="playground-nav-list-stage">
+        <NavList.Root {...props} asChild>
+          <section>{content}</section>
+        </NavList.Root>
+      </div>
     );
   }
 
-  if (state.composition === "render") {
+  if (state.rootComposition === "render") {
     return (
-      <NavList.Root {...props} render={(renderProps) => <section {...renderProps} />}>
-        {content}
-      </NavList.Root>
+      <div className="playground-nav-list-stage">
+        <NavList.Root {...props} render={(renderProps) => <section {...renderProps} />}>
+          {content}
+        </NavList.Root>
+      </div>
     );
   }
 
-  return <NavList.Root {...props}>{content}</NavList.Root>;
+  return (
+    <div className="playground-nav-list-stage">
+      <NavList.Root {...props}>{content}</NavList.Root>
+    </div>
+  );
+}
+
+function NavListSectionPart({ children, scenario }: { children: ReactNode; scenario: ReturnType<typeof useNavListScenario> }) {
+  const state = scenario.state;
+  const props = {
+    className: "playground-nav-list-section",
+    collapsible: state.collapsible,
+    disabled: state.disabledSection,
+    onOpenChange: scenario.actions.noteSectionOpen,
+    ref: scenario.actions.markSectionRef,
+    ...(state.sectionControlled
+      ? { open: state.sectionOpen }
+      : { defaultOpen: state.defaultSectionOpen }),
+    ...partProps("section", { propCheck: state.propCheck, customSlot: state.customSlots.section }, "nav-list-section-custom"),
+  };
+  const key = state.sectionControlled
+    ? "controlled"
+    : `uncontrolled-${state.defaultSectionOpen}`;
+
+  if (state.sectionComposition === "asChild") {
+    return (
+      <NavList.Section key={key} {...props} asChild>
+        <section>{children}</section>
+      </NavList.Section>
+    );
+  }
+
+  if (state.sectionComposition === "render") {
+    return (
+      <NavList.Section key={key} {...props} render={(renderProps) => <section {...renderProps} />}>
+        {children}
+      </NavList.Section>
+    );
+  }
+
+  return <NavList.Section key={key} {...props}>{children}</NavList.Section>;
+}
+
+function NavListSectionTriggerPart({ children, scenario }: { children: ReactNode; scenario: ReturnType<typeof useNavListScenario> }) {
+  const state = scenario.state;
+  const props = {
+    className: "playground-nav-list-section-trigger",
+    ref: scenario.actions.markSectionTriggerRef,
+    ...partProps("section-trigger", { propCheck: state.propCheck, customSlot: state.customSlots.sectionTrigger }, "nav-list-section-trigger-custom"),
+  };
+
+  if (state.sectionTriggerComposition === "asChild") {
+    return (
+      <NavList.SectionTrigger {...props} asChild>
+        <button type="button">{children}</button>
+      </NavList.SectionTrigger>
+    );
+  }
+
+  if (state.sectionTriggerComposition === "render") {
+    return (
+      <NavList.SectionTrigger {...props} render={(renderProps) => <button {...renderProps} />}>
+        {children}
+      </NavList.SectionTrigger>
+    );
+  }
+
+  return <NavList.SectionTrigger {...props}>{children}</NavList.SectionTrigger>;
+}
+
+function NavListSectionLabelPart({ children, scenario }: { children: ReactNode; scenario: ReturnType<typeof useNavListScenario> }) {
+  const state = scenario.state;
+  const props = {
+    as: "h3" as const,
+    className: "playground-nav-list-section-label",
+    ref: scenario.actions.markSectionLabelRef,
+    ...partProps("section-label", { propCheck: state.propCheck, customSlot: state.customSlots.sectionLabel }, "nav-list-section-label-custom"),
+  };
+
+  if (state.sectionLabelComposition === "asChild") {
+    return (
+      <NavList.SectionLabel {...props} asChild>
+        <h4>{children}</h4>
+      </NavList.SectionLabel>
+    );
+  }
+
+  if (state.sectionLabelComposition === "render") {
+    return (
+      <NavList.SectionLabel {...props} render={(renderProps) => <h4 {...renderProps} />}>
+        {children}
+      </NavList.SectionLabel>
+    );
+  }
+
+  return <NavList.SectionLabel {...props}>{children}</NavList.SectionLabel>;
+}
+
+function NavListSectionContentPart({ children, scenario }: { children: ReactNode; scenario: ReturnType<typeof useNavListScenario> }) {
+  const state = scenario.state;
+  const props = {
+    className: "playground-nav-list-section-content",
+    forceMount: state.forceMount,
+    ref: scenario.actions.markSectionContentRef,
+    ...partProps("section-content", { propCheck: state.propCheck, customSlot: state.customSlots.sectionContent }, "nav-list-section-content-custom"),
+  };
+
+  if (state.sectionContentComposition === "asChild") {
+    return (
+      <NavList.SectionContent {...props} asChild>
+        <div>{children}</div>
+      </NavList.SectionContent>
+    );
+  }
+
+  if (state.sectionContentComposition === "render") {
+    return (
+      <NavList.SectionContent {...props} render={(renderProps) => <div {...renderProps} />}>
+        {children}
+      </NavList.SectionContent>
+    );
+  }
+
+  return <NavList.SectionContent {...props}>{children}</NavList.SectionContent>;
+}
+
+function NavListListPart({ children, scenario }: { children: ReactNode; scenario: ReturnType<typeof useNavListScenario> }) {
+  const state = scenario.state;
+  const props = {
+    className: "playground-nav-list-list",
+    ordered: state.ordered,
+    ref: scenario.actions.markListRef,
+    ...partProps("list", { propCheck: state.propCheck, customSlot: state.customSlots.list }, "nav-list-list-custom"),
+  };
+  const ListElement = state.ordered ? "ol" : "ul";
+
+  if (state.listComposition === "asChild") {
+    return (
+      <NavList.List {...props} asChild>
+        <ListElement>{children}</ListElement>
+      </NavList.List>
+    );
+  }
+
+  if (state.listComposition === "render") {
+    return (
+      <NavList.List {...props} render={(renderProps) => <ListElement {...renderProps} />}>
+        {children}
+      </NavList.List>
+    );
+  }
+
+  return <NavList.List {...props}>{children}</NavList.List>;
+}
+
+function NavListItemPart({ children, disabled, label, scenario }: { children: ReactNode; disabled?: boolean; label: string; scenario: ReturnType<typeof useNavListScenario> }) {
+  const state = scenario.state;
+  const props = {
+    className: `playground-nav-list-item playground-nav-list-item-${label}`,
+    disabled,
+    ref: scenario.actions.markItemRef,
+    ...partProps(`item-${label}`, { propCheck: state.propCheck, customSlot: state.customSlots.item }, "nav-list-item-custom"),
+  };
+
+  if (state.itemComposition === "asChild") {
+    return (
+      <NavList.Item {...props} asChild>
+        <li>{children}</li>
+      </NavList.Item>
+    );
+  }
+
+  if (state.itemComposition === "render") {
+    return (
+      <NavList.Item {...props} render={(renderProps) => <li {...renderProps} />}>
+        {children}
+      </NavList.Item>
+    );
+  }
+
+  return <NavList.Item {...props}>{children}</NavList.Item>;
+}
+
+function NavListLinkPart({ children, disabled, href, label, scenario }: { children: ReactNode; disabled?: boolean; href: string; label: string; scenario: ReturnType<typeof useNavListScenario> }) {
+  const state = scenario.state;
+  const active = state.active === label;
+  const props = {
+    active,
+    className: `playground-nav-list-link playground-nav-list-link-${label}`,
+    current: state.currentToken,
+    disabled,
+    href,
+    onClick: disabled ? undefined : () => scenario.actions.setActive(label),
+    ref: scenario.actions.markLinkRef,
+    ...partProps(`link-${label}`, { propCheck: state.propCheck, customSlot: state.customSlots.link }, "nav-list-link-custom"),
+  };
+
+  if (state.linkComposition === "asChild") {
+    return (
+      <NavList.Link {...props} asChild>
+        <a>{children}</a>
+      </NavList.Link>
+    );
+  }
+
+  if (state.linkComposition === "render") {
+    return (
+      <NavList.Link {...props} render={(renderProps) => <a {...renderProps} />}>
+        {children}
+      </NavList.Link>
+    );
+  }
+
+  return <NavList.Link {...props}>{children}</NavList.Link>;
 }
 
 export function NavigationPrimitiveScenarioAnatomy({
@@ -1722,18 +2074,80 @@ function bottomNavigationItemSelector(state: ReturnType<typeof useBottomNavigati
 
 function navListSections(state: ReturnType<typeof useNavListScenario>["state"]): AnatomySection[] {
   return [
-    baseSection("Root", state.orientation, "[data-slot='nav-list']", [
+    baseSection("Root", state.orientation, navListSlotSelector(state, "root"), [
       row("Orientation", state.orientation, "state"),
-      row("Composition", state.composition, "composition"),
+      row("Composition", state.rootComposition, "composition"),
+      row("Ref target", state.refs.root, "identity"),
     ]),
-    baseSection("Section", state.sectionOpen ? "open" : "closed", "[data-slot='nav-list-section']"),
-    baseSection("Section Trigger", state.collapsible ? "collapsible" : "static", "[data-slot='nav-list-section-trigger']"),
-    baseSection("Section Label", "label", "[data-slot='nav-list-section-label']"),
-    baseSection("Section Content", state.forceMount ? "force mounted" : "mounted when open", "[data-slot='nav-list-section-content']", undefined, !state.sectionOpen && !state.forceMount),
-    baseSection("List", state.ordered ? "ordered" : "unordered", "[data-slot='nav-list-list']"),
-    baseSection("Item", "li", "[data-slot='nav-list-item']"),
-    baseSection("Link", state.active, "[data-slot='nav-list-link'][data-current]"),
+    baseSection("Section", state.sectionOpen ? "open" : "closed", navListSlotSelector(state, "section"), [
+      row("Collapsible", bool(state.collapsible), "behavior"),
+      row("Controlled", bool(state.sectionControlled), "state"),
+      row("Default open", bool(state.defaultSectionOpen), "state"),
+      row("Disabled", bool(state.disabledSection), "state"),
+      row("Composition", state.sectionComposition, "composition"),
+      row("Ref target", state.refs.section, "identity"),
+    ]),
+    baseSection("Section Label", state.sectionLabelComposition === "default" ? "h3" : "h4", navListSlotSelector(state, "sectionLabel"), [
+      row("Composition", state.sectionLabelComposition, "composition"),
+      row("Ref target", state.refs.sectionLabel, "identity"),
+    ]),
+    baseSection("Section Trigger", state.collapsible ? "collapsible" : "static", navListSlotSelector(state, "sectionTrigger"), [
+      row("Composition", state.sectionTriggerComposition, "composition"),
+      row("Ref target", state.refs.sectionTrigger, "identity"),
+    ]),
+    baseSection("Section Content", state.forceMount ? "force mounted" : "mounted when open", navListSlotSelector(state, "sectionContent"), [
+      row("Composition", state.sectionContentComposition, "composition"),
+      row("Ref target", state.refs.sectionContent, "identity"),
+    ], !state.sectionOpen && !state.forceMount),
+    baseSection("List", state.ordered ? "ordered" : "unordered", navListSlotSelector(state, "list"), [
+      row("Composition", state.listComposition, "composition"),
+      row("Ref target", state.refs.list, "identity"),
+    ]),
+    baseSection("Item: Overview", "overview", navListItemSelector(state, "overview"), [
+      row("Composition", state.itemComposition, "composition"),
+      row("Ref target", state.refs.item, "identity"),
+    ]),
+    baseSection("Link: Overview", state.active === "overview" ? "current" : "available", navListLinkSelector(state, "overview"), [
+      row("Composition", state.linkComposition, "composition"),
+      row("Ref target", state.refs.link, "identity"),
+    ]),
+    baseSection("Item: Settings", "settings", navListItemSelector(state, "settings"), [
+      row("Composition", state.itemComposition, "composition"),
+    ]),
+    baseSection("Link: Settings", state.active === "settings" ? "current" : "available", navListLinkSelector(state, "settings"), [
+      row("Composition", state.linkComposition, "composition"),
+    ]),
+    baseSection("Item: Archive", state.disabledLink ? "disabled" : "enabled", navListItemSelector(state, "archive"), [
+      row("Composition", state.itemComposition, "composition"),
+    ]),
+    baseSection("Link: Archive", state.disabledLink ? "disabled" : "enabled", navListLinkSelector(state, "archive"), [
+      row("Composition", state.linkComposition, "composition"),
+    ]),
   ];
+}
+
+function navListSlotSelector(state: ReturnType<typeof useNavListScenario>["state"], part: NavListSlotPart) {
+  const slots: Record<NavListSlotPart, [defaultSlot: string, customSlot: string]> = {
+    root: ["nav-list", "nav-list-root-custom"],
+    section: ["nav-list-section", "nav-list-section-custom"],
+    sectionTrigger: ["nav-list-section-trigger", "nav-list-section-trigger-custom"],
+    sectionLabel: ["nav-list-section-label", "nav-list-section-label-custom"],
+    sectionContent: ["nav-list-section-content", "nav-list-section-content-custom"],
+    list: ["nav-list-list", "nav-list-list-custom"],
+    item: ["nav-list-item", "nav-list-item-custom"],
+    link: ["nav-list-link", "nav-list-link-custom"],
+  };
+  const slot = state.customSlots[part] ? slots[part][1] : slots[part][0];
+
+  return `[data-slot='${slot}']`;
+}
+
+function navListItemSelector(state: ReturnType<typeof useNavListScenario>["state"], label: string) {
+  return `${navListSlotSelector(state, "item")}.playground-nav-list-item-${label}`;
+}
+
+function navListLinkSelector(state: ReturnType<typeof useNavListScenario>["state"], label: string) {
+  return `${navListSlotSelector(state, "link")}.playground-nav-list-link-${label}`;
 }
 
 function baseSection(title: string, summary: string, selector: string, rows = [row("Exists", "true", "presence")], inactive = false): AnatomySection {
@@ -1841,10 +2255,11 @@ export function getNavigationPrimitiveSource(scenarioId: string, scenarios?: Nav
 </BottomNavigation.Root>`;
   }
 
-  return `<NavList.Root>
+  if (scenarioId === "nav-list") {
+    return scenarios ? getNavListSource(scenarios.navList.state) : `<NavList.Root>
   <NavList.Section collapsible>
+    <NavList.SectionLabel>Workspace</NavList.SectionLabel>
     <NavList.SectionTrigger>Project</NavList.SectionTrigger>
-    <NavList.SectionLabel>Project links</NavList.SectionLabel>
     <NavList.SectionContent>
       <NavList.List>
         <NavList.Item><NavList.Link active href="#overview">Overview</NavList.Link></NavList.Item>
@@ -1852,6 +2267,9 @@ export function getNavigationPrimitiveSource(scenarioId: string, scenarios?: Nav
     </NavList.SectionContent>
   </NavList.Section>
 </NavList.Root>`;
+  }
+
+  return "";
 }
 
 function getAppBarSource(state: ReturnType<typeof useAppBarScenario>["state"]) {
@@ -2218,6 +2636,157 @@ function renderBottomNavigationSourcePart(part: string, mode: CompositionMode, p
   return `${part}${inlineProps}>`;
 }
 
+function getNavListSource(state: ReturnType<typeof useNavListScenario>["state"]) {
+  const rootProps = [
+    `aria-label="Project navigation"`,
+    state.orientation !== "vertical" ? `orientation="${state.orientation}"` : "",
+    sourcePartProps("root", state.propCheck, state.customSlots.root, "nav-list-root-custom"),
+  ].filter(Boolean).join(" ");
+  const rootOpen = renderNavListSourcePart("Root", state.rootComposition, rootProps, "section");
+  const rootClose = state.rootComposition === "asChild" ? "  </section>\n</NavList.Root>" : "</NavList.Root>";
+
+  return `<NavList.${rootOpen}
+${indent(getNavListSectionSource(state), 2)}
+${rootClose}`;
+}
+
+function getNavListSectionSource(state: ReturnType<typeof useNavListScenario>["state"]) {
+  const sectionProps = [
+    state.collapsible ? "collapsible" : "",
+    state.sectionControlled ? (state.sectionOpen ? `open={true}` : `open={false}`) : "",
+    state.sectionControlled ? `onOpenChange={setSectionOpen}` : "",
+    !state.sectionControlled && state.defaultSectionOpen ? `defaultOpen` : "",
+    !state.sectionControlled ? `onOpenChange={handleOpenChange}` : "",
+    state.disabledSection ? "disabled" : "",
+    sourcePartProps("section", state.propCheck, state.customSlots.section, "nav-list-section-custom"),
+  ].filter(Boolean).join(" ");
+  const sectionOpen = renderNavListSourcePart("Section", state.sectionComposition, sectionProps, "section");
+  const sectionClose = state.sectionComposition === "asChild" ? "  </section>\n</NavList.Section>" : "</NavList.Section>";
+  const children = [
+    getNavListSectionLabelSource(state),
+    getNavListSectionTriggerSource(state),
+    getNavListSectionContentSource(state),
+  ].map((child) => indent(child, 2)).join("\n");
+
+  return `<NavList.${sectionOpen}
+${children}
+${sectionClose}`;
+}
+
+function getNavListSectionTriggerSource(state: ReturnType<typeof useNavListScenario>["state"]) {
+  const props = sourcePartProps("section-trigger", state.propCheck, state.customSlots.sectionTrigger, "nav-list-section-trigger-custom");
+  const inlineProps = props ? ` ${props}` : "";
+
+  if (state.sectionTriggerComposition === "asChild") {
+    return `<NavList.SectionTrigger${inlineProps} asChild><button type="button">Project</button></NavList.SectionTrigger>`;
+  }
+
+  if (state.sectionTriggerComposition === "render") {
+    return `<NavList.SectionTrigger${inlineProps} render={(props) => <button {...props} />}>Project</NavList.SectionTrigger>`;
+  }
+
+  return `<NavList.SectionTrigger${inlineProps}>Project</NavList.SectionTrigger>`;
+}
+
+function getNavListSectionLabelSource(state: ReturnType<typeof useNavListScenario>["state"]) {
+  const props = [
+    `as="h3"`,
+    sourcePartProps("section-label", state.propCheck, state.customSlots.sectionLabel, "nav-list-section-label-custom"),
+  ].filter(Boolean).join(" ");
+  const inlineProps = props ? ` ${props}` : "";
+
+  if (state.sectionLabelComposition === "asChild") {
+    return `<NavList.SectionLabel${inlineProps} asChild><h4>Workspace</h4></NavList.SectionLabel>`;
+  }
+
+  if (state.sectionLabelComposition === "render") {
+    return `<NavList.SectionLabel${inlineProps} render={(props) => <h4 {...props} />}>Workspace</NavList.SectionLabel>`;
+  }
+
+  return `<NavList.SectionLabel${inlineProps}>Workspace</NavList.SectionLabel>`;
+}
+
+function getNavListSectionContentSource(state: ReturnType<typeof useNavListScenario>["state"]) {
+  const props = [
+    state.forceMount ? "forceMount" : "",
+    sourcePartProps("section-content", state.propCheck, state.customSlots.sectionContent, "nav-list-section-content-custom"),
+  ].filter(Boolean).join(" ");
+  const contentOpen = renderNavListSourcePart("SectionContent", state.sectionContentComposition, props, "div");
+  const contentClose = state.sectionContentComposition === "asChild" ? "  </div>\n</NavList.SectionContent>" : "</NavList.SectionContent>";
+
+  return `<NavList.${contentOpen}
+${indent(getNavListListSource(state), 2)}
+${contentClose}`;
+}
+
+function getNavListListSource(state: ReturnType<typeof useNavListScenario>["state"]) {
+  const props = [
+    state.ordered ? "ordered" : "",
+    sourcePartProps("list", state.propCheck, state.customSlots.list, "nav-list-list-custom"),
+  ].filter(Boolean).join(" ");
+  const tag = state.ordered ? "ol" : "ul";
+  const listOpen = renderNavListSourcePart("List", state.listComposition, props, tag);
+  const listClose = state.listComposition === "asChild" ? `  </${tag}>\n</NavList.List>` : "</NavList.List>";
+  const items = [
+    getNavListItemSource("overview", "Overview", false, state),
+    getNavListItemSource("settings", "Settings", false, state),
+    getNavListItemSource("archive", "Archive", state.disabledLink, state),
+  ].map((item) => indent(item, 2)).join("\n");
+
+  return `<NavList.${listOpen}
+${items}
+${listClose}`;
+}
+
+function getNavListItemSource(label: string, text: string, disabled: boolean, state: ReturnType<typeof useNavListScenario>["state"]) {
+  const props = [
+    disabled ? "disabled" : "",
+    sourcePartProps(`item-${label}`, state.propCheck, state.customSlots.item, "nav-list-item-custom"),
+  ].filter(Boolean).join(" ");
+  const itemOpen = renderNavListSourcePart("Item", state.itemComposition, props, "li");
+  const itemClose = state.itemComposition === "asChild" ? "  </li>\n</NavList.Item>" : "</NavList.Item>";
+
+  return `<NavList.${itemOpen}
+  ${getNavListLinkSource(label, text, disabled, state)}
+${itemClose}`;
+}
+
+function getNavListLinkSource(label: string, text: string, disabled: boolean, state: ReturnType<typeof useNavListScenario>["state"]) {
+  const props = [
+    state.active === label ? "active" : "",
+    state.active === label && state.currentToken !== "page" ? `current="${state.currentToken}"` : "",
+    disabled ? "disabled" : "",
+    `href="#${label}"`,
+    disabled ? "" : `onClick={() => setActive("${label}")}`,
+    sourcePartProps(`link-${label}`, state.propCheck, state.customSlots.link, "nav-list-link-custom"),
+  ].filter(Boolean).join(" ");
+  const inlineProps = props ? ` ${props}` : "";
+
+  if (state.linkComposition === "asChild") {
+    return `<NavList.Link${inlineProps} asChild><a>${text}</a></NavList.Link>`;
+  }
+
+  if (state.linkComposition === "render") {
+    return `<NavList.Link${inlineProps} render={(props) => <a {...props} />}>${text}</NavList.Link>`;
+  }
+
+  return `<NavList.Link${inlineProps}>${text}</NavList.Link>`;
+}
+
+function renderNavListSourcePart(part: string, mode: CompositionMode, props: string, tag: string) {
+  const inlineProps = props ? ` ${props}` : "";
+
+  if (mode === "asChild") {
+    return `${part}${inlineProps} asChild>\n  <${tag}>`;
+  }
+
+  if (mode === "render") {
+    return `${part}${inlineProps} render={(props) => <${tag} {...props} />}>`;
+  }
+
+  return `${part}${inlineProps}>`;
+}
+
 function indent(source: string, spaces: number) {
   const padding = " ".repeat(spaces);
   return source.split("\n").map((line) => `${padding}${line}`).join("\n");
@@ -2258,6 +2827,21 @@ function formatAppBarSlotLabel(part: AppBarSlotPart) {
 function formatBottomNavigationSlotLabel(part: BottomNavigationSlotPart) {
   if (part === "root") return "Root";
   return "Item";
+}
+
+function formatNavListSlotLabel(part: NavListSlotPart) {
+  const labels: Record<NavListSlotPart, string> = {
+    root: "Root",
+    section: "Section",
+    sectionTrigger: "Section Trigger",
+    sectionLabel: "Section Label",
+    sectionContent: "Section Content",
+    list: "List",
+    item: "Item",
+    link: "Link",
+  };
+
+  return labels[part];
 }
 
 function formatBreadcrumbSlotLabel(part: BreadcrumbSlotPart) {
@@ -2310,6 +2894,7 @@ const bottomNavigationValueOptions = [
 ] as const;
 const compositionOptions = ["default", "asChild", "render"] as const;
 const orientationOptions = ["horizontal", "vertical"] as const;
+const navListCurrentTokenOptions = ["page", "step", "location"] as const;
 const directionOptions = ["ltr", "rtl"] as const;
 const activationModeOptions = ["automatic", "manual"] as const;
 const appBarPositionOptions = ["static", "sticky", "fixed", "absolute"] as const;

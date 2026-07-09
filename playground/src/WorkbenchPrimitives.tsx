@@ -139,6 +139,29 @@ export function MenuCheckboxControl({
   );
 }
 
+export function MenuActionControl({
+  disabled = false,
+  label,
+  value,
+  onSelect,
+}: {
+  disabled?: boolean;
+  label: string;
+  value: string;
+  onSelect: () => void;
+}) {
+  return (
+    <Menubar.Item
+      className="toolbar-menu-item"
+      disabled={disabled}
+      value={value}
+      onSelect={onSelect}
+    >
+      <span>{label}</span>
+    </Menubar.Item>
+  );
+}
+
 export function MenuRadioControl<T extends string>({
   disabled = false,
   label,
