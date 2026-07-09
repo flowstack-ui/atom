@@ -7,7 +7,7 @@ import { Direction } from "@flowstack-ui/atom/direction";
 import { NavList } from "@flowstack-ui/atom/nav-list";
 import { Pagination, usePaginationContext } from "@flowstack-ui/atom/pagination";
 import { Tabs } from "@flowstack-ui/atom/tabs";
-import { useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { useCallback, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { AnatomyPanel, type AnatomySection } from "../AnatomyPanel";
 import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, partProps, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup } from "../WorkbenchPrimitives";
 
@@ -17,12 +17,15 @@ type DirectionMode = "ltr" | "rtl";
 type ActivationMode = "automatic" | "manual";
 type AppBarPosition = "static" | "absolute" | "sticky" | "fixed";
 type AppBarDensity = "compact" | "comfortable";
+type AppBarSlotPart = "root" | "toolbar" | "start" | "center" | "end";
 type AccordionSlotPart = "root" | "item" | "header" | "trigger" | "content";
 type LogEntry = {
   id: number;
   time: string;
   text: string;
 };
+
+const appBarSlotParts: AppBarSlotPart[] = ["root", "toolbar", "start", "center", "end"];
 
 export const navigationPrimitiveScenarioIds = new Set([
   "app-bar",
@@ -74,15 +77,73 @@ export function useNavigationPrimitiveScenarios() {
 function useAppBarScenario() {
   const [position, setPosition] = useState<AppBarPosition>("static");
   const [density, setDensity] = useState<AppBarDensity>("comfortable");
-  const [composition, setComposition] = useState<CompositionMode>("default");
+  const [rootComposition, setRootComposition] = useState<CompositionMode>("default");
+  const [toolbarComposition, setToolbarComposition] = useState<CompositionMode>("default");
+  const [startComposition, setStartComposition] = useState<CompositionMode>("default");
+  const [centerComposition, setCenterComposition] = useState<CompositionMode>("default");
+  const [endComposition, setEndComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customSlots, setCustomSlots] = useState<Record<AppBarSlotPart, boolean>>({
+    root: false,
+    toolbar: false,
+    start: false,
+    center: false,
+    end: false,
+  });
+  const [refs, setRefs] = useState<Record<AppBarSlotPart, string>>({
+    root: "none",
+    toolbar: "none",
+    start: "none",
+    center: "none",
+    end: "none",
+  });
   const { log, addLog, clearLog } = useScenarioLog();
 
+  const markPartRef = useCallback((part: AppBarSlotPart, element: HTMLElement | null) => {
+    if (!element) return;
+    const nextValue = element?.tagName.toLowerCase() ?? "none";
+    setRefs((current) => {
+      if (current[part] === nextValue) return current;
+      return { ...current, [part]: nextValue };
+    });
+  }, []);
+  const markRootRef = useCallback((element: HTMLElement | null) => markPartRef("root", element), [markPartRef]);
+  const markToolbarRef = useCallback((element: HTMLElement | null) => markPartRef("toolbar", element), [markPartRef]);
+  const markStartRef = useCallback((element: HTMLElement | null) => markPartRef("start", element), [markPartRef]);
+  const markCenterRef = useCallback((element: HTMLElement | null) => markPartRef("center", element), [markPartRef]);
+  const markEndRef = useCallback((element: HTMLElement | null) => markPartRef("end", element), [markPartRef]);
+
   return {
-    state: { position, density, composition, log },
+    state: {
+      position,
+      density,
+      rootComposition,
+      toolbarComposition,
+      startComposition,
+      centerComposition,
+      endComposition,
+      propCheck,
+      customSlots,
+      refs,
+      log,
+    },
     actions: {
       setPosition,
       setDensity,
-      setComposition,
+      setRootComposition,
+      setToolbarComposition,
+      setStartComposition,
+      setCenterComposition,
+      setEndComposition,
+      setPropCheck,
+      setCustomSlot: (part: AppBarSlotPart, checked: boolean) => {
+        setCustomSlots((current) => ({ ...current, [part]: checked }));
+      },
+      markRootRef,
+      markToolbarRef,
+      markStartRef,
+      markCenterRef,
+      markEndRef,
       clearLog,
       noteAction: (label: string) => addLog(`action ${label}`),
     },
@@ -360,7 +421,23 @@ export function NavigationPrimitiveScenarioToolbar({
           <MenuRadioControl label="Position" options={appBarPositionOptions} value={scenario.state.position} onChange={scenario.actions.setPosition} />
           <MenuRadioControl label="Density" options={appBarDensityOptions} value={scenario.state.density} onChange={scenario.actions.setDensity} />
         </ToolbarGroup>
-        <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+        <ToolbarGroup title="Composition" value="composition">
+          <MenuRadioControl label="Root" options={compositionOptions} value={scenario.state.rootComposition} onChange={scenario.actions.setRootComposition} />
+          <MenuRadioControl label="Toolbar" options={compositionOptions} value={scenario.state.toolbarComposition} onChange={scenario.actions.setToolbarComposition} />
+          <MenuRadioControl label="Start" options={compositionOptions} value={scenario.state.startComposition} onChange={scenario.actions.setStartComposition} />
+          <MenuRadioControl label="Center" options={compositionOptions} value={scenario.state.centerComposition} onChange={scenario.actions.setCenterComposition} />
+          <MenuRadioControl label="End" options={compositionOptions} value={scenario.state.endComposition} onChange={scenario.actions.setEndComposition} />
+        </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={appBarSlotParts.map((part) => ({
+            checked: scenario.state.customSlots[part],
+            label: `${formatAppBarSlotLabel(part)} Slot`,
+            value: `${part}-slot`,
+            onChange: (checked) => scenario.actions.setCustomSlot(part, checked),
+          }))}
+        />
       </ControlToolbar>
     );
   }
@@ -513,22 +590,23 @@ export function NavigationPrimitiveScenarioCanvas({
 function AppBarCanvas({ scenario }: { scenario: ReturnType<typeof useAppBarScenario> }) {
   const state = scenario.state;
   const content = (
-    <AppBar.Toolbar className="playground-appbar-toolbar" density={state.density} data-prop-check="toolbar">
-      <AppBar.Start className="playground-appbar-section" data-prop-check="start">Flowstack</AppBar.Start>
-      <AppBar.Center className="playground-appbar-section" data-prop-check="center">Dashboard</AppBar.Center>
-      <AppBar.End className="playground-appbar-section" data-prop-check="end">
+    <AppBarToolbarPart scenario={scenario}>
+      <AppBarSectionPart label="Flowstack" part="start" scenario={scenario} />
+      <AppBarSectionPart label="Dashboard" part="center" scenario={scenario} />
+      <AppBarSectionPart part="end" scenario={scenario}>
         <Button.Root className="atom-button secondary" onPress={() => scenario.actions.noteAction("settings")}>Settings</Button.Root>
-      </AppBar.End>
-    </AppBar.Toolbar>
+      </AppBarSectionPart>
+    </AppBarToolbarPart>
   );
   const props = {
     "aria-label": "Demo app bar",
     className: "playground-appbar",
-    "data-prop-check": "root",
     position: state.position,
+    ref: scenario.actions.markRootRef,
+    ...partProps("root", { propCheck: state.propCheck, customSlot: state.customSlots.root }, "appbar-custom"),
   };
 
-  if (state.composition === "asChild") {
+  if (state.rootComposition === "asChild") {
     return (
       <AppBar.Root {...props} asChild>
         <section>{content}</section>
@@ -536,7 +614,7 @@ function AppBarCanvas({ scenario }: { scenario: ReturnType<typeof useAppBarScena
     );
   }
 
-  if (state.composition === "render") {
+  if (state.rootComposition === "render") {
     return (
       <AppBar.Root {...props} render={(renderProps) => <section {...renderProps} />}>
         {content}
@@ -545,6 +623,74 @@ function AppBarCanvas({ scenario }: { scenario: ReturnType<typeof useAppBarScena
   }
 
   return <AppBar.Root {...props}>{content}</AppBar.Root>;
+}
+
+function AppBarToolbarPart({ scenario, children }: { scenario: ReturnType<typeof useAppBarScenario>; children: ReactNode }) {
+  const state = scenario.state;
+  const props = {
+    className: "playground-appbar-toolbar",
+    density: state.density,
+    ref: scenario.actions.markToolbarRef,
+    ...partProps("toolbar", { propCheck: state.propCheck, customSlot: state.customSlots.toolbar }, "appbar-toolbar-custom"),
+  };
+
+  if (state.toolbarComposition === "asChild") {
+    return (
+      <AppBar.Toolbar {...props} asChild>
+        <nav>{children}</nav>
+      </AppBar.Toolbar>
+    );
+  }
+
+  if (state.toolbarComposition === "render") {
+    return (
+      <AppBar.Toolbar {...props} render={(renderProps) => <nav {...renderProps} />}>
+        {children}
+      </AppBar.Toolbar>
+    );
+  }
+
+  return <AppBar.Toolbar {...props}>{children}</AppBar.Toolbar>;
+}
+
+function AppBarSectionPart({
+  children,
+  label,
+  part,
+  scenario,
+}: {
+  children?: ReactNode;
+  label?: string;
+  part: "start" | "center" | "end";
+  scenario: ReturnType<typeof useAppBarScenario>;
+}) {
+  const state = scenario.state;
+  const Component = part === "start" ? AppBar.Start : part === "center" ? AppBar.Center : AppBar.End;
+  const composition = part === "start" ? state.startComposition : part === "center" ? state.centerComposition : state.endComposition;
+  const props = {
+    className: "playground-appbar-section",
+    ref: part === "start" ? scenario.actions.markStartRef : part === "center" ? scenario.actions.markCenterRef : scenario.actions.markEndRef,
+    ...partProps(part, { propCheck: state.propCheck, customSlot: state.customSlots[part] }, `appbar-${part}-custom`),
+  };
+  const content = children ?? label;
+
+  if (composition === "asChild") {
+    return (
+      <Component {...props} asChild>
+        <span>{content}</span>
+      </Component>
+    );
+  }
+
+  if (composition === "render") {
+    return (
+      <Component {...props} render={(renderProps) => <span {...renderProps} />}>
+        {content}
+      </Component>
+    );
+  }
+
+  return <Component {...props}>{content}</Component>;
 }
 
 function TabsCanvas({ scenario }: { scenario: ReturnType<typeof useTabsScenario> }) {
@@ -1010,15 +1156,49 @@ function getNavigationSections(scenarioId: string, scenarios: NavigationPrimitiv
 
 function appBarSections(state: ReturnType<typeof useAppBarScenario>["state"]): AnatomySection[] {
   return [
-    baseSection("Root", state.position, "[data-slot='appbar'][data-prop-check='root']", [
+    baseSection("Root", state.position, appBarSlotSelector(state, "root"), [
       row("Position", state.position, "state"),
-      row("Composition", state.composition, "composition"),
+      row("Composition", state.rootComposition, "composition"),
+      row("Ref target", state.refs.root, "identity"),
     ]),
-    baseSection("Toolbar", state.density, "[data-slot='appbar-toolbar']"),
-    baseSection("Start", "start", "[data-slot='appbar-start']"),
-    baseSection("Center", "center", "[data-slot='appbar-center']"),
-    baseSection("End", "end", "[data-slot='appbar-end']"),
+    baseSection("Toolbar", state.density, appBarSlotSelector(state, "toolbar"), [
+      row("Density", state.density, "state"),
+      row("Composition", state.toolbarComposition, "composition"),
+      row("Ref target", state.refs.toolbar, "identity"),
+    ]),
+    baseSection("Start", "start", appBarSlotSelector(state, "start"), [
+      row("Composition", state.startComposition, "composition"),
+      row("Ref target", state.refs.start, "identity"),
+    ]),
+    baseSection("Center", "center", appBarSlotSelector(state, "center"), [
+      row("Composition", state.centerComposition, "composition"),
+      row("Ref target", state.refs.center, "identity"),
+    ]),
+    baseSection("End", "end", appBarSlotSelector(state, "end"), [
+      row("Composition", state.endComposition, "composition"),
+      row("Ref target", state.refs.end, "identity"),
+    ]),
   ];
+}
+
+function appBarSlotSelector(state: ReturnType<typeof useAppBarScenario>["state"], part: AppBarSlotPart) {
+  const classes: Record<AppBarSlotPart, string> = {
+    root: ".playground-appbar",
+    toolbar: ".playground-appbar-toolbar",
+    start: ".playground-appbar-section",
+    center: ".playground-appbar-section",
+    end: ".playground-appbar-section",
+  };
+  const slots: Record<AppBarSlotPart, [defaultSlot: string, customSlot: string]> = {
+    root: ["appbar", "appbar-custom"],
+    toolbar: ["appbar-toolbar", "appbar-toolbar-custom"],
+    start: ["appbar-start", "appbar-start-custom"],
+    center: ["appbar-center", "appbar-center-custom"],
+    end: ["appbar-end", "appbar-end-custom"],
+  };
+  const slot = state.customSlots[part] ? slots[part][1] : slots[part][0];
+
+  return `${classes[part]}[data-slot='${slot}']`;
 }
 
 function tabsSections(state: ReturnType<typeof useTabsScenario>["state"]): AnatomySection[] {
@@ -1174,7 +1354,7 @@ export function getNavigationPrimitiveCanvasFooter(scenarioId: string, scenarios
 
 export function getNavigationPrimitiveSource(scenarioId: string, scenarios?: NavigationPrimitiveScenarios) {
   if (scenarioId === "app-bar") {
-    return `<AppBar.Root aria-label="Demo app bar">
+    return scenarios ? getAppBarSource(scenarios.appBar.state) : `<AppBar.Root aria-label="Demo app bar">
   <AppBar.Toolbar>
     <AppBar.Start>Flowstack</AppBar.Start>
     <AppBar.Center>Dashboard</AppBar.Center>
@@ -1240,6 +1420,73 @@ export function getNavigationPrimitiveSource(scenarioId: string, scenarios?: Nav
     </NavList.SectionContent>
   </NavList.Section>
 </NavList.Root>`;
+}
+
+function getAppBarSource(state: ReturnType<typeof useAppBarScenario>["state"]) {
+  const rootProps = [
+    `aria-label="Demo app bar"`,
+    state.position !== "static" ? `position="${state.position}"` : "",
+    sourcePartProps("root", state.propCheck, state.customSlots.root, "appbar-custom"),
+  ].filter(Boolean).join(" ");
+  const rootOpen = renderAppBarSourcePart("Root", state.rootComposition, rootProps, "section");
+  const rootClose = state.rootComposition === "asChild" ? "  </section>\n</AppBar.Root>" : "</AppBar.Root>";
+
+  return `<AppBar.${rootOpen}
+${indent(getAppBarToolbarSource(state), 2)}
+${rootClose}`;
+}
+
+function getAppBarToolbarSource(state: ReturnType<typeof useAppBarScenario>["state"]) {
+  const toolbarProps = [
+    state.density !== "comfortable" ? `density="${state.density}"` : "",
+    sourcePartProps("toolbar", state.propCheck, state.customSlots.toolbar, "appbar-toolbar-custom"),
+  ].filter(Boolean).join(" ");
+  const toolbarOpen = renderAppBarSourcePart("Toolbar", state.toolbarComposition, toolbarProps, "nav");
+  const toolbarClose = state.toolbarComposition === "asChild" ? "  </nav>\n</AppBar.Toolbar>" : "</AppBar.Toolbar>";
+  const children = [
+    getAppBarSectionSource("Start", "start", state.startComposition, "Flowstack", state),
+    getAppBarSectionSource("Center", "center", state.centerComposition, "Dashboard", state),
+    getAppBarSectionSource("End", "end", state.endComposition, "<Button.Root>Settings</Button.Root>", state),
+  ].map((child) => indent(child, 2)).join("\n");
+
+  return `<AppBar.${toolbarOpen}
+${children}
+${toolbarClose}`;
+}
+
+function getAppBarSectionSource(
+  componentName: "Start" | "Center" | "End",
+  part: "start" | "center" | "end",
+  composition: CompositionMode,
+  children: string,
+  state: ReturnType<typeof useAppBarScenario>["state"],
+) {
+  const props = sourcePartProps(part, state.propCheck, state.customSlots[part], `appbar-${part}-custom`);
+  const inlineProps = props ? ` ${props}` : "";
+
+  if (composition === "asChild") {
+    return `<AppBar.${componentName}${inlineProps} asChild><span>${children}</span></AppBar.${componentName}>`;
+  }
+
+  if (composition === "render") {
+    return `<AppBar.${componentName}${inlineProps} render={(props) => <span {...props} />}>${children}</AppBar.${componentName}>`;
+  }
+
+  return `<AppBar.${componentName}${inlineProps}>${children}</AppBar.${componentName}>`;
+}
+
+function renderAppBarSourcePart(part: string, mode: CompositionMode, props: string, tag: "section" | "nav") {
+  const inlineProps = props ? ` ${props}` : "";
+
+  if (mode === "asChild") {
+    return `${part}${inlineProps} asChild>\n  <${tag}>`;
+  }
+
+  if (mode === "render") {
+    return `${part}${inlineProps} render={(props) => <${tag} {...props} />}>`;
+  }
+
+  return `${part}${inlineProps}>`;
 }
 
 function getAccordionSource(state: ReturnType<typeof useAccordionScenario>["state"]) {
@@ -1381,6 +1628,11 @@ function formatAccordionValueLabel(value: string | string[]) {
 }
 
 function formatAccordionSlotLabel(part: AccordionSlotPart) {
+  return part.charAt(0).toUpperCase() + part.slice(1);
+}
+
+function formatAppBarSlotLabel(part: AppBarSlotPart) {
+  if (part === "root") return "Root";
   return part.charAt(0).toUpperCase() + part.slice(1);
 }
 
