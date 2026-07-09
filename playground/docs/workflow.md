@@ -23,7 +23,7 @@ update.
 12. Review the draft protocol.
 13. Promote the reviewed protocol to `manual-tests/<component>.md`.
 14. Commit the reviewed protocol.
-15. Capture reusable documentation improvements.
+15. Reusable Lessons Review.
 
 ## 1. Read Component Documentation
 
@@ -211,8 +211,32 @@ updates, component verification, and draft review.
 
 Commit the promoted protocol separately from the completed component.
 
-## 15. Capture Reusable Documentation Improvements
+## 15. Reusable Lessons Review
 
-After the component is complete, capture only lessons proven by the component
-work. Put durable authoring rules in the detailed documentation, keep router
-files short, and avoid adding component-specific layouts or one-off standards.
+After implementation, manual testing, workbook update, component commit,
+protocol review, protocol promotion, and protocol commit are complete, answer
+this before starting the next component:
+
+```text
+Did this component teach any reusable lesson that should improve future components?
+```
+
+Classify the answer as one of:
+
+- `No reusable lessons`
+- `Playground implementation pattern`
+- `Manual Test Protocol pattern`
+- `Workbook coverage pattern`
+- `Documentation/process pattern`
+- `Atom package pattern`
+
+Do not edit documentation automatically during this review. Recommend
+documentation updates only when the lesson applies beyond this one component.
+One-off component fixes should stay in the component commit.
+
+If a reusable lesson exists, summarize:
+
+- what was learned
+- which future components it affects
+- which documentation file likely owns the change
+- whether it is worth a separate documentation session
