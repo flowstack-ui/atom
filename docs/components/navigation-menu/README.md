@@ -49,7 +49,7 @@ Contains the navigation menu.
 | `delayDuration` | `number` | `200` |
 | `skipDelayDuration` | `number` | `300` |
 | `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` |
-| `dir` | `"ltr" \| "rtl"` | `"ltr"` |
+| `dir` | `"ltr" \| "rtl"` | `Direction.Provider` |
 
 | Data attribute | Values |
 | --- | --- |
@@ -181,7 +181,7 @@ Creates a nested navigation menu scope.
 
 ## Accessibility
 
-`Root` renders a `nav` landmark with an accessible name. Triggers expose expanded state and controlled content IDs. Links use native anchor semantics and `aria-current="page"` when active.
+`Root` renders a `nav` landmark with an accessible name. Triggers expose expanded state and controlled content IDs. Links use native anchor semantics and `aria-current="page"` when active. Text direction can be set with `dir` on `Root` or inherited from `Direction.Provider`.
 
 | Key | Description |
 | --- | --- |

@@ -14,13 +14,14 @@ import { useCollection } from "../../collection.js";
 import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
 import type { NativeNavProps } from "../../utils/dom.js";
 import { composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
+import { useDirection, type DirectionValue } from "../direction/index.js";
 import {
   NavigationMenuContextProvider,
   type ContentNodeEntry,
   type NavigationMenuContextValue,
 } from "./context.js";
 
-type NavigationMenuRootNativeProps = NativeNavProps<"children" | "defaultValue" | "onChange">;
+type NavigationMenuRootNativeProps = NativeNavProps<"children" | "defaultValue" | "dir" | "onChange">;
 
 export interface NavigationMenuRootProps extends NavigationMenuRootNativeProps {
   children: ReactNode;
@@ -31,7 +32,7 @@ export interface NavigationMenuRootProps extends NavigationMenuRootNativeProps {
   delayDuration?: number;
   skipDelayDuration?: number;
   orientation?: "horizontal" | "vertical";
-  dir?: "ltr" | "rtl";
+  dir?: DirectionValue;
   className?: string;
   style?: CSSProperties;
 }
@@ -49,13 +50,15 @@ export const NavigationMenuRoot = forwardRef<
     delayDuration = 200,
     skipDelayDuration = 300,
     orientation = "horizontal",
-    dir = "ltr",
+    dir: dirProp,
     className,
     style,
     ...restProps
   },
   ref,
 ) {
+  const contextDir = useDirection();
+  const dir = dirProp ?? contextDir;
   const {
     "aria-label": ariaLabel = "Main",
     ...navigationProps

@@ -8,6 +8,7 @@ import {
 } from "../test-utils.mjs";
 
 import {
+  Direction,
   NavigationMenuContent,
   NavigationMenuIndicator,
   NavigationMenuItem,
@@ -228,6 +229,30 @@ test("NavigationMenuSub creates a nested navigation menu scope", () => {
   assert.match(html, /Template panel/);
 });
 
+test("NavigationMenuRoot supports local and provider direction", () => {
+  const localHtml = renderToStaticMarkup(
+    React.createElement(
+      NavigationMenuRoot,
+      { dir: "rtl" },
+      React.createElement(NavigationMenuList, null),
+    ),
+  );
+  const providerHtml = renderToStaticMarkup(
+    React.createElement(
+      Direction.Provider,
+      { dir: "rtl" },
+      React.createElement(
+        NavigationMenuRoot,
+        null,
+        React.createElement(NavigationMenuList, null),
+      ),
+    ),
+  );
+
+  assert.match(localHtml, /dir="rtl"/);
+  assert.match(providerHtml, /dir="rtl"/);
+});
+
 test("NavigationMenu trigger keeps aria-controls stable when closed", () => {
   const html = renderToStaticMarkup(
     React.createElement(
@@ -275,6 +300,8 @@ test("NavigationMenu source keeps context and registration stable", async () => 
   );
 
   assert.match(rootSource, /const contextValue: NavigationMenuContextValue = useMemo/);
+  assert.match(rootSource, /const contextDir = useDirection\(\)/);
+  assert.match(rootSource, /const dir = dirProp \?\? contextDir/);
   assert.match(rootSource, /useCollection<string, HTMLButtonElement>\(\)/);
   assert.match(rootSource, /registerTriggerItem\(value, element\)/);
   assert.match(rootSource, /getTriggerItem\(value\)\?\.element \?\? null/);

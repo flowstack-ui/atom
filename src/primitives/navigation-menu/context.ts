@@ -2,6 +2,7 @@
 
 import { createContext, useContext, type ReactNode, type RefObject } from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
+import type { DirectionValue } from "../direction/index.js";
 
 export interface ContentNodeEntry {
   node: ReactNode;
@@ -17,7 +18,7 @@ export interface NavigationMenuContextValue {
   skipDelayDuration: number;
   isSkipDelayActive: boolean;
   orientation: "horizontal" | "vertical";
-  dir: "ltr" | "rtl";
+  dir: DirectionValue;
   registerItem: (value: string) => void;
   unregisterItem: (value: string) => void;
   getItemValues: () => string[];

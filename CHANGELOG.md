@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added `Direction.Provider` fallback for `NavigationMenu.Root` direction.
 - Added `Direction.Provider` and `dir` support to mirror `Menubar` top-level
   ArrowLeft and ArrowRight navigation in RTL.
 - Changed `Breadcrumb.Root` to use the Atom-style `ariaLabel` prop for the
