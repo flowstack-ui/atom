@@ -11,7 +11,11 @@ import {
 } from "react";
 import { useCollection } from "../../collection.js";
 import type { NativeDivProps } from "../../utils/dom.js";
-import { useDirection, type DirectionValue } from "../direction/index.js";
+import {
+  DirectionProvider,
+  useDirection,
+  type DirectionValue,
+} from "../direction/index.js";
 import {
   MenubarContextProvider,
   type MenubarContextValue,
@@ -238,18 +242,20 @@ function MenubarRoot(
   );
 
   return (
-    <MenubarContextProvider value={contextValue}>
-      <div
-        {...restProps}
-        ref={ref}
-        role="menubar"
-        aria-orientation="horizontal"
-        dir={dir}
-        data-slot={dataSlot}
-        className={className}
-      >
-        {children}
-      </div>
-    </MenubarContextProvider>
+    <DirectionProvider dir={dir}>
+      <MenubarContextProvider value={contextValue}>
+        <div
+          {...restProps}
+          ref={ref}
+          role="menubar"
+          aria-orientation="horizontal"
+          dir={dir}
+          data-slot={dataSlot}
+          className={className}
+        >
+          {children}
+        </div>
+      </MenubarContextProvider>
+    </DirectionProvider>
   );
 });

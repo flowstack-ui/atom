@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Fixed local `Menubar.Root dir="rtl"` so shared nested submenu placement also
+  mirrors to the left, matching `Direction.Provider dir="rtl"`.
+- Expanded the Menubar README to document every namespaced part, including
+  shared menu item props and Atom attributes.
 - Fixed adjacent top-level menu handoff so the active trigger keeps focus for
   `Enter`, `Space`, and `Escape` after ArrowLeft or ArrowRight navigation.
 - Fixed custom `data-slot` overrides on `Menubar.Root` and `Menubar.Trigger`.

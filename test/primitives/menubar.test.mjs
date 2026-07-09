@@ -151,8 +151,10 @@ test("Menubar source keeps keyboard open and focus behavior stable", async () =>
   assert.match(rootSource, /useCollection<string, HTMLElement>\(\)/);
   assert.match(rootSource, /registerCollectionTrigger/);
   assert.match(rootSource, /registryVersion,/);
+  assert.match(rootSource, /DirectionProvider,/);
   assert.match(rootSource, /const contextDir = useDirection\(\)/);
   assert.match(rootSource, /const dir = dirProp \?\? contextDir/);
+  assert.match(rootSource, /<DirectionProvider dir=\{dir\}>/);
   assert.match(rootSource, /dir=\{dir\}/);
   assert.match(rootSource, /"data-slot": dataSlot = "menubar"/);
   assert.match(rootSource, /data-slot=\{dataSlot\}/);

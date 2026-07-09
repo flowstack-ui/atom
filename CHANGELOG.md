@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed local `Menubar.Root dir="rtl"` so nested submenu placement mirrors to
+  the left, matching `Direction.Provider dir="rtl"`.
 - Fixed adjacent top-level `Menubar` handoff so the active trigger keeps focus
   for `Enter`, `Space`, and `Escape` after ArrowLeft or ArrowRight navigation.
 - Fixed custom `data-slot` overrides on `Menubar.Root` and `Menubar.Trigger`.
