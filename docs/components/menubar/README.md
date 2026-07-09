@@ -53,6 +53,7 @@ Contains the top-level menus.
 | `onValueChange` | `(value: string \| null) => void` | - |
 | `loop` | `boolean` | `true` |
 | `dir` | `"ltr" \| "rtl"` | `Direction.Provider` |
+| `data-slot` | `string` | `"menubar"` |
 
 | Data attribute | Values |
 | --- | --- |
@@ -75,6 +76,10 @@ Opens one top-level menu.
 
 `Trigger` renders as a `menuitem` inside the `menubar` root and controls its
 associated menu content.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `data-slot` | `string` | `"menubar-trigger"` |
 
 | Data attribute | Values |
 | --- | --- |

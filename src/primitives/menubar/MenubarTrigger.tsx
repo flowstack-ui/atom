@@ -28,6 +28,7 @@ export interface MenubarTriggerProps extends MenubarTriggerNativeProps {
   children: ReactNode;
   disabled?: boolean;
   className?: string;
+  "data-slot"?: string;
 }
 
 export const MenubarTrigger = forwardRef<
@@ -42,6 +43,7 @@ export const MenubarTrigger = forwardRef<
     onPointerEnter,
     onFocus,
     onKeyDown,
+    "data-slot": dataSlot = "menubar-trigger",
     ...restProps
   },
   ref,
@@ -172,7 +174,7 @@ export const MenubarTrigger = forwardRef<
       type="button"
       role="menuitem"
       id={menuCtx.triggerId}
-      data-slot="menubar-trigger"
+      data-slot={dataSlot}
       data-state={isOpen ? "open" : "closed"}
       data-disabled={disabled ? "" : undefined}
       aria-haspopup="menu"

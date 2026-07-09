@@ -79,6 +79,29 @@ test("MenubarRoot supports local and provider direction", () => {
   assert.match(providerHtml, /dir="rtl"/);
 });
 
+test("Menubar root and trigger preserve custom data slots", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      MenubarRoot,
+      { "data-slot": "custom-menubar" },
+      React.createElement(
+        MenubarMenu,
+        { value: "file" },
+        React.createElement(
+          MenubarTrigger,
+          { "data-slot": "custom-menubar-trigger" },
+          "File",
+        ),
+      ),
+    ),
+  );
+
+  assert.match(html, /data-slot="custom-menubar"/);
+  assert.match(html, /data-slot="custom-menubar-trigger"/);
+  assert.doesNotMatch(html, /data-slot="menubar"/);
+  assert.doesNotMatch(html, /data-slot="menubar-trigger"/);
+});
+
 test("Menubar source keeps keyboard open and focus behavior stable", async () => {
   const rootSource = await readFile(
     new URL("src/primitives/menubar/MenubarRoot.tsx", packageRoot),
@@ -109,6 +132,8 @@ test("Menubar source keeps keyboard open and focus behavior stable", async () =>
   assert.match(triggerSource, /data-disabled=\{disabled \? "" : undefined\}/);
   assert.match(triggerSource, /role="menuitem"/);
   assert.match(triggerSource, /aria-controls=\{menuCtx\.menuId\}/);
+  assert.match(triggerSource, /"data-slot": dataSlot = "menubar-trigger"/);
+  assert.match(triggerSource, /data-slot=\{dataSlot\}/);
   assert.match(menuSource, /closeOnSelect = true/);
   assert.match(menuSource, /loop = true/);
   assert.match(menuSource, /closeOnEscape = true/);
@@ -121,6 +146,8 @@ test("Menubar source keeps keyboard open and focus behavior stable", async () =>
   assert.match(rootSource, /const contextDir = useDirection\(\)/);
   assert.match(rootSource, /const dir = dirProp \?\? contextDir/);
   assert.match(rootSource, /dir=\{dir\}/);
+  assert.match(rootSource, /"data-slot": dataSlot = "menubar"/);
+  assert.match(rootSource, /data-slot=\{dataSlot\}/);
   assert.doesNotMatch(rootSource, /compareDocumentPosition/);
   assert.match(rootSource, /setFocusedValue\(\(currentValue\) => \(currentValue === value \? null : currentValue\)\)/);
   assert.match(rootSource, /const openAdjacentMenu = useCallback/);

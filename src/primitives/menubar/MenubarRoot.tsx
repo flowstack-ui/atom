@@ -25,6 +25,7 @@ export interface MenubarRootProps extends MenubarRootNativeProps {
   loop?: boolean;
   dir?: DirectionValue;
   className?: string;
+  "data-slot"?: string;
 }
 
 export const MenubarRoot = forwardRef<HTMLDivElement, MenubarRootProps>(
@@ -37,6 +38,7 @@ function MenubarRoot(
     loop = true,
     dir: dirProp,
     className,
+    "data-slot": dataSlot = "menubar",
     ...restProps
   },
   ref,
@@ -214,7 +216,7 @@ function MenubarRoot(
         role="menubar"
         aria-orientation="horizontal"
         dir={dir}
-        data-slot="menubar"
+        data-slot={dataSlot}
         className={className}
       >
         {children}

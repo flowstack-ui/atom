@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed custom `data-slot` overrides on `Menubar.Root` and `Menubar.Trigger`.
 - Added `Direction.Provider` and `dir` support to mirror Menubar top-level
   ArrowLeft and ArrowRight navigation in RTL.
 - Inherited the shared Menu typeahead behavior so a single-character search
