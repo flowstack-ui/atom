@@ -25,6 +25,10 @@ update.
 14. Commit the reviewed protocol.
 15. Reusable Lessons Review.
 
+The workflow is not complete until Step 15 has been answered. After the final
+component or protocol commit, do not move on to the next component or answer
+“what’s next” until the Reusable Lessons Review is complete.
+
 ## 1. Read Component Documentation
 
 - Read the public docs for the component.
@@ -240,3 +244,7 @@ If a reusable lesson exists, summarize:
 - which future components it affects
 - which documentation file likely owns the change
 - whether it is worth a separate documentation session
+
+This is a required completion gate. If the user asks what remains or what is
+next immediately after a component commit, first perform this review and then
+answer the question.

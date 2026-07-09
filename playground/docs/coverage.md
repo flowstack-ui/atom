@@ -38,6 +38,12 @@ Composition rows should cover each public part that supports composition. Do
 not treat a root/default composition check as complete coverage when Trigger,
 Close, Item, or another public part also supports `asChild` or `render`.
 
+For composite components that reuse another primitive's parts, workbook rows
+should focus on the composite-owned contract and only smoke-test reused shared
+parts for integration. Do not duplicate exhaustive shared primitive prop,
+positioning, ref, and slot rows unless the composite wrapper changes those
+behaviors.
+
 Rows for stable DOM evidence should name exact expected values whenever useful:
 default rendered tag, `data-slot`, `data-state`, role, `aria-*` attributes,
 `data-prop-check`, and custom `data-slot` values. For generated ids or dynamic

@@ -13,6 +13,12 @@ the fewest possible props while still rendering the public parts needed for
 manual testing. Optional behavior belongs behind toolbar controls instead of
 being enabled in the first-loaded Canvas.
 
+For composite components that re-export or wrap another primitive's parts,
+test the composite-owned behavior deeply and keep reused shared primitive
+behavior to integration smoke coverage unless the composite changes that
+behavior. Do not duplicate every prop, positioning, ref, and slot permutation
+already owned by the shared primitive's own protocol.
+
 Each scenario should include:
 
 - short human title
@@ -25,6 +31,11 @@ Each scenario should include:
 
 Do not put helper explanations, duplicate state summaries, or unrelated status
 text inside the Canvas stage.
+
+When a component accepts local `dir` and also reuses child primitives that read
+`Direction.Provider`, verify both local `dir` and provider direction modes. The
+resolved direction should reach reused child behavior such as submenu placement,
+keyboard open/close direction, and horizontal navigation.
 
 ## Terms
 
@@ -382,6 +393,9 @@ Agent behavior:
 7. Do not update `component-coverage.xlsx` until every protocol step passes.
 8. Promote the protocol to `manual-tests/<component>.md` only after it has been
    reviewed and considered stable.
+9. After the component and promoted protocol commits are complete, perform the
+   Reusable Lessons Review from `docs/workflow.md` before moving to the next
+   component.
 
 ### Protocol Automation Readiness
 
