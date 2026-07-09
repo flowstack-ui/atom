@@ -7,6 +7,12 @@ Use this guide when adding or changing a component scenario.
 Prefer one useful interactive scenario over many tiny examples. A good scenario
 tests multiple behaviors through controls and live interaction.
 
+Scenario defaults should represent the simplest valid consumer usage. The
+initial playground state should demonstrate the component's default API with
+the fewest possible props while still rendering the public parts needed for
+manual testing. Optional behavior belongs behind toolbar controls instead of
+being enabled in the first-loaded Canvas.
+
 Each scenario should include:
 
 - short human title
@@ -171,7 +177,8 @@ Each step should have exactly one testing target.
   and core workbench panels respond.
 - `Feature-Wide State` tests cross-part behavior such as controlled and
   uncontrolled state, `defaultOpen`, disabled, modal, outside close, trigger
-  mode, and keep-mounted behavior.
+  mode, and keep-mounted behavior. It should not repeat part-specific identity,
+  default tag, slot, or ARIA checks that belong in public part steps.
 - Public part steps test only that part.
 - `Source` tests only generated Source output.
 - `Inspector / Logs` tests only selected, focused, and event evidence.
@@ -294,6 +301,13 @@ Dynamic values should never be invented. Describe relationships instead:
 - `aria-describedby` matches the Description id.
 - generated ids stay stable for the mounted instance and are used by the
   elements that reference them.
+
+Distinguish native DOM and ARIA semantics from Atom component API behavior.
+When a component prop maps to DOM output, name both surfaces clearly, such as
+`ariaLabel` on the Atom component and rendered `aria-label` in live DOM. Native
+HTML or ARIA attributes used as best-practice consumer markup, such as an
+`aria-label` on an interactive child, should be verified as DOM/usage
+expectations rather than described as Atom-specific component props.
 
 ### Tester Workflow
 
@@ -440,6 +454,10 @@ Authoring rules:
 - Keep desktop menu structure and visual rhythm consistent across components.
 - Use nested menus only when they make the choices clearer. Do not create
   unnecessary nesting only to reduce visible list length.
+- Keep optional behavior off by default unless it is required for a valid
+  default component example. Expose optional props, variants, edge cases, and
+  accessibility-name overrides through toolbar controls so the default Canvas
+  remains the canonical minimal implementation.
 
 ## Toolbar Group Taxonomy
 
@@ -547,6 +565,12 @@ Playground plumbing must never appear in Source. This includes inspection refs,
 event-log handlers that are not part of the consumer example, internal state
 used only to drive toolbar controls, and layout wrappers that do not belong to
 the rendered Atom example.
+
+Format Source like code a maintainer would naturally write. Prefer readable
+multiline JSX over mechanically generated long lines when nesting, composition,
+or multiple props would make a tag hard to scan. Break multi-prop opening tags
+onto separate lines and keep nested public parts visually nested like a normal
+code editor would format them.
 
 ## Automation Readiness
 
