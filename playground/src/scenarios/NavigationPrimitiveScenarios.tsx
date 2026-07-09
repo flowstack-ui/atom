@@ -20,6 +20,7 @@ type AppBarDensity = "compact" | "comfortable";
 type AppBarSlotPart = "root" | "toolbar" | "start" | "center" | "end";
 type AccordionSlotPart = "root" | "item" | "header" | "trigger" | "content";
 type BottomNavigationSlotPart = "root" | "item";
+type BreadcrumbSlotPart = "root" | "list" | "item" | "link" | "page" | "separator" | "ellipsis";
 type LogEntry = {
   id: number;
   time: string;
@@ -28,6 +29,7 @@ type LogEntry = {
 
 const appBarSlotParts: AppBarSlotPart[] = ["root", "toolbar", "start", "center", "end"];
 const bottomNavigationSlotParts: BottomNavigationSlotPart[] = ["root", "item"];
+const breadcrumbSlotParts: BreadcrumbSlotPart[] = ["root", "list", "item", "link", "page", "separator", "ellipsis"];
 
 export const navigationPrimitiveScenarioIds = new Set([
   "app-bar",
@@ -288,15 +290,72 @@ function useAccordionScenario() {
 function useBreadcrumbScenario() {
   const [showEllipsis, setShowEllipsis] = useState(true);
   const [customSeparator, setCustomSeparator] = useState(false);
-  const [composition, setComposition] = useState<CompositionMode>("default");
+  const [rootComposition, setRootComposition] = useState<CompositionMode>("default");
+  const [listComposition, setListComposition] = useState<CompositionMode>("default");
+  const [itemComposition, setItemComposition] = useState<CompositionMode>("default");
+  const [linkComposition, setLinkComposition] = useState<CompositionMode>("default");
+  const [pageComposition, setPageComposition] = useState<CompositionMode>("default");
+  const [separatorComposition, setSeparatorComposition] = useState<CompositionMode>("default");
+  const [ellipsisComposition, setEllipsisComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customSlots, setCustomSlots] = useState<Record<BreadcrumbSlotPart, boolean>>({
+    root: false,
+    list: false,
+    item: false,
+    link: false,
+    page: false,
+    separator: false,
+    ellipsis: false,
+  });
+  const [refs, setRefs] = useState<Record<BreadcrumbSlotPart, string>>({
+    root: "none",
+    list: "none",
+    item: "none",
+    link: "none",
+    page: "none",
+    separator: "none",
+    ellipsis: "none",
+  });
   const { log, addLog, clearLog } = useScenarioLog();
 
+  const markPartRef = useCallback((part: BreadcrumbSlotPart, element: HTMLElement | null) => {
+    if (!element) return;
+    const nextValue = element.tagName.toLowerCase();
+    setRefs((current) => {
+      if (current[part] === nextValue) return current;
+      return { ...current, [part]: nextValue };
+    });
+  }, []);
+
   return {
-    state: { showEllipsis, customSeparator, composition, log },
+    state: {
+      showEllipsis,
+      customSeparator,
+      rootComposition,
+      listComposition,
+      itemComposition,
+      linkComposition,
+      pageComposition,
+      separatorComposition,
+      ellipsisComposition,
+      propCheck,
+      customSlots,
+      refs,
+      log,
+    },
     actions: {
       setShowEllipsis,
       setCustomSeparator,
-      setComposition,
+      setRootComposition,
+      setListComposition,
+      setItemComposition,
+      setLinkComposition,
+      setPageComposition,
+      setSeparatorComposition,
+      setEllipsisComposition,
+      setPropCheck,
+      setCustomSlot: (part: BreadcrumbSlotPart, checked: boolean) => setCustomSlots((slots) => ({ ...slots, [part]: checked })),
+      markPartRef,
       clearLog,
       noteLink: (label: string) => addLog(`link clicked ${label}`),
     },
@@ -561,7 +620,25 @@ export function NavigationPrimitiveScenarioToolbar({
           <MenuCheckboxControl checked={scenario.state.showEllipsis} label="Ellipsis" value="ellipsis" onChange={scenario.actions.setShowEllipsis} />
           <MenuCheckboxControl checked={scenario.state.customSeparator} label="Custom Separator" value="custom-separator" onChange={scenario.actions.setCustomSeparator} />
         </ToolbarGroup>
-        <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+        <ToolbarGroup title="Composition" value="composition">
+          <MenuRadioControl label="Root" options={compositionOptions} value={scenario.state.rootComposition} onChange={scenario.actions.setRootComposition} />
+          <MenuRadioControl label="List" options={compositionOptions} value={scenario.state.listComposition} onChange={scenario.actions.setListComposition} />
+          <MenuRadioControl label="Item" options={compositionOptions} value={scenario.state.itemComposition} onChange={scenario.actions.setItemComposition} />
+          <MenuRadioControl label="Link" options={compositionOptions} value={scenario.state.linkComposition} onChange={scenario.actions.setLinkComposition} />
+          <MenuRadioControl label="Page" options={compositionOptions} value={scenario.state.pageComposition} onChange={scenario.actions.setPageComposition} />
+          <MenuRadioControl label="Separator" options={compositionOptions} value={scenario.state.separatorComposition} onChange={scenario.actions.setSeparatorComposition} />
+          <MenuRadioControl label="Ellipsis" options={compositionOptions} value={scenario.state.ellipsisComposition} onChange={scenario.actions.setEllipsisComposition} />
+        </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={breadcrumbSlotParts.map((part) => ({
+            checked: scenario.state.customSlots[part],
+            label: `${formatBreadcrumbSlotLabel(part)} Slot`,
+            value: `${part}-slot`,
+            onChange: (checked) => scenario.actions.setCustomSlot(part, checked),
+          }))}
+        />
       </ControlToolbar>
     );
   }
@@ -1012,25 +1089,37 @@ function AccordionPanelContent({ item }: { item: (typeof accordionItems)[number]
 
 function BreadcrumbCanvas({ scenario }: { scenario: ReturnType<typeof useBreadcrumbScenario> }) {
   const state = scenario.state;
-  const separator = <Breadcrumb.Separator data-prop-check="separator">{state.customSeparator ? "›" : "/"}</Breadcrumb.Separator>;
   const content = (
-    <Breadcrumb.List className="playground-breadcrumb-list" data-prop-check="list">
-      <Breadcrumb.Item data-prop-check="item-home"><Breadcrumb.Link href="#home" onClick={() => scenario.actions.noteLink("home")}>Home</Breadcrumb.Link></Breadcrumb.Item>
-      {separator}
+    <BreadcrumbListPart scenario={scenario}>
+      <BreadcrumbItemPart scenario={scenario} label="home">
+        <BreadcrumbLinkPart scenario={scenario} label="home" href="#home">Home</BreadcrumbLinkPart>
+      </BreadcrumbItemPart>
+      <BreadcrumbSeparatorPart scenario={scenario} />
       {state.showEllipsis ? (
         <>
-          <Breadcrumb.Item data-prop-check="item-ellipsis"><Breadcrumb.Ellipsis data-prop-check="ellipsis" /></Breadcrumb.Item>
-          {separator}
+          <BreadcrumbItemPart scenario={scenario} label="ellipsis">
+            <BreadcrumbEllipsisPart scenario={scenario} />
+          </BreadcrumbItemPart>
+          <BreadcrumbSeparatorPart scenario={scenario} />
         </>
       ) : null}
-      <Breadcrumb.Item data-prop-check="item-projects"><Breadcrumb.Link href="#projects" onClick={() => scenario.actions.noteLink("projects")}>Projects</Breadcrumb.Link></Breadcrumb.Item>
-      {separator}
-      <Breadcrumb.Item data-prop-check="item-page"><Breadcrumb.Page data-prop-check="page">Atom playground</Breadcrumb.Page></Breadcrumb.Item>
-    </Breadcrumb.List>
+      <BreadcrumbItemPart scenario={scenario} label="projects">
+        <BreadcrumbLinkPart scenario={scenario} label="projects" href="#projects">Projects</BreadcrumbLinkPart>
+      </BreadcrumbItemPart>
+      <BreadcrumbSeparatorPart scenario={scenario} />
+      <BreadcrumbItemPart scenario={scenario} label="page">
+        <BreadcrumbPagePart scenario={scenario}>Atom playground</BreadcrumbPagePart>
+      </BreadcrumbItemPart>
+    </BreadcrumbListPart>
   );
-  const props = { className: "playground-breadcrumb", "data-prop-check": "root" };
+  const props = {
+    ariaLabel: "Demo breadcrumb",
+    className: "playground-breadcrumb",
+    ref: (element: HTMLElement | null) => scenario.actions.markPartRef("root", element),
+    ...partProps("root", { propCheck: state.propCheck, customSlot: state.customSlots.root }, "breadcrumb-root-custom"),
+  };
 
-  if (state.composition === "asChild") {
+  if (state.rootComposition === "asChild") {
     return (
       <Breadcrumb.Root {...props} asChild>
         <section>{content}</section>
@@ -1038,7 +1127,7 @@ function BreadcrumbCanvas({ scenario }: { scenario: ReturnType<typeof useBreadcr
     );
   }
 
-  if (state.composition === "render") {
+  if (state.rootComposition === "render") {
     return (
       <Breadcrumb.Root {...props} render={(renderProps) => <section {...renderProps} />}>
         {content}
@@ -1047,6 +1136,182 @@ function BreadcrumbCanvas({ scenario }: { scenario: ReturnType<typeof useBreadcr
   }
 
   return <Breadcrumb.Root {...props}>{content}</Breadcrumb.Root>;
+}
+
+function BreadcrumbListPart({ scenario, children }: { scenario: ReturnType<typeof useBreadcrumbScenario>; children: ReactNode }) {
+  const state = scenario.state;
+  const props = {
+    className: "playground-breadcrumb-list",
+    ref: (element: HTMLElement | null) => scenario.actions.markPartRef("list", element),
+    ...partProps("list", { propCheck: state.propCheck, customSlot: state.customSlots.list }, "breadcrumb-list-custom"),
+  };
+
+  if (state.listComposition === "asChild") {
+    return (
+      <Breadcrumb.List {...props} asChild>
+        <ol>{children}</ol>
+      </Breadcrumb.List>
+    );
+  }
+
+  if (state.listComposition === "render") {
+    return (
+      <Breadcrumb.List {...props} render={(renderProps) => <ol {...renderProps} />}>
+        {children}
+      </Breadcrumb.List>
+    );
+  }
+
+  return <Breadcrumb.List {...props}>{children}</Breadcrumb.List>;
+}
+
+function BreadcrumbItemPart({ scenario, label, children }: { scenario: ReturnType<typeof useBreadcrumbScenario>; label: string; children: ReactNode }) {
+  const state = scenario.state;
+  const props = {
+    className: `playground-breadcrumb-item playground-breadcrumb-item-${label}`,
+    ref: label === "home" ? (element: HTMLElement | null) => scenario.actions.markPartRef("item", element) : undefined,
+    ...partProps(`item-${label}`, { propCheck: state.propCheck, customSlot: state.customSlots.item }, "breadcrumb-item-custom"),
+  };
+
+  if (state.itemComposition === "asChild") {
+    return (
+      <Breadcrumb.Item {...props} asChild>
+        <li>{children}</li>
+      </Breadcrumb.Item>
+    );
+  }
+
+  if (state.itemComposition === "render") {
+    return (
+      <Breadcrumb.Item {...props} render={(renderProps) => <li {...renderProps} />}>
+        {children}
+      </Breadcrumb.Item>
+    );
+  }
+
+  return <Breadcrumb.Item {...props}>{children}</Breadcrumb.Item>;
+}
+
+function BreadcrumbLinkPart({
+  scenario,
+  label,
+  href,
+  children,
+}: {
+  scenario: ReturnType<typeof useBreadcrumbScenario>;
+  label: string;
+  href: string;
+  children: ReactNode;
+}) {
+  const state = scenario.state;
+  const props = {
+    className: `playground-breadcrumb-link playground-breadcrumb-link-${label}`,
+    href,
+    onClick: () => scenario.actions.noteLink(label),
+    ref: label === "home" ? (element: HTMLElement | null) => scenario.actions.markPartRef("link", element) : undefined,
+    ...partProps(`link-${label}`, { propCheck: state.propCheck, customSlot: state.customSlots.link }, "breadcrumb-link-custom"),
+  };
+
+  if (state.linkComposition === "asChild") {
+    return (
+      <Breadcrumb.Link {...props} asChild>
+        <a>{children}</a>
+      </Breadcrumb.Link>
+    );
+  }
+
+  if (state.linkComposition === "render") {
+    return (
+      <Breadcrumb.Link {...props} render={(renderProps) => <a {...renderProps} />}>
+        {children}
+      </Breadcrumb.Link>
+    );
+  }
+
+  return <Breadcrumb.Link {...props}>{children}</Breadcrumb.Link>;
+}
+
+function BreadcrumbPagePart({ scenario, children }: { scenario: ReturnType<typeof useBreadcrumbScenario>; children: ReactNode }) {
+  const state = scenario.state;
+  const props = {
+    className: "playground-breadcrumb-page",
+    ref: (element: HTMLElement | null) => scenario.actions.markPartRef("page", element),
+    ...partProps("page", { propCheck: state.propCheck, customSlot: state.customSlots.page }, "breadcrumb-page-custom"),
+  };
+
+  if (state.pageComposition === "asChild") {
+    return (
+      <Breadcrumb.Page {...props} asChild>
+        <span>{children}</span>
+      </Breadcrumb.Page>
+    );
+  }
+
+  if (state.pageComposition === "render") {
+    return (
+      <Breadcrumb.Page {...props} render={(renderProps) => <span {...renderProps} />}>
+        {children}
+      </Breadcrumb.Page>
+    );
+  }
+
+  return <Breadcrumb.Page {...props}>{children}</Breadcrumb.Page>;
+}
+
+function BreadcrumbSeparatorPart({ scenario }: { scenario: ReturnType<typeof useBreadcrumbScenario> }) {
+  const state = scenario.state;
+  const props = {
+    className: "playground-breadcrumb-separator",
+    ref: (element: HTMLElement | null) => scenario.actions.markPartRef("separator", element),
+    ...partProps("separator", { propCheck: state.propCheck, customSlot: state.customSlots.separator }, "breadcrumb-separator-custom"),
+  };
+  const children = state.customSeparator ? ">" : "/";
+
+  if (state.separatorComposition === "asChild") {
+    return (
+      <Breadcrumb.Separator {...props} asChild>
+        <li>{children}</li>
+      </Breadcrumb.Separator>
+    );
+  }
+
+  if (state.separatorComposition === "render") {
+    return (
+      <Breadcrumb.Separator {...props} render={(renderProps) => <li {...renderProps} />}>
+        {children}
+      </Breadcrumb.Separator>
+    );
+  }
+
+  return <Breadcrumb.Separator {...props}>{children}</Breadcrumb.Separator>;
+}
+
+function BreadcrumbEllipsisPart({ scenario }: { scenario: ReturnType<typeof useBreadcrumbScenario> }) {
+  const state = scenario.state;
+  const props = {
+    "aria-label": "Show collapsed pages",
+    className: "playground-breadcrumb-ellipsis",
+    ref: (element: HTMLElement | null) => scenario.actions.markPartRef("ellipsis", element),
+    ...partProps("ellipsis", { propCheck: state.propCheck, customSlot: state.customSlots.ellipsis }, "breadcrumb-ellipsis-custom"),
+  };
+
+  if (state.ellipsisComposition === "asChild") {
+    return (
+      <Breadcrumb.Ellipsis {...props} asChild>
+        <button type="button">...</button>
+      </Breadcrumb.Ellipsis>
+    );
+  }
+
+  if (state.ellipsisComposition === "render") {
+    return (
+      <Breadcrumb.Ellipsis {...props} render={(renderProps) => <button type="button" {...renderProps} />}>
+        ...
+      </Breadcrumb.Ellipsis>
+    );
+  }
+
+  return <Breadcrumb.Ellipsis {...props} />;
 }
 
 function PaginationCanvas({ scenario }: { scenario: ReturnType<typeof usePaginationScenario> }) {
@@ -1347,14 +1612,55 @@ function accordionSections(state: ReturnType<typeof useAccordionScenario>["state
 
 function breadcrumbSections(state: ReturnType<typeof useBreadcrumbScenario>["state"]): AnatomySection[] {
   return [
-    baseSection("Root", state.composition, "[data-slot='breadcrumb']", [row("Composition", state.composition, "composition")]),
-    baseSection("List", "ol", "[data-slot='breadcrumb-list']"),
-    baseSection("Item", "li", "[data-prop-check='item-home']"),
-    baseSection("Link", "anchor", "[data-slot='breadcrumb-link']"),
-    baseSection("Separator", state.customSeparator ? "custom" : "default", "[data-slot='breadcrumb-separator']"),
-    baseSection("Ellipsis", state.showEllipsis ? "rendered" : "not rendered", "[data-slot='breadcrumb-ellipsis']", undefined, !state.showEllipsis),
-    baseSection("Page", "current", "[data-slot='breadcrumb-page']"),
+    baseSection("Root", state.rootComposition, breadcrumbSlotSelector(state, "root"), [
+      row("Composition", state.rootComposition, "composition"),
+      row("Ref target", state.refs.root, "identity"),
+    ]),
+    baseSection("List", state.listComposition, breadcrumbSlotSelector(state, "list"), [
+      row("Composition", state.listComposition, "composition"),
+      row("Ref target", state.refs.list, "identity"),
+    ]),
+    baseSection("Item: Home", state.itemComposition, ".playground-breadcrumb-item-home", [
+      row("Composition", state.itemComposition, "composition"),
+      row("Ref target", state.refs.item, "identity"),
+    ]),
+    baseSection("Link: Home", state.linkComposition, ".playground-breadcrumb-link-home", [
+      row("Composition", state.linkComposition, "composition"),
+      row("Ref target", state.refs.link, "identity"),
+    ]),
+    baseSection("Separator", state.separatorComposition, breadcrumbSlotSelector(state, "separator"), [
+      row("Composition", state.separatorComposition, "composition"),
+      row("Content", state.customSeparator ? "custom" : "default", "state"),
+      row("Ref target", state.refs.separator, "identity"),
+    ]),
+    baseSection("Item: Ellipsis", state.showEllipsis ? state.itemComposition : "not rendered", ".playground-breadcrumb-item-ellipsis", [row("Composition", state.itemComposition, "composition")], !state.showEllipsis),
+    baseSection("Ellipsis", state.showEllipsis ? state.ellipsisComposition : "not rendered", breadcrumbSlotSelector(state, "ellipsis"), [
+      row("Composition", state.ellipsisComposition, "composition"),
+      row("Ref target", state.refs.ellipsis, "identity"),
+    ], !state.showEllipsis),
+    baseSection("Item: Projects", state.itemComposition, ".playground-breadcrumb-item-projects", [row("Composition", state.itemComposition, "composition")]),
+    baseSection("Link: Projects", state.linkComposition, ".playground-breadcrumb-link-projects", [row("Composition", state.linkComposition, "composition")]),
+    baseSection("Item: Page", state.itemComposition, ".playground-breadcrumb-item-page", [row("Composition", state.itemComposition, "composition")]),
+    baseSection("Page", state.pageComposition, breadcrumbSlotSelector(state, "page"), [
+      row("Composition", state.pageComposition, "composition"),
+      row("Ref target", state.refs.page, "identity"),
+    ]),
   ];
+}
+
+function breadcrumbSlotSelector(state: ReturnType<typeof useBreadcrumbScenario>["state"], part: BreadcrumbSlotPart) {
+  const slots: Record<BreadcrumbSlotPart, [defaultSlot: string, customSlot: string]> = {
+    root: ["breadcrumb", "breadcrumb-root-custom"],
+    list: ["breadcrumb-list", "breadcrumb-list-custom"],
+    item: ["breadcrumb-item", "breadcrumb-item-custom"],
+    link: ["breadcrumb-link", "breadcrumb-link-custom"],
+    page: ["breadcrumb-page", "breadcrumb-page-custom"],
+    separator: ["breadcrumb-separator", "breadcrumb-separator-custom"],
+    ellipsis: ["breadcrumb-ellipsis", "breadcrumb-ellipsis-custom"],
+  };
+  const slot = state.customSlots[part] ? slots[part][1] : slots[part][0];
+
+  return `[data-slot='${slot}']`;
 }
 
 function paginationSections(state: ReturnType<typeof usePaginationScenario>["state"]): AnatomySection[] {
@@ -1501,7 +1807,7 @@ export function getNavigationPrimitiveSource(scenarioId: string, scenarios?: Nav
   }
 
   if (scenarioId === "breadcrumb") {
-    return `<Breadcrumb.Root>
+    return scenarios ? getBreadcrumbSource(scenarios.breadcrumb.state) : `<Breadcrumb.Root ariaLabel="Demo breadcrumb">
   <Breadcrumb.List>
     <Breadcrumb.Item><Breadcrumb.Link href="/">Home</Breadcrumb.Link></Breadcrumb.Item>
     <Breadcrumb.Separator />
@@ -1596,6 +1902,134 @@ function getAppBarSectionSource(
 }
 
 function renderAppBarSourcePart(part: string, mode: CompositionMode, props: string, tag: "section" | "nav") {
+  const inlineProps = props ? ` ${props}` : "";
+
+  if (mode === "asChild") {
+    return `${part}${inlineProps} asChild>\n  <${tag}>`;
+  }
+
+  if (mode === "render") {
+    return `${part}${inlineProps} render={(props) => <${tag} {...props} />}>`;
+  }
+
+  return `${part}${inlineProps}>`;
+}
+
+function getBreadcrumbSource(state: ReturnType<typeof useBreadcrumbScenario>["state"]) {
+  const rootProps = [
+    `ariaLabel="Demo breadcrumb"`,
+    sourcePartProps("root", state.propCheck, state.customSlots.root, "breadcrumb-root-custom"),
+  ].filter(Boolean).join(" ");
+  const rootOpen = renderBreadcrumbSourcePart("Root", state.rootComposition, rootProps, "section");
+  const rootClose = state.rootComposition === "asChild" ? "  </section>\n</Breadcrumb.Root>" : "</Breadcrumb.Root>";
+
+  return `<Breadcrumb.${rootOpen}
+${indent(getBreadcrumbListSource(state), 2)}
+${rootClose}`;
+}
+
+function getBreadcrumbListSource(state: ReturnType<typeof useBreadcrumbScenario>["state"]) {
+  const listProps = sourcePartProps("list", state.propCheck, state.customSlots.list, "breadcrumb-list-custom");
+  const listOpen = renderBreadcrumbSourcePart("List", state.listComposition, listProps, "ol");
+  const listClose = state.listComposition === "asChild" ? "  </ol>\n</Breadcrumb.List>" : "</Breadcrumb.List>";
+  const children = [
+    getBreadcrumbItemSource("home", getBreadcrumbLinkSource("home", "Home", "#home", state), state),
+    getBreadcrumbSeparatorSource(state),
+    state.showEllipsis ? getBreadcrumbItemSource("ellipsis", getBreadcrumbEllipsisSource(state), state) : "",
+    state.showEllipsis ? getBreadcrumbSeparatorSource(state) : "",
+    getBreadcrumbItemSource("projects", getBreadcrumbLinkSource("projects", "Projects", "#projects", state), state),
+    getBreadcrumbSeparatorSource(state),
+    getBreadcrumbItemSource("page", getBreadcrumbPageSource(state), state),
+  ].filter(Boolean).map((child) => indent(child, 2)).join("\n");
+
+  return `<Breadcrumb.${listOpen}
+${children}
+${listClose}`;
+}
+
+function getBreadcrumbItemSource(label: string, children: string, state: ReturnType<typeof useBreadcrumbScenario>["state"]) {
+  const props = sourcePartProps(`item-${label}`, state.propCheck, state.customSlots.item, "breadcrumb-item-custom");
+  const inlineProps = props ? ` ${props}` : "";
+
+  if (state.itemComposition === "asChild") {
+    return `<Breadcrumb.Item${inlineProps} asChild><li>${children}</li></Breadcrumb.Item>`;
+  }
+
+  if (state.itemComposition === "render") {
+    return `<Breadcrumb.Item${inlineProps} render={(props) => <li {...props} />}>${children}</Breadcrumb.Item>`;
+  }
+
+  return `<Breadcrumb.Item${inlineProps}>${children}</Breadcrumb.Item>`;
+}
+
+function getBreadcrumbLinkSource(label: string, text: string, href: string, state: ReturnType<typeof useBreadcrumbScenario>["state"]) {
+  const props = [
+    `href="${href}"`,
+    sourcePartProps(`link-${label}`, state.propCheck, state.customSlots.link, "breadcrumb-link-custom"),
+  ].filter(Boolean).join(" ");
+  const inlineProps = props ? ` ${props}` : "";
+
+  if (state.linkComposition === "asChild") {
+    return `<Breadcrumb.Link${inlineProps} asChild><a>${text}</a></Breadcrumb.Link>`;
+  }
+
+  if (state.linkComposition === "render") {
+    return `<Breadcrumb.Link${inlineProps} render={(props) => <a {...props} />}>${text}</Breadcrumb.Link>`;
+  }
+
+  return `<Breadcrumb.Link${inlineProps}>${text}</Breadcrumb.Link>`;
+}
+
+function getBreadcrumbPageSource(state: ReturnType<typeof useBreadcrumbScenario>["state"]) {
+  const props = sourcePartProps("page", state.propCheck, state.customSlots.page, "breadcrumb-page-custom");
+  const inlineProps = props ? ` ${props}` : "";
+
+  if (state.pageComposition === "asChild") {
+    return `<Breadcrumb.Page${inlineProps} asChild><span>Atom playground</span></Breadcrumb.Page>`;
+  }
+
+  if (state.pageComposition === "render") {
+    return `<Breadcrumb.Page${inlineProps} render={(props) => <span {...props} />}>Atom playground</Breadcrumb.Page>`;
+  }
+
+  return `<Breadcrumb.Page${inlineProps}>Atom playground</Breadcrumb.Page>`;
+}
+
+function getBreadcrumbSeparatorSource(state: ReturnType<typeof useBreadcrumbScenario>["state"]) {
+  const props = sourcePartProps("separator", state.propCheck, state.customSlots.separator, "breadcrumb-separator-custom");
+  const inlineProps = props ? ` ${props}` : "";
+  const children = state.customSeparator ? ">" : "/";
+
+  if (state.separatorComposition === "asChild") {
+    return `<Breadcrumb.Separator${inlineProps} asChild><li>${children}</li></Breadcrumb.Separator>`;
+  }
+
+  if (state.separatorComposition === "render") {
+    return `<Breadcrumb.Separator${inlineProps} render={(props) => <li {...props} />}>${children}</Breadcrumb.Separator>`;
+  }
+
+  return state.customSeparator ? `<Breadcrumb.Separator${inlineProps}>${children}</Breadcrumb.Separator>` : `<Breadcrumb.Separator${inlineProps} />`;
+}
+
+function getBreadcrumbEllipsisSource(state: ReturnType<typeof useBreadcrumbScenario>["state"]) {
+  const props = [
+    `aria-label="Show collapsed pages"`,
+    sourcePartProps("ellipsis", state.propCheck, state.customSlots.ellipsis, "breadcrumb-ellipsis-custom"),
+  ].filter(Boolean).join(" ");
+  const inlineProps = props ? ` ${props}` : "";
+
+  if (state.ellipsisComposition === "asChild") {
+    return `<Breadcrumb.Ellipsis${inlineProps} asChild><button type="button">...</button></Breadcrumb.Ellipsis>`;
+  }
+
+  if (state.ellipsisComposition === "render") {
+    return `<Breadcrumb.Ellipsis${inlineProps} render={(props) => <button type="button" {...props} />}>...</Breadcrumb.Ellipsis>`;
+  }
+
+  return `<Breadcrumb.Ellipsis${inlineProps} />`;
+}
+
+function renderBreadcrumbSourcePart(part: string, mode: CompositionMode, props: string, tag: "section" | "ol") {
   const inlineProps = props ? ` ${props}` : "";
 
   if (mode === "asChild") {
@@ -1820,6 +2254,10 @@ function formatAppBarSlotLabel(part: AppBarSlotPart) {
 function formatBottomNavigationSlotLabel(part: BottomNavigationSlotPart) {
   if (part === "root") return "Root";
   return "Item";
+}
+
+function formatBreadcrumbSlotLabel(part: BreadcrumbSlotPart) {
+  return part.charAt(0).toUpperCase() + part.slice(1);
 }
 
 const accordionItems = [

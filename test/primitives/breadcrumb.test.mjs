@@ -24,7 +24,7 @@ test("Breadcrumb compound parts render landmark, ordered list, current page, and
   const html = renderToStaticMarkup(
     React.createElement(
       Breadcrumb.Root,
-      { "aria-label": "Path" },
+      { ariaLabel: "Path" },
       React.createElement(
         Breadcrumb.List,
         null,

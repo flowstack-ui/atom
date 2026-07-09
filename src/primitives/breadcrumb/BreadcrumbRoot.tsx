@@ -4,7 +4,7 @@ import { forwardRef, type ReactNode } from "react";
 import type { NativeNavProps } from "../../utils/dom.js";
 import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
 
-type BreadcrumbRootNativeProps = NativeNavProps<"children">;
+type BreadcrumbRootNativeProps = NativeNavProps<"children" | "aria-label">;
 
 export interface BreadcrumbRootProps extends BreadcrumbRootNativeProps {
   /** Breadcrumb list content. */
@@ -13,6 +13,8 @@ export interface BreadcrumbRootProps extends BreadcrumbRootNativeProps {
   render?: RenderProp;
   /** Merge behavior props onto a single child element. */
   asChild?: boolean;
+  /** Accessible label for the breadcrumb navigation landmark. */
+  ariaLabel?: string;
   /** Data slot identifier. */
   "data-slot"?: string;
 }
@@ -24,7 +26,7 @@ export const BreadcrumbRoot = forwardRef<HTMLElement, BreadcrumbRootProps>(
       render,
       asChild,
       "data-slot": dataSlot = "breadcrumb",
-      "aria-label": ariaLabel = "Breadcrumb",
+      ariaLabel = "Breadcrumb",
       ...restProps
     },
     ref,

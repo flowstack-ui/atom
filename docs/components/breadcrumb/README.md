@@ -43,7 +43,7 @@ Contains the breadcrumb landmark.
 | --- | --- | --- |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
-| `aria-label` | `string` | `"Breadcrumb"` |
+| `ariaLabel` | `string` | `"Breadcrumb"` |
 
 | Data attribute | Values |
 | --- | --- |

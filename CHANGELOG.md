@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Changed `Breadcrumb.Root` to use the Atom-style `ariaLabel` prop for the
+  breadcrumb navigation landmark label while still rendering native
+  `aria-label`.
 - Changed `BottomNavigation.Root` to use the Atom-style `ariaLabel` prop for
   its navigation landmark label while still rendering native `aria-label`.
 - Fixed Accordion horizontal arrow-key navigation so it mirrors ArrowLeft and
