@@ -119,6 +119,14 @@ test("Menubar source keeps keyboard open and focus behavior stable", async () =>
     new URL("src/primitives/menubar/MenubarContent.tsx", packageRoot),
     "utf8",
   );
+  const sharedContentSource = await readFile(
+    new URL("src/primitives/menu/MenuContent.tsx", packageRoot),
+    "utf8",
+  );
+  const focusSource = await readFile(
+    new URL("src/hooks/focus.ts", packageRoot),
+    "utf8",
+  );
 
   assert.match(triggerSource, /menuCtx\.onInitialHighlight\("last"\)/);
   assert.match(triggerSource, /menuCtx\.onInitialHighlight\(null\)/);
@@ -168,4 +176,7 @@ test("Menubar source keeps keyboard open and focus behavior stable", async () =>
   assert.match(contentSource, /openAdjacentMenu\(menuValue, "next"\)/);
   assert.doesNotMatch(contentSource, /\},\s*\[barCtx, menuCtx, menuValue\]/);
   assert.doesNotMatch(contentSource, /barCtx\.onMenuClose\(\);\s*barCtx\.focusAdjacentTrigger/s);
+  assert.match(sharedContentSource, /useFocusRestore\(isOpen, \(\) => triggerRef\.current\)/);
+  assert.match(focusSource, /getRestoreElement\?: \(\) => HTMLElement \| null/);
+  assert.match(focusSource, /const restoreElement =\s*getRestoreElementRef\.current\?\.\(\) \?\? previousElementRef\.current/s);
 });

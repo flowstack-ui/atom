@@ -111,7 +111,7 @@ function MenuContent(
   const typeaheadBuffer = useRef("");
   const typeaheadTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  useFocusRestore(isOpen);
+  useFocusRestore(isOpen, () => triggerRef.current);
   useFocusScopeContainer(internalRef, isPresent);
   useFocusOnMount(internalRef, isPresent);
   useScrollLock(isOpen && modal);

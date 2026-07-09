@@ -242,8 +242,13 @@ export function useFocusOnMount(
   }, [enabled, ref]);
 }
 
-export function useFocusRestore(enabled: boolean): void {
+export function useFocusRestore(
+  enabled: boolean,
+  getRestoreElement?: () => HTMLElement | null,
+): void {
   const previousElementRef = useRef<HTMLElement | null>(null);
+  const getRestoreElementRef = useRef(getRestoreElement);
+  getRestoreElementRef.current = getRestoreElement;
 
   useEffect(() => {
     if (!enabled) return undefined;
@@ -251,11 +256,14 @@ export function useFocusRestore(enabled: boolean): void {
     previousElementRef.current = document.activeElement as HTMLElement | null;
 
     return () => {
+      const restoreElement =
+        getRestoreElementRef.current?.() ?? previousElementRef.current;
+
       if (
-        previousElementRef.current &&
-        document.contains(previousElementRef.current)
+        restoreElement &&
+        document.contains(restoreElement)
       ) {
-        focusWithoutScrolling(previousElementRef.current);
+        focusWithoutScrolling(restoreElement);
       }
       previousElementRef.current = null;
     };
