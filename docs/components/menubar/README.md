@@ -52,6 +52,7 @@ Contains the top-level menus.
 | `defaultValue` | `string` | - |
 | `onValueChange` | `(value: string \| null) => void` | - |
 | `loop` | `boolean` | `true` |
+| `dir` | `"ltr" \| "rtl"` | `Direction.Provider` |
 
 | Data attribute | Values |
 | --- | --- |
@@ -117,6 +118,8 @@ associated menu content.
 ## Accessibility
 
 Implements a horizontal menubar pattern. Top-level triggers use roving focus and open menus with keyboard or pointer input.
+Horizontal ArrowLeft and ArrowRight navigation mirrors in RTL when `dir="rtl"`
+is set on `Menubar.Root` or inherited from `Direction.Provider`.
 Top-level triggers expose `role="menuitem"` so the `role="menubar"` root has
 valid menuitem children.
 Pointer-opened menus do not pre-highlight an item; ArrowDown and ArrowUp seed
@@ -128,7 +131,7 @@ searches.
 
 | Key | Description |
 | --- | --- |
-| `ArrowRight` / `ArrowLeft` | Moves between top-level menus |
+| `ArrowRight` / `ArrowLeft` | Moves between top-level menus, mirrored in RTL |
 | `ArrowDown` | Opens a menu and highlights the first item |
 | `ArrowUp` | Opens a menu and highlights the last item |
 | `Enter` / `Space` | Opens a trigger or selects an item |

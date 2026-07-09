@@ -8,6 +8,7 @@ import {
 } from "../test-utils.mjs";
 
 import {
+  Direction,
   Menubar,
   MenubarContent,
   MenubarMenu,
@@ -44,6 +45,38 @@ test("Menubar primitives render bar and menu trigger attributes", () => {
   assert.match(html, /aria-expanded="true"/);
   assert.match(html, /aria-controls="[^"]+"/);
   assert.match(html, /class="menubar-trigger-class"/);
+});
+
+test("MenubarRoot supports local and provider direction", () => {
+  const localHtml = renderToStaticMarkup(
+    React.createElement(
+      MenubarRoot,
+      { dir: "rtl" },
+      React.createElement(
+        MenubarMenu,
+        { value: "file" },
+        React.createElement(MenubarTrigger, null, "File"),
+      ),
+    ),
+  );
+  const providerHtml = renderToStaticMarkup(
+    React.createElement(
+      Direction.Provider,
+      { dir: "rtl" },
+      React.createElement(
+        MenubarRoot,
+        null,
+        React.createElement(
+          MenubarMenu,
+          { value: "file" },
+          React.createElement(MenubarTrigger, null, "File"),
+        ),
+      ),
+    ),
+  );
+
+  assert.match(localHtml, /dir="rtl"/);
+  assert.match(providerHtml, /dir="rtl"/);
 });
 
 test("Menubar source keeps keyboard open and focus behavior stable", async () => {
@@ -85,10 +118,17 @@ test("Menubar source keeps keyboard open and focus behavior stable", async () =>
   assert.match(rootSource, /useCollection<string, HTMLElement>\(\)/);
   assert.match(rootSource, /registerCollectionTrigger/);
   assert.match(rootSource, /registryVersion,/);
+  assert.match(rootSource, /const contextDir = useDirection\(\)/);
+  assert.match(rootSource, /const dir = dirProp \?\? contextDir/);
+  assert.match(rootSource, /dir=\{dir\}/);
   assert.doesNotMatch(rootSource, /compareDocumentPosition/);
   assert.match(rootSource, /setFocusedValue\(\(currentValue\) => \(currentValue === value \? null : currentValue\)\)/);
   assert.match(rootSource, /const openAdjacentMenu = useCallback/);
-  assert.match(contentSource, /const \{ openAdjacentMenu \} = barCtx/);
+  assert.match(contentSource, /const \{ dir, openAdjacentMenu \} = barCtx/);
+  assert.match(triggerSource, /barCtx\.dir === "rtl" \? "prev" : "next"/);
+  assert.match(triggerSource, /barCtx\.dir === "rtl" \? "next" : "prev"/);
+  assert.match(contentSource, /const nextKey = dir === "rtl" \? "ArrowLeft" : "ArrowRight"/);
+  assert.match(contentSource, /const previousKey = dir === "rtl" \? "ArrowRight" : "ArrowLeft"/);
   assert.match(contentSource, /openAdjacentMenu\(menuValue, "prev"\)/);
   assert.match(contentSource, /highlightedElement\?\.dataset\.slot === "menu-sub-trigger"/);
   assert.match(contentSource, /openAdjacentMenu\(menuValue, "next"\)/);

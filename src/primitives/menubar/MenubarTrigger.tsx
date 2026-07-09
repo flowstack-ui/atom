@@ -118,12 +118,12 @@ export const MenubarTrigger = forwardRef<
         }
         case "ArrowRight": {
           event.preventDefault();
-          barCtx.focusAdjacentTrigger(menuValue, "next");
+          barCtx.focusAdjacentTrigger(menuValue, barCtx.dir === "rtl" ? "prev" : "next");
           break;
         }
         case "ArrowLeft": {
           event.preventDefault();
-          barCtx.focusAdjacentTrigger(menuValue, "prev");
+          barCtx.focusAdjacentTrigger(menuValue, barCtx.dir === "rtl" ? "next" : "prev");
           break;
         }
         case "Home": {

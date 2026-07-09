@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added `Direction.Provider` and `dir` support to mirror Menubar top-level
+  ArrowLeft and ArrowRight navigation in RTL.
 - Inherited the shared Menu typeahead behavior so a single-character search
   cycles from the current matching item while multi-character buffers still
   match exact prefixes.

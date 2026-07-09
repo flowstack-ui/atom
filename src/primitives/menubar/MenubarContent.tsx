@@ -44,15 +44,18 @@ function MenubarContent(
   const barCtx = useMenubarContext();
   const { menuValue } = useMenubarMenuContext();
   const menuCtx = useMenuContext();
-  const { openAdjacentMenu } = barCtx;
+  const { dir, openAdjacentMenu } = barCtx;
   const { getItemElement, highlightedValue } = menuCtx;
 
   const handleKeyDownCapture = useCallback(
     (event: KeyboardEvent) => {
-      if (event.key === "ArrowLeft") {
+      const nextKey = dir === "rtl" ? "ArrowLeft" : "ArrowRight";
+      const previousKey = dir === "rtl" ? "ArrowRight" : "ArrowLeft";
+
+      if (event.key === previousKey) {
         event.preventDefault();
         openAdjacentMenu(menuValue, "prev");
-      } else if (event.key === "ArrowRight") {
+      } else if (event.key === nextKey) {
         const highlightedElement = highlightedValue
           ? getItemElement(highlightedValue)
           : undefined;
@@ -65,7 +68,7 @@ function MenubarContent(
         openAdjacentMenu(menuValue, "next");
       }
     },
-    [getItemElement, highlightedValue, menuValue, openAdjacentMenu],
+    [dir, getItemElement, highlightedValue, menuValue, openAdjacentMenu],
   );
 
   return (

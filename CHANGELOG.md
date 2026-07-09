@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added `Direction.Provider` and `dir` support to mirror `Menubar` top-level
+  ArrowLeft and ArrowRight navigation in RTL.
 - Changed `Breadcrumb.Root` to use the Atom-style `ariaLabel` prop for the
   breadcrumb navigation landmark label while still rendering native
   `aria-label`.

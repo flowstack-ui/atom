@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
+import type { DirectionValue } from "../direction/index.js";
 
 export interface MenubarContextValue {
   openValue: string | null;
@@ -22,6 +23,7 @@ export interface MenubarContextValue {
   focusedValue: string | null;
   onFocus: (value: string) => void;
   loop: boolean;
+  dir: DirectionValue;
 }
 
 const MenubarContext = createContext<MenubarContextValue | null>(null);
