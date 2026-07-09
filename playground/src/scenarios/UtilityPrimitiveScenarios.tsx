@@ -48,6 +48,10 @@ type ToastRenderMode = "imperative" | "declarative";
 type ToastViewportPortalMode = "body" | "local" | "disabled";
 type VirtualizerAlignValue = "start" | "center" | "end" | "auto";
 type SkipLinkTargetMode = "valid" | "missing" | "malformed";
+type MenubarSide = "bottom" | "top" | "right" | "left";
+type MenubarAlign = "start" | "center" | "end";
+type MenubarValueOption = "none" | "file" | "view";
+type MenubarDirectionMode = "provider" | "root";
 
 type LogEntry = {
   id: number;
@@ -324,11 +328,32 @@ function useDrawerScenario() {
 function useMenubarScenario() {
   const [controlled, setControlled] = useState(false);
   const [value, setValue] = useState<string | null>(null);
+  const [defaultValue, setDefaultValue] = useState<MenubarValueOption>("none");
   const [loop, setLoop] = useState(true);
-  const [closeOnSelect, setCloseOnSelect] = useState(false);
+  const [menuLoop, setMenuLoop] = useState(true);
+  const [closeOnEscape, setCloseOnEscape] = useState(true);
+  const [closeOnSelect, setCloseOnSelect] = useState(true);
   const [fileDisabled, setFileDisabled] = useState(false);
   const [showGrid, setShowGrid] = useState(true);
   const [density, setDensity] = useState("comfortable");
+  const [dir, setDir] = useState<TextDirection>("ltr");
+  const [dirMode, setDirMode] = useState<MenubarDirectionMode>("provider");
+  const [side, setSide] = useState<MenubarSide>("bottom");
+  const [align, setAlign] = useState<MenubarAlign>("start");
+  const [sideOffset, setSideOffset] = useState(4);
+  const [contentAriaLabel, setContentAriaLabel] = useState(true);
+  const [propCheck, setPropCheck] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
+  const [customTriggerSlot, setCustomTriggerSlot] = useState(false);
+  const [customContentSlot, setCustomContentSlot] = useState(false);
+  const [customGroupSlot, setCustomGroupSlot] = useState(false);
+  const [customItemSlot, setCustomItemSlot] = useState(false);
+  const [customCheckboxItemSlot, setCustomCheckboxItemSlot] = useState(false);
+  const [customRadioGroupSlot, setCustomRadioGroupSlot] = useState(false);
+  const [customRadioItemSlot, setCustomRadioItemSlot] = useState(false);
+  const [customSeparatorSlot, setCustomSeparatorSlot] = useState(false);
+  const [customSubTriggerSlot, setCustomSubTriggerSlot] = useState(false);
+  const [customSubContentSlot, setCustomSubContentSlot] = useState(false);
   const { log, addLog, clearLog } = useScenarioLog();
 
   const handleValueChange = (nextValue: string | null) => {
@@ -336,16 +361,73 @@ function useMenubarScenario() {
     addLog(nextValue ? `opened ${nextValue}` : "closed");
   };
 
+  const setControlledValue = (nextValue: string | null) => {
+    setValue(nextValue);
+    addLog(nextValue ? `controlled open ${nextValue}` : "controlled close");
+  };
+
   return {
-    state: { controlled, value, loop, closeOnSelect, fileDisabled, showGrid, density, log },
+    state: {
+      controlled,
+      value,
+      defaultValue,
+      loop,
+      menuLoop,
+      closeOnEscape,
+      closeOnSelect,
+      fileDisabled,
+      showGrid,
+      density,
+      dir,
+      dirMode,
+      side,
+      align,
+      sideOffset,
+      contentAriaLabel,
+      propCheck,
+      customRootSlot,
+      customTriggerSlot,
+      customContentSlot,
+      customGroupSlot,
+      customItemSlot,
+      customCheckboxItemSlot,
+      customRadioGroupSlot,
+      customRadioItemSlot,
+      customSeparatorSlot,
+      customSubTriggerSlot,
+      customSubContentSlot,
+      log,
+    },
     actions: {
       setControlled,
       setValue,
+      setControlledValue,
+      setDefaultValue,
       setLoop,
+      setMenuLoop,
+      setCloseOnEscape,
       setCloseOnSelect,
       setFileDisabled,
       setShowGrid,
       setDensity,
+      setDir,
+      setDirMode,
+      setSide,
+      setAlign,
+      setSideOffset,
+      setContentAriaLabel,
+      setPropCheck,
+      setCustomRootSlot,
+      setCustomTriggerSlot,
+      setCustomContentSlot,
+      setCustomGroupSlot,
+      setCustomItemSlot,
+      setCustomCheckboxItemSlot,
+      setCustomRadioGroupSlot,
+      setCustomRadioItemSlot,
+      setCustomSeparatorSlot,
+      setCustomSubTriggerSlot,
+      setCustomSubContentSlot,
       handleValueChange,
       clearLog,
       noteSelect: (label: string) => addLog(`selected ${label}`),
@@ -1270,13 +1352,41 @@ export function UtilityPrimitiveScenarioToolbar({
         <ToolbarGroup title="State" value="state">
           <MenuCheckboxControl checked={scenario.state.controlled} label="Controlled" value="controlled" onChange={scenario.actions.setControlled} />
           <MenuCheckboxControl checked={scenario.state.loop} label="Loop" value="loop" onChange={scenario.actions.setLoop} />
+          <MenuCheckboxControl checked={scenario.state.menuLoop} label="Menu loop" value="menu-loop" onChange={scenario.actions.setMenuLoop} />
           <MenuCheckboxControl checked={scenario.state.closeOnSelect} label="Close on select" value="close-on-select" onChange={scenario.actions.setCloseOnSelect} />
+          <MenuCheckboxControl checked={scenario.state.closeOnEscape} label="Escape closes" value="escape-closes" onChange={scenario.actions.setCloseOnEscape} />
           <MenuCheckboxControl checked={scenario.state.fileDisabled} label="File disabled" value="file-disabled" onChange={scenario.actions.setFileDisabled} />
+          <MenuRadioControl label="Default value" options={menubarValueOptions} value={scenario.state.defaultValue} onChange={scenario.actions.setDefaultValue} />
+          <MenuSection label="Controlled value">
+            <Menubar.Item className="toolbar-menu-item" disabled={!scenario.state.controlled} value="open-file" onSelect={() => scenario.actions.setControlledValue("file")}>
+              <span>Open File</span>
+            </Menubar.Item>
+            <Menubar.Item className="toolbar-menu-item" disabled={!scenario.state.controlled} value="open-view" onSelect={() => scenario.actions.setControlledValue("view")}>
+              <span>Open View</span>
+            </Menubar.Item>
+            <Menubar.Item className="toolbar-menu-item" disabled={!scenario.state.controlled} value="close-menubar" onSelect={() => scenario.actions.setControlledValue(null)}>
+              <span>Close</span>
+            </Menubar.Item>
+          </MenuSection>
         </ToolbarGroup>
-        <ToolbarGroup title="Items" value="items">
-          <MenuCheckboxControl checked={scenario.state.showGrid} label="Show grid" value="show-grid" onChange={scenario.actions.setShowGrid} />
-          <MenuRadioControl label="Density" options={densityOptions} value={scenario.state.density} onChange={scenario.actions.setDensity} />
+        <ToolbarGroup title="Popup" value="popup">
+          <MenuRadioControl label="Direction" options={directionOptions} value={scenario.state.dir} onChange={scenario.actions.setDir} />
+          <MenuRadioControl label="Direction mode" options={menubarDirectionModeOptions} value={scenario.state.dirMode} onChange={scenario.actions.setDirMode} />
+          <MenuSection label="Content">
+            <MenuCheckboxControl checked={scenario.state.contentAriaLabel} label="Content ariaLabel" value="content-aria-label" onChange={scenario.actions.setContentAriaLabel} />
+          </MenuSection>
         </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          customSlots={[
+            { checked: scenario.state.customRootSlot, label: "Root Slot", value: "root-slot", onChange: scenario.actions.setCustomRootSlot },
+            { checked: scenario.state.customTriggerSlot, label: "Trigger Slot", value: "trigger-slot", onChange: scenario.actions.setCustomTriggerSlot },
+            { checked: scenario.state.customContentSlot, label: "Content Slot", value: "content-slot", onChange: scenario.actions.setCustomContentSlot },
+            { checked: scenario.state.customItemSlot, label: "Item Slot", value: "item-slot", onChange: scenario.actions.setCustomItemSlot },
+            { checked: scenario.state.customSubContentSlot, label: "Sub Content Slot", value: "sub-content-slot", onChange: scenario.actions.setCustomSubContentSlot },
+          ]}
+          onPropCheckChange={scenario.actions.setPropCheck}
+        />
       </ControlToolbar>
     );
   }
@@ -1964,19 +2074,110 @@ ${indent(triggerSource, 2)}
 
   if (scenarioId === "menubar") {
     const state = scenarios.menubar.state;
-    return `<Menubar.Root
-  ${state.controlled ? "value={value}" : ""}
-  loop={${state.loop}}
-  onValueChange={handleValueChange}
->
-  <Menubar.Menu value="file" closeOnSelect={${state.closeOnSelect}}>
-    <Menubar.Trigger>File</Menubar.Trigger>
-    <Menubar.Content>
-      <Menubar.Item>New project</Menubar.Item>
-      <Menubar.CheckboxItem checked={showGrid}>Show grid</Menubar.CheckboxItem>
+    const rootProps = sourceProps([
+      state.controlled ? "value={value}" : null,
+      !state.controlled && state.defaultValue !== "none" ? `defaultValue="${state.defaultValue}"` : null,
+      state.loop ? null : "loop={false}",
+      state.dirMode === "root" ? `dir="${state.dir}"` : null,
+      state.customRootSlot ? `data-slot="menubar-root-custom"` : null,
+      state.propCheck ? `data-prop-check="root"` : null,
+      "onValueChange={handleValueChange}",
+    ]);
+    const menuProps = sourceProps([
+      `value="file"`,
+      state.closeOnSelect ? null : "closeOnSelect={false}",
+      state.closeOnEscape ? null : "closeOnEscape={false}",
+      state.menuLoop ? null : "loop={false}",
+    ]);
+    const viewMenuProps = sourceProps([
+      `value="view"`,
+      state.closeOnSelect ? null : "closeOnSelect={false}",
+      state.closeOnEscape ? null : "closeOnEscape={false}",
+      state.menuLoop ? null : "loop={false}",
+    ]);
+    const triggerProps = sourceProps([
+      state.fileDisabled ? "disabled" : null,
+      state.customTriggerSlot ? `data-slot="menubar-trigger-custom"` : null,
+      state.propCheck ? `data-prop-check="trigger"` : null,
+    ]);
+    const contentProps = sourceProps([
+      state.contentAriaLabel ? `ariaLabel="File menu"` : null,
+      state.side !== "bottom" ? `side="${state.side}"` : null,
+      state.align !== "start" ? `align="${state.align}"` : null,
+      state.sideOffset !== 4 ? `sideOffset={${state.sideOffset}}` : null,
+      state.customContentSlot ? `data-slot="menubar-content-custom"` : null,
+      state.propCheck ? `data-prop-check="content"` : null,
+    ]);
+    const viewContentProps = sourceProps([
+      state.contentAriaLabel ? `ariaLabel="View menu"` : null,
+      state.side !== "bottom" ? `side="${state.side}"` : null,
+      state.align !== "start" ? `align="${state.align}"` : null,
+      state.sideOffset !== 4 ? `sideOffset={${state.sideOffset}}` : null,
+    ]);
+    const directionOpen = state.dirMode === "provider" && state.dir === "rtl" ? `<Direction.Provider dir="rtl">\n  ` : "";
+    const directionClose = state.dirMode === "provider" && state.dir === "rtl" ? "\n</Direction.Provider>" : "";
+    return `${directionOpen}<Menubar.Root${rootProps}>
+  <Menubar.Menu${menuProps}>
+    <Menubar.Trigger${triggerProps}>File</Menubar.Trigger>
+    <Menubar.Content${contentProps}>
+      <Menubar.Group${sourceProps([
+        state.customGroupSlot ? `data-slot="menubar-group-custom"` : null,
+        state.propCheck ? `data-prop-check="group"` : null,
+      ])}>
+        <Menubar.Item${sourceProps([
+          state.customItemSlot ? `data-slot="menubar-item-custom"` : null,
+          state.propCheck ? `data-prop-check="item"` : null,
+        ])}>
+          New project
+        </Menubar.Item>
+      </Menubar.Group>
+      <Menubar.Separator${sourceProps([
+        state.customSeparatorSlot ? `data-slot="menubar-separator-custom"` : null,
+        state.propCheck ? `data-prop-check="separator"` : null,
+      ])} />
+      <Menubar.CheckboxItem${sourceProps([
+        "checked={showGrid}",
+        state.customCheckboxItemSlot ? `data-slot="menubar-checkbox-item-custom"` : null,
+        state.propCheck ? `data-prop-check="checkbox-item"` : null,
+      ])}>
+        Show grid
+      </Menubar.CheckboxItem>
+      <Menubar.Sub>
+        <Menubar.SubTrigger${sourceProps([
+          state.customSubTriggerSlot ? `data-slot="menubar-sub-trigger-custom"` : null,
+          state.propCheck ? `data-prop-check="sub-trigger"` : null,
+        ])}>
+          Share
+        </Menubar.SubTrigger>
+        <Menubar.SubContent${sourceProps([
+          state.customSubContentSlot ? `data-slot="menubar-sub-content-custom"` : null,
+          state.propCheck ? `data-prop-check="sub-content"` : null,
+        ])}>
+          <Menubar.Item>Copy link</Menubar.Item>
+        </Menubar.SubContent>
+      </Menubar.Sub>
     </Menubar.Content>
   </Menubar.Menu>
-</Menubar.Root>`;
+  <Menubar.Menu${viewMenuProps}>
+    <Menubar.Trigger>View</Menubar.Trigger>
+    <Menubar.Content${viewContentProps}>
+      <Menubar.RadioGroup${sourceProps([
+        "value={density}",
+        state.customRadioGroupSlot ? `data-slot="menubar-radio-group-custom"` : null,
+        state.propCheck ? `data-prop-check="radio-group"` : null,
+      ])}>
+        <Menubar.RadioItem${sourceProps([
+          `value="compact"`,
+          state.customRadioItemSlot ? `data-slot="menubar-radio-item-custom"` : null,
+          state.propCheck ? `data-prop-check="radio-item"` : null,
+        ])}>
+          Compact
+        </Menubar.RadioItem>
+        <Menubar.RadioItem value="comfortable">Comfortable</Menubar.RadioItem>
+      </Menubar.RadioGroup>
+    </Menubar.Content>
+  </Menubar.Menu>
+</Menubar.Root>${directionClose}`;
   }
 
   if (scenarioId === "navigation-menu") {
@@ -2919,48 +3120,179 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
     className: "utility-menubar",
     "data-menubar-root": "",
     "data-playground-inspect": "",
-    "data-prop-check": "root",
+    ...partProps("root", { customSlot: scenario.state.customRootSlot, propCheck: scenario.state.propCheck }, "menubar-root-custom"),
     loop: scenario.state.loop,
+    dir: scenario.state.dirMode === "root" ? scenario.state.dir : undefined,
     onValueChange: scenario.actions.handleValueChange,
-    ...(scenario.state.controlled ? { value: scenario.state.value } : {}),
+    ...(scenario.state.controlled
+      ? { value: scenario.state.value }
+      : scenario.state.defaultValue !== "none"
+        ? { defaultValue: scenario.state.defaultValue }
+        : {}),
   };
+  const rootKey = scenario.state.controlled
+    ? "controlled"
+    : `uncontrolled-${scenario.state.defaultValue}`;
+  const menubar = (
+    <Menubar.Root key={rootKey} {...rootProps}>
+      <Menubar.Menu
+        value="file"
+        closeOnSelect={scenario.state.closeOnSelect}
+        closeOnEscape={scenario.state.closeOnEscape}
+        loop={scenario.state.menuLoop}
+      >
+        <Menubar.Trigger
+          className="utility-menubar-trigger"
+          data-menubar-trigger-file=""
+          data-playground-inspect=""
+          disabled={scenario.state.fileDisabled}
+          {...partProps("trigger", { customSlot: scenario.state.customTriggerSlot, propCheck: scenario.state.propCheck }, "menubar-trigger-custom")}
+        >
+          File
+        </Menubar.Trigger>
+        <Menubar.Content
+          className="playground-menu-content"
+          ariaLabel={scenario.state.contentAriaLabel ? "File menu" : undefined}
+          data-menubar-content-file=""
+          data-playground-inspect=""
+          side={scenario.state.side}
+          align={scenario.state.align}
+          sideOffset={scenario.state.sideOffset}
+          {...partProps("content", { customSlot: scenario.state.customContentSlot, propCheck: scenario.state.propCheck }, "menubar-content-custom")}
+        >
+          <Menubar.Group
+            className="playground-menu-group"
+            data-menubar-group=""
+            {...partProps("group", { customSlot: scenario.state.customGroupSlot, propCheck: scenario.state.propCheck }, "menubar-group-custom")}
+          >
+            <Menubar.Item
+              className="playground-menu-item"
+              value="new"
+              data-menubar-item-new=""
+              data-playground-inspect=""
+              {...partProps("item", { customSlot: scenario.state.customItemSlot, propCheck: scenario.state.propCheck }, "menubar-item-custom")}
+              onSelect={() => scenario.actions.noteSelect("new")}
+            >
+              New project
+            </Menubar.Item>
+            <Menubar.Item
+              className="playground-menu-item"
+              value="open"
+              data-menubar-item-open=""
+              onSelect={() => scenario.actions.noteSelect("open")}
+            >
+              Open project
+            </Menubar.Item>
+          </Menubar.Group>
+          <Menubar.Separator
+            className="playground-menu-separator"
+            data-menubar-separator=""
+            {...partProps("separator", { customSlot: scenario.state.customSeparatorSlot, propCheck: scenario.state.propCheck }, "menubar-separator-custom")}
+          />
+          <Menubar.CheckboxItem
+            className="playground-menu-item"
+            checked={scenario.state.showGrid}
+            value="grid"
+            data-menubar-checkbox=""
+            data-playground-inspect=""
+            {...partProps("checkbox-item", { customSlot: scenario.state.customCheckboxItemSlot, propCheck: scenario.state.propCheck }, "menubar-checkbox-item-custom")}
+            onCheckedChange={scenario.actions.setShowGrid}
+          >
+            <span>Show grid</span>
+            <span className="playground-menu-check" aria-hidden="true" />
+          </Menubar.CheckboxItem>
+          <Menubar.Separator className="playground-menu-separator" data-menubar-sub-separator="" />
+          <Menubar.Sub>
+            <Menubar.SubTrigger
+              className="playground-menu-item"
+              value="share"
+              textValue="Share"
+              data-menubar-sub-trigger=""
+              data-playground-inspect=""
+              {...partProps("sub-trigger", { customSlot: scenario.state.customSubTriggerSlot, propCheck: scenario.state.propCheck }, "menubar-sub-trigger-custom")}
+            >
+              <span>Share</span>
+              <span className="playground-menu-sub-arrow" aria-hidden="true">›</span>
+            </Menubar.SubTrigger>
+            <Menubar.SubContent
+              className="playground-menu-content playground-submenu-content"
+              ariaLabel="Share"
+              sideOffset={scenario.state.sideOffset}
+              data-menubar-sub-content=""
+              data-playground-inspect=""
+              {...partProps("sub-content", { customSlot: scenario.state.customSubContentSlot, propCheck: scenario.state.propCheck }, "menubar-sub-content-custom")}
+            >
+              <Menubar.Item
+                className="playground-menu-item"
+                value="copy-link"
+                data-menubar-sub-item=""
+                {...partProps("sub-item", { customSlot: scenario.state.customItemSlot, propCheck: scenario.state.propCheck }, "menubar-item-custom")}
+                onSelect={() => scenario.actions.noteSelect("copy-link")}
+              >
+                Copy link
+              </Menubar.Item>
+            </Menubar.SubContent>
+          </Menubar.Sub>
+        </Menubar.Content>
+      </Menubar.Menu>
+      <Menubar.Menu
+        value="view"
+        closeOnSelect={scenario.state.closeOnSelect}
+        closeOnEscape={scenario.state.closeOnEscape}
+        loop={scenario.state.menuLoop}
+      >
+        <Menubar.Trigger
+          className="utility-menubar-trigger"
+          data-menubar-trigger-view=""
+          data-playground-inspect=""
+          {...partProps("trigger-secondary", { customSlot: scenario.state.customTriggerSlot, propCheck: scenario.state.propCheck }, "menubar-trigger-custom")}
+        >
+          View
+        </Menubar.Trigger>
+        <Menubar.Content
+          className="playground-menu-content"
+          ariaLabel={scenario.state.contentAriaLabel ? "View menu" : undefined}
+          data-menubar-content-view=""
+          data-playground-inspect=""
+          side={scenario.state.side}
+          align={scenario.state.align}
+          sideOffset={scenario.state.sideOffset}
+          {...partProps("content-secondary", { customSlot: scenario.state.customContentSlot, propCheck: scenario.state.propCheck }, "menubar-content-custom")}
+        >
+          <Menubar.RadioGroup
+            className="playground-menu-radio-group"
+            value={scenario.state.density}
+            data-menubar-radio-group=""
+            {...partProps("radio-group", { customSlot: scenario.state.customRadioGroupSlot, propCheck: scenario.state.propCheck }, "menubar-radio-group-custom")}
+            onValueChange={scenario.actions.setDensity}
+          >
+            <Menubar.RadioItem
+              className="playground-menu-item"
+              value="compact"
+              data-menubar-radio=""
+              data-playground-inspect=""
+              {...partProps("radio-item", { customSlot: scenario.state.customRadioItemSlot, propCheck: scenario.state.propCheck }, "menubar-radio-item-custom")}
+            >
+              <span>Compact</span>
+              <span className="playground-menu-radio" aria-hidden="true" />
+            </Menubar.RadioItem>
+            <Menubar.RadioItem className="playground-menu-item" value="comfortable" data-menubar-radio="" data-playground-inspect="">
+              <span>Comfortable</span>
+              <span className="playground-menu-radio" aria-hidden="true" />
+            </Menubar.RadioItem>
+          </Menubar.RadioGroup>
+        </Menubar.Content>
+      </Menubar.Menu>
+    </Menubar.Root>
+  );
 
   return (
     <div className="utility-primitive-stage">
-      <Menubar.Root {...rootProps}>
-        <Menubar.Menu value="file" closeOnSelect={scenario.state.closeOnSelect}>
-          <Menubar.Trigger className="utility-menubar-trigger" data-menubar-trigger-file="" data-playground-inspect="" disabled={scenario.state.fileDisabled}>
-            File
-          </Menubar.Trigger>
-          <Menubar.Content className="playground-menu-content" ariaLabel="File menu" data-menubar-content-file="" data-playground-inspect="">
-            <Menubar.Item className="playground-menu-item" value="new" data-menubar-item-new="" data-playground-inspect="" onSelect={() => scenario.actions.noteSelect("new")}>
-              New project
-            </Menubar.Item>
-            <Menubar.Separator className="playground-menu-separator" data-menubar-separator="" />
-            <Menubar.CheckboxItem className="playground-menu-item" checked={scenario.state.showGrid} value="grid" data-menubar-checkbox="" data-playground-inspect="" onCheckedChange={scenario.actions.setShowGrid}>
-              <span>Show grid</span>
-              <span className="playground-menu-check" aria-hidden="true" />
-            </Menubar.CheckboxItem>
-          </Menubar.Content>
-        </Menubar.Menu>
-        <Menubar.Menu value="view" closeOnSelect={false}>
-          <Menubar.Trigger className="utility-menubar-trigger" data-menubar-trigger-view="" data-playground-inspect="">
-            View
-          </Menubar.Trigger>
-          <Menubar.Content className="playground-menu-content" ariaLabel="View menu" data-menubar-content-view="" data-playground-inspect="">
-            <Menubar.RadioGroup value={scenario.state.density} onValueChange={scenario.actions.setDensity}>
-              <Menubar.RadioItem className="playground-menu-item" value="compact" data-menubar-radio="" data-playground-inspect="">
-                <span>Compact</span>
-                <span className="playground-menu-radio" aria-hidden="true" />
-              </Menubar.RadioItem>
-              <Menubar.RadioItem className="playground-menu-item" value="comfortable" data-menubar-radio="" data-playground-inspect="">
-                <span>Comfortable</span>
-                <span className="playground-menu-radio" aria-hidden="true" />
-              </Menubar.RadioItem>
-            </Menubar.RadioGroup>
-          </Menubar.Content>
-        </Menubar.Menu>
-      </Menubar.Root>
+      {scenario.state.dirMode === "provider" ? (
+        <Direction.Provider dir={scenario.state.dir}>
+          {menubar}
+        </Direction.Provider>
+      ) : menubar}
     </div>
   );
 }
@@ -4469,7 +4801,13 @@ function getUtilityPrimitiveSections(
     const fileTrigger = document.querySelector<HTMLElement>("[data-menubar-trigger-file]");
     const viewTrigger = document.querySelector<HTMLElement>("[data-menubar-trigger-view]");
     const fileContent = document.querySelector<HTMLElement>("[data-menubar-content-file]");
+    const viewContent = document.querySelector<HTMLElement>("[data-menubar-content-view]");
+    const group = document.querySelector<HTMLElement>("[data-menubar-group]");
+    const item = document.querySelector<HTMLElement>("[data-menubar-item-new]");
     const checked = document.querySelector<HTMLElement>("[data-menubar-checkbox]");
+    const separator = document.querySelector<HTMLElement>("[data-menubar-separator]");
+    const subTrigger = document.querySelector<HTMLElement>("[data-menubar-sub-trigger]");
+    const subContent = document.querySelector<HTMLElement>("[data-menubar-sub-content]");
     const radio = document.querySelector<HTMLElement>("[data-menubar-radio][data-checked]");
     return [
       {
@@ -4479,7 +4817,24 @@ function getUtilityPrimitiveSections(
         rows: [
           { label: "Exists", value: bool(!!root), category: "presence" },
           { label: "Mode", value: scenarios.menubar.state.controlled ? "controlled" : "uncontrolled", category: "state" },
+          { label: "Controlled value", value: scenarios.menubar.state.value ?? "none", category: "state" },
+          { label: "Default value", value: scenarios.menubar.state.defaultValue, category: "state" },
           { label: "Loop", value: bool(scenarios.menubar.state.loop), category: "behavior" },
+          { label: "Direction", value: scenarios.menubar.state.dir, category: "state" },
+          { label: "Direction mode", value: scenarios.menubar.state.dirMode, category: "state" },
+          { label: "DOM dir", value: root?.getAttribute("dir") ?? "not rendered", category: "identity" },
+          { label: "data-slot", value: root?.dataset.slot ?? "not rendered", category: "data" },
+        ],
+      },
+      {
+        title: "Menu",
+        summary: scenarios.menubar.state.value ?? "closed",
+        rows: [
+          { label: "File value", value: "file", category: "state" },
+          { label: "View value", value: "view", category: "state" },
+          { label: "Close on select", value: bool(scenarios.menubar.state.closeOnSelect), category: "behavior" },
+          { label: "Escape closes", value: bool(scenarios.menubar.state.closeOnEscape), category: "behavior" },
+          { label: "Menu loop", value: bool(scenarios.menubar.state.menuLoop), category: "behavior" },
         ],
       },
       {
@@ -4487,13 +4842,71 @@ function getUtilityPrimitiveSections(
         selector: "[data-menubar-trigger-file]",
         summary: fileTrigger?.dataset.state ?? "not rendered",
         groups: [
-          { title: "File Trigger", selector: "[data-menubar-trigger-file]", rows: [{ label: "Exists", value: bool(!!fileTrigger), category: "presence" }, { label: "Disabled", value: bool(scenarios.menubar.state.fileDisabled), category: "state" }] },
-          { title: "View Trigger", selector: "[data-menubar-trigger-view]", rows: [{ label: "Exists", value: bool(!!viewTrigger), category: "presence" }] },
+          {
+            title: "File Trigger",
+            selector: "[data-menubar-trigger-file]",
+            rows: [
+              { label: "Exists", value: bool(!!fileTrigger), category: "presence" },
+              { label: "Disabled", value: bool(scenarios.menubar.state.fileDisabled), category: "state" },
+              { label: "role", value: fileTrigger?.getAttribute("role") ?? "not rendered", category: "aria" },
+              { label: "aria-expanded", value: fileTrigger?.getAttribute("aria-expanded") ?? "not rendered", category: "aria" },
+              { label: "aria-controls", value: fileTrigger?.getAttribute("aria-controls") ?? "not rendered", category: "aria" },
+              { label: "data-state", value: fileTrigger?.dataset.state ?? "not rendered", category: "data" },
+              { label: "data-slot", value: fileTrigger?.dataset.slot ?? "not rendered", category: "data" },
+            ],
+          },
+          {
+            title: "View Trigger",
+            selector: "[data-menubar-trigger-view]",
+            rows: [
+              { label: "Exists", value: bool(!!viewTrigger), category: "presence" },
+              { label: "role", value: viewTrigger?.getAttribute("role") ?? "not rendered", category: "aria" },
+              { label: "aria-expanded", value: viewTrigger?.getAttribute("aria-expanded") ?? "not rendered", category: "aria" },
+              { label: "data-state", value: viewTrigger?.dataset.state ?? "not rendered", category: "data" },
+            ],
+          },
         ],
       },
-      { title: "Content", selector: "[data-menubar-content-file]", inactive: !fileContent, summary: fileContent?.dataset.state ?? "not rendered", rows: [{ label: "Exists", value: bool(!!fileContent), category: "presence" }] },
-      { title: "Checkbox Item", selector: "[data-menubar-checkbox]", inactive: !checked, summary: scenarios.menubar.state.showGrid ? "checked" : "unchecked", rows: [{ label: "Checked", value: bool(scenarios.menubar.state.showGrid), category: "state" }] },
-      { title: "Radio Item", selector: "[data-menubar-radio][data-checked]", inactive: !radio, summary: scenarios.menubar.state.density, rows: [{ label: "Value", value: scenarios.menubar.state.density, category: "state" }] },
+      {
+        title: "Content",
+        selector: "[data-menubar-content-file]",
+        inactive: !fileContent,
+        summary: fileContent?.dataset.state ?? "not rendered",
+        groups: [
+          {
+            title: "File Content",
+            selector: "[data-menubar-content-file]",
+            rows: [
+              { label: "Exists", value: bool(!!fileContent), category: "presence" },
+              { label: "role", value: fileContent?.getAttribute("role") ?? "not rendered", category: "aria" },
+              { label: "aria-label", value: fileContent?.getAttribute("aria-label") ?? "not rendered", category: "aria" },
+              { label: "data-state", value: fileContent?.dataset.state ?? "not rendered", category: "data" },
+              { label: "data-side", value: fileContent?.dataset.side ?? "not rendered", category: "data" },
+              { label: "data-align", value: fileContent?.dataset.align ?? "not rendered", category: "data" },
+              { label: "data-positioned", value: fileContent?.dataset.positioned ?? "not rendered", category: "data" },
+              { label: "data-slot", value: fileContent?.dataset.slot ?? "not rendered", category: "data" },
+            ],
+          },
+          {
+            title: "View Content",
+            selector: "[data-menubar-content-view]",
+            rows: [
+              { label: "Exists", value: bool(!!viewContent), category: "presence" },
+              { label: "role", value: viewContent?.getAttribute("role") ?? "not rendered", category: "aria" },
+              { label: "data-state", value: viewContent?.dataset.state ?? "not rendered", category: "data" },
+            ],
+          },
+        ],
+      },
+      { title: "Group", selector: "[data-menubar-group]", inactive: !group, summary: group?.getAttribute("role") ?? "not rendered", rows: [{ label: "Exists", value: bool(!!group), category: "presence" }, { label: "role", value: group?.getAttribute("role") ?? "not rendered", category: "aria" }, { label: "data-slot", value: group?.dataset.slot ?? "not rendered", category: "data" }] },
+      { title: "Item", selector: "[data-menubar-item-new]", inactive: !item, summary: item?.dataset.value ?? "not rendered", rows: [{ label: "Exists", value: bool(!!item), category: "presence" }, { label: "role", value: item?.getAttribute("role") ?? "not rendered", category: "aria" }, { label: "data-value", value: item?.dataset.value ?? "not rendered", category: "data" }, { label: "data-slot", value: item?.dataset.slot ?? "not rendered", category: "data" }] },
+      { title: "Checkbox Item", selector: "[data-menubar-checkbox]", inactive: !checked, summary: scenarios.menubar.state.showGrid ? "checked" : "unchecked", rows: [{ label: "Exists", value: bool(!!checked), category: "presence" }, { label: "Checked", value: bool(scenarios.menubar.state.showGrid), category: "state" }, { label: "aria-checked", value: checked?.getAttribute("aria-checked") ?? "not rendered", category: "aria" }, { label: "data-slot", value: checked?.dataset.slot ?? "not rendered", category: "data" }] },
+      { title: "Radio Group", selector: "[data-menubar-radio-group]", inactive: !radio, summary: scenarios.menubar.state.density, rows: [{ label: "Value", value: scenarios.menubar.state.density, category: "state" }] },
+      { title: "Radio Item", selector: "[data-menubar-radio][data-checked]", inactive: !radio, summary: scenarios.menubar.state.density, rows: [{ label: "Exists", value: bool(!!radio), category: "presence" }, { label: "Value", value: scenarios.menubar.state.density, category: "state" }, { label: "aria-checked", value: radio?.getAttribute("aria-checked") ?? "not rendered", category: "aria" }, { label: "data-slot", value: radio?.dataset.slot ?? "not rendered", category: "data" }] },
+      { title: "Separator", selector: "[data-menubar-separator]", inactive: !separator, summary: separator?.getAttribute("role") ?? "not rendered", rows: [{ label: "Exists", value: bool(!!separator), category: "presence" }, { label: "role", value: separator?.getAttribute("role") ?? "not rendered", category: "aria" }, { label: "data-slot", value: separator?.dataset.slot ?? "not rendered", category: "data" }] },
+      { title: "Sub", inactive: !subTrigger, summary: subTrigger?.dataset.state ?? "not rendered", rows: [{ label: "Exists", value: bool(!!subTrigger), category: "presence" }] },
+      { title: "Sub Trigger", selector: "[data-menubar-sub-trigger]", inactive: !subTrigger, summary: subTrigger?.dataset.state ?? "not rendered", rows: [{ label: "Exists", value: bool(!!subTrigger), category: "presence" }, { label: "aria-expanded", value: subTrigger?.getAttribute("aria-expanded") ?? "not rendered", category: "aria" }, { label: "data-state", value: subTrigger?.dataset.state ?? "not rendered", category: "data" }, { label: "data-slot", value: subTrigger?.dataset.slot ?? "not rendered", category: "data" }] },
+      { title: "Sub Content", selector: "[data-menubar-sub-content]", inactive: !subContent, summary: subContent?.dataset.state ?? "not rendered", rows: [{ label: "Exists", value: bool(!!subContent), category: "presence" }, { label: "role", value: subContent?.getAttribute("role") ?? "not rendered", category: "aria" }, { label: "aria-label", value: subContent?.getAttribute("aria-label") ?? "not rendered", category: "aria" }, { label: "data-state", value: subContent?.dataset.state ?? "not rendered", category: "data" }, { label: "data-side", value: subContent?.dataset.side ?? "not rendered", category: "data" }, { label: "data-slot", value: subContent?.dataset.slot ?? "not rendered", category: "data" }] },
     ];
   }
 
@@ -5497,6 +5910,8 @@ const progressValueOptions = ["0", "42", "75"] as const;
 const orientationOptions = ["horizontal", "vertical"] as const;
 const directionOptions = ["ltr", "rtl"] as const;
 const placementOptions = ["start", "end", "top", "bottom"] as const;
+const menubarValueOptions: readonly MenubarValueOption[] = ["none", "file", "view"];
+const menubarDirectionModeOptions: readonly MenubarDirectionMode[] = ["provider", "root"];
 const drawerTitleLevelOptions = ["h2", "h3", "h4"] as const;
 const densityOptions = ["compact", "comfortable"] as const;
 const toggleTypeOptions = ["single", "multiple"] as const;
