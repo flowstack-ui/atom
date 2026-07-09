@@ -182,12 +182,16 @@ Creates a nested navigation menu scope.
 ## Accessibility
 
 `Root` renders a `nav` landmark with an accessible name. Triggers expose expanded state and controlled content IDs. Links use native anchor semantics and `aria-current="page"` when active. Text direction can be set with `dir` on `Root` or inherited from `Direction.Provider`.
+Horizontal triggers use roving keyboard navigation. When a panel is already
+open, moving to another trigger opens that trigger's panel.
 
 | Key | Description |
 | --- | --- |
 | `Enter` / `Space` | Opens or closes a trigger |
+| `ArrowRight` / `ArrowLeft` | Moves between horizontal triggers, mirrored in RTL |
 | `ArrowDown` | Opens content and moves focus to the first focusable element |
 | `ArrowUp` | Opens content and moves focus to the last focusable element |
+| `Home` / `End` | Moves to the first or last horizontal trigger |
 | `Escape` | Closes the active panel and restores focus to its trigger |
 
 ## Changelog

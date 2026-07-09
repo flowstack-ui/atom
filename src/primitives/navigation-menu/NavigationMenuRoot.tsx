@@ -109,6 +109,9 @@ export const NavigationMenuRoot = forwardRef<
     registerItem: registerTriggerItem,
     unregisterItem: unregisterTriggerItem,
     getItem: getTriggerItem,
+    getNextItem: getNextTriggerItem,
+    getFirstItem: getFirstTriggerItem,
+    getLastItem: getLastTriggerItem,
     getValues: getTriggerValues,
   } = useCollection<string, HTMLButtonElement>();
 
@@ -128,6 +131,22 @@ export const NavigationMenuRoot = forwardRef<
   const getTriggerElement = useCallback((value: string) => {
     return getTriggerItem(value)?.element ?? null;
   }, [getTriggerItem]);
+
+  const getNextTriggerValue = useCallback(
+    (value: string, direction: "next" | "previous") =>
+      getNextTriggerItem(value, direction)?.value ?? null,
+    [getNextTriggerItem],
+  );
+
+  const getFirstTriggerValue = useCallback(
+    () => getFirstTriggerItem()?.value ?? null,
+    [getFirstTriggerItem],
+  );
+
+  const getLastTriggerValue = useCallback(
+    () => getLastTriggerItem()?.value ?? null,
+    [getLastTriggerItem],
+  );
 
   const contentNodeRegistryRef = useRef<Map<string, ContentNodeEntry>>(new Map());
 
@@ -198,6 +217,9 @@ export const NavigationMenuRoot = forwardRef<
       registerTrigger,
       unregisterTrigger,
       getTriggerElement,
+      getNextTriggerValue,
+      getFirstTriggerValue,
+      getLastTriggerValue,
       registerContentNode,
       unregisterContentNode,
       getContentNode,
@@ -212,7 +234,10 @@ export const NavigationMenuRoot = forwardRef<
       delayDuration,
       dir,
       getContentNode,
+      getFirstTriggerValue,
       getItemValues,
+      getLastTriggerValue,
+      getNextTriggerValue,
       getTriggerElement,
       handleValueChange,
       idPrefix,

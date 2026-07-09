@@ -25,6 +25,12 @@ export interface NavigationMenuContextValue {
   registerTrigger: (value: string, element: HTMLButtonElement) => void;
   unregisterTrigger: (value: string) => void;
   getTriggerElement: (value: string) => HTMLButtonElement | null;
+  getNextTriggerValue: (
+    value: string,
+    direction: "next" | "previous",
+  ) => string | null;
+  getFirstTriggerValue: () => string | null;
+  getLastTriggerValue: () => string | null;
   registerContentNode: (value: string, entry: ContentNodeEntry) => void;
   unregisterContentNode: (value: string) => void;
   getContentNode: (value: string) => ContentNodeEntry | null;

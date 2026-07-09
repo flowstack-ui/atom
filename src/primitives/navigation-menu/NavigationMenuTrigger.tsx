@@ -59,9 +59,15 @@ export const NavigationMenuTrigger = forwardRef<
   const {
     cancelCloseTimer,
     delayDuration,
+    dir,
+    getFirstTriggerValue,
+    getLastTriggerValue,
+    getNextTriggerValue,
+    getTriggerElement,
     idPrefix,
     isSkipDelayActive,
     onValueChange,
+    orientation,
     registerTrigger,
     startCloseTimer,
     unregisterTrigger,
@@ -155,6 +161,24 @@ export const NavigationMenuTrigger = forwardRef<
     onValueChange(isOpen ? null : value);
   }, [cancelCloseTimer, disabled, isOpen, onValueChange, value]);
 
+  const focusTrigger = useCallback(
+    (nextValue: string | null) => {
+      if (nextValue === null) return;
+
+      const trigger = getTriggerElement(nextValue);
+      if (!trigger) return;
+
+      clearTimeout(openTimerRef.current);
+      cancelCloseTimer();
+      trigger.focus({ preventScroll: true });
+
+      if (activeValue !== null) {
+        onValueChange(nextValue);
+      }
+    },
+    [activeValue, cancelCloseTimer, getTriggerElement, onValueChange],
+  );
+
   const handleKeyDown: KeyboardEventHandler<HTMLButtonElement> = useCallback(
     (event) => {
       if (disabled) return;
@@ -180,9 +204,49 @@ export const NavigationMenuTrigger = forwardRef<
           else requestAnimationFrame(() => focusContent("last"));
           break;
         }
+        case "ArrowRight": {
+          if (orientation !== "horizontal") break;
+
+          event.preventDefault();
+          focusTrigger(getNextTriggerValue(value, dir === "rtl" ? "previous" : "next"));
+          break;
+        }
+        case "ArrowLeft": {
+          if (orientation !== "horizontal") break;
+
+          event.preventDefault();
+          focusTrigger(getNextTriggerValue(value, dir === "rtl" ? "next" : "previous"));
+          break;
+        }
+        case "Home": {
+          if (orientation !== "horizontal") break;
+
+          event.preventDefault();
+          focusTrigger(getFirstTriggerValue());
+          break;
+        }
+        case "End": {
+          if (orientation !== "horizontal") break;
+
+          event.preventDefault();
+          focusTrigger(getLastTriggerValue());
+          break;
+        }
       }
     },
-    [disabled, focusContent, isOpen, onValueChange, value],
+    [
+      dir,
+      disabled,
+      focusContent,
+      focusTrigger,
+      getFirstTriggerValue,
+      getLastTriggerValue,
+      getNextTriggerValue,
+      isOpen,
+      onValueChange,
+      orientation,
+      value,
+    ],
   );
 
   const behaviorProps: Record<string, unknown> = {
