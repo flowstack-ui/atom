@@ -501,7 +501,9 @@ Clear logs. Set Ellipsis composition `Default`.
 
 ## Step 11: Workbook Cleanup / Rewrite Notes
 
-□ Rows for keyboard arrow navigation, Home/End navigation, disabled item behavior, typeahead/search, and roving focus do not appear playground-verifiable for Breadcrumb because the public docs and source expose no managed focus or collection keyboard behavior.
-□ Generic composition rows should be split or clarified by public part because Breadcrumb supports `asChild` and `render` on every part.
-□ Ref rows are playground-verifiable through Anatomy `Ref target` rows for representative rendered parts.
-□ Prop and custom slot rows are playground-verifiable through `Props > Prop Check` and per-part slot toggles.
+Workbook cleanup completed after this protocol passed.
+
+□ Removed keyboard arrow navigation, Home/End navigation, disabled item behavior, typeahead/search, and roving focus rows because Breadcrumb exposes native link/button focus only and no managed collection keyboard behavior.
+□ Kept Breadcrumb-level composition rows covered through per-part `asChild` and `render` checks.
+□ Kept ref rows covered through Anatomy `Ref target` evidence.
+□ Marked remaining Breadcrumb rows `yes` / `yes` / `covered` with this protocol as evidence.
