@@ -125,6 +125,8 @@ associated menu content.
 Implements a horizontal menubar pattern. Top-level triggers use roving focus and open menus with keyboard or pointer input.
 Horizontal ArrowLeft and ArrowRight navigation mirrors in RTL when `dir="rtl"`
 is set on `Menubar.Root` or inherited from `Direction.Provider`.
+When an open menubar moves between top-level triggers, focus remains owned by
+the active trigger so `Enter`, `Space`, and `Escape` target the active menu.
 Top-level triggers expose `role="menuitem"` so the `role="menubar"` root has
 valid menuitem children.
 Pointer-opened menus do not pre-highlight an item; ArrowDown and ArrowUp seed

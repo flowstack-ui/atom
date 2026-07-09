@@ -150,6 +150,13 @@ test("Menubar source keeps keyboard open and focus behavior stable", async () =>
   assert.match(rootSource, /data-slot=\{dataSlot\}/);
   assert.doesNotMatch(rootSource, /compareDocumentPosition/);
   assert.match(rootSource, /setFocusedValue\(\(currentValue\) => \(currentValue === value \? null : currentValue\)\)/);
+  assert.match(rootSource, /const focusFrameRef = useRef<number \| null>\(null\)/);
+  assert.match(rootSource, /const focusTrigger = useCallback/);
+  assert.match(rootSource, /element\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(rootSource, /requestAnimationFrame\(\(\) => \{/);
+  assert.match(rootSource, /cancelAnimationFrame\(focusFrameRef\.current\)/);
+  assert.match(rootSource, /focusTrigger\(nextValue\)/);
+  assert.doesNotMatch(rootSource, /getTriggerElement\(nextValue\)\?\.focus\(\)/);
   assert.match(rootSource, /const openAdjacentMenu = useCallback/);
   assert.match(contentSource, /const \{ dir, openAdjacentMenu \} = barCtx/);
   assert.match(triggerSource, /barCtx\.dir === "rtl" \? "prev" : "next"/);

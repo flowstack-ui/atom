@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed adjacent top-level `Menubar` handoff so the active trigger keeps focus
+  for `Enter`, `Space`, and `Escape` after ArrowLeft or ArrowRight navigation.
 - Fixed custom `data-slot` overrides on `Menubar.Root` and `Menubar.Trigger`.
 - Added horizontal trigger roving keyboard navigation for `NavigationMenu`,
   including RTL-mirrored ArrowLeft and ArrowRight handling.

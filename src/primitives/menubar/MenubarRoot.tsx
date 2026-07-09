@@ -3,7 +3,9 @@
 import {
   forwardRef,
   useCallback,
+  useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -95,10 +97,42 @@ function MenubarRoot(
   }, [getCollectionTriggers]);
 
   const [focusedValue, setFocusedValue] = useState<string | null>(null);
+  const focusFrameRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (focusFrameRef.current !== null) {
+        cancelAnimationFrame(focusFrameRef.current);
+      }
+    };
+  }, []);
 
   const onFocus = useCallback((value: string) => {
     setFocusedValue(value);
   }, []);
+
+  const focusTrigger = useCallback((value: string) => {
+    const applyFocus = () => {
+      const element = getTriggerElement(value);
+      if (!element) return;
+
+      element.focus({ preventScroll: true });
+      setFocusedValue(value);
+    };
+
+    applyFocus();
+
+    if (typeof requestAnimationFrame !== "function") return;
+
+    if (focusFrameRef.current !== null) {
+      cancelAnimationFrame(focusFrameRef.current);
+    }
+
+    focusFrameRef.current = requestAnimationFrame(() => {
+      focusFrameRef.current = null;
+      applyFocus();
+    });
+  }, [getTriggerElement]);
 
   const focusAdjacentTrigger = useCallback(
     (currentValue: string, direction: "prev" | "next") => {
@@ -126,17 +160,13 @@ function MenubarRoot(
       }
 
       const nextValue = values[nextIndex];
-      const nextElement = getTriggerElement(nextValue);
-      if (nextElement) {
-        nextElement.focus();
-        setFocusedValue(nextValue);
+      if (getTriggerElement(nextValue)) {
+        focusTrigger(nextValue);
 
-        if (openValue !== null) {
-          setOpenValue(nextValue);
-        }
+        if (openValue !== null) setOpenValue(nextValue);
       }
     },
-    [getTriggerElement, getTriggerValues, loop, openValue, setOpenValue],
+    [focusTrigger, getTriggerElement, getTriggerValues, loop, openValue, setOpenValue],
   );
 
   const openAdjacentMenu = useCallback(
@@ -166,11 +196,10 @@ function MenubarRoot(
       }
 
       const nextValue = values[nextIndex];
-      getTriggerElement(nextValue)?.focus();
-      setFocusedValue(nextValue);
+      focusTrigger(nextValue);
       onMenuOpen(nextValue);
     },
-    [getTriggerElement, getTriggerValues, loop, onMenuClose, onMenuOpen],
+    [focusTrigger, getTriggerValues, loop, onMenuClose, onMenuOpen],
   );
 
   const contextValue: MenubarContextValue = useMemo(
