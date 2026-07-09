@@ -20,6 +20,11 @@ task.
 
 ## What Belongs
 
+Audit workbook rows against the verified public component contract from
+`workflow.md`. Workbook rows are a coverage model, not the contract, and they
+must not override package source, package tests, or public package
+documentation.
+
 Rows should cover behavior visible through the playground:
 
 - rendered anatomy parts
@@ -65,6 +70,29 @@ Do not add playground rows for:
 
 Those can be tracked elsewhere, but not in this workbook.
 
+## Coverage Model Audit
+
+Before playground implementation, compare the component sheet against the
+verified public contract. Use the evidence hierarchy in `workflow.md`: package
+source, package tests, and public package documentation validate workbook rows;
+workbook rows do not define the component contract.
+
+Identify and correct, when clearly necessary:
+
+- missing coverage rows
+- stale rows
+- duplicated rows
+- rows assigned to the wrong public part
+- DOM identity rows for provider or non-DOM parts
+- behavior that is not playground-verifiable
+- incorrect expected values
+- package-source-only checks incorrectly treated as playground checks
+
+Workbook model corrections may happen before playground implementation when they
+are needed to avoid building against stale or incorrect rows. Do not mark rows
+`Tested`, mark final coverage complete, or claim manual verification until every
+step in the component's Manual Test Protocol has passed.
+
 ## Status Rules
 
 Use consistent status values:
@@ -80,8 +108,10 @@ Completed rows should have:
 - `Coverage Status` = `covered`
 - a short result note, such as `passed manual test`
 
-Do not update `component-coverage.xlsx` until every step in the component's
-Manual Test Protocol has passed or any issues have been resolved or triaged.
+Do not mark rows `Tested`, set final coverage to `covered`, or claim manual
+verification until every step in the component's Manual Test Protocol has passed.
+Model cleanup, such as adding, removing, or correcting rows, may happen earlier
+when it is necessary to align the sheet with the verified component contract.
 
 When the expected result is stable, include it in the note or Manual Test
 Protocol used to verify the row. Stable values include default tag,
@@ -94,8 +124,10 @@ rows changes a sheet, the index should update automatically.
 
 ## Column Semantics
 
-The workbook is the manual coverage source of truth. Component sheets should
-keep these concepts clear even if the exact column labels evolve:
+The workbook is the manual coverage tracking source of truth after rows have
+been validated against the verified component contract. It is not the component
+contract. Component sheets should keep these concepts clear even if the exact
+column labels evolve:
 
 - **Category or Area**: the behavior group, such as Public API, Anatomy,
   Keyboard, Pointer, Source, Props, or Slots.

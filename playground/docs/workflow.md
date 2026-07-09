@@ -5,40 +5,100 @@ update.
 
 ## Component Completion Workflow
 
-1. Read component documentation.
-2. Read workbook rows.
-3. Compare workbook against playground.
-4. Implement missing playground behavior.
-5. Classify issues:
-   - Playground
-   - Atom package
-   - Workbook
-   - Documentation
-6. Generate a draft Manual Test Protocol in `.manual-tests/<component>.md`.
-7. Execute Manual Test Protocol.
-8. Fix implementation issues.
-9. Repeat manual testing until complete.
-10. Update `component-coverage.xlsx`.
-11. Commit the component.
-12. Review the draft protocol.
-13. Promote the reviewed protocol to `manual-tests/<component>.md`.
-14. Commit the reviewed protocol.
-15. Reusable Lessons Review.
+1. Read the component's public source, exports, tests, and package
+   documentation.
+2. Establish the verified public component contract.
+3. Audit and correct package documentation when clearly necessary.
+4. Audit and correct the workbook coverage model when clearly necessary.
+5. Inspect the existing playground scenario.
+6. Compare the playground against the verified contract and corrected workbook
+   model.
+7. Implement missing playground behavior.
+8. Classify any package, playground, documentation, or workbook issues.
+9. Create or update the draft Manual Test Protocol.
+10. Execute it step by step.
+11. Fix issues and repeat testing until complete.
+12. Update final workbook statuses.
+13. Commit component work.
+14. Review the draft protocol.
+15. Promote the reviewed protocol.
+16. Commit the reviewed protocol.
+17. Run the Reusable Lessons Review.
 
-The workflow is not complete until Step 15 has been answered. After the final
+The workflow is not complete until Step 17 has been answered. After the final
 component or protocol commit, do not move on to the next component or answer
 “what’s next” until the Reusable Lessons Review is complete.
 
-## 1. Read Component Documentation
+## 1. Component Contract Audit
 
-- Read the public docs for the component.
-- Read package maintainer docs that apply to the component type.
-- Read the component source only as needed to understand real public behavior.
-- Identify the public anatomy parts and their order.
-- Identify controlled props, keyboard behavior, Field integration, direction
-  behavior, composition support, and generated DOM.
+Before inspecting or changing the playground scenario, establish the actual
+public component contract. Do not let stale workbook rows or an existing
+playground implementation become the de facto contract.
 
-## 2. Read Workbook Rows
+Use this evidence hierarchy:
+
+1. Package source implementation.
+2. Package tests.
+3. Public package documentation.
+4. `component-coverage.xlsx`.
+5. Existing playground implementation.
+
+Use higher-confidence sources to validate lower-confidence sources:
+
+- Source and tests define current implementation behavior.
+- Public docs define intended consumer-facing behavior.
+- Workbook rows are a coverage model, not the contract.
+- Playground is an implementation of the contract, not the source of truth.
+
+Read as needed:
+
+- public exports
+- component namespace and parts
+- public props and defaults
+- rendered DOM behavior
+- ARIA and data attributes
+- composition support
+- controlled and uncontrolled behavior
+- events and `preventDefault` behavior
+- refs
+- package tests
+- public package documentation
+
+Package source and tests are evidence of current implementation behavior. Public
+documentation defines the intended consumer-facing contract. When they disagree,
+do not guess. Report the discrepancy and classify it before changing package
+source or public docs.
+
+Conflict classification:
+
+- Source vs tests: package implementation bug.
+- Source or tests vs package docs: package documentation gap.
+- Verified package contract vs workbook: workbook coverage gap.
+- Verified package contract vs playground: playground implementation gap.
+
+## 2. Package Documentation Audit
+
+Before playground implementation, compare public component documentation against
+the verified component contract.
+
+Look for:
+
+- missing public props
+- incorrect defaults
+- missing parts
+- incorrect tags
+- incorrect `data-slot` values
+- missing ARIA behavior
+- missing composition support
+- stale examples
+- source/docs disagreements
+
+If the correction is clear and limited to the component being worked on, update
+the relevant package documentation as part of the component task. If intended
+behavior is uncertain, stop and ask before changing package source or public
+documentation.
+
+## 3. Workbook Coverage Audit
 
 - Before reading `component-coverage.xlsx`, read
   [../../../docs/tooling.md](../../../docs/tooling.md), activate the shared
@@ -47,21 +107,47 @@ component or protocol commit, do not move on to the next component or answer
 - Use `openpyxl` to inspect the component sheet in `component-coverage.xlsx`.
 - Do not inspect raw XLSX XML unless `openpyxl` or LibreOffice cannot perform
   the task.
-- Identify missing, partial, implemented-but-untested, and stale rows.
+- Compare the component sheet against the verified public contract.
+- Identify missing, partial, implemented-but-untested, stale, duplicated, and
+  incorrect rows.
 - Check whether existing rows use real public parts and playground-verifiable
   behavior.
+- Identify rows assigned to the wrong public part.
+- Identify DOM identity rows for provider or non-DOM parts.
+- Identify behavior that is not playground-verifiable.
+- Identify incorrect expected values.
+- Identify package-source-only checks incorrectly treated as playground checks.
 
-## 3. Compare Workbook Against Playground
+The workbook coverage model may be corrected before playground implementation
+when necessary. However, do not mark rows `Tested`, mark final coverage
+complete, or claim manual verification until the Manual Test Protocol has
+passed.
 
-- Compare every relevant workbook row against the current scenario.
+## 4. Inspect Existing Playground Scenario
+
+After the contract, package docs, and workbook model have been audited, inspect
+the existing playground scenario.
+
+- Identify which verified contract behaviors the scenario already exposes.
+- Identify which corrected workbook rows the scenario can already verify.
+- Note behavior that exists in the playground but is not part of the verified
+  public contract.
+- Note scenario behavior that appears to follow stale workbook rows or stale
+  assumptions.
+
+## 5. Compare Contract, Workbook, And Playground
+
+- Compare every relevant workbook row against the current scenario only after
+  validating the row against the verified contract.
 - Note behavior that exists in the playground but is not reflected in the
   workbook.
 - Note workbook rows that are release, export, docs-only, or otherwise not
   playground-verifiable.
-- Add or revise coverage planning only after confirming the current playground
-  state.
+- Do not invent component behavior merely to satisfy workbook rows.
+- Add or revise coverage planning only after confirming both the verified
+  contract and current playground state.
 
-## 4. Implement Missing Playground Behavior
+## 6. Implement Missing Playground Behavior
 
 - Reuse shared workbench primitives first.
 - Keep state, actions, anatomy data, Source, and live Atom JSX in the scenario.
@@ -71,27 +157,36 @@ component or protocol commit, do not move on to the next component or answer
 - Hide controlled value controls when controlled mode is off.
 - Add prop-check and slot-override coverage only for real Atom DOM parts.
 
-## 5. Classify Issues
+## 7. Classify Issues
 
 Manual testing and implementation can reveal different kinds of work. Classify
 each finding before proposing a fix:
 
-- **Playground**: scenario behavior, shared workbench helper,
+- **Playground implementation gap**: scenario behavior, shared workbench helper,
   Source snippet, Anatomy/Inspector wiring, logs, styling, or Manual Test
   Protocol issue inside `package/playground/`.
-- **Atom package**: primitive behavior, public API behavior, generated DOM,
-  accessibility wiring, event handling, or ref behavior that requires package
-  source changes.
-- **Workbook**: workbook row, workbook status, workbook evidence, worksheet
-  formula, or index issue.
-- **Documentation**: playground authoring rule, workflow, coverage rule,
-  package docs, public docs, or reusable process improvement.
+- **Package implementation bug**: primitive behavior, public API behavior,
+  generated DOM, accessibility wiring, event handling, ref behavior, or package
+  tests that disagree with source behavior.
+- **Package documentation gap**: public docs, examples, anatomy, props,
+  defaults, tags, `data-slot`, ARIA, composition, or package docs that disagree
+  with source and tests.
+- **Workbook coverage gap**: missing, stale, duplicated, incorrect,
+  non-playground-verifiable, wrong-part, or source-only workbook row; workbook
+  status, workbook evidence, worksheet formula, or index issue.
+- **Documentation/process issue**: playground authoring rule, workflow, coverage
+  rule, Manual Test Protocol rule, or reusable process improvement.
 
-If a package implementation issue is discovered, stop before changing package
+If a package implementation bug is discovered, stop before changing package
 source unless the user has already approved that scope. Package source changes
 must follow package-level test, documentation, and changelog rules.
 
-## 6. Generate Draft Manual Test Protocol
+Do not silently change package source when docs and source disagree. Keep package
+documentation corrections scoped to the component being completed, and ask before
+changing package source or public documentation when intended behavior is
+uncertain.
+
+## 8. Generate Draft Manual Test Protocol
 
 Create or update the component's draft Manual Test Protocol before final
 testing. Use `component-testing.md` as the canonical authoring guide.
@@ -126,7 +221,7 @@ a clearly defined state, separates setup, action, verification, and reset when
 needed, and reads like an executable QA test script rather than a component
 explanation.
 
-## 7. Execute Manual Test Protocol
+## 9. Execute Manual Test Protocol
 
 Run the Manual Test Protocol in the browser one step at a time.
 
@@ -137,32 +232,35 @@ Agent behavior:
 3. Wait for tester confirmation.
 4. When the tester says `next`, show only the next step.
 5. If the tester reports an issue, classify it before deciding where to fix it:
-   - `Playground issue`
-   - `Atom package issue`
-   - `Workbook issue`
+   - `Playground implementation gap`
+   - `Package implementation bug`
+   - `Package documentation gap`
+   - `Workbook coverage gap`
    - `Documentation/process issue`
 6. Do not continue until the current step passes or the issue is resolved or
    triaged.
-7. Do not update `component-coverage.xlsx` until every protocol step passes.
+7. Do not mark rows `Tested`, set final coverage to `covered`, or claim manual
+   verification until every protocol step passes.
 8. Promote to `manual-tests/<component>.md` only after the protocol is reviewed
    and considered stable.
 
-## 8. Fix Discovered Issues
+## 10. Fix Discovered Issues
 
-Fix Playground issues inside the playground. Keep fixes scoped to the failing
-behavior and preserve the component's public contract.
+Fix playground implementation gaps inside the playground. Keep fixes scoped to
+the failing behavior and preserve the component's public contract.
 
-For Workbook or Documentation issues, update the relevant artifact only after
-confirming the change is reusable beyond the current component. Keep workbook
-cleanup separate from manual testing execution.
+For package documentation gaps, workbook coverage gaps, or
+documentation/process issues, update the relevant artifact only when the change
+is clear for the component or reusable beyond it. Keep workbook cleanup separate
+from manual testing execution.
 
-## 9. Repeat Manual Testing Until Complete
+## 11. Repeat Manual Testing Until Complete
 
 After each fix, rerun the affected Manual Test Protocol step and any adjacent
 steps that could regress. Do not update the workbook until every protocol step
 has passed and the component is complete.
 
-## 10. Update Workbook
+## 12. Update Workbook
 
 After manual verification:
 
@@ -183,7 +281,7 @@ After manual verification:
 Add or reopen rows when a real gap remains. Remove rows that belong to
 release/docs/export checks rather than playground-verifiable behavior.
 
-## 11. Commit Component
+## 13. Commit Component
 
 Run verification before committing.
 
@@ -199,23 +297,23 @@ verification rules from the Atom package docs and changelogs.
 Commit the component only after implementation, manual testing, workbook status,
 and verification are complete.
 
-## 12. Review Draft Protocol
+## 14. Review Draft Protocol
 
 Review the draft protocol after the completed component is committed. Keep the
 review focused on whether the draft is stable regression coverage for future
 component work.
 
-## 13. Promote Reviewed Protocol
+## 15. Promote Reviewed Protocol
 
 Move the reviewed draft from `.manual-tests/<component>.md` to
 `manual-tests/<component>.md` only after successful manual testing, workbook
 updates, component verification, and draft review.
 
-## 14. Commit Reviewed Protocol
+## 16. Commit Reviewed Protocol
 
 Commit the promoted protocol separately from the completed component.
 
-## 15. Reusable Lessons Review
+## 17. Reusable Lessons Review
 
 After implementation, manual testing, workbook update, component commit,
 protocol review, protocol promotion, and protocol commit are complete, answer

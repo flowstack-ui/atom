@@ -2,6 +2,12 @@
 
 Use this guide when adding or changing a component scenario.
 
+Before authoring or changing a scenario, complete the Component Contract Audit
+in `workflow.md`. Scenarios and Manual Test Protocols should implement and
+verify the established public contract; do not copy workbook rows or existing
+playground behavior as the source of truth until they have been validated
+against package source, package tests, and public package documentation.
+
 ## Scenario Shape
 
 Prefer one useful interactive scenario over many tiny examples. A good scenario
@@ -384,13 +390,15 @@ Agent behavior:
 3. Wait for tester confirmation.
 4. When the tester says `next`, show only the next step.
 5. If the tester reports an issue, classify it as:
-   - `Playground issue`
-   - `Atom package issue`
-   - `Workbook issue`
+   - `Playground implementation gap`
+   - `Package implementation bug`
+   - `Package documentation gap`
+   - `Workbook coverage gap`
    - `Documentation/process issue`
 6. Do not continue until the current step passes or the issue is resolved or
    triaged.
-7. Do not update `component-coverage.xlsx` until every protocol step passes.
+7. Do not mark rows `Tested`, set final coverage to `covered`, or claim manual
+   verification until every protocol step passes.
 8. Promote the protocol to `manual-tests/<component>.md` only after it has been
    reviewed and considered stable.
 9. After the component and promoted protocol commits are complete, perform the

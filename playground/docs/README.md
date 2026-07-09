@@ -16,10 +16,12 @@ listing every document individually.
   rules for Anatomy, Canvas toolbar, Inspector, Logs, Source, props, slots,
   Manual Test Protocols, automation readiness, direction, hooks, and utilities.
 - [coverage.md](coverage.md) - workbook purpose, row rules, statuses, formulas,
-  prop checks, slot overrides, completion rules, and automation candidates.
+  contract-based coverage audits, prop checks, slot overrides, completion rules,
+  and automation candidates.
 - [decisions.md](decisions.md) - long-lived playground architecture decisions.
 - [workflow.md](workflow.md) - standard component completion workflow and issue
-  classification, including step-by-step Manual Test Protocol execution.
+  classification, including the Component Contract Audit and step-by-step Manual
+  Test Protocol execution.
 
 ## Ownership
 
@@ -27,7 +29,8 @@ listing every document individually.
 - Shared developer tooling lives in [../../docs/tooling.md](../../docs/tooling.md).
 - Manual Test Protocol authoring rules live in
   [component-testing.md](component-testing.md).
-- The component completion workflow lives in [workflow.md](workflow.md).
+- The component completion workflow and Component Contract Audit live in
+  [workflow.md](workflow.md).
 - Future shared tooling, including Graphify, Playwright, PDF utilities, and
   image processing, belongs in `../../docs/tooling.md`.
 
