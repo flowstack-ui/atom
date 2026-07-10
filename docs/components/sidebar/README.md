@@ -31,16 +31,19 @@ import { Sidebar } from "@flowstack-ui/atom";
 
 ### Root
 
-Provides sidebar state.
+Provides sidebar state. Renders a `div` by default.
 
 | Prop | Type | Default |
 | --- | --- | --- |
+| `children` | `ReactNode` | - |
 | `state` | `"expanded" \| "rail" \| "offcanvas"` | - |
 | `defaultState` | `"expanded" \| "rail" \| "offcanvas"` | `"expanded"` |
 | `onStateChange` | `(state) => void` | - |
 | `collapsedState` | `"rail" \| "offcanvas"` | `"offcanvas"` |
 | `side` | `"left" \| "right"` | `"left"` |
 | `disabled` | `boolean` | `false` |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
 
 | Data attribute | Values |
 | --- | --- |
@@ -48,14 +51,21 @@ Provides sidebar state.
 | `[data-state]` | `"expanded" \| "rail" \| "offcanvas"` |
 | `[data-side]` | `"left" \| "right"` |
 | `[data-collapsed-state]` | `"rail" \| "offcanvas"` |
+| `[data-disabled]` | Present when disabled |
+
+When disabled, Root ignores state changes and descendant Trigger parts render
+disabled state.
 
 ### Trigger
 
-Toggles the sidebar between expanded and the configured collapsed state.
+Toggles the sidebar between expanded and the configured collapsed state. Renders
+a `button` with `type="button"` by default. Disabled state comes from
+`Sidebar.Root disabled`; Trigger does not expose its own `disabled` prop.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `disabled` | `boolean` | root value |
+| `toState` | `"expanded" \| "rail" \| "offcanvas"` | toggles between `"expanded"` and `collapsedState` |
+| `children` | `ReactNode` | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -64,14 +74,23 @@ Toggles the sidebar between expanded and the configured collapsed state.
 | `[data-slot]` | `"sidebar-trigger"` |
 | `[data-state]` | `"expanded" \| "rail" \| "offcanvas"` |
 | `[data-side]` | `"left" \| "right"` |
+| `[data-collapsed-state]` | `"rail" \| "offcanvas"` |
+| `[data-target-state]` | State that activation will request |
 | `[data-disabled]` | Present when disabled |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-controls` | Generated Panel id |
+| `aria-expanded` | `true` when state is `"expanded"` |
+| `aria-disabled` | `true` when Root is disabled |
 
 ### Panel
 
-Renders the sidebar panel.
+Renders the sidebar panel. Renders an `aside` by default.
 
 | Prop | Type | Default |
 | --- | --- | --- |
+| `children` | `ReactNode` | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -80,16 +99,32 @@ Renders the sidebar panel.
 | `[data-slot]` | `"sidebar-panel"` |
 | `[data-state]` | `"expanded" \| "rail" \| "offcanvas"` |
 | `[data-side]` | `"left" \| "right"` |
+| `[data-collapsed-state]` | `"rail" \| "offcanvas"` |
+| `[data-disabled]` | Present when disabled |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-hidden` | `true` when state is `"offcanvas"` |
+| `inert` | Present when state is `"offcanvas"` |
 
 ### Main
 
-Renders the main content region associated with the sidebar.
+Renders the main content region associated with the sidebar. Renders a `main` by
+default.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `children` | `ReactNode` | - |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
 
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"sidebar-main"` |
 | `[data-state]` | `"expanded" \| "rail" \| "offcanvas"` |
 | `[data-side]` | `"left" \| "right"` |
+| `[data-collapsed-state]` | `"rail" \| "offcanvas"` |
+| `[data-disabled]` | Present when disabled |
 
 ## Examples
 
