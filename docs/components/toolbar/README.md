@@ -39,7 +39,7 @@ Contains toolbar items.
 | Prop | Type | Default |
 | --- | --- | --- |
 | `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` |
-| `dir` | `"ltr" \| "rtl"` | `"ltr"` |
+| `dir` | `"ltr" \| "rtl"` | `Direction.Provider` |
 | `loop` | `boolean` | `true` |
 | `ariaLabel` | `string` | - |
 
@@ -154,7 +154,7 @@ Renders a toolbar toggle item.
 
 ## Accessibility
 
-Toolbar follows the ARIA toolbar pattern. Use it for groups of controls, not page navigation.
+Toolbar follows the ARIA toolbar pattern. Use it for groups of controls, not page navigation. Local `dir` overrides `Direction.Provider`.
 
 | Key | Description |
 | --- | --- |

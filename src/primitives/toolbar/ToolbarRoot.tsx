@@ -12,6 +12,7 @@ import {
 import { useCollection } from "../../collection.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { composeEventHandlers } from "../../utils/slot.js";
+import { useDirection } from "../direction/index.js";
 import {
   ToolbarContextProvider,
   type ToolbarContextValue,
@@ -19,7 +20,7 @@ import {
   type ToolbarOrientation,
 } from "./context.js";
 
-type ToolbarRootNativeProps = NativeDivProps<"children" | "role">;
+type ToolbarRootNativeProps = NativeDivProps<"children" | "dir" | "role">;
 
 export interface ToolbarRootProps extends ToolbarRootNativeProps {
   /** Toolbar orientation. */
@@ -47,7 +48,7 @@ export const ToolbarRoot = forwardRef<HTMLDivElement, ToolbarRootProps>(
   function ToolbarRoot(
     {
       orientation = "horizontal",
-      dir = "ltr",
+      dir: dirProp,
       loop = true,
       ariaLabel,
       className,
@@ -57,6 +58,8 @@ export const ToolbarRoot = forwardRef<HTMLDivElement, ToolbarRootProps>(
     },
     ref,
   ) {
+    const contextDir = useDirection();
+    const dir = dirProp ?? contextDir;
     const elementValueRef = useRef<Map<HTMLElement, string>>(new Map());
     const nextValueRef = useRef(0);
     const [activeItem, setActiveItem] = useState<HTMLElement | null>(null);
@@ -201,6 +204,7 @@ export const ToolbarRoot = forwardRef<HTMLDivElement, ToolbarRootProps>(
         <div
           {...restProps}
           ref={ref}
+          dir={dir}
           role="toolbar"
           aria-label={ariaLabel}
           aria-orientation={orientation}

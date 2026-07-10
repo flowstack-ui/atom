@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added `Direction.Provider` fallback for `Toolbar.Root dir` and rendered the
+  resolved direction on the toolbar root.
 - Added `Direction.Provider` and `dir` support to mirror horizontal `Tabs`
   ArrowLeft and ArrowRight navigation in RTL.
 - Changed `Pagination.Previous`, `Pagination.Next`, `Pagination.Item`, and

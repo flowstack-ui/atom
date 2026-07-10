@@ -1,9 +1,10 @@
 "use client";
 
 import { createContext, useContext } from "react";
+import type { DirectionValue } from "../direction/index.js";
 
 export type ToolbarOrientation = "horizontal" | "vertical";
-export type ToolbarDirection = "ltr" | "rtl";
+export type ToolbarDirection = DirectionValue;
 
 export interface ToolbarContextValue {
   /** Toolbar layout direction. */

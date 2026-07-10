@@ -8,6 +8,7 @@ import {
 } from "../test-utils.mjs";
 
 import {
+  Direction,
   Toolbar,
   ToolbarButton,
   ToolbarLink,
@@ -59,6 +60,42 @@ test("Toolbar primitives render toolbar roles and focusable items", () => {
   assert.match(html, /data-disabled=""/);
   assert.match(html, /data-slot="toolbar-separator"/);
   assert.match(html, /role="separator"/);
+});
+
+test("ToolbarRoot resolves local and provider direction", () => {
+  const localHtml = renderToStaticMarkup(
+    React.createElement(
+      ToolbarRoot,
+      { ariaLabel: "Editor tools", dir: "rtl" },
+      React.createElement(ToolbarButton, null, "B"),
+    ),
+  );
+  const providerHtml = renderToStaticMarkup(
+    React.createElement(
+      Direction.Provider,
+      { dir: "rtl" },
+      React.createElement(
+        ToolbarRoot,
+        { ariaLabel: "Editor tools" },
+        React.createElement(ToolbarButton, null, "B"),
+      ),
+    ),
+  );
+  const overrideHtml = renderToStaticMarkup(
+    React.createElement(
+      Direction.Provider,
+      { dir: "rtl" },
+      React.createElement(
+        ToolbarRoot,
+        { ariaLabel: "Editor tools", dir: "ltr" },
+        React.createElement(ToolbarButton, null, "B"),
+      ),
+    ),
+  );
+
+  assert.match(localHtml, /^<div dir="rtl"/);
+  assert.match(providerHtml, /^<div dir="rtl"/);
+  assert.match(overrideHtml, /^<div dir="ltr"/);
 });
 
 test("Toolbar toggle group renders pressed item state", () => {
