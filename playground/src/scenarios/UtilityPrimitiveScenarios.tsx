@@ -470,9 +470,19 @@ function useNavigationMenuScenario() {
 function useSidebarScenario() {
   const [controlled, setControlled] = useState(false);
   const [state, setState] = useState<SidebarStateValue>("expanded");
-  const [collapsedState, setCollapsedState] = useState<"rail" | "offcanvas">("rail");
+  const [initialState, setInitialState] = useState<SidebarStateValue>("expanded");
+  const [collapsedState, setCollapsedState] = useState<"rail" | "offcanvas">("offcanvas");
   const [side, setSide] = useState<SidebarSideValue>("left");
   const [disabled, setDisabled] = useState(false);
+  const [rootComposition, setRootComposition] = useState<CompositionMode>("default");
+  const [triggerComposition, setTriggerComposition] = useState<CompositionMode>("default");
+  const [panelComposition, setPanelComposition] = useState<CompositionMode>("default");
+  const [mainComposition, setMainComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
+  const [customTriggerSlot, setCustomTriggerSlot] = useState(false);
+  const [customPanelSlot, setCustomPanelSlot] = useState(false);
+  const [customMainSlot, setCustomMainSlot] = useState(false);
   const { log, addLog, clearLog } = useScenarioLog();
 
   const handleStateChange = (nextState: SidebarStateValue) => {
@@ -480,14 +490,47 @@ function useSidebarScenario() {
     addLog(`state ${nextState}`);
   };
 
+  const handleInitialStateChange = (nextState: SidebarStateValue) => {
+    setInitialState(nextState);
+    setState(nextState);
+    addLog(`initial state ${nextState}`);
+  };
+
   return {
-    state: { controlled, state, collapsedState, side, disabled, log },
+    state: {
+      controlled,
+      state,
+      initialState,
+      collapsedState,
+      side,
+      disabled,
+      rootComposition,
+      triggerComposition,
+      panelComposition,
+      mainComposition,
+      propCheck,
+      customRootSlot,
+      customTriggerSlot,
+      customPanelSlot,
+      customMainSlot,
+      log,
+    },
     actions: {
       setControlled,
+      setInitialState: handleInitialStateChange,
       setState: handleStateChange,
       setCollapsedState,
       setSide,
       setDisabled,
+      setRootComposition,
+      setTriggerComposition,
+      setPanelComposition,
+      setMainComposition,
+      setPropCheck,
+      setCustomRootSlot,
+      setCustomTriggerSlot,
+      setCustomPanelSlot,
+      setCustomMainSlot,
       clearLog,
     },
   };
@@ -1416,12 +1459,35 @@ export function UtilityPrimitiveScenarioToolbar({
         <ToolbarGroup title="State" value="state">
           <MenuCheckboxControl checked={scenario.state.controlled} label="Controlled" value="controlled" onChange={scenario.actions.setControlled} />
           <MenuCheckboxControl checked={scenario.state.disabled} label="Disabled" value="disabled" onChange={scenario.actions.setDisabled} />
-          <MenuRadioControl label="Value" options={sidebarStateOptions} value={scenario.state.state} onChange={scenario.actions.setState} />
+          {!scenario.state.controlled ? (
+            <MenuRadioControl label="Initial state" options={sidebarStateOptions} value={scenario.state.initialState} onChange={scenario.actions.setInitialState} />
+          ) : null}
           <MenuRadioControl label="Collapsed state" options={sidebarCollapsedStateOptions} value={scenario.state.collapsedState} onChange={scenario.actions.setCollapsedState} />
         </ToolbarGroup>
+        {scenario.state.controlled ? (
+          <ToolbarGroup title="Controlled Value" value="controlled-value">
+            <MenuRadioControl label="State" options={sidebarStateOptions} value={scenario.state.state} onChange={scenario.actions.setState} />
+          </ToolbarGroup>
+        ) : null}
         <ToolbarGroup title="Layout" value="layout">
           <MenuRadioControl label="Side" options={sidebarSideOptions} value={scenario.state.side} onChange={scenario.actions.setSide} />
         </ToolbarGroup>
+        <ToolbarGroup title="Composition" value="composition">
+          <MenuRadioControl label="Root" options={compositionOptions} value={scenario.state.rootComposition} onChange={scenario.actions.setRootComposition} />
+          <MenuRadioControl label="Trigger" options={compositionOptions} value={scenario.state.triggerComposition} onChange={scenario.actions.setTriggerComposition} />
+          <MenuRadioControl label="Panel" options={compositionOptions} value={scenario.state.panelComposition} onChange={scenario.actions.setPanelComposition} />
+          <MenuRadioControl label="Main" options={compositionOptions} value={scenario.state.mainComposition} onChange={scenario.actions.setMainComposition} />
+        </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          customSlots={[
+            { checked: scenario.state.customRootSlot, label: "Root Slot", value: "root-slot", onChange: scenario.actions.setCustomRootSlot },
+            { checked: scenario.state.customTriggerSlot, label: "Trigger Slot", value: "trigger-slot", onChange: scenario.actions.setCustomTriggerSlot },
+            { checked: scenario.state.customPanelSlot, label: "Panel Slot", value: "panel-slot", onChange: scenario.actions.setCustomPanelSlot },
+            { checked: scenario.state.customMainSlot, label: "Main Slot", value: "main-slot", onChange: scenario.actions.setCustomMainSlot },
+          ]}
+          onPropCheckChange={scenario.actions.setPropCheck}
+        />
       </ControlToolbar>
     );
   }
@@ -2205,17 +2271,79 @@ ${indent(triggerSource, 2)}
 
   if (scenarioId === "sidebar") {
     const state = scenarios.sidebar.state;
-    return `<Sidebar.Root
-  ${state.controlled ? "state={state}" : `defaultState="${state.state}"`}
-  collapsedState="${state.collapsedState}"
-  side="${state.side}"
-  disabled={${state.disabled}}
-  onStateChange={setState}
->
-  <Sidebar.Panel aria-label="Project navigation" />
-  <Sidebar.Main>
-    <Sidebar.Trigger>Toggle Sidebar</Sidebar.Trigger>
-  </Sidebar.Main>
+    const rootProps = sourceProps([
+      state.controlled ? "state={state}" : state.initialState !== "expanded" ? `defaultState="${state.initialState}"` : "",
+      state.collapsedState !== "offcanvas" ? `collapsedState="${state.collapsedState}"` : "",
+      state.side !== "left" ? `side="${state.side}"` : "",
+      state.disabled ? "disabled" : "",
+      state.customRootSlot ? `data-slot="sidebar-custom"` : "",
+      state.propCheck ? `data-prop-check="root"` : "",
+      "onStateChange={setState}",
+    ]);
+    const triggerProps = sourceProps([
+      state.customTriggerSlot ? `data-slot="sidebar-trigger-custom"` : "",
+      state.propCheck ? `data-prop-check="trigger"` : "",
+    ]);
+    const panelProps = sourceProps([
+      `aria-label="Project navigation"`,
+      state.customPanelSlot ? `data-slot="sidebar-panel-custom"` : "",
+      state.propCheck ? `data-prop-check="panel"` : "",
+    ]);
+    const mainProps = sourceProps([
+      state.customMainSlot ? `data-slot="sidebar-main-custom"` : "",
+      state.propCheck ? `data-prop-check="main"` : "",
+    ]);
+    const triggerSource = state.triggerComposition === "asChild"
+      ? `<Sidebar.Trigger${triggerProps} asChild>
+      <span>Toggle Sidebar</span>
+    </Sidebar.Trigger>`
+      : state.triggerComposition === "render"
+        ? `<Sidebar.Trigger${triggerProps} render={(props) => <button {...props}>Toggle Sidebar</button>} />`
+        : `<Sidebar.Trigger${triggerProps}>Toggle Sidebar</Sidebar.Trigger>`;
+    const panelSource = state.panelComposition === "asChild"
+      ? `<Sidebar.Panel${panelProps} asChild>
+    <nav>Project navigation</nav>
+  </Sidebar.Panel>`
+      : state.panelComposition === "render"
+        ? `<Sidebar.Panel${panelProps} render={(props) => <nav {...props}>Project navigation</nav>} />`
+        : `<Sidebar.Panel${panelProps}>Project navigation</Sidebar.Panel>`;
+    const mainChildren = indent(triggerSource, 4).trim();
+    const mainSource = state.mainComposition === "asChild"
+      ? `<Sidebar.Main${mainProps} asChild>
+    <section>
+      ${mainChildren}
+    </section>
+  </Sidebar.Main>`
+      : state.mainComposition === "render"
+        ? `<Sidebar.Main${mainProps} render={(props) => (
+    <section {...props}>
+      ${mainChildren}
+    </section>
+  )} />`
+        : `<Sidebar.Main${mainProps}>
+    ${mainChildren}
+  </Sidebar.Main>`;
+    const children = `${indent(panelSource, 2).trim()}
+  ${indent(mainSource, 2).trim()}`;
+
+    if (state.rootComposition === "asChild") {
+      return `<Sidebar.Root${rootProps} asChild>
+  <section>
+    ${children}
+  </section>
+</Sidebar.Root>`;
+    }
+
+    if (state.rootComposition === "render") {
+      return `<Sidebar.Root${rootProps} render={(props) => (
+  <section {...props}>
+    ${children}
+  </section>
+)} />`;
+    }
+
+    return `<Sidebar.Root${rootProps}>
+  ${children}
 </Sidebar.Root>`;
   }
 
@@ -3360,39 +3488,158 @@ function SidebarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useSi
     className: `utility-sidebar ${scenario.state.side}`,
     "data-sidebar-root": "",
     "data-playground-inspect": "",
-    "data-prop-check": "root",
+    ...partProps("root", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customRootSlot }, "sidebar-custom"),
     collapsedState: scenario.state.collapsedState,
     disabled: scenario.state.disabled,
     side: scenario.state.side,
     onStateChange: scenario.actions.setState,
-    ...(scenario.state.controlled ? { state: scenario.state.state } : { defaultState: scenario.state.state }),
+    ...(scenario.state.controlled ? { state: scenario.state.state } : { defaultState: scenario.state.initialState }),
   };
+  const content = (
+    <>
+      <SidebarPanelDemo scenario={scenario} />
+      <SidebarMainDemo scenario={scenario} />
+    </>
+  );
 
   return (
     <div className="utility-primitive-stage utility-sidebar-stage">
-      <Sidebar.Root {...rootProps}>
-        <Sidebar.Panel className="utility-sidebar-panel" aria-label="Project navigation" data-sidebar-panel="" data-playground-inspect="" data-prop-check="panel">
-          <strong>Project</strong>
-          <a href="#overview">Overview</a>
-          <a href="#settings">Settings</a>
-          <a href="#activity">Activity</a>
-        </Sidebar.Panel>
-        <Sidebar.Main className="utility-sidebar-main" data-sidebar-main="" data-playground-inspect="" data-prop-check="main">
-          <Sidebar.Trigger className="atom-button" data-sidebar-trigger="" data-playground-inspect="" data-prop-check="trigger">
-            Toggle Sidebar
-          </Sidebar.Trigger>
-          <div className="utility-sidebar-actions">
-            <Sidebar.Trigger className="atom-button secondary" toState="expanded" data-sidebar-trigger-expand="" data-playground-inspect="">
-              Expand
-            </Sidebar.Trigger>
-            <Sidebar.Trigger className="atom-button secondary" toState={scenario.state.collapsedState} data-sidebar-trigger-collapse="" data-playground-inspect="">
-              Collapse
-            </Sidebar.Trigger>
-          </div>
-        </Sidebar.Main>
-      </Sidebar.Root>
+      {scenario.state.rootComposition === "asChild" ? (
+        <Sidebar.Root key={getSidebarScenarioKey(scenario)} {...rootProps} asChild>
+          <section>{content}</section>
+        </Sidebar.Root>
+      ) : scenario.state.rootComposition === "render" ? (
+        <Sidebar.Root
+          key={getSidebarScenarioKey(scenario)}
+          {...rootProps}
+          render={(props: Record<string, unknown>) => (
+            <section {...(props as ComponentPropsWithRef<"section">)}>{content}</section>
+          )}
+        />
+      ) : (
+        <Sidebar.Root key={getSidebarScenarioKey(scenario)} {...rootProps}>{content}</Sidebar.Root>
+      )}
     </div>
   );
+}
+
+function getSidebarScenarioKey(scenario: ReturnType<typeof useSidebarScenario>) {
+  return scenario.state.controlled ? "controlled" : `uncontrolled-${scenario.state.initialState}`;
+}
+
+function SidebarPanelDemo({ scenario }: { scenario: ReturnType<typeof useSidebarScenario> }) {
+  const isRail = scenario.state.state === "rail";
+  const links = [
+    { href: "#overview", label: "Overview", token: "O" },
+    { href: "#settings", label: "Settings", token: "S" },
+    { href: "#activity", label: "Activity", token: "A" },
+  ];
+  const panelProps = {
+    className: "utility-sidebar-panel",
+    "aria-label": "Project navigation",
+    "data-sidebar-panel": "",
+    "data-playground-inspect": "",
+    ...partProps("panel", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customPanelSlot }, "sidebar-panel-custom"),
+  };
+  const content = (
+    <>
+      <strong>Project</strong>
+      {links.map((link) => (
+        <a href={link.href} key={link.href} aria-label={isRail ? link.label : undefined}>
+          <span className="utility-sidebar-rail-token" aria-hidden="true">{link.token}</span>
+          <span className="utility-sidebar-link-label">{link.label}</span>
+        </a>
+      ))}
+    </>
+  );
+
+  if (scenario.state.panelComposition === "asChild") {
+    return (
+      <Sidebar.Panel {...panelProps} asChild>
+        <nav>{content}</nav>
+      </Sidebar.Panel>
+    );
+  }
+
+  if (scenario.state.panelComposition === "render") {
+    return (
+      <Sidebar.Panel
+        {...panelProps}
+        render={(props: Record<string, unknown>) => (
+          <nav {...(props as ComponentPropsWithRef<"nav">)}>{content}</nav>
+        )}
+      />
+    );
+  }
+
+  return <Sidebar.Panel {...panelProps}>{content}</Sidebar.Panel>;
+}
+
+function SidebarMainDemo({ scenario }: { scenario: ReturnType<typeof useSidebarScenario> }) {
+  const mainProps = {
+    className: "utility-sidebar-main",
+    "data-sidebar-main": "",
+    "data-playground-inspect": "",
+    ...partProps("main", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customMainSlot }, "sidebar-main-custom"),
+  };
+  const content = (
+    <>
+      <SidebarTriggerDemo scenario={scenario} />
+    </>
+  );
+
+  if (scenario.state.mainComposition === "asChild") {
+    return (
+      <Sidebar.Main {...mainProps} asChild>
+        <section>{content}</section>
+      </Sidebar.Main>
+    );
+  }
+
+  if (scenario.state.mainComposition === "render") {
+    return (
+      <Sidebar.Main
+        {...mainProps}
+        render={(props: Record<string, unknown>) => (
+          <section {...(props as ComponentPropsWithRef<"section">)}>{content}</section>
+        )}
+      />
+    );
+  }
+
+  return <Sidebar.Main {...mainProps}>{content}</Sidebar.Main>;
+}
+
+function SidebarTriggerDemo({ scenario }: { scenario: ReturnType<typeof useSidebarScenario> }) {
+  const triggerProps = {
+    className: "atom-button",
+    "data-sidebar-trigger": "",
+    "data-playground-inspect": "",
+    ...partProps("trigger", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customTriggerSlot }, "sidebar-trigger-custom"),
+  };
+
+  if (scenario.state.triggerComposition === "asChild") {
+    return (
+      <Sidebar.Trigger {...triggerProps} asChild>
+        <span>Toggle Sidebar</span>
+      </Sidebar.Trigger>
+    );
+  }
+
+  if (scenario.state.triggerComposition === "render") {
+    return (
+      <Sidebar.Trigger
+        {...triggerProps}
+        render={(props: Record<string, unknown>) => (
+          <button {...(props as ButtonHTMLAttributes<HTMLButtonElement>)} type="button">
+            Toggle Sidebar
+          </button>
+        )}
+      />
+    );
+  }
+
+  return <Sidebar.Trigger {...triggerProps}>Toggle Sidebar</Sidebar.Trigger>;
 }
 
 function SwipeableItemScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useSwipeableItemScenario> }) {
@@ -4982,17 +5229,27 @@ function getUtilityPrimitiveSections(
       {
         title: "Root",
         selector: "[data-sidebar-root]",
-        summary: scenarios.sidebar.state.state,
+        summary: root?.dataset.state ?? "not rendered",
         rows: [
           { label: "Exists", value: bool(!!root), category: "presence" },
           { label: "Mode", value: scenarios.sidebar.state.controlled ? "controlled" : "uncontrolled", category: "state" },
-          { label: "State", value: scenarios.sidebar.state.state, category: "state" },
-          { label: "Collapsed state", value: scenarios.sidebar.state.collapsedState, category: "state" },
-          { label: "Side", value: scenarios.sidebar.state.side, category: "state" },
+          { label: "State", value: root?.dataset.state ?? "not rendered", category: "state" },
+          { label: "Collapsed state", value: root?.dataset.collapsedState ?? "not rendered", category: "state" },
+          { label: "Side", value: root?.dataset.side ?? "not rendered", category: "state" },
           { label: "Disabled", value: bool(scenarios.sidebar.state.disabled), category: "state" },
+          { label: "Composition", value: formatOption(scenarios.sidebar.state.rootComposition), category: "composition" },
         ],
       },
-      { title: "Trigger", selector: "[data-sidebar-trigger]", summary: trigger?.dataset.state ?? "not rendered", rows: [{ label: "Exists", value: bool(!!trigger), category: "presence" }] },
+      {
+        title: "Trigger",
+        selector: "[data-sidebar-trigger]",
+        summary: trigger?.dataset.targetState ?? "not rendered",
+        rows: [
+          { label: "Exists", value: bool(!!trigger), category: "presence" },
+          { label: "Target state", value: trigger?.dataset.targetState ?? "not rendered", category: "state" },
+          { label: "Composition", value: formatOption(scenarios.sidebar.state.triggerComposition), category: "composition" },
+        ],
+      },
       {
         title: "Panel",
         selector: "[data-sidebar-panel]",
@@ -5000,9 +5257,19 @@ function getUtilityPrimitiveSections(
         rows: [
           { label: "Exists", value: bool(!!panel), category: "presence" },
           { label: "Hidden", value: bool(panel?.getAttribute("aria-hidden") === "true"), category: "state" },
+          { label: "Inert", value: bool(panel?.hasAttribute("inert") ?? false), category: "state" },
+          { label: "Composition", value: formatOption(scenarios.sidebar.state.panelComposition), category: "composition" },
         ],
       },
-      { title: "Main", selector: "[data-sidebar-main]", summary: main?.dataset.state ?? "not rendered", rows: [{ label: "Exists", value: bool(!!main), category: "presence" }] },
+      {
+        title: "Main",
+        selector: "[data-sidebar-main]",
+        summary: main?.dataset.state ?? "not rendered",
+        rows: [
+          { label: "Exists", value: bool(!!main), category: "presence" },
+          { label: "Composition", value: formatOption(scenarios.sidebar.state.mainComposition), category: "composition" },
+        ],
+      },
     ];
   }
 
