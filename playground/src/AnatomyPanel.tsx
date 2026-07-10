@@ -111,6 +111,7 @@ const nativeAttributeLabels = new Set([
   "role",
   "rows",
   "selected",
+  "scope",
   "tabindex",
   "tabindex attr",
   "target",
@@ -138,6 +139,7 @@ const booleanRawAttributes = new Set([
   "selected",
 ]);
 const textBearingTags = new Set([
+  "caption",
   "h1",
   "h2",
   "h3",
@@ -146,6 +148,8 @@ const textBearingTags = new Set([
   "h6",
   "p",
   "span",
+  "td",
+  "th",
 ]);
 
 function getRowKey(row: AnatomyRow) {

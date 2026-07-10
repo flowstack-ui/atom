@@ -3,6 +3,7 @@ import { DataGrid } from "@flowstack-ui/atom/data-grid";
 import { Feed } from "@flowstack-ui/atom/feed";
 import { Form } from "@flowstack-ui/atom/form";
 import { Input } from "@flowstack-ui/atom/input";
+import { Menubar } from "@flowstack-ui/atom/menubar";
 import { ScrollArea } from "@flowstack-ui/atom/scroll-area";
 import { Table } from "@flowstack-ui/atom/table";
 import { Tree } from "@flowstack-ui/atom/tree";
@@ -18,7 +19,20 @@ type ScrollAreaNameMode = "none" | "aria-label" | "aria-labelledby";
 type ScrollAreaRoleMode = "auto" | "region" | "group";
 type FeedSize = "known" | "unknown";
 type FeedPositionMode = "index" | "position";
-type TableSortDirection = "ascending" | "descending" | "none" | "other";
+type TableSortDirection = "unset" | "ascending" | "descending" | "none" | "other";
+type TablePartKey =
+  | "root"
+  | "caption"
+  | "header"
+  | "headerRow"
+  | "head"
+  | "body"
+  | "bodyRow"
+  | "rowHead"
+  | "cell"
+  | "footer"
+  | "footerRow"
+  | "footerCell";
 type TreeSelectionMode = "single" | "multiple";
 type FormControlType = "native" | "atom";
 
@@ -76,19 +90,39 @@ export function useDataPrimitiveScenarios(): any {
 }
 
 function useTableScenario() {
-  const [sortDirection, setSortDirection] = useState<TableSortDirection>("ascending");
-  const [footer, setFooter] = useState(true);
-  const [composition, setComposition] = useState<CompositionMode>("default");
+  const [sortDirection, setSortDirection] = useState<TableSortDirection>("unset");
+  const [footer, setFooter] = useState(false);
+  const [composition, setComposition] = useState<Record<TablePartKey, CompositionMode>>(tableDefaultComposition);
+  const [propCheck, setPropCheck] = useState(false);
+  const [customSlots, setCustomSlots] = useState<Record<TablePartKey, boolean>>(tableDefaultCustomSlots);
+  const [refs, setRefs] = useState<Record<TablePartKey, string>>(tableDefaultRefs);
   const { log, addLog, clearLog } = useScenarioLog();
+  const setPartComposition = (part: TablePartKey, value: CompositionMode) => {
+    setComposition((current) => ({ ...current, [part]: value }));
+  };
+  const setCustomSlot = (part: TablePartKey, value: boolean) => {
+    setCustomSlots((current) => ({ ...current, [part]: value }));
+  };
+  const markPartRef = useCallback((part: TablePartKey, element: HTMLElement | null) => {
+    if (!element) return;
+    const nextRef = formatRef(element);
+    setRefs((current) => {
+      if (current[part] === nextRef) return current;
+      return { ...current, [part]: nextRef };
+    });
+  }, []);
 
   return {
-    state: { sortDirection, footer, composition, log },
+    state: { sortDirection, footer, composition, propCheck, customSlots, refs, log },
     actions: {
       setSortDirection,
       setFooter,
-      setComposition,
+      setPartComposition,
+      setPropCheck,
+      setCustomSlot,
+      markPartRef,
       clearLog,
-      noteSort: () => addLog(`sort ${sortDirection}`),
+      noteSort: () => addLog(`sort ${formatTableSort(sortDirection)}`),
     },
   };
 }
@@ -317,18 +351,19 @@ export function DataPrimitiveScenarioToolbar({
           <MenuRadioControl label="Sort direction" options={tableSortOptions} value={scenario.state.sortDirection} onChange={(value) => scenario.actions.setSortDirection(value as TableSortDirection)} />
           <MenuCheckboxControl checked={scenario.state.footer} label="Footer" value="footer" onChange={scenario.actions.setFooter} />
         </ToolbarGroup>
-        <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+        <TableCompositionToolbarGroup
+          composition={scenario.state.composition}
+          onChange={scenario.actions.setPartComposition}
+        />
         <PropsToolbarGroup
           propCheck={scenario.state.propCheck}
           onPropCheckChange={scenario.actions.setPropCheck}
-          customSlots={[
-            {
-              checked: scenario.state.customRootSlot,
-              label: "Root Slot",
-              value: "root-slot",
-              onChange: scenario.actions.setCustomRootSlot,
-            },
-          ]}
+          customSlots={tableSlotControls.map((control) => ({
+            checked: scenario.state.customSlots[control.part],
+            label: control.label,
+            value: control.value,
+            onChange: (checked) => scenario.actions.setCustomSlot(control.part, checked),
+          }))}
         />
       </ControlToolbar>
     );
@@ -564,7 +599,7 @@ export function getDataPrimitiveCanvasFooter(
 ): any {
   if (scenarioId === "table") {
     const state = scenarios.table.state;
-    return `Sort ${state.sortDirection} | Footer ${bool(state.footer)} | ${state.composition}`;
+    return `Sort ${formatTableSort(state.sortDirection)} | Footer ${bool(state.footer)} | Root ${state.composition.root}`;
   }
 
   if (scenarioId === "data-grid") {
@@ -602,21 +637,7 @@ export function getDataPrimitiveCanvasFooter(
 
 export function getDataPrimitiveSource(scenarioId: string, scenarios?: DataPrimitiveScenarios): any {
   if (scenarioId === "table") {
-    return `<Table.Root aria-label="Project metrics">
-  <Table.Caption>Project metrics</Table.Caption>
-  <Table.Header>
-    <Table.Row>
-      <Table.Head sortDirection="ascending">Project</Table.Head>
-      <Table.Head>Status</Table.Head>
-    </Table.Row>
-  </Table.Header>
-  <Table.Body>
-    <Table.Row>
-      <Table.Head scope="row">Alpha</Table.Head>
-      <Table.Cell>Ready</Table.Cell>
-    </Table.Row>
-  </Table.Body>
-</Table.Root>`;
+    return getTableSource(scenarios?.table.state);
   }
 
   if (scenarioId === "data-grid") {
@@ -809,22 +830,23 @@ ${close}`;
 }
 
 function TableScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useTableScenario> }) {
+  const state = scenario.state;
   const props = {
     className: "playground-data-table",
-    "aria-label": "Project metrics",
     "data-playground-inspect": "",
-    "data-prop-check": "root",
     "data-table-root": "",
+    ref: (element: HTMLTableElement | null) => scenario.actions.markPartRef("root", element),
+    ...tablePartProps("root", state),
   };
   const content = renderTableContent(scenario);
 
   return (
     <div className="data-primitive-stage scroll-area-stage">
-      {scenario.state.composition === "asChild" ? (
+      {state.composition.root === "asChild" ? (
         <Table.Root {...props} asChild>
           <table>{content}</table>
         </Table.Root>
-      ) : scenario.state.composition === "render" ? (
+      ) : state.composition.root === "render" ? (
         <Table.Root {...props} render={(renderProps) => <table {...renderProps}>{content}</table>} />
       ) : (
         <Table.Root {...props}>{content}</Table.Root>
@@ -836,39 +858,426 @@ function TableScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useTabl
 function renderTableContent(scenario: ReturnType<typeof useTableScenario>) {
   return (
     <>
-      <Table.Caption data-playground-inspect="" data-table-caption="">Project metrics</Table.Caption>
-      <Table.Header data-playground-inspect="" data-table-header="">
-        <Table.Row data-playground-inspect="" data-table-header-row="">
-          <Table.Head
-            data-playground-inspect=""
-            data-prop-check="head"
-            data-table-head-name=""
-            sortDirection={scenario.state.sortDirection}
-          >
-            Project
-          </Table.Head>
-          <Table.Head data-playground-inspect="" data-table-head-status="">Status</Table.Head>
-          <Table.Head data-playground-inspect="" data-table-head-owner="">Owner</Table.Head>
-        </Table.Row>
-      </Table.Header>
-      <Table.Body data-playground-inspect="" data-table-body="">
-        {tableRows.map((item) => (
-          <Table.Row data-playground-inspect="" data-table-row={item.id} key={item.id}>
-            <Table.Head data-playground-inspect="" data-table-row-head={item.id} scope="row">{item.name}</Table.Head>
-            <Table.Cell data-playground-inspect="" data-table-cell={`${item.id}-status`}>{item.status}</Table.Cell>
-            <Table.Cell data-playground-inspect="" data-table-cell={`${item.id}-owner`}>{item.owner}</Table.Cell>
-          </Table.Row>
-        ))}
-      </Table.Body>
-      {scenario.state.footer ? (
-        <Table.Footer data-playground-inspect="" data-table-footer="">
-          <Table.Row data-playground-inspect="" data-table-footer-row="">
-            <Table.Cell colSpan={3} data-playground-inspect="" data-table-footer-cell="">3 projects</Table.Cell>
-          </Table.Row>
-        </Table.Footer>
-      ) : null}
+      {renderTableCaption(scenario)}
+      {renderTableHeader(scenario)}
+      {renderTableBody(scenario)}
+      {renderTableFooter(scenario)}
     </>
   );
+}
+
+function renderTableCaption(scenario: ReturnType<typeof useTableScenario>) {
+  const props = {
+    "data-playground-inspect": "",
+    "data-table-caption": "",
+    ref: (element: HTMLTableCaptionElement | null) => scenario.actions.markPartRef("caption", element),
+    ...tablePartProps("caption", scenario.state),
+  };
+
+  if (scenario.state.composition.caption === "asChild") {
+    return (
+      <Table.Caption {...props} asChild>
+        <caption>Project metrics</caption>
+      </Table.Caption>
+    );
+  }
+
+  if (scenario.state.composition.caption === "render") {
+    return <Table.Caption {...props} render={(renderProps) => <caption {...renderProps}>Project metrics</caption>} />;
+  }
+
+  return <Table.Caption {...props}>Project metrics</Table.Caption>;
+}
+
+function renderTableHeader(scenario: ReturnType<typeof useTableScenario>) {
+  const props = {
+    "data-playground-inspect": "",
+    "data-table-header": "",
+    ref: (element: HTMLTableSectionElement | null) => scenario.actions.markPartRef("header", element),
+    ...tablePartProps("header", scenario.state),
+  };
+  const row = renderTableHeaderRow(scenario);
+
+  if (scenario.state.composition.header === "asChild") {
+    return (
+      <Table.Header {...props} asChild>
+        <thead>{row}</thead>
+      </Table.Header>
+    );
+  }
+
+  if (scenario.state.composition.header === "render") {
+    return <Table.Header {...props} render={(renderProps) => <thead {...renderProps}>{row}</thead>} />;
+  }
+
+  return <Table.Header {...props}>{row}</Table.Header>;
+}
+
+function renderTableHeaderRow(scenario: ReturnType<typeof useTableScenario>) {
+  const props = {
+    "data-playground-inspect": "",
+    "data-table-header-row": "",
+    ref: (element: HTMLTableRowElement | null) => scenario.actions.markPartRef("headerRow", element),
+    ...tablePartProps("headerRow", scenario.state),
+  };
+  const cells = (
+    <>
+      {renderTableProjectHead(scenario)}
+      {renderTableHead("status", "Status", scenario)}
+      {renderTableHead("owner", "Owner", scenario)}
+    </>
+  );
+
+  if (scenario.state.composition.headerRow === "asChild") {
+    return (
+      <Table.Row {...props} asChild>
+        <tr>{cells}</tr>
+      </Table.Row>
+    );
+  }
+
+  if (scenario.state.composition.headerRow === "render") {
+    return <Table.Row {...props} render={(renderProps) => <tr {...renderProps}>{cells}</tr>} />;
+  }
+
+  return <Table.Row {...props}>{cells}</Table.Row>;
+}
+
+function renderTableProjectHead(scenario: ReturnType<typeof useTableScenario>) {
+  const sortDirection = scenario.state.sortDirection === "unset" ? undefined : scenario.state.sortDirection;
+  const props = {
+    "data-playground-inspect": "",
+    "data-table-head-name": "",
+    sortDirection,
+    ref: (element: HTMLTableCellElement | null) => scenario.actions.markPartRef("head", element),
+    ...tablePartProps("head", scenario.state),
+  };
+
+  if (scenario.state.composition.head === "asChild") {
+    return (
+      <Table.Head {...props} asChild>
+        <th>Project</th>
+      </Table.Head>
+    );
+  }
+
+  if (scenario.state.composition.head === "render") {
+    return <Table.Head {...props} render={(renderProps) => <th {...renderProps}>Project</th>} />;
+  }
+
+  return <Table.Head {...props}>Project</Table.Head>;
+}
+
+function renderTableHead(id: string, label: string, scenario: ReturnType<typeof useTableScenario>) {
+  const props = id === "status"
+    ? { "data-playground-inspect": "", "data-table-head-status": "", ...tablePartProps("head", scenario.state) }
+    : { "data-playground-inspect": "", "data-table-head": id, ...tablePartProps("head", scenario.state) };
+
+  if (scenario.state.composition.head === "asChild") {
+    return (
+      <Table.Head {...props} asChild>
+        <th>{label}</th>
+      </Table.Head>
+    );
+  }
+
+  if (scenario.state.composition.head === "render") {
+    return <Table.Head {...props} render={(renderProps) => <th {...renderProps}>{label}</th>} />;
+  }
+
+  return (
+    <Table.Head {...props}>
+      {label}
+    </Table.Head>
+  );
+}
+
+function renderTableBody(scenario: ReturnType<typeof useTableScenario>) {
+  const props = {
+    "data-playground-inspect": "",
+    "data-table-body": "",
+    ref: (element: HTMLTableSectionElement | null) => scenario.actions.markPartRef("body", element),
+    ...tablePartProps("body", scenario.state),
+  };
+  const rows = (
+    <>
+        {tableRows.map((item) => (
+          <TableBodyRow item={item} key={item.id} scenario={scenario} />
+        ))}
+    </>
+  );
+
+  if (scenario.state.composition.body === "asChild") {
+    return (
+      <Table.Body {...props} asChild>
+        <tbody>{rows}</tbody>
+      </Table.Body>
+    );
+  }
+
+  if (scenario.state.composition.body === "render") {
+    return <Table.Body {...props} render={(renderProps) => <tbody {...renderProps}>{rows}</tbody>} />;
+  }
+
+  return <Table.Body {...props}>{rows}</Table.Body>;
+}
+
+function TableBodyRow({ item, scenario }: { item: (typeof tableRows)[number]; scenario: ReturnType<typeof useTableScenario> }) {
+  const rowProps = {
+    "data-playground-inspect": "",
+    "data-table-row": item.id,
+    ref: item.id === "alpha" ? (element: HTMLTableRowElement | null) => scenario.actions.markPartRef("bodyRow", element) : undefined,
+    ...tablePartProps("bodyRow", scenario.state),
+  };
+  const cells = (
+    <>
+      {renderTableRowHead(item, scenario)}
+      {renderTableCell(`${item.id}-status`, item.status, scenario)}
+      {renderTableCell(`${item.id}-owner`, item.owner, scenario)}
+    </>
+  );
+
+  if (scenario.state.composition.bodyRow === "asChild") {
+    return (
+      <Table.Row {...rowProps} asChild>
+        <tr>{cells}</tr>
+      </Table.Row>
+    );
+  }
+
+  if (scenario.state.composition.bodyRow === "render") {
+    return <Table.Row {...rowProps} render={(renderProps) => <tr {...renderProps}>{cells}</tr>} />;
+  }
+
+  return <Table.Row {...rowProps}>{cells}</Table.Row>;
+}
+
+function renderTableRowHead(item: (typeof tableRows)[number], scenario: ReturnType<typeof useTableScenario>) {
+  const props = {
+    "data-playground-inspect": "",
+    "data-table-row-head": item.id,
+    scope: "row",
+    ref: item.id === "alpha" ? (element: HTMLTableCellElement | null) => scenario.actions.markPartRef("rowHead", element) : undefined,
+    ...tablePartProps("rowHead", scenario.state),
+  };
+
+  if (scenario.state.composition.rowHead === "asChild") {
+    return (
+      <Table.Head {...props} asChild>
+        <th>{item.name}</th>
+      </Table.Head>
+    );
+  }
+
+  if (scenario.state.composition.rowHead === "render") {
+    return <Table.Head {...props} render={(renderProps) => <th {...renderProps}>{item.name}</th>} />;
+  }
+
+  return <Table.Head {...props}>{item.name}</Table.Head>;
+}
+
+function renderTableCell(id: string, value: string, scenario: ReturnType<typeof useTableScenario>) {
+  const props = {
+    "data-playground-inspect": "",
+    "data-table-cell": id,
+    ref: id === "alpha-status" ? (element: HTMLTableCellElement | null) => scenario.actions.markPartRef("cell", element) : undefined,
+    ...tablePartProps("cell", scenario.state),
+  };
+
+  if (scenario.state.composition.cell === "asChild") {
+    return (
+      <Table.Cell {...props} asChild>
+        <td>{value}</td>
+      </Table.Cell>
+    );
+  }
+
+  if (scenario.state.composition.cell === "render") {
+    return <Table.Cell {...props} render={(renderProps) => <td {...renderProps}>{value}</td>} />;
+  }
+
+  return <Table.Cell {...props}>{value}</Table.Cell>;
+}
+
+function renderTableFooter(scenario: ReturnType<typeof useTableScenario>) {
+  if (!scenario.state.footer) return null;
+
+  const props = {
+    "data-playground-inspect": "",
+    "data-table-footer": "",
+    ref: (element: HTMLTableSectionElement | null) => scenario.actions.markPartRef("footer", element),
+    ...tablePartProps("footer", scenario.state),
+  };
+  const row = renderTableFooterRow(scenario);
+
+  if (scenario.state.composition.footer === "asChild") {
+    return (
+      <Table.Footer {...props} asChild>
+        <tfoot>{row}</tfoot>
+      </Table.Footer>
+    );
+  }
+
+  if (scenario.state.composition.footer === "render") {
+    return <Table.Footer {...props} render={(renderProps) => <tfoot {...renderProps}>{row}</tfoot>} />;
+  }
+
+  return <Table.Footer {...props}>{row}</Table.Footer>;
+}
+
+function renderTableFooterRow(scenario: ReturnType<typeof useTableScenario>) {
+  const props = {
+    "data-playground-inspect": "",
+    "data-table-footer-row": "",
+    ref: (element: HTMLTableRowElement | null) => scenario.actions.markPartRef("footerRow", element),
+    ...tablePartProps("footerRow", scenario.state),
+  };
+  const cell = renderTableFooterCell(scenario);
+
+  if (scenario.state.composition.footerRow === "asChild") {
+    return (
+      <Table.Row {...props} asChild>
+        <tr>{cell}</tr>
+      </Table.Row>
+    );
+  }
+
+  if (scenario.state.composition.footerRow === "render") {
+    return <Table.Row {...props} render={(renderProps) => <tr {...renderProps}>{cell}</tr>} />;
+  }
+
+  return <Table.Row {...props}>{cell}</Table.Row>;
+}
+
+function renderTableFooterCell(scenario: ReturnType<typeof useTableScenario>) {
+  const props = {
+    colSpan: 3,
+    "data-playground-inspect": "",
+    "data-table-footer-cell": "",
+    ref: (element: HTMLTableCellElement | null) => scenario.actions.markPartRef("footerCell", element),
+    ...tablePartProps("footerCell", scenario.state),
+  };
+
+  if (scenario.state.composition.footerCell === "asChild") {
+    return (
+      <Table.Cell {...props} asChild>
+        <td>3 projects</td>
+      </Table.Cell>
+    );
+  }
+
+  if (scenario.state.composition.footerCell === "render") {
+    return <Table.Cell {...props} render={(renderProps) => <td {...renderProps}>3 projects</td>} />;
+  }
+
+  return <Table.Cell {...props}>3 projects</Table.Cell>;
+}
+
+function tablePartProps(part: TablePartKey, state: ReturnType<typeof useTableScenario>["state"]) {
+  return partProps(part, {
+    propCheck: state.propCheck,
+    customSlot: state.customSlots[part],
+  }, tableSlotValues[part]);
+}
+
+function getTableSource(state = {
+  sortDirection: "unset" as TableSortDirection,
+  footer: false,
+  composition: tableDefaultComposition,
+  propCheck: false,
+  customSlots: tableDefaultCustomSlots,
+}) {
+  const rootProps = sourceTablePartProps("root", state);
+  const captionProps = sourceTablePartProps("caption", state);
+  const headerProps = sourceTablePartProps("header", state);
+  const headerRowProps = sourceTablePartProps("headerRow", state);
+  const projectHeadProps = sourceTablePartProps("head", state, [
+    state.sortDirection !== "unset" ? `sortDirection="${state.sortDirection}"` : null,
+  ]);
+  const headProps = sourceTablePartProps("head", state);
+  const bodyProps = sourceTablePartProps("body", state);
+  const bodyRowProps = sourceTablePartProps("bodyRow", state);
+  const rowHeadProps = sourceTablePartProps("rowHead", state, ["scope=\"row\""]);
+  const cellProps = sourceTablePartProps("cell", state);
+  const footer = state.footer ? `
+  ${sourceTableElement("Footer", "footer", state.composition.footer, sourceTablePartProps("footer", state), `
+    ${sourceTableElement("Row", "footerRow", state.composition.footerRow, sourceTablePartProps("footerRow", state), `
+      ${sourceTableElement("Cell", "footerCell", state.composition.footerCell, sourceTablePartProps("footerCell", state, ["colSpan={3}"]), "3 projects", 6)}
+    `, 4)}
+  `, 2)}` : "";
+
+  return sourceTableElement("Root", "root", state.composition.root, rootProps, `
+  ${sourceTableElement("Caption", "caption", state.composition.caption, captionProps, "Project metrics", 2)}
+  ${sourceTableElement("Header", "header", state.composition.header, headerProps, `
+    ${sourceTableElement("Row", "headerRow", state.composition.headerRow, headerRowProps, `
+      ${sourceTableElement("Head", "head", state.composition.head, projectHeadProps, "Project", 6)}
+      ${sourceTableElement("Head", "head", state.composition.head, headProps, "Status", 6)}
+      ${sourceTableElement("Head", "head", state.composition.head, headProps, "Owner", 6)}
+    `, 4)}
+  `, 2)}
+  ${sourceTableElement("Body", "body", state.composition.body, bodyProps, `
+    ${sourceTableElement("Row", "bodyRow", state.composition.bodyRow, bodyRowProps, `
+      ${sourceTableElement("Head", "rowHead", state.composition.rowHead, rowHeadProps, "Alpha", 6)}
+      ${sourceTableElement("Cell", "cell", state.composition.cell, cellProps, "Ready", 6)}
+      <Table.Cell>Ava</Table.Cell>
+    `, 4)}
+  `, 2)}${footer}
+`, 0);
+}
+
+function sourceTablePartProps(
+  part: TablePartKey,
+  state: Pick<ReturnType<typeof useTableScenario>["state"], "customSlots" | "propCheck">,
+  extraProps: Array<string | null> = [],
+) {
+  return [
+    ...extraProps,
+    state.propCheck ? `data-prop-check="${part}"` : null,
+    state.customSlots[part] ? `data-slot="${tableSlotValues[part]}"` : null,
+  ].filter(Boolean) as string[];
+}
+
+function sourceTableElement(
+  component: string,
+  part: TablePartKey,
+  composition: CompositionMode,
+  props: string[],
+  children: string,
+  indent: number,
+) {
+  const pad = " ".repeat(indent);
+  const propText = props.length ? ` ${props.join(" ")}` : "";
+  const normalizedChildren = normalizeTableSourceChildren(children, indent + 2);
+
+  if (composition === "asChild") {
+    const tag = tableNativeTags[part];
+    return `${pad}<Table.${component}${propText} asChild>
+${pad}  <${tag}>${normalizedChildren.includes("\n") ? `\n${normalizedChildren}\n${pad}  ` : normalizedChildren}</${tag}>
+${pad}</Table.${component}>`;
+  }
+
+  if (composition === "render") {
+    const tag = tableNativeTags[part];
+    return `${pad}<Table.${component}${propText}
+${pad}  render={(props) => (
+${pad}    <${tag} {...props}>${normalizedChildren.includes("\n") ? `\n${normalizedChildren}\n${pad}    ` : normalizedChildren}</${tag}>
+${pad}  )}
+${pad}/>`;
+  }
+
+  return `${pad}<Table.${component}${propText}>${normalizedChildren.includes("\n") ? `\n${normalizedChildren}\n${pad}` : normalizedChildren}</Table.${component}>`;
+}
+
+function normalizeTableSourceChildren(children: string, indent: number) {
+  if (!children.includes("\n")) return children;
+
+  const pad = " ".repeat(indent);
+  return children
+    .split("\n")
+    .map((line) => line.trimEnd())
+    .filter((line) => line.trim().length > 0)
+    .map((line) => `${pad}${line.trimStart()}`)
+    .join("\n");
 }
 
 function DataGridScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useDataGridScenario> }) {
@@ -1325,21 +1734,63 @@ function getDataPrimitiveSections(
   if (scenarioId === "table") {
     const state = scenarios.table.state;
     return [
-      section("Root", state.composition, "[data-table-root]", [
-        row("Sort direction", state.sortDirection, "state"),
+      section("Root", state.composition.root, "[data-table-root]", [
+        row("Sort direction", formatTableSort(state.sortDirection), "state"),
         row("Footer", bool(state.footer), "state"),
-        row("Composition", state.composition, "composition"),
+        row("Composition", state.composition.root, "composition"),
+        row("Ref target", state.refs.root, "identity"),
       ]),
-      section("Caption", "caption", "[data-table-caption]"),
-      section("Header", "thead", "[data-table-header]"),
-      section("Header Row", "tr", "[data-table-header-row]"),
-      section("Head: Project", state.sortDirection, "[data-table-head-name]"),
-      section("Head: Status", "th", "[data-table-head-status]"),
-      section("Body", "tbody", "[data-table-body]"),
-      section("Row", "tr", "[data-table-row='alpha']"),
-      section("Row Header", "scope row", "[data-table-row-head='alpha']"),
-      section("Cell", "td", "[data-table-cell='alpha-status']"),
-      section("Footer", state.footer ? "tfoot" : "not rendered", "[data-table-footer]"),
+      section("Caption", state.composition.caption, "[data-table-caption]", [
+        row("Composition", state.composition.caption, "composition"),
+        row("Ref target", state.refs.caption, "identity"),
+      ]),
+      section("Header", state.composition.header, "[data-table-header]", [
+        row("Composition", state.composition.header, "composition"),
+        row("Ref target", state.refs.header, "identity"),
+      ]),
+      section("Header Row", state.composition.headerRow, "[data-table-header-row]", [
+        row("Composition", state.composition.headerRow, "composition"),
+        row("Ref target", state.refs.headerRow, "identity"),
+      ]),
+      section("Head: Project", state.composition.head, "[data-table-head-name]", [
+        row("Sort direction", formatTableSort(state.sortDirection), "state"),
+        row("Composition", state.composition.head, "composition"),
+        row("Ref target", state.refs.head, "identity"),
+      ]),
+      section("Head: Status", state.composition.head, "[data-table-head-status]", [
+        row("Composition", state.composition.head, "composition"),
+      ]),
+      section("Head: Owner", state.composition.head, "[data-table-head='owner']", [
+        row("Composition", state.composition.head, "composition"),
+      ]),
+      section("Body", state.composition.body, "[data-table-body]", [
+        row("Composition", state.composition.body, "composition"),
+        row("Ref target", state.refs.body, "identity"),
+      ]),
+      section("Row: Alpha", state.composition.bodyRow, "[data-table-row='alpha']", [
+        row("Composition", state.composition.bodyRow, "composition"),
+        row("Ref target", state.refs.bodyRow, "identity"),
+      ]),
+      section("Row Header: Alpha", state.composition.rowHead, "[data-table-row-head='alpha']", [
+        row("Composition", state.composition.rowHead, "composition"),
+        row("Ref target", state.refs.rowHead, "identity"),
+      ]),
+      section("Cell: Alpha Status", state.composition.cell, "[data-table-cell='alpha-status']", [
+        row("Composition", state.composition.cell, "composition"),
+        row("Ref target", state.refs.cell, "identity"),
+      ]),
+      section("Footer", state.footer ? state.composition.footer : "not rendered", "[data-table-footer]", [
+        row("Composition", state.composition.footer, "composition"),
+        row("Ref target", state.refs.footer, "identity"),
+      ]),
+      section("Footer Row", state.footer ? state.composition.footerRow : "not rendered", "[data-table-footer-row]", [
+        row("Composition", state.composition.footerRow, "composition"),
+        row("Ref target", state.refs.footerRow, "identity"),
+      ]),
+      section("Footer Cell", state.footer ? state.composition.footerCell : "not rendered", "[data-table-footer-cell]", [
+        row("Composition", state.composition.footerCell, "composition"),
+        row("Ref target", state.refs.footerCell, "identity"),
+      ]),
     ];
   }
 
@@ -1515,6 +1966,48 @@ function CompositionToolbarGroup({
   );
 }
 
+function TableCompositionToolbarGroup({
+  composition,
+  onChange,
+}: {
+  composition: Record<TablePartKey, CompositionMode>;
+  onChange: (part: TablePartKey, value: CompositionMode) => void;
+}) {
+  return (
+    <ToolbarGroup title="Composition" value="composition">
+      {tableCompositionControls.map((control) => (
+        <Menubar.Sub key={control.part}>
+          <Menubar.SubTrigger className="toolbar-menu-item toolbar-submenu-trigger" value={control.part}>
+            <span>{control.label}</span>
+            <span className="toolbar-submenu-value">{formatCompositionMode(composition[control.part])}</span>
+            <span className="toolbar-submenu-arrow" aria-hidden="true">›</span>
+          </Menubar.SubTrigger>
+          <Menubar.SubContent className="toolbar-menu" sideOffset={6}>
+            <Menubar.RadioGroup
+              className="toolbar-radio-group"
+              value={composition[control.part]}
+              onValueChange={(value) => onChange(control.part, value as CompositionMode)}
+            >
+              {compositionOptions.map((option) => (
+                <Menubar.RadioItem
+                  className="toolbar-menu-item"
+                  key={option.value}
+                  value={option.value}
+                >
+                  <span>{option.label}</span>
+                  <span className="toolbar-menu-check" aria-hidden="true">
+                    {composition[control.part] === option.value ? "✓" : ""}
+                  </span>
+                </Menubar.RadioItem>
+              ))}
+            </Menubar.RadioGroup>
+          </Menubar.SubContent>
+        </Menubar.Sub>
+      ))}
+    </ToolbarGroup>
+  );
+}
+
 function section(title: string, summary: string, selector: string, rows: AnatomySection["rows"] = []): AnatomySection {
   return {
     inactive: summary === "not rendered",
@@ -1531,6 +2024,16 @@ function row(label: string, value: string, category: NonNullable<AnatomySection[
 
 function bool(value: boolean) {
   return value ? "true" : "false";
+}
+
+function formatTableSort(value: TableSortDirection) {
+  return value === "unset" ? "unset" : value;
+}
+
+function formatCompositionMode(value: CompositionMode) {
+  if (value === "asChild") return "As Child";
+  if (value === "render") return "Render";
+  return "Default";
 }
 
 function formatRef(element: HTMLElement | null) {
@@ -1558,11 +2061,90 @@ const treeSelectionOptions = [
 ];
 
 const tableSortOptions = [
+  { label: "Unset", value: "unset" },
   { label: "Ascending", value: "ascending" },
   { label: "Descending", value: "descending" },
   { label: "None", value: "none" },
   { label: "Other", value: "other" },
 ];
+
+const tableParts = [
+  "root",
+  "caption",
+  "header",
+  "headerRow",
+  "head",
+  "body",
+  "bodyRow",
+  "rowHead",
+  "cell",
+  "footer",
+  "footerRow",
+  "footerCell",
+] as const satisfies readonly TablePartKey[];
+
+const tableDefaultComposition = Object.fromEntries(
+  tableParts.map((part) => [part, "default"]),
+) as Record<TablePartKey, CompositionMode>;
+
+const tableDefaultCustomSlots = Object.fromEntries(
+  tableParts.map((part) => [part, false]),
+) as Record<TablePartKey, boolean>;
+
+const tableDefaultRefs = Object.fromEntries(
+  tableParts.map((part) => [part, "none"]),
+) as Record<TablePartKey, string>;
+
+const tableSlotValues: Record<TablePartKey, string> = {
+  root: "table-custom",
+  caption: "table-caption-custom",
+  header: "table-header-custom",
+  headerRow: "table-row-custom",
+  head: "table-head-custom",
+  body: "table-body-custom",
+  bodyRow: "table-row-custom",
+  rowHead: "table-head-custom",
+  cell: "table-cell-custom",
+  footer: "table-footer-custom",
+  footerRow: "table-row-custom",
+  footerCell: "table-cell-custom",
+};
+
+const tableNativeTags: Record<TablePartKey, string> = {
+  root: "table",
+  caption: "caption",
+  header: "thead",
+  headerRow: "tr",
+  head: "th",
+  body: "tbody",
+  bodyRow: "tr",
+  rowHead: "th",
+  cell: "td",
+  footer: "tfoot",
+  footerRow: "tr",
+  footerCell: "td",
+};
+
+const tableCompositionControls: Array<{ label: string; part: TablePartKey }> = [
+  { label: "Root", part: "root" },
+  { label: "Caption", part: "caption" },
+  { label: "Header", part: "header" },
+  { label: "Header Row", part: "headerRow" },
+  { label: "Head", part: "head" },
+  { label: "Body", part: "body" },
+  { label: "Body Row", part: "bodyRow" },
+  { label: "Row Head", part: "rowHead" },
+  { label: "Cell", part: "cell" },
+  { label: "Footer", part: "footer" },
+  { label: "Footer Row", part: "footerRow" },
+  { label: "Footer Cell", part: "footerCell" },
+];
+
+const tableSlotControls = tableCompositionControls.map((control) => ({
+  ...control,
+  label: `${control.label} Slot`,
+  value: `${control.part}-slot`,
+}));
 
 const compositionOptions = [
   { label: "Default", value: "default" },

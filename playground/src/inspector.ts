@@ -60,6 +60,7 @@ const observedAttributes = [
   "role",
   "rows",
   "selected",
+  "scope",
   "src",
   "tabindex",
   "target",

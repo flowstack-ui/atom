@@ -489,6 +489,33 @@ h2 {
   color: #6b7685;
 }
 
+.toolbar-submenu-trigger {
+  grid-template-columns: minmax(0, 1fr) max-content 12px;
+}
+
+.toolbar-submenu-value {
+  color: #536171;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1;
+  text-align: right;
+}
+
+.toolbar-submenu-arrow {
+  color: #182232;
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1;
+  text-align: right;
+}
+
+.toolbar-menu-item:hover .toolbar-submenu-value,
+.toolbar-menu-item[data-highlighted] .toolbar-submenu-value,
+.toolbar-menu-item:hover .toolbar-submenu-arrow,
+.toolbar-menu-item[data-highlighted] .toolbar-submenu-arrow {
+  color: #ffffff;
+}
+
 .toolbar-menu-check {
   color: #182232;
   font-size: 12px;
