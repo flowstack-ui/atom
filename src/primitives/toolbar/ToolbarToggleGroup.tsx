@@ -28,6 +28,8 @@ export interface ToolbarToggleGroupProps extends ToolbarToggleGroupNativeProps {
   children?: ReactNode;
   /** Accessible label for the group. */
   ariaLabel?: string;
+  /** Data slot identifier. */
+  "data-slot"?: string;
 }
 
 function normalizeValue(value: string | string[] | undefined): string[] {
@@ -44,6 +46,7 @@ export function ToolbarToggleGroup({
   className,
   children,
   ariaLabel,
+  "data-slot": dataSlot = "toolbar-toggle-group",
   ...restProps
 }: ToolbarToggleGroupProps) {
   const [value, setValue] = useControllableState<string[]>({
@@ -85,7 +88,7 @@ export function ToolbarToggleGroup({
         {...restProps}
         role="group"
         aria-label={ariaLabel}
-        data-slot="toolbar-toggle-group"
+        data-slot={dataSlot}
         {...(disabled ? { "data-disabled": "" } : {})}
         className={className}
       >

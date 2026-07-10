@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed Toolbar parts so custom `data-slot` values override their default slot
+  identifiers.
 - Added `Direction.Provider` and `dir` support to mirror `TreeGrid`
   horizontal cell navigation and expand/collapse arrow behavior in RTL.
 - Added `Direction.Provider` and `dir` support to mirror horizontal `Tree`

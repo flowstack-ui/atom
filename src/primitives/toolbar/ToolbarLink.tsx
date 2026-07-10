@@ -28,6 +28,8 @@ export interface ToolbarLinkProps extends ToolbarLinkNativeProps {
   className?: string;
   /** Accessible label. */
   ariaLabel?: string;
+  /** Data slot identifier. */
+  "data-slot"?: string;
 }
 
 export const ToolbarLink = forwardRef<HTMLAnchorElement, ToolbarLinkProps>(
@@ -40,6 +42,7 @@ export const ToolbarLink = forwardRef<HTMLAnchorElement, ToolbarLinkProps>(
       ariaLabel,
       onClick,
       onFocus,
+      "data-slot": dataSlot = "toolbar-link",
       ...restProps
     },
     ref,
@@ -61,7 +64,7 @@ export const ToolbarLink = forwardRef<HTMLAnchorElement, ToolbarLinkProps>(
         tabIndex={tabIndex}
         aria-label={ariaLabel}
         aria-disabled={disabled || undefined}
-        data-slot="toolbar-link"
+        data-slot={dataSlot}
         {...(disabled ? { "data-disabled": "" } : {})}
         className={className}
         onClick={composeEventHandlers(onClick, handleClick)}

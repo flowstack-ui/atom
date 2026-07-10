@@ -16,6 +16,8 @@ export interface ToolbarButtonProps extends ToolbarButtonNativeProps {
   className?: string;
   /** Accessible label. */
   ariaLabel?: string;
+  /** Data slot identifier. */
+  "data-slot"?: string;
 }
 
 export const ToolbarButton = forwardRef<HTMLButtonElement, ToolbarButtonProps>(
@@ -27,6 +29,7 @@ export const ToolbarButton = forwardRef<HTMLButtonElement, ToolbarButtonProps>(
       className,
       ariaLabel,
       onFocus,
+      "data-slot": dataSlot = "toolbar-button",
       ...restProps
     },
     ref,
@@ -42,7 +45,7 @@ export const ToolbarButton = forwardRef<HTMLButtonElement, ToolbarButtonProps>(
         disabled={disabled}
         tabIndex={tabIndex}
         aria-label={ariaLabel}
-        data-slot="toolbar-button"
+        data-slot={dataSlot}
         {...(disabled ? { "data-disabled": "" } : {})}
         className={className}
         onClick={onClick}

@@ -35,6 +35,8 @@ export interface ToolbarRootProps extends ToolbarRootNativeProps {
   className?: string;
   /** Toolbar items. */
   children?: ReactNode;
+  /** Data slot identifier. */
+  "data-slot"?: string;
 }
 
 function isDisabled(el: HTMLElement): boolean {
@@ -54,6 +56,7 @@ export const ToolbarRoot = forwardRef<HTMLDivElement, ToolbarRootProps>(
       className,
       children,
       onKeyDown,
+      "data-slot": dataSlot = "toolbar",
       ...restProps
     },
     ref,
@@ -208,7 +211,7 @@ export const ToolbarRoot = forwardRef<HTMLDivElement, ToolbarRootProps>(
           role="toolbar"
           aria-label={ariaLabel}
           aria-orientation={orientation}
-          data-slot="toolbar"
+          data-slot={dataSlot}
           data-orientation={orientation}
           className={className}
           onKeyDown={composeEventHandlers(onKeyDown, handleKeyDown)}

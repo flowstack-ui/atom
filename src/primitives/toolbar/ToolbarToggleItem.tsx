@@ -27,6 +27,8 @@ export interface ToolbarToggleItemProps extends ToolbarToggleItemNativeProps {
   className?: string;
   /** Accessible label. */
   ariaLabel?: string;
+  /** Data slot identifier. */
+  "data-slot"?: string;
 }
 
 export const ToolbarToggleItem = forwardRef<
@@ -41,6 +43,7 @@ export const ToolbarToggleItem = forwardRef<
     ariaLabel,
     onClick,
     onFocus,
+    "data-slot": dataSlot = "toolbar-toggle-item",
     ...restProps
   },
   ref,
@@ -69,7 +72,7 @@ export const ToolbarToggleItem = forwardRef<
       aria-label={ariaLabel}
       disabled={isDisabled}
       tabIndex={tabIndex}
-      data-slot="toolbar-toggle-item"
+      data-slot={dataSlot}
       data-state={isPressed ? "on" : "off"}
       data-value={value}
       {...(isDisabled ? { "data-disabled": "" } : {})}

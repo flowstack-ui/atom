@@ -98,6 +98,55 @@ test("ToolbarRoot resolves local and provider direction", () => {
   assert.match(overrideHtml, /^<div dir="ltr"/);
 });
 
+test("Toolbar parts allow data-slot overrides", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      ToolbarRoot,
+      { ariaLabel: "Editor tools", "data-slot": "editor-toolbar" },
+      React.createElement(
+        ToolbarButton,
+        { "data-slot": "editor-toolbar-button" },
+        "B",
+      ),
+      React.createElement(
+        ToolbarLink,
+        { href: "/docs", "data-slot": "editor-toolbar-link" },
+        "Docs",
+      ),
+      React.createElement(ToolbarSeparator, {
+        "data-slot": "editor-toolbar-separator",
+      }),
+      React.createElement(
+        ToolbarToggleGroup,
+        {
+          ariaLabel: "Formatting",
+          "data-slot": "editor-toolbar-toggle-group",
+        },
+        React.createElement(
+          ToolbarToggleItem,
+          {
+            value: "bold",
+            "data-slot": "editor-toolbar-toggle-item",
+          },
+          "B",
+        ),
+      ),
+    ),
+  );
+
+  assert.match(html, /data-slot="editor-toolbar"/);
+  assert.match(html, /data-slot="editor-toolbar-button"/);
+  assert.match(html, /data-slot="editor-toolbar-link"/);
+  assert.match(html, /data-slot="editor-toolbar-separator"/);
+  assert.match(html, /data-slot="editor-toolbar-toggle-group"/);
+  assert.match(html, /data-slot="editor-toolbar-toggle-item"/);
+  assert.doesNotMatch(html, /data-slot="toolbar-button"/);
+  assert.doesNotMatch(html, /data-slot="toolbar-link"/);
+  assert.doesNotMatch(html, /data-slot="toolbar-separator"/);
+  assert.doesNotMatch(html, /data-slot="toolbar-toggle-group"/);
+  assert.doesNotMatch(html, /data-slot="toolbar-toggle-item"/);
+});
+
 test("Toolbar toggle group renders pressed item state", () => {
   const html = renderToStaticMarkup(
     React.createElement(

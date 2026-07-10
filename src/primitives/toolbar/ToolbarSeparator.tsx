@@ -11,11 +11,14 @@ export interface ToolbarSeparatorProps extends ToolbarSeparatorNativeProps {
   className?: string;
   /** Children, usually empty. */
   children?: ReactNode;
+  /** Data slot identifier. */
+  "data-slot"?: string;
 }
 
 export function ToolbarSeparator({
   orientation = "vertical",
   className,
+  "data-slot": dataSlot = "toolbar-separator",
   ...restProps
 }: ToolbarSeparatorProps) {
   return (
@@ -23,7 +26,7 @@ export function ToolbarSeparator({
       {...restProps}
       role="separator"
       aria-orientation={orientation}
-      data-slot="toolbar-separator"
+      data-slot={dataSlot}
       data-orientation={orientation}
       className={className}
     />
