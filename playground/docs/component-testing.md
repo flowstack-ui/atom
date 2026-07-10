@@ -89,6 +89,13 @@ Rules:
 - Add `Collapse All` when many groups can expand.
 - Do not duplicate collapsed summary values inside the expanded group unless
   they are real rows.
+- Scope Anatomy selectors to the scenario instance when the playground shell
+  also uses the component being tested. Do not rely only on shared Atom
+  attributes such as `[data-slot="tabs-list"]`, because those can match the
+  workbench chrome before the Canvas scenario. Prefer selectors such as
+  `.playground-tabs-list[data-slot="tabs-list"]`. This applies to `Tabs`,
+  `Menubar`, `ScrollArea`, `Button`, and any future primitive dogfooded by the
+  workbench UI.
 
 Rows should answer testing questions. Examples:
 
