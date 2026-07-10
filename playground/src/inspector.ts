@@ -46,6 +46,7 @@ const observedAttributes = [
   "data-value",
   "data-state",
   "data-slot",
+  "dir",
   "disabled",
   "hidden",
   "href",

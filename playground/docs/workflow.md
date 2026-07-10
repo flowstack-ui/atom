@@ -91,6 +91,8 @@ The table must cover:
 - default tags and slots
 - optional props and variants
 - composition support per part
+- direction behavior and whether local `dir`, `Direction.Provider`, or both
+  must be tested
 - rendered DOM parts eligible for prop, slot, and ref coverage
 - current scenario defaults
 - mismatches that must be corrected

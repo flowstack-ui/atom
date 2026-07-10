@@ -94,6 +94,7 @@ const nativeAttributeLabels = new Set([
   "accept",
   "checked",
   "disabled",
+  "dir",
   "form",
   "for",
   "hidden",

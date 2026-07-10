@@ -31,13 +31,15 @@ import {
   type SetStateAction,
 } from "react";
 import { AnatomyPanel, type AnatomySection } from "../AnatomyPanel";
-import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup, partProps } from "../WorkbenchPrimitives";
+import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup, partProps, type WorkbenchOption } from "../WorkbenchPrimitives";
 
 type CompositionMode = "default" | "asChild" | "render";
 type ProgressMode = "determinate" | "complete" | "indeterminate" | "invalid";
 type Orientation = "horizontal" | "vertical";
 type TextDirection = "ltr" | "rtl";
+type ToolbarDirectionMode = "default" | "provider-rtl" | "local-ltr" | "local-rtl";
 type ToggleType = "single" | "multiple";
+type ToolbarValue = "none" | "bold" | "italic";
 type OverlayPlacement = "start" | "end" | "top" | "bottom";
 type DrawerTitleLevel = "h2" | "h3" | "h4";
 type SidebarStateValue = "expanded" | "rail" | "offcanvas";
@@ -1006,17 +1008,44 @@ function useCollapsibleScenario() {
 
 function useToolbarScenario() {
   const [orientation, setOrientation] = useState<Orientation>("horizontal");
-  const [dir, setDir] = useState<TextDirection>("ltr");
+  const [directionMode, setDirectionMode] = useState<ToolbarDirectionMode>("default");
   const [loop, setLoop] = useState(true);
-  const [disabledButton, setDisabledButton] = useState(true);
+  const [disabledButton, setDisabledButton] = useState(false);
   const [disabledLink, setDisabledLink] = useState(false);
-  const [toggleType, setToggleType] = useState<ToggleType>("multiple");
-  const [toggleValue, setToggleValue] = useState<string | string[]>(["bold"]);
+  const [disabledToggleGroup, setDisabledToggleGroup] = useState(false);
+  const [disabledToggleItem, setDisabledToggleItem] = useState(false);
+  const [toggleType, setToggleType] = useState<ToggleType>("single");
+  const [toggleControlled, setToggleControlled] = useState(false);
+  const [defaultToggleValue, setDefaultToggleValue] = useState<ToolbarValue>("none");
+  const [toggleValue, setToggleValue] = useState<string | string[]>("");
+  const [rootComposition, setRootComposition] = useState<CompositionMode>("default");
+  const [buttonComposition, setButtonComposition] = useState<CompositionMode>("default");
+  const [linkComposition, setLinkComposition] = useState<CompositionMode>("default");
+  const [separatorComposition, setSeparatorComposition] = useState<CompositionMode>("default");
+  const [toggleGroupComposition, setToggleGroupComposition] = useState<CompositionMode>("default");
+  const [toggleItemComposition, setToggleItemComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
+  const [customButtonSlot, setCustomButtonSlot] = useState(false);
+  const [customLinkSlot, setCustomLinkSlot] = useState(false);
+  const [customSeparatorSlot, setCustomSeparatorSlot] = useState(false);
+  const [customToggleGroupSlot, setCustomToggleGroupSlot] = useState(false);
+  const [customToggleItemSlot, setCustomToggleItemSlot] = useState(false);
+  const [rootRef, setRootRef] = useState("none");
+  const [buttonRef, setButtonRef] = useState("none");
+  const [linkRef, setLinkRef] = useState("none");
+  const [toggleItemRef, setToggleItemRef] = useState("none");
   const { log, addLog, clearLog } = useScenarioLog();
 
   const handleToggleType = (nextType: ToggleType) => {
     setToggleType(nextType);
-    setToggleValue(nextType === "single" ? "bold" : ["bold"]);
+    setDefaultToggleValue("none");
+    setToggleValue(nextType === "single" ? "" : []);
+  };
+
+  const toTypedValue = (value: ToolbarValue, type = toggleType): string | string[] => {
+    if (type === "single") return value === "none" ? "" : value;
+    return value === "none" ? [] : [value];
   };
 
   const handleValueChange = (nextValue: string | string[]) => {
@@ -1024,17 +1053,71 @@ function useToolbarScenario() {
     const value = Array.isArray(nextValue) ? nextValue.join(", ") || "none" : nextValue || "none";
     addLog(`value changed ${value}`);
   };
+  const markPartRef = (setter: Dispatch<SetStateAction<string>>, fallback: string) => (element: HTMLElement | null) => {
+    setter(element?.tagName.toLowerCase() ?? fallback);
+  };
 
   return {
-    state: { orientation, dir, loop, disabledButton, disabledLink, toggleType, toggleValue, log },
+    state: {
+      orientation,
+      directionMode,
+      loop,
+      disabledButton,
+      disabledLink,
+      disabledToggleGroup,
+      disabledToggleItem,
+      toggleType,
+      toggleControlled,
+      defaultToggleValue,
+      toggleValue,
+      rootComposition,
+      buttonComposition,
+      linkComposition,
+      separatorComposition,
+      toggleGroupComposition,
+      toggleItemComposition,
+      propCheck,
+      customRootSlot,
+      customButtonSlot,
+      customLinkSlot,
+      customSeparatorSlot,
+      customToggleGroupSlot,
+      customToggleItemSlot,
+      rootRef,
+      buttonRef,
+      linkRef,
+      toggleItemRef,
+      log,
+    },
     actions: {
       setOrientation,
-      setDir,
+      setDirectionMode,
       setLoop,
       setDisabledButton,
       setDisabledLink,
+      setDisabledToggleGroup,
+      setDisabledToggleItem,
       setToggleType: handleToggleType,
-      setToggleValue,
+      setToggleControlled,
+      setDefaultToggleValue,
+      setToggleValue: (value: ToolbarValue) => setToggleValue(toTypedValue(value)),
+      setRootComposition,
+      setButtonComposition,
+      setLinkComposition,
+      setSeparatorComposition,
+      setToggleGroupComposition,
+      setToggleItemComposition,
+      setPropCheck,
+      setCustomRootSlot,
+      setCustomButtonSlot,
+      setCustomLinkSlot,
+      setCustomSeparatorSlot,
+      setCustomToggleGroupSlot,
+      setCustomToggleItemSlot,
+      markRootRef: markPartRef(setRootRef, "none"),
+      markButtonRef: markPartRef(setButtonRef, "none"),
+      markLinkRef: markPartRef(setLinkRef, "none"),
+      markToggleItemRef: markPartRef(setToggleItemRef, "none"),
       handleValueChange,
       clearLog,
       note: (text: string) => addLog(text),
@@ -1737,17 +1820,43 @@ export function UtilityPrimitiveScenarioToolbar({
       <ControlToolbar label="Toolbar controls">
         <ToolbarGroup title="State" value="state">
           <MenuCheckboxControl checked={scenario.state.loop} label="Loop" value="loop" onChange={scenario.actions.setLoop} />
-          <MenuCheckboxControl checked={scenario.state.disabledButton} label="Redo disabled" value="disabled-button" onChange={scenario.actions.setDisabledButton} />
-          <MenuCheckboxControl checked={scenario.state.disabledLink} label="Link disabled" value="disabled-link" onChange={scenario.actions.setDisabledLink} />
+          <MenuCheckboxControl checked={scenario.state.disabledButton} label="Disable Button" value="disabled-button" onChange={scenario.actions.setDisabledButton} />
+          <MenuCheckboxControl checked={scenario.state.disabledLink} label="Disable Link" value="disabled-link" onChange={scenario.actions.setDisabledLink} />
+          <MenuCheckboxControl checked={scenario.state.disabledToggleGroup} label="Disable Toggle Group" value="disabled-toggle-group" onChange={scenario.actions.setDisabledToggleGroup} />
+          <MenuCheckboxControl checked={scenario.state.disabledToggleItem} label="Disable Toggle Item" value="disabled-toggle-item" onChange={scenario.actions.setDisabledToggleItem} />
         </ToolbarGroup>
         <ToolbarGroup title="Layout" value="layout">
           <MenuRadioControl label="Orientation" options={orientationOptions} value={scenario.state.orientation} onChange={scenario.actions.setOrientation} />
-          <MenuRadioControl label="Direction" options={directionOptions} value={scenario.state.dir} onChange={scenario.actions.setDir} />
+          <MenuRadioControl<ToolbarDirectionMode> label="Direction" options={toolbarDirectionModeOptions} value={scenario.state.directionMode} onChange={scenario.actions.setDirectionMode} />
         </ToolbarGroup>
         <ToolbarGroup title="Toggles" value="toggles">
           <MenuRadioControl label="Type" options={toggleTypeOptions} value={scenario.state.toggleType} onChange={scenario.actions.setToggleType} />
-          <MenuRadioControl label="Value" options={toolbarValueOptions} value={getToolbarValue(scenario.state.toggleValue)} onChange={(value) => scenario.actions.setToggleValue(scenario.state.toggleType === "single" ? value : [value])} />
+          <MenuCheckboxControl checked={scenario.state.toggleControlled} label="Controlled" value="toggle-controlled" onChange={scenario.actions.setToggleControlled} />
+          <MenuRadioControl label="Default Value" options={toolbarValueOptions} value={scenario.state.defaultToggleValue} onChange={scenario.actions.setDefaultToggleValue} />
+          {scenario.state.toggleControlled ? (
+            <MenuRadioControl label="Value" options={toolbarValueOptions} value={getToolbarValue(scenario.state.toggleValue) as ToolbarValue} onChange={scenario.actions.setToggleValue} />
+          ) : null}
         </ToolbarGroup>
+        <ToolbarGroup title="Composition" value="composition">
+          <MenuRadioControl label="Root" options={compositionOptions} value={scenario.state.rootComposition} onChange={scenario.actions.setRootComposition} />
+          <MenuRadioControl label="Button" options={compositionOptions} value={scenario.state.buttonComposition} onChange={scenario.actions.setButtonComposition} />
+          <MenuRadioControl label="Link" options={compositionOptions} value={scenario.state.linkComposition} onChange={scenario.actions.setLinkComposition} />
+          <MenuRadioControl label="Separator" options={compositionOptions} value={scenario.state.separatorComposition} onChange={scenario.actions.setSeparatorComposition} />
+          <MenuRadioControl label="Toggle Group" options={compositionOptions} value={scenario.state.toggleGroupComposition} onChange={scenario.actions.setToggleGroupComposition} />
+          <MenuRadioControl label="Toggle Item" options={compositionOptions} value={scenario.state.toggleItemComposition} onChange={scenario.actions.setToggleItemComposition} />
+        </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={[
+            { checked: scenario.state.customRootSlot, label: "Root Slot", value: "root-slot", onChange: scenario.actions.setCustomRootSlot },
+            { checked: scenario.state.customButtonSlot, label: "Button Slot", value: "button-slot", onChange: scenario.actions.setCustomButtonSlot },
+            { checked: scenario.state.customLinkSlot, label: "Link Slot", value: "link-slot", onChange: scenario.actions.setCustomLinkSlot },
+            { checked: scenario.state.customSeparatorSlot, label: "Separator Slot", value: "separator-slot", onChange: scenario.actions.setCustomSeparatorSlot },
+            { checked: scenario.state.customToggleGroupSlot, label: "Toggle Group Slot", value: "toggle-group-slot", onChange: scenario.actions.setCustomToggleGroupSlot },
+            { checked: scenario.state.customToggleItemSlot, label: "Toggle Item Slot", value: "toggle-item-slot", onChange: scenario.actions.setCustomToggleItemSlot },
+          ]}
+        />
       </ControlToolbar>
     );
   }
@@ -1951,7 +2060,8 @@ export function getUtilityPrimitiveCanvasFooter(
 
   if (scenarioId === "toolbar") {
     const state = scenarios.toolbar.state;
-    return `${state.orientation} | ${state.dir} | Loop ${state.loop} | Value ${getToolbarValue(state.toggleValue)}`;
+    const resolvedDir = getToolbarResolvedDirection(state.directionMode);
+    return `${state.orientation} | ${resolvedDir} | Loop ${state.loop} | Value ${getToolbarValue(state.toggleValue)}`;
   }
 
   if (scenarioId === "portal") {
@@ -2695,21 +2805,71 @@ ${indent(content, 2)}
 
   if (scenarioId === "toolbar") {
     const state = scenarios.toolbar.state;
-    return `<Toolbar.Root
-  ariaLabel="Formatting"
-  orientation="${state.orientation}"
-  dir="${state.dir}"
-  loop={${state.loop}}
->
-  <Toolbar.Button>Undo</Toolbar.Button>
-  <Toolbar.Button disabled={${state.disabledButton}}>Redo</Toolbar.Button>
-  <Toolbar.Separator />
-  <Toolbar.ToggleGroup type="${state.toggleType}" value={value}>
-    <Toolbar.ToggleItem value="bold">B</Toolbar.ToggleItem>
-    <Toolbar.ToggleItem value="italic">I</Toolbar.ToggleItem>
-  </Toolbar.ToggleGroup>
-  <Toolbar.Link href="#toolbar-link" disabled={${state.disabledLink}}>Help</Toolbar.Link>
-</Toolbar.Root>`;
+    const rootProps = sourceProps([
+      `ariaLabel="Formatting"`,
+      state.orientation !== "horizontal" ? `orientation="${state.orientation}"` : null,
+      ...getToolbarDirectionSourceProps(state.directionMode),
+      state.loop !== true ? `loop={false}` : null,
+      state.propCheck ? `data-prop-check="root"` : null,
+      state.customRootSlot ? `data-slot="toolbar-root-custom"` : null,
+    ]);
+    const undoButtonProps = sourceProps([
+      state.propCheck ? `data-prop-check="button"` : null,
+      state.customButtonSlot ? `data-slot="toolbar-button-custom"` : null,
+    ]);
+    const redoButtonProps = sourceProps([
+      state.disabledButton ? "disabled" : null,
+      state.propCheck ? `data-prop-check="button-secondary"` : null,
+      state.customButtonSlot ? `data-slot="toolbar-button-custom"` : null,
+    ]);
+    const separatorProps = sourceProps([
+      state.orientation === "vertical" ? `orientation="horizontal"` : null,
+      state.propCheck ? `data-prop-check="separator"` : null,
+      state.customSeparatorSlot ? `data-slot="toolbar-separator-custom"` : null,
+    ]);
+    const toggleGroupValue = state.toggleControlled
+      ? getToolbarSourceValue("value", state.toggleValue)
+      : getToolbarSourceValue("defaultValue", state.defaultToggleValue);
+    const toggleGroupProps = sourceProps([
+      state.toggleType !== "single" ? `type="${state.toggleType}"` : null,
+      toggleGroupValue,
+      state.disabledToggleGroup ? "disabled" : null,
+      `ariaLabel="Text style"`,
+      state.propCheck ? `data-prop-check="toggle-group"` : null,
+      state.customToggleGroupSlot ? `data-slot="toolbar-toggle-group-custom"` : null,
+    ]);
+    const boldProps = sourceProps([
+      `value="bold"`,
+      state.propCheck ? `data-prop-check="toggle-item"` : null,
+      state.customToggleItemSlot ? `data-slot="toolbar-toggle-item-custom"` : null,
+    ]);
+    const italicProps = sourceProps([
+      `value="italic"`,
+      state.disabledToggleItem ? "disabled" : null,
+      state.propCheck ? `data-prop-check="toggle-item-secondary"` : null,
+      state.customToggleItemSlot ? `data-slot="toolbar-toggle-item-custom"` : null,
+    ]);
+    const linkProps = sourceProps([
+      `href="#toolbar-link"`,
+      state.disabledLink ? "disabled" : null,
+      state.propCheck ? `data-prop-check="link"` : null,
+      state.customLinkSlot ? `data-slot="toolbar-link-custom"` : null,
+    ]);
+    const toggleItems = [
+      getToolbarToggleItemSource("B", boldProps, state.toggleItemComposition),
+      getToolbarToggleItemSource("I", italicProps, state.toggleItemComposition),
+    ].join("\n");
+    const toolbarChildren = [
+      getToolbarButtonSource("Undo", undoButtonProps, state.buttonComposition),
+      getToolbarButtonSource("Redo", redoButtonProps, state.buttonComposition),
+      getToolbarLinkSource(linkProps, state.linkComposition),
+      getToolbarSeparatorSource(separatorProps, state.separatorComposition),
+      getToolbarToggleGroupSource(toggleGroupProps, toggleItems, state.toggleGroupComposition),
+    ].join("\n");
+    const source = getToolbarRootSource(rootProps, toolbarChildren, state.rootComposition);
+    return shouldWrapToolbarDirectionProvider(state.directionMode)
+      ? `<Direction.Provider dir="rtl">\n${indent(source, 2)}\n</Direction.Provider>`
+      : source;
   }
 
   if (scenarioId === "portal") {
@@ -4495,84 +4655,266 @@ function ToolbarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useTo
   const rootProps = {
     className: `utility-toolbar ${scenario.state.orientation}`,
     "data-playground-inspect": "",
-    "data-prop-check": "root",
     "data-toolbar-root": "",
     ariaLabel: "Formatting",
-    dir: scenario.state.dir,
+    ...getToolbarRootDirectionProps(scenario.state.directionMode),
     loop: scenario.state.loop,
     orientation: scenario.state.orientation,
+    ref: scenario.actions.markRootRef,
+    ...partProps("root", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customRootSlot }, "toolbar-root-custom"),
   };
-  const value = scenario.state.toggleValue;
+  const valueProps = scenario.state.toggleControlled
+    ? { value: scenario.state.toggleValue }
+    : scenario.state.defaultToggleValue === "none"
+      ? {}
+      : { defaultValue: toToolbarTypedValue(scenario.state.defaultToggleValue, scenario.state.toggleType) };
+  const toolbarChildren = (
+    <>
+      {renderToolbarButton(scenario, "undo")}
+      {renderToolbarButton(scenario, "redo")}
+      {renderToolbarLink(scenario)}
+      {renderToolbarSeparator(scenario)}
+      {renderToolbarToggleGroup(scenario, valueProps)}
+    </>
+  );
+  const toolbar = renderToolbarRoot(scenario, rootProps, toolbarChildren);
 
   return (
     <div className="utility-primitive-stage">
-      <Toolbar.Root {...rootProps}>
-        <Toolbar.Button
-          className="utility-toolbar-item"
-          data-playground-inspect=""
-          data-prop-check="button"
-          data-toolbar-button=""
-          onClick={() => scenario.actions.note("undo clicked")}
-        >
-          Undo
-        </Toolbar.Button>
-        <Toolbar.Button
-          className="utility-toolbar-item"
-          data-playground-inspect=""
-          data-toolbar-disabled-button=""
-          disabled={scenario.state.disabledButton}
-          onClick={() => scenario.actions.note("redo clicked")}
-        >
-          Redo
-        </Toolbar.Button>
-        <Toolbar.Separator
-          className="utility-toolbar-separator"
-          data-playground-inspect=""
-          data-toolbar-separator=""
-          orientation={scenario.state.orientation === "horizontal" ? "vertical" : "horizontal"}
-        />
-        <Toolbar.ToggleGroup
-          className="utility-toolbar-toggle-group"
-          data-playground-inspect=""
-          data-prop-check="toggle-group"
-          data-toolbar-toggle-group=""
-          type={scenario.state.toggleType}
-          value={value}
-          onValueChange={scenario.actions.handleValueChange}
-          ariaLabel="Text style"
-        >
-          <Toolbar.ToggleItem
-            className="utility-toolbar-item"
-            data-playground-inspect=""
-            data-prop-check="toggle-item"
-            data-toolbar-toggle-item=""
-            value="bold"
-          >
-            B
-          </Toolbar.ToggleItem>
-          <Toolbar.ToggleItem
-            className="utility-toolbar-item"
-            data-playground-inspect=""
-            data-toolbar-toggle-item-secondary=""
-            value="italic"
-          >
-            I
-          </Toolbar.ToggleItem>
-        </Toolbar.ToggleGroup>
-        <Toolbar.Link
-          className="utility-toolbar-item"
-          data-playground-inspect=""
-          data-prop-check="link"
-          data-toolbar-link=""
-          disabled={scenario.state.disabledLink}
-          href="#toolbar-link"
-          onClick={() => scenario.actions.note("help clicked")}
-        >
-          Help
-        </Toolbar.Link>
-      </Toolbar.Root>
+      {shouldWrapToolbarDirectionProvider(scenario.state.directionMode) ? (
+        <Direction.Provider dir="rtl">{toolbar}</Direction.Provider>
+      ) : (
+        toolbar
+      )}
     </div>
   );
+}
+
+function renderToolbarRoot(
+  scenario: ReturnType<typeof useToolbarScenario>,
+  rootProps: Record<string, unknown>,
+  children: ReactNode,
+) {
+  if (scenario.state.rootComposition === "asChild") {
+    return (
+      <Toolbar.Root {...rootProps} asChild>
+        <section>{children}</section>
+      </Toolbar.Root>
+    );
+  }
+
+  if (scenario.state.rootComposition === "render") {
+    return (
+      <Toolbar.Root
+        {...rootProps}
+        render={(renderProps) => (
+          <section {...renderProps}>{renderProps.children as ReactNode}</section>
+        )}
+      >
+        {children}
+      </Toolbar.Root>
+    );
+  }
+
+  return <Toolbar.Root {...rootProps}>{children}</Toolbar.Root>;
+}
+
+function renderToolbarButton(
+  scenario: ReturnType<typeof useToolbarScenario>,
+  kind: "undo" | "redo",
+) {
+  const isUndo = kind === "undo";
+  const label = isUndo ? "Undo" : "Redo";
+  const props = {
+    className: "utility-toolbar-item",
+    "data-playground-inspect": "",
+    [isUndo ? "data-toolbar-button" : "data-toolbar-disabled-button"]: "",
+    ...(isUndo ? { ref: scenario.actions.markButtonRef } : {}),
+    ...(isUndo ? {} : { disabled: scenario.state.disabledButton }),
+    onClick: () => scenario.actions.note(isUndo ? "undo clicked" : "redo clicked"),
+    ...partProps(
+      isUndo ? "button" : "button-secondary",
+      { propCheck: scenario.state.propCheck, customSlot: scenario.state.customButtonSlot },
+      "toolbar-button-custom",
+    ),
+  };
+
+  if (scenario.state.buttonComposition === "asChild") {
+    return (
+      <Toolbar.Button {...props} asChild>
+        <span>{label}</span>
+      </Toolbar.Button>
+    );
+  }
+
+  if (scenario.state.buttonComposition === "render") {
+    return (
+      <Toolbar.Button
+        {...props}
+        render={(renderProps) => (
+          <span {...renderProps}>{renderProps.children as ReactNode}</span>
+        )}
+      >
+        {label}
+      </Toolbar.Button>
+    );
+  }
+
+  return <Toolbar.Button {...props}>{label}</Toolbar.Button>;
+}
+
+function renderToolbarLink(scenario: ReturnType<typeof useToolbarScenario>) {
+  const props = {
+    className: "utility-toolbar-item",
+    "data-playground-inspect": "",
+    "data-toolbar-link": "",
+    disabled: scenario.state.disabledLink,
+    href: "#toolbar-link",
+    ref: scenario.actions.markLinkRef,
+    onClick: () => scenario.actions.note("help clicked"),
+    ...partProps("link", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customLinkSlot }, "toolbar-link-custom"),
+  };
+
+  if (scenario.state.linkComposition === "asChild") {
+    return (
+      <Toolbar.Link {...props} asChild>
+        <a>Help</a>
+      </Toolbar.Link>
+    );
+  }
+
+  if (scenario.state.linkComposition === "render") {
+    return (
+      <Toolbar.Link
+        {...props}
+        render={(renderProps) => (
+          <a {...renderProps}>{renderProps.children as ReactNode}</a>
+        )}
+      >
+        Help
+      </Toolbar.Link>
+    );
+  }
+
+  return <Toolbar.Link {...props}>Help</Toolbar.Link>;
+}
+
+function renderToolbarSeparator(scenario: ReturnType<typeof useToolbarScenario>) {
+  const props = {
+    className: "utility-toolbar-separator",
+    "data-playground-inspect": "",
+    "data-toolbar-separator": "",
+    orientation: scenario.state.orientation === "horizontal" ? "vertical" as const : "horizontal" as const,
+    ...partProps("separator", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customSeparatorSlot }, "toolbar-separator-custom"),
+  };
+
+  if (scenario.state.separatorComposition === "asChild") {
+    return (
+      <Toolbar.Separator {...props} asChild>
+        <div />
+      </Toolbar.Separator>
+    );
+  }
+
+  if (scenario.state.separatorComposition === "render") {
+    return <Toolbar.Separator {...props} render={(renderProps) => <hr {...renderProps} />} />;
+  }
+
+  return <Toolbar.Separator {...props} />;
+}
+
+function renderToolbarToggleGroup(
+  scenario: ReturnType<typeof useToolbarScenario>,
+  valueProps: Record<string, unknown>,
+) {
+  const remountKey = scenario.state.toggleControlled
+    ? "controlled"
+    : `uncontrolled-${scenario.state.toggleType}-${scenario.state.defaultToggleValue}`;
+  const props = {
+    className: "utility-toolbar-toggle-group",
+    "data-playground-inspect": "",
+    "data-toolbar-toggle-group": "",
+    type: scenario.state.toggleType,
+    disabled: scenario.state.disabledToggleGroup,
+    onValueChange: scenario.actions.handleValueChange,
+    ariaLabel: "Text style",
+    ...valueProps,
+    ...partProps("toggle-group", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customToggleGroupSlot }, "toolbar-toggle-group-custom"),
+  };
+  const items = (
+    <>
+      {renderToolbarToggleItem(scenario, "bold")}
+      {renderToolbarToggleItem(scenario, "italic")}
+    </>
+  );
+
+  if (scenario.state.toggleGroupComposition === "asChild") {
+    return (
+      <Toolbar.ToggleGroup key={remountKey} {...props} asChild>
+        <section>{items}</section>
+      </Toolbar.ToggleGroup>
+    );
+  }
+
+  if (scenario.state.toggleGroupComposition === "render") {
+    return (
+      <Toolbar.ToggleGroup
+        key={remountKey}
+        {...props}
+        render={(renderProps) => (
+          <section {...renderProps}>{renderProps.children as ReactNode}</section>
+        )}
+      >
+        {items}
+      </Toolbar.ToggleGroup>
+    );
+  }
+
+  return <Toolbar.ToggleGroup key={remountKey} {...props}>{items}</Toolbar.ToggleGroup>;
+}
+
+function renderToolbarToggleItem(
+  scenario: ReturnType<typeof useToolbarScenario>,
+  value: "bold" | "italic",
+) {
+  const isBold = value === "bold";
+  const props = {
+    className: "utility-toolbar-item",
+    "data-playground-inspect": "",
+    [isBold ? "data-toolbar-toggle-item" : "data-toolbar-toggle-item-secondary"]: "",
+    ...(isBold ? { ref: scenario.actions.markToggleItemRef } : {}),
+    ...(isBold ? {} : { disabled: scenario.state.disabledToggleItem }),
+    value,
+    ...partProps(
+      isBold ? "toggle-item" : "toggle-item-secondary",
+      { propCheck: scenario.state.propCheck, customSlot: scenario.state.customToggleItemSlot },
+      "toolbar-toggle-item-custom",
+    ),
+  };
+  const label = isBold ? "B" : "I";
+
+  if (scenario.state.toggleItemComposition === "asChild") {
+    return (
+      <Toolbar.ToggleItem {...props} asChild>
+        <span>{label}</span>
+      </Toolbar.ToggleItem>
+    );
+  }
+
+  if (scenario.state.toggleItemComposition === "render") {
+    return (
+      <Toolbar.ToggleItem
+        {...props}
+        render={(renderProps) => (
+          <span {...renderProps}>{renderProps.children as ReactNode}</span>
+        )}
+      >
+        {label}
+      </Toolbar.ToggleItem>
+    );
+  }
+
+  return <Toolbar.ToggleItem {...props}>{label}</Toolbar.ToggleItem>;
 }
 
 function PortalScenarioCanvas({ scenario }: { scenario: ReturnType<typeof usePortalScenario> }) {
@@ -5603,42 +5945,57 @@ function getUtilityPrimitiveSections(
     const root = document.querySelector<HTMLElement>("[data-toolbar-root]");
     const button = document.querySelector<HTMLElement>("[data-toolbar-button]");
     const disabledButton = document.querySelector<HTMLElement>("[data-toolbar-disabled-button]");
+    const link = document.querySelector<HTMLElement>("[data-toolbar-link]");
     const separator = document.querySelector<HTMLElement>("[data-toolbar-separator]");
     const toggleGroup = document.querySelector<HTMLElement>("[data-toolbar-toggle-group]");
-    const selectedToggle = document.querySelector<HTMLElement>("[data-toolbar-toggle-item][data-state='on']");
-    const link = document.querySelector<HTMLElement>("[data-toolbar-link]");
+    const toggleItem = document.querySelector<HTMLElement>("[data-toolbar-toggle-item]");
+    const secondaryToggleItem = document.querySelector<HTMLElement>("[data-toolbar-toggle-item-secondary]");
+    const resolvedDir = getToolbarResolvedDirection(scenarios.toolbar.state.directionMode);
     return [
       {
         title: "Root",
         selector: "[data-toolbar-root]",
-        summary: scenarios.toolbar.state.orientation,
+        summary: `${scenarios.toolbar.state.orientation} ${resolvedDir}`,
         rows: [
           { label: "Exists", value: bool(!!root), category: "presence" },
           { label: "Orientation", value: scenarios.toolbar.state.orientation, category: "state" },
-          { label: "Direction", value: scenarios.toolbar.state.dir, category: "state" },
+          { label: "Direction", value: scenarios.toolbar.state.directionMode, category: "state" },
+          { label: "Root direction", value: root?.getAttribute("dir") ?? "none", category: "state" },
           { label: "Loop", value: bool(scenarios.toolbar.state.loop), category: "behavior" },
+          { label: "Composition", value: scenarios.toolbar.state.rootComposition, category: "composition" },
+          { label: "Ref target", value: scenarios.toolbar.state.rootRef, category: "identity" },
         ],
       },
       {
-        title: "Button",
+        title: "Button: Undo",
         selector: "[data-toolbar-button]",
         summary: button?.textContent?.trim() || "not rendered",
-        groups: [
-          {
-            title: "Primary button",
-            selector: "[data-toolbar-button]",
-            rows: [
-              { label: "Exists", value: bool(!!button), category: "presence" },
-            ],
-          },
-          {
-            title: "Disabled button",
-            selector: "[data-toolbar-disabled-button]",
-            rows: [
-              { label: "Exists", value: bool(!!disabledButton), category: "presence" },
-              { label: "Disabled", value: bool(scenarios.toolbar.state.disabledButton), category: "state" },
-            ],
-          },
+        rows: [
+          { label: "Exists", value: bool(!!button), category: "presence" },
+          { label: "Composition", value: scenarios.toolbar.state.buttonComposition, category: "composition" },
+          { label: "Ref target", value: scenarios.toolbar.state.buttonRef, category: "identity" },
+        ],
+      },
+      {
+        title: "Button: Redo",
+        selector: "[data-toolbar-disabled-button]",
+        summary: disabledButton?.textContent?.trim() || "not rendered",
+        rows: [
+          { label: "Exists", value: bool(!!disabledButton), category: "presence" },
+          { label: "Disabled", value: bool(scenarios.toolbar.state.disabledButton), category: "state" },
+          { label: "Composition", value: scenarios.toolbar.state.buttonComposition, category: "composition" },
+        ],
+      },
+      {
+        title: "Link: Help",
+        selector: "[data-toolbar-link]",
+        summary: link?.textContent?.trim() || "not rendered",
+        rows: [
+          { label: "Exists", value: bool(!!link), category: "presence" },
+          { label: "Disabled", value: bool(scenarios.toolbar.state.disabledLink), category: "state" },
+          { label: "Href", value: link?.getAttribute("href") ?? "none", category: "state" },
+          { label: "Composition", value: scenarios.toolbar.state.linkComposition, category: "composition" },
+          { label: "Ref target", value: scenarios.toolbar.state.linkRef, category: "identity" },
         ],
       },
       {
@@ -5647,6 +6004,7 @@ function getUtilityPrimitiveSections(
         summary: separator?.dataset.orientation ?? "not rendered",
         rows: [
           { label: "Exists", value: bool(!!separator), category: "presence" },
+          { label: "Composition", value: scenarios.toolbar.state.separatorComposition, category: "composition" },
         ],
       },
       {
@@ -5656,24 +6014,35 @@ function getUtilityPrimitiveSections(
         rows: [
           { label: "Exists", value: bool(!!toggleGroup), category: "presence" },
           { label: "Type", value: scenarios.toolbar.state.toggleType, category: "state" },
+          { label: "Controlled", value: bool(scenarios.toolbar.state.toggleControlled), category: "state" },
           { label: "Value", value: getToolbarValue(scenarios.toolbar.state.toggleValue), category: "state" },
+          { label: "Default value", value: scenarios.toolbar.state.defaultToggleValue, category: "state" },
+          { label: "Disabled", value: bool(scenarios.toolbar.state.disabledToggleGroup), category: "state" },
+          { label: "Composition", value: scenarios.toolbar.state.toggleGroupComposition, category: "composition" },
         ],
       },
       {
-        title: "Toggle Item",
-        selector: "[data-toolbar-toggle-item][data-state='on']",
-        summary: selectedToggle?.dataset.value ?? "none",
+        title: "Toggle Item: Bold",
+        selector: "[data-toolbar-toggle-item]",
+        summary: toggleItem?.dataset.state ?? "not rendered",
         rows: [
-          { label: "Exists", value: bool(!!selectedToggle), category: "presence" },
+          { label: "Exists", value: bool(!!toggleItem), category: "presence" },
+          { label: "State", value: toggleItem?.dataset.state ?? "none", category: "state" },
+          { label: "Value", value: toggleItem?.dataset.value ?? "none", category: "state" },
+          { label: "Composition", value: scenarios.toolbar.state.toggleItemComposition, category: "composition" },
+          { label: "Ref target", value: scenarios.toolbar.state.toggleItemRef, category: "identity" },
         ],
       },
       {
-        title: "Link",
-        selector: "[data-toolbar-link]",
-        summary: link?.textContent?.trim() || "not rendered",
+        title: "Toggle Item: Italic",
+        selector: "[data-toolbar-toggle-item-secondary]",
+        summary: secondaryToggleItem?.dataset.state ?? "not rendered",
         rows: [
-          { label: "Exists", value: bool(!!link), category: "presence" },
-          { label: "Disabled", value: bool(scenarios.toolbar.state.disabledLink), category: "state" },
+          { label: "Exists", value: bool(!!secondaryToggleItem), category: "presence" },
+          { label: "State", value: secondaryToggleItem?.dataset.state ?? "none", category: "state" },
+          { label: "Value", value: secondaryToggleItem?.dataset.value ?? "none", category: "state" },
+          { label: "Disabled", value: bool(scenarios.toolbar.state.disabledToggleItem), category: "state" },
+          { label: "Composition", value: scenarios.toolbar.state.toggleItemComposition, category: "composition" },
         ],
       },
     ];
@@ -6130,6 +6499,148 @@ function getToolbarValue(value: string | string[]) {
   return Array.isArray(value) ? value.join(", ") || "none" : value || "none";
 }
 
+function toToolbarTypedValue(value: ToolbarValue, type: ToggleType): string | string[] {
+  if (type === "single") return value === "none" ? "" : value;
+  return value === "none" ? [] : [value];
+}
+
+function getToolbarSourceValue(prop: "defaultValue" | "value", value: ToolbarValue | string | string[]) {
+  if (Array.isArray(value)) {
+    if (value.length === 0) return null;
+    return `${prop}={${JSON.stringify(value)}}`;
+  }
+
+  if (!value || value === "none") return null;
+  return `${prop}="${value}"`;
+}
+
+function getToolbarRootSource(props: string, children: string, composition: CompositionMode) {
+  if (composition === "asChild") {
+    return `<Toolbar.Root${props} asChild>
+  <section>
+${indent(children, 4)}
+  </section>
+</Toolbar.Root>`;
+  }
+
+  if (composition === "render") {
+    return `<Toolbar.Root${props} render={(props) => (
+  <section {...props}>{props.children}</section>
+)}>
+${indent(children, 2)}
+</Toolbar.Root>`;
+  }
+
+  return `<Toolbar.Root${props}>
+${indent(children, 2)}
+</Toolbar.Root>`;
+}
+
+function getToolbarButtonSource(label: "Undo" | "Redo", props: string, composition: CompositionMode) {
+  if (composition === "asChild") {
+    return `<Toolbar.Button${props} asChild>
+  <span>${label}</span>
+</Toolbar.Button>`;
+  }
+
+  if (composition === "render") {
+    return `<Toolbar.Button${props} render={(props) => <span {...props}>{props.children}</span>}>
+  ${label}
+</Toolbar.Button>`;
+  }
+
+  return `<Toolbar.Button${props}>${label}</Toolbar.Button>`;
+}
+
+function getToolbarLinkSource(props: string, composition: CompositionMode) {
+  if (composition === "asChild") {
+    return `<Toolbar.Link${props} asChild>
+  <a>Help</a>
+</Toolbar.Link>`;
+  }
+
+  if (composition === "render") {
+    return `<Toolbar.Link${props} render={(props) => <a {...props}>{props.children}</a>}>
+  Help
+</Toolbar.Link>`;
+  }
+
+  return `<Toolbar.Link${props}>Help</Toolbar.Link>`;
+}
+
+function getToolbarSeparatorSource(props: string, composition: CompositionMode) {
+  if (composition === "asChild") {
+    return `<Toolbar.Separator${props} asChild>
+  <div />
+</Toolbar.Separator>`;
+  }
+
+  if (composition === "render") {
+    return `<Toolbar.Separator${props} render={(props) => <hr {...props} />} />`;
+  }
+
+  return `<Toolbar.Separator${props} />`;
+}
+
+function getToolbarToggleGroupSource(props: string, items: string, composition: CompositionMode) {
+  if (composition === "asChild") {
+    return `<Toolbar.ToggleGroup${props} asChild>
+  <section>
+${indent(items, 4)}
+  </section>
+</Toolbar.ToggleGroup>`;
+  }
+
+  if (composition === "render") {
+    return `<Toolbar.ToggleGroup${props} render={(props) => (
+  <section {...props}>{props.children}</section>
+)}>
+${indent(items, 2)}
+</Toolbar.ToggleGroup>`;
+  }
+
+  return `<Toolbar.ToggleGroup${props}>
+${indent(items, 2)}
+</Toolbar.ToggleGroup>`;
+}
+
+function getToolbarToggleItemSource(label: "B" | "I", props: string, composition: CompositionMode) {
+  if (composition === "asChild") {
+    return `<Toolbar.ToggleItem${props} asChild>
+  <span>${label}</span>
+</Toolbar.ToggleItem>`;
+  }
+
+  if (composition === "render") {
+    return `<Toolbar.ToggleItem${props} render={(props) => <span {...props}>{props.children}</span>}>
+  ${label}
+</Toolbar.ToggleItem>`;
+  }
+
+  return `<Toolbar.ToggleItem${props}>${label}</Toolbar.ToggleItem>`;
+}
+
+function getToolbarRootDirectionProps(directionMode: ToolbarDirectionMode) {
+  if (directionMode === "local-ltr") return { dir: "ltr" as const };
+  if (directionMode === "local-rtl") return { dir: "rtl" as const };
+  return {};
+}
+
+function getToolbarDirectionSourceProps(directionMode: ToolbarDirectionMode) {
+  if (directionMode === "local-ltr") return [`dir="ltr"`];
+  if (directionMode === "local-rtl") return [`dir="rtl"`];
+  return [];
+}
+
+function shouldWrapToolbarDirectionProvider(directionMode: ToolbarDirectionMode) {
+  return directionMode === "provider-rtl" || directionMode === "local-ltr";
+}
+
+function getToolbarResolvedDirection(directionMode: ToolbarDirectionMode): TextDirection {
+  if (directionMode === "default" || directionMode === "local-ltr") return "ltr";
+  return "rtl";
+}
+
 function getVirtualizerRangeLabel(items: Array<{ index: number }>) {
   if (items.length === 0) return "none";
   const first = items[0];
@@ -6182,7 +6693,13 @@ const menubarDirectionModeOptions: readonly MenubarDirectionMode[] = ["provider"
 const drawerTitleLevelOptions = ["h2", "h3", "h4"] as const;
 const densityOptions = ["compact", "comfortable"] as const;
 const toggleTypeOptions = ["single", "multiple"] as const;
-const toolbarValueOptions = ["bold", "italic"] as const;
+const toolbarDirectionModeOptions: readonly WorkbenchOption<ToolbarDirectionMode>[] = [
+  { label: "Default", value: "default" },
+  { label: "Provider RTL", value: "provider-rtl" },
+  { label: "Local LTR", value: "local-ltr" },
+  { label: "Local RTL", value: "local-rtl" },
+];
+const toolbarValueOptions: readonly ToolbarValue[] = ["none", "bold", "italic"];
 const sidebarStateOptions = ["expanded", "rail", "offcanvas"] as const;
 const sidebarCollapsedStateOptions = ["rail", "offcanvas"] as const;
 const sidebarSideOptions = ["left", "right"] as const;

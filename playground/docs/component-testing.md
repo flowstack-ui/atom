@@ -54,6 +54,13 @@ When a component accepts local `dir` and also reuses child primitives that read
 resolved direction should reach reused child behavior such as submenu placement,
 keyboard open/close direction, and horizontal navigation.
 
+Use one mutually exclusive direction control instead of independent provider
+and root toggles when both inputs apply. The standard cases are `Default`,
+`Provider RTL`, `Local LTR`, and `Local RTL`. `Local LTR` should prove that a
+local `dir="ltr"` overrides an RTL provider; `Provider RTL` should prove
+provider fallback; `Local RTL` should prove direct local direction without a
+provider.
+
 ## Terms
 
 - **Atom DOM part**: a public Atom component part that renders a DOM element,
@@ -75,6 +82,9 @@ Rules:
 - Only public anatomy parts become top-level Anatomy groups.
 - If more than one instance of a part exists, name it clearly:
   `Item: Alpha`, `Item: Bravo`, `Action: Start`, `Action: End`.
+- Keep repeated public part instances as separate top-level groups when they
+  expose distinct testing evidence. Do not nest `Item: Alpha` and `Item: Bravo`
+  under a generic `Item` group.
 - Do not add fake parts such as `Disabled item` unless that is the real part
   being inspected. Prefer `Item: Team` with a toolbar option named
   `Disable Item`.
@@ -114,7 +124,9 @@ Raw DOM evidence should come from the selected part selector and include:
 - `Data`
 
 Filter playground plumbing from raw evidence: `class`, `style`, duplicate `id`,
-and `data-playground-inspect`.
+and `data-playground-inspect`. Do not filter native attributes that prove the
+component contract. Direction-sensitive parts, for example, must expose raw
+`dir` in Anatomy and Inspector when it is rendered.
 
 ## Inspector And Logs
 
@@ -235,11 +247,18 @@ for each item below. Do not show Step 0 until every item passes.
 - each action is immediately followed by its expected result
 - only one behavior or compatible verification cluster is tested at a time
 - each part is completed before moving to the next
+- repeated public part instances are separate top-level anatomy/protocol
+  targets when they carry distinct evidence
 - stable values are exact
 - generated values use relationships
 - default Source omits non-default props
 - controlled-only controls and Source appear only in controlled mode
-- raw Attributes, ARIA, and Data are used instead of invented evidence
+- uncontrolled default controls are verified against live behavior and Source,
+  including any required remount behavior when changing an initial default prop
+- direction-sensitive components use the standard mutually exclusive direction
+  cases and verify raw `dir` evidence when applicable
+- raw Attributes, ARIA, and Data are used instead of invented evidence, and the
+  evidence formatter exposes every contract-critical native attribute
 - all playground-verifiable workbook requirements appear in the protocol
 - workbook-only cleanup notes are separate from manual testing
 
@@ -577,6 +596,10 @@ Rules:
   component state.
 - When turning controlled mode on or off, keep state transitions predictable and
   avoid stale footer/anatomy values.
+- When a toolbar control changes an uncontrolled initial prop such as
+  `defaultValue`, `defaultOpen`, or `defaultChecked`, remount the component or
+  otherwise prove the changed default takes effect. Source should show the
+  default prop only when that non-default initial value is active.
 
 ## Props And Slot Overrides
 
@@ -728,3 +751,15 @@ Direction-sensitive behavior includes:
 
 The preferred Atom behavior is direct `dir` prop first, then
 `Direction.Provider`, then default direction.
+
+For components that support both local `dir` and provider fallback, expose the
+standard direction cases as one exclusive control:
+
+- `Default`: no provider and no local `dir`
+- `Provider RTL`: `Direction.Provider dir="rtl"` and no local `dir`
+- `Local LTR`: `Direction.Provider dir="rtl"` plus local `dir="ltr"`
+- `Local RTL`: local `dir="rtl"` and no provider
+
+Protocol checks should verify both the live behavior and the rendered raw `dir`
+attribute when the component emits one. Source should show the provider wrapper
+and local `dir` only for the selected non-default case.
