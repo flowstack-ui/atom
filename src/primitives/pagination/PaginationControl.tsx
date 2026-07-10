@@ -59,13 +59,17 @@ export const PaginationPrevious = forwardRef<HTMLButtonElement, PaginationContro
     };
 
     if (asChild) {
-      return cloneAndMerge(children, behaviorProps);
+      return <li data-slot="pagination-list-item">{cloneAndMerge(children, behaviorProps)}</li>;
     }
 
-    return renderElement(render, "button", {
-      ...behaviorProps,
-      children,
-    });
+    return (
+      <li data-slot="pagination-list-item">
+        {renderElement(render, "button", {
+          ...behaviorProps,
+          children,
+        })}
+      </li>
+    );
   },
 );
 
@@ -105,12 +109,16 @@ export const PaginationNext = forwardRef<HTMLButtonElement, PaginationControlPro
     };
 
     if (asChild) {
-      return cloneAndMerge(children, behaviorProps);
+      return <li data-slot="pagination-list-item">{cloneAndMerge(children, behaviorProps)}</li>;
     }
 
-    return renderElement(render, "button", {
-      ...behaviorProps,
-      children,
-    });
+    return (
+      <li data-slot="pagination-list-item">
+        {renderElement(render, "button", {
+          ...behaviorProps,
+          children,
+        })}
+      </li>
+    );
   },
 );

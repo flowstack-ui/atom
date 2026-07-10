@@ -38,21 +38,13 @@ test("Pagination compound parts render nav, current page, controls, and ellipsis
       React.createElement(
         Pagination.List,
         null,
-        React.createElement("li", null, React.createElement(Pagination.Previous, null, "Prev")),
+        React.createElement(Pagination.Previous, null, "Prev"),
         items.map((item, index) =>
           item === "ellipsis"
-            ? React.createElement(
-                "li",
-                { key: `ellipsis-${index}` },
-                React.createElement(Pagination.Ellipsis, null),
-              )
-            : React.createElement(
-                "li",
-                { key: item },
-                React.createElement(Pagination.Item, { page: item }),
-              ),
+            ? React.createElement(Pagination.Ellipsis, { key: `ellipsis-${index}` })
+            : React.createElement(Pagination.Item, { key: item, page: item }),
         ),
-        React.createElement("li", null, React.createElement(Pagination.Next, null, "Next")),
+        React.createElement(Pagination.Next, null, "Next"),
       ),
     ),
   );
@@ -61,6 +53,7 @@ test("Pagination compound parts render nav, current page, controls, and ellipsis
   assert.match(html, /aria-label="Pages"/);
   assert.match(html, /data-slot="pagination-root"/);
   assert.match(html, /<ol data-slot="pagination-list"/);
+  assert.match(html, /<li data-slot="pagination-list-item"><button/);
   assert.match(html, /data-slot="pagination-previous"/);
   assert.match(html, /data-direction="previous"/);
   assert.match(html, /aria-current="page"[^>]+data-state="active"[^>]+data-page="10"/);
@@ -73,6 +66,46 @@ test("Pagination compound parts render nav, current page, controls, and ellipsis
   assert.equal(Pagination.Item, PaginationItem);
   assert.equal(Pagination.Ellipsis, PaginationEllipsis);
   assert.equal(Pagination.Next, PaginationNext);
+});
+
+test("Pagination parts own list item structure while asChild and render target the inner element", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Pagination.Root,
+      { totalPages: 3, defaultPage: 2 },
+      React.createElement(
+        Pagination.List,
+        null,
+        React.createElement(
+          Pagination.Previous,
+          { asChild: true },
+          React.createElement("a", { href: "/page/1" }, "Prev"),
+        ),
+        React.createElement(Pagination.Item, {
+          page: 2,
+          render: (props) => React.createElement("a", { ...props, href: "/page/2" }),
+        }),
+        React.createElement(
+          Pagination.Ellipsis,
+          { asChild: true },
+          React.createElement("span", { className: "custom-ellipsis" }, "..."),
+        ),
+      ),
+    ),
+  );
+
+  assert.match(
+    html,
+    /<li data-slot="pagination-list-item"><a href="\/page\/1" type="button" aria-label="Previous page" data-slot="pagination-previous"/,
+  );
+  assert.match(
+    html,
+    /<li data-slot="pagination-list-item"><a[^>]+aria-current="page"[^>]+data-slot="pagination-item"[^>]+href="\/page\/2"/,
+  );
+  assert.match(
+    html,
+    /<li data-slot="pagination-list-item"><span class="custom-ellipsis" aria-hidden="true" data-slot="pagination-ellipsis"/,
+  );
 });
 
 test("Pagination helpers clamp ranges and include boundary ellipsis", () => {

@@ -36,12 +36,16 @@ export const PaginationEllipsis = forwardRef<HTMLSpanElement, PaginationEllipsis
     };
 
     if (asChild) {
-      return cloneAndMerge(children, behaviorProps);
+      return <li data-slot="pagination-list-item">{cloneAndMerge(children, behaviorProps)}</li>;
     }
 
-    return renderElement(render, "span", {
-      ...behaviorProps,
-      children,
-    });
+    return (
+      <li data-slot="pagination-list-item">
+        {renderElement(render, "span", {
+          ...behaviorProps,
+          children,
+        })}
+      </li>
+    );
   },
 );

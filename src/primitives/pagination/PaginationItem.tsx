@@ -67,12 +67,16 @@ export const PaginationItem = forwardRef<HTMLButtonElement, PaginationItemProps>
     };
 
     if (asChild) {
-      return cloneAndMerge(children, behaviorProps);
+      return <li data-slot="pagination-list-item">{cloneAndMerge(children, behaviorProps)}</li>;
     }
 
-    return renderElement(render, "button", {
-      ...behaviorProps,
-      children: children ?? page,
-    });
+    return (
+      <li data-slot="pagination-list-item">
+        {renderElement(render, "button", {
+          ...behaviorProps,
+          children: children ?? page,
+        })}
+      </li>
+    );
   },
 );

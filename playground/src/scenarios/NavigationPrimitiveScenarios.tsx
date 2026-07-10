@@ -21,6 +21,7 @@ type AppBarSlotPart = "root" | "toolbar" | "start" | "center" | "end";
 type AccordionSlotPart = "root" | "item" | "header" | "trigger" | "content";
 type BottomNavigationSlotPart = "root" | "item";
 type BreadcrumbSlotPart = "root" | "list" | "item" | "link" | "page" | "separator" | "ellipsis";
+type PaginationSlotPart = "root" | "list" | "previous" | "item" | "ellipsis" | "next";
 type NavListSlotPart = "root" | "section" | "sectionTrigger" | "sectionLabel" | "sectionContent" | "list" | "item" | "link";
 type NavListCurrentToken = "page" | "step" | "location";
 type LogEntry = {
@@ -32,6 +33,7 @@ type LogEntry = {
 const appBarSlotParts: AppBarSlotPart[] = ["root", "toolbar", "start", "center", "end"];
 const bottomNavigationSlotParts: BottomNavigationSlotPart[] = ["root", "item"];
 const breadcrumbSlotParts: BreadcrumbSlotPart[] = ["root", "list", "item", "link", "page", "separator", "ellipsis"];
+const paginationSlotParts: PaginationSlotPart[] = ["root", "list", "previous", "item", "ellipsis", "next"];
 const navListSlotParts: NavListSlotPart[] = ["root", "section", "sectionTrigger", "sectionLabel", "sectionContent", "list", "item", "link"];
 
 export const navigationPrimitiveScenarioIds = new Set([
@@ -375,8 +377,40 @@ function usePaginationScenario() {
   const [siblingCount, setSiblingCount] = useState("1");
   const [boundaryCount, setBoundaryCount] = useState("1");
   const [disabled, setDisabled] = useState(false);
-  const [composition, setComposition] = useState<CompositionMode>("default");
+  const [localizedLabels, setLocalizedLabels] = useState(false);
+  const [rootComposition, setRootComposition] = useState<CompositionMode>("default");
+  const [listComposition, setListComposition] = useState<CompositionMode>("default");
+  const [previousComposition, setPreviousComposition] = useState<CompositionMode>("default");
+  const [itemComposition, setItemComposition] = useState<CompositionMode>("default");
+  const [ellipsisComposition, setEllipsisComposition] = useState<CompositionMode>("default");
+  const [nextComposition, setNextComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customSlots, setCustomSlots] = useState<Record<PaginationSlotPart, boolean>>({
+    root: false,
+    list: false,
+    previous: false,
+    item: false,
+    ellipsis: false,
+    next: false,
+  });
+  const [refs, setRefs] = useState<Record<PaginationSlotPart, string>>({
+    root: "none",
+    list: "none",
+    previous: "none",
+    item: "none",
+    ellipsis: "none",
+    next: "none",
+  });
   const { log, addLog, clearLog } = useScenarioLog();
+
+  const markPartRef = useCallback((part: PaginationSlotPart, element: HTMLElement | null) => {
+    if (!element) return;
+    const nextValue = element.tagName.toLowerCase();
+    setRefs((current) => {
+      if (current[part] === nextValue) return current;
+      return { ...current, [part]: nextValue };
+    });
+  }, []);
 
   return {
     state: {
@@ -386,16 +420,35 @@ function usePaginationScenario() {
       siblingCount,
       boundaryCount,
       disabled,
-      composition,
+      localizedLabels,
+      rootComposition,
+      listComposition,
+      previousComposition,
+      itemComposition,
+      ellipsisComposition,
+      nextComposition,
+      propCheck,
+      customSlots,
+      refs,
       log,
     },
     actions: {
       setControlled,
+      setControlledPage: setPage,
       setTotalPages,
       setSiblingCount,
       setBoundaryCount,
       setDisabled,
-      setComposition,
+      setLocalizedLabels,
+      setRootComposition,
+      setListComposition,
+      setPreviousComposition,
+      setItemComposition,
+      setEllipsisComposition,
+      setNextComposition,
+      setPropCheck,
+      setCustomSlot: (part: PaginationSlotPart, checked: boolean) => setCustomSlots((slots) => ({ ...slots, [part]: checked })),
+      markPartRef,
       clearLog,
       setPage: (next: number) => {
         setPage(next);
@@ -750,11 +803,39 @@ export function NavigationPrimitiveScenarioToolbar({
         <ToolbarGroup title="State" value="state">
           <MenuCheckboxControl checked={scenario.state.controlled} label="Controlled" value="controlled" onChange={scenario.actions.setControlled} />
           <MenuCheckboxControl checked={scenario.state.disabled} label="Disabled" value="disabled" onChange={scenario.actions.setDisabled} />
+          <MenuCheckboxControl checked={scenario.state.localizedLabels} label="Localized Labels" value="localized-labels" onChange={scenario.actions.setLocalizedLabels} />
           <MenuRadioControl label="Total Pages" options={pageTotalOptions} value={scenario.state.totalPages} onChange={scenario.actions.setTotalPages} />
           <MenuRadioControl label="Sibling Count" options={countOptions} value={scenario.state.siblingCount} onChange={scenario.actions.setSiblingCount} />
           <MenuRadioControl label="Boundary Count" options={countOptions} value={scenario.state.boundaryCount} onChange={scenario.actions.setBoundaryCount} />
         </ToolbarGroup>
-        <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+        {scenario.state.controlled ? (
+          <ToolbarGroup title="Page" value="page">
+            <MenuRadioControl
+              label="Controlled Page"
+              options={paginationPageOptions}
+              value={String(scenario.state.page)}
+              onChange={(nextPage) => scenario.actions.setControlledPage(Number(nextPage))}
+            />
+          </ToolbarGroup>
+        ) : null}
+        <ToolbarGroup title="Composition" value="composition">
+          <MenuRadioControl label="Root" options={compositionOptions} value={scenario.state.rootComposition} onChange={scenario.actions.setRootComposition} />
+          <MenuRadioControl label="List" options={compositionOptions} value={scenario.state.listComposition} onChange={scenario.actions.setListComposition} />
+          <MenuRadioControl label="Previous" options={compositionOptions} value={scenario.state.previousComposition} onChange={scenario.actions.setPreviousComposition} />
+          <MenuRadioControl label="Item" options={compositionOptions} value={scenario.state.itemComposition} onChange={scenario.actions.setItemComposition} />
+          <MenuRadioControl label="Ellipsis" options={compositionOptions} value={scenario.state.ellipsisComposition} onChange={scenario.actions.setEllipsisComposition} />
+          <MenuRadioControl label="Next" options={compositionOptions} value={scenario.state.nextComposition} onChange={scenario.actions.setNextComposition} />
+        </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={paginationSlotParts.map((part) => ({
+            checked: scenario.state.customSlots[part],
+            label: `${formatPaginationSlotLabel(part)} Slot`,
+            value: `${part}-slot`,
+            onChange: (checked) => scenario.actions.setCustomSlot(part, checked),
+          }))}
+        />
       </ControlToolbar>
     );
   }
@@ -1448,9 +1529,10 @@ function BreadcrumbEllipsisPart({ scenario }: { scenario: ReturnType<typeof useB
 function PaginationCanvas({ scenario }: { scenario: ReturnType<typeof usePaginationScenario> }) {
   const state = scenario.state;
   const props = {
-    "aria-label": "Demo pagination",
+    "aria-label": state.localizedLabels ? "Paginacion demo" : undefined,
     className: "playground-pagination",
-    "data-prop-check": "root",
+    ...partProps("root", { propCheck: state.propCheck, customSlot: state.customSlots.root }, "pagination-root-custom"),
+    ref: (element: HTMLElement | null) => scenario.actions.markPartRef("root", element),
     disabled: state.disabled,
     totalPages: Number(state.totalPages),
     siblingCount: Number(state.siblingCount),
@@ -1459,15 +1541,9 @@ function PaginationCanvas({ scenario }: { scenario: ReturnType<typeof usePaginat
     page: state.controlled ? state.page : undefined,
     onPageChange: scenario.actions.setPage,
   };
-  const content = (
-    <Pagination.List className="playground-pagination-list" data-prop-check="list">
-      <Pagination.Previous className="playground-pagination-button" data-prop-check="previous">Prev</Pagination.Previous>
-      <PaginationRangeItems />
-      <Pagination.Next className="playground-pagination-button" data-prop-check="next">Next</Pagination.Next>
-    </Pagination.List>
-  );
+  const content = <PaginationListContent scenario={scenario} />;
 
-  if (state.composition === "asChild") {
+  if (state.rootComposition === "asChild") {
     return (
       <Pagination.Root {...props} asChild>
         <section>{content}</section>
@@ -1475,7 +1551,7 @@ function PaginationCanvas({ scenario }: { scenario: ReturnType<typeof usePaginat
     );
   }
 
-  if (state.composition === "render") {
+  if (state.rootComposition === "render") {
     return (
       <Pagination.Root {...props} render={(renderProps) => <section {...renderProps} />}>
         {content}
@@ -1486,20 +1562,180 @@ function PaginationCanvas({ scenario }: { scenario: ReturnType<typeof usePaginat
   return <Pagination.Root {...props}>{content}</Pagination.Root>;
 }
 
-function PaginationRangeItems() {
+function PaginationListContent({ scenario }: { scenario: ReturnType<typeof usePaginationScenario> }) {
+  const state = scenario.state;
+  const props = {
+    className: "playground-pagination-list",
+    ...partProps("list", { propCheck: state.propCheck, customSlot: state.customSlots.list }, "pagination-list-custom"),
+    ref: (element: HTMLOListElement | null) => scenario.actions.markPartRef("list", element),
+  };
+  const children = (
+    <>
+      <PaginationPreviousControl scenario={scenario} />
+      <PaginationRangeItems scenario={scenario} />
+      <PaginationNextControl scenario={scenario} />
+    </>
+  );
+
+  if (state.listComposition === "asChild") {
+    return (
+      <Pagination.List {...props} asChild>
+        <ol>{children}</ol>
+      </Pagination.List>
+    );
+  }
+
+  if (state.listComposition === "render") {
+    return (
+      <Pagination.List {...props} render={(renderProps) => <ol {...renderProps} />}>
+        {children}
+      </Pagination.List>
+    );
+  }
+
+  return <Pagination.List {...props}>{children}</Pagination.List>;
+}
+
+function PaginationPreviousControl({ scenario }: { scenario: ReturnType<typeof usePaginationScenario> }) {
+  const state = scenario.state;
+  const props = {
+    className: "playground-pagination-button",
+    ...partProps("previous", { propCheck: state.propCheck, customSlot: state.customSlots.previous }, "pagination-previous-custom"),
+    ref: (element: HTMLButtonElement | null) => scenario.actions.markPartRef("previous", element),
+    "aria-label": state.localizedLabels ? "Pagina anterior" : undefined,
+  };
+
+  if (state.previousComposition === "asChild") {
+    return (
+      <Pagination.Previous {...props} asChild>
+        <button type="button">Prev</button>
+      </Pagination.Previous>
+    );
+  }
+
+  if (state.previousComposition === "render") {
+    return (
+      <Pagination.Previous {...props} render={(renderProps) => <button {...renderProps} />}>
+        Prev
+      </Pagination.Previous>
+    );
+  }
+
+  return <Pagination.Previous {...props}>Prev</Pagination.Previous>;
+}
+
+function PaginationNextControl({ scenario }: { scenario: ReturnType<typeof usePaginationScenario> }) {
+  const state = scenario.state;
+  const props = {
+    className: "playground-pagination-button",
+    ...partProps("next", { propCheck: state.propCheck, customSlot: state.customSlots.next }, "pagination-next-custom"),
+    ref: (element: HTMLButtonElement | null) => scenario.actions.markPartRef("next", element),
+    "aria-label": state.localizedLabels ? "Pagina siguiente" : undefined,
+  };
+
+  if (state.nextComposition === "asChild") {
+    return (
+      <Pagination.Next {...props} asChild>
+        <button type="button">Next</button>
+      </Pagination.Next>
+    );
+  }
+
+  if (state.nextComposition === "render") {
+    return (
+      <Pagination.Next {...props} render={(renderProps) => <button {...renderProps} />}>
+        Next
+      </Pagination.Next>
+    );
+  }
+
+  return <Pagination.Next {...props}>Next</Pagination.Next>;
+}
+
+function PaginationRangeItems({ scenario }: { scenario: ReturnType<typeof usePaginationScenario> }) {
   const ctx = usePaginationContext();
 
   return (
     <>
       {ctx.items.map((item, index) => typeof item === "number"
         ? (
-          <Pagination.Item className="playground-pagination-button" data-prop-check={`page-${item}`} key={`page-${item}`} page={item} />
+          <PaginationItemControl key={`page-${item}`} current={ctx.currentPage === item} page={item} scenario={scenario} />
         )
         : (
-          <Pagination.Ellipsis className="playground-pagination-ellipsis" data-prop-check={`ellipsis-${index}`} key={`${item}-${index}`} />
+          <PaginationEllipsisControl key={`${item}-${index}`} first={index === ctx.items.indexOf(item)} scenario={scenario} />
         ))}
     </>
   );
+}
+
+function PaginationItemControl({
+  current,
+  page,
+  scenario,
+}: {
+  current: boolean;
+  page: number;
+  scenario: ReturnType<typeof usePaginationScenario>;
+}) {
+  const state = scenario.state;
+  const props = {
+    className: "playground-pagination-button",
+    ...partProps("item", { propCheck: state.propCheck, customSlot: state.customSlots.item }, "pagination-item-custom"),
+    ref: current ? (element: HTMLButtonElement | null) => scenario.actions.markPartRef("item", element) : undefined,
+    page,
+    "aria-label": state.localizedLabels ? `Pagina ${page}` : undefined,
+  };
+
+  if (state.itemComposition === "asChild") {
+    return (
+      <Pagination.Item {...props} asChild>
+        <button type="button">{page}</button>
+      </Pagination.Item>
+    );
+  }
+
+  if (state.itemComposition === "render") {
+    return (
+      <Pagination.Item {...props} render={(renderProps) => <button {...renderProps} />}>
+        {page}
+      </Pagination.Item>
+    );
+  }
+
+  return <Pagination.Item {...props} />;
+}
+
+function PaginationEllipsisControl({
+  first,
+  scenario,
+}: {
+  first: boolean;
+  scenario: ReturnType<typeof usePaginationScenario>;
+}) {
+  const state = scenario.state;
+  const props = {
+    className: "playground-pagination-ellipsis",
+    ...partProps("ellipsis", { propCheck: state.propCheck, customSlot: state.customSlots.ellipsis }, "pagination-ellipsis-custom"),
+    ref: first ? (element: HTMLSpanElement | null) => scenario.actions.markPartRef("ellipsis", element) : undefined,
+  };
+
+  if (state.ellipsisComposition === "asChild") {
+    return (
+      <Pagination.Ellipsis {...props} asChild>
+        <span>...</span>
+      </Pagination.Ellipsis>
+    );
+  }
+
+  if (state.ellipsisComposition === "render") {
+    return (
+      <Pagination.Ellipsis {...props} render={(renderProps) => <span {...renderProps} />}>
+        ...
+      </Pagination.Ellipsis>
+    );
+  }
+
+  return <Pagination.Ellipsis {...props} />;
 }
 
 function BottomNavigationCanvas({ scenario }: { scenario: ReturnType<typeof useBottomNavigationScenario> }) {
@@ -2023,19 +2259,51 @@ function breadcrumbSlotSelector(state: ReturnType<typeof useBreadcrumbScenario>[
 
 function paginationSections(state: ReturnType<typeof usePaginationScenario>["state"]): AnatomySection[] {
   return [
-    baseSection("Root", `page ${state.page}`, "[data-slot='pagination-root']", [
+    baseSection("Root", `page ${state.page}`, paginationSlotSelector(state, "root"), [
       row("Controlled", bool(state.controlled), "state"),
       row("Disabled", bool(state.disabled), "state"),
+      row("Localized labels", bool(state.localizedLabels), "state"),
       row("Total pages", state.totalPages, "state"),
       row("Sibling count", state.siblingCount, "behavior"),
       row("Boundary count", state.boundaryCount, "behavior"),
+      row("Composition", state.rootComposition, "composition"),
+      row("Ref target", state.refs.root, "identity"),
     ]),
-    baseSection("List", "ol", "[data-slot='pagination-list']"),
-    baseSection("Previous", "previous", "[data-slot='pagination-previous']"),
-    baseSection("Item: Current", `page ${state.page}`, "[data-slot='pagination-item'][data-state='active']"),
-    baseSection("Ellipsis", "range gap", "[data-slot='pagination-ellipsis']"),
-    baseSection("Next", "next", "[data-slot='pagination-next']"),
+    baseSection("List", "ol", paginationSlotSelector(state, "list"), [
+      row("Composition", state.listComposition, "composition"),
+      row("Ref target", state.refs.list, "identity"),
+    ]),
+    baseSection("Previous", "previous", paginationSlotSelector(state, "previous"), [
+      row("Composition", state.previousComposition, "composition"),
+      row("Ref target", state.refs.previous, "identity"),
+    ]),
+    baseSection("Item: Current", `page ${state.page}`, `${paginationSlotSelector(state, "item")}[data-state='active']`, [
+      row("Composition", state.itemComposition, "composition"),
+      row("Ref target", state.refs.item, "identity"),
+    ]),
+    baseSection("Ellipsis", "range gap", paginationSlotSelector(state, "ellipsis"), [
+      row("Composition", state.ellipsisComposition, "composition"),
+      row("Ref target", state.refs.ellipsis, "identity"),
+    ]),
+    baseSection("Next", "next", paginationSlotSelector(state, "next"), [
+      row("Composition", state.nextComposition, "composition"),
+      row("Ref target", state.refs.next, "identity"),
+    ]),
   ];
+}
+
+function paginationSlotSelector(state: ReturnType<typeof usePaginationScenario>["state"], part: PaginationSlotPart) {
+  const slots: Record<PaginationSlotPart, [defaultSlot: string, customSlot: string]> = {
+    root: ["pagination-root", "pagination-root-custom"],
+    list: ["pagination-list", "pagination-list-custom"],
+    previous: ["pagination-previous", "pagination-previous-custom"],
+    item: ["pagination-item", "pagination-item-custom"],
+    ellipsis: ["pagination-ellipsis", "pagination-ellipsis-custom"],
+    next: ["pagination-next", "pagination-next-custom"],
+  };
+  const slot = state.customSlots[part] ? slots[part][1] : slots[part][0];
+
+  return `[data-slot='${slot}']`;
 }
 
 function bottomNavigationSections(state: ReturnType<typeof useBottomNavigationScenario>["state"]): AnatomySection[] {
@@ -2237,7 +2505,7 @@ export function getNavigationPrimitiveSource(scenarioId: string, scenarios?: Nav
   }
 
   if (scenarioId === "pagination") {
-    return `<Pagination.Root page={page} totalPages={10} onPageChange={setPage}>
+    return scenarios ? getPaginationSource(scenarios.pagination.state) : `<Pagination.Root page={page} totalPages={10} onPageChange={setPage}>
   <Pagination.List>
     <Pagination.Previous>Prev</Pagination.Previous>
     <Pagination.Item page={1} />
@@ -2463,6 +2731,116 @@ function sourcePartPropList(part: string, propCheck: boolean, customSlot: boolea
     propCheck ? `data-prop-check="${part}"` : "",
     customSlot ? `data-slot="${customSlotValue}"` : "",
   ].filter(Boolean);
+}
+
+function getPaginationSource(state: ReturnType<typeof usePaginationScenario>["state"]) {
+  const rootProps = [
+    state.localizedLabels ? `aria-label="Paginacion demo"` : "",
+    `totalPages={${state.totalPages}}`,
+    state.controlled ? `page={page}` : `defaultPage={4}`,
+    state.controlled ? `onPageChange={setPage}` : `onPageChange={handlePageChange}`,
+    state.siblingCount !== "1" ? `siblingCount={${state.siblingCount}}` : "",
+    state.boundaryCount !== "1" ? `boundaryCount={${state.boundaryCount}}` : "",
+    state.disabled ? "disabled" : "",
+    ...sourcePartPropList("root", state.propCheck, state.customSlots.root, "pagination-root-custom"),
+  ].filter(Boolean);
+
+  return renderPaginationSourceElement("Root", state.rootComposition, rootProps, "section", getPaginationListSource(state));
+}
+
+function getPaginationListSource(state: ReturnType<typeof usePaginationScenario>["state"]) {
+  const listProps = sourcePartPropList("list", state.propCheck, state.customSlots.list, "pagination-list-custom");
+  const children = [
+    getPaginationControlSource("Previous", "previous", state.previousComposition, "Prev", state),
+    getPaginationItemSource(1, state),
+    getPaginationItemSource(4, state),
+    getPaginationEllipsisSource(state),
+    getPaginationItemSource(Number(state.totalPages), state),
+    getPaginationControlSource("Next", "next", state.nextComposition, "Next", state),
+  ].map((child) => indent(child, 2)).join("\n");
+
+  return renderPaginationSourceElement("List", state.listComposition, listProps, "ol", children);
+}
+
+function getPaginationControlSource(
+  componentName: "Previous" | "Next",
+  part: "previous" | "next",
+  composition: CompositionMode,
+  children: string,
+  state: ReturnType<typeof usePaginationScenario>["state"],
+) {
+  const localizedLabel = part === "previous" ? "Pagina anterior" : "Pagina siguiente";
+  const props = [
+    state.localizedLabels ? `aria-label="${localizedLabel}"` : "",
+    ...sourcePartPropList(part, state.propCheck, state.customSlots[part], `pagination-${part}-custom`),
+  ].filter(Boolean);
+
+  return renderPaginationSourceElement(componentName, composition, props, "button", children, false, ` type="button"`);
+}
+
+function getPaginationItemSource(page: number, state: ReturnType<typeof usePaginationScenario>["state"]) {
+  const props = [
+    `page={${page}}`,
+    state.localizedLabels ? `aria-label="Pagina ${page}"` : "",
+    ...sourcePartPropList("item", state.propCheck, state.customSlots.item, "pagination-item-custom"),
+  ].filter(Boolean);
+
+  return renderPaginationSourceElement("Item", state.itemComposition, props, "button", state.itemComposition === "default" ? "" : String(page), true, ` type="button"`);
+}
+
+function getPaginationEllipsisSource(state: ReturnType<typeof usePaginationScenario>["state"]) {
+  const props = sourcePartPropList("ellipsis", state.propCheck, state.customSlots.ellipsis, "pagination-ellipsis-custom");
+
+  return renderPaginationSourceElement("Ellipsis", state.ellipsisComposition, props, "span", state.ellipsisComposition === "default" ? "" : "...", true);
+}
+
+function renderPaginationSourceElement(
+  part: string,
+  mode: CompositionMode,
+  props: string[],
+  tag: string,
+  children: string,
+  selfCloseWhenEmpty = false,
+  childAttributes = "",
+) {
+  const open = renderPaginationSourceOpen(part, mode, props, tag, selfCloseWhenEmpty && !children && mode !== "asChild");
+
+  if (selfCloseWhenEmpty && !children && mode !== "asChild") {
+    return open;
+  }
+
+  if (mode === "asChild") {
+    return `${open}
+  <${tag}${childAttributes}>
+${indent(children, 4)}
+  </${tag}>
+</Pagination.${part}>`;
+  }
+
+  return `${open}
+${indent(children, 2)}
+</Pagination.${part}>`;
+}
+
+function renderPaginationSourceOpen(part: string, mode: CompositionMode, props: string[], tag: string, selfClosing = false) {
+  const allProps = [
+    ...props,
+    mode === "asChild" ? "asChild" : "",
+    mode === "render" ? `render={(props) => <${tag} {...props} />}` : "",
+  ].filter(Boolean);
+  const close = selfClosing ? " />" : ">";
+
+  if (allProps.length === 0) {
+    return `<Pagination.${part}${close}`;
+  }
+
+  if (allProps.length === 1) {
+    return `<Pagination.${part} ${allProps[0]}${close}`;
+  }
+
+  return `<Pagination.${part}
+${allProps.map((prop) => `  ${prop}`).join("\n")}
+${selfClosing ? "/>" : ">"}`;
 }
 
 function getAccordionSource(state: ReturnType<typeof useAccordionScenario>["state"]) {
@@ -2848,6 +3226,12 @@ function formatBreadcrumbSlotLabel(part: BreadcrumbSlotPart) {
   return part.charAt(0).toUpperCase() + part.slice(1);
 }
 
+function formatPaginationSlotLabel(part: PaginationSlotPart) {
+  if (part === "previous") return "Previous";
+  if (part === "next") return "Next";
+  return part.charAt(0).toUpperCase() + part.slice(1);
+}
+
 const accordionItems = [
   {
     value: "general",
@@ -2899,5 +3283,6 @@ const directionOptions = ["ltr", "rtl"] as const;
 const activationModeOptions = ["automatic", "manual"] as const;
 const appBarPositionOptions = ["static", "sticky", "fixed", "absolute"] as const;
 const appBarDensityOptions = ["compact", "comfortable"] as const;
-const pageTotalOptions = ["5", "10", "20"] as const;
+const pageTotalOptions = ["0", "5", "10", "20"] as const;
+const paginationPageOptions = ["1", "4", "10"] as const;
 const countOptions = ["0", "1", "2"] as const;

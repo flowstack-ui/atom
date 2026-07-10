@@ -20,20 +20,12 @@ import { Pagination } from "@flowstack-ui/atom";
 ## Anatomy
 
 ```tsx
-<Pagination.Root totalPages={10}>
+<Pagination.Root>
   <Pagination.List>
-    <li>
-      <Pagination.Previous />
-    </li>
-    <li>
-      <Pagination.Item page={1} />
-    </li>
-    <li>
-      <Pagination.Ellipsis />
-    </li>
-    <li>
-      <Pagination.Next />
-    </li>
+    <Pagination.Previous />
+    <Pagination.Item />
+    <Pagination.Ellipsis />
+    <Pagination.Next />
   </Pagination.List>
 </Pagination.Root>
 ```
@@ -42,10 +34,12 @@ import { Pagination } from "@flowstack-ui/atom";
 
 ### Root
 
-Contains pagination state.
+Contains pagination state. Renders a `nav` by default. If `totalPages` is `0`
+or negative, `Root` returns `null` and no pagination DOM is rendered.
 
 | Prop | Type | Default |
 | --- | --- | --- |
+| `children` | `ReactNode` | required |
 | `totalPages` | `number` | required |
 | `page` | `number` | - |
 | `defaultPage` | `number` | `1` |
@@ -53,6 +47,7 @@ Contains pagination state.
 | `siblingCount` | `number` | `1` |
 | `boundaryCount` | `number` | `1` |
 | `disabled` | `boolean` | `false` |
+| `aria-label` | `string` | `"Pagination"` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -61,12 +56,20 @@ Contains pagination state.
 | `[data-slot]` | `"pagination-root"` |
 | `[data-disabled]` | Present when disabled |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-label` | From `aria-label`, defaulting to `"Pagination"` |
+
+When disabled, all pagination page changes are ignored and descendant controls
+receive disabled state.
+
 ### List
 
-Renders the ordered page list.
+Renders the ordered page list. Renders an `ol` by default.
 
 | Prop | Type | Default |
 | --- | --- | --- |
+| `children` | `ReactNode` | required |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -76,66 +79,104 @@ Renders the ordered page list.
 
 ### Previous
 
-Moves to the previous page.
+Moves to the previous page. Renders an outer `li` and an inner `button` with
+`type="button"` by default. `asChild`, `render`, native props, and refs target
+the inner control.
 
 | Prop | Type | Default |
 | --- | --- | --- |
+| `children` | `ReactNode` | - |
 | `aria-label` | `string` | `"Previous page"` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
 | Data attribute | Values |
 | --- | --- |
-| `[data-slot]` | `"pagination-previous"` |
+| `[data-slot]` | `"pagination-list-item"` on the outer `li`; `"pagination-previous"` on the inner control |
 | `[data-direction]` | `"previous"` |
 | `[data-disabled]` | Present when disabled or on first page |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-label` | From `aria-label`, defaulting to `"Previous page"` |
+
+`Previous` is disabled when `Root disabled` is true or the current page is the
+first page.
+
 ### Next
 
-Moves to the next page.
+Moves to the next page. Renders an outer `li` and an inner `button` with
+`type="button"` by default. `asChild`, `render`, native props, and refs target
+the inner control.
 
 | Prop | Type | Default |
 | --- | --- | --- |
+| `children` | `ReactNode` | - |
 | `aria-label` | `string` | `"Next page"` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
 | Data attribute | Values |
 | --- | --- |
-| `[data-slot]` | `"pagination-next"` |
+| `[data-slot]` | `"pagination-list-item"` on the outer `li`; `"pagination-next"` on the inner control |
 | `[data-direction]` | `"next"` |
 | `[data-disabled]` | Present when disabled or on last page |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-label` | From `aria-label`, defaulting to `"Next page"` |
+
+`Next` is disabled when `Root disabled` is true or the current page is the last
+page.
+
 ### Item
 
-Renders a page button.
+Renders a page item. Renders an outer `li` and an inner `button` with
+`type="button"` by default. `asChild`, `render`, native props, and refs target
+the inner control.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `page` | `number` | required |
+| `children` | `ReactNode` | page number |
 | `aria-label` | `string` | `"Go to page N"` or `"Page N, current page"` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
 | Data attribute | Values |
 | --- | --- |
-| `[data-slot]` | `"pagination-item"` |
+| `[data-slot]` | `"pagination-list-item"` on the outer `li`; `"pagination-item"` on the inner control |
 | `[data-state]` | `"active" \| "inactive"` |
 | `[data-page]` | Page number |
 | `[data-disabled]` | Present when disabled |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-current` | `"page"` when the item is active |
+| `aria-label` | From `aria-label`, or generated from page/current state |
+
+Items are disabled when `Root disabled` is true. Page changes are clamped to
+the valid range before state updates.
+
 ### Ellipsis
 
-Renders a decorative collapsed-page marker.
+Renders a decorative collapsed-page marker. Renders an outer `li` and an inner
+`span` by default. The inner marker is hidden from assistive technology.
+`asChild`, `render`, native props, and refs target the inner marker.
 
 | Prop | Type | Default |
 | --- | --- | --- |
+| `children` | `ReactNode` | `"…"` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
 | Data attribute | Values |
 | --- | --- |
-| `[data-slot]` | `"pagination-ellipsis"` |
+| `[data-slot]` | `"pagination-list-item"` on the outer `li`; `"pagination-ellipsis"` on the inner marker |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-hidden` | `true` |
 
 ## Examples
 
@@ -144,12 +185,12 @@ Renders a decorative collapsed-page marker.
 ```tsx
 <Pagination.Root totalPages={10} defaultPage={1}>
   <Pagination.List>
-    <li><Pagination.Previous>Previous</Pagination.Previous></li>
-    <li><Pagination.Item page={1} /></li>
-    <li><Pagination.Item page={2} /></li>
-    <li><Pagination.Ellipsis /></li>
-    <li><Pagination.Item page={10} /></li>
-    <li><Pagination.Next>Next</Pagination.Next></li>
+    <Pagination.Previous>Previous</Pagination.Previous>
+    <Pagination.Item page={1} />
+    <Pagination.Item page={2} />
+    <Pagination.Ellipsis />
+    <Pagination.Item page={10} />
+    <Pagination.Next>Next</Pagination.Next>
   </Pagination.List>
 </Pagination.Root>
 ```
@@ -173,7 +214,9 @@ const range = getPaginationRange({
 
 ## Accessibility
 
-Root renders a navigation landmark. List renders an ordered list. The active item receives `aria-current="page"`.
+Root renders a navigation landmark. List renders an ordered list. Previous,
+Next, Item, and Ellipsis each render their own list item wrapper. The active
+item receives `aria-current="page"`.
 
 | Key | Description |
 | --- | --- |

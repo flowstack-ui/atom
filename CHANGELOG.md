@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Changed `Pagination.Previous`, `Pagination.Next`, `Pagination.Item`, and
+  `Pagination.Ellipsis` to render their own structural `li` wrappers while
+  keeping `asChild`, `render`, props, and refs targeted at the inner control or
+  marker.
 - Fixed local `Menubar.Root dir="rtl"` so nested submenu placement mirrors to
   the left, matching `Direction.Provider dir="rtl"`.
 - Fixed adjacent top-level `Menubar` handoff so the active trigger keeps focus
