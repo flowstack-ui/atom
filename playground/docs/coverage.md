@@ -93,6 +93,23 @@ are needed to avoid building against stale or incorrect rows. Do not mark rows
 `Tested`, mark final coverage complete, or claim manual verification until every
 step in the component's Manual Test Protocol has passed.
 
+Before final workbook status updates, run a protocol-to-workbook completeness
+gate:
+
+- every playground-verifiable workbook requirement appears in the Manual Test
+  Protocol
+- each protocol check maps back to a validated workbook row or a verified
+  public-contract behavior that should become one
+- stale, duplicated, wrong-part, source-only, and non-playground-verifiable rows
+  are classified as workbook model cleanup
+- workbook-only cleanup notes stay separate from manual testing steps
+- stable expected values in the workbook match the exact protocol values
+- dynamic expected values use the same relationship wording in both places
+
+Do not mark the component complete if a playground-verifiable workbook
+requirement is missing from the protocol. Correct the protocol or workbook model
+first, then rerun the affected manual test step.
+
 ## Status Rules
 
 Use consistent status values:
@@ -107,6 +124,8 @@ Completed rows should have:
 - `Tested` = `yes`
 - `Coverage Status` = `covered`
 - a short result note, such as `passed manual test`
+- evidence that points to the reviewed Manual Test Protocol when the row is
+  complete because of manual browser verification
 
 Do not mark rows `Tested`, set final coverage to `covered`, or claim manual
 verification until every step in the component's Manual Test Protocol has passed.

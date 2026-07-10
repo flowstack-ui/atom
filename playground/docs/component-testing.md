@@ -19,6 +19,17 @@ the fewest possible props while still rendering the public parts needed for
 manual testing. Optional behavior belongs behind toolbar controls instead of
 being enabled in the first-loaded Canvas.
 
+Before implementation, the scenario plan must pass the Default-State Gate from
+`workflow.md`:
+
+```text
+Initial Canvas and default Source represent the simplest valid consumer usage
+and contain no non-default props except those required to render public parts.
+```
+
+Report this as pass or fail before editing. If it fails, correct the scenario
+plan before changing playground code.
+
 For composite components that re-export or wrap another primitive's parts,
 test the composite-owned behavior deeply and keep reused shared primitive
 behavior to integration smoke coverage unless the composite changes that
@@ -208,6 +219,23 @@ Do not mix feature-wide behavior into part-specific steps. Do not repeat the
 same check in multiple steps unless a later step verifies a different surface,
 such as Source output instead of live DOM.
 
+### Protocol Self-Review Gate
+
+Before showing Step 0, audit the full draft protocol and report pass or fail
+for each item below. Do not show Step 0 until every item passes.
+
+- every step has an explicit setup
+- each action is immediately followed by its expected result
+- only one behavior or compatible verification cluster is tested at a time
+- each part is completed before moving to the next
+- stable values are exact
+- generated values use relationships
+- default Source omits non-default props
+- controlled-only controls and Source appear only in controlled mode
+- raw Attributes, ARIA, and Data are used instead of invented evidence
+- all playground-verifiable workbook requirements appear in the protocol
+- workbook-only cleanup notes are separate from manual testing
+
 ### Setup Discipline
 
 Each step should begin from a clearly defined state. The tester should never
@@ -246,10 +274,17 @@ scenario to a known state.
 state statements over explanations.
 
 `Action` describes exactly what the tester should do. Prefer one action at a
-time.
+time. When testing equivalent input paths, keep the wording compact, such as
+`Press Enter or Space`, and immediately state the shared expected result.
 
 `Verify` should use concise QA-style assertions. Prefer checkbox-style expected
 results over narrative instructions.
+
+Each action must be followed immediately by its expected result. Do not batch
+several unrelated actions and then verify them together. Compatible
+verification clusters are allowed when they do not interrupt the tester's flow,
+such as checking prop pass-through and slot override evidence for the same
+selected part in raw `Data`.
 
 Example:
 
@@ -368,6 +403,11 @@ Separate static verification from behavior verification when it makes the step
 easier to execute. For example, verify `data-slot`, role, and ARIA before
 keyboard or pointer behavior.
 
+When a control disables an action target, write the expected disabled behavior
+directly. For example, say that clicking or pressing Enter/Space does nothing
+because the target is disabled; do not instruct the tester to toggle through a
+disabled target as if it should still work.
+
 ### Noise Reduction
 
 The protocol should read like a QA test script.
@@ -390,11 +430,12 @@ Agent behavior:
 3. Wait for tester confirmation.
 4. When the tester says `next`, show only the next step.
 5. If the tester reports an issue, classify it as:
-   - `Playground implementation gap`
-   - `Package implementation bug`
-   - `Package documentation gap`
-   - `Workbook coverage gap`
-   - `Documentation/process issue`
+   - `Atom package behavior`
+   - `Playground implementation/composition`
+   - `Evidence/inspection tooling`
+   - `Protocol wording`
+   - `Workbook model`
+   - `Package documentation`
 6. Do not continue until the current step passes or the issue is resolved or
    triaged.
 7. Do not mark rows `Tested`, set final coverage to `covered`, or claim manual
@@ -480,6 +521,10 @@ Authoring rules:
   default component example. Expose optional props, variants, edge cases, and
   accessibility-name overrides through toolbar controls so the default Canvas
   remains the canonical minimal implementation.
+- Keep initial state controls aligned with the verified component defaults.
+  When an uncontrolled component supports a default-state prop, expose that
+  default-state choice near the related state control instead of adding a
+  separate toolbar item.
 
 ## Toolbar Group Taxonomy
 
@@ -519,6 +564,8 @@ Rules:
 
 - Put controlled value controls in the toolbar.
 - Hide controlled value controls when `Controlled` is off.
+- Show controlled props and controlled-only Source output only when controlled
+  mode is active.
 - Do not let toolbar-controlled value state visually fight with uncontrolled
   component state.
 - When turning controlled mode on or off, keep state transitions predictable and

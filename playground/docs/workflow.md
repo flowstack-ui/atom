@@ -7,15 +7,18 @@ update.
 
 1. Read the component's public source, exports, tests, and package
    documentation.
-2. Establish the verified public component contract.
+2. Establish the verified public component contract and pass the Component
+   Contract Gate.
 3. Audit and correct package documentation when clearly necessary.
 4. Audit and correct the workbook coverage model when clearly necessary.
 5. Inspect the existing playground scenario.
 6. Compare the playground against the verified contract and corrected workbook
-   model.
+   model, then pass the Default-State Gate.
 7. Implement missing playground behavior.
-8. Classify any package, playground, documentation, or workbook issues.
-9. Create or update the draft Manual Test Protocol.
+8. Classify any package, playground, documentation, workbook, evidence, or
+   protocol issues before editing.
+9. Create or update the draft Manual Test Protocol and pass the Protocol
+   Self-Review Gate.
 10. Execute it step by step.
 11. Fix issues and repeat testing until complete.
 12. Update final workbook statuses.
@@ -75,6 +78,25 @@ Conflict classification:
 - Source or tests vs package docs: package documentation gap.
 - Verified package contract vs workbook: workbook coverage gap.
 - Verified package contract vs playground: playground implementation gap.
+
+Before implementation, show a concise Component Contract Gate table. Do not
+create a permanent file for the gate. The table must use this evidence order:
+package source, package tests, package documentation, workbook, then existing
+playground.
+
+The table must cover:
+
+- verified default mode and state
+- public parts and order
+- default tags and slots
+- optional props and variants
+- composition support per part
+- rendered DOM parts eligible for prop, slot, and ref coverage
+- current scenario defaults
+- mismatches that must be corrected
+
+Do not proceed until the initial scenario matches the verified defaults, except
+for the minimum content required to render and demonstrate the public parts.
 
 ## 2. Package Documentation Audit
 
@@ -146,6 +168,11 @@ the existing playground scenario.
 - Do not invent component behavior merely to satisfy workbook rows.
 - Add or revise coverage planning only after confirming both the verified
   contract and current playground state.
+- Before implementation, state pass or fail for this Default-State Gate:
+  “Initial Canvas and default Source represent the simplest valid consumer
+  usage and contain no non-default props except those required to render public
+  parts.”
+- If the Default-State Gate fails, correct the scenario plan before editing.
 
 ## 6. Implement Missing Playground Behavior
 
@@ -162,22 +189,25 @@ the existing playground scenario.
 Manual testing and implementation can reveal different kinds of work. Classify
 each finding before proposing a fix:
 
-- **Playground implementation gap**: scenario behavior, shared workbench helper,
-  Source snippet, Anatomy/Inspector wiring, logs, styling, or Manual Test
-  Protocol issue inside `package/playground/`.
-- **Package implementation bug**: primitive behavior, public API behavior,
-  generated DOM, accessibility wiring, event handling, ref behavior, or package
-  tests that disagree with source behavior.
-- **Package documentation gap**: public docs, examples, anatomy, props,
-  defaults, tags, `data-slot`, ARIA, composition, or package docs that disagree
-  with source and tests.
-- **Workbook coverage gap**: missing, stale, duplicated, incorrect,
-  non-playground-verifiable, wrong-part, or source-only workbook row; workbook
-  status, workbook evidence, worksheet formula, or index issue.
-- **Documentation/process issue**: playground authoring rule, workflow, coverage
-  rule, Manual Test Protocol rule, or reusable process improvement.
+- **Atom package behavior**: primitive behavior, public API behavior, generated
+  DOM, accessibility wiring, event handling, ref behavior, or package tests
+  that disagree with source behavior.
+- **Playground implementation/composition**: scenario behavior, shared
+  workbench helper, Source snippet, Anatomy/Inspector wiring, logs, styling, or
+  component composition inside `package/playground/`.
+- **Evidence/inspection tooling**: Anatomy, Inspector, Focused, Selected, Logs,
+  raw Attributes, raw ARIA, raw Data, mutation refresh, or evidence formatting
+  that makes real DOM behavior hard to verify.
+- **Protocol wording**: Manual Test Protocol steps, setup, action order,
+  expected results, step grouping, or tester flow.
+- **Workbook model**: missing, stale, duplicated, incorrect,
+  non-playground-verifiable, wrong-part, source-only, status, evidence, formula,
+  or index issue in `component-coverage.xlsx`.
+- **Package documentation**: public docs, examples, anatomy, props, defaults,
+  tags, `data-slot`, ARIA, composition, or package docs that disagree with
+  source and tests.
 
-If a package implementation bug is discovered, stop before changing package
+If an Atom package behavior issue is discovered, stop before changing package
 source unless the user has already approved that scope. Package source changes
 must follow package-level test, documentation, and changelog rules.
 
@@ -185,6 +215,10 @@ Do not silently change package source when docs and source disagree. Keep packag
 documentation corrections scoped to the component being completed, and ask before
 changing package source or public documentation when intended behavior is
 uncertain.
+
+Do not immediately patch uncertain behavior. Classify the issue first, identify
+the evidence that supports the classification, and only edit the artifact owned
+by that classification.
 
 ## 8. Generate Draft Manual Test Protocol
 
@@ -221,6 +255,10 @@ a clearly defined state, separates setup, action, verification, and reset when
 needed, and reads like an executable QA test script rather than a component
 explanation.
 
+Before showing Step 0, audit the full draft protocol with the Protocol
+Self-Review Gate from `component-testing.md`. Report pass or fail for each
+criterion. Do not show Step 0 until every criterion passes.
+
 ## 9. Execute Manual Test Protocol
 
 Run the Manual Test Protocol in the browser one step at a time.
@@ -232,11 +270,12 @@ Agent behavior:
 3. Wait for tester confirmation.
 4. When the tester says `next`, show only the next step.
 5. If the tester reports an issue, classify it before deciding where to fix it:
-   - `Playground implementation gap`
-   - `Package implementation bug`
-   - `Package documentation gap`
-   - `Workbook coverage gap`
-   - `Documentation/process issue`
+   - `Atom package behavior`
+   - `Playground implementation/composition`
+   - `Evidence/inspection tooling`
+   - `Protocol wording`
+   - `Workbook model`
+   - `Package documentation`
 6. Do not continue until the current step passes or the issue is resolved or
    triaged.
 7. Do not mark rows `Tested`, set final coverage to `covered`, or claim manual
