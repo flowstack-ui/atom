@@ -10,6 +10,7 @@ Headless hierarchical tree primitives for expandable one-dimensional navigation 
 - Supports single and multiple selection.
 - Supports typeahead, roving active item, disabled items, Field context, and form submission.
 - Supports nested groups with automatic levels.
+- Supports RTL-aware arrow-key navigation through `dir` and `Direction.Provider`.
 
 ## Import
 
@@ -50,6 +51,7 @@ Contains tree items and owns selection/expansion state.
 | `required` | `boolean` | Field value |
 | `invalid` | `boolean` | Field value |
 | `orientation` | `"vertical" \| "horizontal"` | `"vertical"` |
+| `dir` | `"ltr" \| "rtl"` | `Direction.Provider` |
 | `loop` | `boolean` | `true` |
 
 ### Item
@@ -109,9 +111,10 @@ multi-character buffers match exact prefixes.
 
 | Key | Description |
 | --- | --- |
-| `ArrowDown` / `ArrowUp` | Moves between visible items |
-| `ArrowRight` | Expands a collapsed item or moves to its first child |
-| `ArrowLeft` | Collapses an expanded item or moves to its parent |
+| `ArrowDown` / `ArrowUp` | Moves between visible items in vertical orientation |
+| `ArrowRight` / `ArrowLeft` | Moves between items in horizontal orientation, mirrored when `dir="rtl"` |
+| Expand arrow | Expands a collapsed item or moves to its first child: `ArrowRight` in LTR, `ArrowLeft` in RTL |
+| Collapse arrow | Collapses an expanded item or moves to its parent: `ArrowLeft` in LTR, `ArrowRight` in RTL |
 | `Home` / `End` | Moves to first or last visible item |
 | `Enter` / `Space` | Selects the item and toggles expansion when expandable |
 | Printable character | Typeahead search |

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added `Direction.Provider` and `dir` support to mirror horizontal Tree
+  navigation and expand/collapse arrow behavior in RTL.
 - Standardized Tree typeahead so a single-character search cycles from the
   current matching item while multi-character buffers still match exact
   prefixes.

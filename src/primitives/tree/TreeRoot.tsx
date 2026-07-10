@@ -24,6 +24,7 @@ import {
   type RenderProp,
 } from "../../utils/slot.js";
 import { getTypeaheadMatch } from "../../utils/typeahead.js";
+import { useDirection, type DirectionValue } from "../direction/index.js";
 import {
   TreeBranchContextProvider,
   TreeContextProvider,
@@ -41,6 +42,7 @@ type TreeRootNativeProps = NativeDivProps<
   | "onChange"
   | "onFocus"
   | "onKeyDown"
+  | "dir"
   | "role"
   | "aria-activedescendant"
   | "aria-disabled"
@@ -68,6 +70,8 @@ export interface TreeRootProps extends TreeRootNativeProps {
   required?: boolean;
   invalid?: boolean;
   orientation?: TreeOrientation;
+  /** Text direction used for horizontal and expand/collapse arrow-key navigation. Defaults to Direction.Provider. */
+  dir?: DirectionValue;
   loop?: boolean;
   name?: string;
   form?: string;
@@ -124,6 +128,35 @@ function getTreeTypeaheadMatch(
   );
 }
 
+export type TreeNavigationAction =
+  | "next"
+  | "previous"
+  | "expand-or-child"
+  | "collapse-or-parent";
+
+export function getTreeNavigationAction(
+  orientation: TreeOrientation,
+  key: string,
+  dir: DirectionValue = "ltr",
+): TreeNavigationAction | null {
+  if (orientation === "horizontal") {
+    if (key === "ArrowRight") return dir === "rtl" ? "previous" : "next";
+    if (key === "ArrowLeft") return dir === "rtl" ? "next" : "previous";
+    return null;
+  }
+
+  if (key === "ArrowDown") return "next";
+  if (key === "ArrowUp") return "previous";
+  if (key === "ArrowRight") {
+    return dir === "rtl" ? "collapse-or-parent" : "expand-or-child";
+  }
+  if (key === "ArrowLeft") {
+    return dir === "rtl" ? "expand-or-child" : "collapse-or-parent";
+  }
+
+  return null;
+}
+
 export const TreeRoot = forwardRef<HTMLElement, TreeRootProps>(
   function TreeRoot(
     {
@@ -140,6 +173,7 @@ export const TreeRoot = forwardRef<HTMLElement, TreeRootProps>(
       required,
       invalid,
       orientation = "vertical",
+      dir: dirProp,
       loop = true,
       name,
       form,
@@ -157,6 +191,8 @@ export const TreeRoot = forwardRef<HTMLElement, TreeRootProps>(
     ref,
   ) {
     const fieldCtx = useFieldContext();
+    const contextDir = useDirection();
+    const dir = dirProp ?? contextDir;
     const treeRef = useRef<HTMLElement | null>(null);
     const composedRef = useMemo(() => composeRefs(treeRef, ref), [ref]);
     const {
@@ -403,35 +439,37 @@ export const TreeRoot = forwardRef<HTMLElement, TreeRootProps>(
       (event) => {
         if (isDisabled) return;
 
-        const horizontal = orientation === "horizontal";
-        const nextKey = horizontal ? "ArrowRight" : "ArrowDown";
-        const previousKey = horizontal ? "ArrowLeft" : "ArrowUp";
+        const navigationAction = getTreeNavigationAction(orientation, event.key, dir);
 
-        switch (event.key) {
-          case nextKey: {
-            event.preventDefault();
-            moveFocus("next");
-            return;
-          }
-          case previousKey: {
-            event.preventDefault();
-            moveFocus("previous");
-            return;
-          }
-          case "ArrowRight": {
-            if (horizontal || !activeValue) break;
+        if (navigationAction === "next") {
+          event.preventDefault();
+          moveFocus("next");
+          return;
+        }
+
+        if (navigationAction === "previous") {
+          event.preventDefault();
+          moveFocus("previous");
+          return;
+        }
+
+        if (navigationAction === "expand-or-child") {
+          if (activeValue) {
             const item = getItem(activeValue);
-            if (!item?.data.expandable) break;
-            event.preventDefault();
-            if (!expandedValues.includes(activeValue)) {
-              expandValue(activeValue);
+            if (item?.data.expandable) {
+              event.preventDefault();
+              if (!expandedValues.includes(activeValue)) {
+                expandValue(activeValue);
+                return;
+              }
+              focusFirstChild(activeValue);
               return;
             }
-            focusFirstChild(activeValue);
-            return;
           }
-          case "ArrowLeft": {
-            if (horizontal || !activeValue) break;
+        }
+
+        if (navigationAction === "collapse-or-parent") {
+          if (activeValue) {
             const item = getItem(activeValue);
             if (item?.data.expandable && expandedValues.includes(activeValue)) {
               event.preventDefault();
@@ -441,9 +479,12 @@ export const TreeRoot = forwardRef<HTMLElement, TreeRootProps>(
             if (item?.data.parentValue) {
               event.preventDefault();
               focusParent(activeValue);
+              return;
             }
-            return;
           }
+        }
+
+        switch (event.key) {
           case "Home": {
             event.preventDefault();
             const firstItem = getVisibleItems()[0] ?? getFirstItem(true);
@@ -500,6 +541,7 @@ export const TreeRoot = forwardRef<HTMLElement, TreeRootProps>(
       [
         activeValue,
         collapseValue,
+        dir,
         expandValue,
         expandedValues,
         focusFirstChild,
@@ -610,6 +652,7 @@ export const TreeRoot = forwardRef<HTMLElement, TreeRootProps>(
       ...restProps,
       ref: composedRef,
       id: treeId,
+      dir,
       role: "tree",
       tabIndex: tabIndex ?? 0,
       "aria-activedescendant": activeDescendant,

@@ -8,12 +8,17 @@ import {
 } from "../test-utils.mjs";
 
 import {
+  Direction,
   Tree,
   TreeGroup,
   TreeItem,
   TreeItemText,
   TreeRoot,
 } from "../../dist/index.js";
+
+import {
+  getTreeNavigationAction,
+} from "../../dist/_internal/primitives/tree/TreeRoot.js";
 
 test("Tree compound parts render hierarchical tree anatomy", () => {
   const html = renderToStaticMarkup(
@@ -42,6 +47,7 @@ test("Tree compound parts render hierarchical tree anatomy", () => {
   );
 
   assert.match(html, /^<div/);
+  assert.match(html, /^<div[^>]+dir="ltr"/);
   assert.match(html, /role="tree"/);
   assert.match(html, /aria-label="Documentation"/);
   assert.match(html, /aria-required="true"/);
@@ -71,6 +77,74 @@ test("Tree compound parts render hierarchical tree anatomy", () => {
   assert.equal(Tree.Item, TreeItem);
   assert.equal(Tree.ItemText, TreeItemText);
   assert.equal(Tree.Group, TreeGroup);
+});
+
+test("TreeRoot resolves local and provider direction", () => {
+  const children = React.createElement(TreeItem, { value: "docs" }, "Docs");
+  const localHtml = renderToStaticMarkup(
+    React.createElement(TreeRoot, { "aria-label": "Documentation", dir: "rtl" }, children),
+  );
+  const providerHtml = renderToStaticMarkup(
+    React.createElement(
+      Direction.Provider,
+      { dir: "rtl" },
+      React.createElement(TreeRoot, { "aria-label": "Documentation" }, children),
+    ),
+  );
+  const overrideHtml = renderToStaticMarkup(
+    React.createElement(
+      Direction.Provider,
+      { dir: "rtl" },
+      React.createElement(TreeRoot, { "aria-label": "Documentation", dir: "ltr" }, children),
+    ),
+  );
+
+  assert.match(localHtml, /^<div[^>]+dir="rtl"/);
+  assert.match(providerHtml, /^<div[^>]+dir="rtl"/);
+  assert.match(overrideHtml, /^<div[^>]+dir="ltr"/);
+});
+
+test("TreeRoot applies resolved direction through render and asChild", () => {
+  const renderedHtml = renderToStaticMarkup(
+    React.createElement(
+      TreeRoot,
+      {
+        dir: "rtl",
+        render: React.createElement("section", { className: "consumer-tree" }),
+      },
+      React.createElement(TreeItem, { value: "docs" }, "Docs"),
+    ),
+  );
+  const asChildHtml = renderToStaticMarkup(
+    React.createElement(
+      TreeRoot,
+      { dir: "rtl", asChild: true },
+      React.createElement(
+        "section",
+        { className: "consumer-tree" },
+        React.createElement(TreeItem, { value: "docs" }, "Docs"),
+      ),
+    ),
+  );
+
+  assert.match(renderedHtml, /^<section class="consumer-tree"[^>]+dir="rtl"/);
+  assert.match(asChildHtml, /^<section class="consumer-tree"[^>]+dir="rtl"/);
+});
+
+test("Tree arrow navigation mirrors in RTL", () => {
+  assert.equal(getTreeNavigationAction("horizontal", "ArrowRight"), "next");
+  assert.equal(getTreeNavigationAction("horizontal", "ArrowRight", "ltr"), "next");
+  assert.equal(getTreeNavigationAction("horizontal", "ArrowLeft", "ltr"), "previous");
+  assert.equal(getTreeNavigationAction("horizontal", "ArrowRight", "rtl"), "previous");
+  assert.equal(getTreeNavigationAction("horizontal", "ArrowLeft", "rtl"), "next");
+  assert.equal(getTreeNavigationAction("horizontal", "ArrowDown", "rtl"), null);
+  assert.equal(getTreeNavigationAction("vertical", "ArrowDown", "rtl"), "next");
+  assert.equal(getTreeNavigationAction("vertical", "ArrowUp", "rtl"), "previous");
+  assert.equal(getTreeNavigationAction("vertical", "ArrowRight", "ltr"), "expand-or-child");
+  assert.equal(getTreeNavigationAction("vertical", "ArrowLeft", "ltr"), "collapse-or-parent");
+  assert.equal(getTreeNavigationAction("vertical", "ArrowRight", "rtl"), "collapse-or-parent");
+  assert.equal(getTreeNavigationAction("vertical", "ArrowLeft", "rtl"), "expand-or-child");
+  assert.equal(getTreeNavigationAction("vertical", "Home", "rtl"), null);
 });
 
 test("Tree supports multiple selection, collapsed groups, and render escapes", () => {
@@ -133,10 +207,10 @@ test("Tree source uses Collection and keeps APG tree keyboard behavior in Root",
   );
 
   assert.match(rootSource, /useCollection<string, HTMLElement, TreeItemData>\(\)/);
+  assert.match(rootSource, /useDirection\(\)/);
   assert.match(rootSource, /role: "tree"/);
   assert.match(rootSource, /aria-activedescendant/);
-  assert.match(rootSource, /case "ArrowRight"/);
-  assert.match(rootSource, /case "ArrowLeft"/);
+  assert.match(rootSource, /getTreeNavigationAction\(orientation, event\.key, dir\)/);
   assert.match(rootSource, /case "Home"/);
   assert.match(rootSource, /case "End"/);
   assert.match(rootSource, /lastActiveValueRef/);
