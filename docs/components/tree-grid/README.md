@@ -9,6 +9,7 @@ Headless hierarchical grid primitives combining tree expansion with grid cell na
 - Supports controlled and uncontrolled active cell state.
 - Supports optional row selection with selectable parent rows.
 - Hides descendant rows when parent rows are collapsed.
+- Supports RTL-aware cell navigation and tree expand/collapse keys through `dir` and `Direction.Provider`.
 - Keeps sorting, filtering, resizing, editing, and virtualization outside the primitive.
 
 ## Import
@@ -57,6 +58,7 @@ Contains the treegrid.
 | `disabled` | `boolean` | `false` |
 | `readOnly` | `boolean` | `false` |
 | `loop` | `boolean` | `false` |
+| `dir` | `"ltr" \| "rtl"` | `Direction.Provider` |
 | `rowCount` | `number` | - |
 | `columnCount` | `number` | - |
 
@@ -114,8 +116,8 @@ Implements the WAI-ARIA treegrid pattern with root focus and `aria-activedescend
 
 | Key | Description |
 | --- | --- |
-| `ArrowRight` | Expands a collapsed expandable row, or moves right |
-| `ArrowLeft` | Collapses an expanded row, moves to parent, or moves left |
+| Expand / next-cell arrow | Expands a collapsed expandable row, or moves to the next cell: `ArrowRight` in LTR, `ArrowLeft` in RTL |
+| Collapse / previous-cell arrow | Collapses an expanded row, moves to parent, or moves to the previous cell: `ArrowLeft` in LTR, `ArrowRight` in RTL |
 | `ArrowDown` / `ArrowUp` | Moves between visible rows |
 | `Home` / `End` | Moves within a row |
 | `Ctrl+Home` / `Ctrl+End` | Moves to first or last visible cell |

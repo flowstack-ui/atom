@@ -8,6 +8,7 @@ import {
 } from "../test-utils.mjs";
 
 import {
+  Direction,
   TreeGrid,
   TreeGridBody,
   TreeGridCaption,
@@ -18,6 +19,10 @@ import {
   TreeGridRow,
   TreeGridRowHeader,
 } from "../../dist/index.js";
+
+import {
+  getTreeGridNavigationDirection,
+} from "../../dist/_internal/primitives/tree-grid/TreeGridRoot.js";
 
 test("TreeGrid compound parts render hierarchical grid anatomy", () => {
   const html = renderToStaticMarkup(
@@ -62,6 +67,7 @@ test("TreeGrid compound parts render hierarchical grid anatomy", () => {
   );
 
   assert.match(html, /^<table/);
+  assert.match(html, /^<table[^>]+dir="ltr"/);
   assert.match(html, /role="treegrid"/);
   assert.match(html, /aria-label="Projects"/);
   assert.match(html, /aria-colcount="2"/);
@@ -88,6 +94,78 @@ test("TreeGrid compound parts render hierarchical grid anatomy", () => {
   assert.equal(TreeGrid.RowHeader, TreeGridRowHeader);
   assert.equal(TreeGrid.Cell, TreeGridCell);
   assert.equal(TreeGrid.Caption, TreeGridCaption);
+});
+
+test("TreeGridRoot resolves local and provider direction", () => {
+  const body = React.createElement(
+    TreeGrid.Body,
+    null,
+    React.createElement(
+      TreeGrid.Row,
+      { rowIndex: 1, value: "platform" },
+      React.createElement(TreeGrid.RowHeader, { columnIndex: 1 }, "Platform"),
+    ),
+  );
+  const localHtml = renderToStaticMarkup(
+    React.createElement(TreeGrid.Root, { "aria-label": "Projects", dir: "rtl" }, body),
+  );
+  const providerHtml = renderToStaticMarkup(
+    React.createElement(
+      Direction.Provider,
+      { dir: "rtl" },
+      React.createElement(TreeGrid.Root, { "aria-label": "Projects" }, body),
+    ),
+  );
+  const overrideHtml = renderToStaticMarkup(
+    React.createElement(
+      Direction.Provider,
+      { dir: "rtl" },
+      React.createElement(TreeGrid.Root, { "aria-label": "Projects", dir: "ltr" }, body),
+    ),
+  );
+
+  assert.match(localHtml, /^<table[^>]+dir="rtl"/);
+  assert.match(providerHtml, /^<table[^>]+dir="rtl"/);
+  assert.match(overrideHtml, /^<table[^>]+dir="ltr"/);
+});
+
+test("TreeGridRoot applies resolved direction through render and asChild", () => {
+  const renderedHtml = renderToStaticMarkup(
+    React.createElement(
+      TreeGridRoot,
+      {
+        dir: "rtl",
+        render: React.createElement("table", { className: "consumer-grid" }),
+      },
+      React.createElement(TreeGridBody, null),
+    ),
+  );
+  const asChildHtml = renderToStaticMarkup(
+    React.createElement(
+      TreeGridRoot,
+      { dir: "rtl", asChild: true },
+      React.createElement(
+        "table",
+        { className: "consumer-grid" },
+        React.createElement(TreeGridBody, null),
+      ),
+    ),
+  );
+
+  assert.match(renderedHtml, /^<table class="consumer-grid"[^>]+dir="rtl"/);
+  assert.match(asChildHtml, /^<table class="consumer-grid"[^>]+dir="rtl"/);
+});
+
+test("TreeGrid horizontal arrow navigation mirrors in RTL while vertical navigation does not", () => {
+  assert.equal(getTreeGridNavigationDirection("ArrowRight"), "right");
+  assert.equal(getTreeGridNavigationDirection("ArrowRight", "ltr"), "right");
+  assert.equal(getTreeGridNavigationDirection("ArrowLeft", "ltr"), "left");
+  assert.equal(getTreeGridNavigationDirection("ArrowRight", "rtl"), "left");
+  assert.equal(getTreeGridNavigationDirection("ArrowLeft", "rtl"), "right");
+  assert.equal(getTreeGridNavigationDirection("ArrowDown", "rtl"), "down");
+  assert.equal(getTreeGridNavigationDirection("ArrowUp", "rtl"), "up");
+  assert.equal(getTreeGridNavigationDirection("Home", "rtl"), null);
+  assert.equal(getTreeGridNavigationDirection("End", "rtl"), null);
 });
 
 test("TreeGrid hides descendant rows when parent rows are collapsed", () => {
@@ -164,10 +242,10 @@ test("TreeGrid source combines tree expansion with grid keyboard navigation", as
   );
 
   assert.match(rootSource, /role: "treegrid"/);
+  assert.match(rootSource, /useDirection\(\)/);
   assert.match(rootSource, /useCollection<string, HTMLElement, TreeGridRowData>\(\)/);
   assert.match(rootSource, /useCollection<string, HTMLElement, TreeGridCellData>\(\)/);
-  assert.match(rootSource, /case "ArrowRight"/);
-  assert.match(rootSource, /case "ArrowLeft"/);
+  assert.match(rootSource, /getTreeGridNavigationDirection\(event\.key, dir\)/);
   assert.match(rootSource, /activeCellIsTreeColumn/);
   assert.match(rootSource, /activeRowCanExpand/);
   assert.match(rootSource, /case "Enter"/);

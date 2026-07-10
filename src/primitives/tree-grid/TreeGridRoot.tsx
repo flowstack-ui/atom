@@ -21,6 +21,7 @@ import {
   renderElement,
   type RenderProp,
 } from "../../utils/slot.js";
+import { useDirection, type DirectionValue } from "../direction/index.js";
 import {
   TreeGridContextProvider,
   getDefaultTreeGridSelectionValue,
@@ -37,6 +38,7 @@ import {
 type TreeGridRootNativeProps = NativeTableProps<
   | "children"
   | "defaultValue"
+  | "dir"
   | "onChange"
   | "onKeyDown"
   | "role"
@@ -64,6 +66,8 @@ export interface TreeGridRootProps extends TreeGridRootNativeProps {
   disabled?: boolean;
   readOnly?: boolean;
   loop?: boolean;
+  /** Text direction used for horizontal cell and expand/collapse arrow-key navigation. Defaults to Direction.Provider. */
+  dir?: DirectionValue;
   rowCount?: number;
   columnCount?: number;
   selectOnRowClick?: boolean;
@@ -109,6 +113,24 @@ function getClosestColumnCell(
   }, null);
 }
 
+export function getTreeGridNavigationDirection(
+  key: string,
+  dir: DirectionValue = "ltr",
+): "up" | "down" | "left" | "right" | null {
+  switch (key) {
+    case "ArrowRight":
+      return dir === "rtl" ? "left" : "right";
+    case "ArrowLeft":
+      return dir === "rtl" ? "right" : "left";
+    case "ArrowDown":
+      return "down";
+    case "ArrowUp":
+      return "up";
+    default:
+      return null;
+  }
+}
+
 export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
   function TreeGridRoot(
     {
@@ -126,6 +148,7 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
       disabled = false,
       readOnly = false,
       loop = false,
+      dir: dirProp,
       rowCount,
       columnCount,
       selectOnRowClick = false,
@@ -138,6 +161,8 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
     },
     ref,
   ) {
+    const contextDir = useDirection();
+    const dir = dirProp ?? contextDir;
     const generatedId = useId();
     const treeGridId = restProps.id ?? `tree-grid-${generatedId}`;
     const treeGridRef = useRef<HTMLElement | null>(null);
@@ -424,39 +449,48 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
           : null;
         const activeCellIsTreeColumn = activeItem?.data.columnIndex === 1;
         const activeRowCanExpand = activeCellIsTreeColumn && activeRow?.data.expandable === true;
+        const navigationDirection = getTreeGridNavigationDirection(event.key, dir);
+
+        if (navigationDirection === "right") {
+          event.preventDefault();
+          if (activeRowCanExpand && !expandedValues.includes(activeRow.value)) {
+            expandRow(activeRow.value);
+            return;
+          }
+          moveActiveCell("right");
+          return;
+        }
+
+        if (navigationDirection === "left") {
+          event.preventDefault();
+          if (activeRowCanExpand && expandedValues.includes(activeRow.value)) {
+            collapseRow(activeRow.value);
+            return;
+          }
+          if (activeCellIsTreeColumn && activeRow?.data.parentValue) {
+            const parentRow = getRow(activeRow.data.parentValue);
+            if (parentRow) {
+              focusCell(parentRow.data.rowIndex, activeCell?.columnIndex ?? 1);
+              return;
+            }
+          }
+          moveActiveCell("left");
+          return;
+        }
+
+        if (navigationDirection === "down") {
+          event.preventDefault();
+          moveActiveCell("down");
+          return;
+        }
+
+        if (navigationDirection === "up") {
+          event.preventDefault();
+          moveActiveCell("up");
+          return;
+        }
 
         switch (event.key) {
-          case "ArrowRight":
-            event.preventDefault();
-            if (activeRowCanExpand && !expandedValues.includes(activeRow.value)) {
-              expandRow(activeRow.value);
-              return;
-            }
-            moveActiveCell("right");
-            return;
-          case "ArrowLeft":
-            event.preventDefault();
-            if (activeRowCanExpand && expandedValues.includes(activeRow.value)) {
-              collapseRow(activeRow.value);
-              return;
-            }
-            if (activeCellIsTreeColumn && activeRow?.data.parentValue) {
-              const parentRow = getRow(activeRow.data.parentValue);
-              if (parentRow) {
-                focusCell(parentRow.data.rowIndex, activeCell?.columnIndex ?? 1);
-                return;
-              }
-            }
-            moveActiveCell("left");
-            return;
-          case "ArrowDown":
-            event.preventDefault();
-            moveActiveCell("down");
-            return;
-          case "ArrowUp":
-            event.preventDefault();
-            moveActiveCell("up");
-            return;
           case "Home":
             event.preventDefault();
             moveActiveCell(event.ctrlKey || event.metaKey ? "grid-start" : "row-start");
@@ -487,6 +521,7 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
       [
         activeCell,
         collapseRow,
+        dir,
         disabled,
         expandRow,
         expandedValues,
@@ -565,6 +600,7 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
       ...restProps,
       ref: composedRef,
       id: treeGridId,
+      dir,
       role: "treegrid",
       tabIndex: tabIndex ?? 0,
       "aria-activedescendant": activeCellId,
