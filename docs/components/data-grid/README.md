@@ -6,6 +6,7 @@ Headless ARIA grid primitives for cell navigation and optional row selection.
 
 - Implements `role="grid"` with row, column header, and gridcell parts.
 - Uses collection registration for DOM-ordered keyboard navigation.
+- Supports RTL-aware horizontal cell navigation.
 - Supports controlled and uncontrolled active cell state.
 - Supports none, single, and multiple row selection modes.
 - Supports row click selection, disabled/read-only state, row and column counts, and optional row wrapping.
@@ -51,6 +52,7 @@ Contains the grid and owns focus/selection state.
 | `defaultActiveCell` | `{ rowIndex: number; columnIndex: number } \| null` | `null` |
 | `onActiveCellChange` | `(cell) => void` | - |
 | `selectionMode` | `"none" \| "single" \| "multiple"` | `"none"` |
+| `dir` | `"ltr" \| "rtl"` | `Direction.Provider` |
 | `disabled` | `boolean` | `false` |
 | `readOnly` | `boolean` | `false` |
 | `loop` | `boolean` | `false` |
@@ -62,9 +64,12 @@ Contains the grid and owns focus/selection state.
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"data-grid"` |
+| `[data-active]` | Present when an active cell is set |
 | `[data-focused]` | Present when focus is inside the grid |
 | `[data-disabled]` | Present when disabled |
 | `[data-readonly]` | Present when read only |
+| `[data-column-count]` | Column count when provided |
+| `[data-row-count]` | Row count when provided |
 | `[data-selection-mode]` | `"none" \| "single" \| "multiple"` |
 
 ### Header, Body, Footer, Caption
@@ -141,11 +146,11 @@ Renders a grid cell.
 
 ## Accessibility
 
-Implements the WAI-ARIA grid pattern with root focus and `aria-activedescendant`.
+Implements the WAI-ARIA grid pattern with root focus and `aria-activedescendant`. Horizontal cell navigation mirrors in RTL; vertical navigation does not change with text direction.
 
 | Key | Description |
 | --- | --- |
-| `ArrowRight` / `ArrowLeft` | Moves between cells in a row |
+| `ArrowRight` / `ArrowLeft` | Moves between cells in a row; mirrored when `dir="rtl"` |
 | `ArrowDown` / `ArrowUp` | Moves between rows |
 | `Home` / `End` | Moves within a row |
 | `Ctrl+Home` / `Ctrl+End` | Moves to first or last cell |

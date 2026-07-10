@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added `Direction.Provider` and `dir` support to mirror horizontal `DataGrid`
+  cell navigation in RTL.
 - Added `Direction.Provider` fallback for `Toolbar.Root dir` and rendered the
   resolved direction on the toolbar root.
 - Added `Direction.Provider` and `dir` support to mirror horizontal `Tabs`

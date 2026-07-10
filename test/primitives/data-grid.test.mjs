@@ -17,7 +17,12 @@ import {
   DataGridHeader,
   DataGridRoot,
   DataGridRow,
+  Direction,
 } from "../../dist/index.js";
+
+import {
+  getDataGridNavigationDirection,
+} from "../../dist/_internal/primitives/data-grid/DataGridRoot.js";
 
 test("DataGrid compound parts render ARIA grid anatomy", () => {
   const html = renderToStaticMarkup(
@@ -56,6 +61,7 @@ test("DataGrid compound parts render ARIA grid anatomy", () => {
   );
 
   assert.match(html, /^<table/);
+  assert.match(html, /^<table[^>]+dir="ltr"/);
   assert.match(html, /role="grid"/);
   assert.match(html, /aria-label="Orders"/);
   assert.match(html, /aria-colcount="2"/);
@@ -81,6 +87,78 @@ test("DataGrid compound parts render ARIA grid anatomy", () => {
   assert.equal(DataGrid.ColumnHeader, DataGridColumnHeader);
   assert.equal(DataGrid.Cell, DataGridCell);
   assert.equal(DataGrid.Caption, DataGridCaption);
+});
+
+test("DataGridRoot resolves local and provider direction", () => {
+  const body = React.createElement(
+    DataGrid.Body,
+    null,
+    React.createElement(
+      DataGrid.Row,
+      { rowIndex: 1 },
+      React.createElement(DataGrid.Cell, { columnIndex: 1 }, "Cell"),
+    ),
+  );
+  const localHtml = renderToStaticMarkup(
+    React.createElement(DataGrid.Root, { "aria-label": "Orders", dir: "rtl" }, body),
+  );
+  const providerHtml = renderToStaticMarkup(
+    React.createElement(
+      Direction.Provider,
+      { dir: "rtl" },
+      React.createElement(DataGrid.Root, { "aria-label": "Orders" }, body),
+    ),
+  );
+  const overrideHtml = renderToStaticMarkup(
+    React.createElement(
+      Direction.Provider,
+      { dir: "rtl" },
+      React.createElement(DataGrid.Root, { "aria-label": "Orders", dir: "ltr" }, body),
+    ),
+  );
+
+  assert.match(localHtml, /^<table[^>]+dir="rtl"/);
+  assert.match(providerHtml, /^<table[^>]+dir="rtl"/);
+  assert.match(overrideHtml, /^<table[^>]+dir="ltr"/);
+});
+
+test("DataGridRoot applies resolved direction through render and asChild", () => {
+  const renderedHtml = renderToStaticMarkup(
+    React.createElement(
+      DataGridRoot,
+      {
+        dir: "rtl",
+        render: React.createElement("table", { className: "consumer-grid" }),
+      },
+      React.createElement(DataGridBody, null),
+    ),
+  );
+  const asChildHtml = renderToStaticMarkup(
+    React.createElement(
+      DataGridRoot,
+      { dir: "rtl", asChild: true },
+      React.createElement(
+        "table",
+        { className: "consumer-grid" },
+        React.createElement(DataGridBody, null),
+      ),
+    ),
+  );
+
+  assert.match(renderedHtml, /^<table class="consumer-grid"[^>]+dir="rtl"/);
+  assert.match(asChildHtml, /^<table class="consumer-grid"[^>]+dir="rtl"/);
+});
+
+test("DataGrid horizontal arrow navigation mirrors in RTL while vertical navigation does not", () => {
+  assert.equal(getDataGridNavigationDirection("ArrowRight"), "right");
+  assert.equal(getDataGridNavigationDirection("ArrowRight", "ltr"), "right");
+  assert.equal(getDataGridNavigationDirection("ArrowLeft", "ltr"), "left");
+  assert.equal(getDataGridNavigationDirection("ArrowRight", "rtl"), "left");
+  assert.equal(getDataGridNavigationDirection("ArrowLeft", "rtl"), "right");
+  assert.equal(getDataGridNavigationDirection("ArrowDown", "rtl"), "down");
+  assert.equal(getDataGridNavigationDirection("ArrowUp", "rtl"), "up");
+  assert.equal(getDataGridNavigationDirection("Home", "rtl"), null);
+  assert.equal(getDataGridNavigationDirection("End", "rtl"), null);
 });
 
 test("DataGrid parts support slot overrides and render escapes", () => {
@@ -152,6 +230,8 @@ test("DataGrid source uses Collection and keeps keyboard navigation in Root", as
   );
 
   assert.match(rootSource, /useCollection<string, HTMLElement, DataGridCellData>\(\)/);
+  assert.match(rootSource, /useDirection\(\)/);
+  assert.match(rootSource, /getDataGridNavigationDirection\(event\.key, dir\)/);
   assert.match(rootSource, /case "ArrowRight"/);
   assert.match(rootSource, /case "ArrowDown"/);
   assert.match(rootSource, /case "Home"/);

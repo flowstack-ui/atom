@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- No unreleased changes.
+- Added `dir` and `Direction.Provider` support so horizontal cell navigation
+  mirrors in RTL.
 
 ## 0.1.0
 

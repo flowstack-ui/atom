@@ -21,6 +21,7 @@ import {
   renderElement,
   type RenderProp,
 } from "../../utils/slot.js";
+import { useDirection, type DirectionValue } from "../direction/index.js";
 import {
   DataGridContextProvider,
   getDataGridCellValue,
@@ -36,6 +37,7 @@ import {
 type DataGridRootNativeProps = NativeTableProps<
   | "children"
   | "defaultValue"
+  | "dir"
   | "onChange"
   | "onKeyDown"
   | "role"
@@ -57,6 +59,7 @@ export interface DataGridRootProps extends DataGridRootNativeProps {
   defaultActiveCell?: DataGridCellCoordinates | null;
   onActiveCellChange?: (cell: DataGridCellCoordinates | null) => void;
   selectionMode?: DataGridSelectionMode;
+  dir?: DirectionValue;
   disabled?: boolean;
   readOnly?: boolean;
   loop?: boolean;
@@ -106,6 +109,24 @@ function normalizeDataGridCount(value: number | undefined): number | undefined {
   return nextValue > 0 ? nextValue : undefined;
 }
 
+export function getDataGridNavigationDirection(
+  key: string,
+  dir: DirectionValue = "ltr",
+): "up" | "down" | "left" | "right" | null {
+  switch (key) {
+    case "ArrowRight":
+      return dir === "rtl" ? "left" : "right";
+    case "ArrowLeft":
+      return dir === "rtl" ? "right" : "left";
+    case "ArrowDown":
+      return "down";
+    case "ArrowUp":
+      return "up";
+    default:
+      return null;
+  }
+}
+
 export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
   function DataGridRoot(
     {
@@ -117,6 +138,7 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
       defaultActiveCell = null,
       onActiveCellChange,
       selectionMode = "none",
+      dir: dirProp,
       disabled = false,
       readOnly = false,
       loop = false,
@@ -133,6 +155,8 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
     },
     ref,
   ) {
+    const contextDir = useDirection();
+    const dir = dirProp ?? contextDir;
     const generatedId = useId();
     const gridId = restProps.id ?? `data-grid-${generatedId}`;
     const gridRef = useRef<HTMLElement | null>(null);
@@ -342,23 +366,14 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
       (event) => {
         if (disabled) return;
 
+        const navigationDirection = getDataGridNavigationDirection(event.key, dir);
+        if (navigationDirection) {
+          event.preventDefault();
+          moveActiveCell(navigationDirection);
+          return;
+        }
+
         switch (event.key) {
-          case "ArrowRight":
-            event.preventDefault();
-            moveActiveCell("right");
-            return;
-          case "ArrowLeft":
-            event.preventDefault();
-            moveActiveCell("left");
-            return;
-          case "ArrowDown":
-            event.preventDefault();
-            moveActiveCell("down");
-            return;
-          case "ArrowUp":
-            event.preventDefault();
-            moveActiveCell("up");
-            return;
           case "Home":
             event.preventDefault();
             moveActiveCell(event.ctrlKey || event.metaKey ? "grid-start" : "row-start");
@@ -380,7 +395,7 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
             break;
         }
       },
-      [activeCell, disabled, getItem, moveActiveCell, selectRow],
+      [activeCell, dir, disabled, getItem, moveActiveCell, selectRow],
     );
 
     const activeCellId = activeCell
@@ -433,6 +448,7 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
       ...restProps,
       ref: composedRef,
       id: gridId,
+      dir,
       role: "grid",
       tabIndex: tabIndex ?? 0,
       "aria-activedescendant": activeCellId,
