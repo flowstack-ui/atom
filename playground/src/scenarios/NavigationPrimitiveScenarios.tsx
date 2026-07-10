@@ -371,8 +371,9 @@ function useBreadcrumbScenario() {
 }
 
 function usePaginationScenario() {
-  const [controlled, setControlled] = useState(true);
-  const [page, setPage] = useState(4);
+  const [controlled, setControlled] = useState(false);
+  const [page, setPage] = useState(1);
+  const [defaultPage, setDefaultPage] = useState<"default" | "4">("default");
   const [totalPages, setTotalPages] = useState("10");
   const [siblingCount, setSiblingCount] = useState("1");
   const [boundaryCount, setBoundaryCount] = useState("1");
@@ -416,6 +417,7 @@ function usePaginationScenario() {
     state: {
       controlled,
       page,
+      defaultPage,
       totalPages,
       siblingCount,
       boundaryCount,
@@ -433,8 +435,17 @@ function usePaginationScenario() {
       log,
     },
     actions: {
-      setControlled,
+      setControlled: (nextControlled: boolean) => {
+        setControlled(nextControlled);
+        if (!nextControlled) {
+          setPage(defaultPage === "4" ? 4 : 1);
+        }
+      },
       setControlledPage: setPage,
+      setDefaultPage: (nextDefaultPage: "default" | "4") => {
+        setDefaultPage(nextDefaultPage);
+        setPage(nextDefaultPage === "4" ? 4 : 1);
+      },
       setTotalPages,
       setSiblingCount,
       setBoundaryCount,
@@ -817,7 +828,16 @@ export function NavigationPrimitiveScenarioToolbar({
               onChange={(nextPage) => scenario.actions.setControlledPage(Number(nextPage))}
             />
           </ToolbarGroup>
-        ) : null}
+        ) : (
+          <ToolbarGroup title="Page" value="page">
+            <MenuRadioControl
+              label="Default Page"
+              options={paginationDefaultPageOptions}
+              value={scenario.state.defaultPage}
+              onChange={scenario.actions.setDefaultPage}
+            />
+          </ToolbarGroup>
+        )}
         <ToolbarGroup title="Composition" value="composition">
           <MenuRadioControl label="Root" options={compositionOptions} value={scenario.state.rootComposition} onChange={scenario.actions.setRootComposition} />
           <MenuRadioControl label="List" options={compositionOptions} value={scenario.state.listComposition} onChange={scenario.actions.setListComposition} />
@@ -1528,6 +1548,7 @@ function BreadcrumbEllipsisPart({ scenario }: { scenario: ReturnType<typeof useB
 
 function PaginationCanvas({ scenario }: { scenario: ReturnType<typeof usePaginationScenario> }) {
   const state = scenario.state;
+  const rootKey = state.controlled ? "controlled" : `uncontrolled-${state.defaultPage}`;
   const props = {
     "aria-label": state.localizedLabels ? "Paginacion demo" : undefined,
     className: "playground-pagination",
@@ -1537,7 +1558,7 @@ function PaginationCanvas({ scenario }: { scenario: ReturnType<typeof usePaginat
     totalPages: Number(state.totalPages),
     siblingCount: Number(state.siblingCount),
     boundaryCount: Number(state.boundaryCount),
-    defaultPage: state.controlled ? undefined : 4,
+    defaultPage: !state.controlled && state.defaultPage === "4" ? 4 : undefined,
     page: state.controlled ? state.page : undefined,
     onPageChange: scenario.actions.setPage,
   };
@@ -1545,7 +1566,7 @@ function PaginationCanvas({ scenario }: { scenario: ReturnType<typeof usePaginat
 
   if (state.rootComposition === "asChild") {
     return (
-      <Pagination.Root {...props} asChild>
+      <Pagination.Root key={rootKey} {...props} asChild>
         <section>{content}</section>
       </Pagination.Root>
     );
@@ -1553,13 +1574,13 @@ function PaginationCanvas({ scenario }: { scenario: ReturnType<typeof usePaginat
 
   if (state.rootComposition === "render") {
     return (
-      <Pagination.Root {...props} render={(renderProps) => <section {...renderProps} />}>
+      <Pagination.Root key={rootKey} {...props} render={(renderProps) => <section {...renderProps} />}>
         {content}
       </Pagination.Root>
     );
   }
 
-  return <Pagination.Root {...props}>{content}</Pagination.Root>;
+  return <Pagination.Root key={rootKey} {...props}>{content}</Pagination.Root>;
 }
 
 function PaginationListContent({ scenario }: { scenario: ReturnType<typeof usePaginationScenario> }) {
@@ -2274,18 +2295,22 @@ function paginationSections(state: ReturnType<typeof usePaginationScenario>["sta
       row("Ref target", state.refs.list, "identity"),
     ]),
     baseSection("Previous", "previous", paginationSlotSelector(state, "previous"), [
+      row("List item slot", "pagination-list-item", "data"),
       row("Composition", state.previousComposition, "composition"),
       row("Ref target", state.refs.previous, "identity"),
     ]),
     baseSection("Item: Current", `page ${state.page}`, `${paginationSlotSelector(state, "item")}[data-state='active']`, [
+      row("List item slot", "pagination-list-item", "data"),
       row("Composition", state.itemComposition, "composition"),
       row("Ref target", state.refs.item, "identity"),
     ]),
     baseSection("Ellipsis", "range gap", paginationSlotSelector(state, "ellipsis"), [
+      row("List item slot", "pagination-list-item", "data"),
       row("Composition", state.ellipsisComposition, "composition"),
       row("Ref target", state.refs.ellipsis, "identity"),
     ]),
     baseSection("Next", "next", paginationSlotSelector(state, "next"), [
+      row("List item slot", "pagination-list-item", "data"),
       row("Composition", state.nextComposition, "composition"),
       row("Ref target", state.refs.next, "identity"),
     ]),
@@ -2737,7 +2762,8 @@ function getPaginationSource(state: ReturnType<typeof usePaginationScenario>["st
   const rootProps = [
     state.localizedLabels ? `aria-label="Paginacion demo"` : "",
     `totalPages={${state.totalPages}}`,
-    state.controlled ? `page={page}` : `defaultPage={4}`,
+    state.controlled ? `page={page}` : "",
+    !state.controlled && state.defaultPage === "4" ? `defaultPage={4}` : "",
     state.controlled ? `onPageChange={setPage}` : `onPageChange={handlePageChange}`,
     state.siblingCount !== "1" ? `siblingCount={${state.siblingCount}}` : "",
     state.boundaryCount !== "1" ? `boundaryCount={${state.boundaryCount}}` : "",
@@ -3285,4 +3311,8 @@ const appBarPositionOptions = ["static", "sticky", "fixed", "absolute"] as const
 const appBarDensityOptions = ["compact", "comfortable"] as const;
 const pageTotalOptions = ["0", "5", "10", "20"] as const;
 const paginationPageOptions = ["1", "4", "10"] as const;
+const paginationDefaultPageOptions = [
+  { label: "Default (1)", value: "default" },
+  { label: "Page 4", value: "4" },
+] as const;
 const countOptions = ["0", "1", "2"] as const;

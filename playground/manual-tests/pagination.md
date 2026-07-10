@@ -1,20 +1,18 @@
 # Pagination Manual Test Protocol
 
-Draft protocol for active Pagination playground work.
-
 ## Step 0: Playground Smoke Check
 
 Setup
 
 Pagination scenario selected. Default toolbar state:
 
-- Controlled on
+- Controlled off
 - Disabled off
 - Localized Labels off
 - Total Pages 10
 - Sibling Count 1
 - Boundary Count 1
-- Controlled Page 4
+- Default Page: Default (1)
 - every Composition control set to Default
 - every Props slot toggle off
 - Prop Check off
@@ -29,7 +27,7 @@ Verify
 □ Anatomy lists Root, List, Previous, Item: Current, Ellipsis, and Next in that order.
 □ Source shows `Pagination.Root`, `Pagination.List`, `Pagination.Previous`, `Pagination.Item`, `Pagination.Ellipsis`, and `Pagination.Next`.
 □ Inspector tabs switch between Selected, Focused, and Logs.
-□ Canvas footer reads `Page 4 | Total 10`.
+□ Canvas footer reads `Page 1 | Total 10`.
 
 ## Step 1: Feature-Wide State
 
@@ -39,12 +37,13 @@ Default toolbar state. Logs cleared.
 
 Action
 
-Click Next, click Previous, click page 10, switch Controlled off, click page 1, switch Controlled on, set Controlled Page to 4, set Total Pages to 0, then restore Total Pages to 10.
+Click Next, click Previous, set Default Page to Page 4, switch Controlled on, set Controlled Page to 10, switch Controlled off, set Total Pages to 0, then restore Total Pages to 10.
 
 Verify
 
-□ Controlled mode updates the active page through `onPageChange`.
-□ Uncontrolled mode starts from `defaultPage={4}` and updates from internal state.
+□ Default uncontrolled mode starts on page 1 with no `page` or `defaultPage` prop.
+□ Setting Default Page to Page 4 remounts uncontrolled state on page 4.
+□ Controlled mode updates the active page from the toolbar `page` value and through `onPageChange`.
 □ The active item has `aria-current="page"` and `data-state="active"`.
 □ Inactive items have `data-state="inactive"`.
 □ Total Pages 0 renders no Pagination DOM.
@@ -53,7 +52,7 @@ Verify
 
 Reset
 
-Controlled on. Total Pages 10. Controlled Page 4. Logs cleared.
+Controlled off. Default Page Default (1). Total Pages 10. Logs cleared.
 
 ## Step 2: Root
 
@@ -110,7 +109,7 @@ Identity
 □ List Slot changes to `data-slot="pagination-list-custom"`.
 □ Prop Check adds `data-prop-check="list"` only when enabled.
 □ Ref target reports `ol`.
-□ Pagination controls and items are wrapped in `li` elements inside the ordered list.
+□ Pagination controls and items render generated outer `li data-slot="pagination-list-item"` wrappers inside the ordered list.
 
 Composition
 
@@ -126,7 +125,7 @@ List Slot off. Prop Check off. List composition Default.
 
 Setup
 
-Default toolbar state. Controlled Page 4.
+Controlled on. Controlled Page 4. Other toolbar controls at default.
 
 Action
 
@@ -143,6 +142,7 @@ Identity
 □ `data-direction="previous"`.
 □ Prop Check adds `data-prop-check="previous"` only when enabled.
 □ Ref target reports `button`.
+□ The owning generated outer wrapper is `li data-slot="pagination-list-item"`.
 
 ARIA
 
@@ -161,13 +161,13 @@ Composition
 
 Reset
 
-Controlled Page 4. Disabled off. Localized Labels off. Previous Slot off. Prop Check off. Previous composition Default.
+Controlled off. Default Page Default (1). Disabled off. Localized Labels off. Previous Slot off. Prop Check off. Previous composition Default.
 
 ## Step 5: Item
 
 Setup
 
-Default toolbar state. Controlled Page 4.
+Controlled on. Controlled Page 4. Other toolbar controls at default.
 
 Action
 
@@ -184,6 +184,7 @@ Identity
 □ `data-page` matches the page number.
 □ Prop Check adds `data-prop-check="item"` only when enabled.
 □ Ref target reports `button` for the active item.
+□ The owning generated outer wrapper is `li data-slot="pagination-list-item"`.
 
 ARIA
 
@@ -204,7 +205,7 @@ Composition
 
 Reset
 
-Controlled Page 4. Disabled off. Localized Labels off. Item Slot off. Prop Check off. Item composition Default.
+Controlled off. Default Page Default (1). Disabled off. Localized Labels off. Item Slot off. Prop Check off. Item composition Default.
 
 ## Step 6: Ellipsis
 
@@ -225,6 +226,7 @@ Identity
 □ Ellipsis Slot changes to `data-slot="pagination-ellipsis-custom"`.
 □ Prop Check adds `data-prop-check="ellipsis"` only when enabled.
 □ Ref target reports `span`.
+□ The owning generated outer wrapper is `li data-slot="pagination-list-item"`.
 
 ARIA
 
@@ -248,7 +250,7 @@ Sibling Count 1. Boundary Count 1. Ellipsis Slot off. Prop Check off. Ellipsis c
 
 Setup
 
-Default toolbar state. Controlled Page 4.
+Controlled on. Controlled Page 4. Other toolbar controls at default.
 
 Action
 
@@ -265,6 +267,7 @@ Identity
 □ `data-direction="next"`.
 □ Prop Check adds `data-prop-check="next"` only when enabled.
 □ Ref target reports `button`.
+□ The owning generated outer wrapper is `li data-slot="pagination-list-item"`.
 
 ARIA
 
@@ -283,7 +286,7 @@ Composition
 
 Reset
 
-Controlled Page 4. Disabled off. Localized Labels off. Next Slot off. Prop Check off. Next composition Default.
+Controlled off. Default Page Default (1). Disabled off. Localized Labels off. Next Slot off. Prop Check off. Next composition Default.
 
 ## Step 8: Source
 
@@ -303,7 +306,7 @@ Verify
 □ Source includes `data-prop-check` only when Prop Check is on.
 □ Source includes custom `data-slot` values only when each slot toggle is on.
 □ Source reflects Default, As Child, and Render for every public part.
-□ Source shows `li` wrappers around list children.
+□ Source does not add consumer-authored `li` wrappers around Previous, Item, Ellipsis, or Next.
 
 Reset
 
@@ -363,8 +366,8 @@ Review the Pagination workbook sheet against the verified public contract.
 Verify
 
 □ Do not mark workbook rows Tested until every protocol step passes.
-□ Split generic Control rows into Previous and Next rows.
-□ Remove or rewrite rows for arrow navigation, Home/End, typeahead, and roving focus because Pagination does not implement those behaviors.
+□ Generic Control rows have been replaced by generated list-item wrapper coverage under the owning parts.
+□ Rows for arrow navigation, Home/End, typeahead, and roving focus stay out of Pagination playground coverage because Pagination does not implement those behaviors.
 □ Remove provider or non-DOM identity expectations for context and range utilities.
-□ Keep `preventDefault` rows only if the package documents that escape hatch for Pagination.
+□ Keep `preventDefault` rows out of Pagination playground coverage unless the component docs add that explicit escape hatch.
 □ Keep package-source helper checks out of playground coverage unless they have visible DOM behavior.
