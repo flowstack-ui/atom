@@ -47,7 +47,6 @@ or negative, `Root` returns `null` and no pagination DOM is rendered.
 | `siblingCount` | `number` | `1` |
 | `boundaryCount` | `number` | `1` |
 | `disabled` | `boolean` | `false` |
-| `aria-label` | `string` | `"Pagination"` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -58,7 +57,7 @@ or negative, `Root` returns `null` and no pagination DOM is rendered.
 
 | ARIA attribute | Values |
 | --- | --- |
-| `aria-label` | From `aria-label`, defaulting to `"Pagination"` |
+| `aria-label` | `"Pagination"` by default |
 
 When disabled, all pagination page changes are ignored and descendant controls
 receive disabled state.
@@ -86,7 +85,6 @@ the inner control.
 | Prop | Type | Default |
 | --- | --- | --- |
 | `children` | `ReactNode` | - |
-| `aria-label` | `string` | `"Previous page"` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -98,7 +96,7 @@ the inner control.
 
 | ARIA attribute | Values |
 | --- | --- |
-| `aria-label` | From `aria-label`, defaulting to `"Previous page"` |
+| `aria-label` | `"Previous page"` by default |
 
 `Previous` is disabled when `Root disabled` is true or the current page is the
 first page.
@@ -112,7 +110,6 @@ the inner control.
 | Prop | Type | Default |
 | --- | --- | --- |
 | `children` | `ReactNode` | - |
-| `aria-label` | `string` | `"Next page"` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -124,7 +121,7 @@ the inner control.
 
 | ARIA attribute | Values |
 | --- | --- |
-| `aria-label` | From `aria-label`, defaulting to `"Next page"` |
+| `aria-label` | `"Next page"` by default |
 
 `Next` is disabled when `Root disabled` is true or the current page is the last
 page.
@@ -139,7 +136,6 @@ the inner control.
 | --- | --- | --- |
 | `page` | `number` | required |
 | `children` | `ReactNode` | page number |
-| `aria-label` | `string` | `"Go to page N"` or `"Page N, current page"` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -153,7 +149,7 @@ the inner control.
 | ARIA attribute | Values |
 | --- | --- |
 | `aria-current` | `"page"` when the item is active |
-| `aria-label` | From `aria-label`, or generated from page/current state |
+| `aria-label` | `"Go to page N"` or `"Page N, current page"` |
 
 Items are disabled when `Root disabled` is true. Page changes are clamped to
 the valid range before state updates.
