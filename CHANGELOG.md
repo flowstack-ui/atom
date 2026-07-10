@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added `render` and `asChild` composition support to all Toolbar parts.
 - Fixed Toolbar parts so custom `data-slot` values override their default slot
   identifiers.
 - Added `Direction.Provider` and `dir` support to mirror `TreeGrid`

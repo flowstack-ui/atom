@@ -147,6 +147,122 @@ test("Toolbar parts allow data-slot overrides", () => {
   assert.doesNotMatch(html, /data-slot="toolbar-toggle-item"/);
 });
 
+test("Toolbar parts support render composition", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      ToolbarRoot,
+      {
+        ariaLabel: "Editor tools",
+        render: React.createElement("section", { className: "toolbar-shell" }),
+      },
+      React.createElement(
+        ToolbarButton,
+        {
+          render: React.createElement("span", { className: "toolbar-action" }),
+          ariaLabel: "Bold",
+        },
+        "B",
+      ),
+      React.createElement(
+        ToolbarLink,
+        {
+          href: "/docs",
+          render: React.createElement("a", { className: "toolbar-docs" }),
+        },
+        "Docs",
+      ),
+      React.createElement(ToolbarSeparator, {
+        render: React.createElement("hr", { className: "toolbar-rule" }),
+      }),
+      React.createElement(
+        ToolbarToggleGroup,
+        {
+          ariaLabel: "Formatting",
+          render: React.createElement("section", { className: "toolbar-toggles" }),
+        },
+        React.createElement(
+          ToolbarToggleItem,
+          {
+            value: "bold",
+            render: React.createElement("span", { className: "toolbar-toggle" }),
+          },
+          "B",
+        ),
+      ),
+    ),
+  );
+
+  assert.match(html, /^<section class="toolbar-shell"[^>]+role="toolbar"/);
+  assert.match(html, /<span class="toolbar-action"[^>]+role="button"/);
+  assert.match(html, /aria-label="Bold"/);
+  assert.match(html, /data-slot="toolbar-button"/);
+  assert.match(html, /<a class="toolbar-docs"[^>]+href="\/docs"/);
+  assert.match(html, /data-slot="toolbar-link"/);
+  assert.match(html, /<hr class="toolbar-rule"[^>]+role="separator"/);
+  assert.match(html, /data-slot="toolbar-separator"/);
+  assert.match(html, /<section class="toolbar-toggles"[^>]+role="group"/);
+  assert.match(html, /data-slot="toolbar-toggle-group"/);
+  assert.match(html, /<span class="toolbar-toggle"[^>]+role="button"/);
+  assert.match(html, /aria-pressed="false"/);
+  assert.match(html, /data-slot="toolbar-toggle-item"/);
+});
+
+test("Toolbar parts support asChild composition", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      ToolbarRoot,
+      { ariaLabel: "Editor tools", asChild: true },
+      React.createElement(
+        "section",
+        { className: "toolbar-shell" },
+        React.createElement(
+          ToolbarButton,
+          { asChild: true, disabled: true },
+          React.createElement("span", { className: "toolbar-action" }, "B"),
+        ),
+        React.createElement(
+          ToolbarLink,
+          { href: "/docs", asChild: true },
+          React.createElement("a", { className: "toolbar-docs" }, "Docs"),
+        ),
+        React.createElement(
+          ToolbarSeparator,
+          { asChild: true },
+          React.createElement("div", { className: "toolbar-rule" }),
+        ),
+        React.createElement(
+          ToolbarToggleGroup,
+          { ariaLabel: "Formatting", asChild: true },
+          React.createElement(
+            "section",
+            { className: "toolbar-toggles" },
+            React.createElement(
+              ToolbarToggleItem,
+              { value: "bold", asChild: true },
+              React.createElement("span", { className: "toolbar-toggle" }, "B"),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  assert.match(html, /^<section class="toolbar-shell"[^>]+role="toolbar"/);
+  assert.match(html, /<span class="toolbar-action"[^>]+role="button"/);
+  assert.match(html, /aria-disabled="true"/);
+  assert.match(html, /data-disabled=""/);
+  assert.match(html, /data-slot="toolbar-button"/);
+  assert.match(html, /<a class="toolbar-docs"[^>]+href="\/docs"/);
+  assert.match(html, /data-slot="toolbar-link"/);
+  assert.match(html, /<div class="toolbar-rule"[^>]+role="separator"/);
+  assert.match(html, /data-slot="toolbar-separator"/);
+  assert.match(html, /<section class="toolbar-toggles"[^>]+role="group"/);
+  assert.match(html, /data-slot="toolbar-toggle-group"/);
+  assert.match(html, /<span class="toolbar-toggle"[^>]+role="button"/);
+  assert.match(html, /aria-pressed="false"/);
+  assert.match(html, /data-slot="toolbar-toggle-item"/);
+});
+
 test("Toolbar toggle group renders pressed item state", () => {
   const html = renderToStaticMarkup(
     React.createElement(

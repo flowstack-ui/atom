@@ -11,7 +11,12 @@ import {
 } from "react";
 import { useCollection } from "../../collection.js";
 import type { NativeDivProps } from "../../utils/dom.js";
-import { composeEventHandlers } from "../../utils/slot.js";
+import {
+  cloneAndMerge,
+  composeEventHandlers,
+  renderElement,
+  type RenderProp,
+} from "../../utils/slot.js";
 import { useDirection } from "../direction/index.js";
 import {
   ToolbarContextProvider,
@@ -31,6 +36,10 @@ export interface ToolbarRootProps extends ToolbarRootNativeProps {
   loop?: boolean;
   /** Accessible label for the toolbar. */
   ariaLabel?: string;
+  /** Override the rendered element. */
+  render?: RenderProp;
+  /** Merge behavior props onto a single child element. */
+  asChild?: boolean;
   /** CSS class name supplied by the styled layer or consumer. */
   className?: string;
   /** Toolbar items. */
@@ -53,6 +62,8 @@ export const ToolbarRoot = forwardRef<HTMLDivElement, ToolbarRootProps>(
       dir: dirProp,
       loop = true,
       ariaLabel,
+      render,
+      asChild,
       className,
       children,
       onKeyDown,
@@ -202,22 +213,26 @@ export const ToolbarRoot = forwardRef<HTMLDivElement, ToolbarRootProps>(
       ],
     );
 
+    const behaviorProps: Record<string, unknown> = {
+      ...restProps,
+      ref,
+      dir,
+      role: "toolbar",
+      "aria-label": ariaLabel,
+      "aria-orientation": orientation,
+      "data-slot": dataSlot,
+      "data-orientation": orientation,
+      className,
+      onKeyDown: composeEventHandlers(onKeyDown, handleKeyDown),
+    };
+
+    const element = asChild
+      ? cloneAndMerge(children, behaviorProps)
+      : renderElement(render, "div", { ...behaviorProps, children });
+
     return (
       <ToolbarContextProvider value={contextValue}>
-        <div
-          {...restProps}
-          ref={ref}
-          dir={dir}
-          role="toolbar"
-          aria-label={ariaLabel}
-          aria-orientation={orientation}
-          data-slot={dataSlot}
-          data-orientation={orientation}
-          className={className}
-          onKeyDown={composeEventHandlers(onKeyDown, handleKeyDown)}
-        >
-          {children}
-        </div>
+        {element}
       </ToolbarContextProvider>
     );
   },

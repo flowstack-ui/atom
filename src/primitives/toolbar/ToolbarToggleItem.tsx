@@ -4,11 +4,25 @@ import {
   forwardRef,
   useCallback,
   useMemo,
+  type KeyboardEventHandler,
   type MouseEvent,
   type ReactNode,
 } from "react";
 import type { NativeButtonProps } from "../../utils/dom.js";
-import { composeEventHandlers, composeRefs } from "../../utils/slot.js";
+import {
+  childHasNativeButtonSemantics,
+  childIsNativeButton,
+  hasNativeButtonKeyboardActivation,
+  renderHasNativeButtonSemantics,
+  renderIsNativeButton,
+} from "../../utils/native-semantics.js";
+import {
+  cloneAndMerge,
+  composeEventHandlers,
+  composeRefs,
+  renderElement,
+  type RenderProp,
+} from "../../utils/slot.js";
 import { useToolbarToggleContext } from "./toggleContext.js";
 import { useToolbarItem } from "./useToolbarItem.js";
 
@@ -27,6 +41,10 @@ export interface ToolbarToggleItemProps extends ToolbarToggleItemNativeProps {
   className?: string;
   /** Accessible label. */
   ariaLabel?: string;
+  /** Override the rendered element. */
+  render?: RenderProp;
+  /** Merge behavior props onto a single child element. */
+  asChild?: boolean;
   /** Data slot identifier. */
   "data-slot"?: string;
 }
@@ -41,8 +59,11 @@ export const ToolbarToggleItem = forwardRef<
     disabled = false,
     className,
     ariaLabel,
+    render,
+    asChild,
     onClick,
     onFocus,
+    onKeyDown,
     "data-slot": dataSlot = "toolbar-toggle-item",
     ...restProps
   },
@@ -53,6 +74,13 @@ export const ToolbarToggleItem = forwardRef<
   const { itemRef, tabIndex, handleFocus } = useToolbarItem(isDisabled);
   const composedRef = useMemo(() => composeRefs(itemRef, ref), [itemRef, ref]);
   const isPressed = toggleCtx.value.includes(value);
+  const isDefaultButton = !asChild && render === undefined;
+  const hasNativeSemantics = isDefaultButton ||
+    (asChild
+      ? childHasNativeButtonSemantics(children)
+      : renderHasNativeButtonSemantics(render));
+  const isNativeButton = isDefaultButton ||
+    (asChild ? childIsNativeButton(children) : renderIsNativeButton(render));
 
   const handleClick = useCallback(
     (_event: MouseEvent<HTMLButtonElement>) => {
@@ -63,24 +91,55 @@ export const ToolbarToggleItem = forwardRef<
     [isDisabled, toggleCtx, value],
   );
 
+  const handleKeyDown = useCallback<KeyboardEventHandler<HTMLElement>>(
+    (event) => {
+      if (event.key !== " " && event.key !== "Enter") {
+        onKeyDown?.(event as never);
+        return;
+      }
+
+      if (isDisabled) {
+        event.preventDefault();
+        return;
+      }
+
+      onKeyDown?.(event as never);
+      if (event.defaultPrevented) return;
+
+      if (hasNativeButtonKeyboardActivation(event.currentTarget, event.key)) {
+        return;
+      }
+
+      event.preventDefault();
+      event.currentTarget.click();
+    },
+    [isDisabled, onKeyDown],
+  );
+
+  const behaviorProps: Record<string, unknown> = {
+    ...restProps,
+    ref: composedRef,
+    ...(isNativeButton ? { type: "button", disabled: isDisabled || undefined } : {}),
+    ...(!hasNativeSemantics ? { role: "button" } : {}),
+    "aria-pressed": isPressed,
+    ...(ariaLabel !== undefined && { "aria-label": ariaLabel }),
+    ...(!isNativeButton && { "aria-disabled": isDisabled || undefined }),
+    tabIndex,
+    "data-slot": dataSlot,
+    "data-state": isPressed ? "on" : "off",
+    "data-value": value,
+    ...(isDisabled ? { "data-disabled": "" } : {}),
+    className,
+    onClick: composeEventHandlers(onClick, handleClick),
+    onFocus: composeEventHandlers(onFocus, () => handleFocus()),
+    onKeyDown: handleKeyDown,
+  };
+
+  if (asChild) {
+    return cloneAndMerge(children, behaviorProps);
+  }
+
   return (
-    <button
-      {...restProps}
-      ref={composedRef}
-      type="button"
-      aria-pressed={isPressed}
-      aria-label={ariaLabel}
-      disabled={isDisabled}
-      tabIndex={tabIndex}
-      data-slot={dataSlot}
-      data-state={isPressed ? "on" : "off"}
-      data-value={value}
-      {...(isDisabled ? { "data-disabled": "" } : {})}
-      className={className}
-      onClick={composeEventHandlers(onClick, handleClick)}
-      onFocus={composeEventHandlers(onFocus, () => handleFocus())}
-    >
-      {children}
-    </button>
+    renderElement(render, "button", { ...behaviorProps, children })
   );
 });

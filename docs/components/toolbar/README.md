@@ -42,6 +42,8 @@ Contains toolbar items.
 | `dir` | `"ltr" \| "rtl"` | `Direction.Provider` |
 | `loop` | `boolean` | `true` |
 | `ariaLabel` | `string` | - |
+| `render` | `RenderProp` | - |
+| `asChild` | `boolean` | `false` |
 
 | Data attribute | Values |
 | --- | --- |
@@ -56,6 +58,8 @@ Renders a toolbar button.
 | --- | --- | --- |
 | `disabled` | `boolean` | `false` |
 | `ariaLabel` | `string` | - |
+| `render` | `RenderProp` | - |
+| `asChild` | `boolean` | `false` |
 
 | Data attribute | Values |
 | --- | --- |
@@ -73,6 +77,8 @@ Renders a toolbar link.
 | `rel` | `string` | - |
 | `disabled` | `boolean` | `false` |
 | `ariaLabel` | `string` | - |
+| `render` | `RenderProp` | - |
+| `asChild` | `boolean` | `false` |
 
 | Data attribute | Values |
 | --- | --- |
@@ -86,6 +92,8 @@ Renders a toolbar separator.
 | Prop | Type | Default |
 | --- | --- | --- |
 | `orientation` | `"horizontal" \| "vertical"` | `"vertical"` |
+| `render` | `RenderProp` | - |
+| `asChild` | `boolean` | `false` |
 
 | Data attribute | Values |
 | --- | --- |
@@ -104,6 +112,8 @@ Groups toolbar toggle items.
 | `onValueChange` | `(value) => void` | - |
 | `disabled` | `boolean` | `false` |
 | `ariaLabel` | `string` | - |
+| `render` | `RenderProp` | - |
+| `asChild` | `boolean` | `false` |
 
 | Data attribute | Values |
 | --- | --- |
@@ -119,6 +129,8 @@ Renders a toolbar toggle item.
 | `value` | `string` | required |
 | `disabled` | `boolean` | `false` |
 | `ariaLabel` | `string` | - |
+| `render` | `RenderProp` | - |
+| `asChild` | `boolean` | `false` |
 
 | Data attribute | Values |
 | --- | --- |

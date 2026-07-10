@@ -4,6 +4,11 @@ import { useCallback, useMemo, type ReactNode } from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import {
+  cloneAndMerge,
+  renderElement,
+  type RenderProp,
+} from "../../utils/slot.js";
+import {
   ToolbarToggleContextProvider,
   type ToolbarToggleContextValue,
   type ToolbarToggleType,
@@ -22,6 +27,10 @@ export interface ToolbarToggleGroupProps extends ToolbarToggleGroupNativeProps {
   onValueChange?: (value: string | string[]) => void;
   /** Disables all toggle items. */
   disabled?: boolean;
+  /** Override the rendered element. */
+  render?: RenderProp;
+  /** Merge behavior props onto a single child element. */
+  asChild?: boolean;
   /** CSS class name supplied by the styled layer or consumer. */
   className?: string;
   /** Toggle items. */
@@ -43,6 +52,8 @@ export function ToolbarToggleGroup({
   defaultValue,
   onValueChange,
   disabled = false,
+  render,
+  asChild,
   className,
   children,
   ariaLabel,
@@ -82,18 +93,22 @@ export function ToolbarToggleGroup({
     [disabled, onItemPress, type, value],
   );
 
+  const behaviorProps: Record<string, unknown> = {
+    ...restProps,
+    role: "group",
+    ...(ariaLabel !== undefined && { "aria-label": ariaLabel }),
+    "data-slot": dataSlot,
+    ...(disabled ? { "data-disabled": "" } : {}),
+    className,
+  };
+
+  const element = asChild
+    ? cloneAndMerge(children, behaviorProps)
+    : renderElement(render, "div", { ...behaviorProps, children });
+
   return (
     <ToolbarToggleContextProvider value={contextValue}>
-      <div
-        {...restProps}
-        role="group"
-        aria-label={ariaLabel}
-        data-slot={dataSlot}
-        {...(disabled ? { "data-disabled": "" } : {})}
-        className={className}
-      >
-        {children}
-      </div>
+      {element}
     </ToolbarToggleContextProvider>
   );
 }
