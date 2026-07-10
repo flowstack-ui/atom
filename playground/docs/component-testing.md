@@ -19,6 +19,13 @@ the fewest possible props while still rendering the public parts needed for
 manual testing. Optional behavior belongs behind toolbar controls instead of
 being enabled in the first-loaded Canvas.
 
+Scenarios should not add app-owned behavior to make a primitive look more
+interactive than its contract. If a static primitive exposes metadata, verify
+the DOM or ARIA metadata directly instead of inventing application behavior.
+For example, `Table.Head sortDirection` should verify `aria-sort` and
+`data-sort`; the playground should not sort rows unless the component contract
+owns row sorting.
+
 Before implementation, the scenario plan must pass the Default-State Gate from
 `workflow.md`:
 
@@ -126,7 +133,9 @@ Raw DOM evidence should come from the selected part selector and include:
 Filter playground plumbing from raw evidence: `class`, `style`, duplicate `id`,
 and `data-playground-inspect`. Do not filter native attributes that prove the
 component contract. Direction-sensitive parts, for example, must expose raw
-`dir` in Anatomy and Inspector when it is rendered.
+`dir` in Anatomy and Inspector when it is rendered. Structural native
+attributes and direct text should also remain visible when they prove the
+contract, such as table `scope`, `caption`, `th`, and `td` text.
 
 ## Inspector And Logs
 
@@ -162,6 +171,9 @@ Anatomy and Inspector should eventually share the same live DOM formatter and
 mutation refresh path. Scenario files should provide selectors plus curated
 behavior rows; they should not manually copy every live `aria-*` and `data-*`
 attribute.
+
+Live ref evidence should avoid repeated state updates from transient `null`
+ref callbacks and no-op when the recorded value has not changed.
 
 ## Manual Test Protocol Authoring
 
@@ -542,7 +554,9 @@ Authoring rules:
 - Keep ordering consistent across components when groups and controls repeat.
 - Keep desktop menu structure and visual rhythm consistent across components.
 - Use nested menus only when they make the choices clearer. Do not create
-  unnecessary nesting only to reduce visible list length.
+  unnecessary nesting only to reduce visible list length. Dense per-part
+  controls, such as composition modes for many public DOM parts, can use one
+  submenu per part when that keeps labels and choices scannable.
 - Keep optional behavior off by default unless it is required for a valid
   default component example. Expose optional props, variants, edge cases, and
   accessibility-name overrides through toolbar controls so the default Canvas
