@@ -9,14 +9,16 @@ import { Pagination, usePaginationContext } from "@flowstack-ui/atom/pagination"
 import { Tabs } from "@flowstack-ui/atom/tabs";
 import { useCallback, useState, type Dispatch, type MouseEvent, type ReactNode, type SetStateAction } from "react";
 import { AnatomyPanel, type AnatomySection } from "../AnatomyPanel";
-import { ControlToolbar, MenuActionControl, MenuCheckboxControl, MenuRadioControl, partProps, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup } from "../WorkbenchPrimitives";
+import { ControlToolbar, MenuActionControl, MenuCheckboxControl, MenuRadioControl, MenuSection, partProps, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup, type WorkbenchOption } from "../WorkbenchPrimitives";
 
 type CompositionMode = "default" | "asChild" | "render";
 type Orientation = "horizontal" | "vertical";
 type DirectionMode = "ltr" | "rtl";
 type ActivationMode = "automatic" | "manual";
+type TabsDirectionMode = "default" | "provider-rtl" | "local-ltr" | "local-rtl";
 type AppBarPosition = "static" | "absolute" | "sticky" | "fixed";
 type AppBarDensity = "compact" | "comfortable";
+type TabsSlotPart = "root" | "list" | "trigger" | "content" | "indicator";
 type AppBarSlotPart = "root" | "toolbar" | "start" | "center" | "end";
 type AccordionSlotPart = "root" | "item" | "header" | "trigger" | "content";
 type BottomNavigationSlotPart = "root" | "item";
@@ -31,6 +33,7 @@ type LogEntry = {
 };
 
 const appBarSlotParts: AppBarSlotPart[] = ["root", "toolbar", "start", "center", "end"];
+const tabsSlotParts: TabsSlotPart[] = ["root", "list", "trigger", "content", "indicator"];
 const bottomNavigationSlotParts: BottomNavigationSlotPart[] = ["root", "item"];
 const breadcrumbSlotParts: BreadcrumbSlotPart[] = ["root", "list", "item", "link", "page", "separator", "ellipsis"];
 const paginationSlotParts: PaginationSlotPart[] = ["root", "list", "previous", "item", "ellipsis", "next"];
@@ -160,16 +163,49 @@ function useAppBarScenario() {
 }
 
 function useTabsScenario() {
-  const [controlled, setControlled] = useState(true);
+  const [controlled, setControlled] = useState(false);
   const [value, setValue] = useState("overview");
   const [orientation, setOrientation] = useState<Orientation>("horizontal");
   const [activationMode, setActivationMode] = useState<ActivationMode>("automatic");
   const [loop, setLoop] = useState(true);
-  const [disabledTab, setDisabledTab] = useState(true);
+  const [disabledTab, setDisabledTab] = useState(false);
   const [keepMounted, setKeepMounted] = useState(false);
   const [focusablePanel, setFocusablePanel] = useState(false);
+  const [showIndicator, setShowIndicator] = useState(false);
+  const [blockSettingsEvent, setBlockSettingsEvent] = useState(false);
+  const [directionMode, setDirectionMode] = useState<TabsDirectionMode>("default");
+  const [rootComposition, setRootComposition] = useState<CompositionMode>("default");
+  const [listComposition, setListComposition] = useState<CompositionMode>("default");
   const [triggerComposition, setTriggerComposition] = useState<CompositionMode>("default");
+  const [contentComposition, setContentComposition] = useState<CompositionMode>("default");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customSlots, setCustomSlots] = useState<Record<TabsSlotPart, boolean>>({
+    root: false,
+    list: false,
+    trigger: false,
+    content: false,
+    indicator: false,
+  });
+  const [refs, setRefs] = useState<Record<Exclude<TabsSlotPart, "indicator">, string>>({
+    root: "none",
+    list: "none",
+    trigger: "none",
+    content: "none",
+  });
   const { log, addLog, clearLog } = useScenarioLog();
+
+  const markPartRef = useCallback((part: Exclude<TabsSlotPart, "indicator">, element: HTMLElement | null) => {
+    if (!element) return;
+    const nextValue = element.tagName.toLowerCase();
+    setRefs((current) => {
+      if (current[part] === nextValue) return current;
+      return { ...current, [part]: nextValue };
+    });
+  }, []);
+  const markRootRef = useCallback((element: HTMLElement | null) => markPartRef("root", element), [markPartRef]);
+  const markListRef = useCallback((element: HTMLElement | null) => markPartRef("list", element), [markPartRef]);
+  const markTriggerRef = useCallback((element: HTMLElement | null) => markPartRef("trigger", element), [markPartRef]);
+  const markContentRef = useCallback((element: HTMLElement | null) => markPartRef("content", element), [markPartRef]);
 
   return {
     state: {
@@ -181,20 +217,44 @@ function useTabsScenario() {
       disabledTab,
       keepMounted,
       focusablePanel,
+      showIndicator,
+      blockSettingsEvent,
+      directionMode,
+      rootComposition,
+      listComposition,
       triggerComposition,
+      contentComposition,
+      propCheck,
+      customSlots,
+      refs,
       log,
     },
     actions: {
       setControlled,
+      setValue,
       setOrientation,
       setActivationMode,
       setLoop,
       setDisabledTab,
       setKeepMounted,
       setFocusablePanel,
+      setShowIndicator,
+      setBlockSettingsEvent,
+      setDirectionMode,
+      setRootComposition,
+      setListComposition,
       setTriggerComposition,
+      setContentComposition,
+      setPropCheck,
+      setCustomSlot: (part: TabsSlotPart, checked: boolean) => {
+        setCustomSlots((current) => ({ ...current, [part]: checked }));
+      },
+      markRootRef,
+      markListRef,
+      markTriggerRef,
+      markContentRef,
       clearLog,
-      setValue: (next: string) => {
+      handleValueChange: (next: string) => {
         setValue(next);
         addLog(`tab changed to ${next}`);
       },
@@ -718,15 +778,40 @@ export function NavigationPrimitiveScenarioToolbar({
         <ToolbarGroup title="State" value="state">
           <MenuCheckboxControl checked={scenario.state.controlled} label="Controlled" value="controlled" onChange={scenario.actions.setControlled} />
           <MenuCheckboxControl checked={scenario.state.loop} label="Loop" value="loop" onChange={scenario.actions.setLoop} />
-          <MenuCheckboxControl checked={scenario.state.disabledTab} label="Disabled Tab" value="disabled-tab" onChange={scenario.actions.setDisabledTab} />
+          <MenuCheckboxControl checked={scenario.state.disabledTab} label="Disable Item" value="disabled-tab" onChange={scenario.actions.setDisabledTab} />
           <MenuCheckboxControl checked={scenario.state.keepMounted} label="Keep Mounted" value="keep-mounted" onChange={scenario.actions.setKeepMounted} />
           <MenuCheckboxControl checked={scenario.state.focusablePanel} label="Focusable Panel" value="focusable-panel" onChange={scenario.actions.setFocusablePanel} />
+          <MenuCheckboxControl checked={scenario.state.showIndicator} label="Indicator" value="indicator" onChange={scenario.actions.setShowIndicator} />
         </ToolbarGroup>
+        {scenario.state.controlled ? (
+          <ToolbarGroup title="Value" value="value">
+            <MenuRadioControl label="Controlled Value" options={tabsValueOptions} value={scenario.state.value} onChange={scenario.actions.setValue} />
+          </ToolbarGroup>
+        ) : null}
         <ToolbarGroup title="Keyboard" value="keyboard">
           <MenuRadioControl label="Orientation" options={orientationOptions} value={scenario.state.orientation} onChange={scenario.actions.setOrientation} />
           <MenuRadioControl label="Activation" options={activationModeOptions} value={scenario.state.activationMode} onChange={scenario.actions.setActivationMode} />
+          <MenuRadioControl<TabsDirectionMode> label="Direction" options={tabsDirectionOptions} value={scenario.state.directionMode} onChange={scenario.actions.setDirectionMode} />
         </ToolbarGroup>
-        <CompositionToolbarGroup label="Trigger" value={scenario.state.triggerComposition} onChange={scenario.actions.setTriggerComposition} />
+        <ToolbarGroup title="Composition" value="composition">
+          <MenuRadioControl label="Root" options={compositionOptions} value={scenario.state.rootComposition} onChange={scenario.actions.setRootComposition} />
+          <MenuRadioControl label="List" options={compositionOptions} value={scenario.state.listComposition} onChange={scenario.actions.setListComposition} />
+          <MenuRadioControl label="Trigger" options={compositionOptions} value={scenario.state.triggerComposition} onChange={scenario.actions.setTriggerComposition} />
+          <MenuRadioControl label="Content" options={compositionOptions} value={scenario.state.contentComposition} onChange={scenario.actions.setContentComposition} />
+          <MenuSection label="Events">
+            <MenuCheckboxControl checked={scenario.state.blockSettingsEvent} label="Block Settings Event" value="block-settings-event" onChange={scenario.actions.setBlockSettingsEvent} />
+          </MenuSection>
+        </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={tabsSlotParts.map((part) => ({
+            checked: scenario.state.customSlots[part],
+            label: `${formatTabsSlotLabel(part)} Slot`,
+            value: `${part}-slot`,
+            onChange: (checked) => scenario.actions.setCustomSlot(part, checked),
+          }))}
+        />
       </ControlToolbar>
     );
   }
@@ -1072,49 +1157,154 @@ function AppBarSectionPart({
 
 function TabsCanvas({ scenario }: { scenario: ReturnType<typeof useTabsScenario> }) {
   const state = scenario.state;
-
-  return (
-    <Tabs.Root
-      activationMode={state.activationMode}
-      className="playground-tabs"
-      data-prop-check="root"
-      defaultValue={state.controlled ? undefined : "overview"}
-      loop={state.loop}
-      onValueChange={scenario.actions.setValue}
-      orientation={state.orientation}
-      value={state.controlled ? state.value : undefined}
-    >
-      <Tabs.List ariaLabel="Project sections" className="playground-tabs-list" data-prop-check="list">
-        <TabsTrigger mode={state.triggerComposition} value="overview">Overview</TabsTrigger>
-        <TabsTrigger mode={state.triggerComposition} value="settings">Settings</TabsTrigger>
-        <TabsTrigger mode={state.triggerComposition} disabled={state.disabledTab} value="billing">Billing</TabsTrigger>
-        <Tabs.Indicator className="playground-tabs-indicator" data-prop-check="indicator" />
-      </Tabs.List>
-      <Tabs.Content className="playground-tabs-content" data-prop-check="content-overview" focusable={state.focusablePanel} keepMounted={state.keepMounted} value="overview">Overview panel</Tabs.Content>
-      <Tabs.Content className="playground-tabs-content" data-prop-check="content-settings" focusable={state.focusablePanel} keepMounted={state.keepMounted} value="settings">Settings panel</Tabs.Content>
-      <Tabs.Content className="playground-tabs-content" data-prop-check="content-billing" focusable={state.focusablePanel} keepMounted={state.keepMounted} value="billing">Billing panel</Tabs.Content>
-    </Tabs.Root>
+  const rootProps = {
+    className: "playground-tabs",
+    defaultValue: state.controlled ? undefined : "overview",
+    ref: scenario.actions.markRootRef,
+    onValueChange: scenario.actions.handleValueChange,
+    value: state.controlled ? state.value : undefined,
+    ...(state.activationMode !== "automatic" ? { activationMode: state.activationMode } : {}),
+    ...(state.orientation !== "horizontal" ? { orientation: state.orientation } : {}),
+    ...(state.loop ? {} : { loop: false }),
+    ...getTabsRootDirectionProps(state.directionMode),
+    ...partProps("root", { propCheck: state.propCheck, customSlot: state.customSlots.root }, "tabs-root-custom"),
+  };
+  const tabs = (
+    <TabsRootPart composition={state.rootComposition} props={rootProps}>
+      <TabsListPart scenario={scenario}>
+        <TabsTriggerPart scenario={scenario} value="overview">Overview</TabsTriggerPart>
+        <TabsTriggerPart scenario={scenario} value="settings">Settings</TabsTriggerPart>
+        <TabsTriggerPart scenario={scenario} disabled={state.disabledTab} value="billing">Billing</TabsTriggerPart>
+        {state.showIndicator ? (
+          <Tabs.Indicator
+            className="playground-tabs-indicator"
+            {...partProps("indicator", { propCheck: state.propCheck, customSlot: state.customSlots.indicator }, "tabs-indicator-custom")}
+          />
+        ) : null}
+      </TabsListPart>
+      <TabsContentPart scenario={scenario} value="overview">Overview panel</TabsContentPart>
+      <TabsContentPart scenario={scenario} value="settings">Settings panel</TabsContentPart>
+      <TabsContentPart scenario={scenario} value="billing">Billing panel</TabsContentPart>
+    </TabsRootPart>
   );
+
+  return state.directionMode === "provider-rtl" || state.directionMode === "local-ltr" ? (
+    <Direction.Provider dir="rtl">{tabs}</Direction.Provider>
+  ) : tabs;
 }
 
-function TabsTrigger({ children, disabled, mode, value }: { children: ReactNode; disabled?: boolean; mode: CompositionMode; value: string }) {
-  if (mode === "asChild") {
+function TabsRootPart({ composition, props, children }: { composition: CompositionMode; props: Parameters<typeof Tabs.Root>[0]; children: ReactNode }) {
+  if (composition === "asChild") {
     return (
-      <Tabs.Trigger asChild disabled={disabled} value={value} data-prop-check={`trigger-${value}`}>
+      <Tabs.Root {...props} asChild>
+        <section>{children}</section>
+      </Tabs.Root>
+    );
+  }
+
+  if (composition === "render") {
+    return (
+      <Tabs.Root {...props} render={(renderProps) => <section {...renderProps} />}>
+        {children}
+      </Tabs.Root>
+    );
+  }
+
+  return <Tabs.Root {...props}>{children}</Tabs.Root>;
+}
+
+function TabsListPart({ scenario, children }: { scenario: ReturnType<typeof useTabsScenario>; children: ReactNode }) {
+  const state = scenario.state;
+  const props = {
+    ariaLabel: "Project sections",
+    className: "playground-tabs-list",
+    ref: scenario.actions.markListRef,
+    ...partProps("list", { propCheck: state.propCheck, customSlot: state.customSlots.list }, "tabs-list-custom"),
+  };
+
+  if (state.listComposition === "asChild") {
+    return (
+      <Tabs.List {...props} asChild>
+        <div>{children}</div>
+      </Tabs.List>
+    );
+  }
+
+  if (state.listComposition === "render") {
+    return (
+      <Tabs.List {...props} render={(renderProps) => <div {...renderProps} />}>
+        {children}
+      </Tabs.List>
+    );
+  }
+
+  return <Tabs.List {...props}>{children}</Tabs.List>;
+}
+
+function TabsTriggerPart({ children, disabled, scenario, value }: { children: ReactNode; disabled?: boolean; scenario: ReturnType<typeof useTabsScenario>; value: string }) {
+  const state = scenario.state;
+  const props = {
+    className: "playground-tabs-trigger",
+    disabled,
+    onClick: value === "settings" && state.blockSettingsEvent ? (event: MouseEvent<HTMLButtonElement>) => event.preventDefault() : undefined,
+    ref: scenario.actions.markTriggerRef,
+    value,
+    ...partProps(`trigger-${value}`, { propCheck: state.propCheck, customSlot: state.customSlots.trigger }, "tabs-trigger-custom"),
+  };
+
+  if (state.triggerComposition === "asChild") {
+    return (
+      <Tabs.Trigger {...props} asChild>
         <button type="button">{children}</button>
       </Tabs.Trigger>
     );
   }
 
-  if (mode === "render") {
+  if (state.triggerComposition === "render") {
     return (
-      <Tabs.Trigger disabled={disabled} render={(props) => <button {...props} />} value={value} data-prop-check={`trigger-${value}`}>
+      <Tabs.Trigger {...props} render={(renderProps) => <button {...renderProps} />}>
         {children}
       </Tabs.Trigger>
     );
   }
 
-  return <Tabs.Trigger className="playground-tabs-trigger" disabled={disabled} value={value} data-prop-check={`trigger-${value}`}>{children}</Tabs.Trigger>;
+  return <Tabs.Trigger {...props}>{children}</Tabs.Trigger>;
+}
+
+function TabsContentPart({ children, scenario, value }: { children: ReactNode; scenario: ReturnType<typeof useTabsScenario>; value: string }) {
+  const state = scenario.state;
+  const props = {
+    className: "playground-tabs-content",
+    focusable: state.focusablePanel || undefined,
+    keepMounted: state.keepMounted || undefined,
+    ref: scenario.actions.markContentRef,
+    value,
+    ...partProps(`content-${value}`, { propCheck: state.propCheck, customSlot: state.customSlots.content }, "tabs-content-custom"),
+  };
+
+  if (state.contentComposition === "asChild") {
+    return (
+      <Tabs.Content {...props} asChild>
+        <div>{children}</div>
+      </Tabs.Content>
+    );
+  }
+
+  if (state.contentComposition === "render") {
+    return (
+      <Tabs.Content {...props} render={(renderProps) => <section {...renderProps} />}>
+        {children}
+      </Tabs.Content>
+    );
+  }
+
+  return <Tabs.Content {...props}>{children}</Tabs.Content>;
+}
+
+function getTabsRootDirectionProps(directionMode: TabsDirectionMode) {
+  if (directionMode === "local-ltr") return { dir: "ltr" as const };
+  if (directionMode === "local-rtl") return { dir: "rtl" as const };
+  return {};
 }
 
 function AccordionCanvas({ scenario }: { scenario: ReturnType<typeof useAccordionScenario> }) {
@@ -2181,19 +2371,78 @@ function appBarSlotSelector(state: ReturnType<typeof useAppBarScenario>["state"]
 
 function tabsSections(state: ReturnType<typeof useTabsScenario>["state"]): AnatomySection[] {
   return [
-    baseSection("Root", state.value, "[data-slot='tabs-root']", [
+    baseSection("Root", state.controlled ? `controlled ${state.value}` : "uncontrolled", tabsSlotSelector(state, "root"), [
       row("Controlled", bool(state.controlled), "state"),
+      row("Value", state.value, "state"),
       row("Orientation", state.orientation, "state"),
+      row("Direction", state.directionMode, "state"),
       row("Activation mode", state.activationMode, "behavior"),
       row("Loop", bool(state.loop), "behavior"),
+      row("Composition", state.rootComposition, "composition"),
+      row("Ref target", state.refs.root, "identity"),
     ]),
-    baseSection("List", state.orientation, "[data-slot='tabs-list']"),
-    baseSection("Trigger: Overview", "overview", "[data-prop-check='trigger-overview']"),
-    baseSection("Trigger: Settings", "settings", "[data-prop-check='trigger-settings']"),
-    baseSection("Trigger: Billing", state.disabledTab ? "disabled" : "enabled", "[data-prop-check='trigger-billing']"),
-    baseSection("Indicator", "positioned", "[data-slot='tabs-indicator']"),
-    baseSection("Content", state.keepMounted ? "keep mounted" : state.value, "[data-slot='tabs-content'][data-state='active']"),
+    baseSection("List", state.orientation, tabsSlotSelector(state, "list"), [
+      row("Composition", state.listComposition, "composition"),
+      row("Ref target", state.refs.list, "identity"),
+    ]),
+    baseSection("Trigger: Overview", "overview", tabsTriggerSelector(state, "overview"), [
+      row("Composition", state.triggerComposition, "composition"),
+      row("Ref target", state.refs.trigger, "identity"),
+    ]),
+    baseSection("Trigger: Settings", "settings", tabsTriggerSelector(state, "settings"), [
+      row("Composition", state.triggerComposition, "composition"),
+      row("Block event", bool(state.blockSettingsEvent), "behavior"),
+    ]),
+    baseSection("Trigger: Billing", state.disabledTab ? "disabled" : "enabled", tabsTriggerSelector(state, "billing"), [
+      row("Disabled", bool(state.disabledTab), "state"),
+      row("Composition", state.triggerComposition, "composition"),
+    ]),
+    baseSection("Indicator", state.showIndicator ? "positioned" : "not rendered", tabsSlotSelector(state, "indicator"), undefined, !state.showIndicator),
+    baseSection("Content: Overview", state.keepMounted || state.value === "overview" ? "mounted" : "not rendered", tabsContentSelector(state, "overview"), [
+      row("Focusable", bool(state.focusablePanel), "state"),
+      row("Keep mounted", bool(state.keepMounted), "state"),
+      row("Composition", state.contentComposition, "composition"),
+      row("Ref target", state.refs.content, "identity"),
+    ], !state.keepMounted && state.value !== "overview"),
+    baseSection("Content: Settings", state.keepMounted || state.value === "settings" ? "mounted" : "not rendered", tabsContentSelector(state, "settings"), [
+      row("Focusable", bool(state.focusablePanel), "state"),
+      row("Keep mounted", bool(state.keepMounted), "state"),
+      row("Composition", state.contentComposition, "composition"),
+    ], !state.keepMounted && state.value !== "settings"),
+    baseSection("Content: Billing", state.keepMounted || state.value === "billing" ? "mounted" : "not rendered", tabsContentSelector(state, "billing"), [
+      row("Focusable", bool(state.focusablePanel), "state"),
+      row("Keep mounted", bool(state.keepMounted), "state"),
+      row("Composition", state.contentComposition, "composition"),
+    ], !state.keepMounted && state.value !== "billing"),
   ];
+}
+
+function tabsSlotSelector(state: ReturnType<typeof useTabsScenario>["state"], part: TabsSlotPart) {
+  const slots: Record<TabsSlotPart, [defaultSlot: string, customSlot: string]> = {
+    root: ["tabs-root", "tabs-root-custom"],
+    list: ["tabs-list", "tabs-list-custom"],
+    trigger: ["tabs-trigger", "tabs-trigger-custom"],
+    content: ["tabs-content", "tabs-content-custom"],
+    indicator: ["tabs-indicator", "tabs-indicator-custom"],
+  };
+  const classes: Record<TabsSlotPart, string> = {
+    root: ".playground-tabs",
+    list: ".playground-tabs-list",
+    trigger: ".playground-tabs-trigger",
+    content: ".playground-tabs-content",
+    indicator: ".playground-tabs-indicator",
+  };
+  const slot = state.customSlots[part] ? slots[part][1] : slots[part][0];
+
+  return `${classes[part]}[data-slot='${slot}']`;
+}
+
+function tabsTriggerSelector(state: ReturnType<typeof useTabsScenario>["state"], value: string) {
+  return `${tabsSlotSelector(state, "trigger")}[data-value='${value}']`;
+}
+
+function tabsContentSelector(state: ReturnType<typeof useTabsScenario>["state"], value: string) {
+  return `${tabsSlotSelector(state, "content")}[id$='-panel-${value}']`;
 }
 
 function accordionSections(state: ReturnType<typeof useAccordionScenario>["state"]): AnatomySection[] {
@@ -2482,7 +2731,7 @@ export function clearNavigationPrimitiveLog(scenarioId: string, scenarios: Navig
 
 export function getNavigationPrimitiveCanvasFooter(scenarioId: string, scenarios: NavigationPrimitiveScenarios) {
   if (scenarioId === "app-bar") return `${scenarios.appBar.state.position} | ${scenarios.appBar.state.density}`;
-  if (scenarioId === "tabs") return `Value ${scenarios.tabs.state.value} | ${scenarios.tabs.state.activationMode} | ${scenarios.tabs.state.orientation}`;
+  if (scenarioId === "tabs") return `${scenarios.tabs.state.controlled ? "Controlled" : "Uncontrolled"} ${scenarios.tabs.state.value} | ${scenarios.tabs.state.activationMode} | ${scenarios.tabs.state.orientation}`;
   if (scenarioId === "accordion") return `${scenarios.accordion.state.multiple ? "multiple" : "single"} | ${formatAccordionValueLabel(scenarios.accordion.state.value)}`;
   if (scenarioId === "breadcrumb") return `Ellipsis ${scenarios.breadcrumb.state.showEllipsis} | Separator ${scenarios.breadcrumb.state.customSeparator ? "custom" : "default"}`;
   if (scenarioId === "pagination") return `Page ${scenarios.pagination.state.page} | Total ${scenarios.pagination.state.totalPages}`;
@@ -2503,15 +2752,15 @@ export function getNavigationPrimitiveSource(scenarioId: string, scenarios?: Nav
   }
 
   if (scenarioId === "tabs") {
-    return `<Tabs.Root value={value} onValueChange={setValue}>
+    return scenarios ? getTabsSource(scenarios.tabs.state) : `<Tabs.Root defaultValue="overview">
   <Tabs.List ariaLabel="Project sections">
     <Tabs.Trigger value="overview">Overview</Tabs.Trigger>
     <Tabs.Trigger value="settings">Settings</Tabs.Trigger>
-    <Tabs.Trigger value="billing" disabled>Billing</Tabs.Trigger>
-    <Tabs.Indicator />
+    <Tabs.Trigger value="billing">Billing</Tabs.Trigger>
   </Tabs.List>
   <Tabs.Content value="overview">Overview panel</Tabs.Content>
   <Tabs.Content value="settings">Settings panel</Tabs.Content>
+  <Tabs.Content value="billing">Billing panel</Tabs.Content>
 </Tabs.Root>`;
   }
 
@@ -2630,6 +2879,133 @@ function renderAppBarSourcePart(part: string, mode: CompositionMode, props: stri
   }
 
   return `${part}${inlineProps}>`;
+}
+
+function getTabsSource(state: ReturnType<typeof useTabsScenario>["state"]) {
+  const rootProps = [
+    state.controlled ? `value={value}` : `defaultValue="overview"`,
+    `onValueChange={handleValueChange}`,
+    state.orientation !== "horizontal" ? `orientation="${state.orientation}"` : "",
+    state.activationMode !== "automatic" ? `activationMode="${state.activationMode}"` : "",
+    !state.loop ? `loop={false}` : "",
+    ...tabsDirectionSourceProps(state.directionMode),
+    ...sourcePartPropList("root", state.propCheck, state.customSlots.root, "tabs-root-custom"),
+  ].filter(Boolean);
+  const content = [
+    getTabsListSource(state),
+    getTabsContentSource("overview", "Overview panel", state),
+    getTabsContentSource("settings", "Settings panel", state),
+    getTabsContentSource("billing", "Billing panel", state),
+  ].map((child) => indent(child, 2)).join("\n");
+  const root = renderTabsSourceElement("Root", state.rootComposition, rootProps, "section", content);
+
+  if (state.directionMode === "provider-rtl" || state.directionMode === "local-ltr") {
+    return `<Direction.Provider dir="rtl">
+${indent(root, 2)}
+</Direction.Provider>`;
+  }
+
+  return root;
+}
+
+function getTabsListSource(state: ReturnType<typeof useTabsScenario>["state"]) {
+  const listProps = [
+    `ariaLabel="Project sections"`,
+    ...sourcePartPropList("list", state.propCheck, state.customSlots.list, "tabs-list-custom"),
+  ];
+  const children = [
+    getTabsTriggerSource("overview", "Overview", false, state),
+    getTabsTriggerSource("settings", "Settings", false, state),
+    getTabsTriggerSource("billing", "Billing", state.disabledTab, state),
+    state.showIndicator ? getTabsIndicatorSource(state) : "",
+  ].filter(Boolean).map((child) => indent(child, 2)).join("\n");
+
+  return renderTabsSourceElement("List", state.listComposition, listProps, "div", children);
+}
+
+function getTabsTriggerSource(value: string, label: string, disabled: boolean, state: ReturnType<typeof useTabsScenario>["state"]) {
+  const props = [
+    `value="${value}"`,
+    disabled ? "disabled" : "",
+    value === "settings" && state.blockSettingsEvent ? `onClick={(event) => event.preventDefault()}` : "",
+    ...sourcePartPropList(`trigger-${value}`, state.propCheck, state.customSlots.trigger, "tabs-trigger-custom"),
+  ].filter(Boolean);
+
+  return renderTabsSourceElement("Trigger", state.triggerComposition, props, "button", label, false, ` type="button"`);
+}
+
+function getTabsContentSource(value: string, text: string, state: ReturnType<typeof useTabsScenario>["state"]) {
+  const props = [
+    `value="${value}"`,
+    state.keepMounted ? "keepMounted" : "",
+    state.focusablePanel ? "focusable" : "",
+    ...sourcePartPropList(`content-${value}`, state.propCheck, state.customSlots.content, "tabs-content-custom"),
+  ].filter(Boolean);
+
+  return renderTabsSourceElement("Content", state.contentComposition, props, "div", text);
+}
+
+function getTabsIndicatorSource(state: ReturnType<typeof useTabsScenario>["state"]) {
+  const props = sourcePartPropList("indicator", state.propCheck, state.customSlots.indicator, "tabs-indicator-custom");
+
+  if (props.length === 0) return `<Tabs.Indicator />`;
+
+  return `<Tabs.Indicator ${props.join(" ")} />`;
+}
+
+function tabsDirectionSourceProps(directionMode: TabsDirectionMode) {
+  if (directionMode === "local-ltr") return [`dir="ltr"`];
+  if (directionMode === "local-rtl") return [`dir="rtl"`];
+  return [];
+}
+
+function renderTabsSourceElement(
+  part: "Root" | "List" | "Trigger" | "Content",
+  mode: CompositionMode,
+  props: string[],
+  tag: "section" | "div" | "button",
+  children: string,
+  selfCloseWhenEmpty = false,
+  childAttributes = "",
+) {
+  const open = renderTabsSourceOpen(part, mode, props, tag, selfCloseWhenEmpty && !children && mode !== "asChild");
+
+  if (selfCloseWhenEmpty && !children && mode !== "asChild") {
+    return open;
+  }
+
+  if (mode === "asChild") {
+    return `${open}
+  <${tag}${childAttributes}>
+${indent(children, 4)}
+  </${tag}>
+</Tabs.${part}>`;
+  }
+
+  return `${open}
+${indent(children, 2)}
+</Tabs.${part}>`;
+}
+
+function renderTabsSourceOpen(part: "Root" | "List" | "Trigger" | "Content", mode: CompositionMode, props: string[], tag: string, selfClosing = false) {
+  const allProps = [
+    ...props,
+    mode === "asChild" ? "asChild" : "",
+    mode === "render" ? `render={(props) => <${tag} {...props} />}` : "",
+  ].filter(Boolean);
+  const close = selfClosing ? " />" : ">";
+
+  if (allProps.length === 0) {
+    return `<Tabs.${part}${close}`;
+  }
+
+  if (allProps.length === 1) {
+    return `<Tabs.${part} ${allProps[0]}${close}`;
+  }
+
+  return `<Tabs.${part}
+${allProps.map((prop) => `  ${prop}`).join("\n")}
+${selfClosing ? "/>" : ">"}`;
 }
 
 function getBreadcrumbSource(state: ReturnType<typeof useBreadcrumbScenario>["state"]) {
@@ -3252,6 +3628,14 @@ function formatBreadcrumbSlotLabel(part: BreadcrumbSlotPart) {
   return part.charAt(0).toUpperCase() + part.slice(1);
 }
 
+function formatTabsSlotLabel(part: TabsSlotPart) {
+  if (part === "root") return "Root";
+  if (part === "list") return "List";
+  if (part === "trigger") return "Trigger";
+  if (part === "content") return "Content";
+  return "Indicator";
+}
+
 function formatPaginationSlotLabel(part: PaginationSlotPart) {
   if (part === "previous") return "Previous";
   if (part === "next") return "Next";
@@ -3303,10 +3687,17 @@ const bottomNavigationValueOptions = [
   { label: "Settings", value: "settings" },
 ] as const;
 const compositionOptions = ["default", "asChild", "render"] as const;
+const tabsValueOptions = ["overview", "settings", "billing"] as const;
 const orientationOptions = ["horizontal", "vertical"] as const;
 const navListCurrentTokenOptions = ["page", "step", "location"] as const;
 const directionOptions = ["ltr", "rtl"] as const;
 const activationModeOptions = ["automatic", "manual"] as const;
+const tabsDirectionOptions: readonly WorkbenchOption<TabsDirectionMode>[] = [
+  { label: "Default", value: "default" },
+  { label: "Provider RTL", value: "provider-rtl" },
+  { label: "Local LTR", value: "local-ltr" },
+  { label: "Local RTL", value: "local-rtl" },
+];
 const appBarPositionOptions = ["static", "sticky", "fixed", "absolute"] as const;
 const appBarDensityOptions = ["compact", "comfortable"] as const;
 const pageTotalOptions = ["0", "5", "10", "20"] as const;

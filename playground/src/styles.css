@@ -3517,6 +3517,11 @@ h2 {
   gap: 10px;
 }
 
+.playground-tabs[data-orientation="vertical"] {
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: start;
+}
+
 .playground-tabs-list {
   position: relative;
   display: inline-flex;
@@ -3528,7 +3533,14 @@ h2 {
   padding: 4px;
 }
 
+.playground-tabs-list[data-orientation="vertical"] {
+  flex-direction: column;
+  align-items: stretch;
+}
+
 .playground-tabs-trigger {
+  position: relative;
+  z-index: 1;
   min-height: 36px;
   border: 0;
   border-radius: 6px;
@@ -3551,7 +3563,20 @@ h2 {
 }
 
 .playground-tabs-indicator {
-  display: none;
+  position: absolute;
+  left: var(--tabs-indicator-left);
+  top: calc(var(--tabs-indicator-top) + var(--tabs-indicator-height) - 3px);
+  z-index: 2;
+  width: var(--tabs-indicator-width);
+  height: 3px;
+  border-radius: 999px;
+  background: #38bdf8;
+  pointer-events: none;
+  transition:
+    left 120ms ease,
+    top 120ms ease,
+    width 120ms ease,
+    height 120ms ease;
 }
 
 .playground-tabs-content {
@@ -3561,6 +3586,16 @@ h2 {
   background: #ffffff;
   color: #1f2a37;
   padding: 18px;
+}
+
+.playground-tabs[data-orientation="vertical"] .playground-tabs-content {
+  min-height: 168px;
+}
+
+@media (max-width: 620px) {
+  .playground-tabs[data-orientation="vertical"] {
+    grid-template-columns: 1fr;
+  }
 }
 
 .playground-accordion-shell {

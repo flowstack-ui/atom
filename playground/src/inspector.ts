@@ -32,6 +32,7 @@ const observedAttributes = [
   "aria-labelledby",
   "aria-modal",
   "aria-required",
+  "aria-selected",
   "alt",
   "checked",
   "data-checked",

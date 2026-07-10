@@ -44,6 +44,8 @@ Provides selected tab state.
 | `dir` | `"ltr" \| "rtl"` | `Direction.Provider` |
 | `activationMode` | `"automatic" \| "manual"` | `"automatic"` |
 | `loop` | `boolean` | `true` |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
 
 | Data attribute | Values |
 | --- | --- |
@@ -53,6 +55,12 @@ Provides selected tab state.
 ### List
 
 Contains tab triggers.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `ariaLabel` | `string` | - |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
 
 | Data attribute | Values |
 | --- | --- |
@@ -83,8 +91,10 @@ Renders the selected panel.
 | Prop | Type | Default |
 | --- | --- | --- |
 | `value` | `string` | required |
-| `forceMount` | `boolean` | `false` |
+| `keepMounted` | `boolean` | `false` |
 | `focusable` | `boolean` | `false` |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
 
 | Data attribute | Values |
 | --- | --- |
@@ -95,14 +105,15 @@ Renders the selected panel.
 
 Renders an optional active-tab indicator.
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `forceMount` | `boolean` | `false` |
-
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"tabs-indicator"` |
-| `[data-state]` | `"active" \| "inactive"` |
+| `[data-orientation]` | `"horizontal" \| "vertical"` |
+
+Indicator renders only when it can measure the active trigger. It exposes the
+active trigger position through `--tabs-indicator-left`,
+`--tabs-indicator-top`, `--tabs-indicator-width`, and
+`--tabs-indicator-height`.
 
 ## Examples
 
@@ -122,7 +133,7 @@ Renders an optional active-tab indicator.
 ### Keep Panels Mounted
 
 ```tsx
-<Tabs.Content value="settings" forceMount>
+<Tabs.Content value="settings" keepMounted>
   Settings
 </Tabs.Content>
 ```

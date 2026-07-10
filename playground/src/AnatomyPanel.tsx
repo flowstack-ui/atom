@@ -121,6 +121,7 @@ const visibleFalseRawAttributes = new Set([
   "aria-checked",
   "aria-expanded",
   "aria-pressed",
+  "aria-selected",
 ]);
 const booleanRawAttributes = new Set([
   "checked",
