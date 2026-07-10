@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed Tree pointer targeting so whitespace inside nested groups does not
+  reactivate or select the parent item.
 - Added `render` and `asChild` composition support to all Toolbar parts.
 - Fixed Toolbar parts so custom `data-slot` values override their default slot
   identifiers.

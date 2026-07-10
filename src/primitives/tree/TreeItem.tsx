@@ -115,7 +115,12 @@ export const TreeItem = forwardRef<HTMLElement, TreeItemProps>(
       (target: EventTarget | null) => {
         const element = itemRef.current;
         if (!(target instanceof Element) || !element) return true;
-        return target.closest('[role="treeitem"]') === element;
+
+        const closestTreeItem = target.closest('[role="treeitem"]');
+        if (closestTreeItem !== element) return false;
+
+        const closestGroup = target.closest('[role="group"]');
+        return !(closestGroup && element.contains(closestGroup));
       },
       [],
     );

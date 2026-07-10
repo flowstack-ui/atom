@@ -228,6 +228,8 @@ test("Tree source uses Collection and keeps APG tree keyboard behavior in Root",
   assert.match(itemSource, /registeredTextValue/);
   assert.match(itemSource, /activeValueRef/);
   assert.match(itemSource, /eventTargetsCurrentItem/);
+  assert.match(itemSource, /target\.closest\('\[role="group"\]'\)/);
+  assert.match(itemSource, /element\.contains\(closestGroup\)/);
   assert.match(itemSource, /updateItem\(value, itemData, isDisabled\)/);
   assert.match(itemTextSource, /textContent\?\.trim\(\)/);
   assert.match(groupSource, /role: "group"/);
