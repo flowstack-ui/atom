@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added `Direction.Provider` and `dir` support to mirror horizontal `Tabs`
+  ArrowLeft and ArrowRight navigation in RTL.
 - Changed `Pagination.Previous`, `Pagination.Next`, `Pagination.Item`, and
   `Pagination.Ellipsis` to render their own structural `li` wrappers while
   keeping `asChild`, `render`, props, and refs targeted at the inner control or

@@ -10,6 +10,7 @@ import { useCollection } from "../../collection.js";
 import { useControllableState } from "../../hooks/useControllableState.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
+import { useDirection, type DirectionValue } from "../direction/index.js";
 import {
   TabsContextProvider,
   type TabsActivationMode,
@@ -17,7 +18,7 @@ import {
   type TabsOrientation,
 } from "./context.js";
 
-type TabsRootNativeProps = NativeDivProps<"children" | "defaultValue" | "onChange">;
+type TabsRootNativeProps = NativeDivProps<"children" | "defaultValue" | "dir" | "onChange">;
 
 export interface TabsRootProps extends TabsRootNativeProps {
   /** Controlled active tab value. */
@@ -28,6 +29,8 @@ export interface TabsRootProps extends TabsRootNativeProps {
   onValueChange?: (value: string) => void;
   /** Tab layout orientation. */
   orientation?: TabsOrientation;
+  /** Text direction used for horizontal arrow-key navigation. Defaults to DirectionProvider. */
+  dir?: DirectionValue;
   /** Focus activation or explicit activation. */
   activationMode?: TabsActivationMode;
   /** Arrow keys wrap from last to first. */
@@ -51,6 +54,7 @@ export const TabsRoot = forwardRef<HTMLDivElement, TabsRootProps>(
       defaultValue = "",
       onValueChange,
       orientation = "horizontal",
+      dir: dirProp,
       activationMode = "automatic",
       loop = true,
       render,
@@ -62,6 +66,8 @@ export const TabsRoot = forwardRef<HTMLDivElement, TabsRootProps>(
     },
     ref,
   ) {
+    const contextDir = useDirection();
+    const dir = dirProp ?? contextDir;
     const [activeValue, setActiveValue] = useControllableState({
       value,
       defaultValue,
@@ -101,6 +107,7 @@ export const TabsRoot = forwardRef<HTMLDivElement, TabsRootProps>(
       setActiveValue,
       idPrefix,
       orientation,
+      dir,
       activationMode,
       loop,
       registerTrigger,
@@ -112,6 +119,7 @@ export const TabsRoot = forwardRef<HTMLDivElement, TabsRootProps>(
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref,
+      dir,
       "data-slot": dataSlot,
       "data-orientation": orientation,
       className,

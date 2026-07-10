@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
+import type { DirectionValue } from "../direction/index.js";
 
 export type TabsOrientation = "horizontal" | "vertical";
 export type TabsActivationMode = "automatic" | "manual";
@@ -16,6 +17,8 @@ export interface TabsContextValue {
   idPrefix: string;
   /** Tab orientation. */
   orientation: TabsOrientation;
+  /** Text direction for horizontal keyboard navigation. */
+  dir: DirectionValue;
   /** Focus activation behavior. */
   activationMode: TabsActivationMode;
   /** Whether arrow keys wrap. */

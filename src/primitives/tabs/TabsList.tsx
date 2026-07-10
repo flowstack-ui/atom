@@ -8,9 +8,26 @@ import {
   renderElement,
   type RenderProp,
 } from "../../utils/slot.js";
+import type { DirectionValue } from "../direction/index.js";
 import { useTabsContext } from "./context.js";
 
 type TabsListNativeProps = NativeDivProps<"children" | "role">;
+
+export function getTabsListNavigationDirection(
+  orientation: "horizontal" | "vertical",
+  key: string,
+  dir: DirectionValue = "ltr",
+): 1 | -1 | null {
+  if (orientation === "vertical") {
+    if (key === "ArrowDown") return 1;
+    if (key === "ArrowUp") return -1;
+    return null;
+  }
+
+  if (key === "ArrowRight") return dir === "rtl" ? -1 : 1;
+  if (key === "ArrowLeft") return dir === "rtl" ? 1 : -1;
+  return null;
+}
 
 export interface TabsListProps extends TabsListNativeProps {
   /** Tab triggers and optional indicator. */
@@ -43,6 +60,7 @@ export const TabsList = forwardRef<HTMLDivElement, TabsListProps>(
   ) {
     const {
       orientation,
+      dir,
       activationMode,
       loop,
       activeValue,
@@ -100,15 +118,17 @@ export const TabsList = forwardRef<HTMLDivElement, TabsListProps>(
 
       if (currentIndex === -1) return;
 
-      const isHorizontal = orientation === "horizontal";
-      const nextKeys = isHorizontal ? ["ArrowRight"] : ["ArrowDown"];
-      const prevKeys = isHorizontal ? ["ArrowLeft"] : ["ArrowUp"];
+      const navigationDirection = getTabsListNavigationDirection(
+        orientation,
+        event.key,
+        dir,
+      );
 
-      if (nextKeys.includes(event.key)) {
+      if (navigationDirection === 1) {
         event.preventDefault();
         const next = findNextValue(values, currentIndex, 1);
         if (next) focusAndMaybeActivate(next);
-      } else if (prevKeys.includes(event.key)) {
+      } else if (navigationDirection === -1) {
         event.preventDefault();
         const previous = findNextValue(values, currentIndex, -1);
         if (previous) focusAndMaybeActivate(previous);

@@ -8,6 +8,7 @@ import {
 } from "../test-utils.mjs";
 
 import {
+  Direction,
   Tabs,
   TabsContent,
   TabsList,
@@ -18,6 +19,10 @@ import {
 import {
   getTabsTriggerTabStopValue,
 } from "../../dist/_internal/primitives/tabs/TabsTrigger.js";
+
+import {
+  getTabsListNavigationDirection,
+} from "../../dist/_internal/primitives/tabs/TabsList.js";
 
 test("Tabs primitives render ARIA linked tab and panel", () => {
   const html = renderToStaticMarkup(
@@ -52,6 +57,64 @@ test("Tabs primitives render ARIA linked tab and panel", () => {
   assert.doesNotMatch(html, /role="tabpanel"[^>]*tabindex=/);
   assert.match(html, /Account content/);
   assert.doesNotMatch(html, /Password content/);
+});
+
+test("TabsRoot resolves local and provider direction for horizontal navigation", () => {
+  const localHtml = renderToStaticMarkup(
+    React.createElement(
+      TabsRoot,
+      { value: "account", dir: "rtl" },
+      React.createElement(
+        TabsList,
+        null,
+        React.createElement(TabsTrigger, { value: "account" }, "Account"),
+      ),
+    ),
+  );
+  const providerHtml = renderToStaticMarkup(
+    React.createElement(
+      Direction.Provider,
+      { dir: "rtl" },
+      React.createElement(
+        TabsRoot,
+        { value: "account" },
+        React.createElement(
+          TabsList,
+          null,
+          React.createElement(TabsTrigger, { value: "account" }, "Account"),
+        ),
+      ),
+    ),
+  );
+  const overrideHtml = renderToStaticMarkup(
+    React.createElement(
+      Direction.Provider,
+      { dir: "rtl" },
+      React.createElement(
+        TabsRoot,
+        { value: "account", dir: "ltr" },
+        React.createElement(
+          TabsList,
+          null,
+          React.createElement(TabsTrigger, { value: "account" }, "Account"),
+        ),
+      ),
+    ),
+  );
+
+  assert.match(localHtml, /^<div dir="rtl"/);
+  assert.match(providerHtml, /^<div dir="rtl"/);
+  assert.match(overrideHtml, /^<div dir="ltr"/);
+});
+
+test("TabsList horizontal arrow navigation mirrors in RTL while vertical navigation does not", () => {
+  assert.equal(getTabsListNavigationDirection("horizontal", "ArrowRight", "ltr"), 1);
+  assert.equal(getTabsListNavigationDirection("horizontal", "ArrowLeft", "ltr"), -1);
+  assert.equal(getTabsListNavigationDirection("horizontal", "ArrowRight", "rtl"), -1);
+  assert.equal(getTabsListNavigationDirection("horizontal", "ArrowLeft", "rtl"), 1);
+  assert.equal(getTabsListNavigationDirection("vertical", "ArrowDown", "rtl"), 1);
+  assert.equal(getTabsListNavigationDirection("vertical", "ArrowUp", "rtl"), -1);
+  assert.equal(getTabsListNavigationDirection("vertical", "ArrowRight", "rtl"), null);
 });
 
 test("TabsTrigger chooses a tabbable trigger when no value is active", () => {

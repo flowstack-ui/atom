@@ -7,6 +7,7 @@ Headless tab primitives for switching between related panels.
 - Implements linked tab and tabpanel ARIA.
 - Supports controlled and uncontrolled selected value.
 - Supports horizontal and vertical orientation.
+- Supports RTL-aware horizontal arrow-key navigation.
 - Supports automatic or manual activation.
 - Supports disabled tabs, keep-mounted panels, focusable panels, and an optional indicator.
 
@@ -40,12 +41,13 @@ Provides selected tab state.
 | `defaultValue` | `string` | - |
 | `onValueChange` | `(value: string) => void` | - |
 | `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` |
+| `dir` | `"ltr" \| "rtl"` | `Direction.Provider` |
 | `activationMode` | `"automatic" \| "manual"` | `"automatic"` |
 | `loop` | `boolean` | `true` |
 
 | Data attribute | Values |
 | --- | --- |
-| `[data-slot]` | `"tabs"` |
+| `[data-slot]` | `"tabs-root"` |
 | `[data-orientation]` | `"horizontal" \| "vertical"` |
 
 ### List
@@ -127,11 +129,11 @@ Renders an optional active-tab indicator.
 
 ## Accessibility
 
-Implements the WAI-ARIA tabs pattern. Triggers render `role="tab"` and panels render `role="tabpanel"` with stable ID relationships.
+Implements the WAI-ARIA tabs pattern. Triggers render `role="tab"` and panels render `role="tabpanel"` with stable ID relationships. Horizontal arrow-key navigation mirrors in RTL; vertical navigation does not change with text direction.
 
 | Key | Description |
 | --- | --- |
-| `ArrowRight` / `ArrowLeft` | Moves between horizontal tabs |
+| `ArrowRight` / `ArrowLeft` | Moves between horizontal tabs; mirrored when `dir="rtl"` |
 | `ArrowDown` / `ArrowUp` | Moves between vertical tabs |
 | `Home` / `End` | Moves to first or last tab |
 | `Enter` / `Space` | Activates a tab in manual mode |
