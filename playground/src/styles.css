@@ -325,6 +325,10 @@ h2 {
   place-items: start center;
 }
 
+.canvas:has(.playground-tree) {
+  place-items: start center;
+}
+
 .canvas-tab-panel {
   min-height: 0;
   overflow: hidden;
@@ -4601,6 +4605,10 @@ h2 {
   gap: 14px;
 }
 
+.data-primitive-stage:has(.playground-tree) {
+  place-items: start center;
+}
+
 .scroll-area-stage {
   width: min(100% - 40px, 560px);
   height: 100%;
@@ -4673,6 +4681,14 @@ h2 {
   box-shadow: 0 12px 28px rgba(31, 40, 52, 0.08);
 }
 
+.playground-tree[aria-orientation="horizontal"] {
+  width: min(100%, 680px);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  align-items: flex-start;
+  gap: 10px;
+}
+
 .playground-tree [data-slot="tree-item"] {
   display: grid;
   gap: 4px;
@@ -4681,8 +4697,20 @@ h2 {
   padding: 0;
 }
 
+.playground-tree[aria-orientation="horizontal"] > [data-slot="tree-item"] {
+  min-width: 0;
+  border: 1px solid #d8e0ea;
+  border-radius: 6px;
+  background: #fbfcfe;
+  padding: 6px;
+}
+
 .playground-tree [data-slot="tree-item"][aria-level="2"] {
   margin-left: 22px;
+}
+
+.playground-tree[aria-orientation="horizontal"] [data-slot="tree-item"][aria-level="2"] {
+  margin-left: 0;
 }
 
 .playground-tree [data-slot="tree-item-text"] {
@@ -4694,13 +4722,18 @@ h2 {
 }
 
 .playground-tree [data-slot="tree-item"][data-active] > [data-slot="tree-item-text"] {
-  outline: 2px solid #2563eb;
-  outline-offset: -2px;
+  background: #eef4ff;
+  color: #1d4ed8;
 }
 
 .playground-tree [data-slot="tree-item"][data-selected] > [data-slot="tree-item-text"] {
-  background: #111827;
-  color: #ffffff;
+  background: transparent;
+  color: #1e3a8a;
+}
+
+.playground-tree [data-slot="tree-item"][data-active][data-selected] > [data-slot="tree-item-text"] {
+  background: #dbeafe;
+  color: #1e3a8a;
 }
 
 .playground-tree [data-slot="tree-item"][data-disabled] > [data-slot="tree-item-text"] {
@@ -4711,6 +4744,13 @@ h2 {
 .playground-tree [data-slot="tree-group"] {
   display: grid;
   gap: 4px;
+}
+
+.playground-tree[aria-orientation="horizontal"] [data-slot="tree-group"] {
+  gap: 3px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #e5eaf1;
 }
 
 .playground-tree [data-slot="tree-group"][hidden] {

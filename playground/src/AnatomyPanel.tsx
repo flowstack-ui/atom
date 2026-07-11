@@ -217,6 +217,19 @@ function getDirectText(element: Element) {
   return text.length > 80 ? `${text.slice(0, 77)}...` : text;
 }
 
+function getFormValue(element: Element) {
+  if (
+    element instanceof HTMLInputElement ||
+    element instanceof HTMLTextAreaElement ||
+    element instanceof HTMLSelectElement ||
+    element instanceof HTMLOptionElement
+  ) {
+    return element.value;
+  }
+
+  return "";
+}
+
 function getLiveRows(selector?: string): AnatomyRow[] {
   const element = getLiveElement(selector);
   if (!element) return [];
@@ -235,6 +248,11 @@ function getLiveRows(selector?: string): AnatomyRow[] {
     if (text) {
       baseRows.push({ label: "Text", value: text, category: "state" });
     }
+  }
+
+  const value = getFormValue(element);
+  if (value) {
+    baseRows.push({ label: "Value", value, category: "state" });
   }
 
   const attributeRows: AnatomyRow[] = [];

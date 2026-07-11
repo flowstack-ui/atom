@@ -70,9 +70,11 @@ Renders one tree item.
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"tree-item"` |
-| `[data-state]` | `"expanded" \| "collapsed"` |
+| `[data-state]` | `"checked" \| "unchecked"` |
 | `[data-selected]` | Present when selected |
 | `[data-active]` | Present when active |
+| `[data-expandable]` | Present when expandable |
+| `[data-expanded]` | Present when expanded |
 | `[data-disabled]` | Present when disabled |
 
 ### ItemText
@@ -86,6 +88,11 @@ Contains child tree items.
 | Prop | Type | Default |
 | --- | --- | --- |
 | `forceMount` | `boolean` | `false` |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"tree-group"` |
+| `[data-state]` | `"open" \| "closed"` |
 
 ## Examples
 

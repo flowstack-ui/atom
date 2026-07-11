@@ -1,5 +1,6 @@
 import { Button } from "@flowstack-ui/atom/button";
 import { DataGrid } from "@flowstack-ui/atom/data-grid";
+import { Direction } from "@flowstack-ui/atom/direction";
 import { Feed } from "@flowstack-ui/atom/feed";
 import { Form } from "@flowstack-ui/atom/form";
 import { Input } from "@flowstack-ui/atom/input";
@@ -10,7 +11,7 @@ import { Tree } from "@flowstack-ui/atom/tree";
 import { TreeGrid } from "@flowstack-ui/atom/tree-grid";
 import { useCallback, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { AnatomyPanel, type AnatomySection } from "../AnatomyPanel";
-import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup, partProps } from "../WorkbenchPrimitives";
+import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup, partProps } from "../WorkbenchPrimitives";
 
 type CompositionMode = "default" | "asChild" | "render";
 type SelectionMode = "none" | "single" | "multiple";
@@ -34,6 +35,10 @@ type TablePartKey =
   | "footerRow"
   | "footerCell";
 type TreeSelectionMode = "single" | "multiple";
+type TreeStateMode = "uncontrolled" | "controlled";
+type TreeOrientation = "vertical" | "horizontal";
+type TreeDirectionMode = "default" | "provider-rtl" | "local-ltr" | "local-rtl";
+type TreePartKey = "root" | "item" | "itemText" | "group";
 type FormControlType = "native" | "atom";
 
 type LogEntry = {
@@ -163,16 +168,26 @@ function useDataGridScenario() {
 }
 
 function useTreeScenario() {
+  const [stateMode, setStateMode] = useState<TreeStateMode>("uncontrolled");
   const [selectionMode, setSelectionMode] = useState<TreeSelectionMode>("single");
-  const [selectedValue, setSelectedValue] = useState<string | string[] | null>("docs");
-  const [expandedValue, setExpandedValue] = useState<string[]>(["docs"]);
+  const [selectedValue, setSelectedValue] = useState<string | string[] | null>(null);
+  const [expandedValue, setExpandedValue] = useState<string[]>([]);
+  const [defaultSelected, setDefaultSelected] = useState(false);
+  const [defaultExpanded, setDefaultExpanded] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const [readOnly, setReadOnly] = useState(false);
   const [required, setRequired] = useState(false);
   const [invalid, setInvalid] = useState(false);
+  const [orientation, setOrientation] = useState<TreeOrientation>("vertical");
   const [loop, setLoop] = useState(true);
+  const [directionMode, setDirectionMode] = useState<TreeDirectionMode>("default");
   const [forceMount, setForceMount] = useState(false);
-  const [composition, setComposition] = useState<CompositionMode>("default");
+  const [disableItem, setDisableItem] = useState(false);
+  const [formName, setFormName] = useState(false);
+  const [composition, setComposition] = useState<Record<TreePartKey, CompositionMode>>(treeDefaultComposition);
+  const [propCheck, setPropCheck] = useState(false);
+  const [customSlots, setCustomSlots] = useState<Record<TreePartKey, boolean>>(treeDefaultCustomSlots);
+  const [refs, setRefs] = useState<Record<TreePartKey, string>>(treeDefaultRefs);
   const { log, addLog, clearLog } = useScenarioLog();
 
   const handleValueChange = (value: string | string[] | null) => {
@@ -187,34 +202,101 @@ function useTreeScenario() {
 
   const handleSelectionMode = (value: TreeSelectionMode) => {
     setSelectionMode(value);
-    setSelectedValue(value === "multiple" ? ["docs"] : "docs");
+    setSelectedValue(value === "multiple" ? [] : null);
+    setDefaultSelected(false);
+  };
+
+  const handleStateMode = (value: TreeStateMode) => {
+    setStateMode(value);
+    setSelectedValue(value === "controlled" ? (selectionMode === "multiple" ? [] : null) : defaultSelected ? "docs" : null);
+    setExpandedValue(defaultExpanded ? ["docs"] : []);
+  };
+
+  const handleDefaultSelected = (checked: boolean) => {
+    setDefaultSelected(checked);
+    if (stateMode === "uncontrolled") {
+      setSelectedValue(checked ? "docs" : selectionMode === "multiple" ? [] : null);
+    }
+  };
+
+  const handleDefaultExpanded = (checked: boolean) => {
+    setDefaultExpanded(checked);
+    if (stateMode === "uncontrolled") {
+      setExpandedValue(checked ? ["docs"] : []);
+    }
+  };
+
+  const setPartComposition = (part: TreePartKey, value: CompositionMode) => {
+    setComposition((current) => ({ ...current, [part]: value }));
+  };
+
+  const setCustomSlot = (part: TreePartKey, value: boolean) => {
+    setCustomSlots((current) => ({ ...current, [part]: value }));
+  };
+
+  const markPartRef = useCallback((part: TreePartKey, element: HTMLElement | null) => {
+    if (!element) return;
+    const nextRef = formatRef(element);
+    setRefs((current) => {
+      if (current[part] === nextRef) return current;
+      return { ...current, [part]: nextRef };
+    });
+  }, []);
+
+  const setControlledValue = (value: string) => {
+    if (selectionMode === "multiple") {
+      setSelectedValue(value === "none" ? [] : value === "docs-components" ? ["docs", "components"] : [value]);
+      return;
+    }
+    setSelectedValue(value === "none" ? null : value);
   };
 
   return {
     state: {
+      stateMode,
       selectionMode,
       selectedValue,
       expandedValue,
+      defaultSelected,
+      defaultExpanded,
       disabled,
       readOnly,
       required,
       invalid,
+      orientation,
       loop,
+      directionMode,
       forceMount,
+      disableItem,
+      formName,
       composition,
+      propCheck,
+      customSlots,
+      refs,
       log,
     },
     actions: {
+      setStateMode: handleStateMode,
       setSelectionMode: handleSelectionMode,
       setSelectedValue,
+      setControlledValue,
       setExpandedValue,
+      setDefaultSelected: handleDefaultSelected,
+      setDefaultExpanded: handleDefaultExpanded,
       setDisabled,
       setReadOnly,
       setRequired,
       setInvalid,
+      setOrientation,
       setLoop,
+      setDirectionMode,
       setForceMount,
-      setComposition,
+      setDisableItem,
+      setFormName,
+      setPartComposition,
+      setPropCheck,
+      setCustomSlot,
+      markPartRef,
       handleValueChange,
       handleExpandedValueChange,
       clearLog,
@@ -394,18 +476,57 @@ export function DataPrimitiveScenarioToolbar({
     return (
       <ControlToolbar label="Tree controls">
         <ToolbarGroup title="State" value="state">
-          <MenuRadioControl label="Selection" options={treeSelectionOptions} value={scenario.state.selectionMode} onChange={(value) => scenario.actions.setSelectionMode(value as TreeSelectionMode)} />
-          <MenuCheckboxControl checked={scenario.state.disabled} label="Disabled" value="disabled" onChange={scenario.actions.setDisabled} />
-          <MenuCheckboxControl checked={scenario.state.readOnly} label="Read only" value="read-only" onChange={scenario.actions.setReadOnly} />
-          <MenuCheckboxControl checked={scenario.state.required} label="Required" value="required" onChange={scenario.actions.setRequired} />
-          <MenuCheckboxControl checked={scenario.state.invalid} label="Invalid" value="invalid" onChange={scenario.actions.setInvalid} />
+          <MenuSection label="Control Mode">
+            <MenuRadioControl label="Mode" options={treeStateModeOptions} value={scenario.state.stateMode} onChange={(value) => scenario.actions.setStateMode(value as TreeStateMode)} />
+            <MenuRadioControl label="Selection" options={treeSelectionOptions} value={scenario.state.selectionMode} onChange={(value) => scenario.actions.setSelectionMode(value as TreeSelectionMode)} />
+          </MenuSection>
+          <MenuSection label={scenario.state.stateMode === "controlled" ? "Controlled Values" : "Initial Defaults"}>
+            {scenario.state.stateMode === "controlled" ? (
+              <>
+                <MenuRadioControl label="Value" options={treeValueOptions} value={controlledTreeValueOption(scenario.state.selectedValue)} onChange={(value) => scenario.actions.setControlledValue(value)} />
+                <MenuCheckboxControl checked={scenario.state.expandedValue.includes("docs")} label="Expanded" value="controlled-expanded" onChange={(checked) => scenario.actions.setExpandedValue(checked ? ["docs"] : [])} />
+              </>
+            ) : (
+              <>
+                <MenuCheckboxControl checked={scenario.state.defaultSelected} label="Default Selected" value="default-selected" onChange={scenario.actions.setDefaultSelected} />
+                <MenuCheckboxControl checked={scenario.state.defaultExpanded} label="Default Expanded" value="default-expanded" onChange={scenario.actions.setDefaultExpanded} />
+              </>
+            )}
+          </MenuSection>
+          <MenuSection label="State Flags">
+            <MenuCheckboxControl checked={scenario.state.disabled} label="Disabled" value="disabled" onChange={scenario.actions.setDisabled} />
+            <MenuCheckboxControl checked={scenario.state.readOnly} label="Read only" value="read-only" onChange={scenario.actions.setReadOnly} />
+            <MenuCheckboxControl checked={scenario.state.required} label="Required" value="required" onChange={scenario.actions.setRequired} />
+            <MenuCheckboxControl checked={scenario.state.invalid} label="Invalid" value="invalid" onChange={scenario.actions.setInvalid} />
+          </MenuSection>
         </ToolbarGroup>
         <ToolbarGroup title="Tree" value="tree">
-          <MenuCheckboxControl checked={scenario.state.expandedValue.includes("docs")} label="Docs expanded" value="docs-expanded" onChange={(checked) => scenario.actions.setExpandedValue(checked ? ["docs"] : [])} />
-          <MenuCheckboxControl checked={scenario.state.loop} label="Loop" value="loop" onChange={scenario.actions.setLoop} />
-          <MenuCheckboxControl checked={scenario.state.forceMount} label="Force mount group" value="force-mount" onChange={scenario.actions.setForceMount} />
+          <MenuRadioControl label="Orientation" options={treeOrientationOptions} value={scenario.state.orientation} onChange={(value) => scenario.actions.setOrientation(value as TreeOrientation)} />
+          <MenuRadioControl label="Direction" options={treeDirectionOptions} value={scenario.state.directionMode} onChange={(value) => scenario.actions.setDirectionMode(value as TreeDirectionMode)} />
+          <MenuSection label="Behavior">
+            <MenuCheckboxControl checked={scenario.state.loop} label="Loop" value="loop" onChange={scenario.actions.setLoop} />
+          </MenuSection>
+          <MenuSection label="Items">
+            <MenuCheckboxControl checked={scenario.state.disableItem} label="Disable Item" value="disable-item" onChange={scenario.actions.setDisableItem} />
+          </MenuSection>
+          <MenuSection label="Groups">
+            <MenuCheckboxControl checked={scenario.state.forceMount} label="Force mount group" value="force-mount" onChange={scenario.actions.setForceMount} />
+          </MenuSection>
+          <MenuSection label="Form">
+            <MenuCheckboxControl checked={scenario.state.formName} label="Form Name" value="form-name" onChange={scenario.actions.setFormName} />
+          </MenuSection>
         </ToolbarGroup>
-        <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+        <TreeCompositionToolbarGroup composition={scenario.state.composition} onChange={scenario.actions.setPartComposition} />
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={treeSlotControls.map((control) => ({
+            checked: scenario.state.customSlots[control.part],
+            label: control.label,
+            value: control.value,
+            onChange: (checked) => scenario.actions.setCustomSlot(control.part, checked),
+          }))}
+        />
       </ControlToolbar>
     );
   }
@@ -609,7 +730,7 @@ export function getDataPrimitiveCanvasFooter(
 
   if (scenarioId === "tree") {
     const state = scenarios.tree.state;
-    return `Selected ${formatValue(state.selectedValue)} | Expanded ${state.expandedValue.join(",") || "none"} | ${state.selectionMode}`;
+    return `${state.stateMode} ${state.selectionMode} | Selected ${formatValue(state.selectedValue)} | Expanded ${state.expandedValue.join(",") || "none"} | ${state.directionMode}`;
   }
 
   if (scenarioId === "tree-grid") {
@@ -659,19 +780,7 @@ export function getDataPrimitiveSource(scenarioId: string, scenarios?: DataPrimi
   }
 
   if (scenarioId === "tree") {
-    return `<Tree.Root
-  value={value}
-  expandedValue={expandedValue}
-  onValueChange={setValue}
-  onExpandedValueChange={setExpandedValue}
->
-  <Tree.Item value="docs" expandable>
-    <Tree.ItemText>Docs</Tree.ItemText>
-    <Tree.Group>
-      <Tree.Item value="guide">Guide</Tree.Item>
-    </Tree.Group>
-  </Tree.Item>
-</Tree.Root>`;
+    return getTreeSource(scenarios?.tree.state);
   }
 
   if (scenarioId === "tree-grid") {
@@ -1180,6 +1289,31 @@ function tablePartProps(part: TablePartKey, state: ReturnType<typeof useTableSce
   }, tableSlotValues[part]);
 }
 
+function treePartProps(part: TreePartKey, state: ReturnType<typeof useTreeScenario>["state"]) {
+  return partProps(part, {
+    propCheck: state.propCheck,
+    customSlot: state.customSlots[part],
+  }, treeSlotValues[part]);
+}
+
+function getTreeRootDirection(directionMode: TreeDirectionMode): "ltr" | "rtl" | undefined {
+  if (directionMode === "local-ltr") return "ltr";
+  if (directionMode === "local-rtl") return "rtl";
+  return undefined;
+}
+
+function shouldWrapTreeDirectionProvider(directionMode: TreeDirectionMode) {
+  return directionMode === "provider-rtl" || directionMode === "local-ltr";
+}
+
+function controlledTreeValueOption(value: string | string[] | null) {
+  if (Array.isArray(value)) {
+    if (value.includes("docs") && value.includes("components")) return "docs-components";
+    return value[0] ?? "none";
+  }
+  return value ?? "none";
+}
+
 function getTableSource(state = {
   sortDirection: "unset" as TableSortDirection,
   footer: false,
@@ -1266,6 +1400,130 @@ ${pad}/>`;
   }
 
   return `${pad}<Table.${component}${propText}>${normalizedChildren.includes("\n") ? `\n${normalizedChildren}\n${pad}` : normalizedChildren}</Table.${component}>`;
+}
+
+function getTreeSource(inputState?: ReturnType<typeof useTreeScenario>["state"]) {
+  const state = inputState ?? {
+    stateMode: "uncontrolled" as TreeStateMode,
+    selectionMode: "single" as TreeSelectionMode,
+    selectedValue: null as string | string[] | null,
+    expandedValue: [] as string[],
+    defaultSelected: false,
+    defaultExpanded: false,
+    disabled: false,
+    readOnly: false,
+    required: false,
+    invalid: false,
+    orientation: "vertical" as TreeOrientation,
+    loop: true,
+    directionMode: "default" as TreeDirectionMode,
+    forceMount: false,
+    disableItem: false,
+    formName: false,
+    composition: treeDefaultComposition,
+    propCheck: false,
+    customSlots: treeDefaultCustomSlots,
+    refs: treeDefaultRefs,
+    log: [],
+  };
+  const rootProps = sourceTreePartProps("root", state, [
+    `aria-label="Documentation tree"`,
+    state.stateMode === "controlled" ? `value={value}` : null,
+    state.stateMode === "controlled" ? `expandedValue={expandedValue}` : null,
+    state.stateMode === "controlled" ? `onValueChange={setValue}` : null,
+    state.stateMode === "controlled" ? `onExpandedValueChange={setExpandedValue}` : null,
+    state.stateMode === "uncontrolled" && state.defaultSelected
+      ? state.selectionMode === "multiple" ? `defaultValue={["docs"]}` : `defaultValue="docs"`
+      : null,
+    state.stateMode === "uncontrolled" && state.defaultExpanded ? `defaultExpandedValue={["docs"]}` : null,
+    state.selectionMode === "multiple" ? "multiple" : null,
+    state.disabled ? "disabled" : null,
+    state.readOnly ? "readOnly" : null,
+    state.required ? "required" : null,
+    state.invalid ? "invalid" : null,
+    state.orientation !== "vertical" ? `orientation="${state.orientation}"` : null,
+    state.loop === false ? `loop={false}` : null,
+    getTreeRootDirection(state.directionMode) ? `dir="${getTreeRootDirection(state.directionMode)}"` : null,
+    state.formName ? `name="tree-selection"` : null,
+  ]);
+  const root = sourceTreeElement("Root", "root", state.composition.root, rootProps, sourceTreeContent(state, 2), 0);
+
+  return shouldWrapTreeDirectionProvider(state.directionMode)
+    ? `<Direction.Provider dir="rtl">\n${indentSource(root, 2)}\n</Direction.Provider>`
+    : root;
+}
+
+function sourceTreeContent(state: ReturnType<typeof useTreeScenario>["state"], depth: number) {
+  const itemProps = sourceTreePartProps("item", state, [`value="docs"`, "expandable"]);
+  const itemTextProps = sourceTreePartProps("itemText", state);
+  const groupProps = sourceTreePartProps("group", state, [state.forceMount ? "forceMount" : null]);
+  const guideProps = sourceTreePartProps("item", state, [`value="guide"`]);
+  const apiProps = sourceTreePartProps("item", state, [`value="api"`, state.disableItem ? "disabled" : null]);
+  const itemText = sourceTreeElement("ItemText", "itemText", state.composition.itemText, itemTextProps, "Docs", depth + 2);
+  const guide = sourceTreeElement("Item", "item", state.composition.item, guideProps, sourceTreeElement("ItemText", "itemText", state.composition.itemText, itemTextProps, "Guide", depth + 4), depth + 4);
+  const api = sourceTreeElement("Item", "item", state.composition.item, apiProps, sourceTreeElement("ItemText", "itemText", state.composition.itemText, itemTextProps, "API", depth + 4), depth + 4);
+  const group = sourceTreeElement("Group", "group", state.composition.group, groupProps, `${guide}\n${api}`, depth + 2);
+  return sourceTreeElement("Item", "item", state.composition.item, itemProps, `${itemText}\n${group}`, depth);
+}
+
+function sourceTreePartProps(
+  part: TreePartKey,
+  state: Pick<ReturnType<typeof useTreeScenario>["state"], "customSlots" | "propCheck">,
+  extraProps: Array<string | null> = [],
+) {
+  return [
+    ...extraProps,
+    state.customSlots[part] ? `data-slot="${treeSlotValues[part]}"` : null,
+    state.propCheck ? `data-prop-check="${part}"` : null,
+  ].filter(Boolean) as string[];
+}
+
+function sourceTreeElement(
+  component: "Root" | "Item" | "ItemText" | "Group",
+  part: TreePartKey,
+  composition: CompositionMode,
+  props: string[],
+  children: string,
+  depth: number,
+) {
+  const pad = " ".repeat(depth);
+  const propText = props.length ? ` ${props.join(" ")}` : "";
+  const childTag = part === "root" ? "section" : part === "itemText" ? "span" : "div";
+
+  if (composition === "asChild") {
+    return `${pad}<Tree.${component}${propText} asChild>
+${pad}  <${childTag}>
+${indentSource(children, depth + 4)}
+${pad}  </${childTag}>
+${pad}</Tree.${component}>`;
+  }
+
+  if (composition === "render") {
+    if (component === "ItemText") {
+      return `${pad}<Tree.ItemText${propText} render={(props) => <span {...props}>${children}</span>} />`;
+    }
+
+    return `${pad}<Tree.${component}${propText}
+${pad}  render={(props) => (
+${pad}    <${childTag} {...props}>
+${indentSource(children, depth + 6)}
+${pad}    </${childTag}>
+${pad}  )}
+${pad}/>`;
+  }
+
+  if (component === "ItemText") {
+    return `${pad}<Tree.ItemText${propText}>${children}</Tree.ItemText>`;
+  }
+
+  return `${pad}<Tree.${component}${propText}>
+${indentSource(children, depth + 2)}
+${pad}</Tree.${component}>`;
+}
+
+function indentSource(source: string, spaces: number) {
+  const pad = " ".repeat(spaces);
+  return source.split("\n").map((line) => (line ? `${pad}${line}` : line)).join("\n");
 }
 
 function normalizeTableSourceChildren(children: string, indent: number) {
@@ -1366,33 +1624,47 @@ function TreeScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useTreeS
     className: "playground-tree",
     "aria-label": "Documentation tree",
     "data-playground-inspect": "",
-    "data-prop-check": "root",
     "data-tree-root": "",
+    defaultExpandedValue: state.stateMode === "uncontrolled" && state.defaultExpanded ? ["docs"] : undefined,
+    defaultValue: state.stateMode === "uncontrolled" && state.defaultSelected ? (state.selectionMode === "multiple" ? ["docs"] : "docs") : undefined,
+    dir: getTreeRootDirection(state.directionMode),
     disabled: state.disabled,
-    expandedValue: state.expandedValue,
+    expandedValue: state.stateMode === "controlled" ? state.expandedValue : undefined,
     invalid: state.invalid,
     loop: state.loop,
     multiple: state.selectionMode === "multiple",
-    name: "tree-selection",
+    name: state.formName ? "tree-selection" : undefined,
+    orientation: state.orientation,
     readOnly: state.readOnly,
+    ref: (element: HTMLElement | null) => scenario.actions.markPartRef("root", element),
     required: state.required,
-    value: state.selectedValue,
+    value: state.stateMode === "controlled" ? state.selectedValue : undefined,
     onExpandedValueChange: scenario.actions.handleExpandedValueChange,
     onValueChange: scenario.actions.handleValueChange,
+    ...treePartProps("root", state),
   };
   const content = renderTreeContent(scenario);
+  const treeKey = [
+    state.stateMode,
+    state.selectionMode,
+    state.stateMode === "uncontrolled" ? state.defaultSelected : "controlled",
+    state.stateMode === "uncontrolled" ? state.defaultExpanded : "controlled",
+  ].join(":");
+  const tree = state.composition.root === "asChild" ? (
+    <Tree.Root key={treeKey} {...props} asChild>
+      <section>{content}</section>
+    </Tree.Root>
+  ) : state.composition.root === "render" ? (
+    <Tree.Root key={treeKey} {...props} render={(renderProps) => <section {...renderProps}>{content}</section>} />
+  ) : (
+    <Tree.Root key={treeKey} {...props}>{content}</Tree.Root>
+  );
 
   return (
     <div className="data-primitive-stage">
-      {state.composition === "asChild" ? (
-        <Tree.Root {...props} asChild>
-          <section>{content}</section>
-        </Tree.Root>
-      ) : state.composition === "render" ? (
-        <Tree.Root {...props} render={(renderProps) => <section {...renderProps}>{content}</section>} />
-      ) : (
-        <Tree.Root {...props}>{content}</Tree.Root>
-      )}
+      {shouldWrapTreeDirectionProvider(state.directionMode) ? (
+        <Direction.Provider dir="rtl">{tree}</Direction.Provider>
+      ) : tree}
     </div>
   );
 }
@@ -1400,27 +1672,108 @@ function TreeScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useTreeS
 function renderTreeContent(scenario: ReturnType<typeof useTreeScenario>) {
   return (
     <>
-      <Tree.Item data-playground-inspect="" data-tree-item="docs" data-prop-check="item-docs" expandable value="docs">
-        <Tree.ItemText data-playground-inspect="" data-tree-item-text="docs">Docs</Tree.ItemText>
-        <Tree.Group data-playground-inspect="" data-tree-group="docs" forceMount={scenario.state.forceMount}>
-          <Tree.Item data-playground-inspect="" data-tree-item="guide" value="guide">
-            <Tree.ItemText data-playground-inspect="" data-tree-item-text="guide">Guide</Tree.ItemText>
-          </Tree.Item>
-          <Tree.Item data-playground-inspect="" data-tree-item="api" disabled value="api">
-            <Tree.ItemText data-playground-inspect="" data-tree-item-text="api">API</Tree.ItemText>
-          </Tree.Item>
-        </Tree.Group>
-      </Tree.Item>
-      <Tree.Item data-playground-inspect="" data-tree-item="components" expandable value="components">
-        <Tree.ItemText data-playground-inspect="" data-tree-item-text="components">Components</Tree.ItemText>
-        <Tree.Group data-playground-inspect="" data-tree-group="components" forceMount={scenario.state.forceMount}>
-          <Tree.Item data-playground-inspect="" data-tree-item="button" value="button">
-            <Tree.ItemText data-playground-inspect="" data-tree-item-text="button">Button</Tree.ItemText>
-          </Tree.Item>
-        </Tree.Group>
-      </Tree.Item>
+      {renderTreeItem("docs", "Docs", scenario, true, (
+        renderTreeGroup("docs", scenario, (
+          <>
+            {renderTreeItem("guide", "Guide", scenario)}
+            {renderTreeItem("api", "API", scenario, false, null, scenario.state.disableItem)}
+          </>
+        ))
+      ))}
+      {renderTreeItem("components", "Components", scenario, true, (
+        renderTreeGroup("components", scenario, renderTreeItem("button", "Button", scenario))
+      ))}
     </>
   );
+}
+
+function renderTreeItem(
+  value: string,
+  label: string,
+  scenario: ReturnType<typeof useTreeScenario>,
+  expandable = false,
+  children: any = null,
+  disabled = false,
+) {
+  const state = scenario.state;
+  const props = {
+    "data-playground-inspect": "",
+    "data-tree-item": value,
+    disabled,
+    expandable,
+    ref: value === "docs" ? (element: HTMLElement | null) => scenario.actions.markPartRef("item", element) : undefined,
+    value,
+    ...treePartProps("item", state),
+  };
+  const content = (
+    <>
+      {renderTreeItemText(value, label, scenario)}
+      {children}
+    </>
+  );
+
+  if (state.composition.item === "asChild") {
+    return (
+      <Tree.Item {...props} asChild key={value}>
+        <div>{content}</div>
+      </Tree.Item>
+    );
+  }
+
+  if (state.composition.item === "render") {
+    return <Tree.Item {...props} key={value} render={(renderProps) => <div {...renderProps}>{content}</div>} />;
+  }
+
+  return <Tree.Item {...props} key={value}>{content}</Tree.Item>;
+}
+
+function renderTreeItemText(value: string, label: string, scenario: ReturnType<typeof useTreeScenario>) {
+  const state = scenario.state;
+  const props = {
+    "data-playground-inspect": "",
+    "data-tree-item-text": value,
+    ref: value === "docs" ? (element: HTMLElement | null) => scenario.actions.markPartRef("itemText", element) : undefined,
+    ...treePartProps("itemText", state),
+  };
+
+  if (state.composition.itemText === "asChild") {
+    return (
+      <Tree.ItemText {...props} asChild>
+        <span>{label}</span>
+      </Tree.ItemText>
+    );
+  }
+
+  if (state.composition.itemText === "render") {
+    return <Tree.ItemText {...props} render={(renderProps) => <span {...renderProps}>{label}</span>} />;
+  }
+
+  return <Tree.ItemText {...props}>{label}</Tree.ItemText>;
+}
+
+function renderTreeGroup(value: string, scenario: ReturnType<typeof useTreeScenario>, children: any) {
+  const state = scenario.state;
+  const props = {
+    "data-playground-inspect": "",
+    "data-tree-group": value,
+    forceMount: state.forceMount,
+    ref: value === "docs" ? (element: HTMLElement | null) => scenario.actions.markPartRef("group", element) : undefined,
+    ...treePartProps("group", state),
+  };
+
+  if (state.composition.group === "asChild") {
+    return (
+      <Tree.Group {...props} asChild>
+        <div>{children}</div>
+      </Tree.Group>
+    );
+  }
+
+  if (state.composition.group === "render") {
+    return <Tree.Group {...props} render={(renderProps) => <div {...renderProps}>{children}</div>} />;
+  }
+
+  return <Tree.Group {...props}>{children}</Tree.Group>;
 }
 
 function TreeGridScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useTreeGridScenario> }) {
@@ -1822,24 +2175,47 @@ function getDataPrimitiveSections(
   if (scenarioId === "tree") {
     const state = scenarios.tree.state;
     return [
-      section("Root", state.selectionMode, "[data-tree-root]", [
+      section("Root", `${state.stateMode} ${state.selectionMode}`, "[data-tree-root]", [
+        row("Mode", state.stateMode, "state"),
         row("Selected", formatValue(state.selectedValue), "state"),
         row("Expanded", state.expandedValue.join(",") || "none", "state"),
+        row("Default selected", bool(state.defaultSelected), "state"),
+        row("Default expanded", bool(state.defaultExpanded), "state"),
         row("Disabled", bool(state.disabled), "state"),
         row("Read only", bool(state.readOnly), "state"),
         row("Required", bool(state.required), "state"),
         row("Invalid", bool(state.invalid), "state"),
+        row("Orientation", state.orientation, "behavior"),
+        row("Direction", state.directionMode, "behavior"),
         row("Loop", bool(state.loop), "behavior"),
-        row("Composition", state.composition, "composition"),
+        row("Form name", bool(state.formName), "state"),
+        row("Composition", state.composition.root, "composition"),
+        row("Ref", state.refs.root, "behavior"),
       ]),
-      section("Item: Docs", state.expandedValue.includes("docs") ? "expanded" : "collapsed", "[data-tree-item='docs']"),
-      section("Item Text: Docs", "label", "[data-tree-item-text='docs']"),
-      section("Group: Docs", state.forceMount || state.expandedValue.includes("docs") ? "mounted" : "not rendered", "[data-tree-group='docs']"),
-      section("Item: Guide", "child", "[data-tree-item='guide']"),
-      section("Item: API", "disabled child", "[data-tree-item='api']"),
-      section("Item: Components", state.expandedValue.includes("components") ? "expanded" : "collapsed", "[data-tree-item='components']"),
+      section("Item: Docs", state.expandedValue.includes("docs") ? "expanded" : "collapsed", "[data-tree-item='docs']", [
+        row("Composition", state.composition.item, "composition"),
+        row("Ref", state.refs.item, "behavior"),
+      ]),
+      section("Item Text: Docs", "label", "[data-tree-item-text='docs']", [
+        row("Composition", state.composition.itemText, "composition"),
+        row("Ref", state.refs.itemText, "behavior"),
+      ]),
+      section("Group: Docs", state.forceMount || state.expandedValue.includes("docs") ? "mounted" : "not rendered", "[data-tree-group='docs']", [
+        row("Force mount", bool(state.forceMount), "state"),
+        row("Composition", state.composition.group, "composition"),
+        row("Ref", state.refs.group, "behavior"),
+      ]),
+      section("Item: Guide", "child", "[data-tree-item='guide']", [
+        row("Composition", state.composition.item, "composition"),
+      ]),
+      section("Item: API", state.disableItem ? "disabled child" : "enabled child", "[data-tree-item='api']", [
+        row("Composition", state.composition.item, "composition"),
+      ]),
+      section("Item: Components", state.expandedValue.includes("components") ? "expanded" : "collapsed", "[data-tree-item='components']", [
+        row("Composition", state.composition.item, "composition"),
+      ]),
       section("Group: Components", state.forceMount || state.expandedValue.includes("components") ? "mounted" : "not rendered", "[data-tree-group='components']"),
-      section("Hidden Input", "generated", "input[name='tree-selection']"),
+      section("Hidden Input", state.formName ? "generated" : "not rendered", "input[name='tree-selection']"),
     ];
   }
 
@@ -2008,6 +2384,48 @@ function TableCompositionToolbarGroup({
   );
 }
 
+function TreeCompositionToolbarGroup({
+  composition,
+  onChange,
+}: {
+  composition: Record<TreePartKey, CompositionMode>;
+  onChange: (part: TreePartKey, value: CompositionMode) => void;
+}) {
+  return (
+    <ToolbarGroup title="Composition" value="composition">
+      {treeCompositionControls.map((control) => (
+        <Menubar.Sub key={control.part}>
+          <Menubar.SubTrigger className="toolbar-menu-item toolbar-submenu-trigger" value={control.part}>
+            <span>{control.label}</span>
+            <span className="toolbar-submenu-value">{formatCompositionMode(composition[control.part])}</span>
+            <span className="toolbar-submenu-arrow" aria-hidden="true">›</span>
+          </Menubar.SubTrigger>
+          <Menubar.SubContent className="toolbar-menu" sideOffset={6}>
+            <Menubar.RadioGroup
+              className="toolbar-radio-group"
+              value={composition[control.part]}
+              onValueChange={(value) => onChange(control.part, value as CompositionMode)}
+            >
+              {compositionOptions.map((option) => (
+                <Menubar.RadioItem
+                  className="toolbar-menu-item"
+                  key={option.value}
+                  value={option.value}
+                >
+                  <span>{option.label}</span>
+                  <span className="toolbar-menu-check" aria-hidden="true">
+                    {composition[control.part] === option.value ? "✓" : ""}
+                  </span>
+                </Menubar.RadioItem>
+              ))}
+            </Menubar.RadioGroup>
+          </Menubar.SubContent>
+        </Menubar.Sub>
+      ))}
+    </ToolbarGroup>
+  );
+}
+
 function section(title: string, summary: string, selector: string, rows: AnatomySection["rows"] = []): AnatomySection {
   return {
     inactive: summary === "not rendered",
@@ -2060,6 +2478,30 @@ const treeSelectionOptions = [
   { label: "Multiple", value: "multiple" },
 ];
 
+const treeStateModeOptions = [
+  { label: "Uncontrolled", value: "uncontrolled" },
+  { label: "Controlled", value: "controlled" },
+];
+
+const treeValueOptions = [
+  { label: "None", value: "none" },
+  { label: "Docs", value: "docs" },
+  { label: "Components", value: "components" },
+  { label: "Docs + Components", value: "docs-components" },
+];
+
+const treeOrientationOptions = [
+  { label: "Vertical", value: "vertical" },
+  { label: "Horizontal", value: "horizontal" },
+];
+
+const treeDirectionOptions = [
+  { label: "Default", value: "default" },
+  { label: "Provider RTL", value: "provider-rtl" },
+  { label: "Local LTR", value: "local-ltr" },
+  { label: "Local RTL", value: "local-rtl" },
+];
+
 const tableSortOptions = [
   { label: "Unset", value: "unset" },
   { label: "Ascending", value: "ascending" },
@@ -2082,6 +2524,55 @@ const tableParts = [
   "footerRow",
   "footerCell",
 ] as const satisfies readonly TablePartKey[];
+
+const treeParts = [
+  "root",
+  "item",
+  "itemText",
+  "group",
+] as const satisfies readonly TreePartKey[];
+
+const treeDefaultComposition: Record<TreePartKey, CompositionMode> = {
+  root: "default",
+  item: "default",
+  itemText: "default",
+  group: "default",
+};
+
+const treeDefaultCustomSlots: Record<TreePartKey, boolean> = {
+  root: false,
+  item: false,
+  itemText: false,
+  group: false,
+};
+
+const treeDefaultRefs: Record<TreePartKey, string> = {
+  root: "none",
+  item: "none",
+  itemText: "none",
+  group: "none",
+};
+
+const treeSlotValues: Record<TreePartKey, string> = {
+  root: "tree-custom",
+  item: "tree-item-custom",
+  itemText: "tree-item-text-custom",
+  group: "tree-group-custom",
+};
+
+const treeSlotControls = [
+  { part: "root", label: "Root Slot", value: "root-slot" },
+  { part: "item", label: "Item Slot", value: "item-slot" },
+  { part: "itemText", label: "Item Text Slot", value: "item-text-slot" },
+  { part: "group", label: "Group Slot", value: "group-slot" },
+] as const satisfies readonly { part: TreePartKey; label: string; value: string }[];
+
+const treeCompositionControls = [
+  { part: "root", label: "Root" },
+  { part: "item", label: "Item" },
+  { part: "itemText", label: "Item Text" },
+  { part: "group", label: "Group" },
+] as const satisfies readonly { part: TreePartKey; label: string }[];
 
 const tableDefaultComposition = Object.fromEntries(
   tableParts.map((part) => [part, "default"]),
