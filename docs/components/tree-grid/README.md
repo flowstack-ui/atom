@@ -46,9 +46,11 @@ Contains the treegrid.
 
 | Prop | Type | Default |
 | --- | --- | --- |
+| `children` | `ReactNode` | - |
 | `value` | `string \| string[] \| null` | - |
 | `defaultValue` | `string \| string[] \| null` | depends on `selectionMode` |
 | `onValueChange` | `(value) => void` | - |
+| `onKeyDown` | `(event) => void` | - |
 | `expandedValue` | `string[]` | - |
 | `defaultExpandedValue` | `string[]` | `[]` |
 | `onExpandedValueChange` | `(value: string[]) => void` | - |
@@ -61,6 +63,98 @@ Contains the treegrid.
 | `dir` | `"ltr" \| "rtl"` | `Direction.Provider` |
 | `rowCount` | `number` | - |
 | `columnCount` | `number` | - |
+| `selectOnRowClick` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+| `asChild` | `boolean` | `false` |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"treegrid"` |
+| `aria-activedescendant` | Active cell id when a cell is active |
+| `aria-colcount` | `columnCount` or `-1` |
+| `aria-disabled` | `"true"` when disabled |
+| `aria-multiselectable` | `"true"` when `selectionMode="multiple"` |
+| `aria-readonly` | `"true"` when read-only |
+| `aria-rowcount` | `rowCount` or `-1` |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"tree-grid"` |
+| `[data-active]` | Present when a cell is active |
+| `[data-focused]` | Present while focus is inside the treegrid |
+| `[data-disabled]` | Present when disabled |
+| `[data-readonly]` | Present when read-only |
+| `[data-column-count]` | Normalized positive `columnCount` |
+| `[data-row-count]` | Normalized positive `rowCount` |
+| `[data-selection-mode]` | `"single"` or `"multiple"` |
+
+### Caption
+
+Renders the table caption.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `children` | `ReactNode` | - |
+| `render` | `RenderProp` | - |
+| `asChild` | `boolean` | `false` |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"tree-grid-caption"` |
+
+### Header
+
+Renders the header row group.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `children` | `ReactNode` | - |
+| `render` | `RenderProp` | - |
+| `asChild` | `boolean` | `false` |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"rowgroup"` |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"tree-grid-header"` |
+
+### Body
+
+Renders the body row group.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `children` | `ReactNode` | - |
+| `render` | `RenderProp` | - |
+| `asChild` | `boolean` | `false` |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"rowgroup"` |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"tree-grid-body"` |
+
+### Footer
+
+Renders the footer row group.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `children` | `ReactNode` | - |
+| `render` | `RenderProp` | - |
+| `asChild` | `boolean` | `false` |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"rowgroup"` |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"tree-grid-footer"` |
 
 ### Row
 
@@ -70,28 +164,128 @@ Renders a hierarchical row.
 | --- | --- | --- |
 | `rowIndex` | `number` | - |
 | `index` | `number` | - |
-| `value` | `string` | - |
-| `parentValue` | `string` | - |
-| `level` | `number` | inferred |
+| `value` | `string` | required |
+| `parentValue` | `string \| null` | `null` |
+| `level` | `number` | `1` |
 | `expandable` | `boolean` | `false` |
 | `selectable` | `boolean` | `true` |
 | `disabled` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+| `asChild` | `boolean` | `false` |
 
-### RowHeader, ColumnHeader, Cell
-
-Render navigable cells.
-
-| Part | Role | Data slot |
-| --- | --- | --- |
-| `RowHeader` | `rowheader` | `"tree-grid-row-header"` |
-| `ColumnHeader` | `columnheader` | `"tree-grid-column-header"` |
-| `Cell` | `gridcell` | `"tree-grid-cell"` |
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"row"` |
+| `aria-disabled` | `"true"` when row or root is disabled |
+| `aria-expanded` | `"true"` or `"false"` when expandable |
+| `aria-hidden` | `"true"` when hidden by a collapsed parent row |
+| `aria-level` | Hierarchical level |
+| `aria-rowindex` | Normalized positive row index |
+| `aria-selected` | `"true"` or `"false"` when selection is enabled |
 
 | Data attribute | Values |
 | --- | --- |
-| `[data-active]` | Present when active and treegrid-focused |
-| `[data-selected]` | Present when row is selected |
+| `[data-slot]` | `"tree-grid-row"` |
+| `[data-expandable]` | Present when expandable |
+| `[data-selectable]` | Present when selectable and selection is enabled |
+| `[data-selection-disabled]` | Present when not selectable and selection is enabled |
+| `[data-expanded]` | Present when expanded |
+| `[data-hidden]` | Present when hidden by a collapsed parent row |
 | `[data-disabled]` | Present when disabled |
+| `[data-parent-value]` | Parent row value |
+| `[data-level]` | Hierarchical level |
+| `[data-row-index]` | Normalized positive row index |
+| `[data-selected]` | Present when selected |
+| `[data-value]` | Row value |
+
+### ColumnHeader
+
+Renders a navigable column header cell.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `children` | `ReactNode` | - |
+| `columnIndex` | `number` | - |
+| `index` | `number` | - |
+| `disabled` | `boolean` | `false` |
+| `sortDirection` | `"ascending" \| "descending" \| "none" \| "other"` | - |
+| `scope` | native `scope` | `"col"` |
+| `render` | `RenderProp` | - |
+| `asChild` | `boolean` | `false` |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"columnheader"` |
+| `aria-colindex` | Normalized positive column index |
+| `aria-disabled` | `"true"` when column header, row, or root is disabled |
+| `aria-selected` | `"true"` or `"false"` when selection is enabled |
+| `aria-sort` | `sortDirection` value |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"tree-grid-column-header"` |
+| `[data-active]` | Present when active and treegrid-focused |
+| `[data-disabled]` | Present when disabled |
+| `[data-column-index]` | Normalized positive column index |
+| `[data-selected]` | Present when row is selected |
+| `[data-sort]` | `"ascending" \| "descending" \| "none" \| "other"` |
+
+### RowHeader
+
+Renders a navigable row header cell. Clicking a row header focuses the cell and toggles its row when the row is expandable.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `children` | `ReactNode` | - |
+| `columnIndex` | `number` | - |
+| `index` | `number` | - |
+| `disabled` | `boolean` | `false` |
+| `scope` | native `scope` | `"row"` |
+| `render` | `RenderProp` | - |
+| `asChild` | `boolean` | `false` |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"rowheader"` |
+| `aria-colindex` | Normalized positive column index |
+| `aria-disabled` | `"true"` when row header, row, or root is disabled |
+| `aria-selected` | `"true"` or `"false"` when selection is enabled |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"tree-grid-row-header"` |
+| `[data-active]` | Present when active and treegrid-focused |
+| `[data-disabled]` | Present when disabled |
+| `[data-column-index]` | Normalized positive column index |
+| `[data-selected]` | Present when row is selected |
+
+### Cell
+
+Renders a navigable grid cell.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `children` | `ReactNode` | - |
+| `columnIndex` | `number` | - |
+| `index` | `number` | - |
+| `disabled` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+| `asChild` | `boolean` | `false` |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"gridcell"` |
+| `aria-colindex` | Normalized positive column index |
+| `aria-disabled` | `"true"` when cell, row, or root is disabled |
+| `aria-selected` | `"true"` or `"false"` when selection is enabled |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"tree-grid-cell"` |
+| `[data-active]` | Present when active and treegrid-focused |
+| `[data-disabled]` | Present when disabled |
+| `[data-column-index]` | Normalized positive column index |
+| `[data-selected]` | Present when row is selected |
 
 ## Examples
 
