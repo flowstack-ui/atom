@@ -238,7 +238,10 @@ Each step should have exactly one testing target.
   uncontrolled state, `defaultOpen`, disabled, modal, outside close, trigger
   mode, and keep-mounted behavior. It should not repeat part-specific identity,
   default tag, slot, or ARIA checks that belong in public part steps.
-- Public part steps test only that part.
+- Public part steps test only that part: its own identity, text/value when it
+  renders one, native attributes, ARIA, data attributes, ref, props/slots, and
+  composition. Move child-part evidence, parent relationships, generated helper
+  elements, and cross-part behavior to the part or feature step that owns them.
 - `Source` tests only generated Source output.
 - `Inspector / Logs` tests only selected, focused, and event evidence.
 - `Nested / Portal / Focus Behavior` tests only cross-layer browser behavior
@@ -246,9 +249,10 @@ Each step should have exactly one testing target.
 - `Workbook Cleanup / Rewrite Notes` is not manual testing.
 
 Do not put Trigger checks inside Root. Do not put Content checks inside Root.
-Do not mix feature-wide behavior into part-specific steps. Do not repeat the
-same check in multiple steps unless a later step verifies a different surface,
-such as Source output instead of live DOM.
+Do not put child item checks inside Group. Do not mix feature-wide behavior
+into part-specific steps. Do not repeat the same check in multiple steps unless
+a later step verifies a different surface, such as Source output instead of live
+DOM.
 
 ### Protocol Self-Review Gate
 
@@ -259,6 +263,8 @@ for each item below. Do not show Step 0 until every item passes.
 - each action is immediately followed by its expected result
 - only one behavior or compatible verification cluster is tested at a time
 - each part is completed before moving to the next
+- part steps contain only evidence owned by that public part, with child,
+  parent, generated element, and cross-part checks moved to their owning step
 - repeated public part instances are separate top-level anatomy/protocol
   targets when they carry distinct evidence
 - stable values are exact
@@ -316,7 +322,9 @@ time. When testing equivalent input paths, keep the wording compact, such as
 `Press Enter or Space`, and immediately state the shared expected result.
 
 `Verify` should use concise QA-style assertions. Prefer checkbox-style expected
-results over narrative instructions.
+results over narrative instructions. For a part's default state, list the stable
+present evidence needed to prove the contract, then summarize default-off state
+only when it matters instead of enumerating every absent attribute.
 
 Each action must be followed immediately by its expected result. Do not batch
 several unrelated actions and then verify them together. Compatible
