@@ -38,9 +38,14 @@ Short description of the part.
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-label` | Value from `ariaLabel` when the part owns an accessible name |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"component"` |
+| `[data-state]` | Component-owned state when relevant |
 
 ### Part
 
@@ -51,9 +56,14 @@ Short description of the part.
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-expanded` | Component-owned relationship state when relevant |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"component-part"` |
+| `[data-disabled]` | Present when disabled, if supported |
 
 ## Examples
 

@@ -9,7 +9,8 @@ This folder owns the actual npm package for `@flowstack-ui/atom`.
    and research.
 3. Read `README.md` for package overview and usage.
 4. Read `docs/README.md` for the public package documentation index.
-5. Then follow the relevant root practices, workflows, and decisions for the
+5. For component docs, read `docs/guides/component-documentation.md`.
+6. Then follow the relevant root practices, workflows, and decisions for the
    task.
 
 ## Scope

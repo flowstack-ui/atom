@@ -3,6 +3,8 @@
 Component docs in this directory describe public anatomy, behavior contracts, accessibility notes, and version history.
 
 Use `_template/README.md` and `_template/CHANGELOG.md` when adding a new component doc.
+Follow [Component Documentation](../guides/component-documentation.md) when
+auditing props, ARIA attributes, data attributes, examples, and changelogs.
 
 These docs are source material for the future website, but they should stay readable in GitHub first.
 

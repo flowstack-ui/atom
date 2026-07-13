@@ -23,6 +23,8 @@ maintainer documentation lives in `../../docs/`.
 
 - [Component Docs](components/README.md) - index of component anatomy, behavior,
   accessibility notes, and component changelogs.
+- [Component Documentation](guides/component-documentation.md) - authoring
+  standard for component docs, API tables, source audits, and changelog updates.
 
 ## Release
 
