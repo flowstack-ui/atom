@@ -39,6 +39,9 @@ type TreeStateMode = "uncontrolled" | "controlled";
 type TreeOrientation = "vertical" | "horizontal";
 type TreeDirectionMode = "default" | "provider-rtl" | "local-ltr" | "local-rtl";
 type TreePartKey = "root" | "item" | "itemText" | "group";
+type TreeGridStateMode = "uncontrolled" | "controlled";
+type TreeGridDirectionMode = "default" | "provider-rtl" | "local-ltr" | "local-rtl";
+type TreeGridPartKey = "root" | "caption" | "header" | "row" | "columnHeader" | "body" | "rowHeader" | "cell" | "footer";
 type FormControlType = "native" | "atom";
 
 type LogEntry = {
@@ -305,26 +308,55 @@ function useTreeScenario() {
 }
 
 function useTreeGridScenario() {
-  const [selectionMode, setSelectionMode] = useState<SelectionMode>("single");
-  const [selectedValue, setSelectedValue] = useState<string | string[] | null>("design");
-  const [expandedValue, setExpandedValue] = useState<string[]>(["project"]);
-  const [activeCell, setActiveCell] = useState<{ rowIndex: number; columnIndex: number } | null>({
-    rowIndex: 1,
-    columnIndex: 1,
-  });
+  const [stateMode, setStateMode] = useState<TreeGridStateMode>("uncontrolled");
+  const [selectionMode, setSelectionMode] = useState<SelectionMode>("none");
+  const [selectedValue, setSelectedValue] = useState<string | string[] | null>(null);
+  const [expandedValue, setExpandedValue] = useState<string[]>([]);
+  const [activeCell, setActiveCell] = useState<{ rowIndex: number; columnIndex: number } | null>(null);
   const [disabled, setDisabled] = useState(false);
   const [readOnly, setReadOnly] = useState(false);
-  const [loop, setLoop] = useState(true);
-  const [selectOnRowClick, setSelectOnRowClick] = useState(true);
-  const [disableChild, setDisableChild] = useState(true);
-  const [composition, setComposition] = useState<CompositionMode>("default");
+  const [loop, setLoop] = useState(false);
+  const [selectOnRowClick, setSelectOnRowClick] = useState(false);
+  const [disableChild, setDisableChild] = useState(false);
+  const [counts, setCounts] = useState(false);
+  const [sortDirection, setSortDirection] = useState<TableSortDirection>("unset");
+  const [directionMode, setDirectionMode] = useState<TreeGridDirectionMode>("default");
+  const [composition, setComposition] = useState<Record<TreeGridPartKey, CompositionMode>>(treeGridDefaultComposition);
+  const [propCheck, setPropCheck] = useState(false);
+  const [customSlots, setCustomSlots] = useState<Record<TreeGridPartKey, boolean>>(treeGridDefaultCustomSlots);
+  const [refs, setRefs] = useState<Record<TreeGridPartKey, string>>(treeGridDefaultRefs);
   const { log, addLog, clearLog } = useScenarioLog();
 
+  const handleSelectionMode = (mode: SelectionMode) => {
+    setSelectionMode(mode);
+    setSelectedValue(mode === "multiple" ? [] : null);
+  };
+  const setControlledValue = (value: string) => {
+    if (selectionMode === "multiple") {
+      setSelectedValue(value === "none" ? [] : value === "project-design" ? ["project", "design"] : [value]);
+      return;
+    }
+    setSelectedValue(value === "none" ? null : value);
+  };
+  const setCustomSlot = (part: TreeGridPartKey, checked: boolean) => {
+    setCustomSlots((current) => ({ ...current, [part]: checked }));
+  };
+  const setPartComposition = (part: TreeGridPartKey, value: CompositionMode) => {
+    setComposition((current) => ({ ...current, [part]: value }));
+  };
+  const markPartRef = useCallback((part: TreeGridPartKey, element: HTMLElement | null) => {
+    if (!element) return;
+    const nextRef = formatRef(element);
+    setRefs((current) => current[part] === nextRef ? current : { ...current, [part]: nextRef });
+  }, []);
+
   return {
-    state: { selectionMode, selectedValue, expandedValue, activeCell, disabled, readOnly, loop, selectOnRowClick, disableChild, composition, log },
+    state: { stateMode, selectionMode, selectedValue, expandedValue, activeCell, disabled, readOnly, loop, selectOnRowClick, disableChild, counts, sortDirection, directionMode, composition, propCheck, customSlots, refs, log },
     actions: {
-      setSelectionMode,
+      setStateMode,
+      setSelectionMode: handleSelectionMode,
       setSelectedValue,
+      setControlledValue,
       setExpandedValue,
       setActiveCell,
       setDisabled,
@@ -332,7 +364,13 @@ function useTreeGridScenario() {
       setLoop,
       setSelectOnRowClick,
       setDisableChild,
-      setComposition,
+      setCounts,
+      setSortDirection,
+      setDirectionMode,
+      setPartComposition,
+      setPropCheck,
+      setCustomSlot,
+      markPartRef,
       clearLog,
       addLog,
     },
@@ -536,17 +574,50 @@ export function DataPrimitiveScenarioToolbar({
     return (
       <ControlToolbar label="Tree Grid controls">
         <ToolbarGroup title="State" value="state">
-          <MenuRadioControl label="Selection" options={selectionModeOptions} value={scenario.state.selectionMode} onChange={(value) => scenario.actions.setSelectionMode(value as SelectionMode)} />
-          <MenuCheckboxControl checked={scenario.state.disabled} label="Disabled" value="disabled" onChange={scenario.actions.setDisabled} />
-          <MenuCheckboxControl checked={scenario.state.readOnly} label="Read only" value="read-only" onChange={scenario.actions.setReadOnly} />
-          <MenuCheckboxControl checked={scenario.state.selectOnRowClick} label="Select row on click" value="select-row" onChange={scenario.actions.setSelectOnRowClick} />
+          <MenuSection label="Control Mode">
+            <MenuRadioControl label="State mode" options={treeGridStateModeOptions} value={scenario.state.stateMode} onChange={(value) => scenario.actions.setStateMode(value as TreeGridStateMode)} />
+            <MenuRadioControl label="Selection" options={selectionModeOptions} value={scenario.state.selectionMode} onChange={(value) => scenario.actions.setSelectionMode(value as SelectionMode)} />
+          </MenuSection>
+          {scenario.state.stateMode === "controlled" && scenario.state.selectionMode !== "none" ? (
+            <MenuSection label="Controlled Values">
+              <MenuRadioControl
+                label="Selected row"
+                options={scenario.state.selectionMode === "multiple" ? treeGridMultipleValueOptions : treeGridSingleValueOptions}
+                value={controlledTreeGridValueOption(scenario.state.selectedValue)}
+                onChange={scenario.actions.setControlledValue}
+              />
+            </MenuSection>
+          ) : null}
+          <MenuSection label="State Flags">
+            <MenuCheckboxControl checked={scenario.state.disabled} label="Disabled" value="disabled" onChange={scenario.actions.setDisabled} />
+            <MenuCheckboxControl checked={scenario.state.readOnly} label="Read only" value="read-only" onChange={scenario.actions.setReadOnly} />
+            <MenuCheckboxControl checked={scenario.state.selectOnRowClick} label="Select row on click" value="select-row" onChange={scenario.actions.setSelectOnRowClick} />
+          </MenuSection>
         </ToolbarGroup>
+        {scenario.state.stateMode === "controlled" && controlledTreeGridValueOption(scenario.state.selectedValue) !== "none" ? (
+          <Button.Root className="toolbar-group-trigger" onPress={() => scenario.actions.setControlledValue("none")}>
+            Clear Selection
+          </Button.Root>
+        ) : null}
         <ToolbarGroup title="Tree" value="tree">
-          <MenuCheckboxControl checked={scenario.state.expandedValue.includes("project")} label="Project expanded" value="project-expanded" onChange={(checked) => scenario.actions.setExpandedValue(checked ? ["project"] : [])} />
+          {scenario.state.stateMode === "controlled" ? <MenuCheckboxControl checked={scenario.state.expandedValue.includes("project")} label="Project expanded" value="project-expanded" onChange={(checked) => scenario.actions.setExpandedValue(checked ? ["project"] : [])} /> : null}
           <MenuCheckboxControl checked={scenario.state.loop} label="Loop" value="loop" onChange={scenario.actions.setLoop} />
           <MenuCheckboxControl checked={scenario.state.disableChild} label="Disabled child row" value="disabled-child" onChange={scenario.actions.setDisableChild} />
+          <MenuCheckboxControl checked={scenario.state.counts} label="Row and column counts" value="counts" onChange={scenario.actions.setCounts} />
+          <MenuRadioControl label="Owner sort" options={tableSortOptions} value={scenario.state.sortDirection} onChange={(value) => scenario.actions.setSortDirection(value as TableSortDirection)} />
+          <MenuRadioControl label="Direction" options={treeDirectionOptions} value={scenario.state.directionMode} onChange={(value) => scenario.actions.setDirectionMode(value as TreeGridDirectionMode)} />
         </ToolbarGroup>
-        <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+        <TreeGridCompositionToolbarGroup composition={scenario.state.composition} onChange={scenario.actions.setPartComposition} />
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={treeGridSlotControls.map((control) => ({
+            checked: scenario.state.customSlots[control.part],
+            label: control.label,
+            value: control.value,
+            onChange: (checked) => scenario.actions.setCustomSlot(control.part, checked),
+          }))}
+        />
       </ControlToolbar>
     );
   }
@@ -735,7 +806,7 @@ export function getDataPrimitiveCanvasFooter(
 
   if (scenarioId === "tree-grid") {
     const state = scenarios.treeGrid.state;
-    return `Selected ${formatValue(state.selectedValue)} | Expanded ${state.expandedValue.join(",") || "none"} | Active ${formatCell(state.activeCell)}`;
+    return `${state.stateMode} ${state.selectionMode} | Selected ${formatValue(state.selectedValue)} | Expanded ${state.expandedValue.join(",") || "none"} | Active ${formatCell(state.activeCell)} | ${state.directionMode}`;
   }
 
   if (scenarioId === "feed") {
@@ -784,14 +855,7 @@ export function getDataPrimitiveSource(scenarioId: string, scenarios?: DataPrimi
   }
 
   if (scenarioId === "tree-grid") {
-    return `<TreeGrid.Root selectionMode="single" selectOnRowClick>
-  <TreeGrid.Body>
-    <TreeGrid.Row value="project" expandable level={1}>
-      <TreeGrid.RowHeader columnIndex={1}>Project</TreeGrid.RowHeader>
-      <TreeGrid.Cell columnIndex={2}>Open</TreeGrid.Cell>
-    </TreeGrid.Row>
-  </TreeGrid.Body>
-</TreeGrid.Root>`;
+    return getTreeGridSource(scenarios?.treeGrid.state);
   }
 
   if (scenarioId === "feed") {
@@ -1783,17 +1847,16 @@ function TreeGridScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useT
     id: "playground-tree-grid",
     "aria-label": "Project tree grid",
     "data-playground-inspect": "",
-    "data-prop-check": "root",
-    selectionMode: state.selectionMode,
-    value: state.selectedValue,
-    expandedValue: state.expandedValue,
-    activeCell: state.activeCell,
-    disabled: state.disabled,
-    readOnly: state.readOnly,
-    loop: state.loop,
-    rowCount: 4,
-    columnCount: 2,
-    selectOnRowClick: state.selectOnRowClick,
+    ref: (element: HTMLElement | null) => scenario.actions.markPartRef("root", element),
+    ...treeGridPartProps("root", state),
+    selectionMode: state.selectionMode === "none" ? undefined : state.selectionMode,
+    disabled: state.disabled || undefined,
+    readOnly: state.readOnly || undefined,
+    loop: state.loop || undefined,
+    dir: state.directionMode === "local-ltr" ? "ltr" : state.directionMode === "local-rtl" ? "rtl" : undefined,
+    rowCount: state.counts ? 5 : undefined,
+    columnCount: state.counts ? 2 : undefined,
+    selectOnRowClick: state.selectOnRowClick || undefined,
     onValueChange: (value: string | string[] | null) => {
       scenario.actions.setSelectedValue(value);
       scenario.actions.addLog(`value changed ${formatValue(value)}`);
@@ -1807,49 +1870,107 @@ function TreeGridScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useT
       scenario.actions.addLog(`active cell ${formatCell(cell)}`);
     },
   };
+  if (state.stateMode === "controlled") {
+    props.value = state.selectedValue;
+    props.expandedValue = state.expandedValue;
+    props.activeCell = state.activeCell;
+  }
   const content = renderTreeGridContent(scenario);
-
-  return (
-    <div className="data-primitive-stage">
-      {state.composition === "asChild" ? (
+  const root = state.composition.root === "asChild" ? (
         <TreeGrid.Root {...props} asChild>
           <table>{content}</table>
         </TreeGrid.Root>
-      ) : state.composition === "render" ? (
+      ) : state.composition.root === "render" ? (
         <TreeGrid.Root {...props} render={(renderProps) => <table {...renderProps}>{content}</table>} />
       ) : (
         <TreeGrid.Root {...props}>{content}</TreeGrid.Root>
-      )}
+      );
+
+  return (
+    <div className="data-primitive-stage">
+      {state.directionMode === "provider-rtl" || state.directionMode === "local-ltr"
+        ? <Direction.Provider dir="rtl">{root}</Direction.Provider>
+        : root}
     </div>
   );
 }
 
 function renderTreeGridContent(scenario: ReturnType<typeof useTreeGridScenario>) {
-  return (
+  const headingCells = (
     <>
-      <TreeGrid.Caption data-playground-inspect="" data-tree-grid-caption="">Project tree</TreeGrid.Caption>
-      <TreeGrid.Header data-playground-inspect="" data-tree-grid-header="">
-        <TreeGrid.Row rowIndex={1} value="heading" selectable={false}>
-          <TreeGrid.ColumnHeader columnIndex={1}>Task</TreeGrid.ColumnHeader>
-          <TreeGrid.ColumnHeader columnIndex={2}>Owner</TreeGrid.ColumnHeader>
-        </TreeGrid.Row>
-      </TreeGrid.Header>
-      <TreeGrid.Body data-playground-inspect="" data-tree-grid-body="">
-        <TreeGrid.Row data-playground-inspect="" data-tree-grid-row="project" expandable level={1} rowIndex={2} value="project">
-          <TreeGrid.RowHeader columnIndex={1} data-playground-inspect="" data-tree-grid-row-header="project">Project</TreeGrid.RowHeader>
-          <TreeGrid.Cell columnIndex={2} data-playground-inspect="" data-tree-grid-cell="project-owner">Team</TreeGrid.Cell>
-        </TreeGrid.Row>
-        <TreeGrid.Row data-playground-inspect="" data-tree-grid-row="design" level={2} parentValue="project" rowIndex={3} value="design">
-          <TreeGrid.RowHeader columnIndex={1} data-playground-inspect="" data-tree-grid-row-header="design">Design review</TreeGrid.RowHeader>
-          <TreeGrid.Cell columnIndex={2} data-playground-inspect="" data-tree-grid-cell="design-owner">Ava</TreeGrid.Cell>
-        </TreeGrid.Row>
-        <TreeGrid.Row data-playground-inspect="" data-tree-grid-row="blocked" disabled={scenario.state.disableChild} level={2} parentValue="project" rowIndex={4} value="blocked">
-          <TreeGrid.RowHeader columnIndex={1} data-playground-inspect="" data-tree-grid-row-header="blocked">Blocked task</TreeGrid.RowHeader>
-          <TreeGrid.Cell columnIndex={2} data-playground-inspect="" data-tree-grid-cell="blocked-owner">Noah</TreeGrid.Cell>
-        </TreeGrid.Row>
-      </TreeGrid.Body>
+      {renderTreeGridElement(TreeGrid.ColumnHeader, "columnHeader", "th", { columnIndex: 1, className: "playground-tree-grid-column-header-task" }, "Task", scenario)}
+      {renderTreeGridElement(TreeGrid.ColumnHeader, "columnHeader", "th", { columnIndex: 2, sortDirection: scenario.state.sortDirection === "unset" ? undefined : scenario.state.sortDirection, className: "playground-tree-grid-column-header-owner" }, "Owner", scenario)}
     </>
   );
+  const headingRow = renderTreeGridElement(TreeGrid.Row, "row", "tr", { rowIndex: 1, value: "heading", selectable: false, className: "playground-tree-grid-row-heading" }, headingCells, scenario);
+  const parentCells = (
+    <>
+      {renderTreeGridElement(TreeGrid.RowHeader, "rowHeader", "th", { columnIndex: 1, className: "playground-tree-grid-row-header-project" }, "Project", scenario)}
+      {renderTreeGridElement(TreeGrid.Cell, "cell", "td", { columnIndex: 2, className: "playground-tree-grid-cell-team" }, "Team", scenario)}
+    </>
+  );
+  const designCells = (
+    <>
+      {renderTreeGridElement(TreeGrid.RowHeader, "rowHeader", "th", { columnIndex: 1, className: "playground-tree-grid-row-header-design" }, "Design review", scenario)}
+      {renderTreeGridElement(TreeGrid.Cell, "cell", "td", { columnIndex: 2, className: "playground-tree-grid-cell-ava" }, "Ava", scenario)}
+    </>
+  );
+  const blockedCells = (
+    <>
+      {renderTreeGridElement(TreeGrid.RowHeader, "rowHeader", "th", { columnIndex: 1, className: "playground-tree-grid-row-header-blocked" }, "Blocked task", scenario)}
+      {renderTreeGridElement(TreeGrid.Cell, "cell", "td", { columnIndex: 2, className: "playground-tree-grid-cell-noah" }, "Noah", scenario)}
+    </>
+  );
+  const summaryCells = (
+    <>
+      {renderTreeGridElement(TreeGrid.RowHeader, "rowHeader", "th", { columnIndex: 1, className: "playground-tree-grid-row-header-total" }, "Total", scenario)}
+      {renderTreeGridElement(TreeGrid.Cell, "cell", "td", { columnIndex: 2, className: "playground-tree-grid-cell-total" }, "3 tasks", scenario)}
+    </>
+  );
+
+  return (
+    <>
+      {renderTreeGridElement(TreeGrid.Caption, "caption", "caption", { className: "playground-tree-grid-caption" }, "Project tree", scenario)}
+      {renderTreeGridElement(TreeGrid.Header, "header", "thead", { className: "playground-tree-grid-header" }, headingRow, scenario)}
+      {renderTreeGridElement(TreeGrid.Body, "body", "tbody", { className: "playground-tree-grid-body" }, <>
+        {renderTreeGridElement(TreeGrid.Row, "row", "tr", { className: "playground-tree-grid-row-project", expandable: true, level: 1, rowIndex: 2, value: "project" }, parentCells, scenario)}
+        {renderTreeGridElement(TreeGrid.Row, "row", "tr", { className: "playground-tree-grid-row-design", level: 2, parentValue: "project", rowIndex: 3, value: "design" }, designCells, scenario)}
+        {renderTreeGridElement(TreeGrid.Row, "row", "tr", { className: "playground-tree-grid-row-blocked", disabled: scenario.state.disableChild, level: 2, parentValue: "project", rowIndex: 4, value: "blocked" }, blockedCells, scenario)}
+      </>, scenario)}
+      {renderTreeGridElement(TreeGrid.Footer, "footer", "tfoot", { className: "playground-tree-grid-footer" },
+        renderTreeGridElement(TreeGrid.Row, "row", "tr", { className: "playground-tree-grid-row-summary", rowIndex: 5, selectable: false, value: "summary" }, summaryCells, scenario), scenario)}
+    </>
+  );
+}
+
+function renderTreeGridElement(
+  Part: any,
+  part: TreeGridPartKey,
+  tag: string,
+  nativeProps: Record<string, unknown>,
+  children: any,
+  scenario: ReturnType<typeof useTreeGridScenario>,
+) {
+  const NativeTag = tag as any;
+  const props = {
+    ...nativeProps,
+    "data-playground-inspect": "",
+    ref: (element: HTMLElement | null) => scenario.actions.markPartRef(part, element),
+    ...treeGridPartProps(part, scenario.state),
+  };
+  const mode = scenario.state.composition[part];
+
+  if (mode === "asChild") {
+    return <Part {...props} asChild><NativeTag>{children}</NativeTag></Part>;
+  }
+  if (mode === "render") {
+    return <Part {...props} render={(renderProps: Record<string, unknown>) => <NativeTag {...renderProps}>{children}</NativeTag>} />;
+  }
+  return <Part {...props}>{children}</Part>;
+}
+
+function treeGridPartProps(part: TreeGridPartKey, state: ReturnType<typeof useTreeGridScenario>["state"]) {
+  return partProps(part, { customSlot: state.customSlots[part], propCheck: state.propCheck }, `tree-grid-${part}-custom`);
 }
 
 function FeedScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useFeedScenario> }) {
@@ -2231,16 +2352,30 @@ function getDataPrimitiveSections(
         row("Read only", bool(state.readOnly), "state"),
         row("Loop", bool(state.loop), "behavior"),
         row("Select row on click", bool(state.selectOnRowClick), "behavior"),
-        row("Composition", state.composition, "composition"),
+        row("State mode", state.stateMode, "state"),
+        row("Direction", state.directionMode, "behavior"),
+        row("Composition", state.composition.root, "composition"),
+        row("Ref", state.refs.root, "behavior"),
       ]),
-      section("Caption", "caption", "[data-tree-grid-caption]"),
-      section("Header", "header", "[data-tree-grid-header]"),
-      section("Body", "body", "[data-tree-grid-body]"),
-      section("Row: Parent", state.expandedValue.includes("project") ? "expanded" : "closed", "[data-tree-grid-row='project']"),
-      section("Row Header", "toggles row", "[data-tree-grid-row-header='project']"),
-      section("Row: Child", "visible when parent open", "[data-tree-grid-row='design']"),
-      section("Row: Disabled Child", state.disableChild ? "disabled" : "enabled", "[data-tree-grid-row='blocked']"),
-      section("Cell", "gridcell", "[data-tree-grid-cell='project-owner']"),
+      section("Caption", "caption", ".playground-tree-grid-caption", [row("Composition", state.composition.caption, "composition"), row("Ref", state.refs.caption, "behavior")]),
+      section("Header", "header", ".playground-tree-grid-header", [row("Composition", state.composition.header, "composition"), row("Ref", state.refs.header, "behavior")]),
+      section("Row: Task / Owner", "column-heading row", ".playground-tree-grid-row-heading", [row("Composition", state.composition.row, "composition"), row("Ref", state.refs.row, "behavior")]),
+      section("Column Header: Task", "columnheader", ".playground-tree-grid-column-header-task", [row("Composition", state.composition.columnHeader, "composition"), row("Ref", state.refs.columnHeader, "behavior")]),
+      section("Column Header: Owner", state.sortDirection === "unset" ? "columnheader" : `sorted ${state.sortDirection}`, ".playground-tree-grid-column-header-owner", [row("Composition", state.composition.columnHeader, "composition"), row("Sort direction", state.sortDirection, "state")]),
+      section("Body", "body", ".playground-tree-grid-body", [row("Composition", state.composition.body, "composition"), row("Ref", state.refs.body, "behavior")]),
+      section("Row: Project / Team", state.expandedValue.includes("project") ? "expanded parent row" : "collapsed parent row", ".playground-tree-grid-row-project", [row("Composition", state.composition.row, "composition")]),
+      section("Row Header: Project", "toggles row", ".playground-tree-grid-row-header-project", [row("Composition", state.composition.rowHeader, "composition"), row("Ref", state.refs.rowHeader, "behavior")]),
+      section("Cell: Team", "gridcell", ".playground-tree-grid-cell-team", [row("Composition", state.composition.cell, "composition"), row("Ref", state.refs.cell, "behavior")]),
+      section("Row: Design Review / Ava", "child row", ".playground-tree-grid-row-design", [row("Composition", state.composition.row, "composition")]),
+      section("Row Header: Design Review", "rowheader", ".playground-tree-grid-row-header-design", [row("Composition", state.composition.rowHeader, "composition")]),
+      section("Cell: Ava", "gridcell", ".playground-tree-grid-cell-ava", [row("Composition", state.composition.cell, "composition")]),
+      section("Row: Blocked Task / Noah", state.disableChild ? "disabled child row" : "child row", ".playground-tree-grid-row-blocked", [row("Composition", state.composition.row, "composition")]),
+      section("Row Header: Blocked Task", "rowheader", ".playground-tree-grid-row-header-blocked", [row("Composition", state.composition.rowHeader, "composition")]),
+      section("Cell: Noah", "gridcell", ".playground-tree-grid-cell-noah", [row("Composition", state.composition.cell, "composition")]),
+      section("Footer", "footer", ".playground-tree-grid-footer", [row("Composition", state.composition.footer, "composition"), row("Ref", state.refs.footer, "behavior")]),
+      section("Row: Total / 3 Tasks", "summary row", ".playground-tree-grid-row-summary", [row("Composition", state.composition.row, "composition")]),
+      section("Row Header: Total", "rowheader", ".playground-tree-grid-row-header-total", [row("Composition", state.composition.rowHeader, "composition")]),
+      section("Cell: 3 Tasks", "gridcell", ".playground-tree-grid-cell-total", [row("Composition", state.composition.cell, "composition")]),
     ];
   }
 
@@ -2384,6 +2519,38 @@ function TableCompositionToolbarGroup({
   );
 }
 
+function TreeGridCompositionToolbarGroup({
+  composition,
+  onChange,
+}: {
+  composition: Record<TreeGridPartKey, CompositionMode>;
+  onChange: (part: TreeGridPartKey, value: CompositionMode) => void;
+}) {
+  return (
+    <ToolbarGroup title="Composition" value="composition">
+      {treeGridCompositionControls.map((control) => (
+        <Menubar.Sub key={control.part}>
+          <Menubar.SubTrigger className="toolbar-menu-item toolbar-submenu-trigger" value={control.part}>
+            <span>{control.label}</span>
+            <span className="toolbar-submenu-value">{formatCompositionMode(composition[control.part])}</span>
+            <span className="toolbar-submenu-arrow" aria-hidden="true">›</span>
+          </Menubar.SubTrigger>
+          <Menubar.SubContent className="toolbar-menu" sideOffset={6}>
+            <Menubar.RadioGroup className="toolbar-radio-group" value={composition[control.part]} onValueChange={(value) => onChange(control.part, value as CompositionMode)}>
+              {compositionOptions.map((option) => (
+                <Menubar.RadioItem className="toolbar-menu-item" key={option.value} value={option.value}>
+                  <span>{option.label}</span>
+                  <span className="toolbar-menu-check" aria-hidden="true">{composition[control.part] === option.value ? "✓" : ""}</span>
+                </Menubar.RadioItem>
+              ))}
+            </Menubar.RadioGroup>
+          </Menubar.SubContent>
+        </Menubar.Sub>
+      ))}
+    </ToolbarGroup>
+  );
+}
+
 function TreeCompositionToolbarGroup({
   composition,
   onChange,
@@ -2463,8 +2630,89 @@ function formatValue(value: string | string[] | null) {
   return value ?? "none";
 }
 
+function getTreeGridSource(state?: ReturnType<typeof useTreeGridScenario>["state"]) {
+  const resolved = state ?? {
+    composition: treeGridDefaultComposition,
+    customSlots: treeGridDefaultCustomSlots,
+    propCheck: false,
+  } as ReturnType<typeof useTreeGridScenario>["state"];
+  const partProps = (part: TreeGridPartKey, extra: string[] = []) => [
+    ...extra,
+    resolved.propCheck ? `data-prop-check="${part}"` : "",
+    resolved.customSlots[part] ? `data-slot="tree-grid-${part}-custom"` : "",
+  ].filter(Boolean);
+  const rootProps = partProps("root", [
+    'aria-label="Project tree grid"',
+    state?.selectionMode && state.selectionMode !== "none" ? `selectionMode="${state.selectionMode}"` : "",
+    state?.disabled ? "disabled" : "",
+    state?.readOnly ? "readOnly" : "",
+    state?.loop ? "loop" : "",
+    state?.selectOnRowClick ? "selectOnRowClick" : "",
+    state?.counts ? "rowCount={5} columnCount={2}" : "",
+    state?.directionMode === "local-ltr" ? 'dir="ltr"' : state?.directionMode === "local-rtl" ? 'dir="rtl"' : "",
+    state?.stateMode === "controlled" ? `value={${JSON.stringify(state.selectedValue)}}` : "",
+    state?.stateMode === "controlled" ? `expandedValue={${JSON.stringify(state.expandedValue)}}` : "",
+    state?.stateMode === "controlled" ? `activeCell={${JSON.stringify(state.activeCell)}}` : "",
+    state?.stateMode === "controlled" ? "onValueChange={setValue}" : "",
+    state?.stateMode === "controlled" ? "onExpandedValueChange={setExpandedValue}" : "",
+    state?.stateMode === "controlled" ? "onActiveCellChange={setActiveCell}" : "",
+  ]);
+  const cell = (component: "ColumnHeader" | "RowHeader" | "Cell", part: TreeGridPartKey, extra: string[], text: string, indent: number) =>
+    sourceTreeGridElement(component, part, resolved.composition[part], partProps(part, extra), text, indent);
+  const row = (extra: string[], children: string, indent: number) =>
+    sourceTreeGridElement("Row", "row", resolved.composition.row, partProps("row", extra), children, indent);
+  const headerRow = row(["rowIndex={1}", 'value="heading"', "selectable={false}"], `
+      ${cell("ColumnHeader", "columnHeader", ["columnIndex={1}"], "Task", 6)}
+      ${cell("ColumnHeader", "columnHeader", ["columnIndex={2}", state?.sortDirection && state.sortDirection !== "unset" ? `sortDirection="${state.sortDirection}"` : ""], "Owner", 6)}
+    `, 4);
+  const parentRow = row(["rowIndex={2}", 'value="project"', "expandable"], `
+      ${cell("RowHeader", "rowHeader", ["columnIndex={1}"], "Project", 6)}
+      ${cell("Cell", "cell", ["columnIndex={2}"], "Team", 6)}
+    `, 4);
+  const childRow = row(["rowIndex={3}", 'value="design"', 'parentValue="project"', "level={2}"], `
+      ${cell("RowHeader", "rowHeader", ["columnIndex={1}"], "Design review", 6)}
+      ${cell("Cell", "cell", ["columnIndex={2}"], "Ava", 6)}
+    `, 4);
+  const blockedRow = row(["rowIndex={4}", 'value="blocked"', 'parentValue="project"', "level={2}", state?.disableChild ? "disabled" : ""], `
+      ${cell("RowHeader", "rowHeader", ["columnIndex={1}"], "Blocked task", 6)}
+      ${cell("Cell", "cell", ["columnIndex={2}"], "Noah", 6)}
+    `, 4);
+  const footerRow = row(["rowIndex={5}", 'value="summary"', "selectable={false}"], `
+      ${cell("RowHeader", "rowHeader", ["columnIndex={1}"], "Total", 6)}
+      ${cell("Cell", "cell", ["columnIndex={2}"], "3 tasks", 6)}
+    `, 4);
+  const inner = `
+  ${sourceTreeGridElement("Caption", "caption", resolved.composition.caption, partProps("caption"), "Project tree", 2)}
+  ${sourceTreeGridElement("Header", "header", resolved.composition.header, partProps("header"), headerRow, 2)}
+  ${sourceTreeGridElement("Body", "body", resolved.composition.body, partProps("body"), `${parentRow}\n${childRow}\n${blockedRow}`, 2)}
+  ${sourceTreeGridElement("Footer", "footer", resolved.composition.footer, partProps("footer"), footerRow, 2)}
+`;
+  const source = sourceTreeGridElement("Root", "root", resolved.composition.root, rootProps, inner, 0);
+  return state?.directionMode === "provider-rtl" || state?.directionMode === "local-ltr"
+    ? `<Direction.Provider dir="rtl">\n  ${source.split("\n").join("\n  ")}\n</Direction.Provider>`
+    : source;
+}
+
+function sourceTreeGridElement(component: string, part: TreeGridPartKey, composition: CompositionMode, props: string[], children: string, indent: number) {
+  const pad = " ".repeat(indent);
+  const propText = props.length ? ` ${props.join(" ")}` : "";
+  const tag = treeGridNativeTags[part];
+  const content = children.trim().includes("\n") ? `\n${children.trim()}\n${pad}` : children;
+  if (composition === "asChild") return `${pad}<TreeGrid.${component}${propText} asChild>\n${pad}  <${tag}>${content}</${tag}>\n${pad}</TreeGrid.${component}>`;
+  if (composition === "render") return `${pad}<TreeGrid.${component}${propText}\n${pad}  render={(props) => <${tag} {...props}>${content}</${tag}>}\n${pad}/>`;
+  return `${pad}<TreeGrid.${component}${propText}>${content}</TreeGrid.${component}>`;
+}
+
 function formatCell(cell: { rowIndex: number; columnIndex: number } | null) {
   return cell ? `${cell.rowIndex}:${cell.columnIndex}` : "none";
+}
+
+function controlledTreeGridValueOption(value: string | string[] | null) {
+  if (Array.isArray(value)) {
+    if (value.includes("project") && value.includes("design")) return "project-design";
+    return value[0] ?? "none";
+  }
+  return value ?? "none";
 }
 
 const selectionModeOptions = [
@@ -2481,6 +2729,18 @@ const treeSelectionOptions = [
 const treeStateModeOptions = [
   { label: "Uncontrolled", value: "uncontrolled" },
   { label: "Controlled", value: "controlled" },
+];
+
+const treeGridStateModeOptions = treeStateModeOptions;
+
+const treeGridSingleValueOptions = [
+  { label: "Project", value: "project" },
+  { label: "Design Review", value: "design" },
+];
+
+const treeGridMultipleValueOptions = [
+  ...treeGridSingleValueOptions,
+  { label: "Project + Design Review", value: "project-design" },
 ];
 
 const treeValueOptions = [
@@ -2544,6 +2804,48 @@ const treeDefaultCustomSlots: Record<TreePartKey, boolean> = {
   item: false,
   itemText: false,
   group: false,
+};
+
+const treeGridDefaultCustomSlots: Record<TreeGridPartKey, boolean> = {
+  root: false, caption: false, header: false, row: false,
+  columnHeader: false, body: false, rowHeader: false, cell: false, footer: false,
+};
+
+const treeGridDefaultComposition = Object.fromEntries(
+  Object.keys(treeGridDefaultCustomSlots).map((part) => [part, "default"]),
+) as Record<TreeGridPartKey, CompositionMode>;
+
+const treeGridDefaultRefs = Object.fromEntries(
+  Object.keys(treeGridDefaultCustomSlots).map((part) => [part, "none"]),
+) as Record<TreeGridPartKey, string>;
+
+const treeGridSlotControls: Array<{ part: TreeGridPartKey; label: string; value: string }> = [
+  { part: "root", label: "Root Slot", value: "root-slot" },
+  { part: "caption", label: "Caption Slot", value: "caption-slot" },
+  { part: "header", label: "Header Slot", value: "header-slot" },
+  { part: "row", label: "Row Slot", value: "row-slot" },
+  { part: "columnHeader", label: "Column Header Slot", value: "column-header-slot" },
+  { part: "body", label: "Body Slot", value: "body-slot" },
+  { part: "rowHeader", label: "Row Header Slot", value: "row-header-slot" },
+  { part: "cell", label: "Cell Slot", value: "cell-slot" },
+  { part: "footer", label: "Footer Slot", value: "footer-slot" },
+];
+
+const treeGridCompositionControls = treeGridSlotControls.map(({ part, label }) => ({
+  part,
+  label: label.replace(" Slot", ""),
+}));
+
+const treeGridNativeTags: Record<TreeGridPartKey, string> = {
+  root: "table",
+  caption: "caption",
+  header: "thead",
+  row: "tr",
+  columnHeader: "th",
+  body: "tbody",
+  rowHeader: "th",
+  cell: "td",
+  footer: "tfoot",
 };
 
 const treeDefaultRefs: Record<TreePartKey, string> = {

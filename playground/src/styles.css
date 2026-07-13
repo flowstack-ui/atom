@@ -329,6 +329,10 @@ h2 {
   place-items: start center;
 }
 
+.canvas:has(#playground-tree-grid) {
+  place-items: start center;
+}
+
 .canvas-tab-panel {
   min-height: 0;
   overflow: hidden;
@@ -4653,6 +4657,96 @@ h2 {
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
+}
+
+#playground-tree-grid [data-expandable] > [role="rowheader"] {
+  cursor: pointer;
+}
+
+#playground-tree-grid [data-expandable] > [role="rowheader"]::before {
+  display: inline-block;
+  width: 1.1em;
+  margin-right: 6px;
+  color: #64748b;
+  content: "▸";
+  font-size: 13px;
+  line-height: 1;
+  text-align: center;
+  transform-origin: center;
+  transition: transform 120ms ease;
+}
+
+#playground-tree-grid [data-expandable][aria-expanded="true"] > [role="rowheader"]::before {
+  transform: rotate(90deg);
+}
+
+#playground-tree-grid thead th {
+  background: #eef2f6;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+#playground-tree-grid [data-expandable] > th,
+#playground-tree-grid [data-expandable] > td {
+  background: #f8fafc;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: none;
+}
+
+#playground-tree-grid [data-level="2"] > th,
+#playground-tree-grid [data-level="2"] > td {
+  background: #ffffff;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 400;
+  text-transform: none;
+}
+
+#playground-tree-grid [data-level="2"] > [role="rowheader"] {
+  padding-left: 34px;
+}
+
+#playground-tree-grid [data-level="2"][data-disabled] > th,
+#playground-tree-grid [data-level="2"][data-disabled] > td {
+  background: #f8fafc;
+  color: #94a3b8;
+}
+
+#playground-tree-grid tfoot th,
+#playground-tree-grid tfoot td {
+  background: #f1f5f9;
+  border-top-color: #cbd5e1;
+  color: #4b5565;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+#playground-tree-grid [role="row"][data-selected] > th,
+#playground-tree-grid [role="row"][data-selected] > td {
+  background: #e8f0ff;
+  color: #1e3a5f;
+}
+
+#playground-tree-grid [role="row"][data-selected] > [role="rowheader"] {
+  box-shadow: inset 3px 0 0 #2563eb;
+}
+
+#playground-tree-grid [role="rowheader"][data-active],
+#playground-tree-grid [role="gridcell"][data-active] {
+  position: relative;
+  background: #eff6ff;
+  box-shadow: inset 0 0 0 2px #2563eb;
+  color: #1e3a5f;
+  outline: none;
+}
+
+#playground-tree-grid [role="row"][data-selected] > [data-active] {
+  background: #dbeafe;
+  box-shadow: inset 0 0 0 2px #1d4ed8;
 }
 
 .playground-data-table [data-selected] td,
