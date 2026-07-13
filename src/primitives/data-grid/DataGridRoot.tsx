@@ -30,6 +30,7 @@ import {
   type DataGridCellCoordinates,
   type DataGridCellData,
   type DataGridContextValue,
+  type DataGridRowData,
   type DataGridSelectionMode,
   type DataGridSelectionValue,
 } from "./context.js";
@@ -163,6 +164,12 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
     const [focused, setFocused] = useState(false);
     const composedRef = useMemo(() => composeRefs(gridRef, ref), [ref]);
     const {
+      getItem: getRow,
+      registerItem: registerCollectionRow,
+      updateItem: updateCollectionRow,
+      unregisterItem: unregisterCollectionRow,
+    } = useCollection<string, HTMLElement, DataGridRowData>();
+    const {
       getItems,
       getItem,
       registerItem: registerCollectionCell,
@@ -239,6 +246,40 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
       [unregisterCollectionCell],
     );
 
+    const registerRow = useCallback(
+      (
+        rowValue: string,
+        element: HTMLElement,
+        data: DataGridRowData,
+        rowDisabled = false,
+      ) => {
+        registerCollectionRow(rowValue, element, {
+          disabled: rowDisabled,
+          data,
+        });
+      },
+      [registerCollectionRow],
+    );
+
+    const updateRow = useCallback(
+      (
+        rowValue: string,
+        data: DataGridRowData,
+        rowDisabled = false,
+      ) => {
+        updateCollectionRow(rowValue, {
+          disabled: rowDisabled,
+          data,
+        });
+      },
+      [updateCollectionRow],
+    );
+
+    const unregisterRow = useCallback(
+      (rowValue: string) => unregisterCollectionRow(rowValue),
+      [unregisterCollectionRow],
+    );
+
     const focusCell = useCallback(
       (rowIndex: number, columnIndex: number) => {
         const nextValue = getDataGridCellValue(rowIndex, columnIndex);
@@ -273,6 +314,8 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
         ) {
           return;
         }
+        const row = getRow(rowValue);
+        if (row && !row.data.selectable) return;
 
         if (selectionMode === "multiple") {
           setSelectedValue((currentValue) => {
@@ -287,7 +330,7 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
 
         setSelectedValue(rowValue);
       },
-      [disabled, readOnly, selectionMode, setSelectedValue],
+      [disabled, getRow, readOnly, selectionMode, setSelectedValue],
     );
 
     const moveActiveCell = useCallback(
@@ -417,6 +460,9 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
         registerCell,
         updateCell,
         unregisterCell,
+        registerRow,
+        updateRow,
+        unregisterRow,
         getCellId,
         focusCell,
         isRowSelected,
@@ -434,12 +480,15 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
         isRowSelected,
         readOnly,
         registerCell,
+        registerRow,
         selectOnRowClick,
         selectRow,
         selectedValues,
         selectionMode,
         setResolvedActiveCell,
         unregisterCell,
+        unregisterRow,
+        updateRow,
         updateCell,
       ],
     );

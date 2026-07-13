@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added `DataGrid.Row selectable` behavior with `data-selectable` and
+  `data-selection-disabled` attributes so rows can opt out of selection without
+  being disabled.
 - Added `dir` and `Direction.Provider` support so horizontal cell navigation
   mirrors in RTL.
 

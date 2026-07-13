@@ -9,6 +9,7 @@ Headless ARIA grid primitives for cell navigation and optional row selection.
 - Supports RTL-aware horizontal cell navigation.
 - Supports controlled and uncontrolled active cell state.
 - Supports none, single, and multiple row selection modes.
+- Supports row-level selection opt-out for header, footer, and summary rows.
 - Supports row click selection, disabled/read-only state, row and column counts, and optional row wrapping.
 - Keeps sorting models, filtering, resizing, editing, and virtualization outside the primitive.
 
@@ -95,6 +96,27 @@ Renders a grid row.
 | `disabled` | `boolean` | `false` |
 | `selectable` | `boolean` | `true` |
 
+Rows without `value` are not selectable. Use `selectable={false}` when a row
+has a value for identity or metadata but should not respond to row click,
+`Enter`, or `Space` selection.
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"row"` |
+| `aria-disabled` | `"true"` when disabled |
+| `aria-rowindex` | Normalized `rowIndex` or one-based `index` |
+| `aria-selected` | Selection state when `selectionMode` is not `"none"` |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"data-grid-row"` |
+| `[data-selectable]` | Present when the row has `value`, selection is enabled, and `selectable` is `true` |
+| `[data-selection-disabled]` | Present when selection is enabled and `selectable` is `false` |
+| `[data-row-index]` | Normalized `rowIndex` or one-based `index` |
+| `[data-value]` | Row value when provided |
+| `[data-selected]` | Present when selected |
+| `[data-disabled]` | Present when disabled |
+
 ### ColumnHeader
 
 Renders a column header cell.
@@ -129,7 +151,10 @@ Renders a grid cell.
 ```tsx
 <DataGrid.Root selectionMode="multiple" defaultValue={["row-1"]}>
   <DataGrid.Body>
-    <DataGrid.Row rowIndex={1} value="row-1">
+    <DataGrid.Row rowIndex={1} value="summary" selectable={false}>
+      <DataGrid.Cell columnIndex={1}>Summary</DataGrid.Cell>
+    </DataGrid.Row>
+    <DataGrid.Row rowIndex={2} value="row-1">
       <DataGrid.Cell columnIndex={1}>Ada</DataGrid.Cell>
     </DataGrid.Row>
   </DataGrid.Body>
@@ -155,6 +180,10 @@ Implements the WAI-ARIA grid pattern with root focus and `aria-activedescendant`
 | `Home` / `End` | Moves within a row |
 | `Ctrl+Home` / `Ctrl+End` | Moves to first or last cell |
 | `Enter` / `Space` | Selects the active row when selection is enabled |
+
+Rows with `selectable={false}` do not select from click, `Enter`, or `Space`.
+This is useful for header, footer, group, and summary rows that are part of the
+grid but should not become the selected row.
 
 ## Changelog
 

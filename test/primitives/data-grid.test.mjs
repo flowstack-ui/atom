@@ -73,7 +73,7 @@ test("DataGrid compound parts render ARIA grid anatomy", () => {
   assert.match(html, /<caption data-slot="data-grid-caption">Orders<\/caption>/);
   assert.match(html, /<thead role="rowgroup" data-slot="data-grid-header">/);
   assert.match(html, /<tbody role="rowgroup" data-slot="data-grid-body">/);
-  assert.match(html, /<tr role="row" aria-rowindex="2" aria-selected="true" data-slot="data-grid-row" data-row-index="2" data-value="order-1" data-selected="">/);
+  assert.match(html, /<tr role="row" aria-rowindex="2" aria-selected="true" data-slot="data-grid-row" data-selectable="" data-row-index="2" data-value="order-1" data-selected="">/);
   assert.match(html, /role="columnheader"/);
   assert.match(html, /aria-sort="ascending"/);
   assert.match(html, /data-sort="ascending"/);
@@ -219,9 +219,55 @@ test("DataGrid cells do not announce disabled just because an index is missing",
   assert.doesNotMatch(html, /data-disabled=""/);
 });
 
+test("DataGrid exposes row-level selection availability", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      DataGrid.Root,
+      {
+        "aria-label": "Selectable orders",
+        rowCount: 3,
+        columnCount: 1,
+        selectionMode: "multiple",
+        defaultValue: ["order-2"],
+      },
+      React.createElement(
+        DataGrid.Header,
+        null,
+        React.createElement(
+          DataGrid.Row,
+          { rowIndex: 1, selectable: false },
+          React.createElement(DataGrid.ColumnHeader, { columnIndex: 1 }, "Order"),
+        ),
+      ),
+      React.createElement(
+        DataGrid.Body,
+        null,
+        React.createElement(
+          DataGrid.Row,
+          { rowIndex: 2, value: "order-1", selectable: false },
+          React.createElement(DataGrid.Cell, { columnIndex: 1 }, "#100"),
+        ),
+        React.createElement(
+          DataGrid.Row,
+          { rowIndex: 3, value: "order-2" },
+          React.createElement(DataGrid.Cell, { columnIndex: 1 }, "#200"),
+        ),
+      ),
+    ),
+  );
+
+  assert.match(html, /<tr[^>]*data-selection-disabled=""[^>]*data-row-index="1"/);
+  assert.match(html, /<tr[^>]*data-selection-disabled=""[^>]*data-value="order-1"/);
+  assert.match(html, /<tr[^>]*aria-selected="true"[^>]*data-selectable=""[^>]*data-value="order-2"[^>]*data-selected=""/);
+});
+
 test("DataGrid source uses Collection and keeps keyboard navigation in Root", async () => {
   const rootSource = await readFile(
     new URL("src/primitives/data-grid/DataGridRoot.tsx", packageRoot),
+    "utf8",
+  );
+  const rowSource = await readFile(
+    new URL("src/primitives/data-grid/DataGridRow.tsx", packageRoot),
     "utf8",
   );
   const cellSource = await readFile(
@@ -229,6 +275,7 @@ test("DataGrid source uses Collection and keeps keyboard navigation in Root", as
     "utf8",
   );
 
+  assert.match(rootSource, /useCollection<string, HTMLElement, DataGridRowData>\(\)/);
   assert.match(rootSource, /useCollection<string, HTMLElement, DataGridCellData>\(\)/);
   assert.match(rootSource, /useDirection\(\)/);
   assert.match(rootSource, /getDataGridNavigationDirection\(event\.key, dir\)/);
@@ -239,7 +286,12 @@ test("DataGrid source uses Collection and keeps keyboard navigation in Root", as
   assert.match(rootSource, /data-focused/);
   assert.match(rootSource, /wrapRows = false/);
   assert.match(rootSource, /if \(!wrapRows\) return;/);
+  assert.match(rootSource, /if \(row && !row\.data\.selectable\) return;/);
   assert.match(rootSource, /selectRow\(item\.data\.rowValue\)/);
+  assert.match(rowSource, /selectable = true/);
+  assert.match(rowSource, /registerRow\(value, element, rowData, isDisabled\)/);
+  assert.match(rowSource, /data-selection-disabled/);
+  assert.match(rowSource, /data-selectable/);
   assert.match(cellSource, /registerCell\(cellValue, element, cellData, isDisabled\)/);
   assert.match(cellSource, /updateCell\(cellValue, cellData, isDisabled\)/);
   assert.match(cellSource, /focusCell\(resolvedRowIndex, resolvedColumnIndex\)/);

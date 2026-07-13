@@ -18,6 +18,12 @@ export interface DataGridCellData extends Record<string, unknown> {
   rowValue?: string;
 }
 
+export interface DataGridRowData extends Record<string, unknown> {
+  rowIndex: number;
+  value: string;
+  selectable: boolean;
+}
+
 export interface DataGridContextValue {
   gridId: string;
   gridRef: RefObject<HTMLElement | null>;
@@ -41,6 +47,18 @@ export interface DataGridContextValue {
     disabled?: boolean,
   ) => void;
   unregisterCell: (value: string) => void;
+  registerRow: (
+    value: string,
+    element: HTMLElement,
+    data: DataGridRowData,
+    disabled?: boolean,
+  ) => void;
+  updateRow: (
+    value: string,
+    data: DataGridRowData,
+    disabled?: boolean,
+  ) => void;
+  unregisterRow: (value: string) => void;
   getCellId: (rowIndex: number, columnIndex: number) => string | undefined;
   focusCell: (rowIndex: number, columnIndex: number) => void;
   isRowSelected: (value: string | undefined) => boolean;
@@ -51,6 +69,7 @@ export interface DataGridContextValue {
 export interface DataGridRowContextValue {
   rowIndex?: number;
   value?: string;
+  selectable: boolean;
   disabled: boolean;
   selected: boolean;
 }
