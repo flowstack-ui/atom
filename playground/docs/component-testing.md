@@ -26,16 +26,9 @@ For example, `Table.Head sortDirection` should verify `aria-sort` and
 `data-sort`; the playground should not sort rows unless the component contract
 owns row sorting.
 
-Before implementation, the scenario plan must pass the Default-State Gate from
-`workflow.md`:
-
-```text
-Initial Canvas and default Source represent the simplest valid consumer usage
-and contain no non-default props except those required to render public parts.
-```
-
-Report this as pass or fail before editing. If it fails, correct the scenario
-plan before changing playground code.
+Before implementation, report pass or fail for the Default-State Gate and
+Scenario Consistency Gate defined in `workflow.md`. If either fails, correct
+the scenario plan before changing playground code.
 
 For composite components that re-export or wrap another primitive's parts,
 test the composite-owned behavior deeply and keep reused shared primitive
@@ -228,9 +221,11 @@ Every component protocol should use this order:
 
 The exact public part steps depend on the component. Use public anatomy order
 from the component docs. After feature-wide state, finish one public part
-completely before moving to the next public part.
+completely before moving to the next public part. When a part has repeated
+instances, finish each named instance before inspecting the next one; they may
+remain in the same public-part step.
 
-Each step should have exactly one testing target.
+Each setup/action/verification block should have exactly one testing target.
 
 - `Playground Smoke Check` tests only that the page loads, the scenario renders,
   and core workbench panels respond.
@@ -240,8 +235,10 @@ Each step should have exactly one testing target.
   default tag, slot, or ARIA checks that belong in public part steps.
 - Public part steps test only that part: its own identity, text/value when it
   renders one, native attributes, ARIA, data attributes, ref, props/slots, and
-  composition. Move child-part evidence, parent relationships, generated helper
-  elements, and cross-part behavior to the part or feature step that owns them.
+  composition. Repeated instances are named targets within that step and are
+  completed one at a time. Move child-part evidence, parent relationships,
+  generated helper elements, and cross-part behavior to the part or feature
+  step that owns them.
 - `Source` tests only generated Source output.
 - `Inspector / Logs` tests only selected, focused, and event evidence.
 - `Nested / Portal / Focus Behavior` tests only cross-layer browser behavior
@@ -262,12 +259,15 @@ for each item below. Do not show Step 0 until every item passes.
 - every step has an explicit setup
 - each action is immediately followed by its expected result
 - only one behavior or compatible verification cluster is tested at a time
-- each part is completed before moving to the next
+- each public part and each named target within it is completed before moving
+  to the next
 - part steps contain only evidence owned by that public part, with child,
   parent, generated element, and cross-part checks moved to their owning step
-- repeated public part instances are separate top-level anatomy/protocol
-  targets when they carry distinct evidence
+- repeated public part instances with distinct evidence have separate Anatomy
+  groups and use baseline-plus-delta protocol coverage
 - stable values are exact
+- evidence names and assertions use exact rendered syntax from the relevant
+  `Attributes`, `ARIA`, or `Data` group
 - generated values use relationships
 - default Source omits non-default props
 - controlled-only controls and Source appear only in controlled mode
@@ -326,6 +326,12 @@ results over narrative instructions. For a part's default state, list the stable
 present evidence needed to prove the contract, then summarize default-off state
 only when it matters instead of enumerating every absent attribute.
 
+Name DOM evidence exactly as rendered and inspect it in the owning raw evidence
+group. For example, write `role="columnheader"` and `aria-colindex="1"` from
+`ARIA`, or `data-column-index="1"` from `Data`; do not rewrite them as prose or
+component prop names. Test optional evidence after enabling the state that owns
+it. Omit absent attributes unless their absence is contract-critical.
+
 Each action must be followed immediately by its expected result. Do not batch
 several unrelated actions and then verify them together. Compatible
 verification clusters are allowed when they do not interrupt the tester's flow,
@@ -365,6 +371,13 @@ For each public anatomy part, include only sections that apply:
 
 Do not generate empty sections. For example, omit `Composition` instead of
 writing `Composition: none`.
+
+When a public part is rendered repeatedly, use the first representative
+instance to verify the shared baseline contract: identity, native prop
+passthrough, ref, props/slots, and composition. Then inspect later named
+instances one at a time and verify only their distinct state, behavior, or
+metadata. Do not repeat baseline assertions that the shared implementation has
+already proved.
 
 Composition testing should include every supported public part. Do not cover
 only the root/default path when other public parts support composition.

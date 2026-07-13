@@ -174,7 +174,13 @@ the existing playground scenario.
   “Initial Canvas and default Source represent the simplest valid consumer
   usage and contain no non-default props except those required to render public
   parts.”
-- If the Default-State Gate fails, correct the scenario plan before editing.
+- Also state pass or fail for the Scenario Consistency Gate: Canvas, Source,
+  Anatomy, Inspector, Toolbar, and Logs must describe the same active scenario.
+  Canvas renders the intended parts and state; Source matches the live consumer
+  JSX; Anatomy targets those Canvas parts; Inspector exposes the same raw
+  evidence; Toolbar controls the intended state; and Logs contain only real
+  callback events.
+- If either gate fails, correct the scenario plan before editing.
 
 ## 6. Implement Missing Playground Behavior
 
@@ -185,6 +191,10 @@ the existing playground scenario.
 - Use generic toolbar labels when possible, such as `Disable Item`.
 - Hide controlled value controls when controlled mode is off.
 - Add prop-check and slot-override coverage only for real Atom DOM parts.
+- After implementation, inspect the exact scenario branch across state,
+  actions, toolbar, Canvas, Source, Anatomy, footer, Inspector, and Logs. For
+  grouped scenario modules, compare neighboring branches and confirm they were
+  not changed unintentionally.
 
 ## 7. Classify Issues
 
