@@ -15,8 +15,6 @@ This folder is the repo-only browser playground for testing Atom UI primitives.
   scope.
 - Do not edit Atom package source, package docs, configs, `dist/`, or
   `node_modules/` from a playground documentation task.
-- Leave `component-coverage.xlsx.inspect.ndjson` untouched unless the user says
-  otherwise.
 
 ## Rules
 

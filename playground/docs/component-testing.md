@@ -210,7 +210,7 @@ Lifecycle:
 Reviewed protocol examples:
 
 - `manual-tests/popover.md`
-- `manual-tests/alert-dialog.md`
+- `manual-tests/accordion.md`
 
 Keep only reviewed Manual Test Protocol files under `manual-tests/`. These
 files are living regression documentation for retesting after package changes,

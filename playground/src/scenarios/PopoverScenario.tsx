@@ -79,7 +79,7 @@ export function PopoverScenarioCanvas({
           <Popover.Content
             ariaLabel={state.useAriaLabel ? "Project quick actions" : undefined}
             className="atom-popover-content"
-            data-popover-content=""
+            data-playground-popover-content=""
             data-playground-inspect=""
             {...partProps("content", { customSlot: state.customContentSlot, propCheck: state.propCheck }, "popover-content-custom")}
             side={state.side}
@@ -117,7 +117,7 @@ export function PopoverScenarioCanvas({
       <div
         className="popover-portal-target"
         data-playground-inspect=""
-        data-popover-portal-target=""
+        data-playground-popover-portal-target=""
         ref={setPortalContainer}
       />
       <Button.Root className="behind-dialog-button" tabIndex={-1}>
@@ -136,13 +136,13 @@ export function PopoverScenarioAnatomy({
   state: PopoverScenarioState;
   onOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
 }) {
-  const trigger = document.querySelector<HTMLElement>("[data-popover-trigger]");
-  const content = document.querySelector<HTMLElement>("[data-popover-content]");
-  const anchor = document.querySelector<HTMLElement>("[data-popover-anchor]");
-  const arrow = document.querySelector<HTMLElement>("[data-popover-arrow]");
-  const portalTarget = document.querySelector<HTMLElement>("[data-popover-portal-target]");
-  const close = document.querySelector<HTMLElement>("[data-popover-close]");
-  const nestedContent = document.querySelector<HTMLElement>("[data-nested-popover-content]");
+  const trigger = document.querySelector<HTMLElement>("[data-playground-popover-trigger]");
+  const content = document.querySelector<HTMLElement>("[data-playground-popover-content]");
+  const anchor = document.querySelector<HTMLElement>("[data-playground-popover-anchor]");
+  const arrow = document.querySelector<HTMLElement>("[data-playground-popover-arrow]");
+  const portalTarget = document.querySelector<HTMLElement>("[data-playground-popover-portal-target]");
+  const close = document.querySelector<HTMLElement>("[data-playground-popover-close]");
+  const nestedContent = document.querySelector<HTMLElement>("[data-playground-nested-popover-content]");
 
   const sections: AnatomySection[] = [
     {
@@ -162,7 +162,7 @@ export function PopoverScenarioAnatomy({
     },
     {
       title: "Anchor",
-      selector: "[data-popover-anchor]",
+      selector: "[data-playground-popover-anchor]",
       inactive: !state.useAnchor,
       summary: state.useAnchor ? state.anchorComposition : "not rendered",
       rows: [
@@ -173,7 +173,7 @@ export function PopoverScenarioAnatomy({
     },
     {
       title: "Trigger",
-      selector: "[data-popover-trigger]",
+      selector: "[data-playground-popover-trigger]",
       summary: trigger?.dataset.state ?? "not rendered",
       rows: [
         { label: "Exists", value: trigger ? "yes" : "no", category: "presence" },
@@ -200,7 +200,7 @@ export function PopoverScenarioAnatomy({
     },
     {
       title: "Content",
-      selector: "[data-popover-content]",
+      selector: "[data-playground-popover-content]",
       inactive: !content,
       summary: content?.dataset.state ?? "not rendered",
       rows: [
@@ -219,7 +219,7 @@ export function PopoverScenarioAnatomy({
     },
     {
       title: "Arrow",
-      selector: "[data-popover-arrow]",
+      selector: "[data-playground-popover-arrow]",
       inactive: !arrow,
       summary: arrow?.dataset.side ?? "not rendered",
       rows: [
@@ -233,7 +233,7 @@ export function PopoverScenarioAnatomy({
     },
     {
       title: "Close",
-      selector: "[data-popover-close]",
+      selector: "[data-playground-popover-close]",
       inactive: !content,
       summary: state.closeComposition,
       rows: [
@@ -372,7 +372,7 @@ function PopoverTriggerExample({
 }) {
   const props = {
     className: "atom-button",
-    "data-popover-trigger": "",
+    "data-playground-popover-trigger": "",
     "data-playground-inspect": "",
     ...partProps("trigger", { customSlot, propCheck }, "popover-trigger-custom"),
     onClick,
@@ -409,7 +409,7 @@ function PopoverAnchorExample({
 }) {
   const props = {
     className: "popover-anchor-box",
-    "data-popover-anchor": "",
+    "data-playground-popover-anchor": "",
     "data-playground-inspect": "",
     ...partProps("anchor", { customSlot, propCheck }, "popover-anchor-custom"),
   };
@@ -452,7 +452,7 @@ function PopoverCloseExample({
 }) {
   const props = {
     className: "atom-button",
-    "data-popover-close": "",
+    "data-playground-popover-close": "",
     "data-playground-inspect": "",
     ...partProps("close", { customSlot, propCheck }, "popover-close-custom"),
     onClick,
@@ -491,7 +491,7 @@ function PopoverArrowExample({
   const sizeProps = getArrowSizeProps(size);
   const props = {
     className: "atom-popover-arrow",
-    "data-popover-arrow": "",
+    "data-playground-popover-arrow": "",
     ...partProps("arrow", { customSlot, propCheck }, "popover-arrow-custom"),
     ...sizeProps,
   };
@@ -518,7 +518,7 @@ function NestedPopoverExample() {
     <Popover.Root>
       <Popover.Trigger
         className="atom-button secondary"
-        data-nested-popover-trigger=""
+        data-playground-nested-popover-trigger=""
         data-playground-inspect=""
       >
         Nested popover
@@ -527,7 +527,7 @@ function NestedPopoverExample() {
         <Popover.Content
           ariaLabel="Nested quick actions"
           className="atom-popover-content nested-popover-content"
-          data-nested-popover-content=""
+          data-playground-nested-popover-content=""
           data-playground-inspect=""
           side="right"
           align="start"
@@ -535,10 +535,10 @@ function NestedPopoverExample() {
         >
           <p className="popover-kicker">Nested</p>
           <p className="popover-copy">Escape should close this layer before the outer popover.</p>
-          <Popover.Close className="atom-button secondary" data-nested-popover-close="" data-playground-inspect="">
+          <Popover.Close className="atom-button secondary" data-playground-nested-popover-close="" data-playground-inspect="">
             Close nested
           </Popover.Close>
-          <Popover.Arrow className="atom-popover-arrow" data-nested-popover-arrow="" />
+          <Popover.Arrow className="atom-popover-arrow" data-playground-nested-popover-arrow="" />
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>

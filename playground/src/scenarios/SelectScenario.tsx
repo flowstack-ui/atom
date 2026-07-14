@@ -60,7 +60,7 @@ export function SelectScenarioCanvas({
       className="atom-select-content playground-select-content"
       container={!state.usePortalWrapper && state.useCustomContainer ? portalContainerRef.current : undefined}
       data-playground-inspect=""
-      data-select-listbox=""
+      data-playground-select-listbox=""
       {...partProps("listbox", { propCheck: state.propCheck, customSlot: state.customContentSlot }, "select-content-custom")}
       disablePortal={state.disablePortal}
       title="listbox prop"
@@ -69,7 +69,7 @@ export function SelectScenarioCanvas({
       {state.showArrow ? (
         <Select.Arrow
           className="playground-select-arrow"
-          data-select-arrow=""
+          data-playground-select-arrow=""
           {...partProps("arrow", { propCheck: state.propCheck, customSlot: state.customArrowSlot }, "select-arrow-custom")}
           title="arrow prop"
           ref={(element) => actions.markPartRef("arrow", element)}
@@ -78,7 +78,7 @@ export function SelectScenarioCanvas({
       {state.showScrollButtons ? (
         <Select.ScrollUpButton
           className="playground-select-scroll-button"
-          data-select-scroll-up=""
+          data-playground-select-scroll-up=""
           {...partProps("scroll-up", { propCheck: state.propCheck, customSlot: state.customScrollUpSlot }, "select-scroll-up-custom")}
           title="scroll up prop"
           ref={(element) => actions.markPartRef("scrollUpButton", element)}
@@ -89,20 +89,20 @@ export function SelectScenarioCanvas({
       ) : null}
       <Select.Viewport
         className="atom-select-viewport playground-select-viewport"
-        data-select-viewport=""
+        data-playground-select-viewport=""
         {...partProps("viewport", { propCheck: state.propCheck, customSlot: state.customViewportSlot }, "select-viewport-custom")}
         title="viewport prop"
         ref={(element) => actions.markPartRef("viewport", element)}
       >
         <Select.Group
-          data-select-group=""
+          data-playground-select-group=""
           {...partProps("group", { propCheck: state.propCheck, customSlot: state.customGroupSlot }, "select-group-custom")}
           title="group prop"
           ref={(element) => actions.markPartRef("group", element)}
         >
           <Select.Label
             className="playground-select-label"
-            data-select-label=""
+            data-playground-select-label=""
             {...partProps("label", { propCheck: state.propCheck, customSlot: state.customLabelSlot }, "select-label-custom")}
             title="label prop"
             ref={(element) => actions.markPartRef("label", element)}
@@ -111,7 +111,7 @@ export function SelectScenarioCanvas({
           </Select.Label>
           <Select.Separator
             className="playground-select-separator"
-            data-select-separator=""
+            data-playground-select-separator=""
             {...partProps("separator", { propCheck: state.propCheck, customSlot: state.customSeparatorSlot }, "select-separator-custom")}
             title="separator prop"
             ref={(element) => actions.markPartRef("separator", element)}
@@ -119,9 +119,9 @@ export function SelectScenarioCanvas({
           {getSelectItems(state.longList, state.rawItemText).map((item) => (
             <Select.Item
               className="atom-select-item playground-select-item"
-              data-select-item=""
+              data-playground-select-item=""
               {...partProps("item", { propCheck: state.propCheck, customSlot: state.customItemSlot }, "select-item-custom")}
-              data-select-raw-item={item.raw ? "" : undefined}
+              data-playground-select-raw-item={item.raw ? "" : undefined}
               data-testid={`select-item-${item.value}`}
               disabled={item.disabled}
               key={item.value}
@@ -132,7 +132,7 @@ export function SelectScenarioCanvas({
                 if (element?.getAttribute("data-state") === "checked") {
                   actions.markPartRef("selectedItem", element);
                 }
-                if (element?.hasAttribute("data-select-raw-item")) {
+                if (element?.hasAttribute("data-playground-select-raw-item")) {
                   actions.markPartRef("rawItem", element);
                 }
                 if (item.disabled) {
@@ -146,7 +146,7 @@ export function SelectScenarioCanvas({
               {item.raw ? item.visible : (
                 <>
                   <Select.ItemText
-                    data-select-item-text=""
+                    data-playground-select-item-text=""
                     {...partProps("item-text", { propCheck: state.propCheck, customSlot: state.customItemTextSlot }, "select-item-text-custom")}
                     title="item text prop"
                     ref={(element) => actions.markPartRef("itemText", element)}
@@ -155,7 +155,7 @@ export function SelectScenarioCanvas({
                   </Select.ItemText>
                   <Select.ItemIndicator
                     className="playground-select-indicator"
-                    data-select-indicator=""
+                    data-playground-select-indicator=""
                     {...partProps("indicator", { propCheck: state.propCheck, customSlot: state.customIndicatorSlot }, "select-indicator-custom")}
                     forceMount={state.forceMountIndicator}
                     title="indicator prop"
@@ -172,7 +172,7 @@ export function SelectScenarioCanvas({
       {state.showScrollButtons ? (
         <Select.ScrollDownButton
           className="playground-select-scroll-button"
-          data-select-scroll-down=""
+          data-playground-select-scroll-down=""
           {...partProps("scroll-down", { propCheck: state.propCheck, customSlot: state.customScrollDownSlot }, "select-scroll-down-custom")}
           title="scroll down prop"
           ref={(element) => actions.markPartRef("scrollDownButton", element)}
@@ -227,7 +227,7 @@ export function SelectScenarioCanvas({
       {state.useCustomContainer ? (
         <div
           className="select-portal-target"
-          data-select-custom-container=""
+          data-playground-select-custom-container=""
           ref={portalContainerRef}
         />
       ) : null}
@@ -544,7 +544,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Trigger",
-      selector: "[data-select-trigger]",
+      selector: "[data-playground-select-trigger]",
       summary: state.parts.triggerState,
       rows: [
         { label: "Exists", value: state.parts.triggerExists, category: "presence" },
@@ -574,7 +574,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Value",
-      selector: "[data-select-value]",
+      selector: "[data-playground-select-value]",
       summary: state.parts.valueText,
       rows: [
         { label: "Exists", value: state.parts.valueExists, category: "presence" },
@@ -587,7 +587,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Icon",
-      selector: "[data-select-icon]",
+      selector: "[data-playground-select-icon]",
       summary: state.parts.iconExists === "yes" ? "decorative" : "not rendered",
       rows: [
         { label: "Exists", value: state.parts.iconExists, category: "presence" },
@@ -610,7 +610,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Content",
-      selector: "[data-select-listbox]",
+      selector: "[data-playground-select-listbox]",
       inactive: state.parts.listboxExists !== "yes",
       summary: state.parts.listboxExists === "yes" ? state.parts.listboxState : "not rendered",
       rows: [
@@ -630,7 +630,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Scroll Up Button",
-      selector: "[data-select-scroll-up]",
+      selector: "[data-playground-select-scroll-up]",
       inactive: state.parts.scrollUpExists !== "yes",
       summary: state.parts.scrollUpExists === "yes" ? state.refs.scrollUpButton : "not rendered",
       rows: [
@@ -643,7 +643,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Viewport",
-      selector: "[data-select-viewport]",
+      selector: "[data-playground-select-viewport]",
       inactive: state.parts.viewportExists !== "yes",
       summary: state.parts.viewportExists === "yes" ? state.refs.viewport : "not rendered",
       rows: [
@@ -656,7 +656,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Group",
-      selector: "[data-select-group]",
+      selector: "[data-playground-select-group]",
       inactive: state.parts.groupExists !== "yes",
       summary: state.parts.groupExists === "yes" ? state.parts.groupRole : "not rendered",
       rows: [
@@ -671,7 +671,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Label",
-      selector: "[data-select-label]",
+      selector: "[data-playground-select-label]",
       inactive: state.parts.labelExists !== "yes",
       summary: state.parts.labelExists === "yes" ? state.parts.labelId : "not rendered",
       rows: [
@@ -689,7 +689,7 @@ export function SelectScenarioAnatomy({
       groups: [
         {
           title: "Selected item",
-          selector: "[data-select-item][data-state='checked']",
+          selector: "[data-playground-select-item][data-state='checked']",
           rows: [
             { label: "Exists", value: state.parts.selectedItemExists, category: "presence" },
             { label: "Ref", value: state.refs.selectedItem, category: "identity" },
@@ -705,7 +705,7 @@ export function SelectScenarioAnatomy({
         },
         {
           title: "Highlighted item",
-          selector: "[data-select-item][data-highlighted]",
+          selector: "[data-playground-select-item][data-highlighted]",
           rows: [
             { label: "Exists", value: state.parts.highlightedItemExists, category: "presence" },
             { label: "data-state", value: state.parts.highlightedItemState, category: "data" },
@@ -715,7 +715,7 @@ export function SelectScenarioAnatomy({
         },
         {
           title: "Raw item",
-          selector: "[data-select-raw-item]",
+          selector: "[data-playground-select-raw-item]",
           rows: [
             { label: "Exists", value: state.parts.rawItemExists, category: "presence" },
             { label: "Ref", value: state.refs.rawItem, category: "identity" },
@@ -725,7 +725,7 @@ export function SelectScenarioAnatomy({
         },
         {
           title: "Disabled item",
-          selector: "[data-select-item][data-disabled]",
+          selector: "[data-playground-select-item][data-disabled]",
           rows: [
             { label: "Exists", value: state.parts.disabledItemExists, category: "presence" },
             { label: "Ref", value: state.refs.disabledItem, category: "identity" },
@@ -737,7 +737,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Item Text",
-      selector: "[data-select-item-text]",
+      selector: "[data-playground-select-item-text]",
       inactive: state.parts.itemTextExists !== "yes",
       summary: state.parts.itemTextExists === "yes" ? state.refs.itemText : "not rendered",
       rows: [
@@ -749,7 +749,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Item Indicator",
-      selector: "[data-select-indicator][data-state='checked']",
+      selector: "[data-playground-select-indicator][data-state='checked']",
       inactive: state.parts.itemIndicatorExists !== "yes",
       summary: state.parts.itemIndicatorExists === "yes" ? state.parts.itemIndicatorState : "not rendered",
       rows: [
@@ -764,7 +764,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Separator",
-      selector: "[data-select-separator]",
+      selector: "[data-playground-select-separator]",
       inactive: state.parts.separatorExists !== "yes",
       summary: state.parts.separatorExists === "yes" ? state.parts.separatorRole : "not rendered",
       rows: [
@@ -778,7 +778,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Scroll Down Button",
-      selector: "[data-select-scroll-down]",
+      selector: "[data-playground-select-scroll-down]",
       inactive: state.parts.scrollDownExists !== "yes",
       summary: state.parts.scrollDownExists === "yes" ? state.refs.scrollDownButton : "not rendered",
       rows: [
@@ -791,7 +791,7 @@ export function SelectScenarioAnatomy({
     },
     {
       title: "Arrow",
-      selector: "[data-select-arrow]",
+      selector: "[data-playground-select-arrow]",
       inactive: state.parts.arrowExists !== "yes",
       summary: state.parts.arrowExists === "yes" ? "decorative" : "not rendered",
       rows: [
@@ -853,7 +853,7 @@ function SelectTriggerExample({
 }) {
   const triggerProps = {
     className: "atom-select-trigger playground-select-trigger",
-    "data-select-trigger": "",
+    "data-playground-select-trigger": "",
     ...partProps("trigger", { propCheck, customSlot: customTriggerSlot }, "select-trigger-custom"),
     ...(triggerAriaLabel ? { ariaLabel: "Plan selector" } : {}),
     ...(useTriggerIdProp ? { id: "select-trigger-prop" } : {}),
@@ -864,7 +864,7 @@ function SelectTriggerExample({
   };
   const valueElement = (
     <Select.Value
-      data-select-value=""
+      data-playground-select-value=""
       {...partProps("value", { propCheck, customSlot: customValueSlot }, "select-value-custom")}
       placeholder="Choose plan"
       ref={valueRefCallback}
@@ -875,7 +875,7 @@ function SelectTriggerExample({
   );
   const iconElement = (
     <Select.Icon
-      data-select-icon=""
+      data-playground-select-icon=""
       {...partProps("icon", { propCheck, customSlot: customIconSlot }, "select-icon-custom")}
       ref={iconRefCallback}
       title="icon prop"

@@ -2,14 +2,15 @@
 
 ## Install
 
-From `package/`:
+From `package/playground/`:
 
 ```bash
 npm install
 ```
 
-The playground has its own package under `package/playground/`, but the normal
-workspace install is enough for day-to-day work.
+The playground is a separate private package and is not declared as an npm
+workspace, so install its dependencies from this folder before using the
+package-level forwarding scripts.
 
 ## Run
 
@@ -47,4 +48,3 @@ The build runs TypeScript for the playground and then Vite production build.
 
 Do not edit `dist/` or `node_modules/`. They are generated output and install
 artifacts.
-

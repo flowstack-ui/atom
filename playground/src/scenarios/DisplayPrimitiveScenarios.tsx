@@ -764,7 +764,7 @@ ${rootClose}`;
 function BadgeScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useBadgeScenario> }) {
   const props = {
     className: `display-badge display-badge-${scenario.state.tone}`,
-    "data-badge-root": "",
+    "data-playground-badge-root": "",
     "data-playground-inspect": "",
     ...partProps("root", { customSlot: scenario.state.customRootSlot, propCheck: scenario.state.propCheck }, "badge-custom"),
     onClick: scenario.actions.noteClick,
@@ -788,7 +788,7 @@ function BadgeScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useBadg
 function DividerScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useDividerScenario> }) {
   const props = {
     className: `display-divider ${scenario.state.orientation === "vertical" ? "vertical" : ""}`,
-    "data-divider-root": "",
+    "data-playground-divider-root": "",
     "data-playground-inspect": "",
     ...partProps("root", { customSlot: scenario.state.customRootSlot, propCheck: scenario.state.propCheck }, "divider-custom"),
     decorative: scenario.state.decorative,
@@ -817,7 +817,7 @@ function DividerScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useDi
 function AspectRatioScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useAspectRatioScenario> }) {
   const props = {
     className: "display-aspect-ratio",
-    "data-aspect-ratio-root": "",
+    "data-playground-aspect-ratio-root": "",
     "data-playground-inspect": "",
     ...partProps("root", { customSlot: scenario.state.customRootSlot, propCheck: scenario.state.propCheck }, "aspect-ratio-custom"),
     ratio: getRatioValue(scenario.state.ratio),
@@ -882,7 +882,7 @@ function AvatarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useAva
 
   const groupProps = {
     className: "display-avatar-group",
-    "data-avatar-group": "",
+    "data-playground-avatar-group": "",
     "data-playground-inspect": "",
     ...partProps("group", { customSlot: scenario.state.customGroupSlot, propCheck: scenario.state.propCheck }, "avatar-group-custom"),
     ref: scenario.actions.markGroupRef,
@@ -913,7 +913,7 @@ function AvatarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useAva
 function LabelScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useLabelScenario> }) {
   const labelProps = {
     className: "display-label",
-    "data-label-root": "",
+    "data-playground-label-root": "",
     "data-playground-inspect": "",
     ...partProps("root", { customSlot: scenario.state.customRootSlot, propCheck: scenario.state.propCheck }, "label-custom"),
     disabled: scenario.state.disabled,
@@ -940,7 +940,7 @@ function LabelScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useLabe
         {scenario.state.controlType === "atom" ? (
           <Input.Root
             className="display-input"
-            data-input-root=""
+            data-playground-input-root=""
             data-playground-inspect=""
             disabled={scenario.state.disabled}
             id="display-label-input"
@@ -958,7 +958,7 @@ function LabelScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useLabe
           <input
             aria-invalid={scenario.state.invalid || undefined}
             className="display-input"
-            data-native-input=""
+            data-playground-native-input=""
             data-playground-inspect=""
             disabled={scenario.state.disabled}
             id="display-label-input"
@@ -980,7 +980,7 @@ function LabelScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useLabe
 function ListScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useListScenario> }) {
   const props = {
     className: "display-list",
-    "data-list-root": "",
+    "data-playground-list-root": "",
     "data-playground-inspect": "",
     ...partProps("root", { customSlot: scenario.state.customRootSlot, propCheck: scenario.state.propCheck }, "list-custom"),
     ordered: scenario.state.ordered,
@@ -991,7 +991,7 @@ function ListScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useListS
     <>
       <ListItemExample scenario={scenario} />
       <List.Item
-        data-list-disabled-item=""
+        data-playground-list-disabled-item=""
         data-playground-inspect=""
         {...partProps("disabled-item", { customSlot: scenario.state.customItemSlot, propCheck: scenario.state.propCheck }, "list-item-custom")}
         data-value="billing"
@@ -1001,7 +1001,7 @@ function ListScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useListS
         Billing
       </List.Item>
       <List.Item
-        data-list-last-item=""
+        data-playground-list-last-item=""
         data-playground-inspect=""
         {...partProps("review-item", { customSlot: scenario.state.customItemSlot, propCheck: scenario.state.propCheck }, "list-item-custom")}
         data-value="review"
@@ -1029,7 +1029,7 @@ function ListScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useListS
 
 function ListItemExample({ scenario }: { scenario: ReturnType<typeof useListScenario> }) {
   const props = {
-    "data-list-item": "",
+    "data-playground-list-item": "",
     "data-playground-inspect": "",
     ...partProps("item", { customSlot: scenario.state.customItemSlot, propCheck: scenario.state.propCheck }, "list-item-custom"),
     "data-value": "plan",
@@ -1090,7 +1090,7 @@ function AvatarExample({
   const src = getAvatarSrc(imageMode);
   const props = {
     className: "display-avatar",
-    "data-avatar-root": primary ? "" : undefined,
+    "data-playground-avatar-root": primary ? "" : undefined,
     "data-playground-inspect": primary ? "" : undefined,
     ...(primary ? partProps("root", { customSlot: customRootSlot, propCheck }, "avatar-custom") : {}),
     ref: primary ? onRootRef : undefined,
@@ -1137,7 +1137,7 @@ function AvatarImageExample({
   const props = {
     alt: altMode === "decorative" ? "" : "Will Donin",
     className: "display-avatar-image",
-    "data-avatar-image": primary ? "" : undefined,
+    "data-playground-avatar-image": primary ? "" : undefined,
     "data-playground-inspect": primary ? "" : undefined,
     ...(primary ? partProps("image", { customSlot, propCheck }, "avatar-image-custom") : {}),
     ref: primary ? onRef : undefined,
@@ -1179,8 +1179,8 @@ function AvatarFallbackExample({
 }) {
   const props = {
     className: "display-avatar-fallback",
-    "data-avatar-fallback": primary ? "" : undefined,
-    "data-avatar-fallback-secondary": primary ? undefined : "",
+    "data-playground-avatar-fallback": primary ? "" : undefined,
+    "data-playground-avatar-fallback-secondary": primary ? undefined : "",
     "data-playground-inspect": "",
     ...(primary ? partProps("fallback", { customSlot, propCheck }, "avatar-fallback-custom") : {}),
     delayMs: delay ? 600 : 0,
@@ -1207,10 +1207,10 @@ function getDisplayPrimitiveSections(
   scenarios: DisplayPrimitiveScenarios,
 ): AnatomySection[] {
   if (scenarioId === "badge") {
-    const root = document.querySelector<HTMLElement>("[data-badge-root]");
+    const root = document.querySelector<HTMLElement>("[data-playground-badge-root]");
     return [{
       title: "Root",
-      selector: "[data-badge-root]",
+      selector: "[data-playground-badge-root]",
       summary: root?.textContent?.trim() || "not rendered",
       rows: [
         { label: "Exists", value: bool(!!root), category: "presence" },
@@ -1222,10 +1222,10 @@ function getDisplayPrimitiveSections(
   }
 
   if (scenarioId === "divider") {
-    const root = document.querySelector<HTMLElement>("[data-divider-root]");
+    const root = document.querySelector<HTMLElement>("[data-playground-divider-root]");
     return [{
       title: "Root",
-      selector: "[data-divider-root]",
+      selector: "[data-playground-divider-root]",
       summary: scenarios.divider.state.orientation,
       rows: [
         { label: "Exists", value: bool(!!root), category: "presence" },
@@ -1239,10 +1239,10 @@ function getDisplayPrimitiveSections(
   }
 
   if (scenarioId === "aspect-ratio") {
-    const root = document.querySelector<HTMLElement>("[data-aspect-ratio-root]");
+    const root = document.querySelector<HTMLElement>("[data-playground-aspect-ratio-root]");
     return [{
       title: "Root",
-      selector: "[data-aspect-ratio-root]",
+      selector: "[data-playground-aspect-ratio-root]",
       summary: scenarios.aspectRatio.state.ratio,
       rows: [
         { label: "Exists", value: bool(!!root), category: "presence" },
@@ -1254,15 +1254,15 @@ function getDisplayPrimitiveSections(
   }
 
   if (scenarioId === "avatar") {
-    const group = document.querySelector<HTMLElement>("[data-avatar-group]");
-    const root = document.querySelector<HTMLElement>("[data-avatar-root]");
-    const image = document.querySelector<HTMLElement>("[data-avatar-image]");
-    const fallback = document.querySelector<HTMLElement>("[data-avatar-fallback]");
-    const secondaryFallback = document.querySelector<HTMLElement>("[data-avatar-fallback-secondary]");
+    const group = document.querySelector<HTMLElement>("[data-playground-avatar-group]");
+    const root = document.querySelector<HTMLElement>("[data-playground-avatar-root]");
+    const image = document.querySelector<HTMLElement>("[data-playground-avatar-image]");
+    const fallback = document.querySelector<HTMLElement>("[data-playground-avatar-fallback]");
+    const secondaryFallback = document.querySelector<HTMLElement>("[data-playground-avatar-fallback-secondary]");
     return [
       {
         title: "Group",
-        selector: "[data-avatar-group]",
+        selector: "[data-playground-avatar-group]",
         inactive: !group,
         summary: group ? "rendered" : "not rendered",
         rows: [
@@ -1274,7 +1274,7 @@ function getDisplayPrimitiveSections(
       },
       {
         title: "Root",
-        selector: "[data-avatar-root]",
+        selector: "[data-playground-avatar-root]",
         summary: scenarios.avatar.state.status,
         rows: [
           { label: "Exists", value: bool(!!root), category: "presence" },
@@ -1286,7 +1286,7 @@ function getDisplayPrimitiveSections(
       },
       {
         title: "Image",
-        selector: "[data-avatar-image]",
+        selector: "[data-playground-avatar-image]",
         inactive: !image,
         summary: image ? "rendered" : "not rendered",
         rows: [
@@ -1300,7 +1300,7 @@ function getDisplayPrimitiveSections(
       },
       {
         title: "Fallback: WD",
-        selector: "[data-avatar-fallback]",
+        selector: "[data-playground-avatar-fallback]",
         inactive: !fallback,
         summary: fallback ? "rendered" : "not rendered",
         rows: [
@@ -1312,7 +1312,7 @@ function getDisplayPrimitiveSections(
       },
       {
         title: "Fallback: FS",
-        selector: "[data-avatar-fallback-secondary]",
+        selector: "[data-playground-avatar-fallback-secondary]",
         inactive: !secondaryFallback,
         summary: secondaryFallback ? "rendered" : "not rendered",
         rows: [
@@ -1327,14 +1327,14 @@ function getDisplayPrimitiveSections(
   }
 
   if (scenarioId === "label") {
-    const label = document.querySelector<HTMLElement>("[data-label-root]");
-    const input = document.querySelector<HTMLInputElement>("[data-input-root]");
+    const label = document.querySelector<HTMLElement>("[data-playground-label-root]");
+    const input = document.querySelector<HTMLInputElement>("[data-playground-input-root]");
     const labelTag = label?.tagName.toLowerCase() ?? "none";
     const hasNativeLabelBehavior = labelTag === "label";
     return [
       {
         title: "Root",
-        selector: "[data-label-root]",
+        selector: "[data-playground-label-root]",
         summary: label?.textContent?.trim() || "not rendered",
         rows: [
           { label: "Exists", value: bool(!!label), category: "presence" },
@@ -1355,14 +1355,14 @@ function getDisplayPrimitiveSections(
   }
 
   if (scenarioId === "list") {
-    const root = document.querySelector<HTMLElement>("[data-list-root]");
-    const plan = document.querySelector<HTMLElement>("[data-list-item]");
-    const billing = document.querySelector<HTMLElement>("[data-list-disabled-item]");
-    const review = document.querySelector<HTMLElement>("[data-list-last-item]");
+    const root = document.querySelector<HTMLElement>("[data-playground-list-root]");
+    const plan = document.querySelector<HTMLElement>("[data-playground-list-item]");
+    const billing = document.querySelector<HTMLElement>("[data-playground-list-disabled-item]");
+    const review = document.querySelector<HTMLElement>("[data-playground-list-last-item]");
     return [
       {
         title: "Root",
-        selector: "[data-list-root]",
+        selector: "[data-playground-list-root]",
         summary: scenarios.list.state.ordered ? "ordered" : "unordered",
         rows: [
           { label: "Exists", value: bool(!!root), category: "presence" },
@@ -1373,7 +1373,7 @@ function getDisplayPrimitiveSections(
       },
       {
         title: "Item: Plan",
-        selector: "[data-list-item]",
+        selector: "[data-playground-list-item]",
         summary: plan?.textContent?.trim() || "not rendered",
         rows: [
           { label: "Exists", value: bool(!!plan), category: "presence" },
@@ -1383,7 +1383,7 @@ function getDisplayPrimitiveSections(
       },
       {
         title: "Item: Billing",
-        selector: "[data-list-disabled-item]",
+        selector: "[data-playground-list-disabled-item]",
         summary: billing?.textContent?.trim() || "not rendered",
         rows: [
           { label: "Exists", value: bool(!!billing), category: "presence" },
@@ -1392,7 +1392,7 @@ function getDisplayPrimitiveSections(
       },
       {
         title: "Item: Review",
-        selector: "[data-list-last-item]",
+        selector: "[data-playground-list-last-item]",
         summary: review?.textContent?.trim() || "not rendered",
         rows: [
           { label: "Exists", value: bool(!!review), category: "presence" },

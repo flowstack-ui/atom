@@ -244,7 +244,7 @@ export type MenuScenarioActions = {
 };
 
 export function useMenuScenario() {
-  const [revision, setRevision] = useState(0);
+  const [, setRevision] = useState(0);
   const [controlled, setControlled] = useState(true);
   const [defaultOpen, setDefaultOpen] = useState(false);
   const [open, setOpen] = useState(false);
@@ -396,7 +396,6 @@ export function useMenuScenario() {
     loop,
     sideOffset,
     contentLoopOff,
-    refs,
   });
 
   const state: MenuScenarioState = {
@@ -517,7 +516,6 @@ function getMenuParts({
   loop,
   sideOffset,
   contentLoopOff,
-  refs,
 }: {
   controlled: boolean;
   defaultOpen: boolean;
@@ -528,27 +526,26 @@ function getMenuParts({
   loop: boolean;
   sideOffset: number;
   contentLoopOff: boolean;
-  refs: MenuRefSnapshot;
 }): MenuPartsSnapshot {
-  const content = document.querySelector<HTMLElement>("[data-menu-content]");
-  const group = document.querySelector<HTMLElement>("[data-menu-group]");
-  const item = document.querySelector<HTMLElement>("[data-menu-item-primary]");
-  const disabledItem = document.querySelector<HTMLElement>("[data-menu-item-disabled]");
-  const checkbox = document.querySelector<HTMLElement>("[data-menu-checkbox]");
-  const radioGroup = document.querySelector<HTMLElement>("[data-menu-radio-group]");
-  const radioItem = document.querySelector<HTMLElement>("[data-menu-radio-item][aria-checked='true']");
-  const radioGroupSecondary = document.querySelector<HTMLElement>("[data-menu-radio-group-secondary]");
-  const radioItemSecondary = document.querySelector<HTMLElement>("[data-menu-radio-item-secondary][aria-checked='true']");
-  const separator = document.querySelector<HTMLElement>("[data-menu-separator]");
-  const subTrigger = document.querySelector<HTMLElement>("[data-menu-sub-trigger]");
-  const subContent = document.querySelector<HTMLElement>("[data-menu-sub-content]");
-  const subItem = document.querySelector<HTMLElement>("[data-menu-sub-item]");
-  const subTriggerSecondary = document.querySelector<HTMLElement>("[data-menu-sub-trigger-secondary]");
-  const subContentSecondary = document.querySelector<HTMLElement>("[data-menu-sub-content-secondary]");
-  const subItemSecondary = document.querySelector<HTMLElement>("[data-menu-sub-item-secondary]");
-  const nestedSubTrigger = document.querySelector<HTMLElement>("[data-menu-nested-sub-trigger]");
-  const nestedSubContent = document.querySelector<HTMLElement>("[data-menu-nested-sub-content]");
-  const nestedSubItem = document.querySelector<HTMLElement>("[data-menu-nested-sub-item]");
+  const content = document.querySelector<HTMLElement>("[data-playground-menu-content]");
+  const group = document.querySelector<HTMLElement>("[data-playground-menu-group]");
+  const item = document.querySelector<HTMLElement>("[data-playground-menu-item-primary]");
+  const disabledItem = document.querySelector<HTMLElement>("[data-playground-menu-item-disabled]");
+  const checkbox = document.querySelector<HTMLElement>("[data-playground-menu-checkbox]");
+  const radioGroup = document.querySelector<HTMLElement>("[data-playground-menu-radio-group]");
+  const radioItem = document.querySelector<HTMLElement>("[data-playground-menu-radio-item][aria-checked='true']");
+  const radioGroupSecondary = document.querySelector<HTMLElement>("[data-playground-menu-radio-group-secondary]");
+  const radioItemSecondary = document.querySelector<HTMLElement>("[data-playground-menu-radio-item-secondary][aria-checked='true']");
+  const separator = document.querySelector<HTMLElement>("[data-playground-menu-separator]");
+  const subTrigger = document.querySelector<HTMLElement>("[data-playground-menu-sub-trigger]");
+  const subContent = document.querySelector<HTMLElement>("[data-playground-menu-sub-content]");
+  const subItem = document.querySelector<HTMLElement>("[data-playground-menu-sub-item]");
+  const subTriggerSecondary = document.querySelector<HTMLElement>("[data-playground-menu-sub-trigger-secondary]");
+  const subContentSecondary = document.querySelector<HTMLElement>("[data-playground-menu-sub-content-secondary]");
+  const subItemSecondary = document.querySelector<HTMLElement>("[data-playground-menu-sub-item-secondary]");
+  const nestedSubTrigger = document.querySelector<HTMLElement>("[data-playground-menu-nested-sub-trigger]");
+  const nestedSubContent = document.querySelector<HTMLElement>("[data-playground-menu-nested-sub-content]");
+  const nestedSubItem = document.querySelector<HTMLElement>("[data-playground-menu-nested-sub-item]");
 
   return {
     rootMode: controlled ? "controlled" : "uncontrolled",

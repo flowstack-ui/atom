@@ -16,5 +16,7 @@ in `CURRENT.md` and `docs/`.
   6. Slider
   7. Rating
   8. Swipeable Item
-- Keep the reviewed Manual Test Protocols as the source for test steps and
-  expected browser behavior.
+- Create and review automation-ready protocols for these targets before
+  implementing their smoke tests; none currently has a reviewed protocol.
+- Use each reviewed protocol as the source for test steps and expected browser
+  behavior once it exists.

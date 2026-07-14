@@ -87,7 +87,7 @@ export function DialogScenarioCanvas({
     <div className="dialog-stage">
       <Button.Root
         className="behind-dialog-button"
-        data-dialog-behind
+        data-playground-dialog-behind
         tabIndex={-1}
       >
         Behind dialog
@@ -128,7 +128,7 @@ export function DialogScenarioCanvas({
         <Dialog.Portal>
           <Dialog.Overlay
             className="atom-dialog-overlay"
-            data-dialog-overlay=""
+            data-playground-dialog-overlay=""
             data-playground-inspect=""
             {...partProps("overlay", { propCheck: state.propCheck, customSlot: state.customOverlaySlot }, "dialog-overlay-custom")}
             id="dialog-overlay-prop"
@@ -139,7 +139,7 @@ export function DialogScenarioCanvas({
           <Dialog.Content
             ariaLabel={state.useAriaLabel ? "Project settings" : undefined}
             className="atom-dialog-content"
-            data-dialog-content=""
+            data-playground-dialog-content=""
             data-playground-inspect=""
             {...partProps("content", { propCheck: state.propCheck, customSlot: state.customContentSlot }, "dialog-content-custom")}
             ref={contentRef}
@@ -149,7 +149,7 @@ export function DialogScenarioCanvas({
             {state.useAriaLabel ? null : (
               <Dialog.Title
                 as={state.titleHeadingLevel}
-                data-dialog-title=""
+                data-playground-dialog-title=""
                 {...partProps("title", { propCheck: state.propCheck, customSlot: state.customTitleSlot }, "dialog-title-custom")}
                 ref={titleRef}
                 title="title prop"
@@ -158,7 +158,7 @@ export function DialogScenarioCanvas({
               </Dialog.Title>
             )}
             <Dialog.Description
-              data-dialog-description=""
+              data-playground-dialog-description=""
               {...partProps("description", { propCheck: state.propCheck, customSlot: state.customDescriptionSlot }, "dialog-description-custom")}
               ref={descriptionRef}
               title="description prop"
@@ -211,7 +211,7 @@ export function DialogScenarioCanvas({
                   ) : null}
                   <Dialog.Close
                     className="atom-button secondary"
-                    data-dialog-cancel-close=""
+                    data-playground-dialog-cancel-close=""
                     {...partProps("cancel-close", { propCheck: state.propCheck, customSlot: state.customCloseSlot }, "dialog-close-custom")}
                     onClick={() => actions.markCloseSource("cancel")}
                   >
@@ -265,7 +265,7 @@ export function DialogScenarioAnatomy({
     },
     {
       title: "Trigger",
-      selector: "[data-dialog-trigger]",
+      selector: "[data-playground-dialog-trigger]",
       summary: state.parts.triggerState,
       rows: [
         { label: "Exists", value: state.parts.triggerExists, category: "presence" },
@@ -296,7 +296,7 @@ export function DialogScenarioAnatomy({
     },
     {
       title: "Overlay",
-      selector: "[data-dialog-overlay]",
+      selector: "[data-playground-dialog-overlay]",
       inactive: state.parts.overlayExists !== "yes",
       summary: state.parts.overlayExists === "yes" ? state.parts.overlayState : "not rendered",
       rows: [
@@ -309,7 +309,7 @@ export function DialogScenarioAnatomy({
     },
     {
       title: "Content",
-      selector: "[data-dialog-content]",
+      selector: "[data-playground-dialog-content]",
       inactive: state.parts.contentExists !== "yes",
       summary: state.parts.contentExists === "yes" ? state.parts.contentState : "not rendered",
       rows: [
@@ -333,7 +333,7 @@ export function DialogScenarioAnatomy({
     },
     {
       title: "Title",
-      selector: "[data-dialog-title]",
+      selector: "[data-playground-dialog-title]",
       inactive: state.parts.titleExists !== "yes",
       summary: state.parts.titleExists === "yes" ? state.parts.titleId : "not rendered",
       rows: [
@@ -348,7 +348,7 @@ export function DialogScenarioAnatomy({
     },
     {
       title: "Description",
-      selector: "[data-dialog-description]",
+      selector: "[data-playground-dialog-description]",
       inactive: state.parts.descriptionExists !== "yes",
       summary: state.parts.descriptionExists === "yes" ? state.parts.descriptionId : "not rendered",
       rows: [
@@ -367,7 +367,7 @@ export function DialogScenarioAnatomy({
       groups: [
         {
           title: "Cancel button",
-          selector: "[data-dialog-cancel-close]",
+          selector: "[data-playground-dialog-cancel-close]",
           rows: [
             { label: "Exists", value: state.parts.cancelCloseExists, category: "presence" },
             { label: "tag", value: state.parts.cancelCloseTag, category: "identity" },
@@ -378,7 +378,7 @@ export function DialogScenarioAnatomy({
         },
         {
           title: "Save button",
-          selector: "[data-dialog-save-close]",
+          selector: "[data-playground-dialog-save-close]",
           rows: [
             { label: "Exists", value: state.parts.saveCloseExists, category: "presence" },
             { label: "Ref", value: state.parts.saveCloseExists === "yes" ? state.refs.saveClose : "none", category: "identity" },
@@ -561,7 +561,7 @@ function DialogTriggerExample({
     return (
       <Dialog.Trigger
         className="atom-button"
-        data-dialog-trigger=""
+        data-playground-dialog-trigger=""
         {...partProps("trigger", { propCheck, customSlot }, "dialog-trigger-custom")}
         id="dialog-trigger-prop"
         name="dialog-trigger-name"
@@ -580,7 +580,7 @@ function DialogTriggerExample({
     return (
       <Dialog.Trigger
         className="atom-button"
-        data-dialog-trigger=""
+        data-playground-dialog-trigger=""
         {...partProps("trigger", { propCheck, customSlot }, "dialog-trigger-custom")}
         id="dialog-trigger-prop"
         name="dialog-trigger-name"
@@ -598,7 +598,7 @@ function DialogTriggerExample({
   return (
     <Dialog.Trigger
       className="atom-button"
-      data-dialog-trigger=""
+      data-playground-dialog-trigger=""
       {...partProps("trigger", { propCheck, customSlot }, "dialog-trigger-custom")}
       id="dialog-trigger-prop"
       name="dialog-trigger-name"
@@ -641,7 +641,7 @@ function DialogCloseExample({
         asChild
         onClick={onClick}
       >
-        <span className="composition-control" data-dialog-save-close="">
+        <span className="composition-control" data-playground-dialog-save-close="">
           {children}
         </span>
       </Dialog.Close>
@@ -652,7 +652,7 @@ function DialogCloseExample({
     return (
       <Dialog.Close
         className={className}
-        data-dialog-save-close=""
+        data-playground-dialog-save-close=""
         {...partProps("save-close", { propCheck, customSlot }, "dialog-close-custom")}
         id="dialog-save-close-prop"
         name="dialog-save-close-name"
@@ -669,7 +669,7 @@ function DialogCloseExample({
   return (
     <Dialog.Close
       className={className}
-      data-dialog-save-close=""
+      data-playground-dialog-save-close=""
       {...partProps("save-close", { propCheck, customSlot }, "dialog-close-custom")}
       id="dialog-save-close-prop"
       name="dialog-save-close-name"

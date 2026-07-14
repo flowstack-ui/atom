@@ -449,7 +449,7 @@ export function ButtonScenarioCanvas({ scenario }: { scenario: ButtonScenario })
     target: state.linkMode && state.newTab ? "_blank" : undefined,
     rel: state.linkMode && state.customRel ? "author" : undefined,
     type: state.type,
-    "data-button-root": "",
+    "data-playground-button-root": "",
     "data-playground-inspect": "",
     ...partProps("root", { propCheck: state.propCheck, customSlot: state.customRootSlot }, "button-root-custom"),
     ref: actions.markRootRef,
@@ -497,7 +497,7 @@ export function CheckboxScenarioCanvas({ scenario }: { scenario: CheckboxScenari
         >
           <Checkbox.Indicator
             className="control-checkbox-indicator"
-            data-checkbox-indicator=""
+            data-playground-checkbox-indicator=""
             data-playground-inspect=""
             {...partProps("indicator", { propCheck: state.propCheck, customSlot: state.customIndicatorSlot }, "checkbox-indicator-custom")}
             forceMount={state.forceMount}
@@ -531,7 +531,7 @@ export function SwitchScenarioCanvas({ scenario }: { scenario: SwitchScenario })
           <Switch.Thumb
             className="control-switch-thumb"
             data-playground-inspect=""
-            data-switch-thumb=""
+            data-playground-switch-thumb=""
             {...partProps("thumb", { propCheck: state.propCheck, customSlot: state.customThumbSlot }, "switch-thumb-custom")}
           />
         </SwitchRootExample>
@@ -580,7 +580,7 @@ export function RadioGroupScenarioCanvas({ scenario }: { scenario: RadioGroupSce
     className: "control-choice-group",
     ariaLabel: "Notification channel",
     "data-playground-inspect": "",
-    "data-radio-group-root": "",
+    "data-playground-radio-group-root": "",
     ...partProps("root", { propCheck: state.propCheck, customSlot: state.customRootSlot }, "radio-group-root-custom"),
     disabled: state.disabled,
     invalid: state.invalid,
@@ -620,7 +620,7 @@ export function ToggleGroupScenarioCanvas({ scenario }: { scenario: ToggleGroupS
     className: "control-toggle-group",
     ariaLabel: "Text formatting",
     "data-playground-inspect": "",
-    "data-toggle-group-root": "",
+    "data-playground-toggle-group-root": "",
     ...partProps("root", { propCheck: state.propCheck, customSlot: state.customRootSlot }, "toggle-group-root-custom"),
     disabled: state.disabled,
     loop: state.loop,
@@ -696,11 +696,11 @@ export function ButtonScenarioAnatomy({
   scenario: ButtonScenario;
   onOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
 }) {
-  const root = document.querySelector<HTMLElement>("[data-button-root]");
+  const root = document.querySelector<HTMLElement>("[data-playground-button-root]");
   const sections: AnatomySection[] = [
     {
       title: "Root",
-      selector: "[data-button-root]",
+      selector: "[data-playground-button-root]",
       summary: stateSummary(root, "button"),
       rows: [
         { label: "Exists", value: yesNo(root), category: "presence" },
@@ -731,13 +731,13 @@ export function CheckboxScenarioAnatomy({
   scenario: CheckboxScenario;
   onOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
 }) {
-  const root = document.querySelector<HTMLElement>("[data-checkbox-root]");
-  const indicator = document.querySelector<HTMLElement>("[data-checkbox-indicator]");
+  const root = document.querySelector<HTMLElement>("[data-playground-checkbox-root]");
+  const indicator = document.querySelector<HTMLElement>("[data-playground-checkbox-indicator]");
   const input = document.querySelector<HTMLInputElement>("input[name='email-updates']");
   const sections: AnatomySection[] = [
     {
       title: "Root",
-      selector: "[data-checkbox-root]",
+      selector: "[data-playground-checkbox-root]",
       summary: root?.dataset.state ?? "unchecked",
       rows: [
         { label: "Exists", value: yesNo(root), category: "presence" },
@@ -752,7 +752,7 @@ export function CheckboxScenarioAnatomy({
     },
     {
       title: "Indicator",
-      selector: "[data-checkbox-indicator]",
+      selector: "[data-playground-checkbox-indicator]",
       inactive: !indicator,
       summary: indicator?.dataset.state ?? "not rendered",
       rows: [
@@ -775,13 +775,13 @@ export function SwitchScenarioAnatomy({
   scenario: SwitchScenario;
   onOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
 }) {
-  const root = document.querySelector<HTMLElement>("[data-switch-root]");
-  const thumb = document.querySelector<HTMLElement>("[data-switch-thumb]");
+  const root = document.querySelector<HTMLElement>("[data-playground-switch-root]");
+  const thumb = document.querySelector<HTMLElement>("[data-playground-switch-thumb]");
   const input = document.querySelector<HTMLInputElement>("input[name='notifications']");
   const sections: AnatomySection[] = [
     {
       title: "Root",
-      selector: "[data-switch-root]",
+      selector: "[data-playground-switch-root]",
       summary: root?.dataset.state ?? "unchecked",
       rows: [
         { label: "Exists", value: yesNo(root), category: "presence" },
@@ -796,7 +796,7 @@ export function SwitchScenarioAnatomy({
     },
     {
       title: "Thumb",
-      selector: "[data-switch-thumb]",
+      selector: "[data-playground-switch-thumb]",
       inactive: !thumb,
       summary: thumb?.dataset.state ?? "not rendered",
       rows: [
@@ -818,11 +818,11 @@ export function ToggleScenarioAnatomy({
   scenario: ToggleScenario;
   onOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
 }) {
-  const root = document.querySelector<HTMLElement>("[data-toggle-root]");
+  const root = document.querySelector<HTMLElement>("[data-playground-toggle-root]");
   const sections: AnatomySection[] = [
     {
       title: "Root",
-      selector: "[data-toggle-root]",
+      selector: "[data-playground-toggle-root]",
       summary: root?.dataset.state ?? "off",
       rows: [
         { label: "Exists", value: yesNo(root), category: "presence" },
@@ -849,8 +849,8 @@ export function RadioGroupScenarioAnatomy({
   scenario: RadioGroupScenario;
   onOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
 }) {
-  const root = document.querySelector<HTMLElement>("[data-radio-group-root]");
-  const selected = document.querySelector<HTMLElement>("[data-radio-root][data-state='checked']");
+  const root = document.querySelector<HTMLElement>("[data-playground-radio-group-root]");
+  const selected = document.querySelector<HTMLElement>("[data-playground-radio-root][data-state='checked']");
   const selectedValue = selected?.dataset.value ?? scenario.state.value;
   const input = document.querySelector<HTMLInputElement>(`input[name='notification-channel'][value='${selectedValue}']`);
   const itemSections: AnatomySection[] = [
@@ -858,12 +858,12 @@ export function RadioGroupScenarioAnatomy({
     { title: "Item: SMS", value: "sms", label: "SMS" },
     { title: "Item: Push", value: "push", label: "Push" },
   ].map(({ title, value: itemValue, label }): AnatomySection => {
-    const item = document.querySelector<HTMLElement>(`[data-radio-root][data-value='${itemValue}']`);
+    const item = document.querySelector<HTMLElement>(`[data-playground-radio-root][data-value='${itemValue}']`);
     const isDisabled = item?.matches(":disabled,[aria-disabled='true'],[data-disabled]") ?? false;
 
     return {
       title,
-      selector: `[data-radio-root][data-value='${itemValue}']`,
+      selector: `[data-playground-radio-root][data-value='${itemValue}']`,
       summary: item?.dataset.state ?? "not rendered",
       rows: [
         { label: "Exists", value: yesNo(item), category: "presence" },
@@ -878,7 +878,7 @@ export function RadioGroupScenarioAnatomy({
   const sections: AnatomySection[] = [
     {
       title: "Root",
-      selector: "[data-radio-group-root]",
+      selector: "[data-playground-radio-group-root]",
       summary: selectedValue,
       rows: [
         { label: "Exists", value: yesNo(root), category: "presence" },
@@ -909,19 +909,19 @@ export function ToggleGroupScenarioAnatomy({
   scenario: ToggleGroupScenario;
   onOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
 }) {
-  const root = document.querySelector<HTMLElement>("[data-toggle-group-root]");
+  const root = document.querySelector<HTMLElement>("[data-playground-toggle-group-root]");
   const value = Array.isArray(scenario.state.value) ? scenario.state.value.join(", ") : scenario.state.value;
   const itemSections: AnatomySection[] = [
     { title: "Item: Bold", value: "bold", label: "B" },
     { title: "Item: Italic", value: "italic", label: "I" },
     { title: "Item: Underline", value: "underline", label: "U" },
   ].map(({ title, value: itemValue, label }): AnatomySection => {
-    const item = document.querySelector<HTMLElement>(`[data-toggle-group-item][data-value='${itemValue}']`);
+    const item = document.querySelector<HTMLElement>(`[data-playground-toggle-group-item][data-value='${itemValue}']`);
     const isDisabled = item?.matches(":disabled,[aria-disabled='true'],[data-disabled]") ?? false;
 
     return {
       title,
-      selector: `[data-toggle-group-item][data-value='${itemValue}']`,
+      selector: `[data-playground-toggle-group-item][data-value='${itemValue}']`,
       summary: item?.dataset.state ?? "not rendered",
       rows: [
         { label: "Exists", value: yesNo(item), category: "presence" },
@@ -939,7 +939,7 @@ export function ToggleGroupScenarioAnatomy({
   const sections: AnatomySection[] = [
     {
       title: "Root",
-      selector: "[data-toggle-group-root]",
+      selector: "[data-playground-toggle-group-root]",
       summary: scenario.state.type,
       rows: [
         { label: "Exists", value: yesNo(root), category: "presence" },
@@ -1445,7 +1445,7 @@ function CheckboxRootExample({
     ...rootProps,
     className: "control-checkbox",
     "aria-label": "Email updates",
-    "data-checkbox-root": "",
+    "data-playground-checkbox-root": "",
     "data-playground-inspect": "",
     ...partProps("root", { propCheck, customSlot: customRootSlot }, "checkbox-root-custom"),
     disabled,
@@ -1493,7 +1493,7 @@ function SwitchRootExample({
     className: "control-switch",
     ariaLabel: "Notifications",
     "data-playground-inspect": "",
-    "data-switch-root": "",
+    "data-playground-switch-root": "",
     ...partProps("root", { propCheck, customSlot: customRootSlot }, "switch-root-custom"),
     disabled,
     readOnly,
@@ -1538,7 +1538,7 @@ function ToggleRootExample({
     className: "control-toggle",
     ariaLabel: "Bold",
     "data-playground-inspect": "",
-    "data-toggle-root": "",
+    "data-playground-toggle-root": "",
     ...partProps("root", { propCheck, customSlot: customRootSlot }, "toggle-root-custom"),
     disabled,
     ref: refCallback,
@@ -1576,7 +1576,7 @@ function RadioItem({
   const props = {
     className: "control-radio",
     "data-playground-inspect": "",
-    "data-radio-root": "",
+    "data-playground-radio-root": "",
     "data-value": value,
     ...partProps(`radio-${value}`, { propCheck, customSlot }, "radio-custom"),
     disabled,
@@ -1627,7 +1627,7 @@ function ToggleGroupItem({
   const props = {
     className: "control-toggle-group-item",
     "data-playground-inspect": "",
-    "data-toggle-group-item": "",
+    "data-playground-toggle-group-item": "",
     ...partProps("item", { propCheck, customSlot }, "toggle-group-item-custom"),
     ariaLabel,
     disabled,

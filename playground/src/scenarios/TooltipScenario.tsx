@@ -5,7 +5,7 @@ import {
   type AnatomySection,
 } from "../AnatomyPanel";
 import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup, partProps } from "../WorkbenchPrimitives";
-import { useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import type {
   TooltipArrowSize,
   TooltipAlign,
@@ -81,7 +81,7 @@ export function TooltipScenarioCanvas({
               ariaLabel={state.useAriaLabel ? "Save changes tooltip" : undefined}
               className="atom-tooltip-content"
               data-playground-inspect=""
-              data-tooltip-content=""
+              data-playground-tooltip-content=""
               {...partProps("content", { customSlot: state.customContentSlot, propCheck: state.propCheck }, "tooltip-content-custom")}
               side={state.side}
               align={state.align}
@@ -111,7 +111,7 @@ export function TooltipScenarioCanvas({
       <div
         className="popover-portal-target"
         data-playground-inspect=""
-        data-tooltip-portal-target=""
+        data-playground-tooltip-portal-target=""
         ref={setPortalContainer}
       />
       <Button.Root className="behind-dialog-button" tabIndex={-1}>
@@ -130,10 +130,10 @@ export function TooltipScenarioAnatomy({
   state: TooltipScenarioState;
   onOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
 }) {
-  const trigger = document.querySelector<HTMLElement>("[data-tooltip-trigger]");
-  const content = document.querySelector<HTMLElement>("[data-tooltip-content]");
-  const arrow = document.querySelector<HTMLElement>("[data-tooltip-arrow]");
-  const portalTarget = document.querySelector<HTMLElement>("[data-tooltip-portal-target]");
+  const trigger = document.querySelector<HTMLElement>("[data-playground-tooltip-trigger]");
+  const content = document.querySelector<HTMLElement>("[data-playground-tooltip-content]");
+  const arrow = document.querySelector<HTMLElement>("[data-playground-tooltip-arrow]");
+  const portalTarget = document.querySelector<HTMLElement>("[data-playground-tooltip-portal-target]");
 
   const sections: AnatomySection[] = [
     {
@@ -158,7 +158,7 @@ export function TooltipScenarioAnatomy({
     },
     {
       title: "Trigger",
-      selector: "[data-tooltip-trigger]",
+      selector: "[data-playground-tooltip-trigger]",
       summary: trigger?.getAttribute("aria-describedby") ? "described" : "closed",
       rows: [
         { label: "Exists", value: trigger ? "yes" : "no", category: "presence" },
@@ -181,7 +181,7 @@ export function TooltipScenarioAnatomy({
     },
     {
       title: "Content",
-      selector: "[data-tooltip-content]",
+      selector: "[data-playground-tooltip-content]",
       inactive: !content,
       summary: content?.dataset.state ?? "not rendered",
       rows: [
@@ -198,7 +198,7 @@ export function TooltipScenarioAnatomy({
     },
     {
       title: "Arrow",
-      selector: "[data-tooltip-arrow]",
+      selector: "[data-playground-tooltip-arrow]",
       inactive: !arrow,
       summary: arrow?.dataset.side ?? "not rendered",
       rows: [
@@ -351,7 +351,7 @@ function TooltipTriggerExample({
   const props = {
     className: "atom-button",
     "data-playground-inspect": "",
-    "data-tooltip-trigger": "",
+    "data-playground-tooltip-trigger": "",
     ...partProps("trigger", { customSlot, propCheck }, "tooltip-trigger-custom"),
     tabIndex: 0,
     onBlur,
@@ -396,7 +396,7 @@ function TooltipArrowExample({
   const sizeProps = getTooltipArrowSizeProps(size);
   const props = {
     className: "atom-popover-arrow",
-    "data-tooltip-arrow": "",
+    "data-playground-tooltip-arrow": "",
     ...partProps("arrow", { customSlot, propCheck }, "tooltip-arrow-custom"),
     ...sizeProps,
   };

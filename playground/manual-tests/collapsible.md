@@ -304,9 +304,8 @@ Disable `Disabled`; close Collapsible if open.
 
 ## Workbook Cleanup / Rewrite Notes
 
-□ Do not update `component-coverage.xlsx` until every protocol step passes.
-□ Rows 1-2 were implementation gaps before this draft: Prop Check and custom slot controls.
-□ Row 59 is playground-verifiable through `Block trigger`.
-□ Ref rows are playground-verifiable through Anatomy `Ref target` rows.
-□ `aria-controls` should be treated as a stable generated relationship when Content is rendered, not a literal id.
-□ `--content-height` should be verified as a pixel value related to content height, not a fixed literal.
+Workbook cleanup was completed after this protocol passed. Prop Check, custom
+slots, blocked-trigger behavior, and Ref coverage are represented by live
+playground evidence. `aria-controls` remains a generated relationship, and
+`--content-height` is verified as a rendered pixel value rather than a fixed
+literal. Every current Collapsible row is implemented, tested, and covered.

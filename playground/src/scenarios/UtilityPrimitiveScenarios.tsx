@@ -7,7 +7,6 @@ import { Modal, useModalContent } from "@flowstack-ui/atom/modal";
 import { Portal } from "@flowstack-ui/atom/portal";
 import { Pressable } from "@flowstack-ui/atom/pressable";
 import { Progress } from "@flowstack-ui/atom/progress";
-import { ScrollArea } from "@flowstack-ui/atom/scroll-area";
 import { Sidebar } from "@flowstack-ui/atom/sidebar";
 import { SkipLink } from "@flowstack-ui/atom/skip-link";
 import { SwipeableItem } from "@flowstack-ui/atom/swipeable-item";
@@ -2881,7 +2880,7 @@ function DirectionScenarioCanvas({ scenario }: { scenario: ReturnType<typeof use
         <div
           className="utility-direction-demo"
           dir={scenario.state.dir}
-          data-direction-region=""
+          data-playground-direction-region=""
           data-playground-inspect=""
           data-prop-check={scenario.state.propCheck ? "region" : undefined}
           onClick={() => scenario.actions.noteDirection(scenario.state.dir)}
@@ -2892,7 +2891,7 @@ function DirectionScenarioCanvas({ scenario }: { scenario: ReturnType<typeof use
               <div
                 className="utility-direction-nested"
                 dir={scenario.state.dir === "ltr" ? "rtl" : "ltr"}
-                data-direction-nested=""
+                data-playground-direction-nested=""
                 data-playground-inspect=""
                 data-prop-check={scenario.state.propCheck ? "nested" : undefined}
                 onClick={(event) => {
@@ -2913,7 +2912,7 @@ function DirectionScenarioCanvas({ scenario }: { scenario: ReturnType<typeof use
 function DirectionValueProbe({ label }: { label: string }) {
   const dir = useDirection();
   return (
-    <span data-direction-value="" data-playground-inspect="">
+    <span data-playground-direction-value="" data-playground-inspect="">
       {label}: {dir}
     </span>
   );
@@ -2939,7 +2938,7 @@ function ModalScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useModa
       {scenario.state.customContainer ? (
         <div
           className="utility-modal-container"
-          data-modal-container=""
+          data-playground-modal-container=""
           data-playground-inspect=""
           ref={setCustomContainerNode}
         />
@@ -2957,7 +2956,7 @@ function ModalScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useModa
 function ModalTriggerDemo({ scenario }: { scenario: ReturnType<typeof useModalScenario> }) {
   const triggerProps = {
     className: "atom-button",
-    "data-modal-trigger": "",
+    "data-playground-modal-trigger": "",
     "data-playground-inspect": "",
     onClick: scenario.state.blockTriggerEvent
       ? (event: MouseEvent<HTMLElement>) => {
@@ -3015,7 +3014,7 @@ function ModalScenarioContent({ scenario }: { scenario: ReturnType<typeof useMod
     <section
       {...contentProps}
       className="utility-modal-surface"
-      data-modal-surface=""
+      data-playground-modal-surface=""
       data-playground-inspect=""
       data-state={dataState}
       ref={presenceRef}
@@ -3024,7 +3023,7 @@ function ModalScenarioContent({ scenario }: { scenario: ReturnType<typeof useMod
     >
       <Modal.Title
         className="utility-modal-title"
-        data-modal-title=""
+        data-playground-modal-title=""
         data-playground-inspect=""
         {...partProps("title", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customTitleSlot }, "modal-title-custom")}
       >
@@ -3032,7 +3031,7 @@ function ModalScenarioContent({ scenario }: { scenario: ReturnType<typeof useMod
       </Modal.Title>
       <Modal.Description
         className="utility-modal-description"
-        data-modal-description=""
+        data-playground-modal-description=""
         data-playground-inspect=""
         {...partProps("description", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customDescriptionSlot }, "modal-description-custom")}
       >
@@ -3042,7 +3041,7 @@ function ModalScenarioContent({ scenario }: { scenario: ReturnType<typeof useMod
         open={scenario.state.nestedOpen}
         onOpenChange={scenario.actions.handleNestedOpenChange}
       >
-        <Modal.Trigger className="atom-button secondary" data-modal-nested-trigger="" data-playground-inspect="">
+        <Modal.Trigger className="atom-button secondary" data-playground-modal-nested-trigger="" data-playground-inspect="">
           Open Nested
         </Modal.Trigger>
         <Modal.Portal disabled>
@@ -3050,10 +3049,10 @@ function ModalScenarioContent({ scenario }: { scenario: ReturnType<typeof useMod
         </Modal.Portal>
       </Modal.Root>
       <div className="utility-modal-actions">
-        <button className="atom-button secondary" data-modal-cancel="" data-playground-inspect="" type="button" onClick={() => onClose("cancelClick")}>
+        <button className="atom-button secondary" data-playground-modal-cancel="" data-playground-inspect="" type="button" onClick={() => onClose("cancelClick")}>
           Cancel
         </button>
-        <button className="atom-button secondary" data-modal-action="" data-playground-inspect="" type="button" onClick={() => onClose("actionClick")}>
+        <button className="atom-button secondary" data-playground-modal-action="" data-playground-inspect="" type="button" onClick={() => onClose("actionClick")}>
           Save
         </button>
         <ModalCloseDemo scenario={scenario} />
@@ -3063,7 +3062,7 @@ function ModalScenarioContent({ scenario }: { scenario: ReturnType<typeof useMod
 
   if (isHidden) {
     return (
-      <div hidden aria-hidden="true" data-modal-hidden-wrapper="">
+      <div hidden aria-hidden="true" data-playground-modal-hidden-wrapper="">
         {content}
       </div>
     );
@@ -3074,7 +3073,7 @@ function ModalScenarioContent({ scenario }: { scenario: ReturnType<typeof useMod
       <div
         aria-hidden="true"
         className="utility-modal-overlay"
-        data-modal-overlay=""
+        data-playground-modal-overlay=""
         data-playground-inspect=""
         data-state={dataState}
         onClick={() => {
@@ -3089,7 +3088,7 @@ function ModalScenarioContent({ scenario }: { scenario: ReturnType<typeof useMod
 function ModalCloseDemo({ scenario }: { scenario: ReturnType<typeof useModalScenario> }) {
   const closeProps = {
     className: "atom-button secondary",
-    "data-modal-close": "",
+    "data-playground-modal-close": "",
     "data-playground-inspect": "",
     onClick: scenario.state.blockCloseEvent
       ? (event: MouseEvent<HTMLElement>) => {
@@ -3140,7 +3139,7 @@ function ModalNestedContent() {
       <div
         aria-hidden="true"
         className="utility-modal-overlay nested"
-        data-modal-nested-overlay=""
+        data-playground-modal-nested-overlay=""
         data-playground-inspect=""
         data-state={dataState}
         onClick={() => onClose("backdropClick")}
@@ -3148,14 +3147,14 @@ function ModalNestedContent() {
       <section
         {...contentProps}
         className="utility-modal-surface nested"
-        data-modal-nested-surface=""
+        data-playground-modal-nested-surface=""
         data-playground-inspect=""
         data-state={dataState}
         ref={presenceRef}
       >
         <h3 className="utility-modal-title">Nested modal</h3>
         <p className="utility-modal-description">Use Escape to confirm the nested layer closes before the parent.</p>
-        <Modal.Close className="atom-button secondary" data-modal-nested-close="" data-playground-inspect="">
+        <Modal.Close className="atom-button secondary" data-playground-modal-nested-close="" data-playground-inspect="">
           Close Nested
         </Modal.Close>
       </section>
@@ -3183,7 +3182,7 @@ function DrawerScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useDra
       {scenario.state.customContainer ? (
         <div
           className="utility-modal-container"
-          data-drawer-container=""
+          data-playground-drawer-container=""
           data-playground-inspect=""
           ref={setCustomContainerNode}
         />
@@ -3193,7 +3192,7 @@ function DrawerScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useDra
         <Drawer.Portal {...portalProps}>
           <Drawer.Overlay
             className="utility-drawer-overlay"
-            data-drawer-overlay=""
+            data-playground-drawer-overlay=""
             data-playground-inspect=""
             disabled={scenario.state.overlayDisabled}
             {...partProps("overlay", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customOverlaySlot }, "drawer-overlay-custom")}
@@ -3201,7 +3200,7 @@ function DrawerScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useDra
           <Drawer.Content
             ariaLabel="Project drawer"
             className={`utility-drawer-content ${scenario.state.placement}`}
-            data-drawer-content=""
+            data-playground-drawer-content=""
             data-playground-inspect=""
             placement={scenario.state.placement}
             {...partProps("content", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customContentSlot }, "drawer-content-custom")}
@@ -3209,7 +3208,7 @@ function DrawerScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useDra
             <Drawer.Title
               as={scenario.state.titleAs}
               className="utility-modal-title"
-              data-drawer-title=""
+              data-playground-drawer-title=""
               data-playground-inspect=""
               {...partProps("title", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customTitleSlot }, "drawer-title-custom")}
             >
@@ -3217,7 +3216,7 @@ function DrawerScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useDra
             </Drawer.Title>
             <Drawer.Description
               className="utility-modal-description"
-              data-drawer-description=""
+              data-playground-drawer-description=""
               data-playground-inspect=""
               {...partProps("description", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customDescriptionSlot }, "drawer-description-custom")}
             >
@@ -3228,21 +3227,21 @@ function DrawerScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useDra
               open={scenario.state.nestedOpen}
               onOpenChange={scenario.actions.handleNestedOpenChange}
             >
-              <Drawer.Trigger className="atom-button secondary" data-drawer-nested-trigger="" data-playground-inspect="">
+              <Drawer.Trigger className="atom-button secondary" data-playground-drawer-nested-trigger="" data-playground-inspect="">
                 Open Nested
               </Drawer.Trigger>
               <Drawer.Portal disabled>
                 <Drawer.Content
                   ariaLabel="Nested drawer"
                   className="utility-drawer-content bottom nested"
-                  data-drawer-nested-content=""
+                  data-playground-drawer-nested-content=""
                   data-playground-inspect=""
                   placement="bottom"
                 >
-                  <Drawer.Title className="utility-modal-title" data-drawer-nested-title="" data-playground-inspect="">
+                  <Drawer.Title className="utility-modal-title" data-playground-drawer-nested-title="" data-playground-inspect="">
                     Nested drawer
                   </Drawer.Title>
-                  <Drawer.Close className="atom-button" data-drawer-nested-close="" data-playground-inspect="">
+                  <Drawer.Close className="atom-button" data-playground-drawer-nested-close="" data-playground-inspect="">
                     Close Nested
                   </Drawer.Close>
                 </Drawer.Content>
@@ -3259,7 +3258,7 @@ function DrawerScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useDra
 function DrawerTriggerDemo({ scenario }: { scenario: ReturnType<typeof useDrawerScenario> }) {
   const triggerProps = {
     className: "atom-button",
-    "data-drawer-trigger": "",
+    "data-playground-drawer-trigger": "",
     "data-playground-inspect": "",
     onClick: scenario.state.blockTriggerEvent
       ? (event: MouseEvent<HTMLElement>) => {
@@ -3303,7 +3302,7 @@ function DrawerTriggerDemo({ scenario }: { scenario: ReturnType<typeof useDrawer
 function DrawerCloseDemo({ scenario }: { scenario: ReturnType<typeof useDrawerScenario> }) {
   const closeProps = {
     className: "atom-button",
-    "data-drawer-close": "",
+    "data-playground-drawer-close": "",
     "data-playground-inspect": "",
     onClick: scenario.state.blockCloseEvent
       ? (event: MouseEvent<HTMLElement>) => {
@@ -3347,7 +3346,7 @@ function DrawerCloseDemo({ scenario }: { scenario: ReturnType<typeof useDrawerSc
 function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMenubarScenario> }) {
   const rootProps = {
     className: "utility-menubar",
-    "data-menubar-root": "",
+    "data-playground-menubar-root": "",
     "data-playground-inspect": "",
     ...partProps("root", { customSlot: scenario.state.customRootSlot, propCheck: scenario.state.propCheck }, "menubar-root-custom"),
     loop: scenario.state.loop,
@@ -3372,7 +3371,7 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
       >
         <Menubar.Trigger
           className="utility-menubar-trigger"
-          data-menubar-trigger-file=""
+          data-playground-menubar-trigger-file=""
           data-playground-inspect=""
           disabled={scenario.state.fileDisabled}
           {...partProps("trigger", { customSlot: scenario.state.customTriggerSlot, propCheck: scenario.state.propCheck }, "menubar-trigger-custom")}
@@ -3382,7 +3381,7 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
         <Menubar.Content
           className="playground-menu-content"
           ariaLabel={scenario.state.contentAriaLabel ? "File menu" : undefined}
-          data-menubar-content-file=""
+          data-playground-menubar-content-file=""
           data-playground-inspect=""
           side={scenario.state.side}
           align={scenario.state.align}
@@ -3391,13 +3390,13 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
         >
           <Menubar.Group
             className="playground-menu-group"
-            data-menubar-group=""
+            data-playground-menubar-group=""
             {...partProps("group", { customSlot: scenario.state.customGroupSlot, propCheck: scenario.state.propCheck }, "menubar-group-custom")}
           >
             <Menubar.Item
               className="playground-menu-item"
               value="new"
-              data-menubar-item-new=""
+              data-playground-menubar-item-new=""
               data-playground-inspect=""
               {...partProps("item", { customSlot: scenario.state.customItemSlot, propCheck: scenario.state.propCheck }, "menubar-item-custom")}
               onSelect={() => scenario.actions.noteSelect("new")}
@@ -3407,7 +3406,7 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
             <Menubar.Item
               className="playground-menu-item"
               value="open"
-              data-menubar-item-open=""
+              data-playground-menubar-item-open=""
               onSelect={() => scenario.actions.noteSelect("open")}
             >
               Open project
@@ -3415,14 +3414,14 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
           </Menubar.Group>
           <Menubar.Separator
             className="playground-menu-separator"
-            data-menubar-separator=""
+            data-playground-menubar-separator=""
             {...partProps("separator", { customSlot: scenario.state.customSeparatorSlot, propCheck: scenario.state.propCheck }, "menubar-separator-custom")}
           />
           <Menubar.CheckboxItem
             className="playground-menu-item"
             checked={scenario.state.showGrid}
             value="grid"
-            data-menubar-checkbox=""
+            data-playground-menubar-checkbox=""
             data-playground-inspect=""
             {...partProps("checkbox-item", { customSlot: scenario.state.customCheckboxItemSlot, propCheck: scenario.state.propCheck }, "menubar-checkbox-item-custom")}
             onCheckedChange={scenario.actions.setShowGrid}
@@ -3430,13 +3429,13 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
             <span>Show grid</span>
             <span className="playground-menu-check" aria-hidden="true" />
           </Menubar.CheckboxItem>
-          <Menubar.Separator className="playground-menu-separator" data-menubar-sub-separator="" />
+          <Menubar.Separator className="playground-menu-separator" data-playground-menubar-sub-separator="" />
           <Menubar.Sub>
             <Menubar.SubTrigger
               className="playground-menu-item"
               value="share"
               textValue="Share"
-              data-menubar-sub-trigger=""
+              data-playground-menubar-sub-trigger=""
               data-playground-inspect=""
               {...partProps("sub-trigger", { customSlot: scenario.state.customSubTriggerSlot, propCheck: scenario.state.propCheck }, "menubar-sub-trigger-custom")}
             >
@@ -3447,14 +3446,14 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
               className="playground-menu-content playground-submenu-content"
               ariaLabel="Share"
               sideOffset={scenario.state.sideOffset}
-              data-menubar-sub-content=""
+              data-playground-menubar-sub-content=""
               data-playground-inspect=""
               {...partProps("sub-content", { customSlot: scenario.state.customSubContentSlot, propCheck: scenario.state.propCheck }, "menubar-sub-content-custom")}
             >
               <Menubar.Item
                 className="playground-menu-item"
                 value="copy-link"
-                data-menubar-sub-item=""
+                data-playground-menubar-sub-item=""
                 {...partProps("sub-item", { customSlot: scenario.state.customItemSlot, propCheck: scenario.state.propCheck }, "menubar-item-custom")}
                 onSelect={() => scenario.actions.noteSelect("copy-link")}
               >
@@ -3472,7 +3471,7 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
       >
         <Menubar.Trigger
           className="utility-menubar-trigger"
-          data-menubar-trigger-view=""
+          data-playground-menubar-trigger-view=""
           data-playground-inspect=""
           {...partProps("trigger-secondary", { customSlot: scenario.state.customTriggerSlot, propCheck: scenario.state.propCheck }, "menubar-trigger-custom")}
         >
@@ -3481,7 +3480,7 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
         <Menubar.Content
           className="playground-menu-content"
           ariaLabel={scenario.state.contentAriaLabel ? "View menu" : undefined}
-          data-menubar-content-view=""
+          data-playground-menubar-content-view=""
           data-playground-inspect=""
           side={scenario.state.side}
           align={scenario.state.align}
@@ -3491,21 +3490,21 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
           <Menubar.RadioGroup
             className="playground-menu-radio-group"
             value={scenario.state.density}
-            data-menubar-radio-group=""
+            data-playground-menubar-radio-group=""
             {...partProps("radio-group", { customSlot: scenario.state.customRadioGroupSlot, propCheck: scenario.state.propCheck }, "menubar-radio-group-custom")}
             onValueChange={scenario.actions.setDensity}
           >
             <Menubar.RadioItem
               className="playground-menu-item"
               value="compact"
-              data-menubar-radio=""
+              data-playground-menubar-radio=""
               data-playground-inspect=""
               {...partProps("radio-item", { customSlot: scenario.state.customRadioItemSlot, propCheck: scenario.state.propCheck }, "menubar-radio-item-custom")}
             >
               <span>Compact</span>
               <span className="playground-menu-radio" aria-hidden="true" />
             </Menubar.RadioItem>
-            <Menubar.RadioItem className="playground-menu-item" value="comfortable" data-menubar-radio="" data-playground-inspect="">
+            <Menubar.RadioItem className="playground-menu-item" value="comfortable" data-playground-menubar-radio="" data-playground-inspect="">
               <span>Comfortable</span>
               <span className="playground-menu-radio" aria-hidden="true" />
             </Menubar.RadioItem>
@@ -3529,7 +3528,7 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
 function SidebarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useSidebarScenario> }) {
   const rootProps = {
     className: `utility-sidebar ${scenario.state.side}`,
-    "data-sidebar-root": "",
+    "data-playground-sidebar-root": "",
     "data-playground-inspect": "",
     ...partProps("root", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customRootSlot }, "sidebar-custom"),
     collapsedState: scenario.state.collapsedState,
@@ -3580,7 +3579,7 @@ function SidebarPanelDemo({ scenario }: { scenario: ReturnType<typeof useSidebar
   const panelProps = {
     className: "utility-sidebar-panel",
     "aria-label": "Project navigation",
-    "data-sidebar-panel": "",
+    "data-playground-sidebar-panel": "",
     "data-playground-inspect": "",
     ...partProps("panel", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customPanelSlot }, "sidebar-panel-custom"),
   };
@@ -3621,7 +3620,7 @@ function SidebarPanelDemo({ scenario }: { scenario: ReturnType<typeof useSidebar
 function SidebarMainDemo({ scenario }: { scenario: ReturnType<typeof useSidebarScenario> }) {
   const mainProps = {
     className: "utility-sidebar-main",
-    "data-sidebar-main": "",
+    "data-playground-sidebar-main": "",
     "data-playground-inspect": "",
     ...partProps("main", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customMainSlot }, "sidebar-main-custom"),
   };
@@ -3656,7 +3655,7 @@ function SidebarMainDemo({ scenario }: { scenario: ReturnType<typeof useSidebarS
 function SidebarTriggerDemo({ scenario }: { scenario: ReturnType<typeof useSidebarScenario> }) {
   const triggerProps = {
     className: "atom-button",
-    "data-sidebar-trigger": "",
+    "data-playground-sidebar-trigger": "",
     "data-playground-inspect": "",
     ...partProps("trigger", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customTriggerSlot }, "sidebar-trigger-custom"),
   };
@@ -3688,7 +3687,7 @@ function SidebarTriggerDemo({ scenario }: { scenario: ReturnType<typeof useSideb
 function SwipeableItemScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useSwipeableItemScenario> }) {
   const rootProps = {
     className: "utility-swipeable",
-    "data-swipeable-root": "",
+    "data-playground-swipeable-root": "",
     "data-playground-inspect": "",
     ...partProps("root", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customRootSlot }, "swipeable-item-root-custom"),
     disabled: scenario.state.disabled,
@@ -3774,8 +3773,8 @@ function SwipeableContentExample({
 }) {
   const props = {
     className: "utility-swipe-content",
-    "data-canvas-focus": "",
-    "data-swipeable-content": "",
+    "data-playground-canvas-focus": "",
+    "data-playground-swipeable-content": "",
     "data-playground-inspect": "",
     ...partProps("content", { propCheck, customSlot }, "swipeable-item-content-custom"),
   };
@@ -3818,7 +3817,7 @@ function SwipeableActionsExample({
   propCheck: boolean;
   side: "start" | "end";
 }) {
-  const inspectAttr = side === "start" ? { "data-swipeable-actions-start": "" } : { "data-swipeable-actions-end": "" };
+  const inspectAttr = side === "start" ? { "data-playground-swipeable-actions-start": "" } : { "data-playground-swipeable-actions-end": "" };
   const props = {
     className,
     closeOnClick,
@@ -3865,7 +3864,7 @@ function ToastScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useToas
     ...partProps("viewport", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customViewportSlot }, "toast-viewport-custom"),
     className: "utility-toast-viewport",
     container: scenario.state.portalMode === "local" ? portalContainerRef.current : undefined,
-    "data-toast-viewport": "",
+    "data-playground-toast-viewport": "",
     "data-playground-inspect": "",
     portalDisabled: scenario.state.portalMode === "disabled",
     position: scenario.state.position,
@@ -3875,13 +3874,13 @@ function ToastScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useToas
   return (
     <Toast.Provider {...providerProps}>
       <div className="utility-primitive-stage">
-        <div ref={portalContainerRef} className="utility-toast-stage" data-toast-stage="" data-playground-inspect="">
+        <div ref={portalContainerRef} className="utility-toast-stage" data-playground-toast-stage="" data-playground-inspect="">
           {scenario.state.renderMode === "imperative" ? (
             <div className="utility-toast-command-row">
-              <button className="atom-button" type="button" data-toast-show="" data-playground-inspect="" onClick={scenario.actions.showToast}>
+              <button className="atom-button" type="button" data-playground-toast-show="" data-playground-inspect="" onClick={scenario.actions.showToast}>
                 Show Toast
               </button>
-              <button className="atom-button secondary" type="button" data-toast-dismiss-all="" data-playground-inspect="" onClick={scenario.actions.dismissAll}>
+              <button className="atom-button secondary" type="button" data-playground-toast-dismiss-all="" data-playground-inspect="" onClick={scenario.actions.dismissAll}>
                 Dismiss All
               </button>
               <ToastCountProbe />
@@ -3889,13 +3888,13 @@ function ToastScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useToas
           ) : (
             <>
               <div className="utility-toast-command-row">
-                <button className="atom-button" type="button" data-toast-show-declarative="" data-playground-inspect="" onClick={scenario.actions.showDeclarative}>
+                <button className="atom-button" type="button" data-playground-toast-show-declarative="" data-playground-inspect="" onClick={scenario.actions.showDeclarative}>
                   Show Declarative
                 </button>
-                <button className="atom-button secondary" type="button" data-toast-hide-declarative="" data-playground-inspect="" onClick={scenario.actions.hideDeclarative}>
+                <button className="atom-button secondary" type="button" data-playground-toast-hide-declarative="" data-playground-inspect="" onClick={scenario.actions.hideDeclarative}>
                   Hide Declarative
                 </button>
-                <button className="atom-button secondary" type="button" data-toast-dismiss-all="" data-playground-inspect="" onClick={scenario.actions.dismissAll}>
+                <button className="atom-button secondary" type="button" data-playground-toast-dismiss-all="" data-playground-inspect="" onClick={scenario.actions.dismissAll}>
                   Dismiss All
                 </button>
               </div>
@@ -3968,7 +3967,7 @@ function ToastScenarioRoot({
   const rootProps = {
     ...partProps("root", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customRootSlot }, "toast-custom"),
     className: "utility-toast",
-    "data-toast-root": "",
+    "data-playground-toast-root": "",
     "data-playground-inspect": "",
     closeButton: scenario.state.closeButton,
     dismissible: toastData ? undefined : scenario.state.dismissible,
@@ -4037,7 +4036,7 @@ function ToastScenarioTitle({ state, markRef, title }: { state: ToastScenarioSta
   const props = {
     ...partProps("title", { propCheck: state.propCheck, customSlot: state.customTitleSlot }, "toast-title-custom"),
     className: "utility-toast-title",
-    "data-toast-title": "",
+    "data-playground-toast-title": "",
     "data-playground-inspect": "",
     ref: markRef,
   } satisfies ToastTitlePartProps;
@@ -4062,7 +4061,7 @@ function ToastScenarioDescription({ state, markRef, description }: { state: Toas
   const props = {
     ...partProps("description", { propCheck: state.propCheck, customSlot: state.customDescriptionSlot }, "toast-description-custom"),
     className: "utility-toast-description",
-    "data-toast-description": "",
+    "data-playground-toast-description": "",
     "data-playground-inspect": "",
     ref: markRef,
   } satisfies ToastDescriptionPartProps;
@@ -4088,7 +4087,7 @@ function ToastScenarioAction({ state, markRef, label }: { state: ToastScenarioSt
     ...partProps("action", { propCheck: state.propCheck, customSlot: state.customActionSlot }, "toast-action-custom"),
     altText: "Undo change",
     className: "atom-button secondary",
-    "data-toast-action": "",
+    "data-playground-toast-action": "",
     "data-playground-inspect": "",
     ref: markRef,
   } satisfies ToastActionPartProps;
@@ -4114,7 +4113,7 @@ function ToastScenarioCancel({ state, markRef, label }: { state: ToastScenarioSt
     ...partProps("cancel", { propCheck: state.propCheck, customSlot: state.customCancelSlot }, "toast-cancel-custom"),
     altText: "Dismiss undo",
     className: "atom-button secondary",
-    "data-toast-cancel": "",
+    "data-playground-toast-cancel": "",
     "data-playground-inspect": "",
     ref: markRef,
   } satisfies ToastCancelPartProps;
@@ -4139,7 +4138,7 @@ function ToastScenarioClose({ state, markRef }: { state: ToastScenarioState; mar
     ...partProps("close", { propCheck: state.propCheck, customSlot: state.customCloseSlot }, "toast-close-custom"),
     "aria-label": "Dismiss notification",
     className: "atom-button secondary",
-    "data-toast-close": "",
+    "data-playground-toast-close": "",
     "data-playground-inspect": "",
     ref: markRef,
   } satisfies ToastClosePartProps;
@@ -4163,7 +4162,7 @@ function ToastCountProbe() {
   const toasts = useToastStore();
   const pausedCount = toasts.filter((toastData) => toastData.paused).length;
   return (
-    <span className="utility-toast-count" data-toast-count="" data-playground-inspect="">
+    <span className="utility-toast-count" data-playground-toast-count="" data-playground-inspect="">
       {toasts.length} {toasts.length === 1 ? "toast" : "toasts"}
       {pausedCount > 0 ? ` · ${pausedCount} paused` : ""}
     </span>
@@ -4180,7 +4179,7 @@ function ProgressScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useP
   const max = getProgressMax(scenario.state.mode);
   const props = {
     className: "utility-progress",
-    "data-progress-root": "",
+    "data-playground-progress-root": "",
     "data-playground-inspect": "",
     "aria-label": "Task progress",
     value,
@@ -4232,7 +4231,7 @@ function ProgressIndicatorExample({
 }) {
   const props = {
     className: "utility-progress-indicator",
-    "data-progress-indicator": "",
+    "data-playground-progress-indicator": "",
     "data-playground-inspect": "",
     ref: onRef,
     style: percent === null ? undefined : { width: `${percent}%` },
@@ -4258,7 +4257,7 @@ function PressableScenarioCanvas({ scenario }: { scenario: ReturnType<typeof use
   const getKeyName = (event: KeyboardEvent<HTMLElement>) => event.key === " " ? "Space" : event.key;
   const props = {
     className: "utility-pressable",
-    "data-pressable-root": "",
+    "data-playground-pressable-root": "",
     "data-playground-inspect": "",
     ...partProps("root", { customSlot: scenario.state.customRootSlot, propCheck: scenario.state.propCheck }, "pressable-root-custom"),
     disabled: scenario.state.disabled,
@@ -4332,14 +4331,14 @@ function PressableScenarioCanvas({ scenario }: { scenario: ReturnType<typeof use
 function VisuallyHiddenScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useVisuallyHiddenScenario> }) {
   const hiddenProps = {
     "data-playground-inspect": "",
-    "data-visually-hidden-root": "",
+    "data-playground-visually-hidden-root": "",
     ...partProps("root", { customSlot: scenario.state.customRootSlot, propCheck: scenario.state.propCheck }, "visually-hidden-custom"),
     style: scenario.state.customStyle ? { color: "red", width: 12 } : undefined,
   };
 
   return (
     <div className="utility-primitive-stage">
-      <button className="utility-visible-button" type="button" data-playground-inspect="" data-visible-button="">
+      <button className="utility-visible-button" type="button" data-playground-inspect="" data-playground-visible-button="">
         Search
         {scenario.state.composition === "asChild" ? (
           <VisuallyHidden.Root {...hiddenProps} asChild>
@@ -4364,7 +4363,7 @@ function SkipLinkScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useS
   const rootProps = {
     className: "utility-skip-link",
     "data-playground-inspect": "",
-    "data-skip-link-root": "",
+    "data-playground-skip-link-root": "",
     ...partProps("root", { customSlot: scenario.state.customRootSlot, propCheck: scenario.state.propCheck }, "skip-link-custom"),
     ref: scenario.actions.markRootRef,
     focusTarget: scenario.state.focusTarget,
@@ -4380,7 +4379,7 @@ function SkipLinkScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useS
   const targetProps = {
     className: "utility-skip-target",
     "data-playground-inspect": "",
-    "data-skip-link-target": "",
+    "data-playground-skip-link-target": "",
     ...partProps("target", { customSlot: scenario.state.customTargetSlot, propCheck: scenario.state.propCheck }, "skip-link-target-custom"),
     id: "playground-skip-target",
     ref: scenario.actions.markTargetRef,
@@ -4414,7 +4413,7 @@ function SkipLinkScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useS
 function CollapsibleScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useCollapsibleScenario> }) {
   const rootProps = {
     className: "utility-collapsible",
-    "data-collapsible-root": "",
+    "data-playground-collapsible-root": "",
     "data-playground-inspect": "",
     disabled: scenario.state.disabled,
     ref: scenario.actions.markRootRef,
@@ -4475,7 +4474,7 @@ function CollapsibleTriggerExample({
 }) {
   const props = {
     className: "utility-collapsible-trigger",
-    "data-collapsible-trigger": "",
+    "data-playground-collapsible-trigger": "",
     "data-playground-inspect": "",
     onClick: blockTriggerEvent ? onBlockedTrigger : undefined,
     ref: onRef,
@@ -4512,7 +4511,7 @@ function CollapsibleContentExample({
 }) {
   const props = {
     className: "utility-collapsible-content",
-    "data-collapsible-content": "",
+    "data-playground-collapsible-content": "",
     "data-playground-inspect": "",
     keepMounted,
     ref: onRef,
@@ -4538,7 +4537,7 @@ function ToolbarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useTo
   const rootProps = {
     className: `utility-toolbar ${scenario.state.orientation}`,
     "data-playground-inspect": "",
-    "data-toolbar-root": "",
+    "data-playground-toolbar-root": "",
     ariaLabel: "Formatting",
     ...getToolbarRootDirectionProps(scenario.state.directionMode),
     loop: scenario.state.loop,
@@ -4611,7 +4610,7 @@ function renderToolbarButton(
   const props = {
     className: "utility-toolbar-item",
     "data-playground-inspect": "",
-    [isUndo ? "data-toolbar-button" : "data-toolbar-disabled-button"]: "",
+    [isUndo ? "data-playground-toolbar-button" : "data-playground-toolbar-disabled-button"]: "",
     ...(isUndo ? { ref: scenario.actions.markButtonRef } : {}),
     ...(isUndo ? {} : { disabled: scenario.state.disabledButton }),
     onClick: () => scenario.actions.note(isUndo ? "undo clicked" : "redo clicked"),
@@ -4650,7 +4649,7 @@ function renderToolbarLink(scenario: ReturnType<typeof useToolbarScenario>) {
   const props = {
     className: "utility-toolbar-item",
     "data-playground-inspect": "",
-    "data-toolbar-link": "",
+    "data-playground-toolbar-link": "",
     disabled: scenario.state.disabledLink,
     href: "#toolbar-link",
     ref: scenario.actions.markLinkRef,
@@ -4686,7 +4685,7 @@ function renderToolbarSeparator(scenario: ReturnType<typeof useToolbarScenario>)
   const props = {
     className: "utility-toolbar-separator",
     "data-playground-inspect": "",
-    "data-toolbar-separator": "",
+    "data-playground-toolbar-separator": "",
     orientation: scenario.state.orientation === "horizontal" ? "vertical" as const : "horizontal" as const,
     ...partProps("separator", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customSeparatorSlot }, "toolbar-separator-custom"),
   };
@@ -4716,7 +4715,7 @@ function renderToolbarToggleGroup(
   const props = {
     className: "utility-toolbar-toggle-group",
     "data-playground-inspect": "",
-    "data-toolbar-toggle-group": "",
+    "data-playground-toolbar-toggle-group": "",
     type: scenario.state.toggleType,
     disabled: scenario.state.disabledToggleGroup,
     onValueChange: scenario.actions.handleValueChange,
@@ -4764,7 +4763,7 @@ function renderToolbarToggleItem(
   const props = {
     className: "utility-toolbar-item",
     "data-playground-inspect": "",
-    [isBold ? "data-toolbar-toggle-item" : "data-toolbar-toggle-item-secondary"]: "",
+    [isBold ? "data-playground-toolbar-toggle-item" : "data-playground-toolbar-toggle-item-secondary"]: "",
     ...(isBold ? { ref: scenario.actions.markToggleItemRef } : {}),
     ...(isBold ? {} : { disabled: scenario.state.disabledToggleItem }),
     value,
@@ -4831,7 +4830,7 @@ function PortalScenarioCanvas({ scenario }: { scenario: ReturnType<typeof usePor
     <div
       className={`utility-portal-content${bodyPortal ? " body-portal" : ""}`}
       data-playground-inspect=""
-      data-portal-content=""
+      data-playground-portal-content=""
       data-prop-check={scenario.state.propCheck ? "content" : undefined}
       role="region"
       aria-label="Portaled content preview"
@@ -4847,8 +4846,8 @@ function PortalScenarioCanvas({ scenario }: { scenario: ReturnType<typeof usePor
 
   return (
     <div className="utility-primitive-stage">
-      <div className="utility-portal-demo" data-playground-inspect="" data-portal-stage="">
-        <div className="utility-portal-inline-zone" data-playground-inspect="" data-portal-inline-zone="">
+      <div className="utility-portal-demo" data-playground-inspect="" data-playground-portal-stage="">
+        <div className="utility-portal-inline-zone" data-playground-inspect="" data-playground-portal-inline-zone="">
           Inline zone
           <Portal
             container={scenario.state.customContainer ? container : undefined}
@@ -4860,7 +4859,7 @@ function PortalScenarioCanvas({ scenario }: { scenario: ReturnType<typeof usePor
         <div
           className="utility-portal-container"
           data-playground-inspect=""
-          data-portal-custom-container=""
+          data-playground-portal-custom-container=""
           ref={setContainer}
         >
           Custom container
@@ -4886,7 +4885,7 @@ function CollectionScenarioCanvas({ scenario }: { scenario: ReturnType<typeof us
 
   return (
     <div className="utility-primitive-stage">
-      <div className="utility-collection-demo" data-collection-demo="" data-playground-inspect="">
+      <div className="utility-collection-demo" data-playground-collection-demo="" data-playground-inspect="">
         <div className="utility-collection-actions">
           <button className="utility-visible-button" type="button" onClick={() => scenario.actions.first()}>
             First
@@ -4901,7 +4900,7 @@ function CollectionScenarioCanvas({ scenario }: { scenario: ReturnType<typeof us
             Last
           </button>
         </div>
-        <div className="utility-collection-items" data-collection-items="" data-playground-inspect="">
+        <div className="utility-collection-items" data-playground-collection-items="" data-playground-inspect="">
           {items.map((item, index) => (
             <CollectionDemoItem
               active={activeIndex === index}
@@ -4958,7 +4957,7 @@ function CollectionDemoItem({
       aria-current={active ? "true" : undefined}
       className="utility-collection-item"
       data-active={active ? "" : undefined}
-      data-collection-item={value}
+      data-playground-collection-item={value}
       data-disabled={disabled ? "" : undefined}
       data-playground-inspect=""
       disabled={disabled}
@@ -4977,7 +4976,7 @@ function VirtualizerScenarioCanvas({ scenario }: { scenario: ReturnType<typeof u
 
   return (
     <div className="utility-primitive-stage">
-      <div className="utility-virtualizer-demo" data-playground-inspect="" data-virtualizer-demo="">
+      <div className="utility-virtualizer-demo" data-playground-inspect="" data-playground-virtualizer-demo="">
         <div className="utility-collection-actions">
           <button className="utility-visible-button" type="button" onClick={() => scenario.actions.scrollToOffset(0)}>
             Top
@@ -4992,7 +4991,7 @@ function VirtualizerScenarioCanvas({ scenario }: { scenario: ReturnType<typeof u
         <div
           className="utility-virtualizer-scroll"
           data-playground-inspect=""
-          data-virtualizer-scroll=""
+          data-playground-virtualizer-scroll=""
           ref={(element) => {
             virtualizer.scrollRef(element);
           }}
@@ -5002,7 +5001,7 @@ function VirtualizerScenarioCanvas({ scenario }: { scenario: ReturnType<typeof u
             aria-label="Virtualized rows"
             className="utility-virtualizer-spacer"
             data-playground-inspect=""
-            data-virtualizer-spacer=""
+            data-playground-virtualizer-spacer=""
             role="list"
             style={{ height: virtualizer.totalSize }}
           >
@@ -5015,7 +5014,7 @@ function VirtualizerScenarioCanvas({ scenario }: { scenario: ReturnType<typeof u
                 data-playground-inspect=""
                 data-size={Math.round(virtualItem.size)}
                 data-start={Math.round(virtualItem.start)}
-                data-virtualizer-item=""
+                data-playground-virtualizer-item=""
                 key={virtualItem.key}
                 ref={(element) => {
                   virtualizer.getItemRef(virtualItem.index)(element);
@@ -5044,12 +5043,12 @@ function getUtilityPrimitiveSections(
   scenarios: UtilityPrimitiveScenarios,
 ): AnatomySection[] {
   if (scenarioId === "direction") {
-    const region = document.querySelector<HTMLElement>("[data-direction-region]");
-    const nested = document.querySelector<HTMLElement>("[data-direction-nested]");
+    const region = document.querySelector<HTMLElement>("[data-playground-direction-region]");
+    const nested = document.querySelector<HTMLElement>("[data-playground-direction-nested]");
     return [
       {
         title: "Provider",
-        selector: "[data-direction-region]",
+        selector: "[data-playground-direction-region]",
         summary: scenarios.direction.state.dir,
         rows: [
           { label: "Renders wrapper", value: "false", category: "presence" },
@@ -5059,7 +5058,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Nested Provider",
-        selector: "[data-direction-nested]",
+        selector: "[data-playground-direction-nested]",
         inactive: !nested,
         summary: nested?.dir ?? "not rendered",
         rows: [
@@ -5071,12 +5070,12 @@ function getUtilityPrimitiveSections(
   }
 
   if (scenarioId === "modal") {
-    const trigger = document.querySelector<HTMLElement>("[data-modal-trigger]");
-    const overlay = document.querySelector<HTMLElement>("[data-modal-overlay]");
-    const surface = document.querySelector<HTMLElement>("[data-modal-surface]");
-    const title = document.querySelector<HTMLElement>("[data-modal-title]");
-    const description = document.querySelector<HTMLElement>("[data-modal-description]");
-    const close = document.querySelector<HTMLElement>("[data-modal-close]");
+    const trigger = document.querySelector<HTMLElement>("[data-playground-modal-trigger]");
+    const overlay = document.querySelector<HTMLElement>("[data-playground-modal-overlay]");
+    const surface = document.querySelector<HTMLElement>("[data-playground-modal-surface]");
+    const title = document.querySelector<HTMLElement>("[data-playground-modal-title]");
+    const description = document.querySelector<HTMLElement>("[data-playground-modal-description]");
+    const close = document.querySelector<HTMLElement>("[data-playground-modal-close]");
     return [
       {
         title: "Root",
@@ -5093,7 +5092,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Trigger",
-        selector: "[data-modal-trigger]",
+        selector: "[data-playground-modal-trigger]",
         summary: trigger?.dataset.state ?? "not rendered",
         rows: [
           { label: "Exists", value: bool(!!trigger), category: "presence" },
@@ -5105,10 +5104,10 @@ function getUtilityPrimitiveSections(
       {
         title: "Portal",
         inactive: !surface,
-        summary: surface?.parentElement === document.body ? "body" : surface?.parentElement?.matches("[data-modal-container]") ? "custom container" : surface ? "inline" : "not rendered",
+        summary: surface?.parentElement === document.body ? "body" : surface?.parentElement?.matches("[data-playground-modal-container]") ? "custom container" : surface ? "inline" : "not rendered",
         rows: [
           { label: "Content rendered", value: bool(!!surface), category: "presence" },
-          { label: "Parent", value: surface?.parentElement === document.body ? "body" : surface?.parentElement?.matches("[data-modal-container]") ? "custom container" : surface?.parentElement?.tagName.toLowerCase() ?? "not rendered", category: "behavior" },
+          { label: "Parent", value: surface?.parentElement === document.body ? "body" : surface?.parentElement?.matches("[data-playground-modal-container]") ? "custom container" : surface?.parentElement?.tagName.toLowerCase() ?? "not rendered", category: "behavior" },
           { label: "Disable portal", value: bool(scenarios.modal.state.portalDisabled), category: "behavior" },
           { label: "Custom container", value: bool(scenarios.modal.state.customContainer), category: "behavior" },
           { label: "Backdrop rendered", value: bool(!!overlay), category: "presence" },
@@ -5116,12 +5115,12 @@ function getUtilityPrimitiveSections(
         groups: [
           {
             title: "Content DOM",
-            selector: "[data-modal-surface]",
+            selector: "[data-playground-modal-surface]",
             rows: [{ label: "Exists", value: bool(!!surface), category: "presence" }],
           },
           {
             title: "Backdrop DOM",
-            selector: "[data-modal-overlay]",
+            selector: "[data-playground-modal-overlay]",
             rows: [
               { label: "Exists", value: bool(!!overlay), category: "presence" },
               { label: "Backdrop closes", value: bool(scenarios.modal.state.closeOnBackdropClick), category: "behavior" },
@@ -5131,7 +5130,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Title",
-        selector: "[data-modal-title]",
+        selector: "[data-playground-modal-title]",
         inactive: !title,
         summary: title?.id ?? "not rendered",
         rows: [
@@ -5140,7 +5139,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Description",
-        selector: "[data-modal-description]",
+        selector: "[data-playground-modal-description]",
         inactive: !description,
         summary: description?.id ?? "not rendered",
         rows: [
@@ -5149,7 +5148,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Close",
-        selector: "[data-modal-close]",
+        selector: "[data-playground-modal-close]",
         inactive: !close,
         summary: close?.tagName.toLowerCase() ?? "not rendered",
         rows: [
@@ -5162,14 +5161,14 @@ function getUtilityPrimitiveSections(
   }
 
   if (scenarioId === "drawer") {
-    const container = document.querySelector<HTMLElement>("[data-drawer-container]");
-    const trigger = document.querySelector<HTMLElement>("[data-drawer-trigger]");
-    const overlay = document.querySelector<HTMLElement>("[data-drawer-overlay]");
-    const content = document.querySelector<HTMLElement>("[data-drawer-content]");
-    const title = document.querySelector<HTMLElement>("[data-drawer-title]");
-    const description = document.querySelector<HTMLElement>("[data-drawer-description]");
-    const close = document.querySelector<HTMLElement>("[data-drawer-close]");
-    const nestedContent = document.querySelector<HTMLElement>("[data-drawer-nested-content]");
+    const container = document.querySelector<HTMLElement>("[data-playground-drawer-container]");
+    const trigger = document.querySelector<HTMLElement>("[data-playground-drawer-trigger]");
+    const overlay = document.querySelector<HTMLElement>("[data-playground-drawer-overlay]");
+    const content = document.querySelector<HTMLElement>("[data-playground-drawer-content]");
+    const title = document.querySelector<HTMLElement>("[data-playground-drawer-title]");
+    const description = document.querySelector<HTMLElement>("[data-playground-drawer-description]");
+    const close = document.querySelector<HTMLElement>("[data-playground-drawer-close]");
+    const nestedContent = document.querySelector<HTMLElement>("[data-playground-drawer-nested-content]");
     const contentParent = content?.parentElement;
     const contentParentLabel = !content
       ? "not rendered"
@@ -5183,7 +5182,7 @@ function getUtilityPrimitiveSections(
     return [
       {
         title: "Root",
-        selector: "[data-drawer-trigger]",
+        selector: "[data-playground-drawer-trigger]",
         summary: scenarios.drawer.state.controlled ? "controlled" : "uncontrolled",
         rows: [
           { label: "Mode", value: scenarios.drawer.state.controlled ? "controlled" : "uncontrolled", category: "state" },
@@ -5197,7 +5196,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Trigger",
-        selector: "[data-drawer-trigger]",
+        selector: "[data-playground-drawer-trigger]",
         summary: trigger?.dataset.state ?? "not rendered",
         rows: [
           { label: "Exists", value: bool(!!trigger), category: "presence" },
@@ -5207,7 +5206,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Portal",
-        selector: "[data-drawer-container]",
+        selector: "[data-playground-drawer-container]",
         inactive: !container,
         summary: contentParentLabel,
         rows: [
@@ -5222,7 +5221,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Overlay",
-        selector: "[data-drawer-overlay]",
+        selector: "[data-playground-drawer-overlay]",
         inactive: !overlay,
         summary: overlay?.dataset.state ?? "not rendered",
         rows: [
@@ -5232,7 +5231,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Content",
-        selector: "[data-drawer-content]",
+        selector: "[data-playground-drawer-content]",
         inactive: !content,
         summary: content?.dataset.placement ?? "not rendered",
         rows: [
@@ -5245,7 +5244,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Title",
-        selector: "[data-drawer-title]",
+        selector: "[data-playground-drawer-title]",
         inactive: !title,
         summary: title?.tagName.toLowerCase() ?? "not rendered",
         rows: [
@@ -5253,10 +5252,10 @@ function getUtilityPrimitiveSections(
           { label: "Element", value: scenarios.drawer.state.titleAs, category: "identity" },
         ],
       },
-      { title: "Description", selector: "[data-drawer-description]", inactive: !description, summary: description?.id ?? "not rendered", rows: [{ label: "Exists", value: bool(!!description), category: "presence" }] },
+      { title: "Description", selector: "[data-playground-drawer-description]", inactive: !description, summary: description?.id ?? "not rendered", rows: [{ label: "Exists", value: bool(!!description), category: "presence" }] },
       {
         title: "Close",
-        selector: "[data-drawer-close]",
+        selector: "[data-playground-drawer-close]",
         inactive: !close,
         summary: close?.tagName.toLowerCase() ?? "not rendered",
         rows: [
@@ -5269,22 +5268,22 @@ function getUtilityPrimitiveSections(
   }
 
   if (scenarioId === "menubar") {
-    const root = document.querySelector<HTMLElement>("[data-menubar-root]");
-    const fileTrigger = document.querySelector<HTMLElement>("[data-menubar-trigger-file]");
-    const viewTrigger = document.querySelector<HTMLElement>("[data-menubar-trigger-view]");
-    const fileContent = document.querySelector<HTMLElement>("[data-menubar-content-file]");
-    const viewContent = document.querySelector<HTMLElement>("[data-menubar-content-view]");
-    const group = document.querySelector<HTMLElement>("[data-menubar-group]");
-    const item = document.querySelector<HTMLElement>("[data-menubar-item-new]");
-    const checked = document.querySelector<HTMLElement>("[data-menubar-checkbox]");
-    const separator = document.querySelector<HTMLElement>("[data-menubar-separator]");
-    const subTrigger = document.querySelector<HTMLElement>("[data-menubar-sub-trigger]");
-    const subContent = document.querySelector<HTMLElement>("[data-menubar-sub-content]");
-    const radio = document.querySelector<HTMLElement>("[data-menubar-radio][data-checked]");
+    const root = document.querySelector<HTMLElement>("[data-playground-menubar-root]");
+    const fileTrigger = document.querySelector<HTMLElement>("[data-playground-menubar-trigger-file]");
+    const viewTrigger = document.querySelector<HTMLElement>("[data-playground-menubar-trigger-view]");
+    const fileContent = document.querySelector<HTMLElement>("[data-playground-menubar-content-file]");
+    const viewContent = document.querySelector<HTMLElement>("[data-playground-menubar-content-view]");
+    const group = document.querySelector<HTMLElement>("[data-playground-menubar-group]");
+    const item = document.querySelector<HTMLElement>("[data-playground-menubar-item-new]");
+    const checked = document.querySelector<HTMLElement>("[data-playground-menubar-checkbox]");
+    const separator = document.querySelector<HTMLElement>("[data-playground-menubar-separator]");
+    const subTrigger = document.querySelector<HTMLElement>("[data-playground-menubar-sub-trigger]");
+    const subContent = document.querySelector<HTMLElement>("[data-playground-menubar-sub-content]");
+    const radio = document.querySelector<HTMLElement>("[data-playground-menubar-radio][data-checked]");
     return [
       {
         title: "Root",
-        selector: "[data-menubar-root]",
+        selector: "[data-playground-menubar-root]",
         summary: scenarios.menubar.state.value ?? "closed",
         rows: [
           { label: "Exists", value: bool(!!root), category: "presence" },
@@ -5311,12 +5310,12 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Trigger",
-        selector: "[data-menubar-trigger-file]",
+        selector: "[data-playground-menubar-trigger-file]",
         summary: fileTrigger?.dataset.state ?? "not rendered",
         groups: [
           {
             title: "File Trigger",
-            selector: "[data-menubar-trigger-file]",
+            selector: "[data-playground-menubar-trigger-file]",
             rows: [
               { label: "Exists", value: bool(!!fileTrigger), category: "presence" },
               { label: "Disabled", value: bool(scenarios.menubar.state.fileDisabled), category: "state" },
@@ -5329,7 +5328,7 @@ function getUtilityPrimitiveSections(
           },
           {
             title: "View Trigger",
-            selector: "[data-menubar-trigger-view]",
+            selector: "[data-playground-menubar-trigger-view]",
             rows: [
               { label: "Exists", value: bool(!!viewTrigger), category: "presence" },
               { label: "role", value: viewTrigger?.getAttribute("role") ?? "not rendered", category: "aria" },
@@ -5341,13 +5340,13 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Content",
-        selector: "[data-menubar-content-file]",
+        selector: "[data-playground-menubar-content-file]",
         inactive: !fileContent,
         summary: fileContent?.dataset.state ?? "not rendered",
         groups: [
           {
             title: "File Content",
-            selector: "[data-menubar-content-file]",
+            selector: "[data-playground-menubar-content-file]",
             rows: [
               { label: "Exists", value: bool(!!fileContent), category: "presence" },
               { label: "role", value: fileContent?.getAttribute("role") ?? "not rendered", category: "aria" },
@@ -5361,7 +5360,7 @@ function getUtilityPrimitiveSections(
           },
           {
             title: "View Content",
-            selector: "[data-menubar-content-view]",
+            selector: "[data-playground-menubar-content-view]",
             rows: [
               { label: "Exists", value: bool(!!viewContent), category: "presence" },
               { label: "role", value: viewContent?.getAttribute("role") ?? "not rendered", category: "aria" },
@@ -5370,15 +5369,15 @@ function getUtilityPrimitiveSections(
           },
         ],
       },
-      { title: "Group", selector: "[data-menubar-group]", inactive: !group, summary: group?.getAttribute("role") ?? "not rendered", rows: [{ label: "Exists", value: bool(!!group), category: "presence" }, { label: "role", value: group?.getAttribute("role") ?? "not rendered", category: "aria" }, { label: "data-slot", value: group?.dataset.slot ?? "not rendered", category: "data" }] },
-      { title: "Item", selector: "[data-menubar-item-new]", inactive: !item, summary: item?.dataset.value ?? "not rendered", rows: [{ label: "Exists", value: bool(!!item), category: "presence" }, { label: "role", value: item?.getAttribute("role") ?? "not rendered", category: "aria" }, { label: "data-value", value: item?.dataset.value ?? "not rendered", category: "data" }, { label: "data-slot", value: item?.dataset.slot ?? "not rendered", category: "data" }] },
-      { title: "Checkbox Item", selector: "[data-menubar-checkbox]", inactive: !checked, summary: scenarios.menubar.state.showGrid ? "checked" : "unchecked", rows: [{ label: "Exists", value: bool(!!checked), category: "presence" }, { label: "Checked", value: bool(scenarios.menubar.state.showGrid), category: "state" }, { label: "aria-checked", value: checked?.getAttribute("aria-checked") ?? "not rendered", category: "aria" }, { label: "data-slot", value: checked?.dataset.slot ?? "not rendered", category: "data" }] },
-      { title: "Radio Group", selector: "[data-menubar-radio-group]", inactive: !radio, summary: scenarios.menubar.state.density, rows: [{ label: "Value", value: scenarios.menubar.state.density, category: "state" }] },
-      { title: "Radio Item", selector: "[data-menubar-radio][data-checked]", inactive: !radio, summary: scenarios.menubar.state.density, rows: [{ label: "Exists", value: bool(!!radio), category: "presence" }, { label: "Value", value: scenarios.menubar.state.density, category: "state" }, { label: "aria-checked", value: radio?.getAttribute("aria-checked") ?? "not rendered", category: "aria" }, { label: "data-slot", value: radio?.dataset.slot ?? "not rendered", category: "data" }] },
-      { title: "Separator", selector: "[data-menubar-separator]", inactive: !separator, summary: separator?.getAttribute("role") ?? "not rendered", rows: [{ label: "Exists", value: bool(!!separator), category: "presence" }, { label: "role", value: separator?.getAttribute("role") ?? "not rendered", category: "aria" }, { label: "data-slot", value: separator?.dataset.slot ?? "not rendered", category: "data" }] },
+      { title: "Group", selector: "[data-playground-menubar-group]", inactive: !group, summary: group?.getAttribute("role") ?? "not rendered", rows: [{ label: "Exists", value: bool(!!group), category: "presence" }, { label: "role", value: group?.getAttribute("role") ?? "not rendered", category: "aria" }, { label: "data-slot", value: group?.dataset.slot ?? "not rendered", category: "data" }] },
+      { title: "Item", selector: "[data-playground-menubar-item-new]", inactive: !item, summary: item?.dataset.value ?? "not rendered", rows: [{ label: "Exists", value: bool(!!item), category: "presence" }, { label: "role", value: item?.getAttribute("role") ?? "not rendered", category: "aria" }, { label: "data-value", value: item?.dataset.value ?? "not rendered", category: "data" }, { label: "data-slot", value: item?.dataset.slot ?? "not rendered", category: "data" }] },
+      { title: "Checkbox Item", selector: "[data-playground-menubar-checkbox]", inactive: !checked, summary: scenarios.menubar.state.showGrid ? "checked" : "unchecked", rows: [{ label: "Exists", value: bool(!!checked), category: "presence" }, { label: "Checked", value: bool(scenarios.menubar.state.showGrid), category: "state" }, { label: "aria-checked", value: checked?.getAttribute("aria-checked") ?? "not rendered", category: "aria" }, { label: "data-slot", value: checked?.dataset.slot ?? "not rendered", category: "data" }] },
+      { title: "Radio Group", selector: "[data-playground-menubar-radio-group]", inactive: !radio, summary: scenarios.menubar.state.density, rows: [{ label: "Value", value: scenarios.menubar.state.density, category: "state" }] },
+      { title: "Radio Item", selector: "[data-playground-menubar-radio][data-checked]", inactive: !radio, summary: scenarios.menubar.state.density, rows: [{ label: "Exists", value: bool(!!radio), category: "presence" }, { label: "Value", value: scenarios.menubar.state.density, category: "state" }, { label: "aria-checked", value: radio?.getAttribute("aria-checked") ?? "not rendered", category: "aria" }, { label: "data-slot", value: radio?.dataset.slot ?? "not rendered", category: "data" }] },
+      { title: "Separator", selector: "[data-playground-menubar-separator]", inactive: !separator, summary: separator?.getAttribute("role") ?? "not rendered", rows: [{ label: "Exists", value: bool(!!separator), category: "presence" }, { label: "role", value: separator?.getAttribute("role") ?? "not rendered", category: "aria" }, { label: "data-slot", value: separator?.dataset.slot ?? "not rendered", category: "data" }] },
       { title: "Sub", inactive: !subTrigger, summary: subTrigger?.dataset.state ?? "not rendered", rows: [{ label: "Exists", value: bool(!!subTrigger), category: "presence" }] },
-      { title: "Sub Trigger", selector: "[data-menubar-sub-trigger]", inactive: !subTrigger, summary: subTrigger?.dataset.state ?? "not rendered", rows: [{ label: "Exists", value: bool(!!subTrigger), category: "presence" }, { label: "aria-expanded", value: subTrigger?.getAttribute("aria-expanded") ?? "not rendered", category: "aria" }, { label: "data-state", value: subTrigger?.dataset.state ?? "not rendered", category: "data" }, { label: "data-slot", value: subTrigger?.dataset.slot ?? "not rendered", category: "data" }] },
-      { title: "Sub Content", selector: "[data-menubar-sub-content]", inactive: !subContent, summary: subContent?.dataset.state ?? "not rendered", rows: [{ label: "Exists", value: bool(!!subContent), category: "presence" }, { label: "role", value: subContent?.getAttribute("role") ?? "not rendered", category: "aria" }, { label: "aria-label", value: subContent?.getAttribute("aria-label") ?? "not rendered", category: "aria" }, { label: "data-state", value: subContent?.dataset.state ?? "not rendered", category: "data" }, { label: "data-side", value: subContent?.dataset.side ?? "not rendered", category: "data" }, { label: "data-slot", value: subContent?.dataset.slot ?? "not rendered", category: "data" }] },
+      { title: "Sub Trigger", selector: "[data-playground-menubar-sub-trigger]", inactive: !subTrigger, summary: subTrigger?.dataset.state ?? "not rendered", rows: [{ label: "Exists", value: bool(!!subTrigger), category: "presence" }, { label: "aria-expanded", value: subTrigger?.getAttribute("aria-expanded") ?? "not rendered", category: "aria" }, { label: "data-state", value: subTrigger?.dataset.state ?? "not rendered", category: "data" }, { label: "data-slot", value: subTrigger?.dataset.slot ?? "not rendered", category: "data" }] },
+      { title: "Sub Content", selector: "[data-playground-menubar-sub-content]", inactive: !subContent, summary: subContent?.dataset.state ?? "not rendered", rows: [{ label: "Exists", value: bool(!!subContent), category: "presence" }, { label: "role", value: subContent?.getAttribute("role") ?? "not rendered", category: "aria" }, { label: "aria-label", value: subContent?.getAttribute("aria-label") ?? "not rendered", category: "aria" }, { label: "data-state", value: subContent?.dataset.state ?? "not rendered", category: "data" }, { label: "data-side", value: subContent?.dataset.side ?? "not rendered", category: "data" }, { label: "data-slot", value: subContent?.dataset.slot ?? "not rendered", category: "data" }] },
     ];
   }
 
@@ -5387,14 +5386,14 @@ function getUtilityPrimitiveSections(
   }
 
   if (scenarioId === "sidebar") {
-    const root = document.querySelector<HTMLElement>("[data-sidebar-root]");
-    const panel = document.querySelector<HTMLElement>("[data-sidebar-panel]");
-    const main = document.querySelector<HTMLElement>("[data-sidebar-main]");
-    const trigger = document.querySelector<HTMLElement>("[data-sidebar-trigger]");
+    const root = document.querySelector<HTMLElement>("[data-playground-sidebar-root]");
+    const panel = document.querySelector<HTMLElement>("[data-playground-sidebar-panel]");
+    const main = document.querySelector<HTMLElement>("[data-playground-sidebar-main]");
+    const trigger = document.querySelector<HTMLElement>("[data-playground-sidebar-trigger]");
     return [
       {
         title: "Root",
-        selector: "[data-sidebar-root]",
+        selector: "[data-playground-sidebar-root]",
         summary: root?.dataset.state ?? "not rendered",
         rows: [
           { label: "Exists", value: bool(!!root), category: "presence" },
@@ -5408,7 +5407,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Trigger",
-        selector: "[data-sidebar-trigger]",
+        selector: "[data-playground-sidebar-trigger]",
         summary: trigger?.dataset.targetState ?? "not rendered",
         rows: [
           { label: "Exists", value: bool(!!trigger), category: "presence" },
@@ -5418,7 +5417,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Panel",
-        selector: "[data-sidebar-panel]",
+        selector: "[data-playground-sidebar-panel]",
         summary: panel?.dataset.state ?? "not rendered",
         rows: [
           { label: "Exists", value: bool(!!panel), category: "presence" },
@@ -5429,7 +5428,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Main",
-        selector: "[data-sidebar-main]",
+        selector: "[data-playground-sidebar-main]",
         summary: main?.dataset.state ?? "not rendered",
         rows: [
           { label: "Exists", value: bool(!!main), category: "presence" },
@@ -5440,14 +5439,14 @@ function getUtilityPrimitiveSections(
   }
 
   if (scenarioId === "swipeable-item") {
-    const root = document.querySelector<HTMLElement>("[data-swipeable-root]");
-    const content = document.querySelector<HTMLElement>("[data-swipeable-content]");
-    const startActions = document.querySelector<HTMLElement>("[data-swipeable-actions-start]");
-    const endActions = document.querySelector<HTMLElement>("[data-swipeable-actions-end]");
+    const root = document.querySelector<HTMLElement>("[data-playground-swipeable-root]");
+    const content = document.querySelector<HTMLElement>("[data-playground-swipeable-content]");
+    const startActions = document.querySelector<HTMLElement>("[data-playground-swipeable-actions-start]");
+    const endActions = document.querySelector<HTMLElement>("[data-playground-swipeable-actions-end]");
     return [
       {
         title: "Root",
-        selector: "[data-swipeable-root]",
+        selector: "[data-playground-swipeable-root]",
         summary: scenarios.swipeableItem.state.openSide ?? "closed",
         rows: [
           { label: "Exists", value: bool(!!root), category: "presence" },
@@ -5465,17 +5464,17 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Action: Start",
-        selector: "[data-swipeable-actions-start]",
+        selector: "[data-playground-swipeable-actions-start]",
         summary: startActions?.dataset.state ?? "not rendered",
         rows: [
           { label: "Exists", value: bool(!!startActions), category: "presence" },
           { label: "Mode", value: scenarios.swipeableItem.state.actionsComposition, category: "composition" },
         ],
       },
-      { title: "Content", selector: "[data-swipeable-content]", summary: content?.dataset.state ?? "not rendered", rows: [{ label: "Exists", value: bool(!!content), category: "presence" }, { label: "Mode", value: scenarios.swipeableItem.state.contentComposition, category: "composition" }] },
+      { title: "Content", selector: "[data-playground-swipeable-content]", summary: content?.dataset.state ?? "not rendered", rows: [{ label: "Exists", value: bool(!!content), category: "presence" }, { label: "Mode", value: scenarios.swipeableItem.state.contentComposition, category: "composition" }] },
       {
         title: "Action: End",
-        selector: "[data-swipeable-actions-end]",
+        selector: "[data-playground-swipeable-actions-end]",
         summary: endActions?.dataset.state ?? "not rendered",
         rows: [
           { label: "Exists", value: bool(!!endActions), category: "presence" },
@@ -5486,20 +5485,20 @@ function getUtilityPrimitiveSections(
   }
 
   if (scenarioId === "toast") {
-    const viewport = document.querySelector<HTMLElement>("[data-toast-viewport]");
-    const root = document.querySelector<HTMLElement>("[data-toast-root]");
-    const title = document.querySelector<HTMLElement>("[data-toast-title]");
-    const description = document.querySelector<HTMLElement>("[data-toast-description]");
-    const action = document.querySelector<HTMLElement>("[data-toast-action]");
-    const cancel = document.querySelector<HTMLElement>("[data-toast-cancel]");
-    const close = document.querySelector<HTMLElement>("[data-toast-close]");
-    const count = document.querySelector<HTMLElement>("[data-toast-count]");
+    const viewport = document.querySelector<HTMLElement>("[data-playground-toast-viewport]");
+    const root = document.querySelector<HTMLElement>("[data-playground-toast-root]");
+    const title = document.querySelector<HTMLElement>("[data-playground-toast-title]");
+    const description = document.querySelector<HTMLElement>("[data-playground-toast-description]");
+    const action = document.querySelector<HTMLElement>("[data-playground-toast-action]");
+    const cancel = document.querySelector<HTMLElement>("[data-playground-toast-cancel]");
+    const close = document.querySelector<HTMLElement>("[data-playground-toast-close]");
+    const count = document.querySelector<HTMLElement>("[data-playground-toast-count]");
     const storeToasts = getToasts();
     const pausedCount = storeToasts.filter((toastData) => toastData.paused).length;
     return [
       {
         title: "Provider",
-        selector: "[data-toast-stage]",
+        selector: "[data-playground-toast-stage]",
         summary: `max ${scenarios.toast.state.maxVisible}`,
         rows: [
           { label: "Rendering", value: scenarios.toast.state.renderMode, category: "state" },
@@ -5518,7 +5517,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Root",
-        selector: "[data-toast-root]",
+        selector: "[data-playground-toast-root]",
         inactive: !root,
         summary: root?.dataset.type ?? "not rendered",
         rows: [
@@ -5530,7 +5529,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Title",
-        selector: "[data-toast-title]",
+        selector: "[data-playground-toast-title]",
         inactive: !title,
         summary: title?.textContent?.trim() || "not rendered",
         rows: [
@@ -5541,7 +5540,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Description",
-        selector: "[data-toast-description]",
+        selector: "[data-playground-toast-description]",
         inactive: !description,
         summary: description?.textContent?.trim() || "not rendered",
         rows: [
@@ -5552,7 +5551,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Action",
-        selector: "[data-toast-action]",
+        selector: "[data-playground-toast-action]",
         inactive: !action,
         summary: action?.textContent?.trim() || "not rendered",
         rows: [
@@ -5563,7 +5562,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Cancel",
-        selector: "[data-toast-cancel]",
+        selector: "[data-playground-toast-cancel]",
         inactive: !cancel,
         summary: cancel?.textContent?.trim() || "not rendered",
         rows: [
@@ -5574,7 +5573,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Close",
-        selector: "[data-toast-close]",
+        selector: "[data-playground-toast-close]",
         inactive: !close,
         summary: close?.textContent?.trim() || "not rendered",
         rows: [
@@ -5585,7 +5584,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Viewport",
-        selector: "[data-toast-viewport]",
+        selector: "[data-playground-toast-viewport]",
         inactive: !viewport,
         summary: viewport?.dataset.position ?? "not rendered",
         rows: [
@@ -5610,7 +5609,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Store",
-        selector: "[data-toast-count]",
+        selector: "[data-playground-toast-count]",
         summary: count?.textContent?.trim() || "0 toasts",
         rows: [
           { label: "Count", value: String(storeToasts.length), category: "state" },
@@ -5621,12 +5620,12 @@ function getUtilityPrimitiveSections(
   }
 
   if (scenarioId === "progress") {
-    const root = document.querySelector<HTMLElement>("[data-progress-root]");
-    const indicator = document.querySelector<HTMLElement>("[data-progress-indicator]");
+    const root = document.querySelector<HTMLElement>("[data-playground-progress-root]");
+    const indicator = document.querySelector<HTMLElement>("[data-playground-progress-indicator]");
     return [
       {
         title: "Root",
-        selector: "[data-progress-root]",
+        selector: "[data-playground-progress-root]",
         summary: root?.dataset.state ?? "not rendered",
         rows: [
           { label: "Exists", value: bool(!!root), category: "presence" },
@@ -5639,7 +5638,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Indicator",
-        selector: "[data-progress-indicator]",
+        selector: "[data-playground-progress-indicator]",
         summary: indicator?.dataset.state ?? "not rendered",
         rows: [
           { label: "Exists", value: bool(!!indicator), category: "presence" },
@@ -5651,10 +5650,10 @@ function getUtilityPrimitiveSections(
   }
 
   if (scenarioId === "pressable") {
-    const root = document.querySelector<HTMLElement>("[data-pressable-root]");
+    const root = document.querySelector<HTMLElement>("[data-playground-pressable-root]");
     return [{
       title: "Root",
-      selector: "[data-pressable-root]",
+      selector: "[data-playground-pressable-root]",
       summary: scenarios.pressable.state.composition,
         rows: [
           { label: "Exists", value: bool(!!root), category: "presence" },
@@ -5670,11 +5669,11 @@ function getUtilityPrimitiveSections(
   }
 
   if (scenarioId === "visually-hidden") {
-    const root = document.querySelector<HTMLElement>("[data-visually-hidden-root]");
+    const root = document.querySelector<HTMLElement>("[data-playground-visually-hidden-root]");
     return [
       {
         title: "Root",
-        selector: "[data-visually-hidden-root]",
+        selector: "[data-playground-visually-hidden-root]",
         summary: root ? "visually hidden" : "not rendered",
         rows: [
           { label: "Exists", value: bool(!!root), category: "presence" },
@@ -5686,12 +5685,12 @@ function getUtilityPrimitiveSections(
   }
 
   if (scenarioId === "skip-link") {
-    const root = document.querySelector<HTMLElement>("[data-skip-link-root]");
-    const target = document.querySelector<HTMLElement>("[data-skip-link-target]");
+    const root = document.querySelector<HTMLElement>("[data-playground-skip-link-root]");
+    const target = document.querySelector<HTMLElement>("[data-playground-skip-link-target]");
     return [
       {
         title: "Root",
-        selector: "[data-skip-link-root]",
+        selector: "[data-playground-skip-link-root]",
         summary: root?.getAttribute("href") ?? "not rendered",
         rows: [
           { label: "Exists", value: bool(!!root), category: "presence" },
@@ -5707,7 +5706,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Target",
-        selector: "[data-skip-link-target]",
+        selector: "[data-playground-skip-link-target]",
         summary: target?.id ?? "not rendered",
         rows: [
           { label: "Exists", value: bool(!!target), category: "presence" },
@@ -5720,13 +5719,13 @@ function getUtilityPrimitiveSections(
   }
 
   if (scenarioId === "collapsible") {
-    const root = document.querySelector<HTMLElement>("[data-collapsible-root]");
-    const trigger = document.querySelector<HTMLElement>("[data-collapsible-trigger]");
-    const content = document.querySelector<HTMLElement>("[data-collapsible-content]");
+    const root = document.querySelector<HTMLElement>("[data-playground-collapsible-root]");
+    const trigger = document.querySelector<HTMLElement>("[data-playground-collapsible-trigger]");
+    const content = document.querySelector<HTMLElement>("[data-playground-collapsible-content]");
     return [
       {
         title: "Root",
-        selector: "[data-collapsible-root]",
+        selector: "[data-playground-collapsible-root]",
         summary: root?.dataset.state ?? "closed",
         rows: [
           { label: "Exists", value: bool(!!root), category: "presence" },
@@ -5739,7 +5738,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Trigger",
-        selector: "[data-collapsible-trigger]",
+        selector: "[data-playground-collapsible-trigger]",
         summary: trigger?.dataset.state ?? "not rendered",
         rows: [
           { label: "Exists", value: bool(!!trigger), category: "presence" },
@@ -5751,7 +5750,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Content",
-        selector: "[data-collapsible-content]",
+        selector: "[data-playground-collapsible-content]",
         inactive: !content,
         summary: content?.dataset.state ?? "not rendered",
         rows: [
@@ -5766,19 +5765,19 @@ function getUtilityPrimitiveSections(
   }
 
   if (scenarioId === "toolbar") {
-    const root = document.querySelector<HTMLElement>("[data-toolbar-root]");
-    const button = document.querySelector<HTMLElement>("[data-toolbar-button]");
-    const disabledButton = document.querySelector<HTMLElement>("[data-toolbar-disabled-button]");
-    const link = document.querySelector<HTMLElement>("[data-toolbar-link]");
-    const separator = document.querySelector<HTMLElement>("[data-toolbar-separator]");
-    const toggleGroup = document.querySelector<HTMLElement>("[data-toolbar-toggle-group]");
-    const toggleItem = document.querySelector<HTMLElement>("[data-toolbar-toggle-item]");
-    const secondaryToggleItem = document.querySelector<HTMLElement>("[data-toolbar-toggle-item-secondary]");
+    const root = document.querySelector<HTMLElement>("[data-playground-toolbar-root]");
+    const button = document.querySelector<HTMLElement>("[data-playground-toolbar-button]");
+    const disabledButton = document.querySelector<HTMLElement>("[data-playground-toolbar-disabled-button]");
+    const link = document.querySelector<HTMLElement>("[data-playground-toolbar-link]");
+    const separator = document.querySelector<HTMLElement>("[data-playground-toolbar-separator]");
+    const toggleGroup = document.querySelector<HTMLElement>("[data-playground-toolbar-toggle-group]");
+    const toggleItem = document.querySelector<HTMLElement>("[data-playground-toolbar-toggle-item]");
+    const secondaryToggleItem = document.querySelector<HTMLElement>("[data-playground-toolbar-toggle-item-secondary]");
     const resolvedDir = getToolbarResolvedDirection(scenarios.toolbar.state.directionMode);
     return [
       {
         title: "Root",
-        selector: "[data-toolbar-root]",
+        selector: "[data-playground-toolbar-root]",
         summary: `${scenarios.toolbar.state.orientation} ${resolvedDir}`,
         rows: [
           { label: "Exists", value: bool(!!root), category: "presence" },
@@ -5792,7 +5791,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Button: Undo",
-        selector: "[data-toolbar-button]",
+        selector: "[data-playground-toolbar-button]",
         summary: button?.textContent?.trim() || "not rendered",
         rows: [
           { label: "Exists", value: bool(!!button), category: "presence" },
@@ -5802,7 +5801,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Button: Redo",
-        selector: "[data-toolbar-disabled-button]",
+        selector: "[data-playground-toolbar-disabled-button]",
         summary: disabledButton?.textContent?.trim() || "not rendered",
         rows: [
           { label: "Exists", value: bool(!!disabledButton), category: "presence" },
@@ -5812,7 +5811,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Link: Help",
-        selector: "[data-toolbar-link]",
+        selector: "[data-playground-toolbar-link]",
         summary: link?.textContent?.trim() || "not rendered",
         rows: [
           { label: "Exists", value: bool(!!link), category: "presence" },
@@ -5824,7 +5823,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Separator",
-        selector: "[data-toolbar-separator]",
+        selector: "[data-playground-toolbar-separator]",
         summary: separator?.dataset.orientation ?? "not rendered",
         rows: [
           { label: "Exists", value: bool(!!separator), category: "presence" },
@@ -5833,7 +5832,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Toggle Group",
-        selector: "[data-toolbar-toggle-group]",
+        selector: "[data-playground-toolbar-toggle-group]",
         summary: scenarios.toolbar.state.toggleType,
         rows: [
           { label: "Exists", value: bool(!!toggleGroup), category: "presence" },
@@ -5847,7 +5846,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Toggle Item: Bold",
-        selector: "[data-toolbar-toggle-item]",
+        selector: "[data-playground-toolbar-toggle-item]",
         summary: toggleItem?.dataset.state ?? "not rendered",
         rows: [
           { label: "Exists", value: bool(!!toggleItem), category: "presence" },
@@ -5859,7 +5858,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Toggle Item: Italic",
-        selector: "[data-toolbar-toggle-item-secondary]",
+        selector: "[data-playground-toolbar-toggle-item-secondary]",
         summary: secondaryToggleItem?.dataset.state ?? "not rendered",
         rows: [
           { label: "Exists", value: bool(!!secondaryToggleItem), category: "presence" },
@@ -5873,9 +5872,9 @@ function getUtilityPrimitiveSections(
   }
 
   if (scenarioId === "portal") {
-    const content = document.querySelector<HTMLElement>("[data-portal-content]");
-    const customContainer = document.querySelector<HTMLElement>("[data-portal-custom-container]");
-    const inlineZone = document.querySelector<HTMLElement>("[data-portal-inline-zone]");
+    const content = document.querySelector<HTMLElement>("[data-playground-portal-content]");
+    const customContainer = document.querySelector<HTMLElement>("[data-playground-portal-custom-container]");
+    const inlineZone = document.querySelector<HTMLElement>("[data-playground-portal-inline-zone]");
     const parent = content?.parentElement;
     const parentLabel = !content
       ? "not rendered"
@@ -5919,7 +5918,7 @@ function getUtilityPrimitiveSections(
     return [
       {
         title: "Collection",
-        selector: "[data-collection-demo]",
+        selector: "[data-playground-collection-demo]",
         summary: `${items.length} items`,
         rows: [
           { label: "Version", value: String(state.collection.version), category: "state" },
@@ -5932,7 +5931,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Lookup",
-        selector: `[data-collection-item='${state.activeValue}']`,
+        selector: `[data-playground-collection-item='${state.activeValue}']`,
         summary: state.activeValue,
         rows: [
           { label: "Active value", value: state.activeValue, category: "state" },
@@ -5945,11 +5944,11 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Items",
-        selector: "[data-collection-items]",
+        selector: "[data-playground-collection-items]",
         summary: state.reverseOrder ? "reversed" : "normal",
         groups: items.map((item) => ({
           title: item.data.label,
-          selector: `[data-collection-item='${item.value}']`,
+          selector: `[data-playground-collection-item='${item.value}']`,
           rows: [
             { label: "Value", value: item.value, category: "state" },
             { label: "Disabled", value: bool(item.disabled), category: "state" },
@@ -5969,7 +5968,7 @@ function getUtilityPrimitiveSections(
     return [
       {
         title: "Virtualizer",
-        selector: "[data-virtualizer-demo]",
+        selector: "[data-playground-virtualizer-demo]",
         summary: getVirtualizerRangeLabel(virtualizer.items),
         rows: [
           { label: "Count", value: String(state.count), category: "state" },
@@ -5982,7 +5981,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Scroll Container",
-        selector: "[data-virtualizer-scroll]",
+        selector: "[data-playground-virtualizer-scroll]",
         summary: formatPx(virtualizer.viewportSize),
         rows: [
           { label: "Scroll element", value: bool(!!virtualizer.scrollElement), category: "presence" },
@@ -5993,7 +5992,7 @@ function getUtilityPrimitiveSections(
       },
       {
         title: "Visible Range",
-        selector: "[data-virtualizer-item]",
+        selector: "[data-playground-virtualizer-item]",
         inactive: virtualizer.items.length === 0,
         summary: getVirtualizerRangeLabel(virtualizer.items),
         rows: [
@@ -6515,7 +6514,6 @@ const placementOptions = ["start", "end", "top", "bottom"] as const;
 const menubarValueOptions: readonly MenubarValueOption[] = ["none", "file", "view"];
 const menubarDirectionModeOptions: readonly MenubarDirectionMode[] = ["provider", "root"];
 const drawerTitleLevelOptions = ["h2", "h3", "h4"] as const;
-const densityOptions = ["compact", "comfortable"] as const;
 const toggleTypeOptions = ["single", "multiple"] as const;
 const toolbarDirectionModeOptions: readonly WorkbenchOption<ToolbarDirectionMode>[] = [
   { label: "Default", value: "default" },

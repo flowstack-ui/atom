@@ -48,8 +48,8 @@ coverage harder to trust.
 Anatomy and Inspector should show raw live DOM evidence for `Attributes`,
 `ARIA`, and `Data`. Curated rows explain behavior, while raw groups prove what
 is actually rendered. This exists because manually copied attributes became
-stale during testing. The long-term direction is one shared live inspection
-path for both Anatomy and Inspector.
+stale during testing. A shared collector, formatter, mutation revision, and
+playground-attribute filter now keep Anatomy and Inspector aligned.
 
 ## Canvas Toolbar Owns Scenario Controls
 
@@ -120,11 +120,24 @@ test meaningful compatibility paths, such as Field wiring with native inputs.
 This keeps the playground dogfooding Atom while still proving that public APIs
 work with native browser elements when that compatibility matters.
 
-## Decisions Needing Better Documentation
+## Extraction Threshold Is Evidence-Based
 
-- The exact threshold for extracting a repeated pattern into
-  `WorkbenchPrimitives` exists in practice, but is still mostly judgment-based.
-- The expected relationship between axe scans and playground scenarios is used
-  during testing, but not captured as an architecture decision.
-- Mobile testing is part of the workflow for relevant components, but the docs
-  do not define which component categories require it.
+Move a pattern into `WorkbenchPrimitives` when at least two scenarios need the
+same interaction and visual contract and keeping separate copies would create
+meaningful drift. Keep component state, anatomy, Source, and component-specific
+behavior in the scenario even when shared controls are extracted.
+
+## Accessibility Scans Supplement Scenario Testing
+
+Automated accessibility scans can catch structural issues, but they do not
+replace component contract checks, keyboard testing, focus testing, or raw DOM
+inspection. Treat scan findings as additional evidence and classify them using
+the normal workflow before changing package or playground code.
+
+## Mobile Readiness Is A Separate Qualification Layer
+
+Completed playground coverage remains the desktop/manual baseline. Mobile and
+real-device qualification is governed by
+[`../../../docs/mobile-readiness.md`](../../../docs/mobile-readiness.md) and
+must not silently reopen every component or overstate responsive emulation as
+device evidence.

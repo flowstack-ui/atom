@@ -332,3 +332,9 @@ Verify
 Reset
 
 Return toolbar to default state.
+
+## Workbook Cleanup / Rewrite Notes
+
+Workbook cleanup was completed after this protocol passed. Menubar-owned
+behavior is covered deeply, while shared Menu parts remain integration-smoke
+coverage. Every current Menubar row is implemented, tested, and covered.

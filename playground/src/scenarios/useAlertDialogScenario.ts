@@ -209,7 +209,7 @@ export function useAlertDialogScenario() {
   }, []);
 
   const testDisabledTriggerKey = useCallback((key: "Enter" | " ") => {
-    const trigger = document.querySelector<HTMLElement>("[data-alert-dialog-trigger]");
+    const trigger = document.querySelector<HTMLElement>("[data-playground-alert-dialog-trigger]");
     if (!trigger) {
       addLog("disabled trigger probe failed: no trigger");
       return;
@@ -222,7 +222,7 @@ export function useAlertDialogScenario() {
     }));
 
     requestAnimationFrame(() => {
-      const content = document.querySelector("[data-alert-dialog-content]");
+      const content = document.querySelector("[data-playground-alert-dialog-content]");
       const stayedClosed = !content || content.getAttribute("data-state") === "closed";
       addLog(
         stayedClosed
@@ -233,8 +233,8 @@ export function useAlertDialogScenario() {
   }, [addLog]);
 
   const testFocusEscape = useCallback(() => {
-    const behindButton = document.querySelector<HTMLButtonElement>("[data-alert-dialog-behind]");
-    const content = document.querySelector<HTMLElement>("[data-alert-dialog-content]");
+    const behindButton = document.querySelector<HTMLButtonElement>("[data-playground-alert-dialog-behind]");
+    const content = document.querySelector<HTMLElement>("[data-playground-alert-dialog-content]");
 
     if (!behindButton || !content) {
       addLog("focus escape probe skipped");

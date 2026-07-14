@@ -1388,7 +1388,7 @@ function AccordionItem({ children, description, disabled, label, state, value }:
     value,
     ...partProps(`item-${value}`, { propCheck: state.propCheck, customSlot: state.customSlots.item }, "accordion-item-custom"),
   };
-  const header = <AccordionHeader description={description} disabled={disabled} label={label} state={state} value={value} />;
+  const header = <AccordionHeader description={description} label={label} state={state} value={value} />;
   const content = <AccordionContent state={state}>{children}</AccordionContent>;
 
   if (state.itemComposition === "asChild") {
@@ -1414,13 +1414,13 @@ function AccordionItem({ children, description, disabled, label, state, value }:
   return <Accordion.Item {...itemProps}>{header}{content}</Accordion.Item>;
 }
 
-function AccordionHeader({ description, disabled, label, state, value }: { description: string; disabled?: boolean; label: string; state: ReturnType<typeof useAccordionScenario>["state"]; value: string }) {
+function AccordionHeader({ description, label, state, value }: { description: string; label: string; state: ReturnType<typeof useAccordionScenario>["state"]; value: string }) {
   const props = {
     as: "h3" as const,
     className: "playground-accordion-header",
     ...partProps(`header-${value}`, { propCheck: state.propCheck, customSlot: state.customSlots.header }, "accordion-header-custom"),
   };
-  const trigger = <AccordionTrigger description={description} disabled={disabled} state={state} value={value}>{label}</AccordionTrigger>;
+  const trigger = <AccordionTrigger description={description} state={state} value={value}>{label}</AccordionTrigger>;
 
   if (state.headerComposition === "asChild") {
     return (
@@ -1441,7 +1441,7 @@ function AccordionHeader({ description, disabled, label, state, value }: { descr
   return <Accordion.Header {...props}>{trigger}</Accordion.Header>;
 }
 
-function AccordionTrigger({ children, description, disabled, state, value }: { children: ReactNode; description: string; disabled?: boolean; state: ReturnType<typeof useAccordionScenario>["state"]; value: string }) {
+function AccordionTrigger({ children, description, state, value }: { children: ReactNode; description: string; state: ReturnType<typeof useAccordionScenario>["state"]; value: string }) {
   const props = {
     className: "playground-accordion-trigger",
     ...partProps(`trigger-${value}`, { propCheck: state.propCheck, customSlot: state.customSlots.trigger }, "accordion-trigger-custom"),
@@ -3570,14 +3570,6 @@ function renderNavListSourcePart(part: string, mode: CompositionMode, props: str
 function indent(source: string, spaces: number) {
   const padding = " ".repeat(spaces);
   return source.split("\n").map((line) => `${padding}${line}`).join("\n");
-}
-
-function CompositionToolbarGroup({ label = "Root", value, onChange }: { label?: string; value: CompositionMode; onChange: (value: CompositionMode) => void }) {
-  return (
-    <ToolbarGroup title="Composition" value="composition">
-      <MenuRadioControl label={label} options={compositionOptions} value={value} onChange={onChange} />
-    </ToolbarGroup>
-  );
 }
 
 function bool(value: boolean) {

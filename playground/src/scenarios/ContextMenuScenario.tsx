@@ -45,7 +45,7 @@ export function ContextMenuScenarioCanvas({
         <ContextMenuTrigger
           mode={state.triggerComposition}
           disabled={state.triggerDisabled}
-          data-context-menu-trigger=""
+          data-playground-context-menu-trigger=""
           {...partProps("trigger", { propCheck: state.propCheck, customSlot: state.customTriggerSlot }, "context-menu-trigger-custom")}
           onContextMenu={actions.handleTriggerContextMenu}
           onKeyDown={actions.handleTriggerKeyDown}
@@ -56,7 +56,7 @@ export function ContextMenuScenarioCanvas({
         <ContextMenu.Content
           ariaLabel={state.contentAriaLabel ? "Project actions" : undefined}
           className="playground-menu-content"
-          data-menu-content=""
+          data-playground-menu-content=""
           {...partProps("content", { propCheck: state.propCheck, customSlot: state.customContentSlot }, "context-menu-content-custom")}
           data-playground-inspect=""
           side={state.side}
@@ -68,14 +68,14 @@ export function ContextMenuScenarioCanvas({
         >
           <ContextMenu.Group
             className="playground-menu-group"
-            data-menu-group=""
+            data-playground-menu-group=""
             {...partProps("group", { propCheck: state.propCheck, customSlot: state.customGroupSlot }, "context-menu-group-custom")}
           >
             <ContextMenuActionItem
               mode={state.itemComposition}
               value="new"
               disabled={false}
-              data-menu-item-primary=""
+              data-playground-menu-item-primary=""
               {...partProps("item", { propCheck: state.propCheck, customSlot: state.customItemSlot }, "context-menu-item-custom")}
               onSelect={() => actions.handleActionSelect("new")}
               onClick={actions.handleActionClick("new")}
@@ -89,7 +89,7 @@ export function ContextMenuScenarioCanvas({
                 className="playground-menu-item"
                 value="disabled"
                 disabled
-                data-menu-item-disabled=""
+                data-playground-menu-item-disabled=""
               >
                 Disabled action
               </ContextMenu.Item>
@@ -97,7 +97,7 @@ export function ContextMenuScenarioCanvas({
           </ContextMenu.Group>
           <ContextMenu.Separator
             className="playground-menu-separator"
-            data-menu-separator=""
+            data-playground-menu-separator=""
             {...partProps("separator", { propCheck: state.propCheck, customSlot: state.customSeparatorSlot }, "context-menu-separator-custom")}
           />
           <ContextMenu.CheckboxItem
@@ -107,7 +107,7 @@ export function ContextMenuScenarioCanvas({
             checked={state.checkboxChecked}
             disabled={state.checkboxDisabled}
             closeOnSelect={state.closeCheckboxOnSelect}
-            data-menu-checkbox=""
+            data-playground-menu-checkbox=""
             {...partProps("checkbox-item", { propCheck: state.propCheck, customSlot: state.customCheckboxItemSlot }, "context-menu-checkbox-item-custom")}
             onCheckedChange={actions.handleCheckboxChange}
           >
@@ -116,12 +116,12 @@ export function ContextMenuScenarioCanvas({
           </ContextMenu.CheckboxItem>
           <ContextMenu.Separator
             className="playground-menu-separator"
-            data-menu-selection-separator=""
+            data-playground-menu-selection-separator=""
           />
           <ContextMenu.RadioGroup
             className="playground-menu-radio-group"
             value={state.radioValue}
-            data-menu-radio-group=""
+            data-playground-menu-radio-group=""
             {...partProps("radio-group", { propCheck: state.propCheck, customSlot: state.customRadioGroupSlot }, "context-menu-radio-group-custom")}
             onValueChange={actions.handleRadioChange}
           >
@@ -131,7 +131,7 @@ export function ContextMenuScenarioCanvas({
               textValue="Compact"
               disabled={state.radioItemDisabled}
               closeOnSelect={state.closeRadioOnSelect}
-              data-menu-radio-item=""
+              data-playground-menu-radio-item=""
               {...partProps("radio-item", { propCheck: state.propCheck, customSlot: state.customRadioItemSlot }, "context-menu-radio-item-custom")}
             >
               <span>Compact</span>
@@ -142,7 +142,7 @@ export function ContextMenuScenarioCanvas({
               value="comfortable"
               textValue="Comfortable"
               closeOnSelect={state.closeRadioOnSelect}
-              data-menu-radio-item=""
+              data-playground-menu-radio-item=""
             >
               <span>Comfortable</span>
               <span className="playground-menu-radio" aria-hidden="true" />
@@ -150,12 +150,12 @@ export function ContextMenuScenarioCanvas({
           </ContextMenu.RadioGroup>
           <ContextMenu.Separator
             className="playground-menu-separator"
-            data-menu-radio-separator=""
+            data-playground-menu-radio-separator=""
           />
           <ContextMenu.RadioGroup
             className="playground-menu-radio-group"
             value={state.radioValueSecondary}
-            data-menu-radio-group-secondary=""
+            data-playground-menu-radio-group-secondary=""
             {...partProps("radio-group-secondary", { propCheck: state.propCheck, customSlot: state.customRadioGroupSlot }, "context-menu-radio-group-custom")}
             onValueChange={actions.handleRadioSecondaryChange}
           >
@@ -164,7 +164,7 @@ export function ContextMenuScenarioCanvas({
               value="compact"
               textValue="Dense compact"
               closeOnSelect={state.closeRadioOnSelect}
-              data-menu-radio-item-secondary=""
+              data-playground-menu-radio-item-secondary=""
               {...partProps("radio-item-secondary", { propCheck: state.propCheck, customSlot: state.customRadioItemSlot }, "context-menu-radio-item-custom")}
             >
               <span>Dense compact</span>
@@ -175,7 +175,7 @@ export function ContextMenuScenarioCanvas({
               value="comfortable"
               textValue="Dense comfortable"
               closeOnSelect={state.closeRadioOnSelect}
-              data-menu-radio-item-secondary=""
+              data-playground-menu-radio-item-secondary=""
             >
               <span>Dense comfortable</span>
               <span className="playground-menu-radio" aria-hidden="true" />
@@ -185,7 +185,7 @@ export function ContextMenuScenarioCanvas({
             <>
               <ContextMenu.Separator
                 className="playground-menu-separator"
-                data-menu-submenu-separator=""
+                data-playground-menu-submenu-separator=""
               />
               <ContextMenu.Sub
                 {...(state.controlledSubmenu
@@ -196,7 +196,7 @@ export function ContextMenuScenarioCanvas({
                   className="playground-menu-item"
                   value="more"
                   textValue="More actions"
-                  data-menu-sub-trigger=""
+                  data-playground-menu-sub-trigger=""
                   {...partProps("sub-trigger", { propCheck: state.propCheck, customSlot: state.customSubTriggerSlot }, "context-menu-sub-trigger-custom")}
                 >
                   <span>More actions</span>
@@ -207,7 +207,7 @@ export function ContextMenuScenarioCanvas({
                   ariaLabel={state.subContentAriaLabel ? "More actions" : undefined}
                   sideOffset={state.subSideOffset}
                   loop={state.subContentLoopOff ? false : undefined}
-                  data-menu-sub-content=""
+                  data-playground-menu-sub-content=""
                   {...partProps("sub-content", { propCheck: state.propCheck, customSlot: state.customSubContentSlot }, "context-menu-sub-content-custom")}
                   data-playground-inspect=""
                   ref={(element) => actions.markPartRef("subContent", element)}
@@ -215,7 +215,7 @@ export function ContextMenuScenarioCanvas({
                   <ContextMenu.Item
                     className="playground-menu-item"
                     value="archive"
-                    data-menu-sub-item=""
+                    data-playground-menu-sub-item=""
                     {...partProps("sub-item", { propCheck: state.propCheck, customSlot: state.customSubItemSlot }, "context-menu-sub-item-custom")}
                     onSelect={() => actions.handleActionSelect("archive")}
                   >
@@ -224,7 +224,7 @@ export function ContextMenuScenarioCanvas({
                   <ContextMenu.Item
                     className="playground-menu-item"
                     value="duplicate"
-                    data-menu-sub-item-extra=""
+                    data-playground-menu-sub-item-extra=""
                     {...partProps("sub-item-extra", { propCheck: state.propCheck, customSlot: state.customSubItemSlot }, "context-menu-sub-item-custom")}
                     onSelect={() => actions.handleActionSelect("duplicate")}
                   >
@@ -236,7 +236,7 @@ export function ContextMenuScenarioCanvas({
                         className="playground-menu-item"
                         value="advanced"
                         textValue="Advanced"
-                        data-menu-nested-sub-trigger=""
+                        data-playground-menu-nested-sub-trigger=""
                         {...partProps("nested-sub-trigger", { propCheck: state.propCheck, customSlot: state.customSubTriggerSlot }, "context-menu-sub-trigger-custom")}
                       >
                         <span>Advanced</span>
@@ -244,7 +244,7 @@ export function ContextMenuScenarioCanvas({
                       </ContextMenu.SubTrigger>
                       <ContextMenu.SubContent
                         className="playground-menu-content playground-submenu-content"
-                        data-menu-nested-sub-content=""
+                        data-playground-menu-nested-sub-content=""
                         {...partProps("nested-sub-content", { propCheck: state.propCheck, customSlot: state.customSubContentSlot }, "context-menu-sub-content-custom")}
                         data-playground-inspect=""
                         ref={(element) => actions.markPartRef("nestedSubContent", element)}
@@ -252,7 +252,7 @@ export function ContextMenuScenarioCanvas({
                         <ContextMenu.Item
                           className="playground-menu-item"
                           value="export"
-                          data-menu-nested-sub-item=""
+                          data-playground-menu-nested-sub-item=""
                           {...partProps("nested-sub-item", { propCheck: state.propCheck, customSlot: state.customSubItemSlot }, "context-menu-sub-item-custom")}
                           onSelect={() => actions.handleActionSelect("export")}
                         >
@@ -271,7 +271,7 @@ export function ContextMenuScenarioCanvas({
                   value="share"
                   textValue="Share actions"
                   disabled={state.disableSecondSubmenu}
-                  data-menu-sub-trigger-secondary=""
+                  data-playground-menu-sub-trigger-secondary=""
                   {...partProps("sub-trigger-secondary", { propCheck: state.propCheck, customSlot: state.customSubTriggerSlot }, "context-menu-sub-trigger-custom")}
                 >
                   <span>Share actions</span>
@@ -280,7 +280,7 @@ export function ContextMenuScenarioCanvas({
                 <ContextMenu.SubContent
                   className="playground-menu-content playground-submenu-content"
                   sideOffset={state.subSideOffset}
-                  data-menu-sub-content-secondary=""
+                  data-playground-menu-sub-content-secondary=""
                   {...partProps("sub-content-secondary", { propCheck: state.propCheck, customSlot: state.customSubContentSlot }, "context-menu-sub-content-custom")}
                   data-playground-inspect=""
                   ref={(element) => actions.markPartRef("subContentSecondary", element)}
@@ -288,7 +288,7 @@ export function ContextMenuScenarioCanvas({
                   <ContextMenu.Item
                     className="playground-menu-item"
                     value="copy-link"
-                    data-menu-sub-item-secondary=""
+                    data-playground-menu-sub-item-secondary=""
                     {...partProps("sub-item-secondary", { propCheck: state.propCheck, customSlot: state.customSubItemSlot }, "context-menu-sub-item-custom")}
                     onSelect={() => actions.handleActionSelect("copy-link")}
                   >
@@ -346,7 +346,7 @@ function ContextMenuDefaultAnchor({ enabled }: { enabled: boolean }) {
     if (!enabled) return;
 
     const frame = requestAnimationFrame(() => {
-      const trigger = document.querySelector<HTMLElement>("[data-context-menu-trigger]");
+      const trigger = document.querySelector<HTMLElement>("[data-playground-context-menu-trigger]");
       const target = trigger?.firstElementChild instanceof HTMLElement
         ? trigger.firstElementChild
         : trigger;
@@ -375,7 +375,7 @@ function ContextMenuControlledActions({
   const { setAnchorPoint } = useContextMenuContext();
 
   const openFromTarget = () => {
-    const trigger = document.querySelector<HTMLElement>("[data-context-menu-trigger]");
+    const trigger = document.querySelector<HTMLElement>("[data-playground-context-menu-trigger]");
     const target = trigger?.firstElementChild instanceof HTMLElement
       ? trigger.firstElementChild
       : trigger;
@@ -569,7 +569,7 @@ export function ContextMenuScenarioAnatomy({
     },
     partSection({
       title: "Trigger: Project canvas",
-      selector: "[data-context-menu-trigger]",
+      selector: "[data-playground-context-menu-trigger]",
       summary: state.parts.triggerExists === "yes" ? state.parts.triggerState : "not rendered",
       inactive: state.parts.triggerExists !== "yes",
       rows: [
@@ -592,7 +592,7 @@ export function ContextMenuScenarioAnatomy({
     }),
     partSection({
       title: "Content: Menu",
-      selector: "[data-menu-content]",
+      selector: "[data-playground-menu-content]",
       summary: state.parts.contentExists === "yes" ? state.parts.contentState : "not rendered",
       inactive: state.parts.contentExists !== "yes",
       rows: [
@@ -614,7 +614,7 @@ export function ContextMenuScenarioAnatomy({
     }),
     partSection({
       title: "Group: Primary actions",
-      selector: "[data-menu-group]",
+      selector: "[data-playground-menu-group]",
       summary: state.parts.groupExists === "yes" ? state.parts.groupRole : "not rendered",
       inactive: state.parts.groupExists !== "yes",
       rows: [
@@ -626,7 +626,7 @@ export function ContextMenuScenarioAnatomy({
     }),
     partSection({
       title: "Item: New project",
-      selector: "[data-menu-item-primary]",
+      selector: "[data-playground-menu-item-primary]",
       summary: state.parts.itemExists === "yes" ? "new" : "not rendered",
       inactive: state.parts.itemExists !== "yes",
       rows: [
@@ -641,7 +641,7 @@ export function ContextMenuScenarioAnatomy({
     }),
     partSection({
       title: "Item: Disabled action",
-      selector: "[data-menu-item-disabled]",
+      selector: "[data-playground-menu-item-disabled]",
       summary: state.showDisabledItem ? "disabled" : "not rendered",
       inactive: state.parts.disabledItemExists !== "yes",
       rows: [
@@ -651,7 +651,7 @@ export function ContextMenuScenarioAnatomy({
     }),
     partSection({
       title: "Separator: Actions",
-      selector: "[data-menu-separator]",
+      selector: "[data-playground-menu-separator]",
       summary: state.parts.separatorExists === "yes" ? state.parts.separatorRole : "not rendered",
       inactive: state.parts.separatorExists !== "yes",
       rows: [
@@ -662,7 +662,7 @@ export function ContextMenuScenarioAnatomy({
     }),
     partSection({
       title: "Checkbox Item: Show grid",
-      selector: "[data-menu-checkbox]",
+      selector: "[data-playground-menu-checkbox]",
       summary: state.parts.checkboxExists === "yes" ? state.parts.checkboxChecked : "not rendered",
       inactive: state.parts.checkboxExists !== "yes",
       rows: [
@@ -674,12 +674,12 @@ export function ContextMenuScenarioAnatomy({
     }),
     partSection({
       title: "Separator: Selection",
-      selector: "[data-menu-selection-separator]",
-      summary: selectorExists("[data-menu-selection-separator]") ? "separator" : "not rendered",
+      selector: "[data-playground-menu-selection-separator]",
+      summary: selectorExists("[data-playground-menu-selection-separator]") ? "separator" : "not rendered",
     }),
     partSection({
       title: "Radio Group: Density",
-      selector: "[data-menu-radio-group]",
+      selector: "[data-playground-menu-radio-group]",
       summary: state.parts.radioGroupExists === "yes" ? state.parts.radioGroupValue : "not rendered",
       inactive: state.parts.radioGroupExists !== "yes",
       rows: [
@@ -691,27 +691,27 @@ export function ContextMenuScenarioAnatomy({
     }),
     partSection({
       title: "Radio Item: Compact",
-      selector: "[data-menu-radio-item][data-value='compact']",
-      summary: selectorAttr("[data-menu-radio-item][data-value='compact']", "aria-checked"),
+      selector: "[data-playground-menu-radio-item][data-value='compact']",
+      summary: selectorAttr("[data-playground-menu-radio-item][data-value='compact']", "aria-checked"),
       rows: [
-        ...itemRows("[data-menu-radio-item][data-value='compact']"),
+        ...itemRows("[data-playground-menu-radio-item][data-value='compact']"),
         { label: "Compact disabled", value: state.parts.radioItemDisabledSkipped, category: "state" },
       ],
     }),
     partSection({
       title: "Radio Item: Comfortable",
-      selector: "[data-menu-radio-item][data-value='comfortable']",
-      summary: selectorAttr("[data-menu-radio-item][data-value='comfortable']", "aria-checked"),
-      rows: itemRows("[data-menu-radio-item][data-value='comfortable']"),
+      selector: "[data-playground-menu-radio-item][data-value='comfortable']",
+      summary: selectorAttr("[data-playground-menu-radio-item][data-value='comfortable']", "aria-checked"),
+      rows: itemRows("[data-playground-menu-radio-item][data-value='comfortable']"),
     }),
     partSection({
       title: "Separator: Density",
-      selector: "[data-menu-radio-separator]",
-      summary: selectorExists("[data-menu-radio-separator]") ? "separator" : "not rendered",
+      selector: "[data-playground-menu-radio-separator]",
+      summary: selectorExists("[data-playground-menu-radio-separator]") ? "separator" : "not rendered",
     }),
     partSection({
       title: "Radio Group: Dense density",
-      selector: "[data-menu-radio-group-secondary]",
+      selector: "[data-playground-menu-radio-group-secondary]",
       summary: state.parts.radioGroupSecondaryExists === "yes" ? state.parts.radioGroupSecondaryValue : "not rendered",
       inactive: state.parts.radioGroupSecondaryExists !== "yes",
       rows: [
@@ -722,19 +722,19 @@ export function ContextMenuScenarioAnatomy({
     }),
     partSection({
       title: "Radio Item: Dense compact",
-      selector: "[data-menu-radio-item-secondary][data-value='compact']",
-      summary: selectorAttr("[data-menu-radio-item-secondary][data-value='compact']", "aria-checked"),
-      rows: itemRows("[data-menu-radio-item-secondary][data-value='compact']"),
+      selector: "[data-playground-menu-radio-item-secondary][data-value='compact']",
+      summary: selectorAttr("[data-playground-menu-radio-item-secondary][data-value='compact']", "aria-checked"),
+      rows: itemRows("[data-playground-menu-radio-item-secondary][data-value='compact']"),
     }),
     partSection({
       title: "Radio Item: Dense comfortable",
-      selector: "[data-menu-radio-item-secondary][data-value='comfortable']",
-      summary: selectorAttr("[data-menu-radio-item-secondary][data-value='comfortable']", "aria-checked"),
-      rows: itemRows("[data-menu-radio-item-secondary][data-value='comfortable']"),
+      selector: "[data-playground-menu-radio-item-secondary][data-value='comfortable']",
+      summary: selectorAttr("[data-playground-menu-radio-item-secondary][data-value='comfortable']", "aria-checked"),
+      rows: itemRows("[data-playground-menu-radio-item-secondary][data-value='comfortable']"),
     }),
     partSection({
       title: "Separator: Submenu",
-      selector: "[data-menu-submenu-separator]",
+      selector: "[data-playground-menu-submenu-separator]",
       summary: state.showSubmenu ? "separator" : "not rendered",
       inactive: !state.showSubmenu,
     }),
@@ -750,7 +750,7 @@ export function ContextMenuScenarioAnatomy({
     },
     partSection({
       title: "Sub Trigger: More actions",
-      selector: "[data-menu-sub-trigger]",
+      selector: "[data-playground-menu-sub-trigger]",
       summary: state.parts.subTriggerExists === "yes" ? state.parts.subTriggerState : "not rendered",
       inactive: state.parts.subTriggerExists !== "yes",
       rows: [
@@ -761,7 +761,7 @@ export function ContextMenuScenarioAnatomy({
     }),
     partSection({
       title: "Sub Content: More actions",
-      selector: "[data-menu-sub-content]",
+      selector: "[data-playground-menu-sub-content]",
       summary: state.parts.subContentExists === "yes" ? state.parts.subContentState : "not rendered",
       inactive: state.parts.subContentExists !== "yes",
       rows: [
@@ -778,19 +778,19 @@ export function ContextMenuScenarioAnatomy({
     }),
     partSection({
       title: "Item: Archive",
-      selector: "[data-menu-sub-item]",
+      selector: "[data-playground-menu-sub-item]",
       summary: state.parts.subItemExists === "yes" ? "archive" : "not rendered",
       inactive: state.parts.subItemExists !== "yes",
       rows: [
         { label: "Ref", value: state.parts.subItemRef, category: "identity" },
-        ...itemRows("[data-menu-sub-item]"),
+        ...itemRows("[data-playground-menu-sub-item]"),
       ],
     }),
     partSection({
       title: "Item: Duplicate",
-      selector: "[data-menu-sub-item-extra]",
-      summary: selectorExists("[data-menu-sub-item-extra]") ? "duplicate" : "not rendered",
-      rows: itemRows("[data-menu-sub-item-extra]"),
+      selector: "[data-playground-menu-sub-item-extra]",
+      summary: selectorExists("[data-playground-menu-sub-item-extra]") ? "duplicate" : "not rendered",
+      rows: itemRows("[data-playground-menu-sub-item-extra]"),
     }),
     {
       title: "Sub: Advanced",
@@ -803,7 +803,7 @@ export function ContextMenuScenarioAnatomy({
     },
     partSection({
       title: "Sub Trigger: Advanced",
-      selector: "[data-menu-nested-sub-trigger]",
+      selector: "[data-playground-menu-nested-sub-trigger]",
       summary: state.parts.nestedSubTriggerExists === "yes" ? state.parts.nestedSubTriggerState : "not rendered",
       inactive: state.parts.nestedSubTriggerExists !== "yes",
       rows: [
@@ -814,7 +814,7 @@ export function ContextMenuScenarioAnatomy({
     }),
     partSection({
       title: "Sub Content: Advanced",
-      selector: "[data-menu-nested-sub-content]",
+      selector: "[data-playground-menu-nested-sub-content]",
       summary: state.parts.nestedSubContentExists === "yes" ? state.parts.nestedSubContentState : "not rendered",
       inactive: state.parts.nestedSubContentExists !== "yes",
       rows: [
@@ -826,12 +826,12 @@ export function ContextMenuScenarioAnatomy({
     }),
     partSection({
       title: "Item: Export",
-      selector: "[data-menu-nested-sub-item]",
+      selector: "[data-playground-menu-nested-sub-item]",
       summary: state.parts.nestedSubItemExists === "yes" ? "export" : "not rendered",
       inactive: state.parts.nestedSubItemExists !== "yes",
       rows: [
         { label: "Ref", value: state.parts.nestedSubItemRef, category: "identity" },
-        ...itemRows("[data-menu-nested-sub-item]"),
+        ...itemRows("[data-playground-menu-nested-sub-item]"),
       ],
     }),
     {
@@ -845,7 +845,7 @@ export function ContextMenuScenarioAnatomy({
     },
     partSection({
       title: "Sub Trigger: Share actions",
-      selector: "[data-menu-sub-trigger-secondary]",
+      selector: "[data-playground-menu-sub-trigger-secondary]",
       summary: state.parts.subTriggerSecondaryExists === "yes" ? state.parts.subTriggerSecondaryState : "not rendered",
       inactive: state.parts.subTriggerSecondaryExists !== "yes",
       rows: [
@@ -857,7 +857,7 @@ export function ContextMenuScenarioAnatomy({
     }),
     partSection({
       title: "Sub Content: Share actions",
-      selector: "[data-menu-sub-content-secondary]",
+      selector: "[data-playground-menu-sub-content-secondary]",
       summary: state.parts.subContentSecondaryExists === "yes" ? state.parts.subContentSecondaryState : "not rendered",
       inactive: state.parts.subContentSecondaryExists !== "yes",
       rows: [
@@ -869,12 +869,12 @@ export function ContextMenuScenarioAnatomy({
     }),
     partSection({
       title: "Item: Copy link",
-      selector: "[data-menu-sub-item-secondary]",
+      selector: "[data-playground-menu-sub-item-secondary]",
       summary: state.parts.subItemSecondaryExists === "yes" ? "copy-link" : "not rendered",
       inactive: state.parts.subItemSecondaryExists !== "yes",
       rows: [
         { label: "Ref", value: state.parts.subItemSecondaryRef, category: "identity" },
-        ...itemRows("[data-menu-sub-item-secondary]"),
+        ...itemRows("[data-playground-menu-sub-item-secondary]"),
       ],
     }),
   ];
@@ -910,7 +910,7 @@ type ContextMenuTriggerProps = {
   disabled: boolean;
   onContextMenu: (event: { preventDefault: () => void }) => void;
   onKeyDown: (event: { key: string; shiftKey?: boolean; preventDefault: () => void }) => void;
-  "data-context-menu-trigger": string;
+  "data-playground-context-menu-trigger": string;
   "data-prop-check"?: string;
   "data-slot"?: string;
 };
@@ -982,7 +982,7 @@ type ContextMenuActionItemProps = {
   onClick: (event: { preventDefault: () => void }) => void;
   onPointerEnter: () => void;
   onPointerLeave: () => void;
-  "data-menu-item-primary": string;
+  "data-playground-menu-item-primary": string;
   "data-prop-check"?: string;
   "data-slot"?: string;
 };

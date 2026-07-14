@@ -268,7 +268,7 @@ export function useDialogScenario() {
   };
 
   const testDisabledTriggerKey = (key: "Enter" | " ") => {
-    const trigger = document.querySelector<HTMLElement>("[data-dialog-trigger]");
+    const trigger = document.querySelector<HTMLElement>("[data-playground-dialog-trigger]");
     if (!trigger) {
       addLog("disabled trigger probe failed: no trigger");
       return;
@@ -281,7 +281,7 @@ export function useDialogScenario() {
     }));
 
     requestAnimationFrame(() => {
-      const content = document.querySelector("[data-dialog-content]");
+      const content = document.querySelector("[data-playground-dialog-content]");
       const stayedClosed = !content || content.getAttribute("data-state") === "closed";
       addLog(
         stayedClosed
@@ -292,8 +292,8 @@ export function useDialogScenario() {
   };
 
   const testFocusEscape = () => {
-    const behindButton = document.querySelector<HTMLButtonElement>("[data-dialog-behind]");
-    const content = document.querySelector<HTMLElement>("[data-dialog-content]");
+    const behindButton = document.querySelector<HTMLButtonElement>("[data-playground-dialog-behind]");
+    const content = document.querySelector<HTMLElement>("[data-playground-dialog-content]");
 
     if (!behindButton || !content) {
       addLog("focus escape probe skipped");
@@ -361,7 +361,7 @@ export function useDialogScenario() {
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Tab") return;
-      const content = document.querySelector("[data-dialog-content]");
+      const content = document.querySelector("[data-playground-dialog-content]");
       const activeElement = document.activeElement instanceof HTMLElement
         ? document.activeElement
         : null;
@@ -486,13 +486,13 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
     return emptyDialogPartsSnapshot;
   }
 
-  const trigger = document.querySelector("[data-dialog-trigger]");
-  const cancelClose = document.querySelector("[data-dialog-cancel-close]");
-  const saveClose = document.querySelector("[data-dialog-save-close]");
-  const content = document.querySelector("[data-dialog-content]");
-  const overlay = document.querySelector("[data-dialog-overlay]");
-  const title = document.querySelector("[data-dialog-title]");
-  const description = document.querySelector("[data-dialog-description]");
+  const trigger = document.querySelector("[data-playground-dialog-trigger]");
+  const cancelClose = document.querySelector("[data-playground-dialog-cancel-close]");
+  const saveClose = document.querySelector("[data-playground-dialog-save-close]");
+  const content = document.querySelector("[data-playground-dialog-content]");
+  const overlay = document.querySelector("[data-playground-dialog-overlay]");
+  const title = document.querySelector("[data-playground-dialog-title]");
+  const description = document.querySelector("[data-playground-dialog-description]");
   const canvas = document.querySelector(".canvas");
   const triggerControls = trigger?.getAttribute("aria-controls") ?? "none";
   const contentId = content?.id || "none";

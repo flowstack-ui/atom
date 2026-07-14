@@ -61,7 +61,7 @@ function useScenarioLog() {
   };
 }
 
-function usePartRefs<TPart extends string>(parts: readonly TPart[]) {
+function usePartRefs<TPart extends string>(_parts: readonly TPart[]) {
   const refs = useRef<Record<TPart, HTMLElement | null>>({} as Record<TPart, HTMLElement | null>);
 
   const setPartRef = useCallback(
@@ -935,7 +935,7 @@ function ComboboxLabelPart({ children, group = false, labelKey, scenario }: { ch
   const ref = s.refs.setPartRef(`label-${labelKey}` as "label-assignee" | "label-recent" | "label-teams");
   const props = {
     className: group ? "playground-combobox-group-label" : "playground-combobox-label",
-    "data-combobox-label": labelKey,
+    "data-playground-combobox-label": labelKey,
     ref,
     ...partProps("label", { propCheck: s.propCheck, customSlot: s.customLabelSlot }, "combobox-label-custom"),
   };
@@ -1551,7 +1551,7 @@ function comboboxSections(state: ReturnType<typeof useComboboxScenario>["state"]
 }
 
 function comboboxLabelSelector(labelKey: "assignee" | "recent" | "teams", tag: "label" | "div") {
-  return slotSelector("combobox-label", "combobox-label-custom", tag, `[data-combobox-label='${labelKey}']`);
+  return slotSelector("combobox-label", "combobox-label-custom", tag, `[data-playground-combobox-label='${labelKey}']`);
 }
 
 function baseSection(title: string, summary: string, selector?: string, rows = [row("Exists", "true", "presence")], inactive = false): AnatomySection {

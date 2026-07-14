@@ -5,7 +5,7 @@ import {
   type AnatomySection,
 } from "../AnatomyPanel";
 import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup, partProps } from "../WorkbenchPrimitives";
-import { useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import type {
   HoverCardArrowSize,
   HoverCardAlign,
@@ -74,7 +74,7 @@ export function HoverCardScenarioCanvas({
           <HoverCard.Content
             ariaLabel={state.useAriaLabel ? "Contributor preview" : undefined}
             className="atom-popover-content"
-            data-hover-card-content=""
+            data-playground-hover-card-content=""
             data-playground-inspect=""
             {...partProps("content", { customSlot: state.customContentSlot, propCheck: state.propCheck }, "hover-card-content-custom")}
             side={state.side}
@@ -88,7 +88,7 @@ export function HoverCardScenarioCanvas({
             </p>
             <HoverCard.Arrow
               className="atom-popover-arrow"
-              data-hover-card-arrow=""
+              data-playground-hover-card-arrow=""
               {...partProps("arrow", { customSlot: state.customArrowSlot, propCheck: state.propCheck }, "hover-card-arrow-custom")}
               {...arrowDimensions}
             />
@@ -97,7 +97,7 @@ export function HoverCardScenarioCanvas({
       </HoverCard.Root>
       <div
         className="popover-portal-target"
-        data-hover-card-portal-target=""
+        data-playground-hover-card-portal-target=""
         data-playground-inspect=""
         ref={setPortalContainer}
       />
@@ -117,10 +117,10 @@ export function HoverCardScenarioAnatomy({
   state: HoverCardScenarioState;
   onOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
 }) {
-  const trigger = document.querySelector<HTMLElement>("[data-hover-card-trigger]");
-  const content = document.querySelector<HTMLElement>("[data-hover-card-content]");
-  const arrow = document.querySelector<HTMLElement>("[data-hover-card-arrow]");
-  const portalTarget = document.querySelector<HTMLElement>("[data-hover-card-portal-target]");
+  const trigger = document.querySelector<HTMLElement>("[data-playground-hover-card-trigger]");
+  const content = document.querySelector<HTMLElement>("[data-playground-hover-card-content]");
+  const arrow = document.querySelector<HTMLElement>("[data-playground-hover-card-arrow]");
+  const portalTarget = document.querySelector<HTMLElement>("[data-playground-hover-card-portal-target]");
 
   const sections: AnatomySection[] = [
     {
@@ -137,7 +137,7 @@ export function HoverCardScenarioAnatomy({
     },
     {
       title: "Trigger",
-      selector: "[data-hover-card-trigger]",
+      selector: "[data-playground-hover-card-trigger]",
       summary: trigger?.dataset.state ?? "closed",
       rows: [
         { label: "Exists", value: trigger ? "yes" : "no", category: "presence" },
@@ -159,7 +159,7 @@ export function HoverCardScenarioAnatomy({
     },
     {
       title: "Content",
-      selector: "[data-hover-card-content]",
+      selector: "[data-playground-hover-card-content]",
       inactive: !content,
       summary: content?.dataset.state ?? "not rendered",
       rows: [
@@ -175,7 +175,7 @@ export function HoverCardScenarioAnatomy({
     },
     {
       title: "Arrow",
-      selector: "[data-hover-card-arrow]",
+      selector: "[data-playground-hover-card-arrow]",
       inactive: !arrow,
       summary: arrow?.dataset.side ?? "not rendered",
       rows: [
@@ -303,7 +303,7 @@ function HoverCardTriggerExample({
 }) {
   const props = {
     className: "atom-button",
-    "data-hover-card-trigger": "",
+    "data-playground-hover-card-trigger": "",
     "data-playground-inspect": "",
     ...partProps("trigger", { customSlot, propCheck }, "hover-card-trigger-custom"),
     tabIndex: 0,

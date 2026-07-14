@@ -6,7 +6,7 @@ issue.
 
 ## Step 0: Playground Smoke Check
 
-1. Open the playground at `http://localhost:5174/`.
+1. Open the local URL printed by the Vite development server.
 2. From the top menu, choose `Data` > `Feed`.
 3. Expect the page title to be `Feed`.
 4. Expect the visible workbench order to be `Anatomy`, `Canvas`, then `Inspector`.
@@ -267,17 +267,7 @@ Pass condition: Feed keyboard behavior follows the documented feed pattern, focu
 
 ## Step 7: Workbook Cleanup / Rewrite Notes
 
-1. Do not run this step as manual UI testing.
-2. After all manual testing steps pass, update workbook rows for implemented and tested Feed coverage.
-3. Review likely workbook cleanup items:
-   - Row 12 is partly architectural; keep only if verified through Source and Canvas boundaries.
-   - Row 51 should say `Ctrl/Cmd+End behavior`, not plain `End behavior`.
-   - Row 52 should say `Ctrl/Cmd+Home behavior`, not plain `Home behavior`.
-   - Row 54 `Arrow key navigation follows documented orientation` is not applicable to Feed.
-   - Row 55 duplicates Home/End coverage and should be removed or merged.
-   - Row 56 `disabled items` is not applicable to Feed.
-   - Row 57 `typeahead/search behavior` is not applicable to Feed.
-   - Row 58 `roving focus or active descendant state` is not applicable; Feed uses focusable articles.
-4. Keep workbook updates separate from this manual test execution until every step passes or any issues are triaged.
-
-Pass condition: Cleanup notes are ready for workbook maintenance, with no workbook file changes made during manual testing.
+Workbook cleanup was completed after this protocol passed. Feed coverage uses
+`Ctrl/Cmd+Home` and `Ctrl/Cmd+End`; non-applicable arrow-navigation, disabled
+item, typeahead, and roving-focus rows were removed. Every current Feed row is
+implemented, tested, and covered.

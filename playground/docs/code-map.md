@@ -43,8 +43,12 @@ Scenario implementations live under `src/scenarios/`.
 ## Coverage Workbook
 
 - `component-coverage.xlsx` is the manual coverage workbook.
-- `component-coverage.xlsx.inspect.ndjson` is an inspection artifact and should
-  stay untouched unless a task explicitly asks for it.
+
+## Manual Test Protocols
+
+- `manual-tests/` contains reviewed, version-controlled regression protocols.
+- `.manual-tests/` is created only while a draft protocol is actively being
+  written and tested; it may be absent when no drafts are in progress.
 
 ## Verify When Unsure
 

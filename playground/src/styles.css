@@ -2765,11 +2765,11 @@ h2 {
   font-weight: 650;
 }
 
-.playground-select-scroll-button[data-select-scroll-up] {
+.playground-select-scroll-button[data-playground-select-scroll-up] {
   top: 5px;
 }
 
-.playground-select-scroll-button[data-select-scroll-down] {
+.playground-select-scroll-button[data-playground-select-scroll-down] {
   bottom: 5px;
 }
 

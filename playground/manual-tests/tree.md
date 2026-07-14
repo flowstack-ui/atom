@@ -400,4 +400,5 @@ Expected result:
 
 - Tree package docs currently document Item `data-state` as `expanded | collapsed`; source and tests render Item `data-state="checked" | "unchecked"` and Group `data-state="open" | "closed"`. This is classified as a package documentation gap.
 - The workbook row for `asChild lets preventDefault block Atom behavior where supported` is classified as a workbook model issue for Tree because no explicit Tree preventDefault behavior is documented.
-- Workbook statuses remain untested until this draft protocol is executed completely in the browser.
+- Workbook cleanup was completed after this protocol passed; every current
+  Tree row is implemented, tested, and covered.

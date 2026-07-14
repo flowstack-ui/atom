@@ -23,6 +23,13 @@ Follow the canonical authoring guide in
    `manual-tests/<component>.md`.
 8. Commit the reviewed protocol.
 
-`.manual-tests/` contains temporary draft protocols. This folder contains
-reviewed, version-controlled regression protocols. Do not promote a draft until
-the component has successfully completed manual testing and workbook updates.
+`.manual-tests/` contains temporary draft protocols and is created only when a
+draft is active. This folder contains reviewed, version-controlled regression
+protocols. Do not promote a draft until the component has successfully
+completed manual testing and workbook updates.
+
+The protocol folder is not the coverage index. The workbook remains the status
+source of truth, including completed baseline coverage that predates the current
+protocol workflow. Any future substantial update to a component without a
+reviewed protocol must create, execute, review, and promote one through the
+documented lifecycle.

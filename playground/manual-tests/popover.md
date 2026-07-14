@@ -629,27 +629,8 @@ Pass condition: nested popover, Escape top-layer order, outside close, and modal
 
 ## Step 12: Workbook Cleanup / Rewrite Notes
 
-This step records workbook notes only. It is not manual testing.
-
-1. Do not edit `component-coverage.xlsx` until all manual testing steps pass.
-2. Mark these workbook rows as stale or rewrite candidates after testing:
-   - Root default tag row: Root renders no DOM element.
-   - Root `data-slot` row: Root has no DOM slot.
-   - Root native prop passthrough row: Root does not accept DOM native props.
-   - Root ref row: Root has no rendered DOM element for consumer ref.
-   - Portal default tag row: Portal wrapper renders no inspectable Atom DOM part.
-   - Portal `data-slot` row: Portal has no DOM slot.
-   - Portal native prop passthrough row: Portal props are portal utility props, not DOM passthrough.
-   - Portal ref row: Portal has no rendered DOM element for consumer ref.
-3. Record Arrow docs/workbook mismatch:
-   - Package source default Arrow size is `width=10`, `height=5`.
-   - Existing public docs mention `width=12`, `height=6`.
-   - Classify this as documentation/workbook cleanup unless package maintainers decide source should change.
-4. Keep manual-only rows for mobile/touch and collision/flip/shift as viewport behavior, not exact stable DOM rows.
-5. Consider adding explicit workbook rows for:
-   - Portal mode `body`, `container`, and `disabled`.
-   - Arrow composition `Default`, `As Child`, and `Render`.
-   - Arrow wide size `width={16}` and `height={8}`.
-   - Nested Popover Escape closes top layer first.
-
-Pass condition: workbook cleanup notes are captured separately from pass/fail manual test execution and the workbook remains unchanged until all steps are complete.
+Workbook cleanup was completed after this protocol passed. Root and Portal are
+kept as non-DOM behavior/utility parts; Arrow evidence follows the verified
+package source; and portal modes, Arrow composition and sizing, nested Escape
+order, collision behavior, and touch behavior are represented by current rows.
+Every current Popover row is implemented, tested, and covered.

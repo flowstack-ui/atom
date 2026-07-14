@@ -652,7 +652,7 @@ export function App() {
   const toggleScenario = useToggleScenario();
   const toggleGroupScenario = useToggleGroupScenario();
   const focusCanvas = () => {
-    const preferredFocusTarget = inspector.rootRef.current?.querySelector<HTMLElement>("[data-canvas-focus]");
+    const preferredFocusTarget = inspector.rootRef.current?.querySelector<HTMLElement>("[data-playground-canvas-focus]");
     const focusTarget = preferredFocusTarget ?? inspector.rootRef.current?.querySelector<HTMLElement>(focusableSelector);
     if (!focusTarget) return;
 

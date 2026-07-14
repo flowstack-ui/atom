@@ -26,13 +26,14 @@ listing every document individually.
 ## Ownership
 
 - Playground-specific implementation rules live in this documentation set.
-- Shared developer tooling lives in [../../docs/tooling.md](../../docs/tooling.md).
+- Shared developer tooling lives in
+  [../../../docs/tooling.md](../../../docs/tooling.md).
 - Manual Test Protocol authoring rules live in
   [component-testing.md](component-testing.md).
 - The component completion workflow and Component Contract Audit live in
   [workflow.md](workflow.md).
-- Future shared tooling, including Graphify, Playwright, PDF utilities, and
-  image processing, belongs in `../../docs/tooling.md`.
+- New shared tooling belongs in `../../../docs/tooling.md` when it is actually
+  available to contributors.
 
 ## Manual Tests
 

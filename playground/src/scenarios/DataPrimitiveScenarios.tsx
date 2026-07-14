@@ -1104,7 +1104,7 @@ function TableScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useTabl
   const props = {
     className: "playground-data-table",
     "data-playground-inspect": "",
-    "data-table-root": "",
+    "data-playground-table-root": "",
     ref: (element: HTMLTableElement | null) => scenario.actions.markPartRef("root", element),
     ...tablePartProps("root", state),
   };
@@ -1139,7 +1139,7 @@ function renderTableContent(scenario: ReturnType<typeof useTableScenario>) {
 function renderTableCaption(scenario: ReturnType<typeof useTableScenario>) {
   const props = {
     "data-playground-inspect": "",
-    "data-table-caption": "",
+    "data-playground-table-caption": "",
     ref: (element: HTMLTableCaptionElement | null) => scenario.actions.markPartRef("caption", element),
     ...tablePartProps("caption", scenario.state),
   };
@@ -1162,7 +1162,7 @@ function renderTableCaption(scenario: ReturnType<typeof useTableScenario>) {
 function renderTableHeader(scenario: ReturnType<typeof useTableScenario>) {
   const props = {
     "data-playground-inspect": "",
-    "data-table-header": "",
+    "data-playground-table-header": "",
     ref: (element: HTMLTableSectionElement | null) => scenario.actions.markPartRef("header", element),
     ...tablePartProps("header", scenario.state),
   };
@@ -1186,7 +1186,7 @@ function renderTableHeader(scenario: ReturnType<typeof useTableScenario>) {
 function renderTableHeaderRow(scenario: ReturnType<typeof useTableScenario>) {
   const props = {
     "data-playground-inspect": "",
-    "data-table-header-row": "",
+    "data-playground-table-header-row": "",
     ref: (element: HTMLTableRowElement | null) => scenario.actions.markPartRef("headerRow", element),
     ...tablePartProps("headerRow", scenario.state),
   };
@@ -1217,7 +1217,7 @@ function renderTableProjectHead(scenario: ReturnType<typeof useTableScenario>) {
   const sortDirection = scenario.state.sortDirection === "unset" ? undefined : scenario.state.sortDirection;
   const props = {
     "data-playground-inspect": "",
-    "data-table-head-name": "",
+    "data-playground-table-head-name": "",
     sortDirection,
     ref: (element: HTMLTableCellElement | null) => scenario.actions.markPartRef("head", element),
     ...tablePartProps("head", scenario.state),
@@ -1240,8 +1240,8 @@ function renderTableProjectHead(scenario: ReturnType<typeof useTableScenario>) {
 
 function renderTableHead(id: string, label: string, scenario: ReturnType<typeof useTableScenario>) {
   const props = id === "status"
-    ? { "data-playground-inspect": "", "data-table-head-status": "", ...tablePartProps("head", scenario.state) }
-    : { "data-playground-inspect": "", "data-table-head": id, ...tablePartProps("head", scenario.state) };
+    ? { "data-playground-inspect": "", "data-playground-table-head-status": "", ...tablePartProps("head", scenario.state) }
+    : { "data-playground-inspect": "", "data-playground-table-head": id, ...tablePartProps("head", scenario.state) };
 
   if (scenario.state.composition.head === "asChild") {
     return (
@@ -1265,7 +1265,7 @@ function renderTableHead(id: string, label: string, scenario: ReturnType<typeof 
 function renderTableBody(scenario: ReturnType<typeof useTableScenario>) {
   const props = {
     "data-playground-inspect": "",
-    "data-table-body": "",
+    "data-playground-table-body": "",
     ref: (element: HTMLTableSectionElement | null) => scenario.actions.markPartRef("body", element),
     ...tablePartProps("body", scenario.state),
   };
@@ -1295,7 +1295,7 @@ function renderTableBody(scenario: ReturnType<typeof useTableScenario>) {
 function TableBodyRow({ item, scenario }: { item: (typeof tableRows)[number]; scenario: ReturnType<typeof useTableScenario> }) {
   const rowProps = {
     "data-playground-inspect": "",
-    "data-table-row": item.id,
+    "data-playground-table-row": item.id,
     ref: item.id === "alpha" ? (element: HTMLTableRowElement | null) => scenario.actions.markPartRef("bodyRow", element) : undefined,
     ...tablePartProps("bodyRow", scenario.state),
   };
@@ -1325,7 +1325,7 @@ function TableBodyRow({ item, scenario }: { item: (typeof tableRows)[number]; sc
 function renderTableRowHead(item: (typeof tableRows)[number], scenario: ReturnType<typeof useTableScenario>) {
   const props = {
     "data-playground-inspect": "",
-    "data-table-row-head": item.id,
+    "data-playground-table-row-head": item.id,
     scope: "row",
     ref: item.id === "alpha" ? (element: HTMLTableCellElement | null) => scenario.actions.markPartRef("rowHead", element) : undefined,
     ...tablePartProps("rowHead", scenario.state),
@@ -1349,7 +1349,7 @@ function renderTableRowHead(item: (typeof tableRows)[number], scenario: ReturnTy
 function renderTableCell(id: string, value: string, scenario: ReturnType<typeof useTableScenario>) {
   const props = {
     "data-playground-inspect": "",
-    "data-table-cell": id,
+    "data-playground-table-cell": id,
     ref: id === "alpha-status" ? (element: HTMLTableCellElement | null) => scenario.actions.markPartRef("cell", element) : undefined,
     ...tablePartProps("cell", scenario.state),
   };
@@ -1374,7 +1374,7 @@ function renderTableFooter(scenario: ReturnType<typeof useTableScenario>) {
 
   const props = {
     "data-playground-inspect": "",
-    "data-table-footer": "",
+    "data-playground-table-footer": "",
     ref: (element: HTMLTableSectionElement | null) => scenario.actions.markPartRef("footer", element),
     ...tablePartProps("footer", scenario.state),
   };
@@ -1398,7 +1398,7 @@ function renderTableFooter(scenario: ReturnType<typeof useTableScenario>) {
 function renderTableFooterRow(scenario: ReturnType<typeof useTableScenario>) {
   const props = {
     "data-playground-inspect": "",
-    "data-table-footer-row": "",
+    "data-playground-table-footer-row": "",
     ref: (element: HTMLTableRowElement | null) => scenario.actions.markPartRef("footerRow", element),
     ...tablePartProps("footerRow", scenario.state),
   };
@@ -1423,7 +1423,7 @@ function renderTableFooterCell(scenario: ReturnType<typeof useTableScenario>) {
   const props = {
     colSpan: 3,
     "data-playground-inspect": "",
-    "data-table-footer-cell": "",
+    "data-playground-table-footer-cell": "",
     ref: (element: HTMLTableCellElement | null) => scenario.actions.markPartRef("footerCell", element),
     ...tablePartProps("footerCell", scenario.state),
   };
@@ -1834,7 +1834,7 @@ function TreeScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useTreeS
     className: "playground-tree",
     "aria-label": "Documentation tree",
     "data-playground-inspect": "",
-    "data-tree-root": "",
+    "data-playground-tree-root": "",
     defaultExpandedValue: state.stateMode === "uncontrolled" && state.defaultExpanded ? ["docs"] : undefined,
     defaultValue: state.stateMode === "uncontrolled" && state.defaultSelected ? (state.selectionMode === "multiple" ? ["docs"] : "docs") : undefined,
     dir: getTreeRootDirection(state.directionMode),
@@ -1908,7 +1908,7 @@ function renderTreeItem(
   const state = scenario.state;
   const props = {
     "data-playground-inspect": "",
-    "data-tree-item": value,
+    "data-playground-tree-item": value,
     disabled,
     expandable,
     ref: value === "docs" ? (element: HTMLElement | null) => scenario.actions.markPartRef("item", element) : undefined,
@@ -1941,7 +1941,7 @@ function renderTreeItemText(value: string, label: string, scenario: ReturnType<t
   const state = scenario.state;
   const props = {
     "data-playground-inspect": "",
-    "data-tree-item-text": value,
+    "data-playground-tree-item-text": value,
     ref: value === "docs" ? (element: HTMLElement | null) => scenario.actions.markPartRef("itemText", element) : undefined,
     ...treePartProps("itemText", state),
   };
@@ -1965,7 +1965,7 @@ function renderTreeGroup(value: string, scenario: ReturnType<typeof useTreeScena
   const state = scenario.state;
   const props = {
     "data-playground-inspect": "",
-    "data-tree-group": value,
+    "data-playground-tree-group": value,
     forceMount: state.forceMount,
     ref: value === "docs" ? (element: HTMLElement | null) => scenario.actions.markPartRef("group", element) : undefined,
     ...treePartProps("group", state),
@@ -2123,7 +2123,7 @@ function FeedScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useFeedS
   const state = scenario.state;
   const props: any = {
     className: "playground-feed",
-    "data-feed-root": "",
+    "data-playground-feed-root": "",
     "data-playground-inspect": "",
     ...partProps("root", { customSlot: state.customRootSlot, propCheck: state.propCheck }, "feed-custom"),
     busy: state.busy,
@@ -2139,7 +2139,7 @@ function FeedScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useFeedS
   const children = feedItems.slice(0, state.itemCount).map((item, index) => {
     const itemProps: any = {
       className: "playground-feed-item",
-      "data-feed-item": item.id,
+      "data-playground-feed-item": item.id,
       "data-playground-inspect": "",
       ...partProps("item", { customSlot: state.customItemSlot, propCheck: state.propCheck }, "feed-item-custom"),
       index: state.positionMode === "index" ? index : undefined,
@@ -2202,7 +2202,7 @@ function ScrollAreaScenarioCanvas({ scenario }: { scenario: ReturnType<typeof us
   const state = scenario.state;
   const props: any = {
     className: "playground-scroll-area-demo",
-    "data-scroll-area-root": "",
+    "data-playground-scroll-area-root": "",
     "data-playground-inspect": "",
     ...partProps("root", { customSlot: state.customRootSlot, propCheck: state.propCheck }, "scroll-area-custom"),
     orientation: state.orientation,
@@ -2211,7 +2211,7 @@ function ScrollAreaScenarioCanvas({ scenario }: { scenario: ReturnType<typeof us
   const viewportProps: any = {
     className: "playground-scroll-area-viewport",
     "data-playground-inspect": "",
-    "data-scroll-area-viewport": "",
+    "data-playground-scroll-area-viewport": "",
     ...partProps("viewport", { customSlot: state.customViewportSlot, propCheck: state.propCheck }, "scroll-area-viewport-custom"),
     focusable: state.focusable,
     "aria-label": state.nameMode === "aria-label" ? "Scrollable project notes" : undefined,
@@ -2278,7 +2278,7 @@ function FormScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useFormS
     className: "playground-form-demo",
     name: "project-form",
     title: "Project form",
-    "data-form-root": "",
+    "data-playground-form-root": "",
     "data-playground-inspect": "",
     ...partProps("root", { customSlot: state.customRootSlot, propCheck: state.propCheck }, "form-custom"),
     ref: scenario.actions.markRootRef,
@@ -2310,7 +2310,7 @@ function FormScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useFormS
           value={state.projectName}
           onValueChange={scenario.actions.setProjectName}
           data-playground-inspect=""
-          data-form-input=""
+          data-playground-form-input=""
         />
       ) : (
         <input
@@ -2320,12 +2320,12 @@ function FormScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useFormS
           value={state.projectName}
           onChange={(event) => scenario.actions.setProjectName(event.target.value)}
           data-playground-inspect=""
-          data-form-input=""
+          data-playground-form-input=""
         />
       )}
       <div className="playground-form-actions">
-        <Button.Root className="atom-button" type="submit" data-playground-inspect="" data-form-submit="">Submit</Button.Root>
-        <Button.Root className="atom-button secondary" type="reset" data-playground-inspect="" data-form-reset="">Reset</Button.Root>
+        <Button.Root className="atom-button" type="submit" data-playground-inspect="" data-playground-form-submit="">Submit</Button.Root>
+        <Button.Root className="atom-button secondary" type="reset" data-playground-inspect="" data-playground-form-reset="">Reset</Button.Root>
       </div>
     </>
   );
@@ -2352,60 +2352,60 @@ function getDataPrimitiveSections(
   if (scenarioId === "table") {
     const state = scenarios.table.state;
     return [
-      section("Root", state.composition.root, "[data-table-root]", [
+      section("Root", state.composition.root, "[data-playground-table-root]", [
         row("Sort direction", formatTableSort(state.sortDirection), "state"),
         row("Footer", bool(state.footer), "state"),
         row("Composition", state.composition.root, "composition"),
         row("Ref target", state.refs.root, "identity"),
       ]),
-      section("Caption", state.composition.caption, "[data-table-caption]", [
+      section("Caption", state.composition.caption, "[data-playground-table-caption]", [
         row("Composition", state.composition.caption, "composition"),
         row("Ref target", state.refs.caption, "identity"),
       ]),
-      section("Header", state.composition.header, "[data-table-header]", [
+      section("Header", state.composition.header, "[data-playground-table-header]", [
         row("Composition", state.composition.header, "composition"),
         row("Ref target", state.refs.header, "identity"),
       ]),
-      section("Header Row", state.composition.headerRow, "[data-table-header-row]", [
+      section("Header Row", state.composition.headerRow, "[data-playground-table-header-row]", [
         row("Composition", state.composition.headerRow, "composition"),
         row("Ref target", state.refs.headerRow, "identity"),
       ]),
-      section("Head: Project", state.composition.head, "[data-table-head-name]", [
+      section("Head: Project", state.composition.head, "[data-playground-table-head-name]", [
         row("Sort direction", formatTableSort(state.sortDirection), "state"),
         row("Composition", state.composition.head, "composition"),
         row("Ref target", state.refs.head, "identity"),
       ]),
-      section("Head: Status", state.composition.head, "[data-table-head-status]", [
+      section("Head: Status", state.composition.head, "[data-playground-table-head-status]", [
         row("Composition", state.composition.head, "composition"),
       ]),
-      section("Head: Owner", state.composition.head, "[data-table-head='owner']", [
+      section("Head: Owner", state.composition.head, "[data-playground-table-head='owner']", [
         row("Composition", state.composition.head, "composition"),
       ]),
-      section("Body", state.composition.body, "[data-table-body]", [
+      section("Body", state.composition.body, "[data-playground-table-body]", [
         row("Composition", state.composition.body, "composition"),
         row("Ref target", state.refs.body, "identity"),
       ]),
-      section("Row: Alpha", state.composition.bodyRow, "[data-table-row='alpha']", [
+      section("Row: Alpha", state.composition.bodyRow, "[data-playground-table-row='alpha']", [
         row("Composition", state.composition.bodyRow, "composition"),
         row("Ref target", state.refs.bodyRow, "identity"),
       ]),
-      section("Row Header: Alpha", state.composition.rowHead, "[data-table-row-head='alpha']", [
+      section("Row Header: Alpha", state.composition.rowHead, "[data-playground-table-row-head='alpha']", [
         row("Composition", state.composition.rowHead, "composition"),
         row("Ref target", state.refs.rowHead, "identity"),
       ]),
-      section("Cell: Alpha Status", state.composition.cell, "[data-table-cell='alpha-status']", [
+      section("Cell: Alpha Status", state.composition.cell, "[data-playground-table-cell='alpha-status']", [
         row("Composition", state.composition.cell, "composition"),
         row("Ref target", state.refs.cell, "identity"),
       ]),
-      section("Footer", state.footer ? state.composition.footer : "not rendered", "[data-table-footer]", [
+      section("Footer", state.footer ? state.composition.footer : "not rendered", "[data-playground-table-footer]", [
         row("Composition", state.composition.footer, "composition"),
         row("Ref target", state.refs.footer, "identity"),
       ]),
-      section("Footer Row", state.footer ? state.composition.footerRow : "not rendered", "[data-table-footer-row]", [
+      section("Footer Row", state.footer ? state.composition.footerRow : "not rendered", "[data-playground-table-footer-row]", [
         row("Composition", state.composition.footerRow, "composition"),
         row("Ref target", state.refs.footerRow, "identity"),
       ]),
-      section("Footer Cell", state.footer ? state.composition.footerCell : "not rendered", "[data-table-footer-cell]", [
+      section("Footer Cell", state.footer ? state.composition.footerCell : "not rendered", "[data-playground-table-footer-cell]", [
         row("Composition", state.composition.footerCell, "composition"),
         row("Ref target", state.refs.footerCell, "identity"),
       ]),
@@ -2454,7 +2454,7 @@ function getDataPrimitiveSections(
   if (scenarioId === "tree") {
     const state = scenarios.tree.state;
     return [
-      section("Root", `${state.stateMode} ${state.selectionMode}`, "[data-tree-root]", [
+      section("Root", `${state.stateMode} ${state.selectionMode}`, "[data-playground-tree-root]", [
         row("Mode", state.stateMode, "state"),
         row("Selected", formatValue(state.selectedValue), "state"),
         row("Expanded", state.expandedValue.join(",") || "none", "state"),
@@ -2471,29 +2471,29 @@ function getDataPrimitiveSections(
         row("Composition", state.composition.root, "composition"),
         row("Ref", state.refs.root, "behavior"),
       ]),
-      section("Item: Docs", state.expandedValue.includes("docs") ? "expanded" : "collapsed", "[data-tree-item='docs']", [
+      section("Item: Docs", state.expandedValue.includes("docs") ? "expanded" : "collapsed", "[data-playground-tree-item='docs']", [
         row("Composition", state.composition.item, "composition"),
         row("Ref", state.refs.item, "behavior"),
       ]),
-      section("Item Text: Docs", "label", "[data-tree-item-text='docs']", [
+      section("Item Text: Docs", "label", "[data-playground-tree-item-text='docs']", [
         row("Composition", state.composition.itemText, "composition"),
         row("Ref", state.refs.itemText, "behavior"),
       ]),
-      section("Group: Docs", state.forceMount || state.expandedValue.includes("docs") ? "mounted" : "not rendered", "[data-tree-group='docs']", [
+      section("Group: Docs", state.forceMount || state.expandedValue.includes("docs") ? "mounted" : "not rendered", "[data-playground-tree-group='docs']", [
         row("Force mount", bool(state.forceMount), "state"),
         row("Composition", state.composition.group, "composition"),
         row("Ref", state.refs.group, "behavior"),
       ]),
-      section("Item: Guide", "child", "[data-tree-item='guide']", [
+      section("Item: Guide", "child", "[data-playground-tree-item='guide']", [
         row("Composition", state.composition.item, "composition"),
       ]),
-      section("Item: API", state.disableItem ? "disabled child" : "enabled child", "[data-tree-item='api']", [
+      section("Item: API", state.disableItem ? "disabled child" : "enabled child", "[data-playground-tree-item='api']", [
         row("Composition", state.composition.item, "composition"),
       ]),
-      section("Item: Components", state.expandedValue.includes("components") ? "expanded" : "collapsed", "[data-tree-item='components']", [
+      section("Item: Components", state.expandedValue.includes("components") ? "expanded" : "collapsed", "[data-playground-tree-item='components']", [
         row("Composition", state.composition.item, "composition"),
       ]),
-      section("Group: Components", state.forceMount || state.expandedValue.includes("components") ? "mounted" : "not rendered", "[data-tree-group='components']"),
+      section("Group: Components", state.forceMount || state.expandedValue.includes("components") ? "mounted" : "not rendered", "[data-playground-tree-group='components']"),
       section("Hidden Input", state.formName ? "generated" : "not rendered", "input[name='tree-selection']"),
     ];
   }
@@ -2540,7 +2540,7 @@ function getDataPrimitiveSections(
   if (scenarioId === "feed") {
     const state = scenarios.feed.state;
     return [
-      section("Root", state.busy ? "busy" : "ready", "[data-feed-root]", [
+      section("Root", state.busy ? "busy" : "ready", "[data-playground-feed-root]", [
         row("Ref target", state.rootRef, "identity"),
         row("Busy", bool(state.busy), "state"),
         row("Set size", state.setSize, "state"),
@@ -2550,23 +2550,23 @@ function getDataPrimitiveSections(
         row("Composition", state.composition, "composition"),
         row("Prevent key handling", bool(state.preventKeys), "behavior"),
       ]),
-      section("Item: First", "article", "[data-feed-item='deploy']", [
+      section("Item: First", "article", "[data-playground-feed-item='deploy']", [
         row("Ref target", state.itemRef, "identity"),
         row("Composition", state.itemComposition, "composition"),
       ]),
-      section("Item: Last", `${state.itemCount} of ${state.setSize}`, `[data-feed-item='${feedItems[state.itemCount - 1]?.id ?? "deploy"}']`),
+      section("Item: Last", `${state.itemCount} of ${state.setSize}`, `[data-playground-feed-item='${feedItems[state.itemCount - 1]?.id ?? "deploy"}']`),
     ];
   }
 
   if (scenarioId === "scroll-area") {
     const state = scenarios.scrollArea.state;
     return [
-      section("Root", state.orientation, "[data-scroll-area-root]", [
+      section("Root", state.orientation, "[data-playground-scroll-area-root]", [
         row("Ref target", state.rootRef, "identity"),
         row("Orientation", state.orientation, "state"),
         row("Composition", state.composition, "composition"),
       ]),
-      section("Viewport", state.focusable ? "focusable" : "not focusable", "[data-scroll-area-viewport]", [
+      section("Viewport", state.focusable ? "focusable" : "not focusable", "[data-playground-scroll-area-viewport]", [
         row("Ref target", state.viewportRef, "identity"),
         row("Focusable", bool(state.focusable), "behavior"),
         row("Composition", state.viewportComposition, "composition"),
@@ -2579,7 +2579,7 @@ function getDataPrimitiveSections(
   if (scenarioId === "form") {
     const state = scenarios.form.state;
     return [
-      section("Root", state.status, "[data-form-root]", [
+      section("Root", state.status, "[data-playground-form-root]", [
         row("Ref target", state.rootRef, "identity"),
         row("Status", state.status, "state"),
         row("preventDefaultOnSubmit", bool(state.preventDefault), "behavior"),
@@ -3075,13 +3075,6 @@ const tableParts = [
   "footerRow",
   "footerCell",
 ] as const satisfies readonly TablePartKey[];
-
-const treeParts = [
-  "root",
-  "item",
-  "itemText",
-  "group",
-] as const satisfies readonly TreePartKey[];
 
 const treeDefaultComposition: Record<TreePartKey, CompositionMode> = {
   root: "default",

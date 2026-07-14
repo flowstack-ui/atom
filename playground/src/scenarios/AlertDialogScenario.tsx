@@ -58,7 +58,7 @@ export function AlertDialogScenarioCanvas({
     <div className="dialog-stage">
       <Button.Root
         className="behind-dialog-button"
-        data-alert-dialog-behind
+        data-playground-alert-dialog-behind
         tabIndex={-1}
       >
         Behind alert dialog
@@ -98,7 +98,7 @@ export function AlertDialogScenarioCanvas({
         <AlertDialog.Portal disabled={state.portalDisabled}>
           <AlertDialog.Overlay
             className="atom-dialog-overlay"
-            data-alert-dialog-overlay=""
+            data-playground-alert-dialog-overlay=""
             data-playground-inspect=""
             disabled={state.overlayDisabled}
             {...partProps("overlay", { customSlot: state.customOverlaySlot, propCheck: state.propCheck }, "alert-dialog-overlay-custom")}
@@ -108,7 +108,7 @@ export function AlertDialogScenarioCanvas({
           <AlertDialog.Content
             ariaLabel={state.useAriaLabel ? "Delete project confirmation" : undefined}
             className="atom-dialog-content"
-            data-alert-dialog-content=""
+            data-playground-alert-dialog-content=""
             data-playground-inspect=""
             {...partProps("content", { customSlot: state.customContentSlot, propCheck: state.propCheck }, "alert-dialog-content-custom")}
             ref={contentRef}
@@ -116,7 +116,7 @@ export function AlertDialogScenarioCanvas({
             {state.useAriaLabel ? null : (
               <AlertDialog.Title
                 as={state.titleHeadingLevel}
-                data-alert-dialog-title=""
+                data-playground-alert-dialog-title=""
                 {...partProps("title", { customSlot: state.customTitleSlot, propCheck: state.propCheck }, "alert-dialog-title-custom")}
                 ref={titleRef}
               >
@@ -124,7 +124,7 @@ export function AlertDialogScenarioCanvas({
               </AlertDialog.Title>
             )}
             <AlertDialog.Description
-              data-alert-dialog-description=""
+              data-playground-alert-dialog-description=""
               {...partProps("description", { customSlot: state.customDescriptionSlot, propCheck: state.propCheck }, "alert-dialog-description-custom")}
               ref={descriptionRef}
             >
@@ -132,7 +132,7 @@ export function AlertDialogScenarioCanvas({
             </AlertDialog.Description>
             {state.showNestedSelect ? (
               <Select.Root defaultValue="archive">
-                <Select.Trigger className="atom-select-trigger" data-alert-dialog-nested-trigger="">
+                <Select.Trigger className="atom-select-trigger" data-playground-alert-dialog-nested-trigger="">
                   <Select.Value />
                   <Select.Icon>v</Select.Icon>
                 </Select.Trigger>
@@ -199,13 +199,13 @@ export function AlertDialogScenarioAnatomy({
   state: AlertDialogScenarioState;
   onOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
 }) {
-  const trigger = document.querySelector<HTMLElement>("[data-alert-dialog-trigger]");
-  const overlay = document.querySelector<HTMLElement>("[data-alert-dialog-overlay]");
-  const content = document.querySelector<HTMLElement>("[data-alert-dialog-content]");
-  const title = document.querySelector<HTMLElement>("[data-alert-dialog-title]");
-  const description = document.querySelector<HTMLElement>("[data-alert-dialog-description]");
-  const cancel = document.querySelector<HTMLElement>("[data-alert-dialog-cancel]");
-  const action = document.querySelector<HTMLElement>("[data-alert-dialog-action]");
+  const trigger = document.querySelector<HTMLElement>("[data-playground-alert-dialog-trigger]");
+  const overlay = document.querySelector<HTMLElement>("[data-playground-alert-dialog-overlay]");
+  const content = document.querySelector<HTMLElement>("[data-playground-alert-dialog-content]");
+  const title = document.querySelector<HTMLElement>("[data-playground-alert-dialog-title]");
+  const description = document.querySelector<HTMLElement>("[data-playground-alert-dialog-description]");
+  const cancel = document.querySelector<HTMLElement>("[data-playground-alert-dialog-cancel]");
+  const action = document.querySelector<HTMLElement>("[data-playground-alert-dialog-action]");
 
   const sections: AnatomySection[] = [
     {
@@ -229,7 +229,7 @@ export function AlertDialogScenarioAnatomy({
     },
     {
       title: "Trigger",
-      selector: "[data-alert-dialog-trigger]",
+      selector: "[data-playground-alert-dialog-trigger]",
       summary: trigger?.dataset.state ?? "not rendered",
       rows: [
         { label: "Exists", value: trigger ? "yes" : "no", category: "presence" },
@@ -254,7 +254,7 @@ export function AlertDialogScenarioAnatomy({
     },
     {
       title: "Overlay",
-      selector: "[data-alert-dialog-overlay]",
+      selector: "[data-playground-alert-dialog-overlay]",
       inactive: !overlay,
       summary: overlay?.dataset.state ?? "not rendered",
       rows: [
@@ -268,7 +268,7 @@ export function AlertDialogScenarioAnatomy({
     },
     {
       title: "Content",
-      selector: "[data-alert-dialog-content]",
+      selector: "[data-playground-alert-dialog-content]",
       inactive: !content,
       summary: content?.dataset.state ?? "not rendered",
       rows: [
@@ -287,7 +287,7 @@ export function AlertDialogScenarioAnatomy({
     },
     {
       title: "Title",
-      selector: "[data-alert-dialog-title]",
+      selector: "[data-playground-alert-dialog-title]",
       inactive: !title,
       summary: title ? title.tagName.toLowerCase() : "not rendered",
       rows: [
@@ -299,7 +299,7 @@ export function AlertDialogScenarioAnatomy({
     },
     {
       title: "Description",
-      selector: "[data-alert-dialog-description]",
+      selector: "[data-playground-alert-dialog-description]",
       inactive: !description,
       summary: description ? "rendered" : "not rendered",
       rows: [
@@ -311,7 +311,7 @@ export function AlertDialogScenarioAnatomy({
     },
     {
       title: "Cancel",
-      selector: "[data-alert-dialog-cancel]",
+      selector: "[data-playground-alert-dialog-cancel]",
       inactive: !cancel,
       summary: state.cancelComposition,
       rows: [
@@ -324,7 +324,7 @@ export function AlertDialogScenarioAnatomy({
     },
     {
       title: "Action",
-      selector: "[data-alert-dialog-action]",
+      selector: "[data-playground-alert-dialog-action]",
       inactive: !action,
       summary: state.actionComposition,
       rows: [
@@ -491,7 +491,7 @@ function AlertDialogTriggerExample({
 }) {
   const props = {
     className: "atom-button",
-    "data-alert-dialog-trigger": "",
+    "data-playground-alert-dialog-trigger": "",
     "data-playground-inspect": "",
     ...partProps("trigger", { customSlot, propCheck }, "alert-dialog-trigger-custom"),
     onClick,
@@ -538,7 +538,7 @@ function AlertDialogCancelExample({
   const props = {
     autoFocus,
     className: "atom-button secondary",
-    "data-alert-dialog-cancel": "",
+    "data-playground-alert-dialog-cancel": "",
     "data-playground-inspect": "",
     ...partProps("cancel", { customSlot, propCheck }, "alert-dialog-cancel-custom"),
     onClick,
@@ -581,7 +581,7 @@ function AlertDialogActionExample({
 }) {
   const props = {
     className: "atom-button",
-    "data-alert-dialog-action": "",
+    "data-playground-alert-dialog-action": "",
     "data-playground-inspect": "",
     ...partProps("action", { customSlot, propCheck }, "alert-dialog-action-custom"),
     onClick,
