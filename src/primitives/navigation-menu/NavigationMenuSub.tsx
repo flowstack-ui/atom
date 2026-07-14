@@ -155,8 +155,8 @@ export const NavigationMenuSub = forwardRef<
 
   const getNextTriggerValue = useCallback(
     (value: string, direction: "next" | "previous") =>
-      getNextControlItem(value, direction)?.value ?? null,
-    [getNextControlItem],
+      getNextControlItem(value, direction, { loop: parentCtx.loop })?.value ?? null,
+    [getNextControlItem, parentCtx.loop],
   );
 
   const getFirstTriggerValue = useCallback(
@@ -306,14 +306,13 @@ export const NavigationMenuSub = forwardRef<
     dir: parentCtx.dir,
     className,
     onBlur: composeEventHandlers(onBlur, handleBlur),
-    children,
   };
 
   return (
     <NavigationMenuContextProvider value={contextValue}>
       {asChild
         ? cloneAndMerge(children, behaviorProps)
-        : renderElement(render, "div", behaviorProps)}
+        : renderElement(render, "div", { ...behaviorProps, children })}
     </NavigationMenuContextProvider>
   );
 });

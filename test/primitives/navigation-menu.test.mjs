@@ -306,6 +306,63 @@ test("NavigationMenu primitives support asChild element overrides", () => {
   assert.match(html, /Product panel/);
 });
 
+test("NavigationMenu asChild parts preserve slotted children", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      NavigationMenuRoot,
+      { defaultValue: "products" },
+      React.createElement(
+        NavigationMenuList,
+        null,
+        React.createElement(
+          NavigationMenuItem,
+          { value: "products" },
+          React.createElement(NavigationMenuTrigger, null, "Products"),
+          React.createElement(
+            NavigationMenuContent,
+            null,
+            React.createElement(
+              NavigationMenuSub,
+              { asChild: true, defaultValue: "nested" },
+              React.createElement(
+                "section",
+                { "data-sub-child": "true" },
+                React.createElement(
+                  NavigationMenuList,
+                  null,
+                  React.createElement(
+                    NavigationMenuItem,
+                    { value: "nested" },
+                    React.createElement(NavigationMenuTrigger, null, "Nested"),
+                    React.createElement(NavigationMenuContent, null, "Nested panel"),
+                  ),
+                ),
+                React.createElement(NavigationMenuViewport, null),
+              ),
+            ),
+          ),
+        ),
+      ),
+      React.createElement(
+        NavigationMenuIndicator,
+        { asChild: true },
+        React.createElement(
+          "span",
+          { "data-indicator-child": "true" },
+          React.createElement("i", { "data-arrow-child": "true" }),
+        ),
+      ),
+      React.createElement(NavigationMenuViewport, null),
+    ),
+  );
+
+  assert.match(html, /<span data-indicator-child="true"[^>]+data-slot="navigation-menu-indicator"[^>]*><i data-arrow-child="true"><\/i><\/span>/);
+  assert.doesNotMatch(html, /data-indicator-child="true"[^>]*><span data-indicator-child="true"/);
+  assert.match(html, /<section data-sub-child="true"[^>]+data-slot="navigation-menu-sub"/);
+  assert.doesNotMatch(html, /data-sub-child="true"[^>]*><section data-sub-child="true"/);
+  assert.match(html, /Nested panel/);
+});
+
 test("NavigationMenu exposes trigger geometry helpers for indicator and viewport CSS variables", () => {
   const geometry = getNavigationMenuGeometry({
     rootRect: { left: 100, top: 50, width: 600, height: 80 },
@@ -471,7 +528,7 @@ test("NavigationMenu source keeps context and registration stable", async () => 
   assert.match(rootSource, /registerControlItem\(value, element, \{ data: \{ type: "link" \} \}\)/);
   assert.match(rootSource, /getControlItem\(value\)\?\.element \?\? null/);
   assert.match(rootSource, /getControlItem\(value\)\?\.data\.type \?\? null/);
-  assert.match(rootSource, /getNextControlItem\(value, direction\)\?\.value \?\? null/);
+  assert.match(rootSource, /getNextControlItem\(value, direction, \{ loop \}\)\?\.value \?\? null/);
   assert.match(rootSource, /getFirstControlItem\(\)\?\.value \?\? null/);
   assert.match(rootSource, /getLastControlItem\(\)\?\.value \?\? null/);
   assert.match(rootSource, /const handleBlur: FocusEventHandler<HTMLElement> = useCallback/);
@@ -481,10 +538,11 @@ test("NavigationMenu source keeps context and registration stable", async () => 
   assert.match(subSource, /useCollection<string, HTMLElement, \{ type: NavigationMenuControlType \}>\(\)/);
   assert.match(subSource, /registerControlItem\(value, element, \{ data: \{ type: "trigger" \} \}\)/);
   assert.match(subSource, /registerControlItem\(value, element, \{ data: \{ type: "link" \} \}\)/);
-  assert.match(subSource, /getNextControlItem\(value, direction\)\?\.value \?\? null/);
+  assert.match(subSource, /getNextControlItem\(value, direction, \{ loop: parentCtx\.loop \}\)\?\.value \?\? null/);
   assert.match(subSource, /const trigger = activeValue === null \? null : getTriggerElement\(activeValue\)/);
   assert.match(subSource, /trigger\?\.focus\(\{ preventScroll: true \}\)/);
   assert.match(subSource, /const handleBlur: FocusEventHandler<HTMLDivElement> = useCallback/);
+  assert.doesNotMatch(subSource, /onBlur: composeEventHandlers\(onBlur, handleBlur\),\s*children,\s*\}/);
   assert.doesNotMatch(subSource, /triggerRegistryRef/);
   assert.doesNotMatch(subSource, /itemValuesRef/);
   assert.match(rootSource, /\}, delayDuration\)/);
@@ -519,14 +577,16 @@ test("NavigationMenu source keeps context and registration stable", async () => 
   assert.match(linkSource, /onValueChange\(null\)/);
   assert.match(contentSource, /const \{ registerContentNode, unregisterContentNode \} = ctx/);
   assert.match(contentSource, /dataSlot,/);
+  assert.match(contentSource, /loop,/);
   assert.match(contentSource, /props: restProps/);
   assert.match(contentSource, /render,/);
   assert.match(contentSource, /asChild,/);
   assert.match(viewportSource, /activeEntry\.asChild/);
+  assert.match(viewportSource, /const contentLoop = activeEntry\?\.loop \?\? loop/);
   assert.match(viewportSource, /renderElement\(activeEntry\.render, "div"/);
   assert.match(viewportSource, /const handleContentKeyDown = useCallback/);
   assert.match(viewportSource, /const getOrderedTarget = \(direction: "next" \| "previous"\) => \{/);
-  assert.match(viewportSource, /if \(!loop\) return null/);
+  assert.match(viewportSource, /if \(!contentLoop\) return null/);
   assert.match(viewportSource, /activeContent\.querySelectorAll<HTMLElement>\(FOCUSABLE_SELECTOR\)/);
   assert.match(viewportSource, /case "Tab": \{/);
   assert.match(viewportSource, /getNextTriggerValue\(value, "next"\)/);
@@ -539,6 +599,13 @@ test("NavigationMenu source keeps context and registration stable", async () => 
   assert.match(viewportSource, /getOrderedTarget\("previous"\)/);
   assert.match(viewportSource, /case "Home": \{/);
   assert.match(contentSource, /\}, \[unregisterContentNode, value\]\)/);
+  assert.doesNotMatch(
+    await readFile(
+      new URL("src/primitives/navigation-menu/NavigationMenuIndicator.tsx", packageRoot),
+      "utf8",
+    ),
+    /style: indicatorStyle,\s*children,\s*\}/,
+  );
   assert.doesNotMatch(itemSource, /\}, \[ctx, value\]\)/);
   assert.doesNotMatch(triggerSource, /ctx\.registerTrigger\(value, el\)/);
   assert.doesNotMatch(triggerSource, /ctx\.unregisterTrigger\(value\)/);

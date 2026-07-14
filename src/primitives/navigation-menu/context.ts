@@ -10,6 +10,7 @@ export interface ContentNodeEntry {
   asChild?: boolean;
   className?: string;
   dataSlot?: string;
+  loop?: boolean;
   props?: NativeDivProps<"children">;
   render?: RenderProp;
 }

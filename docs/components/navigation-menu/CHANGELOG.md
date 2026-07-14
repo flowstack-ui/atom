@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Fixed `NavigationMenu.Indicator` and `NavigationMenu.Sub` `asChild`
+  rendering so slotted children keep their own contents.
+- Split `NavigationMenu` looping so `Root` controls top-level Trigger/Link
+  wrapping and `Content` can override content arrow-key wrapping.
 - Completed disclosure-navigation keyboard behavior for `NavigationMenu`,
   including direct top-level links, vertical orientation, content arrow
   navigation, focus-out closing, and nested Escape focus restoration.

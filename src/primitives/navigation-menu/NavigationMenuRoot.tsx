@@ -170,8 +170,8 @@ export const NavigationMenuRoot = forwardRef<
 
   const getNextTriggerValue = useCallback(
     (value: string, direction: "next" | "previous") =>
-      getNextControlItem(value, direction)?.value ?? null,
-    [getNextControlItem],
+      getNextControlItem(value, direction, { loop })?.value ?? null,
+    [getNextControlItem, loop],
   );
 
   const getFirstTriggerValue = useCallback(

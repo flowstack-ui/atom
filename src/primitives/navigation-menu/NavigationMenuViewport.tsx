@@ -126,6 +126,7 @@ export const NavigationMenuViewport = forwardRef<
   }, [value]);
 
   const activeEntry = value ? getContentNode(value) : null;
+  const contentLoop = activeEntry?.loop ?? loop;
 
   const motionDirection = value
     ? computeMotionDirection(value, previousValue, getItemValues())
@@ -167,7 +168,7 @@ export const NavigationMenuViewport = forwardRef<
           return focusable[nextIndex] ?? null;
         }
 
-        if (!loop) return null;
+        if (!contentLoop) return null;
         return direction === "next"
           ? focusable[0] ?? null
           : focusable[focusable.length - 1] ?? null;
@@ -230,7 +231,7 @@ export const NavigationMenuViewport = forwardRef<
       getControlElement,
       getNextTriggerValue,
       getTriggerElement,
-      loop,
+      contentLoop,
       onValueChange,
       value,
     ],

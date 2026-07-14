@@ -14,6 +14,7 @@ export interface NavigationMenuContentProps extends NavigationMenuContentNativeP
   children: ReactNode;
   asChild?: boolean;
   className?: string;
+  loop?: boolean;
   render?: RenderProp;
   "data-slot"?: string;
 }
@@ -22,6 +23,7 @@ export function NavigationMenuContent({
   children,
   asChild,
   className,
+  loop,
   render,
   "data-slot": dataSlot = "navigation-menu-content",
   ...restProps
@@ -36,6 +38,7 @@ export function NavigationMenuContent({
     asChild,
     className,
     dataSlot,
+    loop,
     props: restProps,
     render,
   });

@@ -130,12 +130,11 @@ export const NavigationMenuIndicator = forwardRef<
     "data-orientation": orientation,
     className,
     style: indicatorStyle,
-    children,
   };
 
   if (asChild) {
     return cloneAndMerge(children, behaviorProps);
   }
 
-  return renderElement(render, "div", behaviorProps);
+  return renderElement(render, "div", { ...behaviorProps, children });
 });

@@ -69,6 +69,7 @@ Renders the item list.
 | Prop | Type | Default |
 | --- | --- | --- |
 | `asChild` | `boolean` | `false` |
+| `loop` | `boolean` | `Root loop` |
 | `render` | `RenderProp` | - |
 
 | Data attribute | Values |
@@ -273,8 +274,9 @@ link.
 | `Home` / `End` | Moves to the first or last focusable content element |
 | `Escape` | Closes the active panel and restores focus to its trigger |
 
-Content arrow navigation loops by default. Set `loop={false}` on `Root` to stop
-ArrowUp and ArrowDown at the first or last focusable content element.
+Content arrow navigation uses `Root` `loop` by default. Set `loop={false}` on
+`Content` to stop ArrowUp and ArrowDown at the first or last focusable content
+element without changing top-level Trigger/Link wrapping.
 
 When focus leaves the navigation region, the active panel closes. Nested
 navigation menu scopes close from the inside out: Escape first closes the
