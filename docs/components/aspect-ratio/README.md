@@ -1,12 +1,19 @@
 # AspectRatio
 
-Aspect-ratio preserving structural wrapper.
+Structural wrapper that keeps its content at a stable width-to-height ratio.
+
+## When to Use
+
+Use AspectRatio when an image, video, iframe, or placeholder should reserve a
+predictable shape before its content finishes loading. It controls geometry
+only. The child element still owns its image, media, or interactive semantics.
 
 ## Features
 
 - Applies an authoritative `aspect-ratio` inline style.
-- Normalizes invalid ratios back to `16 / 9`.
-- Preserves native DOM props and consumer styles outside the owned ratio style.
+- Defaults to a `16 / 9` ratio.
+- Normalizes non-positive and non-finite ratios back to `16 / 9`.
+- Preserves native div props and consumer styles outside the owned ratio value.
 - Supports `asChild` and `render`.
 
 ## Import
@@ -25,7 +32,9 @@ import { AspectRatio } from "@flowstack-ui/atom";
 
 ### Root
 
-Constrains its content to a width/height ratio.
+Renders a `div` by default and constrains its content with an inline
+`aspect-ratio`. Consumer styles are preserved, but the resolved ratio remains
+authoritative.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -39,26 +48,40 @@ Constrains its content to a width/height ratio.
 
 ## Examples
 
-### Square media
+### Square Image
 
 ```tsx
-<AspectRatio.Root ratio={1}>
-  <img src="/avatar.png" alt="" />
-</AspectRatio.Root>
+import { AspectRatio } from "@flowstack-ui/atom";
+
+export function SquareImage() {
+  return (
+    <AspectRatio.Root ratio={1}>
+      <img src="/profile.png" alt="Alex Morgan" />
+    </AspectRatio.Root>
+  );
+}
 ```
 
-### Video frame
+### Video Frame
 
 ```tsx
-<AspectRatio.Root ratio={16 / 9}>
-  <iframe title="Demo" src="https://example.com" />
-</AspectRatio.Root>
+import { AspectRatio } from "@flowstack-ui/atom";
+
+export function VideoFrame() {
+  return (
+    <AspectRatio.Root ratio={16 / 9}>
+      <iframe src="/product-tour" title="Product tour" />
+    </AspectRatio.Root>
+  );
+}
 ```
 
 ## Accessibility
 
-`AspectRatio` adds no ARIA by itself. Accessible names and semantics belong to
-the content rendered inside the wrapper.
+WAI-ARIA defines no AspectRatio widget because aspect ratio is layout behavior,
+not an interactive pattern. Root adds no role or ARIA attributes. Give the child
+its appropriate semantics: images need suitable alternative text, and iframes
+need a descriptive title.
 
 ## Changelog
 

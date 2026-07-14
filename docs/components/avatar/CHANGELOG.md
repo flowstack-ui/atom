@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- No unreleased changes.
+- Expanded the README with identity usage guidance, loading and no-DOM
+  behavior, accessible fallback handling, and self-contained examples.
 
 ## 0.1.0
 

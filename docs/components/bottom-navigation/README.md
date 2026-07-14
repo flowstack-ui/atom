@@ -1,14 +1,25 @@
 # BottomNavigation
 
-Mobile-style navigation landmark with active destination state.
+Navigation landmark with active-destination state for a small set of primary
+application destinations.
+
+## When to Use
+
+Use BottomNavigation for a short, stable set of top-level destinations commonly
+placed at the bottom of a compact application. Prefer links when each item
+changes the URL. Use `NavList` for longer or grouped navigation, and use `Tabs`
+when switching panels inside the current page rather than navigating to a new
+destination.
 
 ## Features
 
 - Renders a named `nav` landmark.
-- Supports link destinations and button destinations.
+- Supports link destinations and button-based view changes.
 - Supports controlled and uncontrolled active value.
-- Exposes active, disabled, and label-visibility state through data attributes.
-- Supports `asChild` and `render` on every part.
+- Marks the active destination with `aria-current="page"`.
+- Exposes active, disabled, value, and label-visibility state through data
+  attributes.
+- Supports `asChild` and `render` on both parts.
 
 ## Import
 
@@ -30,7 +41,9 @@ import { BottomNavigation } from "@flowstack-ui/atom";
 
 ### Root
 
-Contains bottom navigation destinations.
+Renders the `nav` landmark and owns the active value shared by every Item. The
+default accessible label can be replaced with a label appropriate to the
+application.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -42,13 +55,19 @@ Contains bottom navigation destinations.
 | `showLabels` | `boolean` | `true` |
 | `ariaLabel` | `string` | `"Bottom navigation"` |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-label` | Value from `ariaLabel` |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"bottom-nav-root"` |
 
 ### Item
 
-Represents one destination.
+Represents one destination and updates Root's active value when activated. It
+renders an `a` when `href` is provided and a `button` otherwise. Disabled links
+omit `href` and leave the tab order.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -60,6 +79,11 @@ Represents one destination.
 | `rel` | `string` | - |
 | `disabled` | `boolean` | `false` |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-current` | `"page"` when the Item is active |
+| `aria-disabled` | `"true"` when disabled |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"bottom-nav-item"` |
@@ -67,33 +91,68 @@ Represents one destination.
 | `[data-value]` | Item value |
 | `[data-active]` | Present when active |
 | `[data-disabled]` | Present when disabled |
-| `[data-label-visible]` | Present when the label should be visible |
+| `[data-label-visible]` | Present when labels should be visibly presented |
 
 ## Examples
 
-### Link destinations
+### Link Destinations
 
 ```tsx
-<BottomNavigation.Root defaultValue="home">
-  <BottomNavigation.Item value="home" href="/home">Home</BottomNavigation.Item>
-  <BottomNavigation.Item value="search" href="/search">Search</BottomNavigation.Item>
-</BottomNavigation.Root>
+import { BottomNavigation } from "@flowstack-ui/atom";
+
+export function PrimaryDestinations() {
+  return (
+    <BottomNavigation.Root
+      defaultValue="home"
+      ariaLabel="Primary destinations"
+    >
+      <BottomNavigation.Item value="home" href="/home">
+        Home
+      </BottomNavigation.Item>
+      <BottomNavigation.Item value="search" href="/search">
+        Search
+      </BottomNavigation.Item>
+      <BottomNavigation.Item value="profile" href="/profile">
+        Profile
+      </BottomNavigation.Item>
+    </BottomNavigation.Root>
+  );
+}
 ```
 
-### Controlled destination
+### Controlled View Selection
 
 ```tsx
-<BottomNavigation.Root value={value} onChange={setValue}>
-  <BottomNavigation.Item value="home">Home</BottomNavigation.Item>
-  <BottomNavigation.Item value="profile">Profile</BottomNavigation.Item>
-</BottomNavigation.Root>
+import { useState } from "react";
+import { BottomNavigation } from "@flowstack-ui/atom";
+
+export function ControlledDestinations() {
+  const [value, setValue] = useState("activity");
+
+  return (
+    <>
+      <p>Current view: {value}</p>
+      <BottomNavigation.Root value={value} onChange={setValue}>
+        <BottomNavigation.Item value="activity">Activity</BottomNavigation.Item>
+        <BottomNavigation.Item value="messages">Messages</BottomNavigation.Item>
+      </BottomNavigation.Root>
+    </>
+  );
+}
 ```
 
 ## Accessibility
 
-`BottomNavigation.Root` is a `nav` landmark with an accessible label. Items use
-native anchor semantics when `href` is provided and native button semantics
-otherwise. Active items expose `aria-current="page"`.
+WAI-ARIA defines no dedicated Bottom Navigation pattern. Root uses a native
+navigation landmark and follows
+[WAI-ARIA landmark guidance](https://www.w3.org/WAI/ARIA/apg/practices/landmark-regions/).
+Give the landmark a concise name that distinguishes it from other navigation
+regions.
+
+Items with `href` use native link behavior and expose `aria-current="page"`
+when active. Prefer links for real destinations so browser navigation features
+continue to work. Button Items retain native button keyboard behavior for
+application-controlled view changes.
 
 ## Changelog
 

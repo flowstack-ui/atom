@@ -1,13 +1,22 @@
 # Avatar
 
-Avatar image, fallback, and grouping primitives.
+Image, loading fallback, and grouping primitives for representing a person or
+other named entity.
+
+## When to Use
+
+Use Avatar when a picture or short fallback helps people recognize a user,
+team, or organization. Keep a visible name nearby when identity must be clear;
+an image or initials should not be the only source of important information.
+Use `Badge` for a short count or status instead of an identity.
 
 ## Features
 
-- Tracks image loading status.
-- Renders fallback content while the image is missing, loading, or errored.
-- Supports delayed fallback rendering to avoid loading flashes.
-- Provides a group wrapper for stacked or clustered avatars.
+- Tracks image loading status from `Root.src`.
+- Renders Image only after the source loads successfully.
+- Renders Fallback while the image is missing, loading, or errored.
+- Supports delayed fallback rendering to avoid brief loading flashes.
+- Provides a Group wrapper for multiple avatars.
 - Supports `asChild` and `render` on every part.
 
 ## Import
@@ -25,8 +34,9 @@ import { Avatar } from "@flowstack-ui/atom";
 </Avatar.Root>
 
 <Avatar.Group>
-  <Avatar.Root src="/one.png" />
-  <Avatar.Root src="/two.png" />
+  <Avatar.Root>
+    <Avatar.Fallback />
+  </Avatar.Root>
 </Avatar.Group>
 ```
 
@@ -34,7 +44,8 @@ import { Avatar } from "@flowstack-ui/atom";
 
 ### Root
 
-Provides image loading status to avatar parts.
+Renders a `span` and provides the loading status for its Image and Fallback.
+Pass the source to Root so it can preload the image and report status changes.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -49,13 +60,15 @@ Provides image loading status to avatar parts.
 
 ### Image
 
-Renders the image once it has loaded.
+Renders an `img` only when Root reports that its source has loaded. Its `src`
+should match the source being tracked by Root, and `alt` defaults to an empty
+string for decorative images.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
-| `src` | `string` | - |
+| `src` | `string` | Required |
 | `alt` | `string` | `""` |
 
 | Data attribute | Values |
@@ -64,7 +77,8 @@ Renders the image once it has loaded.
 
 ### Fallback
 
-Renders fallback content when the image is not loaded.
+Renders a `span` when the image is idle, loading, or errored. During loading it
+can wait for `delayMs`; after the image loads, it renders no DOM element.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -78,7 +92,9 @@ Renders fallback content when the image is not loaded.
 
 ### Group
 
-Groups multiple avatars.
+Renders a `div` that groups multiple Avatar roots without adding a role. Native
+div props can add `role="group"` and an accessible name when the collection
+needs to be announced as one group.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -91,31 +107,54 @@ Groups multiple avatars.
 
 ## Examples
 
-### Delayed fallback
+### Image With Delayed Fallback
 
 ```tsx
-<Avatar.Root src="/user.png">
-  <Avatar.Image src="/user.png" alt="User name" />
-  <Avatar.Fallback delayMs={600}>UN</Avatar.Fallback>
-</Avatar.Root>
+import { Avatar } from "@flowstack-ui/atom";
+
+export function UserAvatar() {
+  const source = "/alex.png";
+
+  return (
+    <Avatar.Root src={source}>
+      <Avatar.Image src={source} alt="Alex Morgan" />
+      <Avatar.Fallback delayMs={600}>AM</Avatar.Fallback>
+    </Avatar.Root>
+  );
+}
 ```
 
-### Decorative avatar
-
-Use an empty `alt` value when the same name is already visible nearby.
+### Decorative Avatar
 
 ```tsx
-<Avatar.Root src="/user.png">
-  <Avatar.Image src="/user.png" alt="" />
-  <Avatar.Fallback>UN</Avatar.Fallback>
-</Avatar.Root>
+import { Avatar } from "@flowstack-ui/atom";
+
+export function DecorativeAvatar() {
+  const source = "/alex.png";
+
+  return (
+    <span>
+      <Avatar.Root src={source}>
+        <Avatar.Image src={source} alt="" />
+        <Avatar.Fallback aria-hidden="true">AM</Avatar.Fallback>
+      </Avatar.Root>
+      Alex Morgan
+    </span>
+  );
+}
 ```
 
 ## Accessibility
 
-Use meaningful `alt` text when the avatar image communicates information that is
-not available elsewhere. Use `alt=""` for decorative avatars or when adjacent
-text already names the person/entity.
+WAI-ARIA defines no dedicated Avatar pattern. Follow
+[WAI image guidance](https://www.w3.org/WAI/tutorials/images/): use meaningful
+`alt` text when the image communicates identity that is not already written
+nearby, and use `alt=""` when the image is decorative or repeats adjacent text.
+
+Fallback text remains in the accessibility tree while it is rendered. Hide the
+Fallback with `aria-hidden="true"` when the Avatar is decorative and adjacent
+text already supplies the name. Do not rely on an Avatar alone to communicate
+essential identity.
 
 ## Changelog
 

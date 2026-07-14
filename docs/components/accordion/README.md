@@ -2,6 +2,13 @@
 
 Disclosure sections with linked triggers, panels, and keyboard navigation.
 
+## When to Use
+
+Use Accordion when a page has several related sections and readers should open
+only the sections they need. It works well for settings, product details, and
+frequently asked questions. Use `Collapsible` instead when there is only one
+independent section to show or hide.
+
 ## Features
 
 - Supports single and multiple expanded items.
@@ -9,6 +16,8 @@ Disclosure sections with linked triggers, panels, and keyboard navigation.
 - Supports horizontal and vertical arrow-key navigation.
 - Links each trigger to its content with stable ARIA IDs.
 - Supports mounted and unmounted closed content.
+- Supports RTL-aware horizontal navigation through `dir` and
+  `Direction.Provider`.
 - Supports `asChild` and `render` on every part.
 
 ## Import
@@ -34,7 +43,8 @@ import { Accordion } from "@flowstack-ui/atom";
 
 ### Root
 
-Contains all accordion items.
+Owns the expanded-item state and keyboard-navigation settings for every item.
+It renders a `div` by default and accepts native div props.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -42,7 +52,7 @@ Contains all accordion items.
 | `render` | `RenderProp` | - |
 | `type` | `"single" \| "multiple"` | `"single"` |
 | `value` | `string \| string[]` | - |
-| `defaultValue` | `string \| string[]` | `[]` |
+| `defaultValue` | `string \| string[]` | `""` or `[]`, based on `type` |
 | `onValueChange` | `(value: string \| string[]) => void` | - |
 | `collapsible` | `boolean` | `true` |
 | `disabled` | `boolean` | `false` |
@@ -53,11 +63,12 @@ Contains all accordion items.
 | --- | --- |
 | `[data-slot]` | `"accordion-root"` |
 | `[data-orientation]` | `"vertical" \| "horizontal"` |
-| `[data-disabled]` | Present when disabled |
+| `[data-disabled]` | Present when the whole accordion is disabled |
 
 ### Item
 
-Contains one collapsible section.
+Provides one item value and its open, closed, and disabled state to the nested
+Header, Trigger, and Content. It renders a `div` by default.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -70,11 +81,12 @@ Contains one collapsible section.
 | --- | --- |
 | `[data-slot]` | `"accordion-item"` |
 | `[data-state]` | `"open" \| "closed"` |
-| `[data-disabled]` | Present when disabled |
+| `[data-disabled]` | Present when the item or Root is disabled |
 
 ### Header
 
-Heading wrapper for an accordion trigger.
+Renders the semantic heading that contains a Trigger. Choose an `as` level that
+fits the surrounding page heading structure.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -88,28 +100,44 @@ Heading wrapper for an accordion trigger.
 
 ### Trigger
 
-Button that toggles its item content.
+Renders the control that toggles its Item and moves focus between sibling
+triggers. It renders a native `button` by default and supplies button semantics
+to custom renders.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"button"` for non-native renders |
+| `aria-expanded` | `"true"` when open, otherwise `"false"` |
+| `aria-controls` | ID of the associated Content |
+| `aria-disabled` | `"true"` when the Item or Root is disabled |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"accordion-trigger"` |
 | `[data-state]` | `"open" \| "closed"` |
-| `[data-disabled]` | Present when disabled |
+| `[data-disabled]` | Present when the Item or Root is disabled |
 
 ### Content
 
-Panel associated with a trigger.
+Renders the region controlled and labelled by its Trigger. Closed content
+unmounts by default; `keepMounted` keeps it available in the DOM and hides it
+after any closing animation finishes.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 | `keepMounted` | `boolean` | `false` |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"region"` |
+| `aria-labelledby` | ID of the associated Trigger |
 
 | Data attribute | Values |
 | --- | --- |
@@ -118,51 +146,82 @@ Panel associated with a trigger.
 
 | CSS variable | Description |
 | --- | --- |
-| `--content-height` | Measured content height for CSS animation |
+| `--content-height` | Measured content height for consumer-owned animation |
 
 ## Examples
 
-### Expanded by default
+### Single Accordion
 
 ```tsx
-<Accordion.Root defaultValue="item-2">
-  <Accordion.Item value="item-1">...</Accordion.Item>
-  <Accordion.Item value="item-2">...</Accordion.Item>
-</Accordion.Root>
+import { Accordion } from "@flowstack-ui/atom";
+
+export function SingleAccordion() {
+  return (
+    <Accordion.Root defaultValue="shipping">
+      <Accordion.Item value="shipping">
+        <Accordion.Header>
+          <Accordion.Trigger>Shipping</Accordion.Trigger>
+        </Accordion.Header>
+        <Accordion.Content>Orders usually ship within two days.</Accordion.Content>
+      </Accordion.Item>
+
+      <Accordion.Item value="returns">
+        <Accordion.Header>
+          <Accordion.Trigger>Returns</Accordion.Trigger>
+        </Accordion.Header>
+        <Accordion.Content>Unused items can be returned within 30 days.</Accordion.Content>
+      </Accordion.Item>
+    </Accordion.Root>
+  );
+}
 ```
 
-### Multiple sections
+### Multiple Expanded Sections
 
 ```tsx
-<Accordion.Root type="multiple" defaultValue={["item-1", "item-2"]}>
-  <Accordion.Item value="item-1">...</Accordion.Item>
-  <Accordion.Item value="item-2">...</Accordion.Item>
-</Accordion.Root>
-```
+import { Accordion } from "@flowstack-ui/atom";
 
-### Non-collapsible single section
+export function MultipleAccordion() {
+  return (
+    <Accordion.Root
+      type="multiple"
+      defaultValue={["account", "security"]}
+    >
+      <Accordion.Item value="account">
+        <Accordion.Header>
+          <Accordion.Trigger>Account</Accordion.Trigger>
+        </Accordion.Header>
+        <Accordion.Content>Update your account details.</Accordion.Content>
+      </Accordion.Item>
 
-```tsx
-<Accordion.Root type="single" collapsible={false} defaultValue="item-1">
-  <Accordion.Item value="item-1">...</Accordion.Item>
-  <Accordion.Item value="item-2">...</Accordion.Item>
-</Accordion.Root>
+      <Accordion.Item value="security">
+        <Accordion.Header>
+          <Accordion.Trigger>Security</Accordion.Trigger>
+        </Accordion.Header>
+        <Accordion.Content>Review your security settings.</Accordion.Content>
+      </Accordion.Item>
+    </Accordion.Root>
+  );
+}
 ```
 
 ## Accessibility
 
-Accordion triggers are native buttons with `aria-expanded` and `aria-controls`.
-Content panels render `role="region"` and `aria-labelledby`.
+Accordion follows the
+[WAI-ARIA Accordion pattern](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
+Triggers are buttons with `aria-expanded` and `aria-controls`. Each Content is
+a labelled region, and each Header should use a heading level that fits the
+page. Keep the Trigger as the only interactive control inside its Header.
 
 | Key | Description |
 | --- | --- |
-| `Space` / `Enter` | Toggles the focused trigger. |
-| `ArrowDown` | Moves to the next trigger when vertical. |
-| `ArrowUp` | Moves to the previous trigger when vertical. |
-| `ArrowRight` | Moves to the next trigger when horizontal in LTR, or previous in RTL. |
-| `ArrowLeft` | Moves to the previous trigger when horizontal in LTR, or next in RTL. |
-| `Home` | Moves to the first enabled trigger. |
-| `End` | Moves to the last enabled trigger. |
+| `Space` / `Enter` | Toggles the focused Trigger. |
+| `ArrowDown` | Moves to the next Trigger when orientation is vertical. |
+| `ArrowUp` | Moves to the previous Trigger when orientation is vertical. |
+| `ArrowRight` | Moves next in horizontal LTR, or previous in horizontal RTL. |
+| `ArrowLeft` | Moves previous in horizontal LTR, or next in horizontal RTL. |
+| `Home` | Moves to the first enabled Trigger. |
+| `End` | Moves to the last enabled Trigger. |
 
 ## Changelog
 

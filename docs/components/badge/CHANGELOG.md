@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- No unreleased changes.
+- Expanded the README with contextual usage guidance, non-interactive and
+  live-region boundaries, native semantics, and self-contained examples.
 
 ## 0.1.0
 

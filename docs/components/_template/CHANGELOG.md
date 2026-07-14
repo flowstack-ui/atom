@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Initial notes.
+- No unreleased changes.
 
 ## 0.1.0
 
