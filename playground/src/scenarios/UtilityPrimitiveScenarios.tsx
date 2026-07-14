@@ -4,7 +4,6 @@ import { Direction, useDirection } from "@flowstack-ui/atom/direction";
 import { Drawer } from "@flowstack-ui/atom/drawer";
 import { Menubar } from "@flowstack-ui/atom/menubar";
 import { Modal, useModalContent } from "@flowstack-ui/atom/modal";
-import { NavigationMenu } from "@flowstack-ui/atom/navigation-menu";
 import { Portal } from "@flowstack-ui/atom/portal";
 import { Pressable } from "@flowstack-ui/atom/pressable";
 import { Progress } from "@flowstack-ui/atom/progress";
@@ -32,6 +31,14 @@ import {
 } from "react";
 import { AnatomyPanel, type AnatomySection } from "../AnatomyPanel";
 import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup, partProps, type WorkbenchOption } from "../WorkbenchPrimitives";
+import {
+  NavigationMenuScenarioCanvas,
+  NavigationMenuScenarioToolbar,
+  getNavigationMenuFooter,
+  getNavigationMenuSections,
+  getNavigationMenuSource,
+  useNavigationMenuScenario,
+} from "./NavigationMenuScenario";
 
 type CompositionMode = "default" | "asChild" | "render";
 type ProgressMode = "determinate" | "complete" | "indeterminate" | "invalid";
@@ -433,38 +440,6 @@ function useMenubarScenario() {
       handleValueChange,
       clearLog,
       noteSelect: (label: string) => addLog(`selected ${label}`),
-    },
-  };
-}
-
-function useNavigationMenuScenario() {
-  const [controlled, setControlled] = useState(false);
-  const [value, setValue] = useState<string | null>(null);
-  const [orientation, setOrientation] = useState<Orientation>("horizontal");
-  const [dir, setDir] = useState<TextDirection>("ltr");
-  const [disabledItem, setDisabledItem] = useState(true);
-  const [showIndicator, setShowIndicator] = useState(true);
-  const [showViewport, setShowViewport] = useState(true);
-  const { log, addLog, clearLog } = useScenarioLog();
-
-  const handleValueChange = (nextValue: string | null) => {
-    setValue(nextValue);
-    addLog(nextValue ? `opened ${nextValue}` : "closed");
-  };
-
-  return {
-    state: { controlled, value, orientation, dir, disabledItem, showIndicator, showViewport, log },
-    actions: {
-      setControlled,
-      setValue,
-      setOrientation,
-      setDir,
-      setDisabledItem,
-      setShowIndicator,
-      setShowViewport,
-      handleValueChange,
-      clearLog,
-      noteLink: (label: string) => addLog(`link ${label}`),
     },
   };
 }
@@ -1518,21 +1493,7 @@ export function UtilityPrimitiveScenarioToolbar({
   }
 
   if (scenarioId === "navigation-menu") {
-    const scenario = scenarios.navigationMenu;
-    return (
-      <ControlToolbar label="Navigation Menu controls">
-        <ToolbarGroup title="State" value="state">
-          <MenuCheckboxControl checked={scenario.state.controlled} label="Controlled" value="controlled" onChange={scenario.actions.setControlled} />
-          <MenuCheckboxControl checked={scenario.state.disabledItem} label="Docs disabled" value="docs-disabled" onChange={scenario.actions.setDisabledItem} />
-          <MenuCheckboxControl checked={scenario.state.showIndicator} label="Show indicator" value="indicator" onChange={scenario.actions.setShowIndicator} />
-          <MenuCheckboxControl checked={scenario.state.showViewport} label="Show viewport" value="viewport" onChange={scenario.actions.setShowViewport} />
-        </ToolbarGroup>
-        <ToolbarGroup title="Layout" value="layout">
-          <MenuRadioControl label="Orientation" options={orientationOptions} value={scenario.state.orientation} onChange={scenario.actions.setOrientation} />
-          <MenuRadioControl label="Direction" options={directionOptions} value={scenario.state.dir} onChange={scenario.actions.setDir} />
-        </ToolbarGroup>
-      </ControlToolbar>
-    );
+    return <NavigationMenuScenarioToolbar scenario={scenarios.navigationMenu} />;
   }
 
   if (scenarioId === "sidebar") {
@@ -2014,8 +1975,7 @@ export function getUtilityPrimitiveCanvasFooter(
   }
 
   if (scenarioId === "navigation-menu") {
-    const state = scenarios.navigationMenu.state;
-    return `Open ${state.value ?? "none"} | ${state.orientation} | ${state.dir}`;
+    return getNavigationMenuFooter(scenarios.navigationMenu);
   }
 
   if (scenarioId === "sidebar") {
@@ -2357,26 +2317,7 @@ ${indent(triggerSource, 2)}
   }
 
   if (scenarioId === "navigation-menu") {
-    const state = scenarios.navigationMenu.state;
-    return `<NavigationMenu.Root
-  orientation="${state.orientation}"
-  dir="${state.dir}"
-  ${state.controlled ? "value={value}" : ""}
-  onValueChange={handleValueChange}
->
-  <NavigationMenu.List>
-    <NavigationMenu.Item value="products">
-      <NavigationMenu.Trigger>Products</NavigationMenu.Trigger>
-      <NavigationMenu.Content>Product links</NavigationMenu.Content>
-    </NavigationMenu.Item>
-    <NavigationMenu.Item value="docs">
-      <NavigationMenu.Trigger disabled={${state.disabledItem}}>Docs</NavigationMenu.Trigger>
-      <NavigationMenu.Content>Documentation links</NavigationMenu.Content>
-    </NavigationMenu.Item>
-  </NavigationMenu.List>
-  ${state.showIndicator ? "<NavigationMenu.Indicator />" : ""}
-  ${state.showViewport ? "<NavigationMenu.Viewport />" : ""}
-</NavigationMenu.Root>`;
+    return getNavigationMenuSource(scenarios.navigationMenu);
   }
 
   if (scenarioId === "sidebar") {
@@ -3581,64 +3522,6 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
           {menubar}
         </Direction.Provider>
       ) : menubar}
-    </div>
-  );
-}
-
-function NavigationMenuScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useNavigationMenuScenario> }) {
-  const rootProps = {
-    className: `utility-navigation-menu ${scenario.state.orientation}`,
-    "data-navigation-menu-root": "",
-    "data-playground-inspect": "",
-    "data-prop-check": "root",
-    dir: scenario.state.dir,
-    orientation: scenario.state.orientation,
-    onValueChange: scenario.actions.handleValueChange,
-    ...(scenario.state.controlled ? { value: scenario.state.value } : {}),
-  };
-
-  return (
-    <div className="utility-primitive-stage">
-      <NavigationMenu.Root {...rootProps}>
-        <NavigationMenu.List className="utility-navigation-list" data-navigation-menu-list="" data-playground-inspect="">
-          <NavigationMenu.Item value="products" data-navigation-menu-item="products" data-playground-inspect="" data-prop-check="item-products">
-            <NavigationMenu.Trigger className="utility-navigation-trigger" data-navigation-menu-trigger="products" data-playground-inspect="" data-prop-check="trigger">
-              Products
-            </NavigationMenu.Trigger>
-            <NavigationMenu.Content className="utility-navigation-content" data-navigation-menu-content="products" data-playground-inspect="" data-prop-check="content">
-              <div className="utility-navigation-panel">
-                <NavigationMenu.Link className="utility-navigation-link" href="#components" data-navigation-menu-link="components" data-playground-inspect="" data-prop-check="link" onSelect={() => scenario.actions.noteLink("components")}>
-                  Components
-                </NavigationMenu.Link>
-                <NavigationMenu.Link className="utility-navigation-link" href="#templates" data-navigation-menu-link="templates" data-playground-inspect="" onSelect={() => scenario.actions.noteLink("templates")}>
-                  Templates
-                </NavigationMenu.Link>
-              </div>
-            </NavigationMenu.Content>
-          </NavigationMenu.Item>
-          <NavigationMenu.Item value="docs" data-navigation-menu-item="docs" data-playground-inspect="">
-            <NavigationMenu.Trigger className="utility-navigation-trigger" data-navigation-menu-trigger="docs" data-playground-inspect="" disabled={scenario.state.disabledItem}>
-              Docs
-            </NavigationMenu.Trigger>
-            <NavigationMenu.Content className="utility-navigation-content" data-navigation-menu-content="docs" data-playground-inspect="">
-              <div className="utility-navigation-panel">
-                <NavigationMenu.Link className="utility-navigation-link" href="#guide" data-navigation-menu-link="guide" data-playground-inspect="" active onSelect={() => scenario.actions.noteLink("guide")}>
-                  Guide
-                </NavigationMenu.Link>
-                <NavigationMenu.Link className="utility-navigation-link" href="#api" data-navigation-menu-link="api" data-playground-inspect="" onSelect={() => scenario.actions.noteLink("api")}>
-                  API Reference
-                </NavigationMenu.Link>
-              </div>
-            </NavigationMenu.Content>
-          </NavigationMenu.Item>
-          {scenario.state.showIndicator ? (
-            <NavigationMenu.Indicator className="utility-navigation-indicator" data-navigation-menu-indicator="" data-playground-inspect="" data-prop-check="indicator" />
-          ) : null}
-        </NavigationMenu.List>
-        {scenario.state.showViewport ? (
-          <NavigationMenu.Viewport className="utility-navigation-viewport" data-navigation-menu-viewport="" data-playground-inspect="" data-prop-check="viewport" />
-        ) : null}
-      </NavigationMenu.Root>
     </div>
   );
 }
@@ -5500,66 +5383,7 @@ function getUtilityPrimitiveSections(
   }
 
   if (scenarioId === "navigation-menu") {
-    const root = document.querySelector<HTMLElement>("[data-navigation-menu-root]");
-    const list = document.querySelector<HTMLElement>("[data-navigation-menu-list]");
-    const productsTrigger = document.querySelector<HTMLElement>("[data-navigation-menu-trigger='products']");
-    const docsTrigger = document.querySelector<HTMLElement>("[data-navigation-menu-trigger='docs']");
-    const content = document.querySelector<HTMLElement>("[data-slot='navigation-menu-content']");
-    const viewport = document.querySelector<HTMLElement>("[data-navigation-menu-viewport]");
-    const indicator = document.querySelector<HTMLElement>("[data-navigation-menu-indicator]");
-    const link = document.querySelector<HTMLElement>("[data-navigation-menu-link]");
-    return [
-      {
-        title: "Root",
-        selector: "[data-navigation-menu-root]",
-        summary: scenarios.navigationMenu.state.value ?? "closed",
-        rows: [
-          { label: "Exists", value: bool(!!root), category: "presence" },
-          { label: "Mode", value: scenarios.navigationMenu.state.controlled ? "controlled" : "uncontrolled", category: "state" },
-          { label: "Value", value: scenarios.navigationMenu.state.value ?? "none", category: "state" },
-          { label: "Orientation", value: scenarios.navigationMenu.state.orientation, category: "state" },
-          { label: "Direction", value: scenarios.navigationMenu.state.dir, category: "state" },
-        ],
-      },
-      { title: "List", selector: "[data-navigation-menu-list]", summary: list ? "rendered" : "not rendered", rows: [{ label: "Exists", value: bool(!!list), category: "presence" }] },
-      {
-        title: "Item",
-        selector: "[data-navigation-menu-item='products']",
-        summary: "products",
-        groups: [
-          { title: "Products item", selector: "[data-navigation-menu-item='products']", rows: [{ label: "Exists", value: "true", category: "presence" }] },
-          { title: "Docs item", selector: "[data-navigation-menu-item='docs']", rows: [{ label: "Exists", value: "true", category: "presence" }] },
-        ],
-      },
-      {
-        title: "Trigger",
-        selector: "[data-navigation-menu-trigger='products']",
-        summary: productsTrigger?.dataset.state ?? "not rendered",
-        groups: [
-          {
-            title: "Products trigger",
-            selector: "[data-navigation-menu-trigger='products']",
-            rows: [
-              { label: "Exists", value: bool(!!productsTrigger), category: "presence" },
-              { label: "State", value: productsTrigger?.dataset.state ?? "not rendered", category: "state" },
-            ],
-          },
-          {
-            title: "Docs trigger",
-            selector: "[data-navigation-menu-trigger='docs']",
-            rows: [
-              { label: "Exists", value: bool(!!docsTrigger), category: "presence" },
-              { label: "Disabled", value: bool(scenarios.navigationMenu.state.disabledItem), category: "state" },
-              { label: "State", value: docsTrigger?.dataset.state ?? "not rendered", category: "state" },
-            ],
-          },
-        ],
-      },
-      { title: "Content", selector: "[data-slot='navigation-menu-content']", inactive: !content, summary: content?.dataset.state ?? "not rendered", rows: [{ label: "Exists", value: bool(!!content), category: "presence" }] },
-      { title: "Link", selector: "[data-navigation-menu-link]", inactive: !link, summary: link?.textContent?.trim() || "not rendered", rows: [{ label: "Exists", value: bool(!!link), category: "presence" }] },
-      { title: "Indicator", selector: "[data-navigation-menu-indicator]", inactive: !indicator, summary: indicator?.dataset.state ?? "not rendered", rows: [{ label: "Exists", value: bool(!!indicator), category: "presence" }] },
-      { title: "Viewport", selector: "[data-navigation-menu-viewport]", inactive: !viewport, summary: viewport?.dataset.state ?? "not rendered", rows: [{ label: "Exists", value: bool(!!viewport), category: "presence" }] },
-    ];
+    return getNavigationMenuSections(scenarios.navigationMenu);
   }
 
   if (scenarioId === "sidebar") {

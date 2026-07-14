@@ -464,6 +464,8 @@ test("NavigationMenu source keeps context and registration stable", async () => 
   assert.match(rootSource, /const contextValue: NavigationMenuContextValue = useMemo/);
   assert.match(rootSource, /const contextDir = useDirection\(\)/);
   assert.match(rootSource, /const dir = dirProp \?\? contextDir/);
+  assert.match(rootSource, /loop = true/);
+  assert.match(rootSource, /loop,/);
   assert.match(rootSource, /useCollection<string, HTMLElement, \{ type: NavigationMenuControlType \}>\(\)/);
   assert.match(rootSource, /registerControlItem\(value, element, \{ data: \{ type: "trigger" \} \}\)/);
   assert.match(rootSource, /registerControlItem\(value, element, \{ data: \{ type: "link" \} \}\)/);
@@ -523,11 +525,18 @@ test("NavigationMenu source keeps context and registration stable", async () => 
   assert.match(viewportSource, /activeEntry\.asChild/);
   assert.match(viewportSource, /renderElement\(activeEntry\.render, "div"/);
   assert.match(viewportSource, /const handleContentKeyDown = useCallback/);
+  assert.match(viewportSource, /const getOrderedTarget = \(direction: "next" \| "previous"\) => \{/);
+  assert.match(viewportSource, /if \(!loop\) return null/);
   assert.match(viewportSource, /activeContent\.querySelectorAll<HTMLElement>\(FOCUSABLE_SELECTOR\)/);
+  assert.match(viewportSource, /case "Tab": \{/);
+  assert.match(viewportSource, /getNextTriggerValue\(value, "next"\)/);
+  assert.match(viewportSource, /nextControl\.focus\(\{ preventScroll: true \}\)/);
   assert.match(viewportSource, /case "Escape": \{/);
   assert.match(viewportSource, /event\.nativeEvent\.stopImmediatePropagation\(\)/);
   assert.match(viewportSource, /trigger\?\.focus\(\{ preventScroll: true \}\)/);
   assert.match(viewportSource, /case "ArrowDown": \{/);
+  assert.match(viewportSource, /getOrderedTarget\("next"\)/);
+  assert.match(viewportSource, /getOrderedTarget\("previous"\)/);
   assert.match(viewportSource, /case "Home": \{/);
   assert.match(contentSource, /\}, \[unregisterContentNode, value\]\)/);
   assert.doesNotMatch(itemSource, /\}, \[ctx, value\]\)/);

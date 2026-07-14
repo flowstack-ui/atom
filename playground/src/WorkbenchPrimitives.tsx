@@ -204,6 +204,50 @@ export function MenuRadioControl<T extends string>({
   );
 }
 
+export function MenuRadioSubmenuControl<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: readonly T[] | readonly WorkbenchOption<T>[];
+  value: T | string;
+  onChange: (value: T) => void;
+}) {
+  const normalizedOptions = options.map((option) => normalizeOption(option));
+  const selectedLabel = normalizedOptions.find((option) => option.value === value)?.label ?? formatOption(value);
+
+  return (
+    <Menubar.Sub>
+      <Menubar.SubTrigger
+        className="toolbar-menu-item toolbar-submenu-trigger"
+        value={`${label.toLowerCase().replace(/\s+/g, "-")}-options`}
+      >
+        <span>{label}</span>
+        <span className="toolbar-submenu-value">{selectedLabel}</span>
+        <span className="toolbar-submenu-arrow" aria-hidden="true">›</span>
+      </Menubar.SubTrigger>
+      <Menubar.SubContent className="toolbar-menu" sideOffset={6}>
+        <Menubar.RadioGroup
+          className="toolbar-radio-group"
+          value={value}
+          onValueChange={(nextValue) => onChange(nextValue as T)}
+        >
+          {normalizedOptions.map((option) => (
+            <Menubar.RadioItem className="toolbar-menu-item" key={option.value} value={option.value}>
+              <span>{option.label}</span>
+              <span className="toolbar-menu-check" aria-hidden="true">
+                {value === option.value ? "✓" : ""}
+              </span>
+            </Menubar.RadioItem>
+          ))}
+        </Menubar.RadioGroup>
+      </Menubar.SubContent>
+    </Menubar.Sub>
+  );
+}
+
 export function ScenarioEventLog({ log }: { log: WorkbenchLogEntry[] }) {
   if (log.length === 0) {
     return null;

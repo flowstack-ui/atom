@@ -79,10 +79,13 @@ export const NavigationMenuViewport = forwardRef<
   const ctx = useNavigationMenuContext();
   const {
     cancelCloseTimer,
+    getControlElement,
     getContentNode,
     getItemValues,
+    getNextTriggerValue,
     getTriggerElement,
     idPrefix,
+    loop,
     onValueChange,
     orientation,
     previousValue,
@@ -138,16 +141,60 @@ export const NavigationMenuViewport = forwardRef<
       const focusable = Array.from(
         activeContent.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
       );
-      const currentIndex = focusable.indexOf(document.activeElement as HTMLElement);
+      const activeElement = document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+      const currentIndex = activeElement ? focusable.indexOf(activeElement) : -1;
 
-      const focusAt = (index: number) => {
-        const target = focusable[index];
+      const focusTarget = (target: HTMLElement | null) => {
         if (!target) return;
         event.preventDefault();
         target.focus({ preventScroll: true });
       };
 
+      const getOrderedTarget = (direction: "next" | "previous") => {
+        if (focusable.length === 0) return null;
+
+        if (currentIndex === -1) {
+          return direction === "next" ? focusable[0] : focusable[focusable.length - 1];
+        }
+
+        const nextIndex = direction === "next"
+          ? currentIndex + 1
+          : currentIndex - 1;
+
+        if (nextIndex >= 0 && nextIndex < focusable.length) {
+          return focusable[nextIndex] ?? null;
+        }
+
+        if (!loop) return null;
+        return direction === "next"
+          ? focusable[0] ?? null
+          : focusable[focusable.length - 1] ?? null;
+      };
+
       switch (event.key) {
+        case "Tab": {
+          if (focusable.length === 0) break;
+
+          const isFirst = currentIndex === 0;
+          const isLast = currentIndex === focusable.length - 1;
+
+          if (event.shiftKey && isFirst) {
+            event.preventDefault();
+            getTriggerElement(value)?.focus({ preventScroll: true });
+          } else if (!event.shiftKey && isLast) {
+            const nextValue = getNextTriggerValue(value, "next");
+            const nextControl = nextValue ? getControlElement(nextValue) : null;
+
+            if (nextControl) {
+              event.preventDefault();
+              onValueChange(null);
+              nextControl.focus({ preventScroll: true });
+            }
+          }
+          break;
+        }
         case "Escape": {
           event.preventDefault();
           event.stopPropagation();
@@ -159,29 +206,34 @@ export const NavigationMenuViewport = forwardRef<
         }
         case "ArrowDown": {
           if (focusable.length === 0) break;
-          focusAt(currentIndex === -1 || currentIndex >= focusable.length - 1
-            ? 0
-            : currentIndex + 1);
+          focusTarget(getOrderedTarget("next"));
           break;
         }
         case "ArrowUp": {
           if (focusable.length === 0) break;
-          focusAt(currentIndex <= 0 ? focusable.length - 1 : currentIndex - 1);
+          focusTarget(getOrderedTarget("previous"));
           break;
         }
         case "Home": {
           if (focusable.length === 0) break;
-          focusAt(0);
+          focusTarget(focusable[0] ?? null);
           break;
         }
         case "End": {
           if (focusable.length === 0) break;
-          focusAt(focusable.length - 1);
+          focusTarget(focusable[focusable.length - 1] ?? null);
           break;
         }
       }
     },
-    [getTriggerElement, onValueChange, value],
+    [
+      getControlElement,
+      getNextTriggerValue,
+      getTriggerElement,
+      loop,
+      onValueChange,
+      value,
+    ],
   );
 
   useSafeLayoutEffect(() => {

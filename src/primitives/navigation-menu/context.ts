@@ -25,6 +25,7 @@ export interface NavigationMenuContextValue {
   isSkipDelayActive: boolean;
   orientation: "horizontal" | "vertical";
   dir: DirectionValue;
+  loop: boolean;
   registerItem: (value: string) => void;
   unregisterItem: (value: string) => void;
   getItemValues: () => string[];

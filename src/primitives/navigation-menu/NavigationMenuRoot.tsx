@@ -40,6 +40,7 @@ export interface NavigationMenuRootProps extends NavigationMenuRootNativeProps {
   onValueChange?: (value: string | null) => void;
   delayDuration?: number;
   skipDelayDuration?: number;
+  loop?: boolean;
   orientation?: "horizontal" | "vertical";
   dir?: DirectionValue;
   className?: string;
@@ -60,6 +61,7 @@ export const NavigationMenuRoot = forwardRef<
     onValueChange,
     delayDuration = 200,
     skipDelayDuration = 300,
+    loop = true,
     orientation = "horizontal",
     dir: dirProp,
     className,
@@ -245,6 +247,7 @@ export const NavigationMenuRoot = forwardRef<
       isSkipDelayActive,
       orientation,
       dir,
+      loop,
       registerItem,
       unregisterItem,
       getItemValues,
@@ -282,6 +285,7 @@ export const NavigationMenuRoot = forwardRef<
       handleValueChange,
       idPrefix,
       isSkipDelayActive,
+      loop,
       orientation,
       previousValue,
       registerContentNode,

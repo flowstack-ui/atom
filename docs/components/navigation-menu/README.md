@@ -51,6 +51,7 @@ Contains the navigation menu.
 | `onValueChange` | `(value: string \| null) => void` | - |
 | `delayDuration` | `number` | `200` |
 | `skipDelayDuration` | `number` | `300` |
+| `loop` | `boolean` | `true` |
 | `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` |
 | `dir` | `"ltr" \| "rtl"` | `Direction.Provider` |
 | `asChild` | `boolean` | `false` |
@@ -267,10 +268,13 @@ link.
 
 | Key | Description |
 | --- | --- |
-| `Tab` / `Shift+Tab` | Moves through visible focusable content normally |
-| `ArrowDown` / `ArrowUp` | Moves to the next or previous focusable content element |
+| `Tab` / `Shift+Tab` | Moves through visible focusable content and then returns to the top-level navigation order |
+| `ArrowDown` / `ArrowUp` | Moves to the next or previous focusable content element in DOM order |
 | `Home` / `End` | Moves to the first or last focusable content element |
 | `Escape` | Closes the active panel and restores focus to its trigger |
+
+Content arrow navigation loops by default. Set `loop={false}` on `Root` to stop
+ArrowUp and ArrowDown at the first or last focusable content element.
 
 When focus leaves the navigation region, the active panel closes. Nested
 navigation menu scopes close from the inside out: Escape first closes the
