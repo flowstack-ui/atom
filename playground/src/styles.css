@@ -4659,6 +4659,54 @@ h2 {
   text-transform: uppercase;
 }
 
+#playground-data-grid thead th {
+  background: #eef2f6;
+}
+
+#playground-data-grid tbody td {
+  background: #ffffff;
+  color: #475569;
+  font-size: 13px;
+}
+
+#playground-data-grid tfoot td {
+  background: #f1f5f9;
+  border-top-color: #cbd5e1;
+  color: #4b5565;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+#playground-data-grid [role="row"][data-selected] > td {
+  background: #e8f0ff;
+  color: #1e3a5f;
+}
+
+#playground-data-grid [role="row"][data-selected] > td:first-child {
+  box-shadow: inset 3px 0 0 #2563eb;
+}
+
+#playground-data-grid [role="columnheader"][data-active],
+#playground-data-grid [role="gridcell"][data-active] {
+  position: relative;
+  background: #eff6ff;
+  box-shadow: inset 0 0 0 2px #2563eb;
+  color: #1e3a5f;
+  outline: none;
+}
+
+#playground-data-grid [role="row"][data-selected] > [data-active] {
+  background: #dbeafe;
+  box-shadow: inset 0 0 0 2px #1d4ed8;
+}
+
+#playground-data-grid [role="row"][data-disabled] > td,
+#playground-data-grid [role="gridcell"][data-disabled] {
+  background: #f8fafc;
+  color: #94a3b8;
+}
+
 #playground-tree-grid [data-expandable] > [role="rowheader"] {
   cursor: pointer;
 }

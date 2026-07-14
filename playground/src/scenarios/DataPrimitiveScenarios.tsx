@@ -21,6 +21,9 @@ type ScrollAreaRoleMode = "auto" | "region" | "group";
 type FeedSize = "known" | "unknown";
 type FeedPositionMode = "index" | "position";
 type TableSortDirection = "unset" | "ascending" | "descending" | "none" | "other";
+type DataGridStateMode = "uncontrolled" | "controlled";
+type DataGridDirectionMode = "default" | "provider-rtl" | "local-ltr" | "local-rtl";
+type DataGridPartKey = "root" | "caption" | "header" | "row" | "columnHeader" | "body" | "cell" | "footer";
 type TablePartKey =
   | "root"
   | "caption"
@@ -136,34 +139,98 @@ function useTableScenario() {
 }
 
 function useDataGridScenario() {
-  const [selectionMode, setSelectionMode] = useState<SelectionMode>("single");
-  const [selectedValue, setSelectedValue] = useState<string | string[] | null>("alpha");
-  const [activeCell, setActiveCell] = useState<{ rowIndex: number; columnIndex: number } | null>({
-    rowIndex: 2,
-    columnIndex: 1,
-  });
+  const [stateMode, setStateMode] = useState<DataGridStateMode>("uncontrolled");
+  const [selectionMode, setSelectionMode] = useState<SelectionMode>("none");
+  const [selectedValue, setSelectedValue] = useState<string | string[] | null>(null);
+  const [activeCell, setActiveCell] = useState<{ rowIndex: number; columnIndex: number } | null>(null);
+  const [defaultSelected, setDefaultSelected] = useState(false);
+  const [defaultActive, setDefaultActive] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const [readOnly, setReadOnly] = useState(false);
-  const [loop, setLoop] = useState(true);
+  const [loop, setLoop] = useState(false);
   const [wrapRows, setWrapRows] = useState(false);
-  const [selectOnRowClick, setSelectOnRowClick] = useState(true);
-  const [disableRow, setDisableRow] = useState(true);
-  const [composition, setComposition] = useState<CompositionMode>("default");
+  const [selectOnRowClick, setSelectOnRowClick] = useState(false);
+  const [disableRow, setDisableRow] = useState(false);
+  const [disableCell, setDisableCell] = useState(false);
+  const [counts, setCounts] = useState(false);
+  const [sortDirection, setSortDirection] = useState<TableSortDirection>("unset");
+  const [directionMode, setDirectionMode] = useState<DataGridDirectionMode>("default");
+  const [composition, setComposition] = useState<Record<DataGridPartKey, CompositionMode>>(dataGridDefaultComposition);
+  const [propCheck, setPropCheck] = useState(false);
+  const [customSlots, setCustomSlots] = useState<Record<DataGridPartKey, boolean>>(dataGridDefaultCustomSlots);
+  const [refs, setRefs] = useState<Record<DataGridPartKey, string>>(dataGridDefaultRefs);
   const { log, addLog, clearLog } = useScenarioLog();
 
+  const handleStateMode = (mode: DataGridStateMode) => {
+    setStateMode(mode);
+    setSelectedValue(mode === "uncontrolled" && defaultSelected ? "alpha" : selectionMode === "multiple" ? [] : null);
+    setActiveCell(mode === "uncontrolled" && defaultActive ? { rowIndex: 2, columnIndex: 1 } : null);
+  };
+  const handleSelectionMode = (mode: SelectionMode) => {
+    setSelectionMode(mode);
+    setSelectedValue(mode === "multiple" ? [] : null);
+    setDefaultSelected(false);
+  };
+  const handleDefaultSelected = (checked: boolean) => {
+    setDefaultSelected(checked);
+    if (stateMode === "uncontrolled") setSelectedValue(checked ? "alpha" : selectionMode === "multiple" ? [] : null);
+  };
+  const handleDefaultActive = (checked: boolean) => {
+    setDefaultActive(checked);
+    if (stateMode === "uncontrolled") setActiveCell(checked ? { rowIndex: 2, columnIndex: 1 } : null);
+  };
+  const setControlledValue = (value: string) => {
+    if (selectionMode === "multiple") {
+      setSelectedValue(value === "none" ? [] : value === "alpha-bravo" ? ["alpha", "bravo"] : [value]);
+      return;
+    }
+    setSelectedValue(value === "none" ? null : value);
+  };
+  const setControlledActiveCell = (value: string) => {
+    if (value === "none") {
+      setActiveCell(null);
+      return;
+    }
+    const [rowIndex, columnIndex] = value.split(":").map(Number);
+    setActiveCell({ rowIndex, columnIndex });
+  };
+  const setCustomSlot = (part: DataGridPartKey, checked: boolean) => {
+    setCustomSlots((current) => ({ ...current, [part]: checked }));
+  };
+  const setPartComposition = (part: DataGridPartKey, value: CompositionMode) => {
+    setComposition((current) => ({ ...current, [part]: value }));
+  };
+  const markPartRef = useCallback((part: DataGridPartKey, element: HTMLElement | null) => {
+    if (!element) return;
+    const nextRef = formatRef(element);
+    setRefs((current) => current[part] === nextRef ? current : { ...current, [part]: nextRef });
+  }, []);
+
   return {
-    state: { selectionMode, selectedValue, activeCell, disabled, readOnly, loop, wrapRows, selectOnRowClick, disableRow, composition, log },
+    state: { stateMode, selectionMode, selectedValue, activeCell, defaultSelected, defaultActive, disabled, readOnly, loop, wrapRows, selectOnRowClick, disableRow, disableCell, counts, sortDirection, directionMode, composition, propCheck, customSlots, refs, log },
     actions: {
-      setSelectionMode,
+      setStateMode: handleStateMode,
+      setSelectionMode: handleSelectionMode,
       setSelectedValue,
+      setControlledValue,
       setActiveCell,
+      setControlledActiveCell,
+      setDefaultSelected: handleDefaultSelected,
+      setDefaultActive: handleDefaultActive,
       setDisabled,
       setReadOnly,
       setLoop,
       setWrapRows,
       setSelectOnRowClick,
       setDisableRow,
-      setComposition,
+      setDisableCell,
+      setCounts,
+      setSortDirection,
+      setDirectionMode,
+      setPartComposition,
+      setPropCheck,
+      setCustomSlot,
+      markPartRef,
       clearLog,
       addLog,
     },
@@ -494,17 +561,49 @@ export function DataPrimitiveScenarioToolbar({
     return (
       <ControlToolbar label="Data Grid controls">
         <ToolbarGroup title="State" value="state">
-          <MenuRadioControl label="Selection" options={selectionModeOptions} value={scenario.state.selectionMode} onChange={(value) => scenario.actions.setSelectionMode(value as SelectionMode)} />
-          <MenuCheckboxControl checked={scenario.state.disabled} label="Disabled" value="disabled" onChange={scenario.actions.setDisabled} />
-          <MenuCheckboxControl checked={scenario.state.readOnly} label="Read only" value="read-only" onChange={scenario.actions.setReadOnly} />
-          <MenuCheckboxControl checked={scenario.state.selectOnRowClick} label="Select row on click" value="select-row" onChange={scenario.actions.setSelectOnRowClick} />
+          <MenuSection label="Control Mode">
+            <MenuRadioControl label="State mode" options={treeGridStateModeOptions} value={scenario.state.stateMode} onChange={(value) => scenario.actions.setStateMode(value as DataGridStateMode)} />
+            <MenuRadioControl label="Selection" options={selectionModeOptions} value={scenario.state.selectionMode} onChange={(value) => scenario.actions.setSelectionMode(value as SelectionMode)} />
+          </MenuSection>
+          {scenario.state.stateMode === "controlled" ? (
+            <MenuSection label="Controlled Values">
+              {scenario.state.selectionMode !== "none" ? (
+                <MenuRadioControl label="Selected row" options={scenario.state.selectionMode === "multiple" ? dataGridMultipleValueOptions : dataGridSingleValueOptions} value={controlledDataGridValueOption(scenario.state.selectedValue)} onChange={scenario.actions.setControlledValue} />
+              ) : null}
+              <MenuRadioControl label="Active cell" options={dataGridActiveCellOptions} value={formatCell(scenario.state.activeCell)} onChange={scenario.actions.setControlledActiveCell} />
+            </MenuSection>
+          ) : (
+            <MenuSection label="Initial Defaults">
+              {scenario.state.selectionMode !== "none" ? <MenuCheckboxControl checked={scenario.state.defaultSelected} label="Default selected row" value="default-selected" onChange={scenario.actions.setDefaultSelected} /> : null}
+              <MenuCheckboxControl checked={scenario.state.defaultActive} label="Default active cell" value="default-active" onChange={scenario.actions.setDefaultActive} />
+            </MenuSection>
+          )}
+          <MenuSection label="State Flags">
+            <MenuCheckboxControl checked={scenario.state.disabled} label="Disabled" value="disabled" onChange={scenario.actions.setDisabled} />
+            <MenuCheckboxControl checked={scenario.state.readOnly} label="Read only" value="read-only" onChange={scenario.actions.setReadOnly} />
+            <MenuCheckboxControl checked={scenario.state.selectOnRowClick} label="Select row on click" value="select-row" onChange={scenario.actions.setSelectOnRowClick} />
+          </MenuSection>
         </ToolbarGroup>
         <ToolbarGroup title="Navigation" value="navigation">
           <MenuCheckboxControl checked={scenario.state.loop} label="Loop" value="loop" onChange={scenario.actions.setLoop} />
           <MenuCheckboxControl checked={scenario.state.wrapRows} label="Wrap rows" value="wrap-rows" onChange={scenario.actions.setWrapRows} />
-          <MenuCheckboxControl checked={scenario.state.disableRow} label="Disabled row" value="disabled-row" onChange={scenario.actions.setDisableRow} />
+          <MenuCheckboxControl checked={scenario.state.disableRow} label="Disable row" value="disabled-row" onChange={scenario.actions.setDisableRow} />
+          <MenuCheckboxControl checked={scenario.state.disableCell} label="Disable cell" value="disabled-cell" onChange={scenario.actions.setDisableCell} />
+          <MenuCheckboxControl checked={scenario.state.counts} label="Row and column counts" value="counts" onChange={scenario.actions.setCounts} />
+          <MenuRadioControl label="Status sort" options={tableSortOptions} value={scenario.state.sortDirection} onChange={(value) => scenario.actions.setSortDirection(value as TableSortDirection)} />
+          <MenuRadioControl label="Direction" options={treeDirectionOptions} value={scenario.state.directionMode} onChange={(value) => scenario.actions.setDirectionMode(value as DataGridDirectionMode)} />
         </ToolbarGroup>
-        <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+        <DataGridCompositionToolbarGroup composition={scenario.state.composition} onChange={scenario.actions.setPartComposition} />
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={dataGridSlotControls.map((control) => ({
+            checked: scenario.state.customSlots[control.part],
+            label: control.label,
+            value: control.value,
+            onChange: (checked) => scenario.actions.setCustomSlot(control.part, checked),
+          }))}
+        />
       </ControlToolbar>
     );
   }
@@ -796,7 +895,7 @@ export function getDataPrimitiveCanvasFooter(
 
   if (scenarioId === "data-grid") {
     const state = scenarios.dataGrid.state;
-    return `Selected ${formatValue(state.selectedValue)} | Active ${formatCell(state.activeCell)} | ${state.selectionMode}`;
+    return `${state.stateMode} ${state.selectionMode} | Selected ${formatValue(state.selectedValue)} | Active ${formatCell(state.activeCell)} | ${state.directionMode}`;
   }
 
   if (scenarioId === "tree") {
@@ -833,21 +932,7 @@ export function getDataPrimitiveSource(scenarioId: string, scenarios?: DataPrimi
   }
 
   if (scenarioId === "data-grid") {
-    return `<DataGrid.Root selectionMode="single" selectOnRowClick>
-  <DataGrid.Caption>Project data</DataGrid.Caption>
-  <DataGrid.Header>
-    <DataGrid.Row rowIndex={1}>
-      <DataGrid.ColumnHeader columnIndex={1}>Name</DataGrid.ColumnHeader>
-      <DataGrid.ColumnHeader columnIndex={2}>Status</DataGrid.ColumnHeader>
-    </DataGrid.Row>
-  </DataGrid.Header>
-  <DataGrid.Body>
-    <DataGrid.Row value="alpha" rowIndex={2}>
-      <DataGrid.Cell columnIndex={1}>Alpha</DataGrid.Cell>
-      <DataGrid.Cell columnIndex={2}>Ready</DataGrid.Cell>
-    </DataGrid.Row>
-  </DataGrid.Body>
-</DataGrid.Root>`;
+    return getDataGridSource(scenarios?.dataGrid.state);
   }
 
   if (scenarioId === "tree") {
@@ -1609,17 +1694,17 @@ function DataGridScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useD
     id: "playground-data-grid",
     "aria-label": "Project data grid",
     "data-playground-inspect": "",
-    "data-prop-check": "root",
-    selectionMode: state.selectionMode,
-    value: state.selectedValue,
-    activeCell: state.activeCell,
-    disabled: state.disabled,
-    readOnly: state.readOnly,
-    loop: state.loop,
-    wrapRows: state.wrapRows,
-    rowCount: 4,
-    columnCount: 2,
-    selectOnRowClick: state.selectOnRowClick,
+    ref: (element: HTMLElement | null) => scenario.actions.markPartRef("root", element),
+    ...dataGridPartProps("root", state),
+    selectionMode: state.selectionMode === "none" ? undefined : state.selectionMode,
+    disabled: state.disabled || undefined,
+    readOnly: state.readOnly || undefined,
+    loop: state.loop || undefined,
+    wrapRows: state.wrapRows || undefined,
+    dir: state.directionMode === "local-ltr" ? "ltr" : state.directionMode === "local-rtl" ? "rtl" : undefined,
+    rowCount: state.counts ? 5 : undefined,
+    columnCount: state.counts ? 2 : undefined,
+    selectOnRowClick: state.selectOnRowClick || undefined,
     onValueChange: (value: string | string[] | null) => {
       scenario.actions.setSelectedValue(value);
       scenario.actions.addLog(`value changed ${formatValue(value)}`);
@@ -1629,57 +1714,106 @@ function DataGridScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useD
       scenario.actions.addLog(`active cell ${formatCell(cell)}`);
     },
   };
+  if (state.stateMode === "controlled") {
+    props.value = state.selectedValue;
+    props.activeCell = state.activeCell;
+  } else {
+    props.defaultValue = state.defaultSelected ? (state.selectionMode === "multiple" ? ["alpha"] : "alpha") : undefined;
+    props.defaultActiveCell = state.defaultActive ? { rowIndex: 2, columnIndex: 1 } : undefined;
+  }
 
   const content = renderDataGridContent(scenario);
+  const root = state.composition.root === "asChild" ? (
+    <DataGrid.Root key={`${state.stateMode}-${state.defaultSelected}-${state.defaultActive}-${state.selectionMode}`} {...props} asChild>
+      <table>{content}</table>
+    </DataGrid.Root>
+  ) : state.composition.root === "render" ? (
+    <DataGrid.Root key={`${state.stateMode}-${state.defaultSelected}-${state.defaultActive}-${state.selectionMode}`} {...props} render={(renderProps) => <table {...renderProps}>{content}</table>} />
+  ) : (
+    <DataGrid.Root key={`${state.stateMode}-${state.defaultSelected}-${state.defaultActive}-${state.selectionMode}`} {...props}>{content}</DataGrid.Root>
+  );
 
   return (
     <div className="data-primitive-stage">
-      {state.composition === "asChild" ? (
-        <DataGrid.Root {...props} asChild>
-          <table>{content}</table>
-        </DataGrid.Root>
-      ) : state.composition === "render" ? (
-        <DataGrid.Root {...props} render={(renderProps) => <table {...renderProps}>{content}</table>} />
-      ) : (
-        <DataGrid.Root {...props}>{content}</DataGrid.Root>
-      )}
+      {state.directionMode === "provider-rtl" || state.directionMode === "local-ltr"
+        ? <Direction.Provider dir="rtl">{root}</Direction.Provider>
+        : root}
     </div>
   );
 }
 
 function renderDataGridContent(scenario: ReturnType<typeof useDataGridScenario>) {
-  return (
+  const headingCells = (
     <>
-      <DataGrid.Caption data-data-grid-caption="" data-playground-inspect="">Project data</DataGrid.Caption>
-      <DataGrid.Header data-data-grid-header="" data-playground-inspect="">
-        <DataGrid.Row rowIndex={1} data-data-grid-header-row="" data-playground-inspect="">
-          <DataGrid.ColumnHeader columnIndex={1} sortDirection="ascending" data-data-grid-column-header="" data-playground-inspect="">Name</DataGrid.ColumnHeader>
-          <DataGrid.ColumnHeader columnIndex={2} data-data-grid-column-header-secondary="" data-playground-inspect="">Status</DataGrid.ColumnHeader>
-        </DataGrid.Row>
-      </DataGrid.Header>
-      <DataGrid.Body data-data-grid-body="" data-playground-inspect="">
-        {dataGridRows.map((row, index) => (
-          <DataGrid.Row
-            data-data-grid-row={row.value}
-            data-playground-inspect=""
-            disabled={scenario.state.disableRow && row.value === "blocked"}
-            index={index + 1}
-            key={row.value}
-            value={row.value}
-          >
-            <DataGrid.Cell columnIndex={1} data-data-grid-cell={`${row.value}-name`} data-playground-inspect="">{row.name}</DataGrid.Cell>
-            <DataGrid.Cell columnIndex={2} data-data-grid-cell={`${row.value}-status`} data-playground-inspect="">{row.status}</DataGrid.Cell>
-          </DataGrid.Row>
-        ))}
-      </DataGrid.Body>
-      <DataGrid.Footer data-data-grid-footer="" data-playground-inspect="">
-        <DataGrid.Row rowIndex={4}>
-          <DataGrid.Cell columnIndex={1}>Total</DataGrid.Cell>
-          <DataGrid.Cell columnIndex={2}>{dataGridRows.length} rows</DataGrid.Cell>
-        </DataGrid.Row>
-      </DataGrid.Footer>
+      {renderDataGridElement(DataGrid.ColumnHeader, "columnHeader", "th", { columnIndex: 1, className: "playground-data-grid-column-header-name" }, "Name", scenario)}
+      {renderDataGridElement(DataGrid.ColumnHeader, "columnHeader", "th", { index: 1, sortDirection: scenario.state.sortDirection === "unset" ? undefined : scenario.state.sortDirection, className: "playground-data-grid-column-header-status" }, "Status", scenario)}
     </>
   );
+  const headingRow = renderDataGridElement(DataGrid.Row, "row", "tr", { rowIndex: 1, selectable: false, className: "playground-data-grid-row-heading" }, headingCells, scenario);
+  const alphaCells = (
+    <>
+      {renderDataGridElement(DataGrid.Cell, "cell", "td", { index: 0, className: "playground-data-grid-cell-alpha" }, "Alpha", scenario)}
+      {renderDataGridElement(DataGrid.Cell, "cell", "td", { columnIndex: 2, className: "playground-data-grid-cell-ready" }, "Ready", scenario)}
+    </>
+  );
+  const bravoCells = (
+    <>
+      {renderDataGridElement(DataGrid.Cell, "cell", "td", { columnIndex: 1, className: "playground-data-grid-cell-bravo" }, "Bravo", scenario)}
+      {renderDataGridElement(DataGrid.Cell, "cell", "td", { columnIndex: 2, disabled: scenario.state.disableCell, className: "playground-data-grid-cell-review" }, "Review", scenario)}
+    </>
+  );
+  const blockedCells = (
+    <>
+      {renderDataGridElement(DataGrid.Cell, "cell", "td", { columnIndex: 1, className: "playground-data-grid-cell-blocked" }, "Blocked", scenario)}
+      {renderDataGridElement(DataGrid.Cell, "cell", "td", { columnIndex: 2, className: "playground-data-grid-cell-waiting" }, "Waiting", scenario)}
+    </>
+  );
+  const summaryCells = (
+    <>
+      {renderDataGridElement(DataGrid.Cell, "cell", "td", { columnIndex: 1, className: "playground-data-grid-cell-total" }, "Total", scenario)}
+      {renderDataGridElement(DataGrid.Cell, "cell", "td", { columnIndex: 2, className: "playground-data-grid-cell-count" }, "3 projects", scenario)}
+    </>
+  );
+
+  return (
+    <>
+      {renderDataGridElement(DataGrid.Caption, "caption", "caption", { className: "playground-data-grid-caption" }, "Project data", scenario)}
+      {renderDataGridElement(DataGrid.Header, "header", "thead", { className: "playground-data-grid-header" }, headingRow, scenario)}
+      {renderDataGridElement(DataGrid.Body, "body", "tbody", { className: "playground-data-grid-body" }, <>
+        {renderDataGridElement(DataGrid.Row, "row", "tr", { index: 1, value: "alpha", className: "playground-data-grid-row-alpha" }, alphaCells, scenario)}
+        {renderDataGridElement(DataGrid.Row, "row", "tr", { rowIndex: 3, value: "bravo", className: "playground-data-grid-row-bravo" }, bravoCells, scenario)}
+        {renderDataGridElement(DataGrid.Row, "row", "tr", { index: 3, value: "blocked", disabled: scenario.state.disableRow, className: "playground-data-grid-row-blocked" }, blockedCells, scenario)}
+      </>, scenario)}
+      {renderDataGridElement(DataGrid.Footer, "footer", "tfoot", { className: "playground-data-grid-footer" },
+        renderDataGridElement(DataGrid.Row, "row", "tr", { rowIndex: 5, value: "summary", selectable: false, className: "playground-data-grid-row-summary" }, summaryCells, scenario), scenario)}
+    </>
+  );
+}
+
+function renderDataGridElement(
+  Part: any,
+  part: DataGridPartKey,
+  tag: string,
+  nativeProps: Record<string, unknown>,
+  children: any,
+  scenario: ReturnType<typeof useDataGridScenario>,
+) {
+  const NativeTag = tag as any;
+  const props = {
+    ...nativeProps,
+    "data-playground-inspect": "",
+    ref: (element: HTMLElement | null) => scenario.actions.markPartRef(part, element),
+    ...dataGridPartProps(part, scenario.state),
+  };
+  const mode = scenario.state.composition[part];
+
+  if (mode === "asChild") return <Part {...props} asChild><NativeTag>{children}</NativeTag></Part>;
+  if (mode === "render") return <Part {...props} render={(renderProps: Record<string, unknown>) => <NativeTag {...renderProps}>{children}</NativeTag>} />;
+  return <Part {...props}>{children}</Part>;
+}
+
+function dataGridPartProps(part: DataGridPartKey, state: ReturnType<typeof useDataGridScenario>["state"]) {
+  return partProps(part, { customSlot: state.customSlots[part], propCheck: state.propCheck }, `data-grid-${part}-custom`);
 }
 
 function TreeScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useTreeScenario> }) {
@@ -2272,6 +2406,7 @@ function getDataPrimitiveSections(
     const state = scenarios.dataGrid.state;
     return [
       section("Root", state.selectionMode, "#playground-data-grid", [
+        row("State mode", state.stateMode, "state"),
         row("Selection mode", state.selectionMode, "state"),
         row("Selected", formatValue(state.selectedValue), "state"),
         row("Active cell", formatCell(state.activeCell), "state"),
@@ -2280,16 +2415,29 @@ function getDataPrimitiveSections(
         row("Loop", bool(state.loop), "behavior"),
         row("Wrap rows", bool(state.wrapRows), "behavior"),
         row("Select row on click", bool(state.selectOnRowClick), "behavior"),
-        row("Composition", state.composition, "composition"),
+        row("Direction", state.directionMode, "behavior"),
+        row("Composition", state.composition.root, "composition"),
+        row("Ref", state.refs.root, "behavior"),
       ]),
-      section("Caption", "caption", "[data-data-grid-caption]"),
-      section("Header", "header", "[data-data-grid-header]"),
-      section("Column Header", "ascending", "[data-data-grid-column-header]"),
-      section("Body", "body", "[data-data-grid-body]"),
-      section("Row: Selected", formatValue(state.selectedValue), "[data-data-grid-row='alpha']"),
-      section("Row: Disabled", state.disableRow ? "disabled" : "enabled", "[data-data-grid-row='blocked']"),
-      section("Cell: Active", formatCell(state.activeCell), "[data-data-grid-cell='alpha-name']"),
-      section("Footer", "footer", "[data-data-grid-footer]"),
+      section("Caption", "caption", ".playground-data-grid-caption", [row("Composition", state.composition.caption, "composition"), row("Ref", state.refs.caption, "behavior")]),
+      section("Header", "header", ".playground-data-grid-header", [row("Composition", state.composition.header, "composition"), row("Ref", state.refs.header, "behavior")]),
+      section("Row: Name / Status", state.selectionMode === "none" ? "column-heading row" : "selection-disabled heading row", ".playground-data-grid-row-heading", [row("Composition", state.composition.row, "composition"), row("Ref", state.refs.row, "behavior")]),
+      section("Column Header: Name", "columnheader", ".playground-data-grid-column-header-name", [row("Composition", state.composition.columnHeader, "composition"), row("Ref", state.refs.columnHeader, "behavior")]),
+      section("Column Header: Status", state.sortDirection === "unset" ? "columnheader" : `sorted ${state.sortDirection}`, ".playground-data-grid-column-header-status", [row("Composition", state.composition.columnHeader, "composition"), row("Sort direction", state.sortDirection, "state")]),
+      section("Body", "body", ".playground-data-grid-body", [row("Composition", state.composition.body, "composition"), row("Ref", state.refs.body, "behavior")]),
+      section("Row: Alpha / Ready", state.selectedValue && formatValue(state.selectedValue).includes("alpha") ? "selected row" : "row", ".playground-data-grid-row-alpha", [row("Composition", state.composition.row, "composition")]),
+      section("Cell: Alpha", "gridcell", ".playground-data-grid-cell-alpha", [row("Composition", state.composition.cell, "composition"), row("Ref", state.refs.cell, "behavior")]),
+      section("Cell: Ready", "gridcell", ".playground-data-grid-cell-ready", [row("Composition", state.composition.cell, "composition")]),
+      section("Row: Bravo / Review", "row", ".playground-data-grid-row-bravo", [row("Composition", state.composition.row, "composition")]),
+      section("Cell: Bravo", "gridcell", ".playground-data-grid-cell-bravo", [row("Composition", state.composition.cell, "composition")]),
+      section("Cell: Review", state.disableCell ? "disabled cell" : "gridcell", ".playground-data-grid-cell-review", [row("Composition", state.composition.cell, "composition")]),
+      section("Row: Blocked / Waiting", state.disableRow ? "disabled row" : "row", ".playground-data-grid-row-blocked", [row("Composition", state.composition.row, "composition")]),
+      section("Cell: Blocked", "gridcell", ".playground-data-grid-cell-blocked", [row("Composition", state.composition.cell, "composition")]),
+      section("Cell: Waiting", "gridcell", ".playground-data-grid-cell-waiting", [row("Composition", state.composition.cell, "composition")]),
+      section("Footer", "footer", ".playground-data-grid-footer", [row("Composition", state.composition.footer, "composition"), row("Ref", state.refs.footer, "behavior")]),
+      section("Row: Total / 3 Projects", state.selectionMode === "none" ? "summary row" : "selection-disabled summary row", ".playground-data-grid-row-summary", [row("Composition", state.composition.row, "composition")]),
+      section("Cell: Total", "gridcell", ".playground-data-grid-cell-total", [row("Composition", state.composition.cell, "composition")]),
+      section("Cell: 3 Projects", "gridcell", ".playground-data-grid-cell-count", [row("Composition", state.composition.cell, "composition")]),
     ];
   }
 
@@ -2519,6 +2667,38 @@ function TableCompositionToolbarGroup({
   );
 }
 
+function DataGridCompositionToolbarGroup({
+  composition,
+  onChange,
+}: {
+  composition: Record<DataGridPartKey, CompositionMode>;
+  onChange: (part: DataGridPartKey, value: CompositionMode) => void;
+}) {
+  return (
+    <ToolbarGroup title="Composition" value="composition">
+      {dataGridCompositionControls.map((control) => (
+        <Menubar.Sub key={control.part}>
+          <Menubar.SubTrigger className="toolbar-menu-item toolbar-submenu-trigger" value={control.part}>
+            <span>{control.label}</span>
+            <span className="toolbar-submenu-value">{formatCompositionMode(composition[control.part])}</span>
+            <span className="toolbar-submenu-arrow" aria-hidden="true">›</span>
+          </Menubar.SubTrigger>
+          <Menubar.SubContent className="toolbar-menu" sideOffset={6}>
+            <Menubar.RadioGroup className="toolbar-radio-group" value={composition[control.part]} onValueChange={(value) => onChange(control.part, value as CompositionMode)}>
+              {compositionOptions.map((option) => (
+                <Menubar.RadioItem className="toolbar-menu-item" key={option.value} value={option.value}>
+                  <span>{option.label}</span>
+                  <span className="toolbar-menu-check" aria-hidden="true">{composition[control.part] === option.value ? "✓" : ""}</span>
+                </Menubar.RadioItem>
+              ))}
+            </Menubar.RadioGroup>
+          </Menubar.SubContent>
+        </Menubar.Sub>
+      ))}
+    </ToolbarGroup>
+  );
+}
+
 function TreeGridCompositionToolbarGroup({
   composition,
   onChange,
@@ -2630,6 +2810,81 @@ function formatValue(value: string | string[] | null) {
   return value ?? "none";
 }
 
+function getDataGridSource(state?: ReturnType<typeof useDataGridScenario>["state"]) {
+  const resolved = state ?? {
+    composition: dataGridDefaultComposition,
+    customSlots: dataGridDefaultCustomSlots,
+    propCheck: false,
+  } as ReturnType<typeof useDataGridScenario>["state"];
+  const sourcePartProps = (part: DataGridPartKey, extra: string[] = []) => [
+    ...extra,
+    resolved.propCheck ? `data-prop-check="${part}"` : "",
+    resolved.customSlots[part] ? `data-slot="data-grid-${part}-custom"` : "",
+  ].filter(Boolean);
+  const rootProps = sourcePartProps("root", [
+    'aria-label="Project data grid"',
+    state?.selectionMode && state.selectionMode !== "none" ? `selectionMode="${state.selectionMode}"` : "",
+    state?.disabled ? "disabled" : "",
+    state?.readOnly ? "readOnly" : "",
+    state?.loop ? "loop" : "",
+    state?.wrapRows ? "wrapRows" : "",
+    state?.selectOnRowClick ? "selectOnRowClick" : "",
+    state?.counts ? "rowCount={5}" : "",
+    state?.counts ? "columnCount={2}" : "",
+    state?.directionMode === "local-ltr" ? 'dir="ltr"' : state?.directionMode === "local-rtl" ? 'dir="rtl"' : "",
+    state?.stateMode === "controlled" ? `value={${JSON.stringify(state.selectedValue)}}` : "",
+    state?.stateMode === "controlled" ? `activeCell={${JSON.stringify(state.activeCell)}}` : "",
+    state?.stateMode === "controlled" ? "onValueChange={setValue}" : "",
+    state?.stateMode === "controlled" ? "onActiveCellChange={setActiveCell}" : "",
+    state?.stateMode === "uncontrolled" && state.defaultSelected ? `defaultValue={${JSON.stringify(state.selectionMode === "multiple" ? ["alpha"] : "alpha")}}` : "",
+    state?.stateMode === "uncontrolled" && state.defaultActive ? "defaultActiveCell={{ rowIndex: 2, columnIndex: 1 }}" : "",
+  ]);
+  const cell = (component: "ColumnHeader" | "Cell", part: DataGridPartKey, extra: string[], text: string, indent: number) =>
+    sourceDataGridElement(component, part, resolved.composition[part], sourcePartProps(part, extra), text, indent);
+  const gridRow = (extra: string[], children: string, indent: number) =>
+    sourceDataGridElement("Row", "row", resolved.composition.row, sourcePartProps("row", extra), children, indent);
+  const headerRow = gridRow(["rowIndex={1}", "selectable={false}"], `
+      ${cell("ColumnHeader", "columnHeader", ["columnIndex={1}"], "Name", 6)}
+      ${cell("ColumnHeader", "columnHeader", ["index={1}", state?.sortDirection && state.sortDirection !== "unset" ? `sortDirection="${state.sortDirection}"` : ""], "Status", 6)}
+    `, 4);
+  const alphaRow = gridRow(["index={1}", 'value="alpha"'], `
+      ${cell("Cell", "cell", ["index={0}"], "Alpha", 6)}
+      ${cell("Cell", "cell", ["columnIndex={2}"], "Ready", 6)}
+    `, 4);
+  const bravoRow = gridRow(["rowIndex={3}", 'value="bravo"'], `
+      ${cell("Cell", "cell", ["columnIndex={1}"], "Bravo", 6)}
+      ${cell("Cell", "cell", ["columnIndex={2}", state?.disableCell ? "disabled" : ""], "Review", 6)}
+    `, 4);
+  const blockedRow = gridRow(["index={3}", 'value="blocked"', state?.disableRow ? "disabled" : ""], `
+      ${cell("Cell", "cell", ["columnIndex={1}"], "Blocked", 6)}
+      ${cell("Cell", "cell", ["columnIndex={2}"], "Waiting", 6)}
+    `, 4);
+  const footerRow = gridRow(["rowIndex={5}", 'value="summary"', "selectable={false}"], `
+      ${cell("Cell", "cell", ["columnIndex={1}"], "Total", 6)}
+      ${cell("Cell", "cell", ["columnIndex={2}"], "3 projects", 6)}
+    `, 4);
+  const inner = `
+  ${sourceDataGridElement("Caption", "caption", resolved.composition.caption, sourcePartProps("caption"), "Project data", 2)}
+  ${sourceDataGridElement("Header", "header", resolved.composition.header, sourcePartProps("header"), headerRow, 2)}
+  ${sourceDataGridElement("Body", "body", resolved.composition.body, sourcePartProps("body"), `${alphaRow}\n${bravoRow}\n${blockedRow}`, 2)}
+  ${sourceDataGridElement("Footer", "footer", resolved.composition.footer, sourcePartProps("footer"), footerRow, 2)}
+`;
+  const source = sourceDataGridElement("Root", "root", resolved.composition.root, rootProps, inner, 0);
+  return state?.directionMode === "provider-rtl" || state?.directionMode === "local-ltr"
+    ? `<Direction.Provider dir="rtl">\n  ${source.split("\n").join("\n  ")}\n</Direction.Provider>`
+    : source;
+}
+
+function sourceDataGridElement(component: string, part: DataGridPartKey, composition: CompositionMode, props: string[], children: string, indent: number) {
+  const pad = " ".repeat(indent);
+  const propText = props.length ? ` ${props.join(" ")}` : "";
+  const tag = dataGridNativeTags[part];
+  const content = children.trim().includes("\n") ? `\n${children.trim()}\n${pad}` : children;
+  if (composition === "asChild") return `${pad}<DataGrid.${component}${propText} asChild>\n${pad}  <${tag}>${content}</${tag}>\n${pad}</DataGrid.${component}>`;
+  if (composition === "render") return `${pad}<DataGrid.${component}${propText}\n${pad}  render={(props) => <${tag} {...props}>${content}</${tag}>}\n${pad}/>`;
+  return `${pad}<DataGrid.${component}${propText}>${content}</DataGrid.${component}>`;
+}
+
 function getTreeGridSource(state?: ReturnType<typeof useTreeGridScenario>["state"]) {
   const resolved = state ?? {
     composition: treeGridDefaultComposition,
@@ -2715,6 +2970,14 @@ function controlledTreeGridValueOption(value: string | string[] | null) {
   return value ?? "none";
 }
 
+function controlledDataGridValueOption(value: string | string[] | null) {
+  if (Array.isArray(value)) {
+    if (value.includes("alpha") && value.includes("bravo")) return "alpha-bravo";
+    return value[0] ?? "none";
+  }
+  return value ?? "none";
+}
+
 const selectionModeOptions = [
   { label: "None", value: "none" },
   { label: "Single", value: "single" },
@@ -2732,6 +2995,24 @@ const treeStateModeOptions = [
 ];
 
 const treeGridStateModeOptions = treeStateModeOptions;
+
+const dataGridSingleValueOptions = [
+  { label: "None", value: "none" },
+  { label: "Alpha", value: "alpha" },
+  { label: "Bravo", value: "bravo" },
+];
+
+const dataGridMultipleValueOptions = [
+  ...dataGridSingleValueOptions,
+  { label: "Alpha + Bravo", value: "alpha-bravo" },
+];
+
+const dataGridActiveCellOptions = [
+  { label: "None", value: "none" },
+  { label: "Alpha / Name", value: "2:1" },
+  { label: "Alpha / Status", value: "2:2" },
+  { label: "Bravo / Name", value: "3:1" },
+];
 
 const treeGridSingleValueOptions = [
   { label: "Project", value: "project" },
@@ -2804,6 +3085,46 @@ const treeDefaultCustomSlots: Record<TreePartKey, boolean> = {
   item: false,
   itemText: false,
   group: false,
+};
+
+const dataGridDefaultCustomSlots: Record<DataGridPartKey, boolean> = {
+  root: false, caption: false, header: false, row: false,
+  columnHeader: false, body: false, cell: false, footer: false,
+};
+
+const dataGridDefaultComposition = Object.fromEntries(
+  Object.keys(dataGridDefaultCustomSlots).map((part) => [part, "default"]),
+) as Record<DataGridPartKey, CompositionMode>;
+
+const dataGridDefaultRefs = Object.fromEntries(
+  Object.keys(dataGridDefaultCustomSlots).map((part) => [part, "none"]),
+) as Record<DataGridPartKey, string>;
+
+const dataGridSlotControls: Array<{ part: DataGridPartKey; label: string; value: string }> = [
+  { part: "root", label: "Root Slot", value: "root-slot" },
+  { part: "caption", label: "Caption Slot", value: "caption-slot" },
+  { part: "header", label: "Header Slot", value: "header-slot" },
+  { part: "row", label: "Row Slot", value: "row-slot" },
+  { part: "columnHeader", label: "Column Header Slot", value: "column-header-slot" },
+  { part: "body", label: "Body Slot", value: "body-slot" },
+  { part: "cell", label: "Cell Slot", value: "cell-slot" },
+  { part: "footer", label: "Footer Slot", value: "footer-slot" },
+];
+
+const dataGridCompositionControls = dataGridSlotControls.map(({ part, label }) => ({
+  part,
+  label: label.replace(" Slot", ""),
+}));
+
+const dataGridNativeTags: Record<DataGridPartKey, string> = {
+  root: "table",
+  caption: "caption",
+  header: "thead",
+  row: "tr",
+  columnHeader: "th",
+  body: "tbody",
+  cell: "td",
+  footer: "tfoot",
 };
 
 const treeGridDefaultCustomSlots: Record<TreeGridPartKey, boolean> = {
@@ -2982,11 +3303,6 @@ const scrollAreaRoleOptions = [
 const formControlOptions = [
   { label: "Native", value: "native" },
   { label: "Atom", value: "atom" },
-];
-
-const dataGridRows = [
-  { value: "alpha", name: "Alpha", status: "Ready" },
-  { value: "blocked", name: "Blocked", status: "Paused" },
 ];
 
 const tableRows = [
