@@ -2,6 +2,14 @@
 
 Shared foundation for modal dialog behavior, focus management, portals, titles, descriptions, and close controls.
 
+## When to Use
+
+Use Modal when building another primitive that must keep attention inside an
+overlay until it closes. Most applications should use Dialog, AlertDialog, or
+Drawer instead because those components already provide a complete content
+surface. Use Popover when people must still interact with the page behind the
+floating content.
+
 ## Features
 
 - Controlled and uncontrolled open state.
@@ -21,16 +29,16 @@ import { Modal } from "@flowstack-ui/atom";
 ## Anatomy
 
 ```tsx
-export default () => (
-  <Modal.Root>
-    <Modal.Trigger />
-    <Modal.Portal>
-      <Modal.Title />
-      <Modal.Description />
-      <Modal.Close />
-    </Modal.Portal>
-  </Modal.Root>
-);
+<Modal.Root>
+  <Modal.Trigger />
+  <Modal.Portal>
+    <Modal.Title />
+    <Modal.Description />
+    <Modal.Close />
+  </Modal.Portal>
+</Modal.Root>
+
+useModalContent()
 ```
 
 ## API Reference
@@ -51,27 +59,37 @@ Provides modal state and shared IDs to compound parts.
 
 ### Trigger
 
-Opens the modal.
+Renders the control that opens the modal and connects it to the generated modal
+content ID.
 
 | Prop | Type | Default |
 | --- | --- | --- |
+| `children` | `ReactNode` | required |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
-| `data-slot` | `string` | `"modal-trigger"` |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-haspopup` | `"dialog"` |
+| `aria-expanded` | Modal open state |
+| `aria-controls` | Modal ID while open |
+| `aria-disabled` | Present when the root is disabled |
 
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"modal-trigger"` |
-| `[data-state]` | `"open" | "closed"` |
+| `[data-state]` | `"open" \| "closed"` |
 | `[data-disabled]` | Present when disabled |
 
 ### Portal
 
-Renders modal content into a portal.
+Moves modal content to `document.body` or a supplied container. Set `disabled`
+to leave the children in their original DOM location.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `container` | `Element | DocumentFragment | null` | `document.body` |
+| `children` | `ReactNode` | required |
+| `container` | `HTMLElement \| null` | `document.body` |
 | `disabled` | `boolean` | `false` |
 
 ### Title
@@ -80,8 +98,8 @@ Provides the accessible title referenced by modal content.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `as` | `"h1" | "h2" | "h3" | "h4" | "h5" | "h6"` | `"h2"` |
-| `data-slot` | `string` | `"modal-title"` |
+| `children` | `ReactNode` | required |
+| `as` | `"h1" \| "h2" \| "h3" \| "h4" \| "h5" \| "h6"` | `"h2"` |
 
 | Data attribute | Values |
 | --- | --- |
@@ -93,7 +111,7 @@ Provides the accessible description referenced by modal content.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `data-slot` | `string` | `"modal-description"` |
+| `children` | `ReactNode` | required |
 
 | Data attribute | Values |
 | --- | --- |
@@ -105,46 +123,79 @@ Closes the modal with `reason: "closeClick"`.
 
 | Prop | Type | Default |
 | --- | --- | --- |
+| `children` | `ReactNode` | required |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
-| `data-slot` | `string` | `"modal-close"` |
 
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"modal-close"` |
 
+### useModalContent
+
+Builds the modal content wrapper used by higher-level primitives. It supplies
+presence state, dialog ARIA relationships, focus containment, scroll locking,
+Escape dismissal, and a focus scope for descendant portals.
+
+| Option | Type | Default |
+| --- | --- | --- |
+| `role` | `"dialog" \| "alertdialog"` | `"dialog"` |
+| `ariaLabel` | `string` | - |
+
+Important return values include `isPresent`, `isHidden`, `isPositioned`,
+`dataState`, `presenceRef`, `contentProps`, `focusScope`, `onClose`, and
+`closeOnBackdropClick`. Spread `contentProps` onto the element receiving
+`presenceRef`; do not invent separate IDs or dialog relationships.
+
 ## Examples
 
-### Controlled Open State
+### Custom Modal Foundation
 
 ```tsx
-<Modal.Root open={open} onOpenChange={setOpen}>
-  <Modal.Trigger>Open</Modal.Trigger>
-  <Modal.Portal>
-    <Modal.Title>Settings</Modal.Title>
-    <Modal.Description>Change account preferences.</Modal.Description>
-    <Modal.Close>Close</Modal.Close>
-  </Modal.Portal>
-</Modal.Root>
+import { Modal, useModalContent } from "@flowstack-ui/atom";
+
+function ModalContent() {
+  const modal = useModalContent();
+
+  if (!modal.isPresent) return null;
+
+  return (
+    <Modal.Portal>
+      <div
+        {...modal.contentProps}
+        ref={modal.presenceRef}
+        hidden={modal.isHidden}
+        data-state={modal.dataState}
+        data-positioned={modal.isPositioned ? "" : undefined}
+      >
+        <Modal.Title>Settings</Modal.Title>
+        <Modal.Description>Change account preferences.</Modal.Description>
+        <Modal.Close>Close</Modal.Close>
+      </div>
+    </Modal.Portal>
+  );
+}
+
+export function SettingsModal() {
+  return (
+    <Modal.Root>
+      <Modal.Trigger>Open settings</Modal.Trigger>
+      <ModalContent />
+    </Modal.Root>
+  );
+}
 ```
 
-### Close Reasons
-
-```tsx
-<Modal.Root
-  onOpenChange={(open, reason) => {
-    if (!open && reason === "escapeKeyDown") {
-      console.log("Closed with Escape");
-    }
-  }}
->
-  ...
-</Modal.Root>
-```
+`onOpenChange` receives a `ModalCloseReason` when the modal closes, allowing a
+higher-level primitive to distinguish Escape, backdrop, action, cancel, and
+close-control dismissal.
 
 ## Accessibility
 
-- Modal behavior is intended to be consumed through `Dialog`, `AlertDialog`, or `Drawer` content parts.
+Modal supplies the foundation for the [WAI-ARIA modal dialog pattern](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/).
+It is normally consumed through `Dialog`, `AlertDialog`, or `Drawer` content
+parts.
+
 - Focus is trapped while open and restored when the modal closes.
 - Focus containment includes registered portalled layers owned by descendants,
   such as Select, Menu, and Popover content opened from inside the modal.

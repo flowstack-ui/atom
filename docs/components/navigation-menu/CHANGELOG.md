@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Completed NavigationMenu usage guidance, anatomy, missing prop and ARIA
+  details, copy-ready examples, and exported geometry-helper guidance.
 - Fixed `NavigationMenu.Indicator` and `NavigationMenu.Sub` `asChild`
   rendering so slotted children keep their own contents.
 - Split `NavigationMenu` looping so `Root` controls top-level Trigger/Link

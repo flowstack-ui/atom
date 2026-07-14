@@ -2,6 +2,13 @@
 
 Headless navigation list primitives for sidebars, page navigation, and grouped route lists.
 
+## When to Use
+
+Use NavList for an ordinary list of destinations, such as sidebar links,
+settings pages, or grouped documentation routes. Use NavigationMenu when a
+top-level link opens a panel of more links, Menubar for application commands,
+and Listbox when the rows select values instead of navigating.
+
 ## Features
 
 - Renders native navigation, list, list item, link, section, heading, and button semantics.
@@ -26,18 +33,18 @@ import { NavList } from "@flowstack-ui/atom";
     <NavList.Item>
       <NavList.Link />
     </NavList.Item>
-    <NavList.Section>
-      <NavList.SectionLabel />
-      <NavList.SectionTrigger />
-      <NavList.SectionContent>
-        <NavList.List>
-          <NavList.Item>
-            <NavList.Link />
-          </NavList.Item>
-        </NavList.List>
-      </NavList.SectionContent>
-    </NavList.Section>
   </NavList.List>
+  <NavList.Section>
+    <NavList.SectionLabel />
+    <NavList.SectionTrigger />
+    <NavList.SectionContent>
+      <NavList.List>
+        <NavList.Item>
+          <NavList.Link />
+        </NavList.Item>
+      </NavList.List>
+    </NavList.SectionContent>
+  </NavList.Section>
 </NavList.Root>
 ```
 
@@ -117,6 +124,11 @@ Renders a native link or composed route link. Renders an `a` by default.
 | `render` | `RenderProp` | - |
 | `aria-current` | `boolean \| "page" \| "step" \| "location" \| "date" \| "time"` | active `current` value |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-current` | From `aria-current`, or from `current` when active |
+| `aria-disabled` | Present when disabled |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"nav-list-link"` by default |
@@ -124,11 +136,6 @@ Renders a native link or composed route link. Renders an `a` by default.
 | `[data-active]` | Present when active |
 | `[data-current]` | Present when active |
 | `[data-disabled]` | Present when disabled |
-
-| ARIA attribute | Values |
-| --- | --- |
-| `aria-current` | From `aria-current`, or from `current` when active |
-| `aria-disabled` | Present when disabled |
 
 When `disabled` is true, `href` is omitted, clicks are prevented, and
 `tabIndex={-1}` is rendered. `aria-current` overrides the value derived from
@@ -190,6 +197,12 @@ a non-button element, Atom adds button semantics and keyboard activation.
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-expanded` | Section open state when collapsible |
+| `aria-controls` | Section content id when collapsible |
+| `aria-disabled` | Present for disabled non-native composed triggers |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"nav-list-section-trigger"` by default |
@@ -197,12 +210,6 @@ a non-button element, Atom adds button semantics and keyboard activation.
 | `[data-state]` | `"open" \| "closed"` |
 | `[data-collapsible]` | Present when the section is collapsible |
 | `[data-disabled]` | Present when the section is disabled |
-
-| ARIA attribute | Values |
-| --- | --- |
-| `aria-expanded` | Section open state when collapsible |
-| `aria-controls` | Section content id when collapsible |
-| `aria-disabled` | Present for disabled non-native composed triggers |
 
 For non-collapsible sections, the trigger remains rendered but does not expose
 expanded state or toggle behavior.
@@ -218,6 +225,10 @@ Contains section links. Renders a `div` by default.
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-labelledby` | Section label id, or trigger id for collapsible sections without a label |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"nav-list-section-content"` by default |
@@ -225,60 +236,71 @@ Contains section links. Renders a `div` by default.
 | `[data-state]` | `"open" \| "closed"` |
 | `[data-collapsible]` | Present when the section is collapsible |
 
-| ARIA attribute | Values |
-| --- | --- |
-| `aria-labelledby` | Section label id, or trigger id for collapsible sections without a label |
-
 When closed, content unmounts unless `forceMount` is true. Forced closed content
 renders `hidden`.
+
+Advanced compound components can use `useNavListContext` and
+`useNavListSectionContext`; the matching providers and context value types are
+also public exports.
 
 ## Examples
 
 ### Sidebar Navigation
 
 ```tsx
-<NavList.Root aria-label="Components">
-  <NavList.Section collapsible defaultOpen>
-    <NavList.SectionLabel>Components</NavList.SectionLabel>
-    <NavList.SectionTrigger>Components</NavList.SectionTrigger>
-    <NavList.SectionContent>
-      <NavList.List>
-        <NavList.Item>
-          <NavList.Link active current="page" href="/components/input">
-            Input
-          </NavList.Link>
-        </NavList.Item>
-      </NavList.List>
-    </NavList.SectionContent>
-  </NavList.Section>
-</NavList.Root>
-```
+import { NavList } from "@flowstack-ui/atom";
 
-### Router Link Composition
-
-```tsx
-<NavList.Link active current="location" asChild>
-  <RouterLink href="/settings">Settings</RouterLink>
-</NavList.Link>
+export function ComponentsNavigation() {
+  return (
+    <NavList.Root aria-label="Components">
+      <NavList.Section collapsible defaultOpen>
+          <NavList.SectionLabel>Components</NavList.SectionLabel>
+          <NavList.SectionTrigger>Show or hide components</NavList.SectionTrigger>
+          <NavList.SectionContent>
+            <NavList.List>
+              <NavList.Item>
+                <NavList.Link active current="page" href="/components/input">
+                  Input
+                </NavList.Link>
+              </NavList.Item>
+              <NavList.Item>
+                <NavList.Link href="/components/select">Select</NavList.Link>
+              </NavList.Item>
+            </NavList.List>
+          </NavList.SectionContent>
+      </NavList.Section>
+    </NavList.Root>
+  );
+}
 ```
 
 ### Ordered Steps
 
 ```tsx
-<NavList.Root orientation="horizontal" aria-label="Setup steps">
-  <NavList.List ordered>
-    <NavList.Item>
-      <NavList.Link active current="step" href="/setup/account">
-        Account
-      </NavList.Link>
-    </NavList.Item>
-  </NavList.List>
-</NavList.Root>
+import { NavList } from "@flowstack-ui/atom";
+
+export function SetupSteps() {
+  return (
+    <NavList.Root orientation="horizontal" aria-label="Setup steps">
+      <NavList.List ordered>
+        <NavList.Item>
+          <NavList.Link active current="step" href="/setup/account">
+            Account
+          </NavList.Link>
+        </NavList.Item>
+        <NavList.Item>
+          <NavList.Link href="/setup/profile">Profile</NavList.Link>
+        </NavList.Item>
+      </NavList.List>
+    </NavList.Root>
+  );
+}
 ```
 
 ## Accessibility
 
-NavList uses native `nav`, list, list item, heading, button, and anchor
+NavList uses native [`nav`](https://html.spec.whatwg.org/multipage/sections.html#the-nav-element),
+list, list item, heading, button, and anchor
 behavior. It does not implement roving focus because route navigation should
 remain normal Tab navigation.
 

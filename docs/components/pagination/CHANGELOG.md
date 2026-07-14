@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added Pagination usage guidance, anatomy-ordered part APIs, working range
+  generation examples, and guidance for the exported range helpers.
 - Changed `Previous`, `Next`, `Item`, and `Ellipsis` to render their own
   structural `li` wrappers while keeping `asChild`, `render`, props, and refs
   targeted at the inner control or marker.

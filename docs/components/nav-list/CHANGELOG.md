@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added NavList usage guidance, valid part-only anatomy, self-contained native
+  navigation examples, and clearer native accessibility guidance.
 - Expanded the NavList README to document every part, including `Link current`,
   composition props, disabled behavior, ARIA attributes, and data attributes.
 

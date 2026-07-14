@@ -2,6 +2,13 @@
 
 Headless horizontal menubar primitives for application-style menu systems.
 
+## When to Use
+
+Use Menubar for desktop-like application commands grouped under headings such
+as File, Edit, and View. Use Menu for one standalone command menu,
+NavigationMenu for website navigation, and NavList for a normal list of links.
+Menubar is usually unnecessary for a small set of buttons.
+
 ## Features
 
 - Renders a `role="menubar"` root with roving top-level trigger focus.
@@ -70,13 +77,13 @@ Renders a `div` with `role="menubar"` and the resolved `dir` attribute.
 | `dir` | `"ltr" \| "rtl"` | `Direction.Provider` |
 | `className` | `string` | - |
 
-| Data attribute | Values |
-| --- | --- |
-| `[data-slot]` | `"menubar"` by default |
-
 | ARIA attribute | Values |
 | --- | --- |
 | `aria-orientation` | `"horizontal"` |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"menubar"` by default |
 
 ### Menu
 
@@ -107,17 +114,17 @@ Opens and closes one top-level menu. `Trigger` renders a native `button` with
 | `disabled` | `boolean` | `false` |
 | `className` | `string` | - |
 
-| Data attribute | Values |
-| --- | --- |
-| `[data-slot]` | `"menubar-trigger"` by default |
-| `[data-state]` | `"open" \| "closed"` |
-| `[data-disabled]` | Present when disabled |
-
 | ARIA attribute | Values |
 | --- | --- |
 | `aria-haspopup` | `"menu"` |
 | `aria-expanded` | `true \| false` |
 | `aria-controls` | Associated menu content id |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"menubar-trigger"` by default |
+| `[data-state]` | `"open" \| "closed"` |
+| `[data-disabled]` | Present when disabled |
 
 ### Content
 
@@ -134,6 +141,12 @@ with `role="menu"` and `tabIndex={-1}`.
 | `ariaLabel` | `string` | - |
 | `className` | `string` | - |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-orientation` | `"vertical"` |
+| `aria-label` | From `ariaLabel` |
+| `aria-labelledby` | Trigger id when `ariaLabel` is not provided |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"menu-content"` by default |
@@ -141,12 +154,6 @@ with `role="menu"` and `tabIndex={-1}`.
 | `[data-side]` | Resolved side |
 | `[data-align]` | Resolved align |
 | `[data-positioned]` | Present after positioning is ready |
-
-| ARIA attribute | Values |
-| --- | --- |
-| `aria-orientation` | `"vertical"` |
-| `aria-label` | From `ariaLabel` |
-| `aria-labelledby` | Trigger id when `ariaLabel` is not provided |
 
 ### Item
 
@@ -164,16 +171,16 @@ Renders an actionable menu item with `role="menuitem"` and `tabIndex={-1}`.
 | `render` | `RenderProp` | - |
 | `className` | `string` | - |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-disabled` | Present when disabled |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"menu-item"` by default |
 | `[data-highlighted]` | Present when highlighted |
 | `[data-disabled]` | Present when disabled |
 | `[data-value]` | Item value |
-
-| ARIA attribute | Values |
-| --- | --- |
-| `aria-disabled` | Present when disabled |
 
 ### CheckboxItem
 
@@ -190,6 +197,11 @@ Renders a `menuitemcheckbox` with `tabIndex={-1}`.
 | `closeOnSelect` | `boolean` | `false` |
 | `className` | `string` | - |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-checked` | `true \| false` |
+| `aria-disabled` | Present when disabled |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"menu-checkbox-item"` by default |
@@ -197,11 +209,6 @@ Renders a `menuitemcheckbox` with `tabIndex={-1}`.
 | `[data-disabled]` | Present when disabled |
 | `[data-checked]` | Present when checked |
 | `[data-value]` | Item value |
-
-| ARIA attribute | Values |
-| --- | --- |
-| `aria-checked` | `true \| false` |
-| `aria-disabled` | Present when disabled |
 
 ### RadioGroup
 
@@ -236,6 +243,11 @@ Renders a `menuitemradio` with `tabIndex={-1}`.
 | `closeOnSelect` | `boolean` | `false` |
 | `className` | `string` | - |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-checked` | `true \| false` |
+| `aria-disabled` | Present when disabled |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"menu-radio-item"` by default |
@@ -243,11 +255,6 @@ Renders a `menuitemradio` with `tabIndex={-1}`.
 | `[data-disabled]` | Present when disabled |
 | `[data-checked]` | Present when checked |
 | `[data-value]` | Public radio value |
-
-| ARIA attribute | Values |
-| --- | --- |
-| `aria-checked` | `true \| false` |
-| `aria-disabled` | Present when disabled |
 
 ### Group
 
@@ -270,13 +277,13 @@ Renders a decorative separator with `role="separator"`.
 | --- | --- | --- |
 | `className` | `string` | - |
 
-| Data attribute | Values |
-| --- | --- |
-| `[data-slot]` | `"menu-separator"` by default |
-
 | ARIA attribute | Values |
 | --- | --- |
 | `aria-orientation` | `"horizontal"` |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"menu-separator"` by default |
 
 ### Sub
 
@@ -302,6 +309,12 @@ Renders the item that opens a nested submenu with `role="menuitem"` and
 | `disabled` | `boolean` | `false` |
 | `className` | `string` | - |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-haspopup` | `"menu"` |
+| `aria-expanded` | `true \| false` |
+| `aria-disabled` | Present when disabled |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"menu-sub-trigger"` by default |
@@ -309,12 +322,6 @@ Renders the item that opens a nested submenu with `role="menuitem"` and
 | `[data-highlighted]` | Present when highlighted |
 | `[data-disabled]` | Present when disabled |
 | `[data-value]` | Trigger value |
-
-| ARIA attribute | Values |
-| --- | --- |
-| `aria-haspopup` | `"menu"` |
-| `aria-expanded` | `true \| false` |
-| `aria-disabled` | Present when disabled |
 
 ### SubContent
 
@@ -329,6 +336,12 @@ Renders the positioned nested submenu surface as a portalled `div` with
 | `ariaLabel` | `string` | - |
 | `className` | `string` | - |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-orientation` | `"vertical"` |
+| `aria-label` | From `ariaLabel` |
+| `aria-labelledby` | SubTrigger id when `ariaLabel` is not provided |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-menu-sub-content]` | Present |
@@ -337,81 +350,83 @@ Renders the positioned nested submenu surface as a portalled `div` with
 | `[data-side]` | Resolved side |
 | `[data-positioned]` | Present after positioning is ready |
 
-| ARIA attribute | Values |
-| --- | --- |
-| `aria-orientation` | `"vertical"` |
-| `aria-label` | From `ariaLabel` |
-| `aria-labelledby` | SubTrigger id when `ariaLabel` is not provided |
+Advanced top-level parts can use `useMenubarContext` and
+`useMenubarMenuContext`; the matching providers and context value types are
+also public exports. Shared item parts use the Menu contexts documented above.
 
 ## Examples
 
 ### Application Menu
 
 ```tsx
-<Menubar.Root>
-  <Menubar.Menu value="file">
-    <Menubar.Trigger>File</Menubar.Trigger>
-    <Menubar.Content ariaLabel="File">
-      <Menubar.Item value="new" onSelect={newFile}>
-        New
-      </Menubar.Item>
-      <Menubar.Item value="open" onSelect={openFile}>
-        Open
-      </Menubar.Item>
-    </Menubar.Content>
-  </Menubar.Menu>
-</Menubar.Root>
+import { Menubar } from "@flowstack-ui/atom";
+
+export function ApplicationMenubar() {
+  return (
+    <Menubar.Root aria-label="Application commands">
+      <Menubar.Menu value="file">
+        <Menubar.Trigger>File</Menubar.Trigger>
+        <Menubar.Content ariaLabel="File">
+          <Menubar.Item value="new" onSelect={() => console.log("New file")}>
+            New
+          </Menubar.Item>
+          <Menubar.Sub>
+            <Menubar.SubTrigger value="export">Export</Menubar.SubTrigger>
+            <Menubar.SubContent ariaLabel="Export">
+              <Menubar.Item value="pdf">PDF</Menubar.Item>
+              <Menubar.Item value="csv">CSV</Menubar.Item>
+            </Menubar.SubContent>
+          </Menubar.Sub>
+        </Menubar.Content>
+      </Menubar.Menu>
+      <Menubar.Menu value="edit">
+        <Menubar.Trigger>Edit</Menubar.Trigger>
+        <Menubar.Content ariaLabel="Edit">
+          <Menubar.Item value="undo">Undo</Menubar.Item>
+        </Menubar.Content>
+      </Menubar.Menu>
+    </Menubar.Root>
+  );
+}
 ```
 
 ### Selection Menu
 
 ```tsx
-<Menubar.Root>
-  <Menubar.Menu value="view">
-    <Menubar.Trigger>View</Menubar.Trigger>
-    <Menubar.Content ariaLabel="View">
-      <Menubar.CheckboxItem
-        value="status-bar"
-        checked={statusBar}
-        onCheckedChange={setStatusBar}
-      >
-        Status bar
-      </Menubar.CheckboxItem>
-      <Menubar.RadioGroup value={density} onValueChange={setDensity}>
-        <Menubar.RadioItem value="compact">Compact</Menubar.RadioItem>
-        <Menubar.RadioItem value="comfortable">Comfortable</Menubar.RadioItem>
-      </Menubar.RadioGroup>
-    </Menubar.Content>
-  </Menubar.Menu>
-</Menubar.Root>
-```
+import { useState } from "react";
+import { Menubar } from "@flowstack-ui/atom";
 
-### Submenu
+export function ViewMenubar() {
+  const [statusBar, setStatusBar] = useState(true);
+  const [density, setDensity] = useState("comfortable");
 
-```tsx
-<Menubar.Root>
-  <Menubar.Menu value="file">
-    <Menubar.Trigger>File</Menubar.Trigger>
-    <Menubar.Content ariaLabel="File">
-      <Menubar.Sub>
-        <Menubar.SubTrigger value="export">Export</Menubar.SubTrigger>
-        <Menubar.SubContent ariaLabel="Export">
-          <Menubar.Item value="pdf" onSelect={exportPdf}>
-            PDF
-          </Menubar.Item>
-          <Menubar.Item value="csv" onSelect={exportCsv}>
-            CSV
-          </Menubar.Item>
-        </Menubar.SubContent>
-      </Menubar.Sub>
-    </Menubar.Content>
-  </Menubar.Menu>
-</Menubar.Root>
+  return (
+    <Menubar.Root aria-label="View commands">
+      <Menubar.Menu value="view">
+        <Menubar.Trigger>View</Menubar.Trigger>
+        <Menubar.Content ariaLabel="View">
+          <Menubar.CheckboxItem
+            value="status-bar"
+            checked={statusBar}
+            onCheckedChange={setStatusBar}
+          >
+            Status bar
+          </Menubar.CheckboxItem>
+          <Menubar.RadioGroup value={density} onValueChange={setDensity}>
+            <Menubar.RadioItem value="compact">Compact</Menubar.RadioItem>
+            <Menubar.RadioItem value="comfortable">Comfortable</Menubar.RadioItem>
+          </Menubar.RadioGroup>
+        </Menubar.Content>
+      </Menubar.Menu>
+    </Menubar.Root>
+  );
+}
 ```
 
 ## Accessibility
 
-Implements a horizontal menubar pattern. Top-level triggers use roving focus and
+Follows the [WAI-ARIA menubar pattern](https://www.w3.org/WAI/ARIA/apg/patterns/menubar/).
+Top-level triggers use roving focus and
 open menus with keyboard or pointer input. Top-level triggers expose
 `role="menuitem"` so the `role="menubar"` root has valid menuitem children.
 

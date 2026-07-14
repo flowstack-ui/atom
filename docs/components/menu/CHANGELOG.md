@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Completed the Menu README with standalone usage guidance, full local APIs for
+  every shared and submenu part, and working selection and submenu examples.
 - Fixed Menu part `data-slot` pass-through so Content, Group, Separator,
   CheckboxItem, RadioGroup, RadioItem, SubTrigger, and SubContent can be
   overridden consistently.

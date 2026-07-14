@@ -2,6 +2,14 @@
 
 Headless navigation disclosure primitives with trigger-driven panels, indicator geometry, and a shared viewport.
 
+## When to Use
+
+Use NavigationMenu for website navigation where a top-level destination can
+open a panel of related links. Use NavList for a simple visible list of links,
+Menubar for application commands such as File and Edit, and Menu for a
+temporary action list. NavigationMenu keeps normal link and Tab behavior; it is
+not a menu-role widget.
+
 ## Features
 
 - Supports root and nested navigation menu scopes.
@@ -32,6 +40,15 @@ import { NavigationMenu } from "@flowstack-ui/atom";
   </NavigationMenu.List>
   <NavigationMenu.Indicator />
   <NavigationMenu.Viewport />
+  <NavigationMenu.Sub>
+    <NavigationMenu.List>
+      <NavigationMenu.Item>
+        <NavigationMenu.Trigger />
+        <NavigationMenu.Content />
+      </NavigationMenu.Item>
+    </NavigationMenu.List>
+    <NavigationMenu.Viewport />
+  </NavigationMenu.Sub>
 </NavigationMenu.Root>
 ```
 
@@ -42,10 +59,12 @@ to override that value for app-specific styling or test selectors.
 
 ### Root
 
-Contains the navigation menu.
+Renders the `nav` landmark, owns the active panel, and coordinates opening
+delays, direction, orientation, and top-level keyboard navigation.
 
 | Prop | Type | Default |
 | --- | --- | --- |
+| `children` | `ReactNode` | required |
 | `value` | `string \| null` | - |
 | `defaultValue` | `string` | - |
 | `onValueChange` | `(value: string \| null) => void` | - |
@@ -56,6 +75,10 @@ Contains the navigation menu.
 | `dir` | `"ltr" \| "rtl"` | `Direction.Provider` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-label` | `"Main"` by default; native `aria-label` overrides it |
 
 | Data attribute | Values |
 | --- | --- |
@@ -68,8 +91,8 @@ Renders the item list.
 
 | Prop | Type | Default |
 | --- | --- | --- |
+| `children` | `ReactNode` | required |
 | `asChild` | `boolean` | `false` |
-| `loop` | `boolean` | `Root loop` |
 | `render` | `RenderProp` | - |
 
 | Data attribute | Values |
@@ -83,6 +106,7 @@ Provides a value scope for a trigger/content pair or link.
 
 | Prop | Type | Default |
 | --- | --- | --- |
+| `children` | `ReactNode` | required |
 | `value` | `string` | required |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
@@ -93,13 +117,21 @@ Provides a value scope for a trigger/content pair or link.
 
 ### Trigger
 
-Controls a content panel.
+Renders the button that controls its item's panel and participates in roving
+top-level keyboard navigation.
 
 | Prop | Type | Default |
 | --- | --- | --- |
+| `children` | `ReactNode` | required |
 | `disabled` | `boolean` | `false` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-expanded` | Whether this item's content is open |
+| `aria-controls` | Generated content ID |
+| `aria-disabled` | Present when disabled |
 
 | Data attribute | Values |
 | --- | --- |
@@ -116,7 +148,9 @@ customize the content wrapper rendered by `Viewport`.
 
 | Prop | Type | Default |
 | --- | --- | --- |
+| `children` | `ReactNode` | required |
 | `asChild` | `boolean` | `false` |
+| `loop` | `boolean` | Root value |
 | `render` | `RenderProp` | - |
 
 | Data attribute | Values |
@@ -131,19 +165,21 @@ Renders a navigation link.
 
 | Prop | Type | Default |
 | --- | --- | --- |
+| `children` | `ReactNode` | required |
 | `active` | `boolean` | `false` |
+| `href` | `string` | - |
 | `onSelect` | `() => void` | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-current` | `"page"` when active |
 
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"navigation-menu-link"` |
 | `[data-active]` | Present when active |
-
-| ARIA attribute | Values |
-| --- | --- |
-| `aria-current` | `"page"` when active |
 
 ### Indicator
 
@@ -151,19 +187,20 @@ Renders an optional active trigger indicator.
 
 | Prop | Type | Default |
 | --- | --- | --- |
+| `children` | `ReactNode` | - |
 | `forceMount` | `boolean` | `false` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-hidden` | `true` |
 
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"navigation-menu-indicator"` |
 | `[data-state]` | `"visible" \| "hidden"` |
 | `[data-orientation]` | `"horizontal" \| "vertical"` |
-
-| ARIA attribute | Values |
-| --- | --- |
-| `aria-hidden` | `true` |
 
 | CSS variable | Description |
 | --- | --- |
@@ -180,7 +217,10 @@ Renders the active content panel.
 
 | Prop | Type | Default |
 | --- | --- | --- |
+| `children` | `ReactNode` | - |
 | `forceMount` | `boolean` | `false` |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
 
 | Data attribute | Values |
 | --- | --- |
@@ -199,6 +239,7 @@ Creates a nested navigation menu scope.
 
 | Prop | Type | Default |
 | --- | --- | --- |
+| `children` | `ReactNode` | required |
 | `value` | `string \| null` | - |
 | `defaultValue` | `string` | - |
 | `onValueChange` | `(value: string \| null) => void` | - |
@@ -211,38 +252,72 @@ Creates a nested navigation menu scope.
 | `[data-slot]` | `"navigation-menu-sub"` |
 | `[data-orientation]` | `"horizontal" \| "vertical"` |
 
+Advanced compound components can use `useNavigationMenuContext` and
+`useNavigationMenuItemContext`; the matching providers and context value types
+are also public exports.
+
 ## Examples
 
 ### Shared Viewport
 
 ```tsx
-<NavigationMenu.Root>
-  <NavigationMenu.List>
-    <NavigationMenu.Item value="products">
-      <NavigationMenu.Trigger>Products</NavigationMenu.Trigger>
-      <NavigationMenu.Content>Product links</NavigationMenu.Content>
-    </NavigationMenu.Item>
-  </NavigationMenu.List>
-  <NavigationMenu.Indicator />
-  <NavigationMenu.Viewport />
-</NavigationMenu.Root>
+import { NavigationMenu } from "@flowstack-ui/atom";
+
+export function PrimaryNavigation() {
+  return (
+    <NavigationMenu.Root aria-label="Primary navigation">
+      <NavigationMenu.List>
+        <NavigationMenu.Item value="products">
+          <NavigationMenu.Trigger>Products</NavigationMenu.Trigger>
+          <NavigationMenu.Content>
+            <NavigationMenu.Link href="/products/analytics">
+              Analytics
+            </NavigationMenu.Link>
+            <NavigationMenu.Link href="/products/reports">
+              Reports
+            </NavigationMenu.Link>
+          </NavigationMenu.Content>
+        </NavigationMenu.Item>
+      </NavigationMenu.List>
+      <NavigationMenu.Indicator />
+      <NavigationMenu.Viewport />
+    </NavigationMenu.Root>
+  );
+}
 ```
 
 ### Active Link
 
 ```tsx
-<NavigationMenu.Item value="docs">
-  <NavigationMenu.Link href="/docs" active>
-    Docs
-  </NavigationMenu.Link>
-</NavigationMenu.Item>
+import { NavigationMenu } from "@flowstack-ui/atom";
+
+export function DocumentationNavigation() {
+  return (
+    <NavigationMenu.Root aria-label="Documentation">
+      <NavigationMenu.List>
+        <NavigationMenu.Item value="docs">
+          <NavigationMenu.Link href="/docs" active>
+            Docs
+          </NavigationMenu.Link>
+        </NavigationMenu.Item>
+      </NavigationMenu.List>
+    </NavigationMenu.Root>
+  );
+}
 ```
+
+The package also exports `getNavigationMenuGeometry`,
+`getNavigationMenuGeometryStyle`, and `getNavigationMenuViewportSizeStyle` for
+consumers that need the same indicator or viewport measurements outside the
+default parts.
 
 ## Accessibility
 
 `Root` renders a `nav` landmark with an accessible name. Triggers expose expanded state and controlled content IDs. Links use native anchor semantics and `aria-current="page"` when active. Text direction can be set with `dir` on `Root` or inherited from `Direction.Provider`.
 
-NavigationMenu follows a disclosure navigation pattern for site navigation. It
+NavigationMenu follows the WAI-ARIA APG
+[disclosure navigation example](https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/examples/disclosure-navigation/)
+for site navigation. It
 does not use `menu`, `menubar`, or `menuitem` roles, and it does not trap focus.
 Tab and Shift+Tab remain the primary way to move through visible buttons and
 links. Arrow keys supplement normal tab navigation.

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Completed the Modal foundation documentation with usage guidance, clean
+  anatomy, part APIs, `useModalContent`, and a copy-ready content wrapper.
 - Added shared dismissable layer Escape handling so nested overlays close
   before the parent modal closes.
 - Added scoped modal focus containment so focus that moves outside an active
