@@ -79,6 +79,9 @@ const EMPTY_VALUE = "-";
 const hiddenDataAttributes = new Set([
   "data-playground-inspect",
 ]);
+const isHiddenDataAttribute = (name: string) => (
+  hiddenDataAttributes.has(name) || name.startsWith("data-playground-")
+);
 const hiddenNativeAttributes = new Set([
   "checked",
   "class",
@@ -109,7 +112,7 @@ function getAttributes(element: Element | null, prefix: string): string {
   const attrs = Array.from(element.attributes)
     .filter((attribute) => (
       attribute.name.startsWith(prefix) &&
-      !hiddenDataAttributes.has(attribute.name)
+      !isHiddenDataAttribute(attribute.name)
     ))
     .map(formatAttribute);
 

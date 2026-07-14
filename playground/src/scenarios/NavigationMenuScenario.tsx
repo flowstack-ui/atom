@@ -1,6 +1,6 @@
 import { Direction } from "@flowstack-ui/atom/direction";
 import { NavigationMenu } from "@flowstack-ui/atom/navigation-menu";
-import { useCallback, useState, type MouseEvent, type ReactNode } from "react";
+import { useCallback, useState, type MouseEvent, type PointerEvent, type ReactNode } from "react";
 import type { AnatomySection } from "../AnatomyPanel";
 import {
   ControlToolbar,
@@ -15,6 +15,7 @@ import {
 
 type CompositionMode = "default" | "asChild" | "render";
 type DirectionMode = "default" | "provider-rtl" | "local-ltr" | "local-rtl";
+type ContentLoopMode = "inherit" | "on" | "off";
 type MenuValue = "learn" | "overview" | null;
 type NestedValue = "foundations" | "patterns" | null;
 type RefPart = "root" | "list" | "item" | "trigger" | "link" | "indicator" | "viewport" | "sub";
@@ -32,6 +33,11 @@ const directionOptions = [
   { label: "Provider RTL", value: "provider-rtl" },
   { label: "Local LTR", value: "local-ltr" },
   { label: "Local RTL", value: "local-rtl" },
+] as const;
+const contentLoopOptions = [
+  { label: "Inherit Root", value: "inherit" },
+  { label: "On", value: "on" },
+  { label: "Off", value: "off" },
 ] as const;
 const menuValueOptions = [
   { label: "Closed", value: "none" },
@@ -77,6 +83,8 @@ export function useNavigationMenuScenario() {
   const [defaultValue, setDefaultValueState] = useState<MenuValue>(null);
   const [instanceKey, setInstanceKey] = useState(0);
   const [orientation, setOrientation] = useState<"horizontal" | "vertical">("horizontal");
+  const [rootLoop, setRootLoop] = useState(true);
+  const [contentLoopMode, setContentLoopMode] = useState<ContentLoopMode>("inherit");
   const [directionMode, setDirectionMode] = useState<DirectionMode>("default");
   const [disableTrigger, setDisableTrigger] = useState(false);
   const [activeLink, setActiveLink] = useState(false);
@@ -157,6 +165,8 @@ export function useNavigationMenuScenario() {
       defaultValue,
       instanceKey,
       orientation,
+      rootLoop,
+      contentLoopMode,
       directionMode,
       disableTrigger,
       activeLink,
@@ -192,6 +202,8 @@ export function useNavigationMenuScenario() {
       setValue,
       setDefaultValue,
       setOrientation,
+      setRootLoop,
+      setContentLoopMode,
       setDirectionMode,
       setDisableTrigger,
       setActiveLink,
@@ -256,13 +268,21 @@ export function NavigationMenuScenarioToolbar({ scenario }: { scenario: Navigati
       </ToolbarGroup>
       <ToolbarGroup title="Behavior" value="behavior">
         <MenuRadioControl label="Orientation" options={["horizontal", "vertical"]} value={state.orientation} onChange={actions.setOrientation} />
-        <MenuCheckboxControl checked={state.instantHover} label="Instant Hover" value="instant-hover" onChange={actions.setInstantHover} />
-        <MenuCheckboxControl checked={state.customLabel} label="Custom Label" value="custom-label" onChange={actions.setCustomLabel} />
-        <MenuCheckboxControl checked={state.viewportForceMount} label="Force Viewport" value="force-viewport" onChange={actions.setViewportForceMount} />
-        <MenuCheckboxControl checked={state.showIndicator} label="Show Indicator" value="show-indicator" onChange={actions.setShowIndicator} />
-        {state.showIndicator ? (
-          <MenuCheckboxControl checked={state.indicatorForceMount} label="Force Indicator" value="force-indicator" onChange={actions.setIndicatorForceMount} />
-        ) : null}
+        <MenuSection label="Keyboard">
+          <MenuCheckboxControl checked={state.rootLoop} label="Root Loop" value="root-loop" onChange={actions.setRootLoop} />
+          <MenuRadioControl label="Learn Content Loop" options={contentLoopOptions} value={state.contentLoopMode} onChange={(next) => actions.setContentLoopMode(next as ContentLoopMode)} />
+        </MenuSection>
+        <MenuSection label="Interaction">
+          <MenuCheckboxControl checked={state.instantHover} label="Instant Hover" value="instant-hover" onChange={actions.setInstantHover} />
+          <MenuCheckboxControl checked={state.customLabel} label="Custom Label" value="custom-label" onChange={actions.setCustomLabel} />
+        </MenuSection>
+        <MenuSection label="Mounted Parts">
+          <MenuCheckboxControl checked={state.viewportForceMount} label="Force Viewport" value="force-viewport" onChange={actions.setViewportForceMount} />
+          <MenuCheckboxControl checked={state.showIndicator} label="Show Indicator" value="show-indicator" onChange={actions.setShowIndicator} />
+          {state.showIndicator ? (
+            <MenuCheckboxControl checked={state.indicatorForceMount} label="Force Indicator" value="force-indicator" onChange={actions.setIndicatorForceMount} />
+          ) : null}
+        </MenuSection>
       </ToolbarGroup>
       <ToolbarGroup title="Direction" value="direction">
         <MenuRadioControl label="Mode" options={directionOptions} value={state.directionMode} onChange={(next) => actions.setDirectionMode(next as DirectionMode)} />
@@ -290,7 +310,7 @@ export function NavigationMenuScenarioToolbar({ scenario }: { scenario: Navigati
         <MenuRadioSubmenuControl label="Indicator" options={compositionOptions} value={state.indicatorComposition} onChange={actions.setIndicatorComposition} />
         <MenuRadioSubmenuControl label="Viewport" options={compositionOptions} value={state.viewportComposition} onChange={actions.setViewportComposition} />
         <MenuRadioSubmenuControl label="Sub" options={compositionOptions} value={state.subComposition} onChange={actions.setSubComposition} />
-        <MenuCheckboxControl checked={state.blockTriggerEvent} label="Block Trigger Event" value="block-trigger-event" onChange={actions.setBlockTriggerEvent} />
+        <MenuCheckboxControl checked={state.blockTriggerEvent} label="Block Trigger Events" value="block-trigger-event" onChange={actions.setBlockTriggerEvent} />
       </ToolbarGroup>
       <PropsToolbarGroup
         propCheck={state.propCheck}
@@ -338,12 +358,15 @@ function TriggerPart({
   const props = {
     className: nested ? "utility-navigation-sub-trigger" : "utility-navigation-trigger",
     disabled,
-    "data-navigation-trigger": value,
+    "data-playground-navigation-trigger": value,
     "data-playground-inspect": "",
     ...(primary ? partProps("trigger", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customSlots.trigger }, "navigation-menu-trigger-custom") : {}),
     ...(primary ? { ref: scenario.actions.markTriggerRef } : {}),
     ...(primary ? {
       onClick: (event: MouseEvent<HTMLButtonElement>) => {
+        if (scenario.state.blockTriggerEvent) event.preventDefault();
+      },
+      onPointerEnter: (event: PointerEvent<HTMLButtonElement>) => {
         if (scenario.state.blockTriggerEvent) event.preventDefault();
       },
     } : {}),
@@ -386,7 +409,7 @@ function LinkPart({
   const commonProps = {
     active,
     className,
-    "data-navigation-link": marker,
+    "data-playground-navigation-link": marker,
     "data-playground-inspect": "",
     ...(primary ? partProps("link", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customSlots.link }, "navigation-menu-link-custom") : {}),
     ...(primary ? { ref: scenario.actions.markLinkRef } : {}),
@@ -418,8 +441,10 @@ function ContentPart({
 }) {
   const props = {
     className: "utility-navigation-content",
-    "data-navigation-content": "learn",
+    "data-playground-navigation-content": "learn",
     "data-playground-inspect": "",
+    ...(scenario.state.contentLoopMode === "on" ? { loop: true } : {}),
+    ...(scenario.state.contentLoopMode === "off" ? { loop: false } : {}),
     ...partProps("content", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customSlots.content }, "navigation-menu-content-custom"),
   };
 
@@ -436,7 +461,7 @@ function NestedMenu({ scenario }: { scenario: NavigationMenuScenario }) {
   const { state, actions } = scenario;
   const subProps = {
     className: "utility-navigation-sub",
-    "data-navigation-sub": "",
+    "data-playground-navigation-sub": "",
     "data-playground-inspect": "",
     ...partProps("sub", { propCheck: state.propCheck, customSlot: state.customSlots.sub }, "navigation-menu-sub-custom"),
     ref: actions.markSubRef,
@@ -445,21 +470,21 @@ function NestedMenu({ scenario }: { scenario: NavigationMenuScenario }) {
   };
   const children = (
     <>
-      <NavigationMenu.List className="utility-navigation-sub-list" data-navigation-list="nested" data-playground-inspect="">
-        <NavigationMenu.Item value="foundations" data-navigation-item="foundations" data-playground-inspect="">
+      <NavigationMenu.List className="utility-navigation-sub-list" data-playground-navigation-list="nested" data-playground-inspect="">
+        <NavigationMenu.Item value="foundations" data-playground-navigation-item="foundations" data-playground-inspect="">
           <TriggerPart scenario={scenario} value="foundations" nested>Foundations</TriggerPart>
-          <NavigationMenu.Content className="utility-navigation-sub-content" data-navigation-content="foundations" data-playground-inspect="">
+          <NavigationMenu.Content className="utility-navigation-sub-content" data-playground-navigation-content="foundations" data-playground-inspect="">
             <p>Start with semantic structure, focus order, and accessible names.</p>
           </NavigationMenu.Content>
         </NavigationMenu.Item>
-        <NavigationMenu.Item value="patterns" data-navigation-item="patterns" data-playground-inspect="">
+        <NavigationMenu.Item value="patterns" data-playground-navigation-item="patterns" data-playground-inspect="">
           <TriggerPart scenario={scenario} value="patterns" nested>Patterns</TriggerPart>
-          <NavigationMenu.Content className="utility-navigation-sub-content" data-navigation-content="patterns" data-playground-inspect="">
+          <NavigationMenu.Content className="utility-navigation-sub-content" data-playground-navigation-content="patterns" data-playground-inspect="">
             <p>Compose disclosure panels, links, and nested navigation scopes.</p>
           </NavigationMenu.Content>
         </NavigationMenu.Item>
       </NavigationMenu.List>
-      <NavigationMenu.Viewport className="utility-navigation-sub-viewport" data-navigation-viewport="nested" data-playground-inspect="" />
+      <NavigationMenu.Viewport className="utility-navigation-sub-viewport" data-playground-navigation-viewport="nested" data-playground-inspect="" />
     </>
   );
 
@@ -476,7 +501,7 @@ function IndicatorPart({ scenario }: { scenario: NavigationMenuScenario }) {
   const props = {
     className: "utility-navigation-indicator",
     forceMount: scenario.state.indicatorForceMount,
-    "data-navigation-indicator": "",
+    "data-playground-navigation-indicator": "",
     "data-playground-inspect": "",
     ...partProps("indicator", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customSlots.indicator }, "navigation-menu-indicator-custom"),
     ref: scenario.actions.markIndicatorRef,
@@ -495,7 +520,7 @@ function ViewportPart({ scenario }: { scenario: NavigationMenuScenario }) {
   const props = {
     className: "utility-navigation-viewport",
     forceMount: scenario.state.viewportForceMount,
-    "data-navigation-viewport": "primary",
+    "data-playground-navigation-viewport": "primary",
     "data-playground-inspect": "",
     ...partProps("viewport", { propCheck: scenario.state.propCheck, customSlot: scenario.state.customSlots.viewport }, "navigation-menu-viewport-custom"),
     ref: scenario.actions.markViewportRef,
@@ -519,20 +544,21 @@ export function NavigationMenuScenarioCanvas({ scenario }: { scenario: Navigatio
   const rootProps = {
     key: state.instanceKey,
     className: `utility-navigation-menu ${state.orientation}`,
-    "data-navigation-root": "",
+    "data-playground-navigation-root": "",
     "data-playground-inspect": "",
     ...partProps("root", { propCheck: state.propCheck, customSlot: state.customSlots.root }, "navigation-menu-root-custom"),
     ref: actions.markRootRef,
     ...(state.controlled ? { value: state.value } : state.defaultValue ? { defaultValue: state.defaultValue } : {}),
     onValueChange: actions.handleValueChange,
     ...(state.instantHover ? { delayDuration: 0, skipDelayDuration: 0 } : {}),
+    ...(!state.rootLoop ? { loop: false } : {}),
     ...(state.orientation === "vertical" ? { orientation: state.orientation } : {}),
     ...(localDir ? { dir: localDir } : {}),
     ...(state.customLabel ? { "aria-label": "Atom resources" } : {}),
   };
   const learnItemProps = {
     value: "learn",
-    "data-navigation-item": "learn",
+    "data-playground-navigation-item": "learn",
     "data-playground-inspect": "",
     ...partProps("item", { propCheck: state.propCheck, customSlot: state.customSlots.item }, "navigation-menu-item-custom"),
     ref: actions.markItemRef,
@@ -560,9 +586,9 @@ export function NavigationMenuScenarioCanvas({ scenario }: { scenario: Navigatio
   const primaryItems = (
     <>
       {learnItem}
-        <NavigationMenu.Item value="overview" data-navigation-item="overview" data-playground-inspect="">
+        <NavigationMenu.Item value="overview" data-playground-navigation-item="overview" data-playground-inspect="">
           <TriggerPart scenario={scenario} value="overview" disabled={state.disableTrigger}>Overview</TriggerPart>
-          <NavigationMenu.Content className="utility-navigation-content" data-navigation-content="overview" data-playground-inspect="">
+          <NavigationMenu.Content className="utility-navigation-content" data-playground-navigation-content="overview" data-playground-inspect="">
             {state.showSub ? <NestedMenu scenario={scenario} /> : (
               <ul className="utility-navigation-grid utility-navigation-grid-overview">
                 <li><LinkPart scenario={scenario} href="#introduction" label="Introduction" description="Understand Atom's behavior-first boundary." marker="introduction" /></li>
@@ -573,7 +599,7 @@ export function NavigationMenuScenarioCanvas({ scenario }: { scenario: Navigatio
             )}
           </NavigationMenu.Content>
         </NavigationMenu.Item>
-        <NavigationMenu.Item value="github" data-navigation-item="github" data-playground-inspect="">
+        <NavigationMenu.Item value="github" data-playground-navigation-item="github" data-playground-inspect="">
           <LinkPart scenario={scenario} href="#github" label="GitHub" marker="github" active={state.activeLink} />
         </NavigationMenu.Item>
         {state.showIndicator ? <IndicatorPart scenario={scenario} /> : null}
@@ -581,7 +607,7 @@ export function NavigationMenuScenarioCanvas({ scenario }: { scenario: Navigatio
   );
   const listProps = {
     className: "utility-navigation-list",
-    "data-navigation-list": "primary",
+    "data-playground-navigation-list": "primary",
     "data-playground-inspect": "",
     ...partProps("list", { propCheck: state.propCheck, customSlot: state.customSlots.list }, "navigation-menu-list-custom"),
     ref: actions.markListRef,
@@ -640,33 +666,36 @@ export function getNavigationMenuSections(scenario: NavigationMenuScenario): Ana
   };
 
   const sections: AnatomySection[] = [
-    section("Root", "[data-navigation-root]", "root", [
+    section("Root", "[data-playground-navigation-root]", "root", [
       { label: "Mode", value: state.controlled ? "controlled" : "uncontrolled", category: "state" },
       { label: "Value", value: state.value ?? "none", category: "state" },
       { label: "Direction mode", value: state.directionMode, category: "state" },
+      { label: "Loop", value: String(state.rootLoop), category: "behavior" },
       { label: "Composition", value: state.rootComposition, category: "composition" },
     ]),
-    section("List: Primary", "[data-navigation-list='primary']", "list", [
+    section("List: Primary", "[data-playground-navigation-list='primary']", "list", [
       { label: "Composition", value: state.listComposition, category: "composition" },
     ]),
-    section("Item: Learn", "[data-navigation-item='learn']", "item", [
+    section("Item: Learn", "[data-playground-navigation-item='learn']", "item", [
       { label: "Composition", value: state.itemComposition, category: "composition" },
     ]),
-    section("Trigger: Learn", "[data-navigation-trigger='learn']", "trigger", [
+    section("Trigger: Learn", "[data-playground-navigation-trigger='learn']", "trigger", [
       { label: "Composition", value: state.triggerComposition, category: "composition" },
     ]),
-    section("Content: Learn", "[data-navigation-content='learn']", undefined, [
+    section("Content: Learn", "[data-playground-navigation-content='learn']", undefined, [
+      { label: "Loop mode", value: state.contentLoopMode, category: "behavior" },
+      { label: "Effective loop", value: String(state.contentLoopMode === "inherit" ? state.rootLoop : state.contentLoopMode === "on"), category: "behavior" },
       { label: "Composition", value: state.contentComposition, category: "composition" },
     ]),
-    section("Link: Atom UI", "[data-navigation-link='atom']", "link", [
+    section("Link: Atom UI", "[data-playground-navigation-link='atom']", "link", [
       { label: "Composition", value: state.linkComposition, category: "composition" },
     ]),
-    section("Item: Overview", "[data-navigation-item='overview']"),
-    section("Trigger: Overview", "[data-navigation-trigger='overview']", undefined, [
+    section("Item: Overview", "[data-playground-navigation-item='overview']"),
+    section("Trigger: Overview", "[data-playground-navigation-trigger='overview']", undefined, [
       { label: "Disabled", value: String(state.disableTrigger), category: "state" },
     ]),
-    section("Content: Overview", "[data-navigation-content='overview']"),
-    section("Sub", "[data-navigation-sub]", "sub", [
+    section("Content: Overview", "[data-playground-navigation-content='overview']"),
+    section("Sub", "[data-playground-navigation-sub]", "sub", [
       { label: "Mode", value: state.subControlled ? "controlled" : "uncontrolled", category: "state" },
       { label: "Value", value: state.subValue ?? "none", category: "state" },
       { label: "Composition", value: state.subComposition, category: "composition" },
@@ -675,26 +704,26 @@ export function getNavigationMenuSections(scenario: NavigationMenuScenario): Ana
 
   if (state.showSub) {
     sections.push(
-      section("List: Nested", "[data-navigation-list='nested']"),
-      section("Item: Foundations", "[data-navigation-item='foundations']"),
-      section("Trigger: Foundations", "[data-navigation-trigger='foundations']"),
-      section("Content: Foundations", "[data-navigation-content='foundations']"),
-      section("Item: Patterns", "[data-navigation-item='patterns']"),
-      section("Trigger: Patterns", "[data-navigation-trigger='patterns']"),
-      section("Content: Patterns", "[data-navigation-content='patterns']"),
-      section("Viewport: Nested", "[data-navigation-viewport='nested']"),
+      section("List: Nested", "[data-playground-navigation-list='nested']"),
+      section("Item: Foundations", "[data-playground-navigation-item='foundations']"),
+      section("Trigger: Foundations", "[data-playground-navigation-trigger='foundations']"),
+      section("Content: Foundations", "[data-playground-navigation-content='foundations']"),
+      section("Item: Patterns", "[data-playground-navigation-item='patterns']"),
+      section("Trigger: Patterns", "[data-playground-navigation-trigger='patterns']"),
+      section("Content: Patterns", "[data-playground-navigation-content='patterns']"),
+      section("Viewport: Nested", "[data-playground-navigation-viewport='nested']"),
     );
   }
 
   sections.push(
-    section("Item: GitHub", "[data-navigation-item='github']"),
-    section("Link: GitHub", "[data-navigation-link='github']", undefined, [
+    section("Item: GitHub", "[data-playground-navigation-item='github']"),
+    section("Link: GitHub", "[data-playground-navigation-link='github']", undefined, [
       { label: "Active", value: String(state.activeLink), category: "state" },
     ]),
-    section("Indicator", "[data-navigation-indicator]", "indicator", [
+    section("Indicator", "[data-playground-navigation-indicator]", "indicator", [
       { label: "Composition", value: state.indicatorComposition, category: "composition" },
     ]),
-    section("Viewport", "[data-navigation-viewport='primary']", "viewport", [
+    section("Viewport", "[data-playground-navigation-viewport='primary']", "viewport", [
       { label: "Composition", value: state.viewportComposition, category: "composition" },
     ]),
   );
@@ -763,6 +792,7 @@ export function getNavigationMenuSource(scenario: NavigationMenuScenario) {
     state.controlled ? "onValueChange={setValue}" : null,
     state.instantHover ? "delayDuration={0}" : null,
     state.instantHover ? "skipDelayDuration={0}" : null,
+    !state.rootLoop ? "loop={false}" : null,
     state.orientation === "vertical" ? `orientation="vertical"` : null,
     state.directionMode === "local-ltr" ? `dir="ltr"` : null,
     state.directionMode === "local-rtl" ? `dir="rtl"` : null,
@@ -774,9 +804,12 @@ export function getNavigationMenuSource(scenario: NavigationMenuScenario) {
     state.customSlots.trigger ? `data-slot="navigation-menu-trigger-custom"` : null,
     state.propCheck ? `data-prop-check="trigger"` : null,
     state.blockTriggerEvent ? `onClick={(event) => event.preventDefault()}` : null,
+    state.blockTriggerEvent ? `onPointerEnter={(event) => event.preventDefault()}` : null,
   ]);
   const overviewTriggerProps = sourceProps([state.disableTrigger ? "disabled" : null]);
   const contentProps = sourceProps([
+    state.contentLoopMode === "on" ? "loop" : null,
+    state.contentLoopMode === "off" ? "loop={false}" : null,
     state.customSlots.content ? `data-slot="navigation-menu-content-custom"` : null,
     state.propCheck ? `data-prop-check="content"` : null,
   ]);

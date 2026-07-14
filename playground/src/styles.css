@@ -1918,6 +1918,7 @@ h2 {
 
 .utility-navigation-list,
 .utility-navigation-sub-list {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1986,7 +1987,7 @@ h2 {
 
 .utility-navigation-viewport-position {
   position: absolute;
-  top: 48px;
+  top: 54px;
   left: 50%;
   display: flex;
   width: min(100%, 560px);
@@ -2119,7 +2120,7 @@ h2 {
 
 .utility-navigation-indicator {
   position: absolute;
-  bottom: -6px;
+  bottom: -8px;
   left: 0;
   z-index: 2;
   display: flex;
@@ -2128,17 +2129,30 @@ h2 {
   align-items: flex-end;
   justify-content: center;
   transform: translateX(var(--atom-navigation-menu-trigger-left, 0));
-  transition: width 220ms ease, transform 220ms ease;
+  transition: width 220ms ease, transform 220ms ease, opacity 120ms ease;
   pointer-events: none;
+}
+
+.utility-navigation-indicator[data-state="hidden"] {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.utility-navigation-indicator[data-state="visible"] {
+  visibility: visible;
+  opacity: 1;
 }
 
 .utility-navigation-indicator-arrow {
   width: 10px;
   height: 10px;
+  border: 1px solid #b9c2ce;
+  border-right: 0;
+  border-bottom: 0;
   border-radius: 2px 0 0;
   background: #ffffff;
-  box-shadow: -1px -1px 0 rgba(24, 34, 50, 0.12);
-  transform: translateY(5px) rotate(45deg);
+  box-shadow: -2px -2px 5px rgba(31, 40, 52, 0.08);
+  transform: translateY(4px) rotate(45deg);
 }
 
 .utility-navigation-menu.vertical {
@@ -2158,8 +2172,8 @@ h2 {
 
 .utility-navigation-menu.vertical .utility-navigation-viewport-position {
   top: 0;
-  left: 176px;
-  width: min(440px, calc(100% - 176px));
+  left: 182px;
+  width: min(440px, calc(100% - 182px));
   justify-content: flex-start;
   transform: none;
 }
@@ -2170,7 +2184,7 @@ h2 {
 
 .utility-navigation-menu.vertical .utility-navigation-indicator {
   top: 0;
-  right: -6px;
+  right: -8px;
   bottom: auto;
   left: auto;
   width: 10px;
@@ -2190,7 +2204,7 @@ h2 {
 }
 
 .utility-navigation-menu.vertical[dir="rtl"] .utility-navigation-viewport-position {
-  right: 176px;
+  right: 182px;
   left: auto;
   justify-content: flex-end;
 }

@@ -124,11 +124,13 @@ Raw DOM evidence should come from the selected part selector and include:
 - `Data`
 
 Filter playground plumbing from raw evidence: `class`, `style`, duplicate `id`,
-and `data-playground-inspect`. Do not filter native attributes that prove the
-component contract. Direction-sensitive parts, for example, must expose raw
-`dir` in Anatomy and Inspector when it is rendered. Structural native
-attributes and direct text should also remain visible when they prove the
-contract, such as table `scope`, `caption`, `th`, and `td` text.
+and the complete `data-playground-*` namespace. Scenario-only DOM selectors
+must use this reserved namespace instead of public-looking component data
+attributes. Do not filter native attributes that prove the component contract.
+Direction-sensitive parts, for example, must expose raw `dir` in Anatomy and
+Inspector when it is rendered. Structural native attributes and direct text
+should also remain visible when they prove the contract, such as table `scope`,
+`caption`, `th`, and `td` text.
 
 ## Inspector And Logs
 
@@ -685,7 +687,7 @@ Omit:
 - event-log plumbing
 - layout-only wrappers
 - playground-only state, handlers, and helper props
-- `data-playground-inspect`
+- every `data-playground-*` attribute
 
 Use boolean shorthand in Source when that is how a consumer should write it:
 `disabled`, not `disabled={true}`.

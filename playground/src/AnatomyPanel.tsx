@@ -83,6 +83,9 @@ const hiddenLabels = new Set(["class", "props", "ref", "tag"]);
 const hiddenRawAttributes = new Set([
   "data-playground-inspect",
 ]);
+const isHiddenRawAttribute = (name: string) => (
+  hiddenRawAttributes.has(name) || name.startsWith("data-playground-")
+);
 const hiddenNativeAttributes = new Set([
   "class",
   "id",
@@ -258,7 +261,7 @@ function getLiveRows(selector?: string): AnatomyRow[] {
   const attributeRows: AnatomyRow[] = [];
 
   Array.from(element.attributes).forEach((attribute) => {
-    if (hiddenRawAttributes.has(attribute.name)) return [];
+    if (isHiddenRawAttribute(attribute.name)) return [];
     if (hiddenNativeAttributes.has(attribute.name)) return [];
 
     const row = {
