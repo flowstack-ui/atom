@@ -15,6 +15,7 @@ Verify
 
 - The title is `Navigation Menu` and Canvas renders one closed horizontal row with Learn, Overview, and GitHub.
 - The initial footer is `Open none | Uncontrolled | horizontal | ltr`.
+- Root Loop is enabled by default and Learn Content Loop defaults to Inherit Root.
 - Default Anatomy order is Root, List: Primary, Item: Learn, Trigger: Learn, Content: Learn, Link: Atom UI, Item: Overview, Trigger: Overview, Content: Overview, Sub, Item: GitHub, Link: GitHub, Indicator, and Viewport.
 - With Show Sub enabled, nested List, Foundations Item/Trigger/Content, Patterns Item/Trigger/Content, and nested Viewport appear immediately after Sub.
 - Composition contains Root, List, Item, Trigger, Content, Link, Indicator, Viewport, and Sub; each submenu contains Default, As Child, and Render.
@@ -96,7 +97,7 @@ Verify
 
 - Attributes show tag `nav` and `dir="ltr"`; ARIA shows `aria-label="Main"`.
 - Data shows `data-slot="navigation-menu"` and `data-orientation="horizontal"`.
-- Rows show Mode `uncontrolled`, Value `none`, Direction mode `default`, Composition `default`, and Ref `nav`.
+- Rows show Mode `uncontrolled`, Value `none`, Direction mode `default`, Loop `true`, Composition `default`, and Ref `nav`.
 
 Action
 
@@ -213,17 +214,17 @@ Verify
 
 Action
 
-- Enable Block Trigger Event and click Learn.
+- Enable Block Trigger Events, move the pointer onto Learn, and click it.
 
 Verify
 
-- Learn remains closed because the consumer click handler prevents default.
+- Learn remains closed because the consumer pointer-enter and click handlers prevent the component's hover and activation behaviors.
 
 ### Overview — disabled delta
 
 Setup
 
-- Restore Trigger composition and Props controls; Block Trigger Event off; Root closed.
+- Restore Trigger composition and Props controls; Block Trigger Events off; Root closed.
 
 Action
 
@@ -255,6 +256,7 @@ Verify
 - Content is inactive while closed and emitted through Viewport only when Learn opens.
 - Emitted Content is `div` with `tabindex="-1"`, `data-slot="navigation-menu-content"`, `data-state="open"`, and `data-motion="from-end"`.
 - Its id matches Learn Trigger `aria-controls`.
+- Rows show Loop mode `inherit` and Effective loop `true`.
 
 Action
 
@@ -338,6 +340,7 @@ Verify
 
 - Indicator is absent while closed until Force Indicator is enabled.
 - Forced Indicator is `div` with `aria-hidden="true"`, `data-slot="navigation-menu-indicator"`, `data-state="hidden"`, `data-orientation="horizontal"`, and Ref `div`.
+- The force-mounted hidden Indicator remains visually hidden; no arrow floats beneath the closed menu.
 
 Action
 
@@ -347,7 +350,8 @@ Verify
 
 - Data changes to `data-state="visible"`.
 - Style exposes `--atom-navigation-menu-trigger-left`, `--atom-navigation-menu-trigger-top`, `--atom-navigation-menu-trigger-width`, `--atom-navigation-menu-trigger-height`, `--atom-navigation-menu-trigger-center-x`, and `--atom-navigation-menu-trigger-center-y`.
-- The visual indicator moves from Learn to Overview.
+- A clearly visible white arrow with the same neutral border and shadow treatment as Menu and Dropdown Menu is centered beneath the active Trigger and moves from Learn to Overview.
+- The Viewport begins below the arrow and overlaps its lower edge cleanly without covering the bordered tip or leaving a gap.
 
 Action
 
@@ -452,7 +456,7 @@ Reset
 
 ## Step 11: Keyboard, Direction, and Focus
 
-### Horizontal trigger navigation
+### Horizontal top-level navigation
 
 Setup
 
@@ -460,20 +464,47 @@ Setup
 
 Action
 
-- Press ArrowRight, ArrowLeft, End, and Home one at a time.
+- Press ArrowRight twice, ArrowLeft once, End, and Home one at a time.
 
 Verify
 
-- ArrowRight moves Learn to Overview; ArrowLeft moves Overview to Learn.
-- End and Home focus the last and first enabled Trigger; Focused follows the active Trigger.
+- ArrowRight moves Learn to Overview and then to the direct GitHub Link; ArrowLeft returns to Overview.
+- End focuses GitHub and Home focuses Learn; Focused follows both Triggers and the direct Link.
 
 Action
 
-- Enable Disable Trigger and repeat ArrowRight and End from Learn.
+- Enable Disable Trigger and press ArrowRight and End from Learn.
 
 Verify
 
-- Disabled Overview is skipped and focus remains on Learn.
+- Disabled Overview is skipped; both keys focus GitHub.
+
+### Root loop boundaries
+
+Setup
+
+- Disable Trigger off; Root Loop on; Root closed.
+
+Action
+
+- Focus GitHub and press ArrowRight; then focus Learn and press ArrowLeft.
+
+Verify
+
+- GitHub wraps to Learn and Learn wraps to GitHub.
+
+Action
+
+- Turn Root Loop off and repeat both boundary keys.
+
+Verify
+
+- Focus stays on GitHub at the forward boundary and Learn at the backward boundary.
+- Root Anatomy shows Loop `false` and Source contains `loop={false}` on Root.
+
+Reset
+
+- Restore Root Loop on.
 
 ### Open-panel handoff and direction
 
@@ -483,11 +514,11 @@ Setup
 
 Action
 
-- Press ArrowRight, then test Provider RTL, Local LTR, and Local RTL with ArrowRight and ArrowLeft.
+- Press ArrowRight twice. Then test Provider RTL, Local LTR, and Local RTL with ArrowRight and ArrowLeft.
 
 Verify
 
-- LTR moves focus and the open panel from Learn to Overview.
+- LTR moves focus and the open panel from Learn to Overview; moving to GitHub closes the panel without activating the Link.
 - Provider RTL and Local RTL mirror horizontal movement; Local LTR overrides the RTL provider.
 - Raw Root `dir` remains exact for each direction mode.
 
@@ -514,6 +545,76 @@ Verify
 
 - Root closes, focus returns to Learn, and Logs add `closed navigation menu`.
 
+### Content navigation and loop
+
+Setup
+
+- Direction Default; Root Loop on; Learn Content Loop Inherit Root; open Learn and focus Atom UI.
+
+Action
+
+- Press ArrowDown through the Content Links, then ArrowUp; press End and Home.
+
+Verify
+
+- ArrowDown follows DOM order: Atom UI, Composition, Accessibility, Testing; ArrowUp reverses it.
+- End focuses Testing and Home focuses Atom UI.
+- ArrowDown from Testing wraps to Atom UI; ArrowUp from Atom UI wraps to Testing.
+
+Action
+
+- Turn Root Loop off while Learn Content Loop still inherits; repeat ArrowDown from Testing and ArrowUp from Atom UI.
+
+Verify
+
+- Content focus stays on the boundary Link because the omitted Content prop inherits Root `false`.
+- Content Anatomy shows Loop mode `inherit` and Effective loop `false`.
+
+Action
+
+- Turn Root Loop on and set Learn Content Loop Off; repeat the top-level and Content boundary checks.
+
+Verify
+
+- Top-level navigation wraps while Learn Content stops at Atom UI and Testing.
+- Source contains `loop={false}` on Learn Content but omits it from Root.
+
+Action
+
+- Turn Root Loop off and set Learn Content Loop On; repeat both boundary checks.
+
+Verify
+
+- Top-level navigation stops while Learn Content wraps.
+- Source contains `loop={false}` on Root and `loop` on Learn Content.
+
+Reset
+
+- Restore Root Loop on and Learn Content Loop to Inherit Root.
+
+### Tab and focus-out behavior
+
+Setup
+
+- Open Learn and focus Atom UI.
+
+Action
+
+- Press Shift+Tab; reopen Learn, focus Testing, and press Tab.
+
+Verify
+
+- Shift+Tab from the first Content Link returns focus to Learn Trigger.
+- Tab from the last Content Link closes Learn and moves focus to Overview Trigger.
+
+Action
+
+- Reopen Learn and move focus to a control outside NavigationMenu.
+
+Verify
+
+- The panel closes; focus is not trapped inside NavigationMenu.
+
 ### Vertical orientation
 
 Setup
@@ -522,16 +623,17 @@ Setup
 
 Action
 
-- Press ArrowRight and ArrowLeft, then Enter, Space, ArrowDown, ArrowUp, and Escape.
+- Press ArrowDown and ArrowUp to move between top-level controls. From Learn, press ArrowRight; then repeat in Local RTL with ArrowLeft. Test Enter, Space, and Escape.
 
 Verify
 
-- Horizontal roving keys do not move Trigger focus in vertical orientation.
-- Activation, Content entry, and Escape retain their documented behavior.
+- ArrowDown and ArrowUp move through enabled top-level Triggers and the direct Link.
+- ArrowRight in LTR and ArrowLeft in RTL open Learn and focus its first Content Link.
+- Enter and Space toggle the focused Trigger without moving focus; Escape closes and restores Trigger focus.
 
 Reset
 
-- Restore Orientation Horizontal, Direction Default, Disable Trigger off, and Root closed.
+- Restore Orientation Horizontal, Direction Default, Disable Trigger off, Root Loop on, Learn Content Loop Inherit Root, and Root closed.
 
 ## Step 12: Source
 
@@ -546,16 +648,17 @@ Action
 Verify
 
 - Source shows Root, List, three Items, two Trigger/Content pairs, the direct GitHub Link, and Viewport.
-- It omits controlled/default values, timing, direction, Indicator, Sub, composition escapes, prop checks, and custom slots.
+- It omits controlled/default values, timing, direction, the default Root `loop`, the inherited Content `loop`, Indicator, Sub, composition escapes, prop checks, and custom slots.
 - It contains no playground classes, refs, selectors, inspection markers, log plumbing, or layout-only wrappers.
 
 Action
 
-- Enable Controlled Learn, Vertical, Local RTL, Custom Label, forced Indicator and Viewport, Controlled Sub Patterns, one non-default composition per public part, Block Trigger Event, all slot overrides, and Prop Check.
+- Enable Controlled Learn, Vertical, Local RTL, Root Loop off, Learn Content Loop on, Custom Label, forced Indicator and Viewport, Controlled Sub Patterns, one non-default composition per public part, Block Trigger Events, all slot overrides, and Prop Check.
 
 Verify
 
 - Source shows every active public option exactly once and every representative custom `data-slot` exactly once.
+- Root shows `loop={false}` while Learn Content independently shows `loop`.
 - Controlled Root and Sub props and callbacks appear only in Controlled mode; provider wrapping appears only for Provider RTL and Local LTR.
 - Each composition is represented by matching `asChild` or `render` consumer JSX; Content composition appears at its declaration site.
 - Non-representative and nested parts retain default props and slots.
@@ -622,8 +725,9 @@ Reset
 
 ## Workbook Cleanup / Rewrite Notes
 
-- Replaced the generic 198-row sheet with 111 NavigationMenu-specific, playground-verifiable rows.
+- Replaced the generic 198-row sheet with NavigationMenu-specific, playground-verifiable rows.
 - Removed nonexistent menu anatomy, checkbox/radio items, typeahead, portals, outside-dismiss configuration, and generic selection rows.
 - Corrected provider-direction coverage and public anatomy ownership.
 - Added exact default/custom slot coverage and Default/As Child/Render coverage for every DOM part, including Content registration through Viewport.
-- Keep every row `Tested = no` and `Coverage Status = untested` until Steps 0–14 pass.
+- Added direct-Link top-level navigation, Content DOM-order navigation, independent Root/Content loop inheritance and overrides, Tab handoff, focus-out dismissal, and vertical keyboard coverage.
+- After Steps 0–14 passed, all NavigationMenu rows were marked tested and covered and this reviewed protocol was promoted.
