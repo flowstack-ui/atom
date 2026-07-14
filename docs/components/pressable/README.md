@@ -2,6 +2,13 @@
 
 Headless press interaction primitive for custom interactive surfaces.
 
+## When to Use
+
+Use `Pressable` when a custom surface, such as a card or canvas control, must
+behave like one button for pointer and keyboard users. Use `Button` for a normal
+command, `Toggle` for an on/off control, and a native link for navigation.
+Those more specific components communicate their purpose more clearly.
+
 ## Features
 
 - Renders a native `<button>` by default.
@@ -29,7 +36,9 @@ import { Pressable } from "@flowstack-ui/atom";
 
 ### Root
 
-Renders a pressable element.
+Owns one press interaction and renders a native `button` by default. When you
+render another element, it supplies button semantics and matching keyboard
+activation.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -45,6 +54,11 @@ Renders a pressable element.
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"button"` on a non-native rendered element |
+| `aria-disabled` | `true` on a disabled non-native rendered element |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"pressable"` |
@@ -56,22 +70,41 @@ Renders a pressable element.
 ### Pressable Card
 
 ```tsx
-<Pressable.Root render="div" onPress={() => openDetails()}>
-  Project Alpha
-</Pressable.Root>
+import { Pressable } from "@flowstack-ui/atom";
+
+export default function ProjectCard() {
+  return (
+    <Pressable.Root
+      render="div"
+      aria-label="Open Project Alpha"
+      onPress={() => window.alert("Opening Project Alpha")}
+    >
+      Project Alpha
+    </Pressable.Root>
+  );
+}
 ```
 
 ### Disabled Custom Surface
 
 ```tsx
-<Pressable.Root render="div" disabled>
-  Unavailable action
-</Pressable.Root>
+import { Pressable } from "@flowstack-ui/atom";
+
+export default function DisabledAction() {
+  return (
+    <Pressable.Root render="div" disabled>
+      Unavailable action
+    </Pressable.Root>
+  );
+}
 ```
 
 ## Accessibility
 
-Use `Pressable` when a non-button surface needs button-like interaction. Prefer `Button` for normal command buttons.
+`Pressable` follows native button behavior and the
+[WAI-ARIA button pattern](https://www.w3.org/WAI/ARIA/apg/patterns/button/) when
+rendered as a non-native element. Give the control an accessible name through
+visible text, `aria-label`, or `aria-labelledby`.
 
 | Key | Description |
 | --- | --- |

@@ -2,6 +2,13 @@
 
 Headless app-sidebar primitives for expanded, rail, and offcanvas layout states.
 
+## When to Use
+
+Use `Sidebar` for a persistent app area beside the main content, such as
+workspace navigation or tools, that may collapse to icons or move off screen.
+Use `Drawer` for temporary content that overlays the page and needs modal focus
+management. Sidebar owns layout state and relationships, not visual sizing.
+
 ## Features
 
 - Supports controlled and uncontrolled sidebar state.
@@ -31,7 +38,8 @@ import { Sidebar } from "@flowstack-ui/atom";
 
 ### Root
 
-Provides sidebar state. Renders a `div` by default.
+Owns the expanded, rail, or offcanvas state and shares generated Trigger/Panel
+relationships with every part. It renders a `div` by default.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -44,6 +52,8 @@ Provides sidebar state. Renders a `div` by default.
 | `disabled` | `boolean` | `false` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
+
+**ARIA:** Root adds no role or ARIA attributes.
 
 | Data attribute | Values |
 | --- | --- |
@@ -69,6 +79,12 @@ a `button` with `type="button"` by default. Disabled state comes from
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-controls` | Generated Panel id |
+| `aria-expanded` | `true` when state is `"expanded"` |
+| `aria-disabled` | `true` when Root is disabled |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"sidebar-trigger"` |
@@ -78,21 +94,23 @@ a `button` with `type="button"` by default. Disabled state comes from
 | `[data-target-state]` | State that activation will request |
 | `[data-disabled]` | Present when disabled |
 
-| ARIA attribute | Values |
-| --- | --- |
-| `aria-controls` | Generated Panel id |
-| `aria-expanded` | `true` when state is `"expanded"` |
-| `aria-disabled` | `true` when Root is disabled |
-
 ### Panel
 
-Renders the sidebar panel. Renders an `aside` by default.
+Contains the sidebar's navigation or tools and renders an `aside` by default.
+It becomes inert and leaves the accessibility tree only in offcanvas state.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `children` | `ReactNode` | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
+| `aria-label` | `string` | - |
+| `aria-labelledby` | `string` | - |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-hidden` | `true` when state is `"offcanvas"` |
+| `inert` | Present when state is `"offcanvas"` |
 
 | Data attribute | Values |
 | --- | --- |
@@ -102,21 +120,20 @@ Renders the sidebar panel. Renders an `aside` by default.
 | `[data-collapsed-state]` | `"rail" \| "offcanvas"` |
 | `[data-disabled]` | Present when disabled |
 
-| ARIA attribute | Values |
-| --- | --- |
-| `aria-hidden` | `true` when state is `"offcanvas"` |
-| `inert` | Present when state is `"offcanvas"` |
-
 ### Main
 
 Renders the main content region associated with the sidebar. Renders a `main` by
-default.
+default. It receives the same state metadata as Panel so a consumer can
+coordinate the surrounding layout.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `children` | `ReactNode` | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
+
+**ARIA:** Main uses the native `<main>` landmark by default and adds no ARIA
+attributes.
 
 | Data attribute | Values |
 | --- | --- |
@@ -126,34 +143,53 @@ default.
 | `[data-collapsed-state]` | `"rail" \| "offcanvas"` |
 | `[data-disabled]` | Present when disabled |
 
+Advanced compound parts can read state and actions with `useSidebarContext`;
+`SidebarContextProvider` and the context value type are also public for
+low-level composition.
+
 ## Examples
 
 ### Responsive Sidebar
 
 ```tsx
-<Sidebar.Root collapsedState="offcanvas">
-  <Sidebar.Trigger>Menu</Sidebar.Trigger>
-  <Sidebar.Panel aria-label="Primary navigation">
-    Navigation
-  </Sidebar.Panel>
-  <Sidebar.Main>Main content</Sidebar.Main>
-</Sidebar.Root>
+import { Sidebar } from "@flowstack-ui/atom";
+
+export default function ResponsiveSidebar() {
+  return (
+    <Sidebar.Root collapsedState="offcanvas">
+      <Sidebar.Trigger>Menu</Sidebar.Trigger>
+      <Sidebar.Panel aria-label="Primary navigation">
+        <nav><a href="/projects">Projects</a></nav>
+      </Sidebar.Panel>
+      <Sidebar.Main>Main content</Sidebar.Main>
+    </Sidebar.Root>
+  );
+}
 ```
 
 ### Rail Sidebar
 
 ```tsx
-<Sidebar.Root collapsedState="rail" defaultState="rail">
-  <Sidebar.Panel aria-label="Primary navigation">
-    Icon navigation
-  </Sidebar.Panel>
-  <Sidebar.Main>Content</Sidebar.Main>
-</Sidebar.Root>
+import { Sidebar } from "@flowstack-ui/atom";
+
+export default function RailSidebar() {
+  return (
+    <Sidebar.Root collapsedState="rail" defaultState="rail">
+      <Sidebar.Trigger>Toggle navigation</Sidebar.Trigger>
+      <Sidebar.Panel aria-label="Primary navigation">Navigation</Sidebar.Panel>
+      <Sidebar.Main>Content</Sidebar.Main>
+    </Sidebar.Root>
+  );
+}
 ```
 
 ## Accessibility
 
-`Panel` renders an `aside` by default. Add an accessible name when a page has multiple complementary landmarks. The trigger exposes `aria-expanded` and `aria-controls`; offcanvas panels are hidden and inert.
+`Sidebar` uses native button, complementary, and main landmarks rather than a
+special WAI-ARIA widget pattern. Add a Panel name when a page has multiple
+complementary landmarks. Trigger exposes `aria-expanded` and `aria-controls`;
+offcanvas panels are `aria-hidden` and inert so their controls cannot be
+reached.
 
 | Key | Description |
 | --- | --- |

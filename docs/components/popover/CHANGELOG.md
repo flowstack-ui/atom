@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Expanded public documentation with usage guidance, complete part-level ARIA
+  and data contracts, corrected Arrow defaults, and runnable examples.
 - Fixed Popover positioning when `Anchor` uses its default `display: contents`
   wrapper by resolving the usable child element as the Floating UI reference
   and refreshing the reference after refs commit.

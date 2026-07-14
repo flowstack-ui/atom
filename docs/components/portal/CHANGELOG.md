@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- No unreleased changes.
+- Expanded Portal documentation with usage boundaries, its no-wrapper
+  accessibility and data contract, and runnable default/custom-container examples.
 
 ## 0.1.0
 

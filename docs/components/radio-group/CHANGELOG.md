@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Corrected the public part name from `Item` to `Radio` and expanded usage,
+  ARIA, data, and keyboard documentation.
 - Added `Direction.Provider` support so horizontal arrow-key navigation mirrors
   in RTL.
 - Added root `aria-disabled` when the group is disabled.

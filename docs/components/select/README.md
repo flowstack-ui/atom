@@ -2,6 +2,13 @@
 
 Single-value select with a combobox trigger, popup listbox, option collection, scroll controls, portal, and hidden form input.
 
+## When to Use
+
+Use `Select` when the user chooses one value from a list and the choices should
+stay hidden until needed. Use `RadioGroup` when a short list should remain
+visible for easy comparison, and use `Combobox` when users need to type to
+filter or enter a value.
+
 ## Features
 
 - Controlled and uncontrolled selected value.
@@ -23,38 +30,40 @@ import { Select } from "@flowstack-ui/atom";
 ## Anatomy
 
 ```tsx
-export default () => (
-  <Select.Root>
-    <Select.Trigger>
-      <Select.Value />
-      <Select.Icon />
-    </Select.Trigger>
-    <Select.Portal>
-      <Select.Content>
-        <Select.ScrollUpButton />
-        <Select.Viewport>
-          <Select.Group>
-            <Select.Label />
-            <Select.Item>
-              <Select.ItemText />
-              <Select.ItemIndicator />
-            </Select.Item>
-          </Select.Group>
-          <Select.Separator />
-        </Select.Viewport>
-        <Select.ScrollDownButton />
-        <Select.Arrow />
-      </Select.Content>
-    </Select.Portal>
-  </Select.Root>
-);
+<Select.Root>
+  <Select.Trigger>
+    <Select.Value />
+    <Select.Icon />
+  </Select.Trigger>
+  <Select.Portal>
+    <Select.Content>
+      <Select.ScrollUpButton />
+      <Select.Viewport>
+        <Select.Group>
+          <Select.Label />
+          <Select.Item>
+            <Select.ItemText />
+            <Select.ItemIndicator />
+          </Select.Item>
+        </Select.Group>
+        <Select.Separator />
+      </Select.Viewport>
+      <Select.ScrollDownButton />
+      <Select.Arrow />
+    </Select.Content>
+  </Select.Portal>
+</Select.Root>
+
+<Select.Listbox />
 ```
 
 ## API Reference
 
 ### Root
 
-Provides select state and form integration.
+Owns value, open state, item registration, form submission, and Field
+integration. Root renders no DOM wrapper except its hidden form input when
+`name` is provided.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -69,6 +78,11 @@ Provides select state and form integration.
 | `name` | `string` | - |
 | `form` | `string` | - |
 
+**ARIA:** Root renders no semantic element. Trigger and Content own the ARIA
+contract.
+
+**Data attributes:** Root renders no wrapper and exposes none.
+
 When used inside `Field.Root`, `disabled` and `required` default to the Field
 state unless explicitly provided on `Select.Root`.
 
@@ -81,12 +95,24 @@ Combobox button that opens the listbox and owns keyboard interaction.
 | `ariaLabel` | `string` | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
-| `data-slot` | `string` | `"select-trigger"` |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"combobox"` |
+| `aria-haspopup` | `"listbox"` |
+| `aria-expanded` | Current open state |
+| `aria-controls` | Generated Content/Listbox ID |
+| `aria-activedescendant` | Highlighted Item ID while open |
+| `aria-label` | Explicit native value or value from `ariaLabel` |
+| `aria-labelledby` | Explicit IDs or inherited Field label ID |
+| `aria-describedby` | Explicit IDs or inherited Field description/error IDs |
+| `aria-disabled` | `true` when disabled |
+| `aria-required` | `true` when required |
 
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"select-trigger"` |
-| `[data-state]` | `"open" | "closed"` |
+| `[data-state]` | `"open" \| "closed"` |
 | `[data-disabled]` | Present when disabled |
 
 When used inside `Field.Root`, `Trigger` uses the Field control ID and inherits
@@ -99,47 +125,96 @@ highlights the first enabled item whose label starts with the typed text.
 
 ### Value
 
-Displays the selected option label or placeholder.
+Displays the registered text for the selected Item, or the placeholder when no
+value is selected. It renders a `span`.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `placeholder` | `ReactNode` | - |
-| `data-slot` | `string` | `"select-value"` |
+
+**ARIA:** Value adds no ARIA attributes; Trigger owns the control's name and
+value relationship.
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"select-value"` |
+| `[data-placeholder]` | Present when no selected label is available |
 
 ### Icon
 
-Decorative trigger icon slot.
+Provides a decorative `span` for a consumer-supplied trigger icon.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `data-slot` | `string` | `"select-icon"` |
+**Props:** Icon has no Atom-owned behavior props and accepts native `span`
+props.
+
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-hidden` | Always `true` |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"select-icon"` |
 
 ### Portal
 
-Optionally portals select content.
+Moves Content to another container and tells Select that Content is already in
+a portal, preventing a second portal wrapper.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `container` | `Element | DocumentFragment | null` | `document.body` |
+| `container` | `HTMLElement \| null` | `document.body` after mount |
 | `disabled` | `boolean` | `false` |
 
-### Content / Listbox
+**ARIA:** Portal renders no wrapper and adds no ARIA attributes.
 
-Popup listbox container. `Select.Content` is an alias for `Select.Listbox`.
+**Data attributes:** Portal renders no wrapper and exposes none.
+
+### Content
+
+Public alias of Listbox that renders and positions the popup option container.
+It owns dismissal, initial highlighting, and focus-scope registration.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `disablePortal` | `boolean` | `false` |
 | `ariaLabel` | `string` | - |
+| `container` | `HTMLElement \| null` | `document.body` after mount |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"listbox"` |
+| `aria-label` | Value from `ariaLabel` when provided |
 
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"select-listbox"` |
-| `[data-state]` | `"open" | "closed"` |
+| `[data-state]` | `"open"` while rendered |
+| `[data-positioned]` | Present after the first positioning frame |
+
+### ScrollUpButton
+
+Renders only while the Viewport can scroll upward. It scrolls the option area
+without entering the keyboard focus order.
+
+**Props:** Accepts native button props and children; it has no additional
+Atom-owned behavior props.
+
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-hidden` | Always `true` |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"select-scroll-up-button"` |
 
 ### Viewport
 
-Scrollable item viewport used by scroll buttons.
+Provides the scroll container registered with both scroll buttons. It renders a
+`div` and accepts native div props.
+
+**ARIA:** Viewport adds no roles or ARIA attributes.
 
 | Data attribute | Values |
 | --- | --- |
@@ -147,7 +222,15 @@ Scrollable item viewport used by scroll buttons.
 
 ### Group
 
-Groups related options.
+Wraps related Items with `role="group"` and connects them to its Label.
+
+**Props:** Group has no Atom-owned behavior props and accepts native `div`
+props.
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"group"` |
+| `aria-labelledby` | Generated Label ID |
 
 | Data attribute | Values |
 | --- | --- |
@@ -155,7 +238,12 @@ Groups related options.
 
 ### Label
 
-Labels a group.
+Names its nearest Group through a generated or consumer-provided ID.
+
+**Props:** Label has no Atom-owned behavior props and accepts native `div`
+props, including `id`.
+
+**ARIA:** Label adds no ARIA attributes; Group references its ID.
 
 | Data attribute | Values |
 | --- | --- |
@@ -163,7 +251,8 @@ Labels a group.
 
 ### Item
 
-Selectable option.
+Registers one value and text label, owns pointer highlighting and selection,
+and returns focus to Trigger after selection.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -171,17 +260,30 @@ Selectable option.
 | `disabled` | `boolean` | `false` |
 | `label` | `string` | - |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"option"` |
+| `aria-selected` | `true` when selected |
+| `aria-disabled` | `true` when disabled |
+| `aria-labelledby` | ItemText ID when ItemText is mounted |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"select-item"` |
-| `[data-state]` | `"checked" | "unchecked"` |
+| `[data-state]` | `"checked" \| "unchecked"` |
 | `[data-highlighted]` | Present when highlighted |
 | `[data-disabled]` | Present when disabled |
 | `[data-value]` | Option value |
 
 ### ItemText
 
-Registers item text for value display and accessible naming.
+Registers the visible option text for Trigger display, typeahead, and Item's
+accessible name. It renders a `span`.
+
+**Props:** ItemText has no Atom-owned behavior props and accepts native `span`
+props.
+
+**ARIA:** ItemText adds no ARIA attributes; Item references its generated ID.
 
 | Data attribute | Values |
 | --- | --- |
@@ -189,40 +291,95 @@ Registers item text for value display and accessible naming.
 
 ### ItemIndicator
 
-Renders when the item is selected.
+Renders a decorative selected marker only for the current Item unless
+`forceMount` keeps it mounted for stable composition.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `forceMount` | `boolean` | `false` |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-hidden` | Always `true` |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"select-item-indicator"` |
+| `[data-state]` | `"checked" \| "unchecked"` |
 
 ### Separator
 
-Decorative item separator.
+Renders a horizontal separator between option sections.
+
+**Props:** Separator has no Atom-owned behavior props and accepts native `div`
+props.
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"separator"` |
+| `aria-orientation` | `"horizontal"` |
 
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"select-separator"` |
 
-### ScrollUpButton / ScrollDownButton
+### ScrollDownButton
 
-Scroll controls for overflowing viewports.
+Renders only while the Viewport can scroll downward. It scrolls the option area
+without entering the keyboard focus order.
+
+**Props:** Accepts native button props and children; it has no additional
+Atom-owned behavior props.
+
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-hidden` | Always `true` |
 
 | Data attribute | Values |
 | --- | --- |
-| `[data-slot]` | `"select-scroll-up-button" | "select-scroll-down-button"` |
-| `[data-disabled]` | Present when no scrolling is possible |
+| `[data-slot]` | `"select-scroll-down-button"` |
 
 ### Arrow
 
-Decorative popup arrow slot.
+Provides a decorative `span` hook for a consumer-drawn popup arrow. Select does
+not calculate arrow geometry.
+
+**Props:** Arrow has no Atom-owned behavior props and accepts native `span`
+props.
+
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-hidden` | Always `true` |
 
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"select-arrow"` |
+
+### Listbox
+
+Alternative public name for Content with the same positioned listbox behavior.
+Use either `Content` or `Listbox`, not both for the same popup.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `disablePortal` | `boolean` | `false` |
+| `ariaLabel` | `string` | - |
+| `container` | `HTMLElement \| null` | `document.body` after mount |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"listbox"` |
+| `aria-label` | Value from `ariaLabel` when provided |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"select-listbox"` |
+| `[data-state]` | `"open"` while rendered |
+| `[data-positioned]` | Present after the first positioning frame |
+
+Advanced compound parts can read `useSelectContext`, `useSelectItemContext`,
+or `useSelectGroupContext`. Their matching public providers expose the same
+contracts for low-level composition.
 
 ## Examples
 
@@ -231,42 +388,67 @@ Decorative popup arrow slot.
 ```tsx
 import { Field, Select } from "@flowstack-ui/atom";
 
-<Field.Root id="plan" required>
-  <Field.Label>Plan</Field.Label>
-  <Select.Root name="plan" defaultValue="pro">
-    <Select.Trigger>
-      <Select.Value placeholder="Choose a plan" />
-      <Select.Icon />
-    </Select.Trigger>
-    <Select.Content>
-      <Select.Viewport>
-        <Select.Item value="starter">
-          <Select.ItemText>Starter</Select.ItemText>
-        </Select.Item>
-        <Select.Item value="pro">
-          <Select.ItemText>Pro</Select.ItemText>
-          <Select.ItemIndicator />
-        </Select.Item>
-      </Select.Viewport>
-    </Select.Content>
-  </Select.Root>
-</Field.Root>
+export default function PlanSelect() {
+  return (
+    <Field.Root id="plan" required>
+      <Field.Label>Plan</Field.Label>
+      <Select.Root name="plan" defaultValue="pro">
+        <Select.Trigger>
+          <Select.Value placeholder="Choose a plan" />
+          <Select.Icon>Open</Select.Icon>
+        </Select.Trigger>
+        <Select.Content>
+          <Select.Viewport>
+            <Select.Item value="starter">
+              <Select.ItemText>Starter</Select.ItemText>
+            </Select.Item>
+            <Select.Item value="pro">
+              <Select.ItemText>Pro</Select.ItemText>
+              <Select.ItemIndicator>Selected</Select.ItemIndicator>
+            </Select.Item>
+          </Select.Viewport>
+        </Select.Content>
+      </Select.Root>
+    </Field.Root>
+  );
+}
 ```
 
 ### Grouped Options
 
 ```tsx
-<Select.Group>
-  <Select.Label>Plans</Select.Label>
-  <Select.Item value="team">
-    <Select.ItemText>Team</Select.ItemText>
-  </Select.Item>
-</Select.Group>
+import { Select } from "@flowstack-ui/atom";
+
+export default function GroupedSelect() {
+  return (
+    <Select.Root>
+      <Select.Trigger ariaLabel="Choose a plan">
+        <Select.Value placeholder="Choose a plan" />
+      </Select.Trigger>
+      <Select.Content>
+        <Select.Group>
+          <Select.Label>Plans</Select.Label>
+          <Select.Item value="team">
+            <Select.ItemText>Team</Select.ItemText>
+          </Select.Item>
+          <Select.Item value="enterprise">
+            <Select.ItemText>Enterprise</Select.ItemText>
+          </Select.Item>
+        </Select.Group>
+      </Select.Content>
+    </Select.Root>
+  );
+}
 ```
 
 ## Accessibility
 
-Implements a button-based combobox that controls a listbox. The trigger owns keyboard interaction and references the highlighted option with `aria-activedescendant`.
+Select follows the
+[WAI-ARIA select-only combobox pattern](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-select-only/):
+a button-based
+combobox controls a listbox, and Trigger references the highlighted option with
+`aria-activedescendant`. Provide a visible Field label, `ariaLabel`, or native
+`aria-labelledby`.
 Portalled Select content registers with a parent modal focus scope when opened
 inside Dialog, Drawer, or another modal primitive.
 Printable-character typeahead matches enabled option text; a single-character

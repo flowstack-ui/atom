@@ -2,6 +2,13 @@
 
 Headless slider-like rating input with fractional values and decorative item parts.
 
+## When to Use
+
+Use `Rating` when a person chooses a score on a small ordered scale, such as
+one to five stars. Use `Slider` when the value is a general numeric setting
+like volume, and use `RadioGroup` when each choice has a different meaning
+rather than simply being more or less.
+
 ## Features
 
 - Implements rating as a WAI-ARIA slider.
@@ -34,7 +41,8 @@ import { Rating } from "@flowstack-ui/atom";
 
 ### Root
 
-Contains rating state and slider semantics.
+Owns the numeric rating, form value, and slider semantics. It is the single
+focusable control; Item parts only provide pointer targets and visual state.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -56,8 +64,21 @@ Contains rating state and slider semantics.
 | `aria-valuetext` | `string` | - |
 | `getValueLabel` | `(value, min, max) => string` | - |
 | `tabIndex` | `number` | `0` |
+| `onKeyDown` | `KeyboardEventHandler<HTMLDivElement>` | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"slider"` |
+| `aria-valuemin` | Normalized `min` |
+| `aria-valuemax` | Normalized `max` |
+| `aria-valuenow` | Current snapped value |
+| `aria-valuetext` | Explicit or generated rating label |
+| `aria-disabled` | `true` when disabled |
+| `aria-readonly` | `true` when read-only |
+| `aria-invalid` | `true` when invalid |
+| `aria-required` | `true` when required |
 
 | Data attribute | Values |
 | --- | --- |
@@ -73,13 +94,23 @@ Contains rating state and slider semantics.
 
 ### Item
 
-Renders one decorative rating item.
+Represents one point on the rating scale. It reports empty, partial, or full
+fill state and forwards pointer interaction to Root while remaining decorative
+to assistive technology.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `value` | `number` | required |
+| `onPointerDown` | `PointerEventHandler<HTMLSpanElement>` | - |
+| `onPointerMove` | `PointerEventHandler<HTMLSpanElement>` | - |
+| `onPointerUp` | `PointerEventHandler<HTMLSpanElement>` | - |
+| `onPointerCancel` | `PointerEventHandler<HTMLSpanElement>` | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-hidden` | Always `true`; Root is the single slider control |
 
 | Data attribute | Values |
 | --- | --- |
@@ -91,43 +122,76 @@ Renders one decorative rating item.
 | `[data-readonly]` | Present when read-only |
 | `[data-invalid]` | Present when invalid |
 
+Advanced compound parts can read `useRatingContext` or use the exported
+`RatingContextProvider`. Public helpers `normalizeRatingRange`,
+`clampRatingValue`, `snapRatingValue`, `getRatingValueLabel`, and
+`getRatingItemState` expose the calculations used by Root and Item.
+
 ## Examples
 
 ### Whole Star Rating
 
 ```tsx
-<Rating.Root defaultValue={3} aria-label="Rating">
-  {[1, 2, 3, 4, 5].map((value) => (
-    <Rating.Item key={value} value={value}>
-      Star
-    </Rating.Item>
-  ))}
-</Rating.Root>
+import { Rating } from "@flowstack-ui/atom";
+
+export default function WholeStarRating() {
+  return (
+    <Rating.Root defaultValue={3} aria-label="Rating">
+      {[1, 2, 3, 4, 5].map((value) => (
+        <Rating.Item key={value} value={value}>Star</Rating.Item>
+      ))}
+    </Rating.Root>
+  );
+}
 ```
 
 ### Fractional Rating
 
 ```tsx
-<Rating.Root value={4.6} step={0.1} getValueLabel={(value) => `${value} stars`}>
-  {[1, 2, 3, 4, 5].map((value) => (
-    <Rating.Item key={value} value={value} />
-  ))}
-</Rating.Root>
+import { Rating } from "@flowstack-ui/atom";
+
+export default function FractionalRating() {
+  return (
+    <Rating.Root
+      defaultValue={4.6}
+      step={0.1}
+      aria-label="Rating"
+      getValueLabel={(value) => `${value} stars`}
+    >
+      {[1, 2, 3, 4, 5].map((value) => (
+        <Rating.Item key={value} value={value}>Star</Rating.Item>
+      ))}
+    </Rating.Root>
+  );
+}
 ```
 
 ### Form Value
 
 ```tsx
-<Rating.Root name="rating" defaultValue={5}>
-  {[1, 2, 3, 4, 5].map((value) => (
-    <Rating.Item key={value} value={value} />
-  ))}
-</Rating.Root>
+import { Rating } from "@flowstack-ui/atom";
+
+export default function ReviewRating() {
+  return (
+    <form>
+      <Rating.Root name="rating" defaultValue={5} aria-label="Your rating">
+        {[1, 2, 3, 4, 5].map((value) => (
+          <Rating.Item key={value} value={value}>Star</Rating.Item>
+        ))}
+      </Rating.Root>
+      <button type="submit">Submit review</button>
+    </form>
+  );
+}
 ```
 
 ## Accessibility
 
-Rating uses a slider model so the group is one tab stop. Items are decorative and hidden from assistive technology.
+Rating follows the
+[WAI-ARIA slider pattern](https://www.w3.org/WAI/ARIA/apg/patterns/slider/)
+so the whole control is one Tab
+stop. Items are decorative and hidden from assistive technology. Provide an
+accessible name on Root with `aria-label` or `aria-labelledby`.
 
 | Key | Description |
 | --- | --- |
@@ -137,8 +201,6 @@ Rating uses a slider model so the group is one tab stop. Items are decorative an
 | `PageDown` | Decreases value by `largeStep`. |
 | `Home` | Moves value to `min`. |
 | `End` | Moves value to `max`. |
-
-Provide an accessible name on `Rating.Root` with `aria-label` or `aria-labelledby`.
 
 ## Changelog
 

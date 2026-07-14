@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Expanded Sidebar documentation with component-choice guidance, corrected
+  per-part ARIA/data ordering, and runnable examples.
 - Removed the incorrect Trigger-level `disabled` prop documentation and expanded
   the Root, Trigger, Panel, and Main references with rendered elements,
   composition props, data attributes, and ARIA behavior.
