@@ -2,9 +2,6 @@
 
 ## Unreleased
 
-- Split all eight parts into complete APIs and corrected active-cell, index,
-  selection, count, ARIA, data, RTL, and example guidance.
-
 - Fixed vertical keyboard navigation to preserve the active column while
   skipping disabled cells in intervening rows.
 - Added `DataGrid.Row selectable` behavior with `data-selectable` and
@@ -12,7 +9,6 @@
   being disabled.
 - Added `dir` and `Direction.Provider` support so horizontal cell navigation
   mirrors in RTL.
-
 ## 0.1.0
 
 - Initial Atom release.

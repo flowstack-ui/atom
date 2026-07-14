@@ -1,6 +1,7 @@
 # Public API Audit
 
-Last audit: 2026-06-20
+Last audit: 2026-07-14
+Audited commit: `64bac26e719e790afab75e961bb426c51dc94f27`
 
 ## Scope
 
@@ -20,7 +21,8 @@ Every public primitive should have:
 
 - namespace export from the root package
 - subpath export when it is independently importable
-- direct part type exports where advanced composition needs them
+- direct part exports from component subpaths where advanced composition needs
+  them; shared primitives may retain shared direct names
 - stable `data-slot` values on public rendered parts
 - native prop pass-through unless Atom owns the attribute
 - `asChild` and `render` support when composition needs it
@@ -39,16 +41,59 @@ Every public subpath in `package.json` should have:
 
 Status: pass
 
-- `package.json` exposes 66 public subpaths plus the root package.
+- `package.json` exposes 66 public subpaths plus the root package, for 67
+  export targets in total.
 - Every public subpath has a matching `src/<subpath>.ts` entrypoint.
 - Public package exports are tested by `test/exports.test.mjs`.
+- Root imports expose the namespace API. Component subpaths expose their
+  namespace plus supported direct parts; direct parts are not promised from the
+  root package.
 - Package boundary and client boundary rules are tested by
   `test/package-boundary.test.mjs`.
-- Primitive behavior is split across `test/primitives/*.test.mjs`.
+- Primitive behavior is split across 62 `test/primitives/*.test.mjs` files,
+  with hooks, collection, Portal, Virtualizer, and shared utilities covered by
+  their package-level test files.
 - Component docs and changelogs exist for every public component-style subpath.
 - `hooks` are documented at the package level.
 - `Portal` is public through the root export and `@flowstack-ui/atom/portal`.
 - Slot and DOM helper utilities remain internal implementation details.
+- The package test suite contains 334 passing tests at the audited commit.
+
+## Client And Server Boundaries
+
+The root package is a client entrypoint because it exports the complete
+interactive primitive surface. The current server-safe public subpaths are:
+
+- `@flowstack-ui/atom/app-bar`
+- `@flowstack-ui/atom/label`
+- `@flowstack-ui/atom/list`
+- `@flowstack-ui/atom/table`
+
+Other public subpaths intentionally retain their current client boundaries for
+this audit. Expanding the server-safe set requires a separate React Server
+Component compatibility review rather than a documentation-only change.
+
+## Changelog Classification
+
+Component changelogs identify the Atom package releases in which that
+component's public contract changed; they are not independently versioned npm
+packages. The post-`0.1.0` audit found:
+
+- 38 components with supported behavior, API, type, semantic, or shared-runtime
+  changes under `Unreleased`
+- 28 components with no qualifying change since `0.1.0`
+- 142 retained component-level `Unreleased` entries
+
+README expansion and other documentation maintenance that does not change or
+correct the published component contract does not advance a component's
+last-change release.
+
+## Candidate Version
+
+The next package release should be prepared as `0.2.0`. The changes since
+`0.1.0` include new public composition and direction capabilities in addition
+to compatible behavior and accessibility corrections. This audit does not bump
+the package version or prepare the release commit.
 
 ## Known Design Scope
 

@@ -234,14 +234,19 @@ keyboard table.
 Every component documentation folder must contain a `CHANGELOG.md`, and every
 README must end with a link to it.
 
-- Record user-visible component behavior, accessibility, public API, and
-  meaningful published documentation corrections under `Unreleased`.
-- A documentation correction belongs in the affected component changelog when
-  it changes what consumers are told about that component's API or behavior.
+- Record user-visible component behavior, accessibility, public API, types,
+  anatomy, and inherited shared-runtime changes under `Unreleased`.
+- Component changelog headings use the Atom package version in which the
+  component changed. They do not assign an independently installable version to
+  the component.
+- A documentation correction belongs in the affected component changelog only
+  when it accompanies or discloses a qualifying public-contract change. README
+  expansion, copy editing, additional examples, and documentation maintenance
+  alone do not advance the component's last-change release.
 - Changes only to this authoring guide or the reusable templates do not require
   entries in every component changelog.
-- Docs-only corrections do not require a package-level changelog entry unless
-  they change package-wide published guidance or release notes.
+- Docs-only corrections do not require a component or package release entry
+  unless they change package-wide published guidance or release notes.
 - Use `- No unreleased changes.` when a component has no unreleased entries.
   Remove that line as soon as a real entry is added.
 - Do not leave placeholders such as `Initial notes` or an empty `Unreleased`

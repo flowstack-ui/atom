@@ -18,6 +18,8 @@ maintainer documentation lives in `../../docs/`.
   shape.
 - [Public API Audit](architecture/public-api-audit.md) - current audit status,
   rules, and triggers for future audits.
+- [Release Readiness Audit](architecture/release-readiness-audit.md) - latest
+  clean-build, package, consumer, and release-metadata verification.
 
 ## Components
 

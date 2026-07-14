@@ -2,12 +2,8 @@
 
 ## Unreleased
 
-- Added Menubar usage guidance, self-contained application and selection
-  examples, and an authoritative WAI-ARIA menubar pattern reference.
 - Fixed local `Menubar.Root dir="rtl"` so shared nested submenu placement also
   mirrors to the left, matching `Direction.Provider dir="rtl"`.
-- Expanded the Menubar README to document every namespaced part, including
-  shared menu item props and Atom attributes.
 - Fixed adjacent top-level menu handoff so the active trigger keeps focus for
   `Enter`, `Space`, and `Escape` after ArrowLeft or ArrowRight navigation.
 - Fixed custom `data-slot` overrides on `Menubar.Root` and `Menubar.Trigger`.
@@ -30,7 +26,6 @@
   content or item gaps does not reset highlight back to the first item.
 - Added shared menu item parts to the `Menubar` namespace object.
 - Refined `Menubar.Content` keyboard handler dependencies to avoid recreating callbacks from the full context objects.
-
 ## 0.1.0
 
 - Initial Atom release.

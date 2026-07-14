@@ -71,7 +71,7 @@ test("README documents namespace API, subpaths, and package boundaries", async (
 
   assert.match(readme, /namespace exports are the stable API/);
   assert.match(readme, /Subpath imports are also supported/);
-  assert.match(readme, /Direct part exports mirror the namespace part names/);
+  assert.match(readme, /Direct part exports are available from component subpaths/);
   assert.match(readme, /@flowstack-ui\/atom\/switch/);
   assert.match(readme, /@flowstack-ui\/atom\/hooks/);
   assert.match(readme, /@flowstack-ui\/atom\/portal/);

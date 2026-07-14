@@ -2,9 +2,7 @@
 
 ## Unreleased
 
-- Expanded the README with usage guidance, the authoritative ratio contract,
-  accessible media responsibilities, and self-contained examples.
-
+- No unreleased changes.
 ## 0.1.0
 
 - Initial Atom release.

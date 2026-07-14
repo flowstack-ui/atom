@@ -29,15 +29,19 @@ declaration files.
 
 ## Direct Part Exports
 
-Direct exports mirror namespace part names for migration and advanced
-composition.
+Direct exports are available from component subpaths for migration and
+advanced composition.
 
 ```tsx
 import { SelectRoot, SelectTrigger } from "@flowstack-ui/atom/select";
 ```
 
 Prefer namespace usage for new code unless a direct part export improves local
-readability.
+readability. Shared primitives retain their shared direct names. For example,
+`Dialog.Root` is directly exported as `ModalRoot` because Dialog composes the
+shared Modal root behavior. Check the component subpath declarations rather
+than assuming every direct export is named by concatenating its namespace and
+part names.
 
 ## Non-API Files
 

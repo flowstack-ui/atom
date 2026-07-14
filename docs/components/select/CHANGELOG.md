@@ -2,8 +2,6 @@
 
 ## Unreleased
 
-- Expanded Select documentation with usage guidance, separate coverage for all
-  public parts and aliases, complete ARIA/data contracts, and runnable examples.
 - Fixed Select part `data-slot` pass-through so Value, Icon, Content/Listbox,
   Viewport, Group, Label, Item, ItemText, ItemIndicator, Separator, Arrow, and
   scroll buttons can be overridden consistently.
@@ -29,7 +27,6 @@
 - Added Field integration so `Select.Trigger` inherits Field labels and
   descriptions while `Select.Root` inherits Field disabled and required state.
 - Refined `Select.Trigger` keyboard handler dependencies to avoid recreating callbacks from the full context object.
-
 ## 0.1.0
 
 - Initial Atom release.

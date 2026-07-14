@@ -2,9 +2,7 @@
 
 ## Unreleased
 
-- Expanded SkipLink documentation with usage guidance, complete native
-  semantics, keyboard behavior, and runnable examples.
-
+- No unreleased changes.
 ## 0.1.0
 
 - Initial Atom release.

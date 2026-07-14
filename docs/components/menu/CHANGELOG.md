@@ -2,8 +2,6 @@
 
 ## Unreleased
 
-- Completed the Menu README with standalone usage guidance, full local APIs for
-  every shared and submenu part, and working selection and submenu examples.
 - Fixed Menu part `data-slot` pass-through so Content, Group, Separator,
   CheckboxItem, RadioGroup, RadioItem, SubTrigger, and SubContent can be
   overridden consistently.
@@ -46,7 +44,6 @@
 - Fixed initial highlight behavior so pointer movement over non-item content or
   item gaps does not reset highlight back to the first item while a menu is
   already open.
-
 ## 0.1.0
 
 - Initial Atom release.

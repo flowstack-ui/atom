@@ -2,9 +2,7 @@
 
 ## Unreleased
 
-- Clarified the Provider's behavioral scope and documented `useDirection`,
-  `defaultDirection`, native `dir` requirements, and a complete RTL example.
-
+- No unreleased changes.
 ## 0.1.0
 
 - Initial Atom release.

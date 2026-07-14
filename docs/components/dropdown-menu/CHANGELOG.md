@@ -2,9 +2,6 @@
 
 ## Unreleased
 
-- Expanded all twelve parts locally with the missing Root modal option,
-  complete shared Menu ARIA/data APIs, RTL/typeahead keys, and working examples.
-
 - Inherited fixed Menu part `data-slot` pass-through so DropdownMenu Content,
   Group, Separator, CheckboxItem, RadioGroup, RadioItem, SubTrigger, and
   SubContent can be overridden consistently.
@@ -26,7 +23,6 @@
 - Registered shared Menu content with parent modal focus scopes so DropdownMenu
   can remain a valid focus target inside Dialog, Drawer, and other modal
   primitives.
-
 ## 0.1.0
 
 - Initial Atom release.

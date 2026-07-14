@@ -47,3 +47,10 @@ Direct part exports are also available for advanced composition and migration.
 - `README.md` explains package-level usage.
 - `docs/guides/` explains public package behavior.
 - `docs/components/` stores component-facing docs and changelogs.
+
+## Audits
+
+- [Public API audit](public-api-audit.md) verifies exports, docs coverage,
+  client boundaries, and the headless package boundary.
+- [Release readiness audit](release-readiness-audit.md) records the latest
+  clean-build, package, consumer, and release-metadata verification.

@@ -101,11 +101,13 @@ import { useControllableState } from "@flowstack-ui/atom/hooks";
 import { Portal } from "@flowstack-ui/atom/portal";
 ```
 
-Direct part exports mirror the namespace part names. Prefer namespaces for new
-code, and use direct part exports when they improve local composition.
+Direct part exports are available from component subpaths for advanced
+composition and migration. Prefer namespaces for new code. Shared primitives
+retain their shared direct names, so direct names do not always repeat the
+namespace part name.
 
 ```tsx
-import { DialogRoot, DialogContent } from "@flowstack-ui/atom/dialog";
+import { SelectRoot, SelectTrigger } from "@flowstack-ui/atom/select";
 ```
 
 ## Native DOM Props

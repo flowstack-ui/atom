@@ -2,9 +2,7 @@
 
 ## Unreleased
 
-- Corrected decorative and semantic separator guidance and documented the
-  complete Root DOM, ARIA, data, and rendering contract.
-
+- No unreleased changes.
 ## 0.1.0
 
 - Initial Atom release.
