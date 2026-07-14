@@ -1,10 +1,18 @@
 import { Collapsible } from "@flowstack-ui/atom/collapsible";
 import { ScrollArea } from "@flowstack-ui/atom/scroll-area";
-import type { Dispatch, SetStateAction } from "react";
+import { useContext, type Dispatch, type SetStateAction } from "react";
+import {
+  collectDomEvidence,
+  EMPTY_DOM_EVIDENCE_VALUE,
+  formatDomEvidenceAttribute,
+  isPlaygroundEvidenceAttribute,
+} from "./domEvidence";
+import { DomEvidenceRevisionContext } from "./domEvidenceRevision";
 
 export type AnatomyRowCategory =
   | "presence"
   | "identity"
+  | "attributes"
   | "composition"
   | "state"
   | "data"
@@ -15,6 +23,12 @@ export type AnatomyRow = {
   category?: AnatomyRowCategory;
   label: string;
   value: string;
+};
+
+const liveDomEvidenceRow = Symbol("liveDomEvidenceRow");
+
+type InternalAnatomyRow = AnatomyRow & {
+  [liveDomEvidenceRow]?: true;
 };
 
 export type AnatomyRowGroup = {
@@ -35,11 +49,12 @@ export type AnatomySection = {
 const categoryOrder: Record<AnatomyRowCategory, number> = {
   presence: 0,
   identity: 1,
-  composition: 2,
-  state: 3,
-  behavior: 4,
-  aria: 5,
-  data: 6,
+  attributes: 2,
+  composition: 3,
+  state: 4,
+  behavior: 5,
+  aria: 6,
+  data: 7,
 };
 
 type AnatomyDisplayGroup = {
@@ -80,67 +95,6 @@ const groupTitles: Record<(typeof visibleGroupOrder)[number], string> = {
 };
 
 const hiddenLabels = new Set(["class", "props", "ref", "tag"]);
-const hiddenRawAttributes = new Set([
-  "data-playground-inspect",
-]);
-const isHiddenRawAttribute = (name: string) => (
-  hiddenRawAttributes.has(name) || name.startsWith("data-playground-")
-);
-const hiddenNativeAttributes = new Set([
-  "class",
-  "id",
-  "style",
-  "value",
-]);
-const emptyValues = new Set(["", "none", "not rendered", "-"]);
-const nativeAttributeLabels = new Set([
-  "accept",
-  "checked",
-  "disabled",
-  "dir",
-  "form",
-  "for",
-  "hidden",
-  "href",
-  "inert",
-  "maxlength",
-  "minlength",
-  "multiple",
-  "name",
-  "placeholder",
-  "rel",
-  "required",
-  "readonly",
-  "role",
-  "rows",
-  "selected",
-  "scope",
-  "tabindex",
-  "tabindex attr",
-  "target",
-  "title",
-  "type",
-  "value",
-]);
-const visibleFalseRawAttributes = new Set([
-  "aria-checked",
-  "aria-expanded",
-  "aria-pressed",
-  "aria-selected",
-]);
-const booleanRawAttributes = new Set([
-  "checked",
-  "data-active",
-  "data-checked",
-  "data-disabled",
-  "disabled",
-  "hidden",
-  "inert",
-  "multiple",
-  "readonly",
-  "required",
-  "selected",
-]);
 const textBearingTags = new Set([
   "caption",
   "h1",
@@ -156,9 +110,7 @@ const textBearingTags = new Set([
 ]);
 
 function getRowKey(row: AnatomyRow) {
-  const label = row.label.toLowerCase();
-  if (label === "tabindex attr") return "tabindex";
-  return label;
+  return row.label.toLowerCase();
 }
 
 function getRowValue(row: AnatomyRow) {
@@ -167,34 +119,12 @@ function getRowValue(row: AnatomyRow) {
   return row.value;
 }
 
-function isRawAttribute(row: AnatomyRow) {
+function isHiddenRow(row: InternalAnatomyRow) {
   const label = getRowKey(row);
-  return label.startsWith("aria-") ||
-    label.startsWith("data-") ||
-    (row.category === "identity" && nativeAttributeLabels.has(label)) ||
-    (row.category === "aria" && (label === "role" || label === "tabindex attr"));
-}
-
-function isEmptyValue(value: string) {
-  return emptyValues.has(value.toLowerCase());
-}
-
-function isHiddenRow(row: AnatomyRow) {
-  const label = getRowKey(row);
-  const value = row.value.toLowerCase();
-  const rawAttribute = isRawAttribute(row);
 
   if (hiddenLabels.has(label)) return true;
-  if (hiddenRawAttributes.has(label)) return true;
-  if (
-    rawAttribute &&
-    label !== "role" &&
-    !visibleFalseRawAttributes.has(label) &&
-    (isEmptyValue(row.value) || value === "no" || value === "false")
-  ) {
-    return true;
-  }
-  if (!rawAttribute && (row.value === "" || row.value === "-")) return true;
+  if (isPlaygroundEvidenceAttribute(label)) return true;
+  if (!row[liveDomEvidenceRow] && (row.value === "" || row.value === "-")) return true;
 
   return false;
 }
@@ -208,79 +138,58 @@ function getLiveElement(selector?: string) {
   return document.querySelector(selector);
 }
 
-function getDirectText(element: Element) {
-  const text = Array.from(element.childNodes)
-    .filter((node) => node.nodeType === 3)
-    .map((node) => node.textContent ?? "")
-    .join(" ")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  if (!text) return "";
-  return text.length > 80 ? `${text.slice(0, 77)}...` : text;
-}
-
-function getFormValue(element: Element) {
-  if (
-    element instanceof HTMLInputElement ||
-    element instanceof HTMLTextAreaElement ||
-    element instanceof HTMLSelectElement ||
-    element instanceof HTMLOptionElement
-  ) {
-    return element.value;
-  }
-
-  return "";
-}
-
-function getLiveRows(selector?: string): AnatomyRow[] {
+function getLiveRows(selector?: string): InternalAnatomyRow[] {
   const element = getLiveElement(selector);
   if (!element) return [];
 
-  const tag = element.tagName.toLowerCase();
+  const evidence = collectDomEvidence(element);
+  const tag = evidence.tag;
   const baseRows: AnatomyRow[] = [
     { label: "tag", value: tag, category: "identity" },
   ];
 
-  if (element.id) {
-    baseRows.push({ label: "id", value: element.id, category: "identity" });
+  if (evidence.id !== EMPTY_DOM_EVIDENCE_VALUE) {
+    baseRows.push({ label: "id", value: evidence.id, category: "identity" });
   }
 
   if (textBearingTags.has(tag)) {
-    const text = getDirectText(element);
-    if (text) {
-      baseRows.push({ label: "Text", value: text, category: "state" });
+    if (evidence.text !== EMPTY_DOM_EVIDENCE_VALUE) {
+      baseRows.push({ label: "Text", value: evidence.text, category: "state" });
     }
   }
 
-  const value = getFormValue(element);
-  if (value) {
-    baseRows.push({ label: "Value", value, category: "state" });
+  if (
+    evidence.value !== EMPTY_DOM_EVIDENCE_VALUE &&
+    (
+      element instanceof HTMLInputElement ||
+      element instanceof HTMLTextAreaElement ||
+      element instanceof HTMLSelectElement ||
+      element instanceof HTMLOptionElement
+    )
+  ) {
+    baseRows.push({ label: "Value", value: evidence.value, category: "state" });
   }
 
-  const attributeRows: AnatomyRow[] = [];
-
-  Array.from(element.attributes).forEach((attribute) => {
-    if (isHiddenRawAttribute(attribute.name)) return [];
-    if (hiddenNativeAttributes.has(attribute.name)) return [];
-
-    const row = {
+  const attributeRows: InternalAnatomyRow[] = [
+    ...evidence.attributes.map((attribute) => ({
+      [liveDomEvidenceRow]: true as const,
       label: attribute.name,
-      value: attribute.value === "" ? "yes" : attribute.value,
-    };
-
-    if (attribute.name.startsWith("aria-")) {
-      attributeRows.push({ ...row, category: "aria" });
-      return;
-    }
-
-    if (attribute.name.startsWith("data-")) {
-      attributeRows.push({ ...row, category: "data" });
-      return;
-    }
-
-    attributeRows.push({ ...row, category: "identity" });
-  });
+      value: attribute.value,
+      category: "attributes" as const,
+    })),
+    ...evidence.aria.map((attribute) => ({
+      [liveDomEvidenceRow]: true as const,
+      label: attribute.name,
+      value: attribute.value,
+      category: "aria" as const,
+    })),
+    ...evidence.data.map((attribute) => ({
+      [liveDomEvidenceRow]: true as const,
+      label: attribute.name,
+      value: attribute.value,
+      category: "data" as const,
+    })),
+  ];
 
   return [
     ...baseRows,
@@ -288,24 +197,21 @@ function getLiveRows(selector?: string): AnatomyRow[] {
   ];
 }
 
-function getDisplayCategory(row: AnatomyRow): (typeof visibleGroupOrder)[number] | null {
+function getDisplayCategory(row: InternalAnatomyRow): (typeof visibleGroupOrder)[number] | null {
   const label = getRowKey(row);
 
+  if (row[liveDomEvidenceRow] && row.category === "attributes") return "attributes";
+  if (row[liveDomEvidenceRow] && row.category === "aria") return "aria";
+  if (row[liveDomEvidenceRow] && row.category === "data") return "data";
   if (label.includes("match")) return "behavior";
   if (label === "escape closes" || label === "close on select" || label === "backdrop closes") {
     return "closing";
   }
   if (label.startsWith("block ")) return "blocking";
   if (label === "id" || label === "ref target") return "identity";
-  if (label.startsWith("aria-")) return "aria";
-  if (label.startsWith("data-")) return "data";
-  if (nativeAttributeLabels.has(label) && row.category === "identity") {
-    return "attributes";
+  if (row.category === "attributes" || row.category === "aria" || row.category === "data") {
+    return null;
   }
-  if (row.category === "aria" && (label === "role" || label === "tabindex attr")) {
-    return "attributes";
-  }
-  if (row.category === "data") return "data";
   if (row.category === "identity") {
     return label === "id" || label === "ref target" ? "identity" : null;
   }
@@ -314,12 +220,7 @@ function getDisplayCategory(row: AnatomyRow): (typeof visibleGroupOrder)[number]
 }
 
 function formatAttributeRow(row: AnatomyRow) {
-  const label = row.label === "tabindex attr" ? "tabindex" : row.label;
-  const value = getRowValue(row);
-
-  if (row.value === "yes" && (label.startsWith("data-") || booleanRawAttributes.has(label))) return label;
-  if (booleanRawAttributes.has(label) && value === "true") return label;
-  return `${label}="${value}"`;
+  return formatDomEvidenceAttribute({ name: row.label, value: row.value });
 }
 
 function getDisplayLabel(row: AnatomyRow, groupTitle: string) {
@@ -339,7 +240,7 @@ function getDisplayLabel(row: AnatomyRow, groupTitle: string) {
   return label;
 }
 
-function buildDisplayGroups(rows: AnatomyRow[]): AnatomyDisplayGroup[] {
+function buildDisplayGroups(rows: InternalAnatomyRow[]): AnatomyDisplayGroup[] {
   const buckets = new Map<(typeof visibleGroupOrder)[number], AnatomyRow[]>();
   const groups: AnatomyDisplayGroup[] = [];
   const tag = getTag(rows);
@@ -406,6 +307,8 @@ export function AnatomyPanel({
   openGroups: Record<string, boolean>;
   sections: AnatomySection[];
 }) {
+  useContext(DomEvidenceRevisionContext);
+
   const setGroupOpen = (title: string, open: boolean) => {
     onOpenGroupsChange((currentGroups) => ({
       ...currentGroups,
@@ -467,7 +370,7 @@ export function AnatomyPanel({
   );
 }
 
-function AnatomyGroups({ rows, startToneIndex = 0 }: { rows: AnatomyRow[]; startToneIndex?: number }) {
+function AnatomyGroups({ rows, startToneIndex = 0 }: { rows: InternalAnatomyRow[]; startToneIndex?: number }) {
   const displayGroups = buildDisplayGroups(rows);
 
   return (

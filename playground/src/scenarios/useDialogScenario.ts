@@ -57,7 +57,6 @@ export type DialogPartsSnapshot = {
   triggerProps: string;
   triggerTag: string;
   triggerRole: string;
-  triggerTabIndex: string;
   triggerState: string;
   triggerControls: string;
   triggerHasPopup: string;
@@ -67,13 +66,11 @@ export type DialogPartsSnapshot = {
   cancelCloseSlot: string;
   cancelCloseTag: string;
   cancelCloseRole: string;
-  cancelCloseTabIndex: string;
   saveCloseExists: string;
   saveCloseSlot: string;
   saveCloseProps: string;
   saveCloseTag: string;
   saveCloseRole: string;
-  saveCloseTabIndex: string;
   contentExists: string;
   contentSlot: string;
   contentProps: string;
@@ -521,7 +518,6 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
     ]),
     triggerTag: trigger?.tagName.toLowerCase() ?? "none",
     triggerRole: trigger?.getAttribute("role") ?? "none",
-    triggerTabIndex: trigger?.getAttribute("tabindex") ?? "none",
     triggerState: trigger?.getAttribute("data-state") ?? "none",
     triggerControls,
     triggerHasPopup: trigger?.getAttribute("aria-haspopup") ?? "none",
@@ -533,7 +529,6 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
     cancelCloseSlot: cancelClose?.getAttribute("data-slot") ?? "not rendered",
     cancelCloseTag: cancelClose?.tagName.toLowerCase() ?? "none",
     cancelCloseRole: cancelClose?.getAttribute("role") ?? "none",
-    cancelCloseTabIndex: cancelClose?.getAttribute("tabindex") ?? "none",
     saveCloseExists: saveClose ? "yes" : "no",
     saveCloseSlot: saveClose?.getAttribute("data-slot") ?? "not rendered",
     saveCloseProps: propsMatch(saveClose, [
@@ -544,7 +539,6 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
     ]),
     saveCloseTag: saveClose?.tagName.toLowerCase() ?? "none",
     saveCloseRole: saveClose?.getAttribute("role") ?? "none",
-    saveCloseTabIndex: saveClose?.getAttribute("tabindex") ?? "none",
     contentExists: content ? "yes" : "no",
     contentSlot: content?.getAttribute("data-slot") ?? "not rendered",
     contentProps: propsMatch(content, [
@@ -633,7 +627,6 @@ const emptyDialogPartsSnapshot: DialogPartsSnapshot = {
   triggerProps: "not rendered",
   triggerTag: "none",
   triggerRole: "none",
-  triggerTabIndex: "none",
   triggerState: "none",
   triggerControls: "none",
   triggerHasPopup: "none",
@@ -643,13 +636,11 @@ const emptyDialogPartsSnapshot: DialogPartsSnapshot = {
   cancelCloseSlot: "not rendered",
   cancelCloseTag: "none",
   cancelCloseRole: "none",
-  cancelCloseTabIndex: "none",
   saveCloseExists: "no",
   saveCloseSlot: "not rendered",
   saveCloseProps: "not rendered",
   saveCloseTag: "none",
   saveCloseRole: "none",
-  saveCloseTabIndex: "none",
   contentExists: "no",
   contentSlot: "not rendered",
   contentProps: "not rendered",

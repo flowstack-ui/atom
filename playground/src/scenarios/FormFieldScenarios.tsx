@@ -1030,7 +1030,6 @@ function FieldCanvas({ scenario }: { scenario: ReturnType<typeof useFieldScenari
           className="field-control"
           id="field-email-control"
           data-playground-inspect=""
-          data-prop-check="atom-control"
           value={state.value}
           onBlur={scenario.actions.noteBlur}
           onFocus={scenario.actions.noteFocus}
@@ -1047,7 +1046,6 @@ function FieldCanvas({ scenario }: { scenario: ReturnType<typeof useFieldScenari
           className="field-control"
           id="field-email-control"
           data-playground-inspect=""
-          data-prop-check="native-control"
           disabled={state.disabled}
           onBlur={scenario.actions.noteBlur}
           onChange={(event) => {
@@ -1134,7 +1132,6 @@ function FieldsetChoiceControls({ scenario }: { scenario: ReturnType<typeof useF
       <RadioGroup.Root
         ariaLabel="Contact preference"
         className="field-option-row"
-        data-prop-check="atom-radio-group"
         disabled={state.disabled}
         invalid={state.invalid}
         name="contact-preference"
@@ -1146,7 +1143,6 @@ function FieldsetChoiceControls({ scenario }: { scenario: ReturnType<typeof useF
         {choiceOptions.map((option) => (
           <RadioGroup.Radio
             className="field-option atom-fieldset-radio"
-            data-prop-check={`atom-choice-${option}`}
             key={option}
             value={option}
           >
@@ -1164,7 +1160,6 @@ function FieldsetChoiceControls({ scenario }: { scenario: ReturnType<typeof useF
         <label className="field-option" key={option}>
           <input
             checked={state.choice === option}
-            data-prop-check={`choice-${option}`}
             disabled={state.disabled}
             name="contact-preference"
             onChange={() => scenario.actions.setChoice(option)}

@@ -570,7 +570,6 @@ export function SelectScenarioAnatomy({
         { label: "Controls match", value: state.parts.triggerControlsMatch, category: "aria" },
         { label: "Disabled", value: state.parts.triggerDisabled, category: "state" },
         { label: "role", value: state.parts.triggerRole, category: "aria" },
-        { label: "tabindex attr", value: state.parts.triggerTabIndex, category: "aria" },
       ],
     },
     {
@@ -626,7 +625,6 @@ export function SelectScenarioAnatomy({
         { label: "data-state", value: state.parts.listboxState, category: "data" },
         { label: "aria-label", value: state.parts.listboxLabel, category: "aria" },
         { label: "role", value: state.parts.listboxRole, category: "aria" },
-        { label: "tabindex attr", value: state.parts.listboxTabIndex, category: "aria" },
         { label: "Min width match", value: state.parts.listboxMinWidthMatch, category: "behavior" },
       ],
     },
@@ -641,7 +639,6 @@ export function SelectScenarioAnatomy({
         { label: "Props", value: state.parts.scrollUpProps, category: "composition" },
         { label: "data-slot", value: state.parts.scrollUpSlot, category: "data" },
         { label: "aria-hidden", value: state.parts.scrollUpHidden, category: "aria" },
-        { label: "tabindex attr", value: state.parts.scrollUpTabIndex, category: "aria" },
       ],
     },
     {
@@ -790,7 +787,6 @@ export function SelectScenarioAnatomy({
         { label: "Props", value: state.parts.scrollDownProps, category: "composition" },
         { label: "data-slot", value: state.parts.scrollDownSlot, category: "data" },
         { label: "aria-hidden", value: state.parts.scrollDownHidden, category: "aria" },
-        { label: "tabindex attr", value: state.parts.scrollDownTabIndex, category: "aria" },
       ],
     },
     {

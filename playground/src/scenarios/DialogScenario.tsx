@@ -282,7 +282,6 @@ export function DialogScenarioAnatomy({
         { label: "Controls match", value: state.parts.controlsMatch, category: "aria" },
         { label: "Disabled", value: state.parts.triggerDisabled, category: "state" },
         { label: "role", value: state.parts.triggerRole, category: "aria" },
-        { label: "tabindex attr", value: state.parts.triggerTabIndex, category: "aria" },
       ],
     },
     {
@@ -375,7 +374,6 @@ export function DialogScenarioAnatomy({
             { label: "Composition", value: "default", category: "composition" },
             { label: "data-slot", value: state.parts.cancelCloseSlot, category: "data" },
             { label: "role", value: state.parts.cancelCloseRole, category: "aria" },
-            { label: "tabindex attr", value: state.parts.cancelCloseTabIndex, category: "aria" },
           ],
         },
         {
@@ -389,7 +387,6 @@ export function DialogScenarioAnatomy({
             { label: "Composition", value: state.closeComposition, category: "composition" },
             { label: "data-slot", value: state.parts.saveCloseSlot, category: "data" },
             { label: "role", value: state.parts.saveCloseRole, category: "aria" },
-            { label: "tabindex attr", value: state.parts.saveCloseTabIndex, category: "aria" },
           ],
         },
       ],

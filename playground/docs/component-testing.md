@@ -123,6 +123,13 @@ Raw DOM evidence should come from the selected part selector and include:
 - `ARIA`
 - `Data`
 
+Only the shared live DOM collector may populate these three raw groups.
+Scenario-authored rows may describe behavior and relationships, but sentinel
+values such as `none`, `not rendered`, `yes`, and `no` must never be formatted
+as attributes. Attribute absence is represented by the attribute being absent;
+computed DOM properties such as `element.tabIndex` belong in a clearly labeled
+behavior row when they are useful.
+
 Filter playground plumbing from raw evidence: `class`, `style`, duplicate `id`,
 and the complete `data-playground-*` namespace. Scenario-only DOM selectors
 must use this reserved namespace instead of public-looking component data
@@ -162,10 +169,11 @@ Logs should stay compact:
 - keep event text direct, such as `opened by trigger`,
   `closed by escapeKeyDown`, or `item selected bravo`
 
-Anatomy and Inspector should eventually share the same live DOM formatter and
-mutation refresh path. Scenario files should provide selectors plus curated
-behavior rows; they should not manually copy every live `aria-*` and `data-*`
-attribute.
+Anatomy and Inspector use `src/domEvidence.ts` as the canonical live DOM
+collector and formatter. `src/domEvidenceRevision.ts` carries the coalesced
+mutation revision that refreshes both surfaces. Scenario files should provide
+selectors plus curated behavior rows; they should not manually copy every live
+`aria-*` and `data-*` attribute or introduce local raw-evidence formatters.
 
 Live ref evidence should avoid repeated state updates from transient `null`
 ref callbacks and no-op when the recorded value has not changed.

@@ -811,6 +811,18 @@ export function DataPrimitiveScenarioToolbar({
           <MenuRadioControl label="Control" options={formControlOptions} value={scenario.state.controlType} onChange={scenario.actions.setControlType} />
         </ToolbarGroup>
         <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={[
+            {
+              checked: scenario.state.customRootSlot,
+              label: "Root Slot",
+              value: "root-slot",
+              onChange: scenario.actions.setCustomRootSlot,
+            },
+          ]}
+        />
       </ControlToolbar>
     );
   }
@@ -2299,7 +2311,6 @@ function FormScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useFormS
           onValueChange={scenario.actions.setProjectName}
           data-playground-inspect=""
           data-form-input=""
-          data-prop-check="atom-input"
         />
       ) : (
         <input
@@ -2310,7 +2321,6 @@ function FormScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useFormS
           onChange={(event) => scenario.actions.setProjectName(event.target.value)}
           data-playground-inspect=""
           data-form-input=""
-          data-prop-check="native-input"
         />
       )}
       <div className="playground-form-actions">

@@ -13,9 +13,17 @@ Use this as a quick orientation map before editing playground scenarios.
 
 - `src/WorkbenchPrimitives.tsx` contains shared toolbar, menu, log, prop-check,
   and slot-override helpers used across scenarios.
-- `src/AnatomyPanel.tsx` renders Anatomy groups and live raw DOM evidence for
-  `Attributes`, `ARIA`, and `Data`.
-- `src/inspector.ts` reads selected/focused live DOM details for Inspector.
+- `src/domEvidence.ts` is the canonical collector, filter, sorter, and formatter
+  for live `Attributes`, `ARIA`, `Data`, text, value, checked, disabled, and
+  hidden evidence.
+- `src/domEvidenceRevision.ts` owns the shared evidence revision context,
+  animation-frame scheduling, and mutation filtering used to refresh Anatomy
+  and Inspector together.
+- `src/AnatomyPanel.tsx` renders Anatomy groups and accepts raw `Attributes`,
+  `ARIA`, and `Data` only from the shared live evidence collector; curated
+  scenario sentinels cannot become DOM attributes.
+- `src/inspector.ts` owns selected/focused targeting, portal-safe element
+  recovery, and the mutation observer that drives the shared evidence revision.
 
 ## Scenario Files
 

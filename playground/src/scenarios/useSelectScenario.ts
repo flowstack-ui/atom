@@ -102,7 +102,6 @@ export type SelectPartsSnapshot = {
   triggerTag: string;
   triggerType: string;
   triggerRole: string;
-  triggerTabIndex: string;
   triggerState: string;
   triggerControls: string;
   triggerControlsMatch: string;
@@ -143,7 +142,6 @@ export type SelectPartsSnapshot = {
   listboxInCustomContainer: string;
   listboxId: string;
   listboxRole: string;
-  listboxTabIndex: string;
   listboxState: string;
   listboxPositioned: string;
   listboxLabel: string;
@@ -209,13 +207,11 @@ export type SelectPartsSnapshot = {
   scrollUpProps: string;
   scrollUpSlot: string;
   scrollUpHidden: string;
-  scrollUpTabIndex: string;
   scrollDownExists: string;
   scrollDownRef: string;
   scrollDownProps: string;
   scrollDownSlot: string;
   scrollDownHidden: string;
-  scrollDownTabIndex: string;
   hiddenInputExists: string;
   hiddenInputName: string;
   hiddenInputValue: string;
@@ -701,7 +697,6 @@ function getSelectPartsSnapshot(
     triggerTag: trigger?.tagName.toLowerCase() ?? "none",
     triggerType: trigger?.getAttribute("type") ?? "none",
     triggerRole: trigger?.getAttribute("role") ?? "none",
-    triggerTabIndex: trigger?.getAttribute("tabindex") ?? "none",
     triggerState: trigger?.getAttribute("data-state") ?? "none",
     triggerControls,
     triggerControlsMatch: triggerControls !== "none" && triggerControls === listboxId ? "yes" : "no",
@@ -762,7 +757,6 @@ function getSelectPartsSnapshot(
     listboxInCustomContainer: listbox && customContainer?.contains(listbox) ? "yes" : "no",
     listboxId,
     listboxRole: listbox?.getAttribute("role") ?? "none",
-    listboxTabIndex: listbox?.getAttribute("tabindex") ?? "none",
     listboxState: listbox?.getAttribute("data-state") ?? "none",
     listboxPositioned: listbox
       ? listbox.hasAttribute("data-positioned")
@@ -858,7 +852,6 @@ function getSelectPartsSnapshot(
     ]),
     scrollUpSlot: scrollUp?.getAttribute("data-slot") ?? "none",
     scrollUpHidden: scrollUp?.getAttribute("aria-hidden") ?? "none",
-    scrollUpTabIndex: scrollUp?.getAttribute("tabindex") ?? "none",
     scrollDownExists: scrollDown ? "yes" : "no",
     scrollDownRef: scrollDown?.tagName.toLowerCase() ?? "none",
     scrollDownProps: propsMatch(scrollDown, [
@@ -867,7 +860,6 @@ function getSelectPartsSnapshot(
     ]),
     scrollDownSlot: scrollDown?.getAttribute("data-slot") ?? "none",
     scrollDownHidden: scrollDown?.getAttribute("aria-hidden") ?? "none",
-    scrollDownTabIndex: scrollDown?.getAttribute("tabindex") ?? "none",
     hiddenInputExists: hiddenInput ? "yes" : "no",
     hiddenInputName: hiddenInput?.getAttribute("name") ?? "none",
     hiddenInputValue: hiddenInput?.getAttribute("value") ?? "none",
@@ -938,7 +930,6 @@ const emptySelectPartsSnapshot: SelectPartsSnapshot = {
   triggerTag: "none",
   triggerType: "none",
   triggerRole: "none",
-  triggerTabIndex: "none",
   triggerState: "none",
   triggerControls: "none",
   triggerControlsMatch: "no",
@@ -979,7 +970,6 @@ const emptySelectPartsSnapshot: SelectPartsSnapshot = {
   listboxInCustomContainer: "no",
   listboxId: "none",
   listboxRole: "none",
-  listboxTabIndex: "none",
   listboxState: "none",
   listboxPositioned: "none",
   listboxLabel: "none",
@@ -1045,13 +1035,11 @@ const emptySelectPartsSnapshot: SelectPartsSnapshot = {
   scrollUpProps: "not rendered",
   scrollUpSlot: "none",
   scrollUpHidden: "none",
-  scrollUpTabIndex: "none",
   scrollDownExists: "no",
   scrollDownRef: "none",
   scrollDownProps: "not rendered",
   scrollDownSlot: "none",
   scrollDownHidden: "none",
-  scrollDownTabIndex: "none",
   hiddenInputExists: "no",
   hiddenInputName: "none",
   hiddenInputValue: "none",

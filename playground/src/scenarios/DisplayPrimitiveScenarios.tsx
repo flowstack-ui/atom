@@ -942,7 +942,6 @@ function LabelScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useLabe
             className="display-input"
             data-input-root=""
             data-playground-inspect=""
-            data-prop-check="atom-input"
             disabled={scenario.state.disabled}
             id="display-label-input"
             invalid={scenario.state.invalid}
@@ -961,7 +960,6 @@ function LabelScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useLabe
             className="display-input"
             data-native-input=""
             data-playground-inspect=""
-            data-prop-check="native-input"
             disabled={scenario.state.disabled}
             id="display-label-input"
             readOnly={scenario.state.readOnly}

@@ -68,7 +68,6 @@ export type ContextMenuPartsSnapshot = {
   contentParent: string;
   contentRole: string;
   contentOrientation: string;
-  contentTabIndex: string;
   contentSlot: string;
   contentState: string;
   contentSide: string;
@@ -659,7 +658,7 @@ function getContextMenuParts({
     triggerTag: trigger?.tagName.toLowerCase() ?? "none",
     triggerType: attr(trigger, "type"),
     triggerRole: attr(trigger, "role"),
-    triggerTabIndex: attr(trigger, "tabindex"),
+    triggerTabIndex: trigger ? String(trigger.tabIndex) : "not rendered",
     triggerSlot: attr(trigger, "data-slot"),
     triggerState: attr(trigger, "data-state"),
     triggerDataPropCheck: attr(trigger, "data-prop-check"),
@@ -674,7 +673,6 @@ function getContextMenuParts({
     contentParent: parentName(content),
     contentRole: attr(content, "role"),
     contentOrientation: attr(content, "aria-orientation"),
-    contentTabIndex: attr(content, "tabindex"),
     contentSlot: attr(content, "data-slot"),
     contentState: attr(content, "data-state"),
     contentSide: attr(content, "data-side"),

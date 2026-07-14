@@ -1,4 +1,12 @@
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import {
+  collectDomEvidence,
+  formatDomEvidenceGroup,
+} from "./domEvidence";
+import {
+  createDomEvidenceRevisionScheduler,
+  hasDomEvidenceMutation,
+} from "./domEvidenceRevision";
 
 export type InspectorDetails = {
   aria: string;
@@ -16,164 +24,10 @@ export type InspectorDetails = {
 
 export type ElementInspector = {
   focusedDetails: InspectorDetails;
+  revision: number;
   rootRef: RefObject<HTMLDivElement | null>;
   selectedDetails: InspectorDetails;
 };
-
-const observedAttributes = [
-  "aria-checked",
-  "aria-controls",
-  "aria-current",
-  "aria-describedby",
-  "aria-disabled",
-  "aria-expanded",
-  "aria-haspopup",
-  "aria-hidden",
-  "aria-invalid",
-  "aria-label",
-  "aria-level",
-  "aria-labelledby",
-  "aria-modal",
-  "aria-multiselectable",
-  "aria-orientation",
-  "aria-readonly",
-  "aria-required",
-  "aria-selected",
-  "alt",
-  "checked",
-  "data-checked",
-  "data-active",
-  "data-autoresize",
-  "data-disabled",
-  "data-filled",
-  "data-positioned",
-  "data-pressed",
-  "data-prop-check",
-  "data-value",
-  "data-state",
-  "data-slot",
-  "dir",
-  "disabled",
-  "hidden",
-  "href",
-  "inert",
-  "maxlength",
-  "name",
-  "placeholder",
-  "required",
-  "readonly",
-  "rel",
-  "role",
-  "rows",
-  "selected",
-  "scope",
-  "src",
-  "tabindex",
-  "target",
-  "title",
-  "type",
-  "value",
-];
-
-const EMPTY_VALUE = "-";
-const hiddenDataAttributes = new Set([
-  "data-playground-inspect",
-]);
-const isHiddenDataAttribute = (name: string) => (
-  hiddenDataAttributes.has(name) || name.startsWith("data-playground-")
-);
-const hiddenNativeAttributes = new Set([
-  "checked",
-  "class",
-  "id",
-  "style",
-  "value",
-]);
-const booleanNativeAttributes = new Set([
-  "checked",
-  "disabled",
-  "hidden",
-  "inert",
-  "multiple",
-  "readonly",
-  "required",
-  "selected",
-]);
-
-function formatAttribute(attribute: Attr): string {
-  return attribute.value === "" && (attribute.name.startsWith("data-") || booleanNativeAttributes.has(attribute.name))
-    ? attribute.name
-    : `${attribute.name}="${attribute.value}"`;
-}
-
-function getAttributes(element: Element | null, prefix: string): string {
-  if (!element) return EMPTY_VALUE;
-
-  const attrs = Array.from(element.attributes)
-    .filter((attribute) => (
-      attribute.name.startsWith(prefix) &&
-      !isHiddenDataAttribute(attribute.name)
-    ))
-    .map(formatAttribute);
-
-  return attrs.length > 0 ? attrs.join("\n") : EMPTY_VALUE;
-}
-
-function getNativeAttributes(element: Element | null): string {
-  if (!element) return EMPTY_VALUE;
-
-  const attrs = Array.from(element.attributes)
-    .filter((attribute) => (
-      !attribute.name.startsWith("aria-") &&
-      !attribute.name.startsWith("data-") &&
-      !hiddenNativeAttributes.has(attribute.name)
-    ))
-    .map(formatAttribute);
-
-  return attrs.length > 0 ? attrs.join("\n") : EMPTY_VALUE;
-}
-
-function getDisabledState(element: Element | null): boolean {
-  if (!element) return false;
-  return element.hasAttribute("disabled") ||
-    element.getAttribute("aria-disabled") === "true" ||
-    element.hasAttribute("data-disabled");
-}
-
-function getText(element: Element | null): string {
-  const text = Array.from(element?.childNodes ?? [])
-    .filter((node) => node.nodeType === Node.TEXT_NODE)
-    .map((node) => node.textContent ?? "")
-    .join(" ")
-    .replace(/\s+/g, " ")
-    .trim();
-  if (!text) return EMPTY_VALUE;
-  return text.length > 80 ? `${text.slice(0, 77)}...` : text;
-}
-
-function getValue(element: Element | null): string {
-  if (
-    element instanceof HTMLInputElement ||
-    element instanceof HTMLTextAreaElement ||
-    element instanceof HTMLSelectElement ||
-    element instanceof HTMLOptionElement
-  ) {
-    return element.value || EMPTY_VALUE;
-  }
-
-  return element?.getAttribute("value") || EMPTY_VALUE;
-}
-
-function getChecked(element: Element | null): string {
-  if (
-    element instanceof HTMLInputElement &&
-    (element.type === "checkbox" || element.type === "radio")
-  ) {
-    return element.checked ? "true" : "false";
-  }
-
-  return EMPTY_VALUE;
-}
 
 function isInspectable(root: HTMLDivElement | null, element: Element | null): boolean {
   if (!element) return false;
@@ -192,18 +46,20 @@ function getInspectableEventTarget(
 }
 
 function getElementDetails(element: Element | null): InspectorDetails {
+  const evidence = collectDomEvidence(element);
+
   return {
-    aria: getAttributes(element, "aria-"),
-    checked: getChecked(element),
-    data: getAttributes(element, "data-"),
-    disabled: getDisabledState(element),
-    hidden: Boolean(element?.hasAttribute("hidden")),
-    id: element?.id || EMPTY_VALUE,
-    native: getNativeAttributes(element),
-    role: element?.getAttribute("role") ?? EMPTY_VALUE,
-    tag: element ? element.tagName.toLowerCase() : EMPTY_VALUE,
-    text: getText(element),
-    value: getValue(element),
+    aria: formatDomEvidenceGroup(evidence.aria),
+    checked: evidence.checked,
+    data: formatDomEvidenceGroup(evidence.data),
+    disabled: evidence.disabled,
+    hidden: evidence.hidden,
+    id: evidence.id,
+    native: formatDomEvidenceGroup(evidence.attributes),
+    role: evidence.role,
+    tag: evidence.tag,
+    text: evidence.text,
+    value: evidence.value,
   };
 }
 
@@ -215,104 +71,122 @@ function cssEscape(value: string): string {
   return value.replace(/["\\]/g, "\\$&");
 }
 
-function getReplacementSelector(element: Element): string | null {
+function getReplacementSelectors(element: Element): string[] {
+  const selectors: string[] = [];
+  const id = element.id;
   const inspectId = element.getAttribute("data-playground-inspect");
-  if (inspectId) return `[data-playground-inspect="${cssEscape(inspectId)}"]`;
-
   const propCheck = element.getAttribute("data-prop-check");
-  if (propCheck) return `[data-prop-check="${cssEscape(propCheck)}"]`;
-
   const slot = element.getAttribute("data-slot");
   const value = element.getAttribute("data-value");
-  if (slot && value) return `[data-slot="${cssEscape(slot)}"][data-value="${cssEscape(value)}"]`;
-  if (slot) return `[data-slot="${cssEscape(slot)}"]`;
 
-  const id = element.id;
-  if (id) return `#${cssEscape(id)}`;
+  if (id) selectors.push(`#${cssEscape(id)}`);
+  if (inspectId) selectors.push(`[data-playground-inspect="${cssEscape(inspectId)}"]`);
+  if (slot && value && propCheck) {
+    selectors.push(`[data-slot="${cssEscape(slot)}"][data-value="${cssEscape(value)}"][data-prop-check="${cssEscape(propCheck)}"]`);
+  }
+  if (slot && value) selectors.push(`[data-slot="${cssEscape(slot)}"][data-value="${cssEscape(value)}"]`);
+  if (propCheck) selectors.push(`[data-prop-check="${cssEscape(propCheck)}"]`);
+  if (slot) selectors.push(`[data-slot="${cssEscape(slot)}"]`);
 
-  return null;
+  return selectors;
+}
+
+function getReplacementScore(
+  root: HTMLDivElement | null,
+  original: Element,
+  candidate: Element,
+) {
+  let score = root?.contains(candidate) ? 128 : 0;
+  const originalEvidence = collectDomEvidence(original);
+  const candidateEvidence = collectDomEvidence(candidate);
+
+  if (original.id && candidate.id === original.id) score += 256;
+  if (candidate.tagName === original.tagName) score += 16;
+  if (
+    originalEvidence.text !== "-" &&
+    candidateEvidence.text === originalEvidence.text
+  ) score += 8;
+
+  ["data-playground-inspect", "data-prop-check", "data-slot", "data-value"].forEach((name) => {
+    const value = original.getAttribute(name);
+    if (value && candidate.getAttribute(name) === value) score += 32;
+  });
+
+  return score;
+}
+
+function chooseReplacement(
+  root: HTMLDivElement | null,
+  original: Element,
+  candidates: Element[],
+) {
+  if (candidates.length === 1) return candidates[0];
+
+  const scoredCandidates = candidates.map((candidate) => ({
+    candidate,
+    score: getReplacementScore(root, original, candidate),
+  }));
+  const highestScore = Math.max(...scoredCandidates.map(({ score }) => score));
+  const bestCandidates = scoredCandidates.filter(({ score }) => score === highestScore);
+
+  return bestCandidates.length === 1 ? bestCandidates[0].candidate : null;
 }
 
 function resolveLiveElement(root: HTMLDivElement | null, element: Element | null): Element | null {
   if (!element) return null;
   if (element.isConnected) return element;
 
-  const selector = getReplacementSelector(element);
-  if (!selector) return null;
+  for (const selector of getReplacementSelectors(element)) {
+    const candidates = Array.from(document.querySelectorAll(selector))
+      .filter((candidate) => isInspectable(root, candidate));
+    const replacement = chooseReplacement(root, element, candidates);
+    if (replacement) return replacement;
+  }
 
-  const replacement = document.querySelector(selector);
-  return isInspectable(root, replacement) ? replacement : null;
+  return null;
 }
 
-export function useElementInspector(): ElementInspector {
+export function useElementInspector(scenarioKey: string): ElementInspector {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [focusedElement, setFocusedElement] = useState<Element | null>(null);
   const [selectedElement, setSelectedElement] = useState<Element | null>(null);
   const [revision, setRevision] = useState(0);
 
   useEffect(() => {
+    const scheduler = createDomEvidenceRevisionScheduler(() => {
+      setRevision((currentRevision) => currentRevision + 1);
+    });
     const updateFocusedElement = () => {
       const activeElement = document.activeElement;
       setFocusedElement(
         isInspectable(rootRef.current, activeElement) ? activeElement : null,
       );
+      scheduler.schedule();
     };
 
     const updateSelectedElement = (event: PointerEvent | MouseEvent) => {
       const target = getInspectableEventTarget(rootRef.current, event);
       if (target) {
-        requestAnimationFrame(() => {
-          setSelectedElement(target);
-          setRevision((currentRevision) => currentRevision + 1);
-        });
+        setSelectedElement(target);
+        scheduler.schedule();
       }
     };
 
     const updateLiveProperties = () => {
-      requestAnimationFrame(() => {
-        setRevision((currentRevision) => currentRevision + 1);
-      });
+      scheduler.schedule();
     };
-
-    document.addEventListener("focusin", updateFocusedElement);
-    document.addEventListener("focusout", updateFocusedElement);
-    document.addEventListener("change", updateLiveProperties, true);
-    document.addEventListener("input", updateLiveProperties, true);
-    document.addEventListener("pointerdown", updateSelectedElement, true);
-    document.addEventListener("mousedown", updateSelectedElement, true);
-    updateFocusedElement();
-
-    return () => {
-      document.removeEventListener("focusin", updateFocusedElement);
-      document.removeEventListener("focusout", updateFocusedElement);
-      document.removeEventListener("change", updateLiveProperties, true);
-      document.removeEventListener("input", updateLiveProperties, true);
-      document.removeEventListener("pointerdown", updateSelectedElement, true);
-      document.removeEventListener("mousedown", updateSelectedElement, true);
-    };
-  }, []);
-
-  useEffect(() => {
-    let frame = 0;
-    const scheduleRevision = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        setRevision((currentRevision) => currentRevision + 1);
-      });
-    };
-    const observer = new MutationObserver(() => {
-      scheduleRevision();
+    const observer = new MutationObserver((records) => {
+      if (hasDomEvidenceMutation(records)) scheduler.schedule();
     });
     const portalObserver = new MutationObserver(() => {
       observer.disconnect();
       observeTargets();
-      scheduleRevision();
+      scheduler.schedule();
     });
     const observeOptions: MutationObserverInit = {
       attributes: true,
       childList: true,
       subtree: true,
-      attributeFilter: observedAttributes,
     };
     const observeTargets = () => {
       if (rootRef.current) {
@@ -324,32 +198,33 @@ export function useElementInspector(): ElementInspector {
       });
     };
 
+    setSelectedElement(null);
     observeTargets();
     portalObserver.observe(document.body, {
       childList: true,
       subtree: false,
     });
+    document.addEventListener("focusin", updateFocusedElement);
+    document.addEventListener("focusout", updateFocusedElement);
+    document.addEventListener("change", updateLiveProperties, true);
+    document.addEventListener("input", updateLiveProperties, true);
+    document.addEventListener("pointerdown", updateSelectedElement, true);
+    document.addEventListener("mousedown", updateSelectedElement, true);
+    updateFocusedElement();
+    scheduler.schedule();
 
     return () => {
-      cancelAnimationFrame(frame);
+      scheduler.cancel();
       observer.disconnect();
       portalObserver.disconnect();
+      document.removeEventListener("focusin", updateFocusedElement);
+      document.removeEventListener("focusout", updateFocusedElement);
+      document.removeEventListener("change", updateLiveProperties, true);
+      document.removeEventListener("input", updateLiveProperties, true);
+      document.removeEventListener("pointerdown", updateSelectedElement, true);
+      document.removeEventListener("mousedown", updateSelectedElement, true);
     };
-  }, []);
-
-  useEffect(() => {
-    const syncInspector = () => {
-      const activeElement = document.activeElement;
-      setFocusedElement(
-        isInspectable(rootRef.current, activeElement) ? activeElement : null,
-      );
-      setRevision((currentRevision) => currentRevision + 1);
-    };
-
-    const frame = requestAnimationFrame(syncInspector);
-
-    return () => cancelAnimationFrame(frame);
-  }, []);
+  }, [scenarioKey]);
 
   const focusedDetails = useMemo(
     () => getElementDetails(resolveLiveElement(rootRef.current, focusedElement)),
@@ -360,5 +235,5 @@ export function useElementInspector(): ElementInspector {
     [selectedElement, revision],
   );
 
-  return { focusedDetails, rootRef, selectedDetails };
+  return { focusedDetails, revision, rootRef, selectedDetails };
 }

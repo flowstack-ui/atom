@@ -474,7 +474,6 @@ export function MenuScenarioAnatomy({
         { label: "Parent", value: state.parts.contentParent, category: "behavior" },
         { label: "role", value: state.parts.contentRole, category: "aria" },
         { label: "aria-orientation", value: state.parts.contentOrientation, category: "aria" },
-        { label: "tabindex attr", value: state.parts.contentTabIndex, category: "aria" },
         { label: "aria-label", value: state.parts.contentLabel, category: "aria" },
         { label: "aria-labelledby", value: state.parts.contentLabelledBy, category: "aria" },
         { label: "Loop", value: state.parts.contentLoop, category: "state" },

@@ -53,7 +53,6 @@ export type MenuPartsSnapshot = {
   contentParent: string;
   contentRole: string;
   contentOrientation: string;
-  contentTabIndex: string;
   contentSlot: string;
   contentState: string;
   contentSide: string;
@@ -564,7 +563,6 @@ function getMenuParts({
     contentParent: parentName(content),
     contentRole: attr(content, "role"),
     contentOrientation: attr(content, "aria-orientation"),
-    contentTabIndex: attr(content, "tabindex"),
     contentSlot: attr(content, "data-slot"),
     contentState: attr(content, "data-state"),
     contentSide: attr(content, "data-side"),

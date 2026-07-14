@@ -7,6 +7,7 @@ import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import "./styles.css";
 import packageInfo from "../../package.json";
+import { DomEvidenceRevisionContext } from "./domEvidenceRevision";
 import { useElementInspector } from "./inspector";
 import {
   DialogScenarioAnatomy,
@@ -628,7 +629,7 @@ export function App() {
   const [toggleAnatomyOpenGroups, setToggleAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const [toggleGroupAnatomyOpenGroups, setToggleGroupAnatomyOpenGroups] = useState<Record<string, boolean>>({});
   const activeScenario = getScenario(activeScenarioId);
-  const inspector = useElementInspector();
+  const inspector = useElementInspector(activeScenario.id);
   const alertDialogScenario = useAlertDialogScenario();
   const buttonScenario = useButtonScenario();
   const checkboxScenario = useCheckboxScenario();
@@ -712,7 +713,8 @@ export function App() {
           <h1 id="scenario-title">{activeScenario.label}</h1>
         </section>
 
-        <section className="scenario-grid">
+        <DomEvidenceRevisionContext.Provider value={inspector.revision}>
+          <section className="scenario-grid">
           <article className="scenario-card controls-card">
             <div className="card-header">
               <h2>Anatomy</h2>
@@ -1189,7 +1191,8 @@ export function App() {
               </div>
             </Tabs.Root>
           </div>
-        </section>
+          </section>
+        </DomEvidenceRevisionContext.Provider>
       </main>
     </div>
   );
