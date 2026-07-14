@@ -2,6 +2,13 @@
 
 Headless hierarchical grid primitives combining tree expansion with grid cell navigation.
 
+## When to Use
+
+Use `TreeGrid` when hierarchical rows expand and each row also contains several
+navigable columns, such as a file browser with size and modified-date columns.
+Use `Tree` for one-column hierarchies and `DataGrid` when rows are flat rather
+than parent and child nodes.
+
 ## Features
 
 - Implements `role="treegrid"` with row, row header, column header, and gridcell parts.
@@ -42,7 +49,8 @@ import { TreeGrid } from "@flowstack-ui/atom";
 
 ### Root
 
-Contains the treegrid.
+Owns hierarchical visibility, active-cell navigation, optional row selection,
+expansion, direction, and the single focus target for the entire grid.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -56,6 +64,7 @@ Contains the treegrid.
 | `onExpandedValueChange` | `(value: string[]) => void` | - |
 | `activeCell` | `{ rowIndex: number; columnIndex: number } \| null` | - |
 | `defaultActiveCell` | `{ rowIndex: number; columnIndex: number } \| null` | `null` |
+| `onActiveCellChange` | `(cell: TreeGridCellCoordinates \| null) => void` | - |
 | `selectionMode` | `"none" \| "single" \| "multiple"` | `"none"` |
 | `disabled` | `boolean` | `false` |
 | `readOnly` | `boolean` | `false` |
@@ -90,7 +99,7 @@ Contains the treegrid.
 
 ### Caption
 
-Renders the table caption.
+Provides a visible accessible name or description for the treegrid.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -104,7 +113,7 @@ Renders the table caption.
 
 ### Header
 
-Renders the header row group.
+Groups header Rows and ColumnHeader cells above the scrollable body.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -120,45 +129,10 @@ Renders the header row group.
 | --- | --- |
 | `[data-slot]` | `"tree-grid-header"` |
 
-### Body
-
-Renders the body row group.
-
-| Prop | Type | Default |
-| --- | --- | --- |
-| `children` | `ReactNode` | - |
-| `render` | `RenderProp` | - |
-| `asChild` | `boolean` | `false` |
-
-| ARIA attribute | Values |
-| --- | --- |
-| `role` | `"rowgroup"` |
-
-| Data attribute | Values |
-| --- | --- |
-| `[data-slot]` | `"tree-grid-body"` |
-
-### Footer
-
-Renders the footer row group.
-
-| Prop | Type | Default |
-| --- | --- | --- |
-| `children` | `ReactNode` | - |
-| `render` | `RenderProp` | - |
-| `asChild` | `boolean` | `false` |
-
-| ARIA attribute | Values |
-| --- | --- |
-| `role` | `"rowgroup"` |
-
-| Data attribute | Values |
-| --- | --- |
-| `[data-slot]` | `"tree-grid-footer"` |
-
 ### Row
 
-Renders a hierarchical row.
+Registers one hierarchical row, its parent, visibility, expansion, selection,
+and normalized row index for all cells inside it.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -200,7 +174,8 @@ Renders a hierarchical row.
 
 ### ColumnHeader
 
-Renders a navigable column header cell.
+Renders a navigable header cell, optional sort state, and the normalized column
+coordinate used by Root navigation.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -230,9 +205,28 @@ Renders a navigable column header cell.
 | `[data-selected]` | Present when row is selected |
 | `[data-sort]` | `"ascending" \| "descending" \| "none" \| "other"` |
 
+### Body
+
+Groups the visible hierarchical data Rows below Header.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `children` | `ReactNode` | - |
+| `render` | `RenderProp` | - |
+| `asChild` | `boolean` | `false` |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"rowgroup"` |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"tree-grid-body"` |
+
 ### RowHeader
 
-Renders a navigable row header cell. Clicking a row header focuses the cell and toggles its row when the row is expandable.
+Renders the cell that names its Row. Clicking it focuses the cell and toggles
+the row when expandable.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -261,7 +255,8 @@ Renders a navigable row header cell. Clicking a row header focuses the cell and 
 
 ### Cell
 
-Renders a navigable grid cell.
+Renders a navigable data cell and registers its normalized column coordinate
+with the current Row.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -287,26 +282,67 @@ Renders a navigable grid cell.
 | `[data-column-index]` | Normalized positive column index |
 | `[data-selected]` | Present when row is selected |
 
+### Footer
+
+Groups optional summary Rows after Body.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `children` | `ReactNode` | - |
+| `render` | `RenderProp` | - |
+| `asChild` | `boolean` | `false` |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"rowgroup"` |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"tree-grid-footer"` |
+
+Advanced compound parts can use `useTreeGridContext` and
+`useTreeGridRowContext` with their matching public providers.
+
 ## Examples
 
 ### Expandable Rows
 
 ```tsx
-<TreeGrid.Root defaultExpandedValue={["platform"]}>
-  <TreeGrid.Body>
-    <TreeGrid.Row rowIndex={1} value="platform" expandable selectable={false}>
-      <TreeGrid.RowHeader columnIndex={1}>Platform</TreeGrid.RowHeader>
-    </TreeGrid.Row>
-    <TreeGrid.Row rowIndex={2} value="api" parentValue="platform">
-      <TreeGrid.RowHeader columnIndex={1}>API</TreeGrid.RowHeader>
-    </TreeGrid.Row>
-  </TreeGrid.Body>
-</TreeGrid.Root>
+import { TreeGrid } from "@flowstack-ui/atom";
+
+export default function PlatformTreeGrid() {
+  return (
+    <TreeGrid.Root
+      defaultExpandedValue={["platform"]}
+      aria-label="Platform files"
+      columnCount={2}
+    >
+      <TreeGrid.Header>
+        <TreeGrid.Row value="headers">
+          <TreeGrid.ColumnHeader columnIndex={1}>Name</TreeGrid.ColumnHeader>
+          <TreeGrid.ColumnHeader columnIndex={2}>Type</TreeGrid.ColumnHeader>
+        </TreeGrid.Row>
+      </TreeGrid.Header>
+      <TreeGrid.Body>
+        <TreeGrid.Row rowIndex={1} value="platform" expandable selectable={false}>
+          <TreeGrid.RowHeader columnIndex={1}>Platform</TreeGrid.RowHeader>
+          <TreeGrid.Cell columnIndex={2}>Folder</TreeGrid.Cell>
+        </TreeGrid.Row>
+        <TreeGrid.Row rowIndex={2} value="api" parentValue="platform">
+          <TreeGrid.RowHeader columnIndex={1}>API</TreeGrid.RowHeader>
+          <TreeGrid.Cell columnIndex={2}>Folder</TreeGrid.Cell>
+        </TreeGrid.Row>
+      </TreeGrid.Body>
+    </TreeGrid.Root>
+  );
+}
 ```
 
 ## Accessibility
 
-Implements the WAI-ARIA treegrid pattern with root focus and `aria-activedescendant`.
+TreeGrid follows the [WAI-ARIA treegrid pattern](https://www.w3.org/WAI/ARIA/apg/patterns/treegrid/)
+with Root focus and `aria-activedescendant`. Provide an accessible name with
+Caption, `aria-label`, or `aria-labelledby`.
 
 | Key | Description |
 | --- | --- |

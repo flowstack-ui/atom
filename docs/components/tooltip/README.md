@@ -2,6 +2,13 @@
 
 Supplemental text disclosure for hover, focus, and long-press interactions.
 
+## When to Use
+
+Use `Tooltip` for a short text hint that explains a control without requiring
+interaction, especially an unfamiliar icon. Use visible text when the
+information is important, `HoverCard` for a richer preview, and `Popover` when
+the floating content contains buttons, links, or other controls.
+
 ## Features
 
 - Provider-level delay configuration.
@@ -20,43 +27,55 @@ import { Tooltip } from "@flowstack-ui/atom";
 ## Anatomy
 
 ```tsx
-export default () => (
-  <Tooltip.Provider>
-    <Tooltip.Root>
-      <Tooltip.Trigger />
-      <Tooltip.Portal>
-        <Tooltip.Content>
-          <Tooltip.Arrow />
-        </Tooltip.Content>
-      </Tooltip.Portal>
-    </Tooltip.Root>
-  </Tooltip.Provider>
-);
+<Tooltip.Provider>
+  <Tooltip.Root>
+    <Tooltip.Trigger />
+    <Tooltip.Portal>
+      <Tooltip.Content>
+        <Tooltip.Arrow />
+      </Tooltip.Content>
+    </Tooltip.Portal>
+  </Tooltip.Root>
+</Tooltip.Provider>
 ```
 
 ## API Reference
 
 ### Provider
 
-Provides shared tooltip timing.
+Shares open, close, and skip-delay timing between descendant tooltips. Provider
+renders no DOM element.
 
 | Prop | Type | Default |
 | --- | --- | --- |
+| `children` | `ReactNode` | required |
 | `openDelay` | `number` | `400` |
 | `closeDelay` | `number` | `150` |
 | `skipDelay` | `number` | `300` |
 
+**ARIA:** Provider renders no element and adds no ARIA attributes.
+
+**Data attributes:** Provider renders no element and exposes none.
+
 ### Root
 
-Provides tooltip state.
+Owns one tooltip's open state, timers, Escape dismissal, touch state, and plain
+or rich hover behavior. Root renders no DOM element.
 
 | Prop | Type | Default |
 | --- | --- | --- |
+| `children` | `ReactNode` | required |
 | `open` | `boolean` | - |
 | `defaultOpen` | `boolean` | `false` |
 | `onOpenChange` | `(open: boolean) => void` | - |
+| `openDelay` | `number` | Provider value or `400` |
+| `closeDelay` | `number` | Provider value or `150` |
 | `disabled` | `boolean` | `false` |
 | `variant` | `"plain" \| "rich"` | `"plain"` |
+
+**ARIA:** Root renders no element and adds no ARIA attributes.
+
+**Data attributes:** Root renders no element and exposes none.
 
 ### Trigger
 
@@ -66,7 +85,10 @@ Reference element that describes itself with tooltip content while open.
 | --- | --- | --- |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
-| `data-slot` | `string` | `"tooltip-trigger"` |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-describedby` | Content ID while the tooltip is open |
 
 | Data attribute | Values |
 | --- | --- |
@@ -74,16 +96,21 @@ Reference element that describes itself with tooltip content while open.
 
 ### Portal
 
-Renders tooltip content into a portal.
+Moves Content to another DOM container without rendering a wrapper.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `container` | `Element \| DocumentFragment \| null` | `document.body` |
+| `container` | `HTMLElement \| null` | `document.body` after mount |
 | `disabled` | `boolean` | `false` |
+
+**ARIA:** Portal adds no ARIA attributes.
+
+**Data attributes:** Portal renders no wrapper and exposes none.
 
 ### Content
 
-Positioned tooltip bubble.
+Renders the positioned tooltip text and keeps rich variants open while the
+pointer moves from Trigger into Content.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -91,7 +118,13 @@ Positioned tooltip bubble.
 | `align` | `"start" \| "center" \| "end"` | `"center"` |
 | `sideOffset` | `number` | `4` |
 | `ariaLabel` | `string` | - |
-| `data-slot` | `string` | `"tooltip"` |
+| `onMouseEnter` | `MouseEventHandler<HTMLDivElement>` | - |
+| `onMouseLeave` | `MouseEventHandler<HTMLDivElement>` | - |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"tooltip"` |
+| `aria-label` | Value from `ariaLabel` when provided |
 
 | Data attribute | Values |
 | --- | --- |
@@ -103,54 +136,82 @@ Positioned tooltip bubble.
 
 ### Arrow
 
-Decorative SVG arrow positioned by content context.
+Renders a decorative SVG pointer using the final side chosen after collision
+handling. `getTooltipArrowGeometry` exposes the same geometry for custom arrows.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `width` | `number` | `10` |
 | `height` | `number` | `5` |
-| `data-slot` | `string` | `"tooltip-arrow"` |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+**ARIA:** Arrow is decorative and hidden from assistive technology.
 
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"tooltip-arrow"` |
 | `[data-side]` | `"top" \| "right" \| "bottom" \| "left"` |
 
+Advanced compound parts can read the Provider, Root, and Content contexts with
+their public hooks and providers. `getTooltipArrowGeometry` returns the same SVG
+geometry used by Arrow.
+
 ## Examples
 
 ### Basic Tooltip
 
 ```tsx
-<Tooltip.Provider>
-  <Tooltip.Root>
-    <Tooltip.Trigger>Save</Tooltip.Trigger>
-    <Tooltip.Portal>
-      <Tooltip.Content>Save changes</Tooltip.Content>
-    </Tooltip.Portal>
-  </Tooltip.Root>
-</Tooltip.Provider>
+import { Tooltip } from "@flowstack-ui/atom";
+
+export default function SaveTooltip() {
+  return (
+    <Tooltip.Provider>
+      <Tooltip.Root>
+        <Tooltip.Trigger asChild>
+          <button type="button">Save</button>
+        </Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Content>Save changes</Tooltip.Content>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+    </Tooltip.Provider>
+  );
+}
 ```
 
 ### Custom Trigger
 
 ```tsx
-<Tooltip.Root>
-  <Tooltip.Trigger asChild>
-    <button type="button">?</button>
-  </Tooltip.Trigger>
-  <Tooltip.Content side="right">More information</Tooltip.Content>
-</Tooltip.Root>
+import { Tooltip } from "@flowstack-ui/atom";
+
+export default function HelpTooltip() {
+  return (
+    <Tooltip.Provider>
+      <Tooltip.Root>
+        <Tooltip.Trigger asChild>
+          <button type="button">Help</button>
+        </Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Content side="right">More information</Tooltip.Content>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+    </Tooltip.Provider>
+  );
+}
 ```
 
 ## Accessibility
 
-Tooltip content uses `role="tooltip"` and is referenced by `aria-describedby` while open. Tooltip content should be descriptive only; use `Popover` for interactive content.
+Tooltip follows the [WAI-ARIA tooltip pattern](https://www.w3.org/WAI/ARIA/apg/patterns/tooltip/).
+Content is referenced by `aria-describedby` while open and must remain
+non-interactive.
 
 | Key | Description |
 | --- | --- |
 | `Tab` | Moving focus to a focus-visible trigger can open the tooltip. |
 | `Shift+Tab` | Moving focus away closes the tooltip. |
-| `Escape` | Dismissal can be handled by focus movement; interactive dismissal belongs in `Popover`. |
+| `Escape` | Closes the topmost open tooltip immediately. |
 
 ## Changelog
 

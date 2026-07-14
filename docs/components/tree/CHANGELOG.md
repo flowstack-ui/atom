@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Expanded Tree documentation with component-choice guidance, complete
+  Root/Item/ItemText/Group contracts, context exports, and a runnable example.
 - Corrected Tree data attribute documentation for item selection state and group
   expansion state.
 - Fixed pointer targeting so whitespace inside nested groups does not
