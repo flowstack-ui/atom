@@ -105,7 +105,11 @@ test("modal focus hooks guard against stale targets and outside focus traps", as
   assert.match(focusSource, /const registerWhenMounted = \(\) =>/);
   assert.match(focusSource, /unregister = scope\.registerContainer\(container\)/);
   assert.match(focusSource, /querySelector<HTMLElement>\("\[autofocus\]"\)/);
-  assert.match(focusSource, /document\.contains\(previousElementRef\.current\)/);
+  assert.match(
+    focusSource,
+    /getRestoreElementRef\.current\?\.\(\) \?\? previousElementRef\.current/,
+  );
+  assert.match(focusSource, /document\.contains\(restoreElement\)/);
   assert.match(focusSource, /const focusWhenMounted = \(\) =>/);
   assert.match(focusSource, /attempts < 10/);
   assert.match(focusSource, /frame = requestAnimationFrame\(focusWhenMounted\)/);
