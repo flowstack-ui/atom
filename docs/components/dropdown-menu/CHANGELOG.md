@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.2.0
+
 - Inherited fixed Menu part `data-slot` pass-through so DropdownMenu Content,
   Group, Separator, CheckboxItem, RadioGroup, RadioItem, SubTrigger, and
   SubContent can be overridden consistently.
@@ -23,6 +27,7 @@
 - Registered shared Menu content with parent modal focus scopes so DropdownMenu
   can remain a valid focus target inside Dialog, Drawer, and other modal
   primitives.
+
 ## 0.1.0
 
 - Initial Atom release.

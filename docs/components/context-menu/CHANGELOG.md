@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.2.0
+
 - Fixed `Trigger` so custom `data-slot` values override the default
   `context-menu-trigger` slot.
 - Inherited fixed submenu keyboard behavior under `Direction.Provider dir="rtl"`
@@ -22,6 +26,7 @@
   can remain a valid focus target inside Dialog, Drawer, and other modal
   primitives.
 - Added shared menu item parts to the `ContextMenu` namespace object.
+
 ## 0.1.0
 
 - Initial Atom release.

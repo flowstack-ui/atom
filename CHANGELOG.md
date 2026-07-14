@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.2.0
+
 - Fixed Tree pointer targeting so whitespace inside nested groups does not
   reactivate or select the parent item.
 - Added `render` and `asChild` composition support to all Toolbar parts.

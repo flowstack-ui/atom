@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.2.0
+
 - Fixed vertical keyboard navigation to preserve the active column while
   skipping disabled cells in intervening rows.
 - Added `DataGrid.Row selectable` behavior with `data-selectable` and
@@ -9,6 +13,7 @@
   being disabled.
 - Added `dir` and `Direction.Provider` support so horizontal cell navigation
   mirrors in RTL.
+
 ## 0.1.0
 
 - Initial Atom release.

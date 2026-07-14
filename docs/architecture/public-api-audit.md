@@ -77,10 +77,10 @@ Component compatibility review rather than a documentation-only change.
 
 Component changelogs identify the Atom package releases in which that
 component's public contract changed; they are not independently versioned npm
-packages. The post-`0.1.0` audit found:
+packages. The `0.2.0` release audit found:
 
 - 38 components with supported behavior, API, type, semantic, or shared-runtime
-  changes under `Unreleased`
+  changes included in `0.2.0`
 - 28 components with no qualifying change since `0.1.0`
 - 142 retained component-level `Unreleased` entries
 
@@ -88,12 +88,11 @@ README expansion and other documentation maintenance that does not change or
 correct the published component contract does not advance a component's
 last-change release.
 
-## Candidate Version
+## Release Version
 
-The next package release should be prepared as `0.2.0`. The changes since
+The audited changes are prepared as `0.2.0`. The changes since
 `0.1.0` include new public composition and direction capabilities in addition
-to compatible behavior and accessibility corrections. This audit does not bump
-the package version or prepare the release commit.
+to compatible behavior and accessibility corrections.
 
 ## Known Design Scope
 

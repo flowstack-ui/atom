@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.2.0
+
 - Fixed local `Menubar.Root dir="rtl"` so shared nested submenu placement also
   mirrors to the left, matching `Direction.Provider dir="rtl"`.
 - Fixed adjacent top-level menu handoff so the active trigger keeps focus for
@@ -26,6 +30,7 @@
   content or item gaps does not reset highlight back to the first item.
 - Added shared menu item parts to the `Menubar` namespace object.
 - Refined `Menubar.Content` keyboard handler dependencies to avoid recreating callbacks from the full context objects.
+
 ## 0.1.0
 
 - Initial Atom release.

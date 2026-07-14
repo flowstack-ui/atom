@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.2.0
+
 - Fixed Popover positioning when `Anchor` uses its default `display: contents`
   wrapper by resolving the usable child element as the Floating UI reference
   and refreshing the reference after refs commit.
@@ -13,6 +17,7 @@
   Popover content with parent modal focus scopes when nested inside another
   modal primitive.
 - Removed redundant `role="button"` and `tabIndex={0}` from the default native button trigger path.
+
 ## 0.1.0
 
 - Initial Atom release.

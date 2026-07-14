@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.2.0
+
 - Fixed option selection so pointer clicks, including already-selected options,
   close the listbox consistently, and `clearOnSelect` also applies to
   free-solo Enter commits.
@@ -11,6 +15,7 @@
   parent overlays when nested inside Dialog, Drawer, Modal, or Popover.
 - Fixed outside pointer dismissal so Combobox closes reliably when clicking
   outside the input or content during inspection-heavy renders.
+
 ## 0.1.0
 
 - Initial Atom release.

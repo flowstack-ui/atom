@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.2.0
+
 - Fixed `NavigationMenu.Indicator` and `NavigationMenu.Sub` `asChild`
   rendering so slotted children keep their own contents.
 - Split `NavigationMenu` looping so `Root` controls top-level Trigger/Link
@@ -21,6 +25,7 @@
 - Added shared dismissable layer Escape handling so NavigationMenu panels close
   as the topmost active layer when nested with other overlays.
 - Refined trigger, indicator, and viewport callback dependencies to avoid recreating callbacks from the full context object.
+
 ## 0.1.0
 
 - Initial Atom release.
