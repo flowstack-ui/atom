@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Expanded Toolbar documentation with usage guidance, complete part-level ARIA
+  and data contracts, advanced hooks, and runnable examples.
 - Added `render` and `asChild` composition support to all Toolbar parts.
 - Fixed Toolbar parts so custom `data-slot` values override their default slot
   identifiers.

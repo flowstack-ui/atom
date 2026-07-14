@@ -2,6 +2,12 @@
 
 Headless slider primitives for single-value and range inputs.
 
+## When to Use
+
+Use `Slider` when someone adjusts a number by feel, such as volume, zoom, or a
+price range. Use `NumberInput` when the exact typed number matters, and use
+`Progress` when the value is read-only and only reports work being completed.
+
 ## Features
 
 - Supports single-value and multi-thumb range values.
@@ -34,7 +40,8 @@ import { Slider } from "@flowstack-ui/atom";
 
 ### Root
 
-Contains slider state.
+Owns the numeric range, thumb values, pointer calculations, keyboard changes,
+and hidden form inputs. Root renders a `div`; each Thumb owns slider semantics.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -55,6 +62,9 @@ Contains slider state.
 | `ariaLabel` | `string` | - |
 | `ariaValueText` | `(value: number) => string` | - |
 
+**ARIA:** Root adds no role or ARIA attributes. Its label and value-text props
+are applied to each Thumb.
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"slider"` |
@@ -63,7 +73,10 @@ Contains slider state.
 
 ### Track
 
-Renders the pointer interaction surface.
+Registers the pointer interaction surface used to choose and drag the nearest
+Thumb. It renders a `div` by default.
+
+**ARIA:** Track adds no role or ARIA attributes.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -78,12 +91,17 @@ Renders the pointer interaction surface.
 
 ### Range
 
-Renders the selected range.
+Reports the selected start and end percentages and supplies the inline offset
+geometry for a visual fill. It is decorative.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-hidden` | Always `true` |
 
 | Data attribute | Values |
 | --- | --- |
@@ -95,7 +113,8 @@ Renders the selected range.
 
 ### Thumb
 
-Renders a slider thumb.
+Renders one focusable slider control and connects its index to the matching
+value in Root. Range sliders need one Thumb for each value.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -103,40 +122,66 @@ Renders a slider thumb.
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"slider"` |
+| `aria-valuemin` | Root minimum |
+| `aria-valuemax` | Root maximum |
+| `aria-valuenow` | Current thumb value |
+| `aria-valuetext` | Result from `ariaValueText` when provided |
+| `aria-orientation` | Root orientation |
+| `aria-label` | Root label; numbered in a multi-thumb slider |
+| `aria-disabled` | `true` when Root is disabled |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"slider-thumb"` |
 | `[data-value]` | Current thumb value |
 | `[data-percent]` | Normalized current thumb percentage |
 
+Advanced compound parts can use `useSliderContext` and
+`SliderContextProvider`. Public range, percentage, snapping, closest-thumb, and
+offset helpers expose the same calculations used by the built-in parts.
+
 ## Examples
 
 ### Single Value
 
 ```tsx
-<Slider.Root defaultValue={50} ariaLabel="Volume">
-  <Slider.Track>
-    <Slider.Range />
-    <Slider.Thumb />
-  </Slider.Track>
-</Slider.Root>
+import { Slider } from "@flowstack-ui/atom";
+
+export default function VolumeSlider() {
+  return (
+    <Slider.Root defaultValue={50} ariaLabel="Volume">
+      <Slider.Track><Slider.Range /><Slider.Thumb /></Slider.Track>
+    </Slider.Root>
+  );
+}
 ```
 
 ### Range
 
 ```tsx
-<Slider.Root defaultValue={[20, 80]} minStepsBetweenThumbs={2}>
-  <Slider.Track>
-    <Slider.Range />
-    <Slider.Thumb index={0} />
-    <Slider.Thumb index={1} />
-  </Slider.Track>
-</Slider.Root>
+import { Slider } from "@flowstack-ui/atom";
+
+export default function PriceRange() {
+  return (
+    <Slider.Root defaultValue={[20, 80]} minStepsBetweenThumbs={2} ariaLabel="Price">
+      <Slider.Track>
+        <Slider.Range />
+        <Slider.Thumb index={0} />
+        <Slider.Thumb index={1} />
+      </Slider.Track>
+    </Slider.Root>
+  );
+}
 ```
 
 ## Accessibility
 
-Each `Slider.Thumb` receives `role="slider"` and value ARIA attributes.
+Slider follows the [WAI-ARIA slider pattern](https://www.w3.org/WAI/ARIA/apg/patterns/slider/).
+Each Thumb is a focusable slider with its own value. Provide `ariaLabel`, and
+use `ariaValueText` when a raw number would not explain the value.
 
 | Key | Description |
 | --- | --- |

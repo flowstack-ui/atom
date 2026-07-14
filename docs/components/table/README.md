@@ -2,6 +2,13 @@
 
 Headless native table anatomy with caption, sections, rows, cells, and sortable header metadata.
 
+## When to Use
+
+Use `Table` for information arranged in rows and columns where the column
+relationships help people compare values. Use `DataGrid` when cells themselves
+need selection or spreadsheet-like keyboard navigation, and use `List` when
+there is no meaningful column structure.
+
 ## Features
 
 - Renders native table semantics.
@@ -39,7 +46,10 @@ import { Table } from "@flowstack-ui/atom";
 
 ### Root
 
-Renders a native `table`.
+Renders the native `table` that establishes relationships between all nested
+headers and cells. Native table props pass through.
+
+**ARIA:** Root relies on native table semantics and adds no ARIA attributes.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -50,18 +60,50 @@ Renders a native `table`.
 | --- | --- |
 | `[data-slot]` | `"table"` |
 
-### Caption, Header, Body, Footer, Row, Cell
+### Caption
 
-Render native table parts with `data-slot` attributes.
+Provides the table's visible accessible name and renders `caption`.
 
-| Part | Element | Data slot |
+| Prop | Type | Default |
 | --- | --- | --- |
-| `Caption` | `caption` | `"table-caption"` |
-| `Header` | `thead` | `"table-header"` |
-| `Body` | `tbody` | `"table-body"` |
-| `Footer` | `tfoot` | `"table-footer"` |
-| `Row` | `tr` | `"table-row"` |
-| `Cell` | `td` | `"table-cell"` |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+**ARIA:** Caption uses native caption semantics.
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"table-caption"` |
+
+### Header
+
+Groups the header rows and renders `thead`.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+**ARIA:** Header uses native table-section semantics.
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"table-header"` |
+
+### Row
+
+Groups Head or Cell parts and renders `tr`.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+**ARIA:** Row uses native table-row semantics.
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"table-row"` |
 
 ### Head
 
@@ -74,30 +116,85 @@ Renders a native `th`.
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-sort` | Value from `sortDirection` when provided |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"table-head"` |
 | `[data-sort]` | `"ascending" \| "descending" \| "none" \| "other"` |
+
+### Body
+
+Groups the primary data rows and renders `tbody`.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+**ARIA:** Body uses native table-section semantics.
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"table-body"` |
+
+### Cell
+
+Renders a native `td` associated with its row and applicable headers.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+**ARIA:** Cell uses native table-cell semantics.
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"table-cell"` |
+
+### Footer
+
+Groups summary rows and renders `tfoot`.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+**ARIA:** Footer uses native table-section semantics.
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"table-footer"` |
 
 ## Examples
 
 ### Sort Metadata
 
 ```tsx
-<Table.Head sortDirection="ascending">
-  Name
-</Table.Head>
+import { Table } from "@flowstack-ui/atom";
+
+export default function SortableTable() {
+  return (
+    <Table.Root>
+      <Table.Caption>Team members</Table.Caption>
+      <Table.Header><Table.Row><Table.Head sortDirection="ascending"><button type="button">Name</button></Table.Head></Table.Row></Table.Header>
+      <Table.Body><Table.Row><Table.Cell>Ada</Table.Cell></Table.Row></Table.Body>
+    </Table.Root>
+  );
+}
 ```
 
 For interactive sorting, put a button or pressable control inside the header cell and keep `sortDirection` as the accessible state.
 
 ## Accessibility
 
-Table uses native table semantics. Use `Table.Caption`, `aria-label`, or `aria-labelledby` when the table needs an accessible name.
-
-| Key | Description |
-| --- | --- |
-| `Tab` | Moves through focusable descendants in document order |
+Table uses native HTML table semantics rather than an interactive WAI-ARIA grid
+pattern. Use Caption, `aria-label`, or `aria-labelledby` for an accessible name.
+Table adds no keyboard behavior; only interactive descendants enter the Tab order.
 
 ## Changelog
 

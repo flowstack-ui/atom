@@ -2,6 +2,12 @@
 
 Headless ARIA toolbar primitives for grouped controls with roving keyboard navigation.
 
+## When to Use
+
+Use `Toolbar` for a compact row or column of related controls, such as editor
+formatting tools. Use `NavigationMenu` or ordinary links for moving between
+pages, and use separate Buttons when the commands are not one logical group.
+
 ## Features
 
 - Renders `role="toolbar"` with orientation.
@@ -34,7 +40,8 @@ import { Toolbar } from "@flowstack-ui/atom";
 
 ### Root
 
-Contains toolbar items.
+Owns orientation, direction, item registration, and roving focus for the whole
+control group.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -45,6 +52,12 @@ Contains toolbar items.
 | `render` | `RenderProp` | - |
 | `asChild` | `boolean` | `false` |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"toolbar"` |
+| `aria-label` | Value from `ariaLabel` when provided |
+| `aria-orientation` | Current orientation |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"toolbar"` |
@@ -52,7 +65,7 @@ Contains toolbar items.
 
 ### Button
 
-Renders a toolbar button.
+Renders a command button and registers it in the toolbar's roving focus order.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -61,6 +74,12 @@ Renders a toolbar button.
 | `render` | `RenderProp` | - |
 | `asChild` | `boolean` | `false` |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"button"` for a custom non-native element |
+| `aria-label` | Value from `ariaLabel` when provided |
+| `aria-disabled` | `true` for a disabled custom element |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"toolbar-button"` |
@@ -68,7 +87,8 @@ Renders a toolbar button.
 
 ### Link
 
-Renders a toolbar link.
+Renders a navigation link that participates in roving focus. Disabled links
+cannot navigate and are announced as disabled.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -80,6 +100,11 @@ Renders a toolbar link.
 | `render` | `RenderProp` | - |
 | `asChild` | `boolean` | `false` |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-label` | Value from `ariaLabel` when provided |
+| `aria-disabled` | `true` when disabled |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"toolbar-link"` |
@@ -87,13 +112,19 @@ Renders a toolbar link.
 
 ### Separator
 
-Renders a toolbar separator.
+Renders a semantic separator between control groups. Its orientation describes
+the separator line, not the Toolbar direction.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `orientation` | `"horizontal" \| "vertical"` | `"vertical"` |
 | `render` | `RenderProp` | - |
 | `asChild` | `boolean` | `false` |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"separator"` |
+| `aria-orientation` | Separator orientation |
 
 | Data attribute | Values |
 | --- | --- |
@@ -102,7 +133,8 @@ Renders a toolbar separator.
 
 ### ToggleGroup
 
-Groups toolbar toggle items.
+Owns single or multiple pressed values for related ToggleItem parts without
+creating another Tab stop outside the Toolbar's roving focus model.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -115,6 +147,11 @@ Groups toolbar toggle items.
 | `render` | `RenderProp` | - |
 | `asChild` | `boolean` | `false` |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"group"` |
+| `aria-label` | Value from `ariaLabel` when provided |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"toolbar-toggle-group"` |
@@ -122,7 +159,8 @@ Groups toolbar toggle items.
 
 ### ToggleItem
 
-Renders a toolbar toggle item.
+Renders one pressed button, participates in Toolbar roving focus, and reads its
+selection state from ToggleGroup.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -132,6 +170,13 @@ Renders a toolbar toggle item.
 | `render` | `RenderProp` | - |
 | `asChild` | `boolean` | `false` |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"button"` for a custom non-native element |
+| `aria-pressed` | Current selected state |
+| `aria-label` | Value from `ariaLabel` when provided |
+| `aria-disabled` | `true` when disabled |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"toolbar-toggle-item"` |
@@ -139,11 +184,18 @@ Renders a toolbar toggle item.
 | `[data-value]` | Item value |
 | `[data-disabled]` | Present when disabled |
 
+Advanced compound parts can use `useToolbarContext`, `useToolbarToggleContext`,
+and `useToolbarItem` with their matching public providers.
+
 ## Examples
 
 ### Formatting Toolbar
 
 ```tsx
+import { Toolbar } from "@flowstack-ui/atom";
+
+export default function FormattingToolbar() {
+  return (
 <Toolbar.Root ariaLabel="Formatting">
   <Toolbar.Button ariaLabel="Undo">Undo</Toolbar.Button>
   <Toolbar.Button ariaLabel="Redo">Redo</Toolbar.Button>
@@ -153,20 +205,30 @@ Renders a toolbar toggle item.
     <Toolbar.ToggleItem value="italic">Italic</Toolbar.ToggleItem>
   </Toolbar.ToggleGroup>
 </Toolbar.Root>
+  );
+}
 ```
 
 ### Vertical Toolbar
 
 ```tsx
+import { Toolbar } from "@flowstack-ui/atom";
+
+export default function DrawingToolbar() {
+  return (
 <Toolbar.Root orientation="vertical" ariaLabel="Drawing tools">
   <Toolbar.Button>Move</Toolbar.Button>
   <Toolbar.Button>Pen</Toolbar.Button>
 </Toolbar.Root>
+  );
+}
 ```
 
 ## Accessibility
 
-Toolbar follows the ARIA toolbar pattern. Use it for groups of controls, not page navigation. Local `dir` overrides `Direction.Provider`.
+Toolbar follows the [WAI-ARIA toolbar pattern](https://www.w3.org/WAI/ARIA/apg/patterns/toolbar/).
+Use it for groups of controls, not page navigation. Local `dir` overrides
+`Direction.Provider`.
 
 | Key | Description |
 | --- | --- |

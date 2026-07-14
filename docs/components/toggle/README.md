@@ -2,6 +2,12 @@
 
 Headless toggle button primitive for on/off command state.
 
+## When to Use
+
+Use `Toggle` for a command that stays pressed, such as bold formatting or
+pinning an item. Use `Switch` for a setting that turns a feature on immediately,
+and use `Checkbox` for a choice submitted with a form.
+
 ## Features
 
 - Renders a button with `aria-pressed`.
@@ -26,7 +32,8 @@ import { Toggle } from "@flowstack-ui/atom";
 
 ### Root
 
-Renders the toggle button.
+Owns pressed state and renders a native button by default. Custom rendered
+elements receive matching button semantics and keyboard activation.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -38,6 +45,13 @@ Renders the toggle button.
 | `ariaLabel` | `string` | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"button"` for a custom non-native element |
+| `aria-pressed` | Current pressed state |
+| `aria-label` | Value from `ariaLabel` when provided |
+| `aria-disabled` | `true` for a disabled custom element |
 
 | Data attribute | Values |
 | --- | --- |
@@ -51,22 +65,29 @@ Renders the toggle button.
 ### Uncontrolled
 
 ```tsx
-<Toggle.Root defaultPressed ariaLabel="Bold">
-  B
-</Toggle.Root>
+import { Toggle } from "@flowstack-ui/atom";
+
+export default function BoldToggle() {
+  return <Toggle.Root defaultPressed ariaLabel="Bold">B</Toggle.Root>;
+}
 ```
 
 ### Controlled
 
 ```tsx
-<Toggle.Root pressed={bold} onPressedChange={setBold}>
-  Bold
-</Toggle.Root>
+import { useState } from "react";
+import { Toggle } from "@flowstack-ui/atom";
+
+export default function ControlledToggle() {
+  const [bold, setBold] = useState(false);
+  return <Toggle.Root pressed={bold} onPressedChange={setBold}>Bold</Toggle.Root>;
+}
 ```
 
 ## Accessibility
 
-Toggle uses the WAI-ARIA toggle button pattern through `aria-pressed`.
+Toggle follows the [WAI-ARIA button pattern](https://www.w3.org/WAI/ARIA/apg/patterns/button/)
+for a toggle button through `aria-pressed`.
 
 | Key | Description |
 | --- | --- |

@@ -3,6 +3,12 @@
 Native textarea behavior with controlled value state, Field integration,
 optional auto-resize, and a count display.
 
+## When to Use
+
+Use `Textarea` when people need to enter several lines of free-form text, such
+as a message or description. Use `Input` for a short single-line value and a
+purpose-built control when the answer has a fixed format.
+
 ## Features
 
 - Renders a native `<textarea>`.
@@ -21,11 +27,9 @@ import { Textarea } from "@flowstack-ui/atom";
 ## Anatomy
 
 ```tsx
-export default () => (
-  <Textarea.Root>
-    <Textarea.Count />
-  </Textarea.Root>
-);
+<Textarea.Root>
+  <Textarea.Count />
+</Textarea.Root>
 ```
 
 ## API Reference
@@ -33,6 +37,7 @@ export default () => (
 ### Root
 
 Renders the native textarea element and provides context to `Textarea.Count`.
+Field state is inherited unless the corresponding prop is set directly.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -47,8 +52,13 @@ Renders the native textarea element and provides context to `Textarea.Count`.
 | `readOnly` | `boolean` | Field context or `false` |
 | `invalid` | `boolean` | Field context or `false` |
 | `id` | `string` | Field control ID |
-| `asChild` | `boolean` | `false` |
-| `render` | `RenderProp` | - |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-describedby` | Explicit IDs or inherited Field description/error IDs |
+| `aria-invalid` | `true` when invalid |
+| `aria-readonly` | `true` when read-only |
+| `aria-required` | `true` when required |
 
 | Data attribute | Values |
 | --- | --- |
@@ -62,7 +72,8 @@ Renders the native textarea element and provides context to `Textarea.Count`.
 
 ### Count
 
-Displays the current value length and optional `maxLength`.
+Displays the current value length and optional maximum, and politely announces
+changes by default. It reads all values from Root context.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -70,12 +81,19 @@ Displays the current value length and optional `maxLength`.
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-live` | `"polite"` by default; native override accepted |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"textarea-count"` |
 | `[data-count]` | Current character count |
 | `[data-max]` | `maxLength` when present |
 | `[data-over-limit]` | Present when count exceeds max |
+
+Advanced compound parts can read `useTextareaContext` or use the public
+`TextareaContextProvider`.
 
 ## Examples
 
@@ -106,12 +124,10 @@ export default () => (
 
 ## Accessibility
 
-- Uses native textarea semantics.
-- Provide a visible label or accessible name.
-- When used inside `Field.Root`, `aria-describedby` is wired to visible
-  description and error content.
-- `Textarea.Count` defaults to polite announcements and can be overridden with
-  native ARIA props.
+Textarea uses native HTML textbox semantics rather than a custom WAI-ARIA
+widget. Provide a visible label or accessible name. Inside Field, description
+and error IDs are connected automatically. Count uses a polite live region by
+default and adds no keyboard behavior beyond the native textarea.
 
 ## Changelog
 

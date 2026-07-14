@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Expanded Slider documentation with usage guidance, complete part-level ARIA
+  and data contracts, public helpers, and runnable examples.
 - Added `Direction.Provider` support for horizontal right-to-left pointer and
   keyboard behavior.
 - Fixed percent geometry so `data-percent` and inline percent offsets do not

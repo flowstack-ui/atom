@@ -2,6 +2,12 @@
 
 Headless on/off switch with optional native form participation.
 
+## When to Use
+
+Use `Switch` for a setting that becomes active or inactive immediately, such as
+notifications. Use `Checkbox` when the choice is part of a form that is applied
+later, and use `Toggle` for a pressed command like bold text.
+
 ## Features
 
 - Renders a WAI-ARIA switch.
@@ -29,7 +35,8 @@ import { Switch } from "@flowstack-ui/atom";
 
 ### Root
 
-Contains the switch state and renders the interactive element.
+Owns the checked and form state and renders a native button by default. It also
+provides state to Thumb and renders a hidden checkbox when `name` is present.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -47,6 +54,15 @@ Contains the switch state and renders the interactive element.
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"switch"` |
+| `aria-checked` | Current checked state |
+| `aria-label` | Value from `ariaLabel` when provided |
+| `aria-required` | `true` when required |
+| `aria-readonly` | `true` when read-only |
+| `aria-invalid` | `true` when invalid |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"switch"` |
@@ -58,12 +74,17 @@ Contains the switch state and renders the interactive element.
 
 ### Thumb
 
-Renders decorative thumb content for the switch.
+Mirrors Root state for the movable visual part while remaining hidden from
+assistive technology.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-hidden` | Always `true` |
 
 | Data attribute | Values |
 | --- | --- |
@@ -74,27 +95,37 @@ Renders decorative thumb content for the switch.
 | `[data-required]` | Present when required |
 | `[data-invalid]` | Present when invalid |
 
+Advanced compound parts can read `useSwitchContext` or use the public
+`SwitchContextProvider`.
+
 ## Examples
 
 ### Form Submission
 
 ```tsx
-<Switch.Root name="notifications" value="enabled">
-  <Switch.Thumb />
-</Switch.Root>
+import { Switch } from "@flowstack-ui/atom";
+
+export default function NotificationSetting() {
+  return <Switch.Root name="notifications" value="enabled" ariaLabel="Notifications"><Switch.Thumb /></Switch.Root>;
+}
 ```
 
 ### Controlled
 
 ```tsx
-<Switch.Root checked={enabled} onCheckedChange={setEnabled}>
-  <Switch.Thumb />
-</Switch.Root>
+import { useState } from "react";
+import { Switch } from "@flowstack-ui/atom";
+
+export default function ControlledSwitch() {
+  const [enabled, setEnabled] = useState(false);
+  return <Switch.Root checked={enabled} onCheckedChange={setEnabled} ariaLabel="Notifications"><Switch.Thumb /></Switch.Root>;
+}
 ```
 
 ## Accessibility
 
-Root renders `role="switch"` and owns `aria-checked`.
+Switch follows the [WAI-ARIA switch pattern](https://www.w3.org/WAI/ARIA/apg/patterns/switch/).
+Root owns the switch role and checked state; Thumb is decorative.
 
 | Key | Description |
 | --- | --- |

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Expanded Switch documentation with component-choice guidance, complete Root
+  and Thumb accessibility contracts, and runnable examples.
 - Added `readOnly` support.
 - Added `aria-required`, `data-required`, `data-readonly`, and mirrored thumb data attributes.
 - Added keyboard activation for non-native `asChild` and `render` switch roots.

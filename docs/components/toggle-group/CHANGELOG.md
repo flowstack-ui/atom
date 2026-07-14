@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Expanded ToggleGroup documentation with usage guidance, complete Root/Item
+  ARIA and data contracts, context exports, and runnable examples.
 - Fixed disabled native `ToggleGroup.Item` buttons so they rely on the native
   `disabled` attribute without adding redundant `aria-disabled`; non-native
   composed items still receive `aria-disabled`.

@@ -2,6 +2,12 @@
 
 Headless tab primitives for switching between related panels.
 
+## When to Use
+
+Use `Tabs` to switch between a small set of related views without leaving the
+current page. Use normal links when each choice is a separate destination, and
+use `Accordion` when people should be able to see several sections open at once.
+
 ## Features
 
 - Implements linked tab and tabpanel ARIA.
@@ -33,7 +39,10 @@ import { Tabs } from "@flowstack-ui/atom";
 
 ### Root
 
-Provides selected tab state.
+Owns selection, orientation, direction, activation mode, and the trigger
+registry used for roving focus.
+
+**ARIA:** Root adds no role or ARIA attributes.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -54,13 +63,20 @@ Provides selected tab state.
 
 ### List
 
-Contains tab triggers.
+Provides the `tablist` container and owns Arrow, Home, and End navigation among
+enabled Trigger parts.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `ariaLabel` | `string` | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"tablist"` |
+| `aria-label` | Value from `ariaLabel` when provided |
+| `aria-orientation` | Root orientation |
 
 | Data attribute | Values |
 | --- | --- |
@@ -69,7 +85,8 @@ Contains tab triggers.
 
 ### Trigger
 
-Selects a tab panel.
+Renders one roving-focus tab and connects it to Content with generated IDs.
+Automatic mode selects on focus; manual mode waits for activation.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -78,15 +95,25 @@ Selects a tab panel.
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"tab"` |
+| `aria-selected` | `true` when active |
+| `aria-controls` | Matching Content ID |
+| `aria-disabled` | `true` when disabled |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"tabs-trigger"` |
 | `[data-state]` | `"active" \| "inactive"` |
 | `[data-disabled]` | Present when disabled |
+| `[data-orientation]` | Root orientation |
+| `[data-value]` | Trigger value |
 
 ### Content
 
-Renders the selected panel.
+Renders the panel linked to its Trigger. Inactive panels unmount unless
+`keepMounted` is enabled; `focusable` opts the panel into the Tab order.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -96,14 +123,23 @@ Renders the selected panel.
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"tabpanel"` |
+| `aria-labelledby` | Matching Trigger ID |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"tabs-content"` |
 | `[data-state]` | `"active" \| "inactive"` |
+| `[data-orientation]` | Root orientation |
 
 ### Indicator
 
-Renders an optional active-tab indicator.
+Measures the active Trigger and exposes its position through CSS variables. It
+renders only after an active Trigger can be measured.
+
+**ARIA:** Indicator is decorative and adds no role or ARIA attributes.
 
 | Data attribute | Values |
 | --- | --- |
@@ -115,11 +151,18 @@ active trigger position through `--tabs-indicator-left`,
 `--tabs-indicator-top`, `--tabs-indicator-width`, and
 `--tabs-indicator-height`.
 
+Advanced compound parts can read `useTabsContext` or use the public
+`TabsContextProvider`.
+
 ## Examples
 
 ### Manual Activation
 
 ```tsx
+import { Tabs } from "@flowstack-ui/atom";
+
+export default function ManualTabs() {
+  return (
 <Tabs.Root defaultValue="preview" activationMode="manual">
   <Tabs.List>
     <Tabs.Trigger value="preview">Preview</Tabs.Trigger>
@@ -128,19 +171,31 @@ active trigger position through `--tabs-indicator-left`,
   <Tabs.Content value="preview">Preview panel</Tabs.Content>
   <Tabs.Content value="code">Code panel</Tabs.Content>
 </Tabs.Root>
+  );
+}
 ```
 
 ### Keep Panels Mounted
 
 ```tsx
-<Tabs.Content value="settings" keepMounted>
-  Settings
-</Tabs.Content>
+import { Tabs } from "@flowstack-ui/atom";
+
+export default function MountedTabs() {
+  return (
+    <Tabs.Root defaultValue="profile">
+      <Tabs.List><Tabs.Trigger value="profile">Profile</Tabs.Trigger><Tabs.Trigger value="settings">Settings</Tabs.Trigger></Tabs.List>
+      <Tabs.Content value="profile" keepMounted>Profile</Tabs.Content>
+      <Tabs.Content value="settings" keepMounted>Settings</Tabs.Content>
+    </Tabs.Root>
+  );
+}
 ```
 
 ## Accessibility
 
-Implements the WAI-ARIA tabs pattern. Triggers render `role="tab"` and panels render `role="tabpanel"` with stable ID relationships. Horizontal arrow-key navigation mirrors in RTL; vertical navigation does not change with text direction.
+Tabs follows the [WAI-ARIA tabs pattern](https://www.w3.org/WAI/ARIA/apg/patterns/tabs/).
+Triggers and panels have stable ID relationships. Horizontal navigation mirrors
+in RTL; vertical navigation does not change with text direction.
 
 | Key | Description |
 | --- | --- |
