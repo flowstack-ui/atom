@@ -239,17 +239,43 @@ Creates a nested navigation menu scope.
 ## Accessibility
 
 `Root` renders a `nav` landmark with an accessible name. Triggers expose expanded state and controlled content IDs. Links use native anchor semantics and `aria-current="page"` when active. Text direction can be set with `dir` on `Root` or inherited from `Direction.Provider`.
-Horizontal triggers use roving keyboard navigation. When a panel is already
-open, moving to another trigger opens that trigger's panel.
+
+NavigationMenu follows a disclosure navigation pattern for site navigation. It
+does not use `menu`, `menubar`, or `menuitem` roles, and it does not trap focus.
+Tab and Shift+Tab remain the primary way to move through visible buttons and
+links. Arrow keys supplement normal tab navigation.
+
+### Trigger Keys
 
 | Key | Description |
 | --- | --- |
-| `Enter` / `Space` | Opens or closes a trigger |
-| `ArrowRight` / `ArrowLeft` | Moves between horizontal triggers, mirrored in RTL |
-| `ArrowDown` | Opens content and moves focus to the first focusable element |
-| `ArrowUp` | Opens content and moves focus to the last focusable element |
-| `Home` / `End` | Moves to the first or last horizontal trigger |
+| `Enter` / `Space` | Opens or closes a trigger and keeps focus on the trigger |
+| `ArrowDown` / `ArrowUp` | In horizontal orientation, opens content and moves focus to the first or last focusable content element |
+| `ArrowRight` / `ArrowLeft` | In horizontal orientation, moves between top-level controls, mirrored in RTL |
+| `ArrowDown` / `ArrowUp` | In vertical orientation, moves between top-level controls |
+| `ArrowRight` | In vertical LTR, opens content and moves focus to the first focusable content element |
+| `ArrowLeft` | In vertical RTL, opens content and moves focus to the first focusable content element |
+| `Home` / `End` | Moves to the first or last top-level control |
 | `Escape` | Closes the active panel and restores focus to its trigger |
+
+Top-level arrow navigation includes both disclosure triggers and direct
+top-level links. When a panel is open, moving to another trigger switches the
+open panel. Moving to a direct link closes the open panel without activating the
+link.
+
+### Content Keys
+
+| Key | Description |
+| --- | --- |
+| `Tab` / `Shift+Tab` | Moves through visible focusable content normally |
+| `ArrowDown` / `ArrowUp` | Moves to the next or previous focusable content element |
+| `Home` / `End` | Moves to the first or last focusable content element |
+| `Escape` | Closes the active panel and restores focus to its trigger |
+
+When focus leaves the navigation region, the active panel closes. Nested
+navigation menu scopes close from the inside out: Escape first closes the
+innermost sub menu and restores focus to its trigger; a later Escape can close
+the parent panel.
 
 ## Changelog
 

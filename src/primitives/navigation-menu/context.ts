@@ -14,6 +14,8 @@ export interface ContentNodeEntry {
   render?: RenderProp;
 }
 
+export type NavigationMenuControlType = "trigger" | "link";
+
 export interface NavigationMenuContextValue {
   value: string | null;
   onValueChange: (value: string | null) => void;
@@ -27,8 +29,12 @@ export interface NavigationMenuContextValue {
   unregisterItem: (value: string) => void;
   getItemValues: () => string[];
   registerTrigger: (value: string, element: HTMLButtonElement) => void;
+  registerLink: (value: string, element: HTMLAnchorElement) => void;
   unregisterTrigger: (value: string) => void;
+  unregisterLink: (value: string) => void;
   getTriggerElement: (value: string) => HTMLButtonElement | null;
+  getControlElement: (value: string) => HTMLElement | null;
+  getControlType: (value: string) => NavigationMenuControlType | null;
   getNextTriggerValue: (
     value: string,
     direction: "next" | "previous",
@@ -77,4 +83,8 @@ export function useNavigationMenuItemContext(): NavigationMenuItemContextValue {
     );
   }
   return ctx;
+}
+
+export function useOptionalNavigationMenuItemContext(): NavigationMenuItemContextValue | null {
+  return useContext(NavigationMenuItemContext);
 }

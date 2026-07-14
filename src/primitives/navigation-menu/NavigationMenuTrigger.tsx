@@ -64,8 +64,9 @@ export const NavigationMenuTrigger = forwardRef<
     dir,
     getFirstTriggerValue,
     getLastTriggerValue,
+    getControlElement,
+    getControlType,
     getNextTriggerValue,
-    getTriggerElement,
     idPrefix,
     isSkipDelayActive,
     onValueChange,
@@ -167,18 +168,18 @@ export const NavigationMenuTrigger = forwardRef<
     (nextValue: string | null) => {
       if (nextValue === null) return;
 
-      const trigger = getTriggerElement(nextValue);
-      if (!trigger) return;
+      const control = getControlElement(nextValue);
+      if (!control) return;
 
       clearTimeout(openTimerRef.current);
       cancelCloseTimer();
-      trigger.focus({ preventScroll: true });
+      control.focus({ preventScroll: true });
 
       if (activeValue !== null) {
-        onValueChange(nextValue);
+        onValueChange(getControlType(nextValue) === "trigger" ? nextValue : null);
       }
     },
-    [activeValue, cancelCloseTimer, getTriggerElement, onValueChange],
+    [activeValue, cancelCloseTimer, getControlElement, getControlType, onValueChange],
   );
 
   const handleKeyDown: KeyboardEventHandler<HTMLButtonElement> = useCallback(
@@ -194,44 +195,65 @@ export const NavigationMenuTrigger = forwardRef<
         }
         case "ArrowDown": {
           event.preventDefault();
-          pendingContentFocusRef.current = "first";
-          if (!isOpen) onValueChange(value);
-          else requestAnimationFrame(() => focusContent("first"));
+          if (orientation === "vertical") {
+            focusTrigger(getNextTriggerValue(value, "next"));
+          } else {
+            pendingContentFocusRef.current = "first";
+            if (!isOpen) onValueChange(value);
+            else requestAnimationFrame(() => focusContent("first"));
+          }
           break;
         }
         case "ArrowUp": {
           event.preventDefault();
-          pendingContentFocusRef.current = "last";
-          if (!isOpen) onValueChange(value);
-          else requestAnimationFrame(() => focusContent("last"));
+          if (orientation === "vertical") {
+            focusTrigger(getNextTriggerValue(value, "previous"));
+          } else {
+            pendingContentFocusRef.current = "last";
+            if (!isOpen) onValueChange(value);
+            else requestAnimationFrame(() => focusContent("last"));
+          }
           break;
         }
         case "ArrowRight": {
-          if (orientation !== "horizontal") break;
-
-          event.preventDefault();
-          focusTrigger(getNextTriggerValue(value, dir === "rtl" ? "previous" : "next"));
+          if (orientation === "horizontal") {
+            event.preventDefault();
+            focusTrigger(getNextTriggerValue(value, dir === "rtl" ? "previous" : "next"));
+          } else if (dir === "ltr") {
+            event.preventDefault();
+            pendingContentFocusRef.current = "first";
+            if (!isOpen) onValueChange(value);
+            else requestAnimationFrame(() => focusContent("first"));
+          }
           break;
         }
         case "ArrowLeft": {
-          if (orientation !== "horizontal") break;
-
-          event.preventDefault();
-          focusTrigger(getNextTriggerValue(value, dir === "rtl" ? "next" : "previous"));
+          if (orientation === "horizontal") {
+            event.preventDefault();
+            focusTrigger(getNextTriggerValue(value, dir === "rtl" ? "next" : "previous"));
+          } else if (dir === "rtl") {
+            event.preventDefault();
+            pendingContentFocusRef.current = "first";
+            if (!isOpen) onValueChange(value);
+            else requestAnimationFrame(() => focusContent("first"));
+          }
           break;
         }
         case "Home": {
-          if (orientation !== "horizontal") break;
-
           event.preventDefault();
           focusTrigger(getFirstTriggerValue());
           break;
         }
         case "End": {
-          if (orientation !== "horizontal") break;
-
           event.preventDefault();
           focusTrigger(getLastTriggerValue());
+          break;
+        }
+        case "Escape": {
+          if (!isOpen) break;
+          event.preventDefault();
+          onValueChange(null);
+          internalRef.current?.focus({ preventScroll: true });
           break;
         }
       }

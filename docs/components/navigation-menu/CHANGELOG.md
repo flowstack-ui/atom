@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Completed disclosure-navigation keyboard behavior for `NavigationMenu`,
+  including direct top-level links, vertical orientation, content arrow
+  navigation, focus-out closing, and nested Escape focus restoration.
 - Added standard `asChild`/`render` customization support to the remaining
   `NavigationMenu` parts, including viewport-rendered content.
 - Fixed `data-slot` override support across `NavigationMenu` parts,

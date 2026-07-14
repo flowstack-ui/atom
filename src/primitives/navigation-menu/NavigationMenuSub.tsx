@@ -8,6 +8,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type FocusEventHandler,
   type ReactNode,
 } from "react";
 import { useCollection } from "../../collection.js";
@@ -15,6 +16,7 @@ import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import {
   cloneAndMerge,
+  composeEventHandlers,
   composeRefs,
   renderElement,
   type RenderProp,
@@ -24,6 +26,7 @@ import {
   useNavigationMenuContext,
   type ContentNodeEntry,
   type NavigationMenuContextValue,
+  type NavigationMenuControlType,
 } from "./context.js";
 
 type NavigationMenuSubNativeProps = NativeDivProps<"children" | "defaultValue" | "onChange">;
@@ -53,6 +56,7 @@ export const NavigationMenuSub = forwardRef<
     onValueChange,
     orientation,
     className,
+    onBlur,
     "data-slot": dataSlot = "navigation-menu-sub",
     ...restProps
   },
@@ -102,46 +106,67 @@ export const NavigationMenuSub = forwardRef<
   const unregisterItem = useCallback((_value: string) => {}, []);
 
   const {
-    registerItem: registerTriggerItem,
-    unregisterItem: unregisterTriggerItem,
-    getItem: getTriggerItem,
-    getNextItem: getNextTriggerItem,
-    getFirstItem: getFirstTriggerItem,
-    getLastItem: getLastTriggerItem,
-    getValues: getTriggerValues,
-  } = useCollection<string, HTMLButtonElement>();
+    registerItem: registerControlItem,
+    unregisterItem: unregisterControlItem,
+    getItem: getControlItem,
+    getNextItem: getNextControlItem,
+    getFirstItem: getFirstControlItem,
+    getLastItem: getLastControlItem,
+    getValues: getControlValues,
+  } = useCollection<string, HTMLElement, { type: NavigationMenuControlType }>();
 
-  const getItemValues = useCallback(() => getTriggerValues(), [getTriggerValues]);
+  const getItemValues = useCallback(() => getControlValues(), [getControlValues]);
 
   const registerTrigger = useCallback(
     (value: string, element: HTMLButtonElement) => {
-      registerTriggerItem(value, element);
+      registerControlItem(value, element, { data: { type: "trigger" } });
     },
-    [registerTriggerItem],
+    [registerControlItem],
   );
 
   const unregisterTrigger = useCallback((value: string) => {
-    unregisterTriggerItem(value);
-  }, [unregisterTriggerItem]);
+    unregisterControlItem(value);
+  }, [unregisterControlItem]);
+
+  const registerLink = useCallback(
+    (value: string, element: HTMLAnchorElement) => {
+      registerControlItem(value, element, { data: { type: "link" } });
+    },
+    [registerControlItem],
+  );
+
+  const unregisterLink = useCallback((value: string) => {
+    unregisterControlItem(value);
+  }, [unregisterControlItem]);
+
+  const getControlElement = useCallback((value: string) => {
+    return getControlItem(value)?.element ?? null;
+  }, [getControlItem]);
+
+  const getControlType = useCallback((value: string) => {
+    return getControlItem(value)?.data.type ?? null;
+  }, [getControlItem]);
 
   const getTriggerElement = useCallback((value: string) => {
-    return getTriggerItem(value)?.element ?? null;
-  }, [getTriggerItem]);
+    const item = getControlItem(value);
+    if (item?.data.type !== "trigger") return null;
+    return item.element as HTMLButtonElement;
+  }, [getControlItem]);
 
   const getNextTriggerValue = useCallback(
     (value: string, direction: "next" | "previous") =>
-      getNextTriggerItem(value, direction)?.value ?? null,
-    [getNextTriggerItem],
+      getNextControlItem(value, direction)?.value ?? null,
+    [getNextControlItem],
   );
 
   const getFirstTriggerValue = useCallback(
-    () => getFirstTriggerItem()?.value ?? null,
-    [getFirstTriggerItem],
+    () => getFirstControlItem()?.value ?? null,
+    [getFirstControlItem],
   );
 
   const getLastTriggerValue = useCallback(
-    () => getLastTriggerItem()?.value ?? null,
-    [getLastTriggerItem],
+    () => getLastControlItem()?.value ?? null,
+    [getLastControlItem],
   );
 
   const contentNodeRegistryRef = useRef<Map<string, ContentNodeEntry>>(new Map());
@@ -191,7 +216,9 @@ export const NavigationMenuSub = forwardRef<
     onEscapeKeyDown: (event) => {
       event.preventDefault();
       event.stopImmediatePropagation();
+      const trigger = activeValue === null ? null : getTriggerElement(activeValue);
       handleValueChange(null);
+      trigger?.focus({ preventScroll: true });
     },
   });
 
@@ -209,8 +236,12 @@ export const NavigationMenuSub = forwardRef<
       unregisterItem,
       getItemValues,
       registerTrigger,
+      registerLink,
       unregisterTrigger,
+      unregisterLink,
       getTriggerElement,
+      getControlElement,
+      getControlType,
       getNextTriggerValue,
       getFirstTriggerValue,
       getLastTriggerValue,
@@ -226,6 +257,8 @@ export const NavigationMenuSub = forwardRef<
       activeValue,
       cancelCloseTimer,
       getContentNode,
+      getControlElement,
+      getControlType,
       getFirstTriggerValue,
       getItemValues,
       getLastTriggerValue,
@@ -240,14 +273,28 @@ export const NavigationMenuSub = forwardRef<
       previousValue,
       registerContentNode,
       registerItem,
+      registerLink,
       registerTrigger,
       startCloseTimer,
       subOrientation,
       unregisterContentNode,
       unregisterItem,
+      unregisterLink,
       unregisterTrigger,
     ],
   );
+
+  const handleBlur: FocusEventHandler<HTMLDivElement> = useCallback(() => {
+    requestAnimationFrame(() => {
+      const root = rootRef.current;
+      const activeElement = document.activeElement;
+
+      if (!root || !(activeElement instanceof Node)) return;
+      if (root.contains(activeElement)) return;
+
+      handleValueChange(null);
+    });
+  }, [handleValueChange]);
 
   const behaviorProps: Record<string, unknown> = {
     ...restProps,
@@ -256,6 +303,7 @@ export const NavigationMenuSub = forwardRef<
     "data-orientation": subOrientation,
     dir: parentCtx.dir,
     className,
+    onBlur: composeEventHandlers(onBlur, handleBlur),
     children,
   };
 

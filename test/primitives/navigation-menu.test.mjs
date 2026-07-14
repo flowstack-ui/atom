@@ -444,6 +444,10 @@ test("NavigationMenu source keeps context and registration stable", async () => 
     new URL("src/primitives/navigation-menu/NavigationMenuTrigger.tsx", packageRoot),
     "utf8",
   );
+  const linkSource = await readFile(
+    new URL("src/primitives/navigation-menu/NavigationMenuLink.tsx", packageRoot),
+    "utf8",
+  );
   const subSource = await readFile(
     new URL("src/primitives/navigation-menu/NavigationMenuSub.tsx", packageRoot),
     "utf8",
@@ -460,20 +464,25 @@ test("NavigationMenu source keeps context and registration stable", async () => 
   assert.match(rootSource, /const contextValue: NavigationMenuContextValue = useMemo/);
   assert.match(rootSource, /const contextDir = useDirection\(\)/);
   assert.match(rootSource, /const dir = dirProp \?\? contextDir/);
-  assert.match(rootSource, /useCollection<string, HTMLButtonElement>\(\)/);
-  assert.match(rootSource, /registerTriggerItem\(value, element\)/);
-  assert.match(rootSource, /getTriggerItem\(value\)\?\.element \?\? null/);
-  assert.match(rootSource, /getNextTriggerItem\(value, direction\)\?\.value \?\? null/);
-  assert.match(rootSource, /getFirstTriggerItem\(\)\?\.value \?\? null/);
-  assert.match(rootSource, /getLastTriggerItem\(\)\?\.value \?\? null/);
+  assert.match(rootSource, /useCollection<string, HTMLElement, \{ type: NavigationMenuControlType \}>\(\)/);
+  assert.match(rootSource, /registerControlItem\(value, element, \{ data: \{ type: "trigger" \} \}\)/);
+  assert.match(rootSource, /registerControlItem\(value, element, \{ data: \{ type: "link" \} \}\)/);
+  assert.match(rootSource, /getControlItem\(value\)\?\.element \?\? null/);
+  assert.match(rootSource, /getControlItem\(value\)\?\.data\.type \?\? null/);
+  assert.match(rootSource, /getNextControlItem\(value, direction\)\?\.value \?\? null/);
+  assert.match(rootSource, /getFirstControlItem\(\)\?\.value \?\? null/);
+  assert.match(rootSource, /getLastControlItem\(\)\?\.value \?\? null/);
+  assert.match(rootSource, /const handleBlur: FocusEventHandler<HTMLElement> = useCallback/);
+  assert.match(rootSource, /if \(root\.contains\(activeElement\)\) return/);
   assert.doesNotMatch(rootSource, /triggerRegistryRef/);
   assert.doesNotMatch(rootSource, /itemValuesRef/);
-  assert.match(subSource, /useCollection<string, HTMLButtonElement>\(\)/);
-  assert.match(subSource, /registerTriggerItem\(value, element\)/);
-  assert.match(subSource, /getTriggerItem\(value\)\?\.element \?\? null/);
-  assert.match(subSource, /getNextTriggerItem\(value, direction\)\?\.value \?\? null/);
-  assert.match(subSource, /getFirstTriggerItem\(\)\?\.value \?\? null/);
-  assert.match(subSource, /getLastTriggerItem\(\)\?\.value \?\? null/);
+  assert.match(subSource, /useCollection<string, HTMLElement, \{ type: NavigationMenuControlType \}>\(\)/);
+  assert.match(subSource, /registerControlItem\(value, element, \{ data: \{ type: "trigger" \} \}\)/);
+  assert.match(subSource, /registerControlItem\(value, element, \{ data: \{ type: "link" \} \}\)/);
+  assert.match(subSource, /getNextControlItem\(value, direction\)\?\.value \?\? null/);
+  assert.match(subSource, /const trigger = activeValue === null \? null : getTriggerElement\(activeValue\)/);
+  assert.match(subSource, /trigger\?\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(subSource, /const handleBlur: FocusEventHandler<HTMLDivElement> = useCallback/);
   assert.doesNotMatch(subSource, /triggerRegistryRef/);
   assert.doesNotMatch(subSource, /itemValuesRef/);
   assert.match(rootSource, /\}, delayDuration\)/);
@@ -485,15 +494,27 @@ test("NavigationMenu source keeps context and registration stable", async () => 
   assert.match(triggerSource, /value: activeValue,/);
   assert.match(triggerSource, /\}, \[disabled, registerTrigger, unregisterTrigger, value\]\)/);
   assert.match(triggerSource, /const focusTrigger = useCallback/);
-  assert.match(triggerSource, /trigger\.focus\(\{ preventScroll: true \}\)/);
-  assert.match(triggerSource, /if \(activeValue !== null\) \{\s*onValueChange\(nextValue\);/s);
-  assert.match(triggerSource, /if \(orientation !== "horizontal"\) break/);
+  assert.match(triggerSource, /control\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(triggerSource, /onValueChange\(getControlType\(nextValue\) === "trigger" \? nextValue : null\)/);
+  assert.match(triggerSource, /if \(orientation === "vertical"\) \{/);
+  assert.match(triggerSource, /else if \(dir === "ltr"\)/);
+  assert.match(triggerSource, /else if \(dir === "rtl"\)/);
   assert.match(triggerSource, /getNextTriggerValue\(value, dir === "rtl" \? "previous" : "next"\)/);
   assert.match(triggerSource, /getNextTriggerValue\(value, dir === "rtl" \? "next" : "previous"\)/);
+  assert.match(triggerSource, /getNextTriggerValue\(value, "next"\)/);
+  assert.match(triggerSource, /getNextTriggerValue\(value, "previous"\)/);
   assert.match(triggerSource, /focusTrigger\(getFirstTriggerValue\(\)\)/);
   assert.match(triggerSource, /focusTrigger\(getLastTriggerValue\(\)\)/);
+  assert.match(triggerSource, /case "Escape": \{/);
   assert.match(triggerSource, /"aria-controls": contentId/);
   assert.doesNotMatch(triggerSource, /\},\s*\[ctx\]/);
+  assert.match(linkSource, /useOptionalNavigationMenuItemContext\(\)/);
+  assert.match(linkSource, /registerLink\(value, element\)/);
+  assert.match(linkSource, /unregisterLink\(value\)/);
+  assert.match(linkSource, /const focusControl = useCallback/);
+  assert.match(linkSource, /focusControl\(getNextTriggerValue\(value, dir === "rtl" \? "previous" : "next"\)\)/);
+  assert.match(linkSource, /focusControl\(getNextTriggerValue\(value, "next"\)\)/);
+  assert.match(linkSource, /onValueChange\(null\)/);
   assert.match(contentSource, /const \{ registerContentNode, unregisterContentNode \} = ctx/);
   assert.match(contentSource, /dataSlot,/);
   assert.match(contentSource, /props: restProps/);
@@ -501,6 +522,13 @@ test("NavigationMenu source keeps context and registration stable", async () => 
   assert.match(contentSource, /asChild,/);
   assert.match(viewportSource, /activeEntry\.asChild/);
   assert.match(viewportSource, /renderElement\(activeEntry\.render, "div"/);
+  assert.match(viewportSource, /const handleContentKeyDown = useCallback/);
+  assert.match(viewportSource, /activeContent\.querySelectorAll<HTMLElement>\(FOCUSABLE_SELECTOR\)/);
+  assert.match(viewportSource, /case "Escape": \{/);
+  assert.match(viewportSource, /event\.nativeEvent\.stopImmediatePropagation\(\)/);
+  assert.match(viewportSource, /trigger\?\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(viewportSource, /case "ArrowDown": \{/);
+  assert.match(viewportSource, /case "Home": \{/);
   assert.match(contentSource, /\}, \[unregisterContentNode, value\]\)/);
   assert.doesNotMatch(itemSource, /\}, \[ctx, value\]\)/);
   assert.doesNotMatch(triggerSource, /ctx\.registerTrigger\(value, el\)/);

@@ -10,9 +10,11 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type KeyboardEvent,
   type PointerEventHandler,
   type ReactNode,
 } from "react";
+import { FOCUSABLE_SELECTOR } from "../../hooks/focus.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import {
   cloneAndMerge,
@@ -79,7 +81,9 @@ export const NavigationMenuViewport = forwardRef<
     cancelCloseTimer,
     getContentNode,
     getItemValues,
+    getTriggerElement,
     idPrefix,
+    onValueChange,
     orientation,
     previousValue,
     startCloseTimer,
@@ -126,6 +130,60 @@ export const NavigationMenuViewport = forwardRef<
 
   const contentId = value ? `${idPrefix}-content-${value}` : undefined;
 
+  const handleContentKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLElement>) => {
+      const activeContent = activeContentRef.current;
+      if (!value || !activeContent) return;
+
+      const focusable = Array.from(
+        activeContent.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+      );
+      const currentIndex = focusable.indexOf(document.activeElement as HTMLElement);
+
+      const focusAt = (index: number) => {
+        const target = focusable[index];
+        if (!target) return;
+        event.preventDefault();
+        target.focus({ preventScroll: true });
+      };
+
+      switch (event.key) {
+        case "Escape": {
+          event.preventDefault();
+          event.stopPropagation();
+          event.nativeEvent.stopImmediatePropagation();
+          const trigger = getTriggerElement(value);
+          onValueChange(null);
+          trigger?.focus({ preventScroll: true });
+          break;
+        }
+        case "ArrowDown": {
+          if (focusable.length === 0) break;
+          focusAt(currentIndex === -1 || currentIndex >= focusable.length - 1
+            ? 0
+            : currentIndex + 1);
+          break;
+        }
+        case "ArrowUp": {
+          if (focusable.length === 0) break;
+          focusAt(currentIndex <= 0 ? focusable.length - 1 : currentIndex - 1);
+          break;
+        }
+        case "Home": {
+          if (focusable.length === 0) break;
+          focusAt(0);
+          break;
+        }
+        case "End": {
+          if (focusable.length === 0) break;
+          focusAt(focusable.length - 1);
+          break;
+        }
+      }
+    },
+    [getTriggerElement, onValueChange, value],
+  );
+
   useSafeLayoutEffect(() => {
     measure();
 
@@ -164,6 +222,10 @@ export const NavigationMenuViewport = forwardRef<
         "data-state": "open",
         "data-motion": motionDirection,
         className: activeEntry.className,
+        onKeyDown: composeEventHandlers(
+          activeEntry.props?.onKeyDown,
+          handleContentKeyDown,
+        ),
       }
     : null;
 
