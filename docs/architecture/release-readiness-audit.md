@@ -7,11 +7,12 @@ documentation and changelog corrections in this audit pass.
 
 ## Result
 
-Status: pass; `0.2.0` is ready to publish.
+Status: pass; `0.2.0` is published.
 
-The package version and qualifying changelogs are prepared as `0.2.0`, and the
-exact publication tarball passed the final artifact and consumer verification.
-Publication and the Atom package release tag remain pending.
+The package version and qualifying changelogs were released as `0.2.0`. The
+exact publication tarball passed the final artifact and consumer verification,
+npm `latest` points to `0.2.0`, and remote tag `v0.2.0` points to the release
+commit.
 
 ## Verification
 
@@ -30,9 +31,9 @@ Publication and the Atom package release tag remain pending.
 | Changelog classification | Pass: 38 changed components, 28 unchanged components, 142 retained entries |
 
 The consumer checks installed the final `0.2.0` tarball into clean temporary
-projects with React and React DOM `18.3.1` and `19.2.7`. They verified root namespaces,
-component subpaths, representative direct parts, Portal identity, and emitted
-TypeScript declarations.
+projects with React and React DOM `18.3.1` and `19.2.7`. They verified root
+namespaces, component subpaths, representative direct parts, Portal identity,
+and emitted TypeScript declarations.
 
 ## Public API Clarification
 
@@ -59,19 +60,18 @@ instead of referring to the nonexistent `DialogRoot` export.
 
 ## Release Metadata
 
-- Prepared Atom version: `0.2.0`
+- Published Atom version: `0.2.0`
+- npm distribution tag: `latest`
+- Remote Atom tag: annotated `v0.2.0` at
+  `4a0629d1689b77a21a26f9b0bf832ba772797fcf`
 - Reason: the unreleased surface includes new public composition and direction
   capabilities, not only compatible corrections.
 - Local playground tag: annotated `playground-v1.0.0` at
   `64bac26e719e790afab75e961bb426c51dc94f27`
 - Remote playground tag: absent at audit time; this pass did not push it.
 
-## Publication Steps
+## Publication Outcome
 
-The final artifact has passed verification. To complete the release:
-
-1. Authenticate an npm account with publish access to `@flowstack-ui/atom`.
-2. Commit the verified release metadata.
-3. Publish the exact verified tarball to npm.
-4. Verify the registry package and `latest` distribution tag.
-5. Push the release commit and annotated `v0.2.0` tag.
+The release was installed from the public npm registry in a fresh React 19
+consumer after publication. Root imports, subpath imports, and server rendering
+passed. `main`, npm `latest`, and remote tag `v0.2.0` agree on the release.

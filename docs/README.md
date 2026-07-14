@@ -11,6 +11,8 @@ maintainer documentation lives in `../../docs/`.
 - [Imports](guides/imports.md) - root namespace imports and subpath imports.
 - [Public API](guides/public-api.md) - namespace exports, subpath exports, and
   direct part exports.
+- [Continuous Integration](guides/continuous-integration.md) - automated
+  package, playground, archive, and React peer checks.
 
 ## Architecture
 

@@ -66,6 +66,14 @@ versions for new public APIs or materially expanded component capability.
 
 7. Create the tarball in a temporary directory and smoke test it as a consumer.
 
+   ```bash
+   release_dir=$(mktemp -d)
+   npm pack --pack-destination "$release_dir"
+   npm run verify:pack -- "$release_dir"
+   npm run verify:consumer -- "$release_dir" 18
+   npm run verify:consumer -- "$release_dir" 19
+   ```
+
    Verify root imports, representative subpaths, direct part exports, and
    TypeScript declarations from the tarball rather than source self-reference.
    Verify the supported React peer range, including React 18 and the current
@@ -80,7 +88,9 @@ Last verified: 2026-07-14
 - `git diff --check`
 - export target check from `package.json`
 - `npm_config_cache=/tmp/atom-ui-npm-cache npm pack --dry-run`
-- packed tarball root, subpath, and TypeScript declaration smoke test
+- `npm run verify:pack -- <archive-or-directory>`
+- `npm run verify:consumer -- <archive-or-directory> 18`
+- `npm run verify:consumer -- <archive-or-directory> 19`
 
 The detailed result is recorded in
 [`../architecture/release-readiness-audit.md`](../architecture/release-readiness-audit.md).

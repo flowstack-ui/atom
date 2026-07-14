@@ -1,0 +1,156 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package:
+    name: package (node-${{ matrix.node }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js ${{ matrix.node }}
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install package dependencies
+        run: npm ci
+
+      - name: Check whitespace
+        run: git diff --check
+
+      - name: Build and test package
+        run: npm run ci:package
+
+      - name: Confirm tracked files are unchanged
+        run: git diff --exit-code
+
+  playground:
+    name: playground
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            playground/package-lock.json
+
+      - name: Install package dependencies
+        run: npm ci
+
+      - name: Install playground dependencies
+        run: npm ci --prefix playground
+
+      - name: Build playground
+        run: npm run ci:playground
+
+  pack:
+    name: packed package
+    needs: package
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install package dependencies
+        run: npm ci
+
+      - name: Build package
+        run: npm run build
+
+      - name: Create package archive
+        run: |
+          mkdir -p "$RUNNER_TEMP/atom-package"
+          npm pack --pack-destination "$RUNNER_TEMP/atom-package"
+
+      - name: Verify package archive
+        run: npm run verify:pack -- "$RUNNER_TEMP/atom-package"
+
+      - name: Upload package archive
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: atom-package
+          path: ${{ runner.temp }}/atom-package/*.tgz
+          if-no-files-found: error
+          retention-days: 3
+
+  consumer:
+    name: consumer (${{ matrix.label }})
+    needs: pack
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: react-18
+            react-line: 18
+          - label: react-19
+            react-line: 19
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Download package archive
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: atom-package
+          path: ${{ runner.temp }}/atom-package
+
+      - name: Smoke test React ${{ matrix.react-line }} consumer
+        run: npm run verify:consumer -- "$RUNNER_TEMP/atom-package" "${{ matrix.react-line }}"

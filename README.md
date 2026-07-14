@@ -1,5 +1,7 @@
 # Atom UI React
 
+[![CI](https://github.com/flowstack-ui/atom/actions/workflows/ci.yml/badge.svg)](https://github.com/flowstack-ui/atom/actions/workflows/ci.yml)
+
 Headless accessible React primitives.
 
 `@flowstack-ui/atom` owns behavior, semantic DOM, ARIA attributes, keyboard
