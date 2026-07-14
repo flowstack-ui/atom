@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added usage boundaries and complete Trigger, Content, Arrow, portal,
+  geometry, public-context, Escape, and noninteractive accessibility guidance.
+
 - Fixed HoverCard render/default trigger positioning by updating Floating UI
   after the trigger ref commits.
 - Made default and `render` HoverCard triggers keyboard focusable while keeping

@@ -1,15 +1,23 @@
 # Field
 
-Accessible single-control field wiring for labels, descriptions, errors, and
-shared validation state.
+Headless single-control field wiring for labels, descriptions, errors, and
+shared form-control state.
+
+## When to Use
+
+Use Field when one control needs a label and may also need help text, an error,
+or shared required/disabled state. Use Fieldset when several related controls
+need one group label, such as radio choices. Use standalone Label when no shared
+state or description/error wiring is needed.
 
 ## Features
 
-- Generates stable IDs for label, control, description, and error.
-- Wires Field-aware controls to descriptions and visible errors.
-- Shares disabled, required, readonly, and invalid state with child controls.
-- Supports required and optional label indicators.
-- Keeps layout outside Atom through `data-orientation`.
+- Generates stable control, label, description, and error IDs.
+- Shares disabled, required, read-only, and invalid state with Field-aware controls.
+- Registers mounted Description and visible Error IDs for `aria-describedby`.
+- Supports built-in or separately composed required/optional indicators.
+- Exposes layout orientation as metadata without applying layout.
+- Supports custom parts through public context hooks.
 
 ## Import
 
@@ -21,24 +29,25 @@ import { Field } from "@flowstack-ui/atom";
 
 ```tsx
 <Field.Root>
-  <Field.Label requiredIndicator={null}>
-    Label
-    <Field.RequiredIndicator />
-  </Field.Label>
+  <Field.Label />
   <Field.Description />
   <Field.Error />
+  <Field.RequiredIndicator />
 </Field.Root>
+
+useFieldContext()
+useRequiredFieldContext()
 ```
 
 ## API Reference
 
 ### Root
 
-Provides field context and renders a structural container.
+Renders a `div` by default and provides generated relationships and shared
+state. It does not render the actual form control.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `id` | `string` | Generated ID |
 | `disabled` | `boolean` | `false` |
 | `required` | `boolean` | `false` |
 | `readOnly` | `boolean` | `false` |
@@ -47,41 +56,50 @@ Provides field context and renders a structural container.
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
+Supplying `id` creates `${id}-control`, `${id}-label`, `${id}-description`,
+and `${id}-error`; otherwise the base ID is generated.
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"field"` |
 | `[data-orientation]` | `"vertical" \| "horizontal"` |
 | `[data-disabled]` | Present when disabled |
 | `[data-required]` | Present when required |
-| `[data-readonly]` | Present when read-only |
+| `[data-readonly]` | Present when read only |
 | `[data-invalid]` | Present when invalid |
 
 ### Label
 
-Renders a native label linked to the generated control ID.
+Renders a native `label` whose `htmlFor` targets the generated control ID.
+State props can override Field state for this Label's metadata only.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `requiredIndicator` | `ReactNode` | `"*"` |
+| `required` | `boolean` | Field state |
+| `disabled` | `boolean` | Field state |
+| `invalid` | `boolean` | Field state |
+| `readOnly` | `boolean` | Field state |
+| `requiredIndicator` | `ReactNode` | `" *"` |
 | `optionalIndicator` | `ReactNode` | - |
-| `disabled` | `boolean` | Field context |
-| `required` | `boolean` | Field context |
-| `readOnly` | `boolean` | Field context |
-| `invalid` | `boolean` | Field context |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
+
+Plain-text required indicators are wrapped with `aria-hidden`. Plain optional
+indicators remain available to assistive technology. A React element is used
+as provided.
 
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"field-label"` |
-| `[data-disabled]` | Present when disabled |
-| `[data-required]` | Present when required |
-| `[data-readonly]` | Present when read-only |
-| `[data-invalid]` | Present when invalid |
+| `[data-disabled]` | Present when resolved disabled |
+| `[data-required]` | Present when resolved required |
+| `[data-readonly]` | Present when resolved read only |
+| `[data-invalid]` | Present when resolved invalid |
 
 ### Description
 
-Registers descriptive content for `aria-describedby`.
+Renders a `p` and registers its generated ID while mounted so Field-aware
+controls can include it in `aria-describedby`.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -94,7 +112,8 @@ Registers descriptive content for `aria-describedby`.
 
 ### Error
 
-Registers visible error content for `aria-describedby`.
+Renders a live alert only when Field is invalid and `match` is not false, or
+when `forceMatch` is true. A visible Error registers for `aria-describedby`.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -103,47 +122,92 @@ Registers visible error content for `aria-describedby`.
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"alert"` while rendered |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"field-error"` |
 
 ### RequiredIndicator
 
-Renders required or optional label adornment text.
+Renders `children` for a required Field or `fallback` otherwise. Use it when
+the indicator should be a separate part; set Label's `requiredIndicator={null}`
+to avoid showing two required markers.
 
 | Prop | Type | Default |
 | --- | --- | --- |
+| `children` | `ReactNode` | `" *"` |
 | `fallback` | `ReactNode` | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-hidden` | `"true"` for required content |
 
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"field-required-indicator" \| "field-optional-indicator"` |
 
+### useFieldContext
+
+Returns Field state and generated relationships, or `null` outside Root.
+
+### useRequiredFieldContext
+
+Returns the same context but throws when used outside Root. Use it for a custom
+part that cannot function without Field.
+
 ## Examples
 
-### With Input
+### Email With Help and Error
+
+```tsx
+import { useState } from "react";
+import { Field, Input } from "@flowstack-ui/atom";
+
+export function EmailField() {
+  const [email, setEmail] = useState("");
+  const invalid = email.length > 0 && !email.includes("@");
+
+  return (
+    <Field.Root id="email" required invalid={invalid}>
+      <Field.Label>Email</Field.Label>
+      <Input.Root name="email" value={email} onValueChange={setEmail} />
+      <Field.Description>Use an address you check regularly.</Field.Description>
+      <Field.Error>Enter a valid email address.</Field.Error>
+    </Field.Root>
+  );
+}
+```
+
+### Explicit Optional Indicator
 
 ```tsx
 import { Field, Input } from "@flowstack-ui/atom";
 
-<Field.Root id="email" required invalid>
-  <Field.Label>Email</Field.Label>
-  <Input.Root name="email" type="email" />
-  <Field.Description>Use a work email.</Field.Description>
-  <Field.Error>Email is required.</Field.Error>
-</Field.Root>
+export function NicknameField() {
+  return (
+    <Field.Root id="nickname">
+      <Field.Label requiredIndicator={null}>
+        Nickname <Field.RequiredIndicator fallback="(optional)" />
+      </Field.Label>
+      <Input.Root name="nickname" />
+    </Field.Root>
+  );
+}
 ```
 
 ## Accessibility
 
-- `Field.Label` links with `htmlFor`.
-- `Field.Description` and visible `Field.Error` are included in
-  `aria-describedby` by Field-aware controls.
-- `Field.Error` uses `role="alert"` when rendered.
-- Required indicators are hidden from assistive technology; optional indicators
-  are readable text by default.
+Field follows native form labeling and the
+[WAI forms labeling guidance](https://www.w3.org/WAI/tutorials/forms/labels/).
+Field-aware controls use Label's ID relationship and include mounted
+Description and visible Error IDs in `aria-describedby`. Error uses
+`role="alert"`; do not use invalid state before there is a useful message for
+the user. Field owns no keyboard behavior.
 
 ## Changelog
 

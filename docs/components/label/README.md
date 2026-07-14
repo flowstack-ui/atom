@@ -1,14 +1,21 @@
 # Label
 
-Standalone native label primitive with state data attributes.
+Server-safe native label primitive with optional state metadata.
+
+## When to Use
+
+Use Label when one native form control needs a standalone text label. Use
+`Field.Label` when the control also needs shared required, disabled, invalid,
+description, or error wiring. Label's state props are metadata only: they do
+not change the associated control.
 
 ## Features
 
-- Renders a native `<label>`.
-- Passes native label props through.
-- Converts field-like state props to data attributes.
-- Supports `asChild` and `render`.
-- Does not create a client boundary.
+- Renders a native `label` and passes native label props through.
+- Supports explicit `htmlFor` and native wrapped-control labeling.
+- Converts field-like state props to stable data attributes.
+- Supports `asChild` and `render` composition.
+- Adds no client boundary or keyboard behavior.
 
 ## Import
 
@@ -26,11 +33,11 @@ import { Label } from "@flowstack-ui/atom";
 
 ### Root
 
-Renders a native label element.
+Renders a native `label` by default. Its state props expose consumer-owned
+state for selectors but do not apply that state to a form control.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `htmlFor` | `string` | - |
 | `disabled` | `boolean` | `false` |
 | `required` | `boolean` | `false` |
 | `readOnly` | `boolean` | `false` |
@@ -38,42 +45,54 @@ Renders a native label element.
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
+Native label props such as `htmlFor` pass through.
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"label"` |
-| `[data-disabled]` | Present when disabled |
-| `[data-required]` | Present when required |
-| `[data-readonly]` | Present when read-only |
-| `[data-invalid]` | Present when invalid |
+| `[data-disabled]` | Present when `disabled` |
+| `[data-required]` | Present when `required` |
+| `[data-readonly]` | Present when `readOnly` |
+| `[data-invalid]` | Present when `invalid` |
 
 ## Examples
 
-### Native Label
+### Explicit Native Label
 
 ```tsx
 import { Label } from "@flowstack-ui/atom";
 
-<Label.Root htmlFor="email">Email</Label.Root>
-<input id="email" name="email" />
+export function EmailControl() {
+  return (
+    <div>
+      <Label.Root htmlFor="email">Email</Label.Root>
+      <input id="email" name="email" type="email" />
+    </div>
+  );
+}
 ```
 
-### Field-Aware Label
+### Wrapped Control
 
 ```tsx
-import { Field, Input } from "@flowstack-ui/atom";
+import { Label } from "@flowstack-ui/atom";
 
-<Field.Root id="email" required>
-  <Field.Label>Email</Field.Label>
-  <Input.Root name="email" />
-</Field.Root>
+export function NewsletterControl() {
+  return (
+    <Label.Root>
+      <input name="newsletter" type="checkbox" />
+      Receive the newsletter
+    </Label.Root>
+  );
+}
 ```
 
 ## Accessibility
 
-- Uses native label semantics.
-- Use `htmlFor` or native nested-control labeling.
-- `disabled`, `required`, `readOnly`, and `invalid` are not valid label DOM
-  attributes, so Atom exposes them as data attributes only.
+Label uses native HTML labeling. Match `htmlFor` to the control's `id`, or
+place the control inside Label. The state data attributes do not announce
+anything and do not replace native `disabled`, `required`, `readOnly`, or
+`aria-invalid` state on the control. Label owns no keyboard interaction.
 
 ## Changelog
 

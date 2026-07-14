@@ -1,15 +1,23 @@
 # Fieldset
 
-Native fieldset grouping for related controls, shared state, descriptions, and
-errors.
+Native field group primitives for a shared legend, description, error, and
+disabled/required/invalid state.
+
+## When to Use
+
+Use Fieldset when several controls answer one question, such as a set of radio
+buttons or related checkboxes. Use Field when a label and messages belong to
+one control. A Fieldset should have a Legend so users understand what the whole
+group represents.
 
 ## Features
 
-- Renders native `<fieldset>` and `<legend>` semantics.
-- Shares disabled, required, and invalid state across grouped controls.
-- Wires description and visible error content with `aria-describedby`.
+- Renders native `fieldset` and `legend` elements.
+- Applies native fieldset disabled behavior to descendant form controls.
+- Registers Description and visible Error for `aria-describedby`.
+- Exposes required and invalid group state without invalid `aria-required` usage.
 - Supports required and optional legend indicators.
-- Keeps visual layout outside Atom.
+- Exposes public optional and required context hooks.
 
 ## Import
 
@@ -20,20 +28,22 @@ import { Fieldset } from "@flowstack-ui/atom";
 ## Anatomy
 
 ```tsx
-export default () => (
-  <Fieldset.Root>
-    <Fieldset.Legend />
-    <Fieldset.Description />
-    <Fieldset.Error />
-  </Fieldset.Root>
-);
+<Fieldset.Root>
+  <Fieldset.Legend />
+  <Fieldset.Description />
+  <Fieldset.Error />
+</Fieldset.Root>
+
+useFieldsetContext()
+useRequiredFieldsetContext()
 ```
 
 ## API Reference
 
 ### Root
 
-Renders a native fieldset and provides group context.
+Renders a native `fieldset`, owns shared state, and references only the
+Description and currently visible Error parts that are mounted.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -43,6 +53,14 @@ Renders a native fieldset and provides group context.
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-describedby` | Mounted Description and visible Error IDs |
+| `aria-invalid` | `"true"` when invalid |
+
+Root does not emit `aria-required`; required group state must be communicated
+through Legend text and the descendant controls where appropriate.
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"fieldset"` |
@@ -50,30 +68,32 @@ Renders a native fieldset and provides group context.
 | `[data-required]` | Present when required |
 | `[data-invalid]` | Present when invalid |
 
-Required state is exposed through Fieldset context and `[data-required]`.
-`Fieldset.Root` does not emit `aria-required` because native fieldset/group
-semantics do not support that ARIA state.
-
 ### Legend
 
-Renders a native legend for the grouped controls.
+Renders the native `legend` that names the group. It appends the required or
+optional indicator selected by Root state.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `requiredIndicator` | `ReactNode` | `"*"` |
+| `requiredIndicator` | `ReactNode` | `" *"` |
 | `optionalIndicator` | `ReactNode` | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
+Plain required indicators are hidden from assistive technology; plain optional
+indicators remain readable.
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"fieldset-legend"` |
-| `[data-disabled]` | Present when disabled |
-| `[data-required]` | Present when required |
+| `[data-disabled]` | Present when Root is disabled |
+| `[data-required]` | Present when Root is required |
+| `[data-slot="fieldset-required-indicator"]` | Plain required indicator wrapper |
+| `[data-slot="fieldset-optional-indicator"]` | Plain optional indicator wrapper |
 
 ### Description
 
-Registers descriptive content for the fieldset.
+Renders a `p` and registers its generated ID for Root's accessible description.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -86,7 +106,8 @@ Registers descriptive content for the fieldset.
 
 ### Error
 
-Registers visible error content for the fieldset.
+Renders only when Root is invalid or `forceMatch` is true and registers itself
+in Root's accessible description.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -94,39 +115,57 @@ Registers visible error content for the fieldset.
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"alert"` while rendered |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"fieldset-error"` |
 
+### useFieldsetContext
+
+Returns group state and generated relationships, or `null` outside Root.
+
+### useRequiredFieldsetContext
+
+Returns the same context but throws outside Root. Use it for custom parts that
+require a Fieldset parent.
+
 ## Examples
 
-### With RadioGroup
+### Shipping Method
 
 ```tsx
+import { useState } from "react";
 import { Fieldset, RadioGroup } from "@flowstack-ui/atom";
 
-export default () => (
-  <Fieldset.Root required invalid={invalidShipping}>
-    <Fieldset.Legend>Shipping method</Fieldset.Legend>
-    <RadioGroup.Root name="shipping">
-      <RadioGroup.Radio value="standard">Standard</RadioGroup.Radio>
-      <RadioGroup.Radio value="express">Express</RadioGroup.Radio>
-    </RadioGroup.Root>
-    <Fieldset.Error>Choose a shipping method.</Fieldset.Error>
-  </Fieldset.Root>
-);
+export function ShippingMethod() {
+  const [method, setMethod] = useState("");
+  const invalid = method === "";
+
+  return (
+    <Fieldset.Root id="shipping" required invalid={invalid}>
+      <Fieldset.Legend>Shipping method</Fieldset.Legend>
+      <Fieldset.Description>Choose how quickly the order should arrive.</Fieldset.Description>
+      <RadioGroup.Root value={method} onValueChange={setMethod}>
+        <RadioGroup.Item value="standard">Standard</RadioGroup.Item>
+        <RadioGroup.Item value="express">Express</RadioGroup.Item>
+      </RadioGroup.Root>
+      <Fieldset.Error>Choose a shipping method.</Fieldset.Error>
+    </Fieldset.Root>
+  );
+}
 ```
 
 ## Accessibility
 
-- Use `Fieldset.Legend` to name the group.
-- Use visible legend text or child controls to communicate required state;
-  `Fieldset.Root` exposes `[data-required]` for styling but not
-  `aria-required`.
-- `Fieldset.Root` references mounted description and visible error content with
-  `aria-describedby`.
-- Native `disabled` on the fieldset is inherited by descendant form controls.
-- `Fieldset.Error` uses `role="alert"` when rendered.
+Fieldset follows native
+[WAI grouped-control guidance](https://www.w3.org/WAI/tutorials/forms/grouping/).
+Legend supplies the group name, native `disabled` disables descendant controls,
+and Root references its supporting messages. Required state is not valid on a
+fieldset through `aria-required`, so communicate it in the Legend and apply
+required semantics to the actual controls. Fieldset owns no keyboard behavior.
 
 ## Changelog
 
