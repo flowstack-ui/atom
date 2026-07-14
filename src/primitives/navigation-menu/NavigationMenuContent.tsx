@@ -2,6 +2,7 @@
 
 import { useEffect, type ReactNode } from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
+import type { RenderProp } from "../../utils/slot.js";
 import {
   useNavigationMenuContext,
   useNavigationMenuItemContext,
@@ -11,13 +12,17 @@ type NavigationMenuContentNativeProps = NativeDivProps<"children">;
 
 export interface NavigationMenuContentProps extends NavigationMenuContentNativeProps {
   children: ReactNode;
+  asChild?: boolean;
   className?: string;
+  render?: RenderProp;
   "data-slot"?: string;
 }
 
 export function NavigationMenuContent({
   children,
+  asChild,
   className,
+  render,
   "data-slot": dataSlot = "navigation-menu-content",
   ...restProps
 }: NavigationMenuContentProps) {
@@ -28,9 +33,11 @@ export function NavigationMenuContent({
 
   registerContentNode(value, {
     node: children,
+    asChild,
     className,
     dataSlot,
     props: restProps,
+    render,
   });
 
   useEffect(() => {

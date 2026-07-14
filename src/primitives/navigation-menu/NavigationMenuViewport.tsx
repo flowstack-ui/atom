@@ -2,6 +2,7 @@
 
 import {
   forwardRef,
+  Fragment,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -10,9 +11,11 @@ import {
   useState,
   type CSSProperties,
   type PointerEventHandler,
+  type ReactNode,
 } from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
 import {
+  cloneAndMerge,
   composeEventHandlers,
   composeRefs,
   renderElement,
@@ -30,6 +33,8 @@ const useSafeLayoutEffect =
   typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 export interface NavigationMenuViewportProps extends NavigationMenuViewportNativeProps {
+  children?: ReactNode;
+  asChild?: boolean;
   render?: RenderProp;
   forceMount?: boolean;
   className?: string;
@@ -56,6 +61,8 @@ export const NavigationMenuViewport = forwardRef<
   NavigationMenuViewportProps
 >(function NavigationMenuViewport(
   {
+    children,
+    asChild,
     render,
     forceMount = false,
     className,
@@ -147,7 +154,32 @@ export const NavigationMenuViewport = forwardRef<
     ...(viewportSizeStyle ?? {}),
   };
 
-  return renderElement(render, "div", {
+  const contentProps: Record<string, unknown> | null = activeEntry
+    ? {
+        ...activeEntry.props,
+        ref: activeContentRef,
+        id: contentId,
+        tabIndex: -1,
+        "data-slot": activeEntry.dataSlot,
+        "data-state": "open",
+        "data-motion": motionDirection,
+        className: activeEntry.className,
+      }
+    : null;
+
+  const activeContentElement = activeEntry && contentProps
+    ? activeEntry.asChild
+      ? cloneAndMerge(activeEntry.node, contentProps)
+      : renderElement(activeEntry.render, "div", {
+          ...contentProps,
+          children: activeEntry.node,
+        })
+    : null;
+  const activeContent = activeContentElement && value
+    ? <Fragment key={value}>{activeContentElement}</Fragment>
+    : null;
+
+  const viewportProps: Record<string, unknown> = {
     ...restProps,
     ref: composedRef,
     "data-slot": dataSlot,
@@ -157,20 +189,14 @@ export const NavigationMenuViewport = forwardRef<
     style: viewportStyle,
     onPointerEnter: composeEventHandlers(onPointerEnter, handlePointerEnter),
     onPointerLeave: composeEventHandlers(onPointerLeave, handlePointerLeave),
-    children: activeEntry ? (
-      <div
-        {...activeEntry.props}
-        ref={activeContentRef}
-        id={contentId}
-        tabIndex={-1}
-        data-slot={activeEntry.dataSlot}
-        data-state="open"
-        data-motion={motionDirection}
-        key={value}
-        className={activeEntry.className}
-      >
-        {activeEntry.node}
-      </div>
-    ) : null,
+  };
+
+  if (asChild) {
+    return cloneAndMerge(children, { ...viewportProps, children: activeContent });
+  }
+
+  return renderElement(render, "div", {
+    ...viewportProps,
+    children: activeContent,
   });
 });

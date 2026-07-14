@@ -8,13 +8,18 @@ import {
 } from "react";
 import { useNavigationMenuContext } from "./context.js";
 import type { NativeAnchorProps } from "../../utils/dom.js";
-import { cloneAndMerge } from "../../utils/slot.js";
+import {
+  cloneAndMerge,
+  renderElement,
+  type RenderProp,
+} from "../../utils/slot.js";
 
 type NavigationMenuLinkNativeProps = NativeAnchorProps<"children" | "href">;
 
 export interface NavigationMenuLinkProps extends NavigationMenuLinkNativeProps {
   children: ReactNode;
   asChild?: boolean;
+  render?: RenderProp;
   href?: string;
   active?: boolean;
   onSelect?: () => void;
@@ -29,6 +34,7 @@ export const NavigationMenuLink = forwardRef<
   {
     children,
     asChild,
+    render,
     href,
     active = false,
     onSelect,
@@ -68,5 +74,5 @@ export const NavigationMenuLink = forwardRef<
     return cloneAndMerge(children, behaviorProps);
   }
 
-  return <a {...behaviorProps}>{children}</a>;
+  return renderElement(render, "a", { ...behaviorProps, children });
 });

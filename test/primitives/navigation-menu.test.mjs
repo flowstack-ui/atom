@@ -209,6 +209,103 @@ test("NavigationMenu primitives allow custom data-slot overrides", () => {
   assert.match(html, /data-slot="custom-navigation-viewport"/);
 });
 
+test("NavigationMenu primitives support custom render elements", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      NavigationMenuRoot,
+      {
+        defaultValue: "products",
+        render: "header",
+      },
+      React.createElement(
+        NavigationMenuList,
+        { render: "ol" },
+        React.createElement(
+          NavigationMenuItem,
+          { value: "products", render: "div" },
+          React.createElement(NavigationMenuTrigger, null, "Products"),
+          React.createElement(
+            NavigationMenuContent,
+            { render: "section" },
+            "Product panel",
+          ),
+        ),
+        React.createElement(
+          NavigationMenuItem,
+          { value: "docs" },
+          React.createElement(
+            NavigationMenuLink,
+            { href: "/docs", render: "button" },
+            "Docs",
+          ),
+        ),
+      ),
+      React.createElement(NavigationMenuViewport, { render: "aside" }),
+    ),
+  );
+
+  assert.match(html, /^<header/);
+  assert.match(html, /<ol role="list" data-slot="navigation-menu-list"/);
+  assert.match(html, /<div data-slot="navigation-menu-item"/);
+  assert.match(html, /<section[^>]+data-slot="navigation-menu-content"/);
+  assert.match(html, /<button[^>]+data-slot="navigation-menu-link"/);
+  assert.match(html, /<aside[^>]+data-slot="navigation-menu-viewport"/);
+});
+
+test("NavigationMenu primitives support asChild element overrides", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      NavigationMenuRoot,
+      {
+        defaultValue: "products",
+        asChild: true,
+      },
+      React.createElement(
+        "section",
+        { "data-root-child": "true" },
+        React.createElement(
+          NavigationMenuList,
+          { asChild: true },
+          React.createElement(
+            "ol",
+            { "data-list-child": "true" },
+            React.createElement(
+              NavigationMenuItem,
+              { value: "products", asChild: true },
+              React.createElement(
+                "div",
+                { "data-item-child": "true" },
+                React.createElement(NavigationMenuTrigger, null, "Products"),
+                React.createElement(
+                  NavigationMenuContent,
+                  { asChild: true },
+                  React.createElement(
+                    "section",
+                    { "data-content-child": "true" },
+                    "Product panel",
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        React.createElement(
+          NavigationMenuViewport,
+          { asChild: true },
+          React.createElement("aside", { "data-viewport-child": "true" }),
+        ),
+      ),
+    ),
+  );
+
+  assert.match(html, /^<section data-root-child="true" data-slot="navigation-menu"/);
+  assert.match(html, /<ol data-list-child="true" role="list" data-slot="navigation-menu-list"/);
+  assert.match(html, /<div data-item-child="true" data-slot="navigation-menu-item"/);
+  assert.match(html, /<section data-content-child="true"[^>]+data-slot="navigation-menu-content"/);
+  assert.match(html, /<aside data-viewport-child="true"[^>]+data-slot="navigation-menu-viewport"/);
+  assert.match(html, /Product panel/);
+});
+
 test("NavigationMenu exposes trigger geometry helpers for indicator and viewport CSS variables", () => {
   const geometry = getNavigationMenuGeometry({
     rootRect: { left: 100, top: 50, width: 600, height: 80 },
@@ -355,6 +452,10 @@ test("NavigationMenu source keeps context and registration stable", async () => 
     new URL("src/primitives/navigation-menu/NavigationMenuContent.tsx", packageRoot),
     "utf8",
   );
+  const viewportSource = await readFile(
+    new URL("src/primitives/navigation-menu/NavigationMenuViewport.tsx", packageRoot),
+    "utf8",
+  );
 
   assert.match(rootSource, /const contextValue: NavigationMenuContextValue = useMemo/);
   assert.match(rootSource, /const contextDir = useDirection\(\)/);
@@ -396,6 +497,10 @@ test("NavigationMenu source keeps context and registration stable", async () => 
   assert.match(contentSource, /const \{ registerContentNode, unregisterContentNode \} = ctx/);
   assert.match(contentSource, /dataSlot,/);
   assert.match(contentSource, /props: restProps/);
+  assert.match(contentSource, /render,/);
+  assert.match(contentSource, /asChild,/);
+  assert.match(viewportSource, /activeEntry\.asChild/);
+  assert.match(viewportSource, /renderElement\(activeEntry\.render, "div"/);
   assert.match(contentSource, /\}, \[unregisterContentNode, value\]\)/);
   assert.doesNotMatch(itemSource, /\}, \[ctx, value\]\)/);
   assert.doesNotMatch(triggerSource, /ctx\.registerTrigger\(value, el\)/);

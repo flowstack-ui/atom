@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added standard `asChild`/`render` customization support to the remaining
+  `NavigationMenu` parts, including viewport-rendered content.
 - Fixed `data-slot` override support across `NavigationMenu` parts,
   including viewport-rendered content.
 - Added horizontal trigger roving keyboard navigation for `NavigationMenu`,

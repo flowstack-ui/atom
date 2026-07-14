@@ -53,6 +53,8 @@ Contains the navigation menu.
 | `skipDelayDuration` | `number` | `300` |
 | `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` |
 | `dir` | `"ltr" \| "rtl"` | `Direction.Provider` |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
 
 | Data attribute | Values |
 | --- | --- |
@@ -63,9 +65,15 @@ Contains the navigation menu.
 
 Renders the item list.
 
+| Prop | Type | Default |
+| --- | --- | --- |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"navigation-menu-list"` |
+| `[data-orientation]` | `"horizontal" \| "vertical"` |
 
 ### Item
 
@@ -74,6 +82,8 @@ Provides a value scope for a trigger/content pair or link.
 | Prop | Type | Default |
 | --- | --- | --- |
 | `value` | `string` | required |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
 
 | Data attribute | Values |
 | --- | --- |
@@ -99,6 +109,14 @@ Controls a content panel.
 
 Registers panel content for the shared viewport.
 
+`Content` does not render at its declaration site. Its `asChild` and `render`
+customize the content wrapper rendered by `Viewport`.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"navigation-menu-content"` |
@@ -114,6 +132,7 @@ Renders a navigation link.
 | `active` | `boolean` | `false` |
 | `onSelect` | `() => void` | - |
 | `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
 
 | Data attribute | Values |
 | --- | --- |
@@ -131,6 +150,8 @@ Renders an optional active trigger indicator.
 | Prop | Type | Default |
 | --- | --- | --- |
 | `forceMount` | `boolean` | `false` |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
 
 | Data attribute | Values |
 | --- | --- |

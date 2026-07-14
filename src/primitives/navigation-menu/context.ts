@@ -2,13 +2,16 @@
 
 import { createContext, useContext, type ReactNode, type RefObject } from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
+import type { RenderProp } from "../../utils/slot.js";
 import type { DirectionValue } from "../direction/index.js";
 
 export interface ContentNodeEntry {
   node: ReactNode;
+  asChild?: boolean;
   className?: string;
   dataSlot?: string;
   props?: NativeDivProps<"children">;
+  render?: RenderProp;
 }
 
 export interface NavigationMenuContextValue {

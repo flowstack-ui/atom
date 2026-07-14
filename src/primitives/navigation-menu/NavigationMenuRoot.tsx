@@ -13,7 +13,12 @@ import {
 import { useCollection } from "../../collection.js";
 import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
 import type { NativeNavProps } from "../../utils/dom.js";
-import { composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
+import {
+  cloneAndMerge,
+  composeRefs,
+  renderElement,
+  type RenderProp,
+} from "../../utils/slot.js";
 import { useDirection, type DirectionValue } from "../direction/index.js";
 import {
   NavigationMenuContextProvider,
@@ -25,6 +30,7 @@ type NavigationMenuRootNativeProps = NativeNavProps<"children" | "defaultValue" 
 
 export interface NavigationMenuRootProps extends NavigationMenuRootNativeProps {
   children: ReactNode;
+  asChild?: boolean;
   render?: RenderProp;
   value?: string | null;
   defaultValue?: string;
@@ -44,6 +50,7 @@ export const NavigationMenuRoot = forwardRef<
 >(function NavigationMenuRoot(
   {
     children,
+    asChild,
     render,
     value: controlledValue,
     defaultValue,
@@ -270,10 +277,12 @@ export const NavigationMenuRoot = forwardRef<
 
   return (
     <NavigationMenuContextProvider value={contextValue}>
-      {renderElement(render, "nav", {
-        ...behaviorProps,
-        children,
-      })}
+      {asChild
+        ? cloneAndMerge(children, behaviorProps)
+        : renderElement(render, "nav", {
+            ...behaviorProps,
+            children,
+          })}
     </NavigationMenuContextProvider>
   );
 });
