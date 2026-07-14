@@ -286,6 +286,8 @@ test("DataGrid source uses Collection and keeps keyboard navigation in Root", as
   assert.match(rootSource, /data-focused/);
   assert.match(rootSource, /wrapRows = false/);
   assert.match(rootSource, /if \(!wrapRows\) return;/);
+  assert.match(rootSource, /for \(let offset = 1; offset < rowIndexes\.length; offset \+= 1\)/);
+  assert.match(rootSource, /cell\.data\.columnIndex === current\.columnIndex/);
   assert.match(rootSource, /if \(row && !row\.data\.selectable\) return;/);
   assert.match(rootSource, /selectRow\(item\.data\.rowValue\)/);
   assert.match(rowSource, /selectable = true/);

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed vertical keyboard navigation to preserve the active column while
+  skipping disabled cells in intervening rows.
 - Added `DataGrid.Row selectable` behavior with `data-selectable` and
   `data-selection-disabled` attributes so rows can opt out of selection without
   being disabled.

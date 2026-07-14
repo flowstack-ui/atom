@@ -399,7 +399,24 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
 
         const normalizedRowIndex = ((nextRowIndex % rowIndexes.length) + rowIndexes.length) % rowIndexes.length;
         const targetRow = rows.get(rowIndexes[normalizedRowIndex]);
-        const target = targetRow ? getClosestColumnCell(targetRow, current.columnIndex) : null;
+        let target = targetRow ? getClosestColumnCell(targetRow, current.columnIndex) : null;
+        const rowStep = direction === "down" ? 1 : -1;
+
+        for (let offset = 1; offset < rowIndexes.length; offset += 1) {
+          const candidateRowIndex = rowIndex + rowStep * offset;
+          if (!loop && (candidateRowIndex < 0 || candidateRowIndex >= rowIndexes.length)) break;
+
+          const normalizedCandidateIndex = ((candidateRowIndex % rowIndexes.length) + rowIndexes.length) % rowIndexes.length;
+          const candidateRow = rows.get(rowIndexes[normalizedCandidateIndex]);
+          const sameColumnCell = candidateRow?.find(
+            (cell) => cell.data.columnIndex === current.columnIndex,
+          );
+          if (sameColumnCell) {
+            target = sameColumnCell;
+            break;
+          }
+        }
+
         if (target) focusCell(target.data.rowIndex, target.data.columnIndex);
       },
       [activeCell, focusCell, getItems, loop, wrapRows],

@@ -176,7 +176,7 @@ Implements the WAI-ARIA grid pattern with root focus and `aria-activedescendant`
 | Key | Description |
 | --- | --- |
 | `ArrowRight` / `ArrowLeft` | Moves between cells in a row; mirrored when `dir="rtl"` |
-| `ArrowDown` / `ArrowUp` | Moves between rows |
+| `ArrowDown` / `ArrowUp` | Moves between rows in the same column, skipping disabled cells |
 | `Home` / `End` | Moves within a row |
 | `Ctrl+Home` / `Ctrl+End` | Moves to first or last cell |
 | `Enter` / `Space` | Selects the active row when selection is enabled |
