@@ -12,6 +12,9 @@ change. Track changes under `Unreleased` until the next publish is prepared.
 - Update every affected component `CHANGELOG.md`.
 - Update public docs when behavior, accessibility, anatomy, or semantics change.
 - Update playground coverage when the playground exposes or verifies the change.
+- Do not create a playground release solely because Atom is being published.
+  Playground changes follow their independent changelog and release policy in
+  [`../../playground/docs/versioning.md`](../../playground/docs/versioning.md).
 - When ready to publish, convert `Unreleased` entries into the target version,
   then bump `package.json` and `package-lock.json` in the release commit.
 

@@ -8,6 +8,10 @@ tests real browser behavior that package tests cannot fully show: focus,
 keyboard flow, pointer interaction, portals, form participation, controlled and
 uncontrolled state, and live DOM attributes.
 
+The current stable playground baseline is `1.0.0`. Its version is independent
+from the Atom npm package. Release history and version policy live in
+`CHANGELOG.md` and `docs/versioning.md`.
+
 Detailed documentation starts at `docs/README.md`.
 
 ## Current Structure

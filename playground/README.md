@@ -8,7 +8,13 @@ code. It is repo-only and is not included in the npm package.
 - [docs/README.md](docs/README.md) - complete playground documentation index.
 - [CURRENT.md](CURRENT.md) - current playground status and conventions.
 - [TODO.md](TODO.md) - active unfinished playground work.
+- [CHANGELOG.md](CHANGELOG.md) - versioned playground release history.
+- [docs/versioning.md](docs/versioning.md) - independent versioning, changelog,
+  and release policy.
 - [AGENTS.md](AGENTS.md) - AI-agent router for this folder.
+
+The current playground release is `1.0.0`. Playground versions are independent
+from `@flowstack-ui/atom` package versions and are never published to npm.
 
 ## Run
 

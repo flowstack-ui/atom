@@ -22,10 +22,14 @@ listing every document individually.
 - [workflow.md](workflow.md) - standard component completion workflow and issue
   classification, including the Component Contract Audit and step-by-step Manual
   Test Protocol execution.
+- [versioning.md](versioning.md) - canonical playground versioning, changelog,
+  release ownership, and release checklist.
 
 ## Ownership
 
 - Playground-specific implementation rules live in this documentation set.
+- Playground versioning and releases follow [versioning.md](versioning.md), and
+  release history lives in [../CHANGELOG.md](../CHANGELOG.md).
 - Shared developer tooling lives in
   [../../../docs/tooling.md](../../../docs/tooling.md).
 - Manual Test Protocol authoring rules live in

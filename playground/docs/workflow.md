@@ -22,7 +22,8 @@ update.
 10. Execute it step by step.
 11. Fix issues and repeat testing until complete.
 12. Update final workbook statuses.
-13. Commit component work.
+13. Classify and record meaningful changes under the correct changelog's
+    `Unreleased` section, then commit component work.
 14. Review the draft protocol.
 15. Promote the reviewed protocol.
 16. Commit the reviewed protocol.
@@ -344,6 +345,18 @@ npm run playground:build
 
 When changes reveal or require package source fixes, follow the package-level
 verification rules from the Atom package docs and changelogs.
+
+Before committing, classify change tracking:
+
+- Update `playground/CHANGELOG.md` when the change meaningfully affects how a
+  tester or maintainer uses, understands, or trusts the playground.
+- Update the Atom package and affected component changelogs for Atom behavior
+  or public API changes.
+- Update both histories when both products changed.
+- Do not add changelog entries for routine refactors with no observable effect.
+- Do not bump the playground version during ordinary component work. Keep
+  changes under `Unreleased` until a coherent release is prepared using
+  [versioning.md](versioning.md).
 
 Commit the component only after implementation, manual testing, workbook status,
 and verification are complete.

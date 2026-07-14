@@ -236,6 +236,9 @@ intentionally outside Atom.
 - Component docs live in `docs/components/`.
 - Architecture docs live in `docs/architecture/`.
 - Release checks live in `docs/guides/release-checklist.md`.
+- The repo-only playground has an independent
+  [changelog](playground/CHANGELOG.md) and
+  [versioning policy](playground/docs/versioning.md).
 
 ## Development
 

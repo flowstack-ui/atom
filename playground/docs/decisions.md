@@ -11,6 +11,16 @@ keeps it free to expose debugging surfaces, logs, and coverage-specific controls
 without changing the public package. The alternative would be mixing this
 material into package docs, which would make the public docs too noisy.
 
+## Independent Playground Releases
+
+The playground has its own semantic version line because its workbench,
+coverage model, protocols, and inspection contracts can change independently
+from the public Atom package. Playground releases use namespaced annotated Git
+tags such as `playground-v1.0.0`; Atom package tags keep their existing names.
+This avoids false coupling between testing milestones and npm publication while
+keeping both histories in the same repository. The canonical policy and
+release checklist live in [versioning.md](versioning.md).
+
 ## Public Imports With Local Source Resolution
 
 Scenarios import Atom through public package paths, while Vite maps those paths

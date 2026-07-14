@@ -31,3 +31,7 @@ maintainer documentation lives in `../../docs/`.
 - [Release Checklist](guides/release-checklist.md) - publish checks and
   changelog expectations.
 - [Package Changelog](../CHANGELOG.md) - package-level version history.
+- [Playground Versioning](../playground/docs/versioning.md) - independent
+  versioning and release policy for the repo-only browser workbench.
+- [Playground Changelog](../playground/CHANGELOG.md) - playground release
+  history.
