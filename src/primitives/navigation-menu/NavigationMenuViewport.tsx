@@ -33,6 +33,7 @@ export interface NavigationMenuViewportProps extends NavigationMenuViewportNativ
   render?: RenderProp;
   forceMount?: boolean;
   className?: string;
+  "data-slot"?: string;
 }
 
 function computeMotionDirection(
@@ -61,6 +62,7 @@ export const NavigationMenuViewport = forwardRef<
     style,
     onPointerEnter,
     onPointerLeave,
+    "data-slot": dataSlot = "navigation-menu-viewport",
     ...restProps
   },
   ref,
@@ -148,7 +150,7 @@ export const NavigationMenuViewport = forwardRef<
   return renderElement(render, "div", {
     ...restProps,
     ref: composedRef,
-    "data-slot": "navigation-menu-viewport",
+    "data-slot": dataSlot,
     "data-state": isOpen ? "open" : "closed",
     "data-orientation": orientation,
     className,
@@ -161,7 +163,7 @@ export const NavigationMenuViewport = forwardRef<
         ref={activeContentRef}
         id={contentId}
         tabIndex={-1}
-        data-slot="navigation-menu-content"
+        data-slot={activeEntry.dataSlot}
         data-state="open"
         data-motion={motionDirection}
         key={value}

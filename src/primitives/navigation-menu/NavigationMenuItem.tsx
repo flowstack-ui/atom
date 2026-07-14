@@ -14,12 +14,22 @@ export interface NavigationMenuItemProps extends NavigationMenuItemNativeProps {
   children: ReactNode;
   value: string;
   className?: string;
+  "data-slot"?: string;
 }
 
 export const NavigationMenuItem = forwardRef<
   HTMLLIElement,
   NavigationMenuItemProps
->(function NavigationMenuItem({ children, value, className, ...restProps }, ref) {
+>(function NavigationMenuItem(
+  {
+    children,
+    value,
+    className,
+    "data-slot": dataSlot = "navigation-menu-item",
+    ...restProps
+  },
+  ref,
+) {
   const ctx = useNavigationMenuContext();
   const { registerItem, unregisterItem } = ctx;
 
@@ -35,7 +45,7 @@ export const NavigationMenuItem = forwardRef<
       <li
         {...restProps}
         ref={ref}
-        data-slot="navigation-menu-item"
+        data-slot={dataSlot}
         className={className}
       >
         {children}

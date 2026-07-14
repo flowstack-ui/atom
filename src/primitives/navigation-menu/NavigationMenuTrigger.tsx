@@ -33,6 +33,7 @@ export interface NavigationMenuTriggerProps extends NavigationMenuTriggerNativeP
   render?: RenderProp;
   disabled?: boolean;
   className?: string;
+  "data-slot"?: string;
 }
 
 export const NavigationMenuTrigger = forwardRef<
@@ -49,6 +50,7 @@ export const NavigationMenuTrigger = forwardRef<
     onPointerEnter,
     onPointerLeave,
     onKeyDown,
+    "data-slot": dataSlot = "navigation-menu-trigger",
     ...restProps
   },
   ref,
@@ -253,7 +255,7 @@ export const NavigationMenuTrigger = forwardRef<
     ...restProps,
     ref: composedRef,
     type: "button",
-    "data-slot": "navigation-menu-trigger",
+    "data-slot": dataSlot,
     "data-state": isOpen ? "open" : "closed",
     "data-disabled": disabled ? "" : undefined,
     "aria-expanded": isOpen,

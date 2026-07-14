@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed `data-slot` override support across `NavigationMenu` parts,
+  including viewport-rendered content.
 - Added horizontal trigger roving keyboard navigation for `NavigationMenu`,
   including RTL-mirrored ArrowLeft and ArrowRight handling.
 - Added `Direction.Provider` fallback for `NavigationMenu.Root` direction.

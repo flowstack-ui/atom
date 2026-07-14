@@ -37,6 +37,7 @@ export interface NavigationMenuSubProps extends NavigationMenuSubNativeProps {
   onValueChange?: (value: string | null) => void;
   orientation?: "horizontal" | "vertical";
   className?: string;
+  "data-slot"?: string;
 }
 
 export const NavigationMenuSub = forwardRef<
@@ -52,6 +53,7 @@ export const NavigationMenuSub = forwardRef<
     onValueChange,
     orientation,
     className,
+    "data-slot": dataSlot = "navigation-menu-sub",
     ...restProps
   },
   ref,
@@ -250,7 +252,7 @@ export const NavigationMenuSub = forwardRef<
   const behaviorProps: Record<string, unknown> = {
     ...restProps,
     ref: composedRef,
-    "data-slot": "navigation-menu-sub",
+    "data-slot": dataSlot,
     "data-orientation": subOrientation,
     dir: parentCtx.dir,
     className,

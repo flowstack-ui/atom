@@ -37,6 +37,7 @@ export interface NavigationMenuIndicatorProps
   render?: RenderProp;
   forceMount?: boolean;
   className?: string;
+  "data-slot"?: string;
 }
 
 export const NavigationMenuIndicator = forwardRef<
@@ -50,6 +51,7 @@ export const NavigationMenuIndicator = forwardRef<
     forceMount = false,
     className,
     style,
+    "data-slot": dataSlot = "navigation-menu-indicator",
     ...restProps
   },
   ref,
@@ -123,7 +125,7 @@ export const NavigationMenuIndicator = forwardRef<
     ...restProps,
     ref: composedRef,
     "aria-hidden": true,
-    "data-slot": "navigation-menu-indicator",
+    "data-slot": dataSlot,
     "data-state": isVisible ? "visible" : "hidden",
     "data-orientation": orientation,
     className,

@@ -9,12 +9,21 @@ type NavigationMenuListNativeProps = NativeListProps<"children" | "role">;
 export interface NavigationMenuListProps extends NavigationMenuListNativeProps {
   children: ReactNode;
   className?: string;
+  "data-slot"?: string;
 }
 
 export const NavigationMenuList = forwardRef<
   HTMLUListElement,
   NavigationMenuListProps
->(function NavigationMenuList({ children, className, ...restProps }, ref) {
+>(function NavigationMenuList(
+  {
+    children,
+    className,
+    "data-slot": dataSlot = "navigation-menu-list",
+    ...restProps
+  },
+  ref,
+) {
   const ctx = useNavigationMenuContext();
 
   return (
@@ -22,7 +31,7 @@ export const NavigationMenuList = forwardRef<
       {...restProps}
       ref={ref}
       role="list"
-      data-slot="navigation-menu-list"
+      data-slot={dataSlot}
       data-orientation={ctx.orientation}
       className={className}
     >

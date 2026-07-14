@@ -152,6 +152,63 @@ test("NavigationMenu primitives render landmark, trigger, link, and active viewp
   assert.match(html, /Product panel/);
 });
 
+test("NavigationMenu primitives allow custom data-slot overrides", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      NavigationMenuRoot,
+      {
+        defaultValue: "products",
+        "data-slot": "custom-navigation-root",
+      },
+      React.createElement(
+        NavigationMenuList,
+        { "data-slot": "custom-navigation-list" },
+        React.createElement(
+          NavigationMenuItem,
+          { value: "products", "data-slot": "custom-navigation-item" },
+          React.createElement(
+            NavigationMenuTrigger,
+            { "data-slot": "custom-navigation-trigger" },
+            "Products",
+          ),
+          React.createElement(
+            NavigationMenuContent,
+            { "data-slot": "custom-navigation-content" },
+            "Product panel",
+          ),
+        ),
+        React.createElement(
+          NavigationMenuItem,
+          { value: "docs" },
+          React.createElement(
+            NavigationMenuLink,
+            {
+              href: "/docs",
+              "data-slot": "custom-navigation-link",
+            },
+            "Docs",
+          ),
+        ),
+      ),
+      React.createElement(NavigationMenuIndicator, {
+        "data-slot": "custom-navigation-indicator",
+      }),
+      React.createElement(NavigationMenuViewport, {
+        "data-slot": "custom-navigation-viewport",
+      }),
+    ),
+  );
+
+  assert.match(html, /data-slot="custom-navigation-root"/);
+  assert.match(html, /data-slot="custom-navigation-list"/);
+  assert.match(html, /data-slot="custom-navigation-item"/);
+  assert.match(html, /data-slot="custom-navigation-trigger"/);
+  assert.match(html, /data-slot="custom-navigation-content"/);
+  assert.match(html, /data-slot="custom-navigation-link"/);
+  assert.match(html, /data-slot="custom-navigation-indicator"/);
+  assert.match(html, /data-slot="custom-navigation-viewport"/);
+});
+
 test("NavigationMenu exposes trigger geometry helpers for indicator and viewport CSS variables", () => {
   const geometry = getNavigationMenuGeometry({
     rootRect: { left: 100, top: 50, width: 600, height: 80 },
@@ -337,7 +394,8 @@ test("NavigationMenu source keeps context and registration stable", async () => 
   assert.match(triggerSource, /"aria-controls": contentId/);
   assert.doesNotMatch(triggerSource, /\},\s*\[ctx\]/);
   assert.match(contentSource, /const \{ registerContentNode, unregisterContentNode \} = ctx/);
-  assert.match(contentSource, /registerContentNode\(value, \{ node: children, className, props: restProps \}\)/);
+  assert.match(contentSource, /dataSlot,/);
+  assert.match(contentSource, /props: restProps/);
   assert.match(contentSource, /\}, \[unregisterContentNode, value\]\)/);
   assert.doesNotMatch(itemSource, /\}, \[ctx, value\]\)/);
   assert.doesNotMatch(triggerSource, /ctx\.registerTrigger\(value, el\)/);

@@ -7,6 +7,7 @@ import type { DirectionValue } from "../direction/index.js";
 export interface ContentNodeEntry {
   node: ReactNode;
   className?: string;
+  dataSlot?: string;
   props?: NativeDivProps<"children">;
 }
 

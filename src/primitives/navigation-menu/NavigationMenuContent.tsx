@@ -12,11 +12,13 @@ type NavigationMenuContentNativeProps = NativeDivProps<"children">;
 export interface NavigationMenuContentProps extends NavigationMenuContentNativeProps {
   children: ReactNode;
   className?: string;
+  "data-slot"?: string;
 }
 
 export function NavigationMenuContent({
   children,
   className,
+  "data-slot": dataSlot = "navigation-menu-content",
   ...restProps
 }: NavigationMenuContentProps) {
   const ctx = useNavigationMenuContext();
@@ -24,7 +26,12 @@ export function NavigationMenuContent({
   const { value } = itemCtx;
   const { registerContentNode, unregisterContentNode } = ctx;
 
-  registerContentNode(value, { node: children, className, props: restProps });
+  registerContentNode(value, {
+    node: children,
+    className,
+    dataSlot,
+    props: restProps,
+  });
 
   useEffect(() => {
     return () => unregisterContentNode(value);

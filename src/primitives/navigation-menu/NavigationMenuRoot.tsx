@@ -35,6 +35,7 @@ export interface NavigationMenuRootProps extends NavigationMenuRootNativeProps {
   dir?: DirectionValue;
   className?: string;
   style?: CSSProperties;
+  "data-slot"?: string;
 }
 
 export const NavigationMenuRoot = forwardRef<
@@ -53,6 +54,7 @@ export const NavigationMenuRoot = forwardRef<
     dir: dirProp,
     className,
     style,
+    "data-slot": dataSlot = "navigation-menu",
     ...restProps
   },
   ref,
@@ -258,7 +260,7 @@ export const NavigationMenuRoot = forwardRef<
   const behaviorProps = {
     ...navigationProps,
     ref: composedRef,
-    "data-slot": "navigation-menu",
+    "data-slot": dataSlot,
     "data-orientation": orientation,
     dir,
     "aria-label": ariaLabel,

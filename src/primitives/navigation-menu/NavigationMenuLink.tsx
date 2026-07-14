@@ -19,6 +19,7 @@ export interface NavigationMenuLinkProps extends NavigationMenuLinkNativeProps {
   active?: boolean;
   onSelect?: () => void;
   className?: string;
+  "data-slot"?: string;
 }
 
 export const NavigationMenuLink = forwardRef<
@@ -33,6 +34,7 @@ export const NavigationMenuLink = forwardRef<
     onSelect,
     className,
     onClick,
+    "data-slot": dataSlot = "navigation-menu-link",
     ...restProps
   },
   ref,
@@ -55,7 +57,7 @@ export const NavigationMenuLink = forwardRef<
     ...restProps,
     ref,
     ...(!asChild && href !== undefined ? { href } : {}),
-    "data-slot": "navigation-menu-link",
+    "data-slot": dataSlot,
     "data-active": active ? "" : undefined,
     "aria-current": active ? "page" : undefined,
     className,

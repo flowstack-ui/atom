@@ -37,6 +37,9 @@ import { NavigationMenu } from "@flowstack-ui/atom";
 
 ## API Reference
 
+Each part that renders DOM emits a default `[data-slot]`. Pass `data-slot`
+to override that value for app-specific styling or test selectors.
+
 ### Root
 
 Contains the navigation menu.
@@ -112,6 +115,15 @@ Renders a navigation link.
 | `onSelect` | `() => void` | - |
 | `asChild` | `boolean` | `false` |
 
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"navigation-menu-link"` |
+| `[data-active]` | Present when active |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-current` | `"page"` when active |
+
 ### Indicator
 
 Renders an optional active trigger indicator.
@@ -119,6 +131,16 @@ Renders an optional active trigger indicator.
 | Prop | Type | Default |
 | --- | --- | --- |
 | `forceMount` | `boolean` | `false` |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"navigation-menu-indicator"` |
+| `[data-state]` | `"visible" \| "hidden"` |
+| `[data-orientation]` | `"horizontal" \| "vertical"` |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-hidden` | `true` |
 
 | CSS variable | Description |
 | --- | --- |
@@ -137,6 +159,12 @@ Renders the active content panel.
 | --- | --- | --- |
 | `forceMount` | `boolean` | `false` |
 
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"navigation-menu-viewport"` |
+| `[data-state]` | `"open" \| "closed"` |
+| `[data-orientation]` | `"horizontal" \| "vertical"` |
+
 | CSS variable | Description |
 | --- | --- |
 | `--atom-navigation-menu-viewport-width` | Active content width |
@@ -151,6 +179,14 @@ Creates a nested navigation menu scope.
 | `value` | `string \| null` | - |
 | `defaultValue` | `string` | - |
 | `onValueChange` | `(value: string \| null) => void` | - |
+| `orientation` | `"horizontal" \| "vertical"` | Parent menu orientation |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"navigation-menu-sub"` |
+| `[data-orientation]` | `"horizontal" \| "vertical"` |
 
 ## Examples
 
