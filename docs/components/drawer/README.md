@@ -1,16 +1,25 @@
 # Drawer
 
-Modal side-sheet dialog behavior with drawer-specific slots and placement metadata.
+Headless modal side-sheet primitives with drawer-specific parts and placement
+metadata.
+
+## When to Use
+
+Use Drawer when a modal task or navigation panel should enter from an edge of
+the screen. Use Dialog when the panel belongs in the center or has no edge
+meaning. Use an ordinary inline panel when the page should remain fully usable
+while it is open. Drawer provides behavior and placement metadata, but your
+application owns its visual position and motion.
 
 ## Features
 
-- Controlled and uncontrolled open state.
-- Trigger, portal, overlay, content, title, description, and close parts.
-- Focus trap, focus restore, Escape dismissal, backdrop dismissal, and scroll lock.
-- Stack-aware Escape dismissal so nested overlays close before the parent drawer.
-- `placement` value exposed as `data-placement` for styling.
-- Keep-mounted content support for exit animations.
-- Headless only: placement does not apply visual positioning by itself.
+- Supports controlled and uncontrolled open state with close reasons.
+- Traps and restores focus, locks scrolling, and contains descendant portals.
+- Supports independent Escape, backdrop, and Overlay dismissal controls.
+- Exposes consumer-provided placement through `[data-placement]`.
+- Supports keep-mounted content for consumer-owned transitions.
+- Provides generated title and description relationships.
+- Remains headless: placement does not apply layout or animation.
 
 ## Import
 
@@ -21,26 +30,25 @@ import { Drawer } from "@flowstack-ui/atom";
 ## Anatomy
 
 ```tsx
-export default () => (
-  <Drawer.Root>
-    <Drawer.Trigger />
-    <Drawer.Portal>
-      <Drawer.Overlay />
-      <Drawer.Content>
-        <Drawer.Title />
-        <Drawer.Description />
-        <Drawer.Close />
-      </Drawer.Content>
-    </Drawer.Portal>
-  </Drawer.Root>
-);
+<Drawer.Root>
+  <Drawer.Trigger />
+  <Drawer.Portal>
+    <Drawer.Overlay />
+    <Drawer.Content>
+      <Drawer.Title />
+      <Drawer.Description />
+      <Drawer.Close />
+    </Drawer.Content>
+  </Drawer.Portal>
+</Drawer.Root>
 ```
 
 ## API Reference
 
 ### Root
 
-Provides drawer state.
+Owns drawer state, dismissal settings, generated IDs, and focus restoration.
+It renders no wrapper.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -54,125 +62,190 @@ Provides drawer state.
 
 ### Trigger
 
-Opens the drawer.
+Opens the drawer. It renders a native `button` by default and supplies button
+semantics when composed onto a custom element.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
-| `data-slot` | `string` | `"drawer-trigger"` |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"button"` for custom elements |
+| `aria-haspopup` | `"dialog"` |
+| `aria-expanded` | Current open state |
+| `aria-controls` | Content ID while open |
+| `aria-disabled` | `"true"` when Root is disabled |
 
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"drawer-trigger"` |
-| `[data-state]` | `"open" | "closed"` |
+| `[data-state]` | `"open" \| "closed"` |
 | `[data-disabled]` | Present when disabled |
 
 ### Portal
 
-Renders overlay and content into a portal.
+Moves Overlay and Content to `document.body` by default without creating a
+wrapper.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `container` | `Element | DocumentFragment | null` | `document.body` |
+| `container` | `Element \| DocumentFragment \| null` | `document.body` |
 | `disabled` | `boolean` | `false` |
 
 ### Overlay
 
-Backdrop layer.
+Renders the accessibility-hidden backdrop. Clicking it closes with reason
+`"backdropClick"` unless Root or this Overlay disables backdrop dismissal.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `disabled` | `boolean` | `false` |
-| `data-slot` | `string` | `"drawer-overlay"` |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-hidden` | `"true"` |
 
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"drawer-overlay"` |
-| `[data-state]` | `"open" | "closed"` |
-| `[data-positioned]` | Present after the first positioning frame |
+| `[data-state]` | `"open" \| "closed"` |
+| `[data-positioned]` | Present after the opening frames |
 
 ### Content
 
-Drawer panel.
+Renders the focus-trapped panel as a `div`. `placement` is copied to a data
+attribute only; it does not apply positioning.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `placement` | `string` | - |
 | `ariaLabel` | `string` | - |
-| `data-slot` | `string` | `"drawer-content"` |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"dialog"` |
+| `aria-modal` | `"true"` while visible |
+| `aria-label` | Value from `ariaLabel` |
+| `aria-labelledby` | Generated Title ID when `ariaLabel` is absent |
+| `aria-describedby` | Generated Description ID |
 
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"drawer-content"` |
-| `[data-state]` | `"open" | "closed"` |
-| `[data-placement]` | Consumer-provided placement |
-| `[data-positioned]` | Present after the first positioning frame |
+| `[data-state]` | `"open" \| "closed"` |
+| `[data-placement]` | Consumer-provided placement string |
+| `[data-positioned]` | Present after the opening frames |
+
+With `keepMounted`, closed Content remains inside a hidden, `aria-hidden`
+wrapper and preserves its class name and placement metadata.
 
 ### Title
 
-Accessible drawer title.
+Provides the heading referenced by Content. It renders an `h2` by default.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `as` | `"h1" | "h2" | "h3" | "h4" | "h5" | "h6"` | `"h2"` |
-| `data-slot` | `string` | `"drawer-title"` |
+| `as` | `"h1" \| "h2" \| "h3" \| "h4" \| "h5" \| "h6"` | `"h2"` |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"drawer-title"` |
 
 ### Description
 
-Accessible drawer description.
+Provides supporting text referenced by Content. It renders a native `p`.
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `data-slot` | `string` | `"drawer-description"` |
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"drawer-description"` |
 
 ### Close
 
-Closes the drawer with `reason: "closeClick"`.
+Closes Root with reason `"closeClick"`. It renders a native `button` by
+default and supports custom composition.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
-| `data-slot` | `string` | `"drawer-close"` |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"drawer-close"` |
+
+The Drawer entry point also exports `useModalContext` and `useModalContent` for
+advanced custom modal parts. The namespaced parts are preferred for ordinary
+drawers because they provide the complete contract above.
 
 ## Examples
 
-### Left Drawer
+### Navigation Drawer
 
 ```tsx
-<Drawer.Root>
-  <Drawer.Trigger>Open navigation</Drawer.Trigger>
-  <Drawer.Portal>
-    <Drawer.Overlay />
-    <Drawer.Content placement="left" ariaLabel="Navigation">
-      <Drawer.Title>Navigation</Drawer.Title>
-      <Drawer.Close>Close</Drawer.Close>
-    </Drawer.Content>
-  </Drawer.Portal>
-</Drawer.Root>
+import { Drawer } from "@flowstack-ui/atom";
+
+export function NavigationDrawer() {
+  return (
+    <Drawer.Root>
+      <Drawer.Trigger>Open navigation</Drawer.Trigger>
+      <Drawer.Portal>
+        <Drawer.Overlay />
+        <Drawer.Content placement="left">
+          <Drawer.Title>Navigation</Drawer.Title>
+          <Drawer.Description>Choose an area of the application.</Drawer.Description>
+          <nav aria-label="Primary">
+            <a href="/projects">Projects</a>
+            <a href="/settings">Settings</a>
+          </nav>
+          <Drawer.Close>Close navigation</Drawer.Close>
+        </Drawer.Content>
+      </Drawer.Portal>
+    </Drawer.Root>
+  );
+}
 ```
 
-### Keep Mounted for Transitions
+### Controlled Drawer
 
 ```tsx
-<Drawer.Root keepMounted>
-  <Drawer.Trigger>Open</Drawer.Trigger>
-  <Drawer.Content placement="right">...</Drawer.Content>
-</Drawer.Root>
+import { useState } from "react";
+import { Drawer } from "@flowstack-ui/atom";
+
+export function ControlledDrawer() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Drawer.Root open={open} onOpenChange={setOpen}>
+      <Drawer.Trigger>Show filters</Drawer.Trigger>
+      <Drawer.Portal>
+        <Drawer.Overlay />
+        <Drawer.Content placement="right">
+          <Drawer.Title>Filters</Drawer.Title>
+          <Drawer.Description>Narrow the visible results.</Drawer.Description>
+          <Drawer.Close>Apply filters</Drawer.Close>
+        </Drawer.Content>
+      </Drawer.Portal>
+    </Drawer.Root>
+  );
+}
 ```
 
 ## Accessibility
 
-Drawer uses modal dialog behavior. It should have an accessible name from `Drawer.Title` or an `ariaLabel` on content.
-Focus remains contained inside the drawer scope, including registered portalled
-layers opened by descendants.
+Drawer uses the
+[WAI-ARIA Modal Dialog pattern](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/).
+Give every drawer a Title or `ariaLabel`, and add Description when the purpose
+needs more explanation. Focus moves inside on open, stays within the drawer and
+its registered descendant portals, and returns after close.
 
 | Key | Description |
 | --- | --- |
-| `Escape` | Closes the drawer when `closeOnEscape` is enabled. |
-| `Tab` | Moves focus to the next focusable element inside the drawer. |
-| `Shift+Tab` | Moves focus to the previous focusable element inside the drawer. |
+| `Escape` | Closes the topmost drawer when `closeOnEscape` is enabled. |
+| `Tab` | Moves to the next focusable element in the drawer scope. |
+| `Shift+Tab` | Moves to the previous focusable element in the drawer scope. |
+| `Enter` / `Space` | Opens from Trigger and activates native button controls. |
 
 ## Changelog
 

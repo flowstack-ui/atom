@@ -1,13 +1,22 @@
 # Divider
 
-Decorative or semantic separator primitive.
+Headless primitive for separating nearby content visually or semantically.
+
+## When to Use
+
+Use Divider to show that two groups of content are separate. Keep it decorative
+when the line only helps sighted users. Make it semantic when the separation is
+important to understanding the page. Do not use Divider as a draggable resize
+handle; an interactive splitter needs value state and keyboard controls that
+Divider does not provide.
 
 ## Features
 
-- Renders `hr` when it has no children and `div` when it contains content.
-- Defaults to decorative output.
-- Supports horizontal and vertical semantic orientation.
-- Supports `asChild` and `render`.
+- Supports horizontal and vertical orientation.
+- Defaults to decorative semantics.
+- Uses `hr` by default when it has no children.
+- Uses `div` by default when it contains a label or other children.
+- Preserves native props and supports custom rendering.
 
 ## Import
 
@@ -25,14 +34,21 @@ import { Divider } from "@flowstack-ui/atom";
 
 ### Root
 
-Separates content visually or semantically.
+Creates the dividing boundary. Set `decorative={false}` when assistive
+technology should perceive it as a separator.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `asChild` | `boolean` | `false` |
-| `render` | `RenderProp` | - |
 | `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` |
 | `decorative` | `boolean` | `true` |
+| `children` | `ReactNode` | - |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"none"` when decorative; `"separator"` otherwise |
+| `aria-orientation` | `"vertical"` for a semantic vertical separator; horizontal is the ARIA default |
 
 | Data attribute | Values |
 | --- | --- |
@@ -40,29 +56,45 @@ Separates content visually or semantically.
 
 ## Examples
 
-### Decorative divider
+### Decorative Divider
 
 ```tsx
-<Divider.Root />
+import { Divider } from "@flowstack-ui/atom";
+
+export function AccountSections() {
+  return (
+    <section>
+      <p>Profile settings</p>
+      <Divider.Root />
+      <p>Security settings</p>
+    </section>
+  );
+}
 ```
 
-### Semantic vertical separator
+### Named Semantic Divider
 
 ```tsx
-<Divider.Root decorative={false} orientation="vertical" />
-```
+import { Divider } from "@flowstack-ui/atom";
 
-### Labeled divider
-
-```tsx
-<Divider.Root>Section</Divider.Root>
+export function ReportSections() {
+  return (
+    <section>
+      <p>Current results</p>
+      <Divider.Root decorative={false} aria-label="Archived results" />
+      <p>Archived results</p>
+    </section>
+  );
+}
 ```
 
 ## Accessibility
 
-Decorative dividers render with `role="none"`. Set `decorative={false}` when
-the separator communicates structure. Vertical semantic separators receive
-`aria-orientation="vertical"`.
+A semantic Divider uses the
+[WAI-ARIA Separator pattern](https://www.w3.org/WAI/ARIA/apg/patterns/separator/).
+Decorative dividers are removed from the accessibility tree with `role="none"`.
+Semantic dividers are static separators, not focusable widgets, so Divider owns
+no keyboard interaction.
 
 ## Changelog
 

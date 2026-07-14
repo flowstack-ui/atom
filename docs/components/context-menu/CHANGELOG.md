@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Expanded all twelve ContextMenu parts locally with inherited Menu props,
+  ARIA and data contracts, RTL keyboard behavior, and copy-ready examples.
+
 - Fixed `Trigger` so custom `data-slot` values override the default
   `context-menu-trigger` slot.
 - Inherited fixed submenu keyboard behavior under `Direction.Provider dir="rtl"`

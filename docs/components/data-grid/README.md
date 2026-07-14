@@ -1,17 +1,26 @@
 # DataGrid
 
-Headless ARIA grid primitives for cell navigation and optional row selection.
+Headless ARIA grid primitives for two-dimensional cell navigation and optional
+row selection.
+
+## When to Use
+
+Use DataGrid when users must move through rows and columns with the keyboard or
+select rows in an interactive table. Use a native `table` when people only need
+to read data; native tables are simpler and already accessible. Use TreeGrid
+when rows expand into a hierarchy. DataGrid does not provide sorting logic,
+editing, resizing, filtering, or virtualization—it exposes the states needed
+to connect those application features.
 
 ## Features
 
-- Implements `role="grid"` with row, column header, and gridcell parts.
-- Uses collection registration for DOM-ordered keyboard navigation.
-- Supports RTL-aware horizontal cell navigation.
-- Supports controlled and uncontrolled active cell state.
-- Supports none, single, and multiple row selection modes.
-- Supports row-level selection opt-out for header, footer, and summary rows.
-- Supports row click selection, disabled/read-only state, row and column counts, and optional row wrapping.
-- Keeps sorting models, filtering, resizing, editing, and virtualization outside the primitive.
+- Implements grid, rowgroup, row, columnheader, and gridcell semantics.
+- Keeps focus on Root and identifies the active cell with `aria-activedescendant`.
+- Supports controlled active cell and none, single, or multiple row selection.
+- Navigates in document order while skipping disabled cells.
+- Supports row/column counts, looping, row wrapping, and row-click selection.
+- Mirrors horizontal arrows in RTL.
+- Supports native table rendering plus `asChild` and `render` composition.
 
 ## Import
 
@@ -40,20 +49,24 @@ import { DataGrid } from "@flowstack-ui/atom";
 
 ## API Reference
 
+All rendered parts accept the native props for their default table element and
+support `asChild` and `render`.
+
 ### Root
 
-Contains the grid and owns focus/selection state.
+Renders a focusable `table`, owns active-cell navigation and row selection,
+and provides the grid context.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `value` | `string \| string[] \| null` | - |
-| `defaultValue` | `string \| string[] \| null` | depends on `selectionMode` |
-| `onValueChange` | `(value) => void` | - |
+| `defaultValue` | `string \| string[] \| null` | `[]` for multiple; otherwise `null` |
+| `onValueChange` | `(value: DataGridSelectionValue) => void` | - |
 | `activeCell` | `{ rowIndex: number; columnIndex: number } \| null` | - |
 | `defaultActiveCell` | `{ rowIndex: number; columnIndex: number } \| null` | `null` |
 | `onActiveCellChange` | `(cell) => void` | - |
 | `selectionMode` | `"none" \| "single" \| "multiple"` | `"none"` |
-| `dir` | `"ltr" \| "rtl"` | `Direction.Provider` |
+| `dir` | `"ltr" \| "rtl"` | Direction context |
 | `disabled` | `boolean` | `false` |
 | `readOnly` | `boolean` | `false` |
 | `loop` | `boolean` | `false` |
@@ -61,129 +74,289 @@ Contains the grid and owns focus/selection state.
 | `rowCount` | `number` | - |
 | `columnCount` | `number` | - |
 | `selectOnRowClick` | `boolean` | `false` |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+Counts are truncated to positive integers. Missing or invalid counts are
+announced as `-1`, meaning the total is unknown.
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"grid"` |
+| `aria-activedescendant` | Generated active Cell ID |
+| `aria-colcount` | Normalized count or `-1` |
+| `aria-rowcount` | Normalized count or `-1` |
+| `aria-disabled` | `"true"` when disabled |
+| `aria-readonly` | `"true"` when read only |
+| `aria-multiselectable` | `"true"` in multiple mode |
 
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"data-grid"` |
-| `[data-active]` | Present when an active cell is set |
-| `[data-focused]` | Present when focus is inside the grid |
+| `[data-active]` | Present when an active registered Cell exists |
+| `[data-focused]` | Present while focus is within Root |
 | `[data-disabled]` | Present when disabled |
 | `[data-readonly]` | Present when read only |
-| `[data-column-count]` | Column count when provided |
-| `[data-row-count]` | Row count when provided |
-| `[data-selection-mode]` | `"none" \| "single" \| "multiple"` |
+| `[data-column-count]` | Normalized supplied count |
+| `[data-row-count]` | Normalized supplied count |
+| `[data-selection-mode]` | `"single" \| "multiple"` |
 
-### Header, Body, Footer, Caption
+### Caption
 
-Render grid sections.
-
-| Part | Role | Data slot |
-| --- | --- | --- |
-| `Header` | `rowgroup` | `"data-grid-header"` |
-| `Body` | `rowgroup` | `"data-grid-body"` |
-| `Footer` | `rowgroup` | `"data-grid-footer"` |
-| `Caption` | native caption | `"data-grid-caption"` |
-
-### Row
-
-Renders a grid row.
+Renders the native `caption` that names or summarizes the grid for table users.
 
 | Prop | Type | Default |
 | --- | --- | --- |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"data-grid-caption"` |
+
+### Header
+
+Renders a `thead` row group for heading rows.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"rowgroup"` |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"data-grid-header"` |
+
+### Row
+
+Renders a `tr`, supplies row metadata to its cells, and optionally participates
+in selection. `rowIndex` is one-based; zero-based `index` is converted to one-based.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `value` | `string` | - |
 | `rowIndex` | `number` | - |
 | `index` | `number` | - |
-| `value` | `string` | - |
-| `disabled` | `boolean` | `false` |
 | `selectable` | `boolean` | `true` |
+| `disabled` | `boolean` | `false` |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
 
-Rows without `value` are not selectable. Use `selectable={false}` when a row
-has a value for identity or metadata but should not respond to row click,
-`Enter`, or `Space` selection.
+Rows need `value` to be selectable. `selectable={false}` keeps an identified
+header, footer, or summary row out of selection without disabling its cells.
 
 | ARIA attribute | Values |
 | --- | --- |
 | `role` | `"row"` |
-| `aria-disabled` | `"true"` when disabled |
-| `aria-rowindex` | Normalized `rowIndex` or one-based `index` |
-| `aria-selected` | Selection state when `selectionMode` is not `"none"` |
+| `aria-rowindex` | Normalized one-based row index |
+| `aria-selected` | Row selection state when selection is enabled |
+| `aria-disabled` | `"true"` when Row or Root is disabled |
 
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"data-grid-row"` |
-| `[data-selectable]` | Present when the row has `value`, selection is enabled, and `selectable` is `true` |
-| `[data-selection-disabled]` | Present when selection is enabled and `selectable` is `false` |
-| `[data-row-index]` | Normalized `rowIndex` or one-based `index` |
-| `[data-value]` | Row value when provided |
+| `[data-selectable]` | Present for a selectable valued row |
+| `[data-selection-disabled]` | Present when the row opts out of enabled selection |
+| `[data-row-index]` | Normalized index |
+| `[data-value]` | Row value |
 | `[data-selected]` | Present when selected |
 | `[data-disabled]` | Present when disabled |
 
 ### ColumnHeader
 
-Renders a column header cell.
+Renders a `th` registered as a navigable cell. It exposes sort state but does
+not change sorting when clicked.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `columnIndex` | `number` | - |
 | `index` | `number` | - |
+| `disabled` | `boolean` | `false` |
 | `sortDirection` | `"ascending" \| "descending" \| "none" \| "other"` | - |
-| `disabled` | `boolean` | `false` |
+| `scope` | native `th` scope | `"col"` |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
 
-### Cell
-
-Renders a grid cell.
-
-| Prop | Type | Default |
-| --- | --- | --- |
-| `columnIndex` | `number` | - |
-| `index` | `number` | - |
-| `disabled` | `boolean` | `false` |
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"columnheader"` |
+| `aria-colindex` | Normalized one-based column index |
+| `aria-sort` | Value from `sortDirection` |
+| `aria-selected` | Parent Row selection state when enabled |
+| `aria-disabled` | `"true"` when explicitly, row, or grid disabled |
 
 | Data attribute | Values |
 | --- | --- |
-| `[data-active]` | Present when active and grid-focused |
-| `[data-selected]` | Present when row is selected |
-| `[data-disabled]` | Present when disabled |
+| `[data-slot]` | `"data-grid-column-header"` |
+| `[data-column-index]` | Normalized index |
+| `[data-sort]` | Sort direction when supplied |
+| `[data-active]` | Present when active and Root is focused |
+| `[data-selected]` | Present when its Row is selected |
+| `[data-disabled]` | Present when explicitly, row, or grid disabled |
+
+### Body
+
+Renders a `tbody` row group for the main data rows.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"rowgroup"` |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"data-grid-body"` |
+
+### Cell
+
+Renders a registered `td`. Clicking an enabled indexed Cell makes it active
+and focuses Root; missing indexes make it non-navigable without announcing it
+as disabled.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `columnIndex` | `number` | - |
+| `index` | `number` | - |
+| `disabled` | `boolean` | `false` |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"gridcell"` |
+| `aria-colindex` | Normalized one-based column index |
+| `aria-selected` | Parent Row selection state when enabled |
+| `aria-disabled` | `"true"` when explicitly, row, or grid disabled |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"data-grid-cell"` |
+| `[data-column-index]` | Normalized index |
+| `[data-active]` | Present when active and Root is focused |
+| `[data-selected]` | Present when its Row is selected |
+| `[data-disabled]` | Present when explicitly, row, or grid disabled |
+
+### Footer
+
+Renders a `tfoot` row group for totals and summary rows.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+| ARIA attribute | Values |
+| --- | --- |
+| `role` | `"rowgroup"` |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"data-grid-footer"` |
+
+Advanced custom parts can use the public `useDataGridContext` and
+`useDataGridRowContext` hooks. The row hook returns `null` outside Row; the main
+hook must be used inside Root. Prefer the namespaced parts for standard grids.
 
 ## Examples
 
-### Row Selection
+### Selectable Project Grid
 
 ```tsx
-<DataGrid.Root selectionMode="multiple" defaultValue={["row-1"]}>
-  <DataGrid.Body>
-    <DataGrid.Row rowIndex={1} value="summary" selectable={false}>
-      <DataGrid.Cell columnIndex={1}>Summary</DataGrid.Cell>
-    </DataGrid.Row>
-    <DataGrid.Row rowIndex={2} value="row-1">
-      <DataGrid.Cell columnIndex={1}>Ada</DataGrid.Cell>
-    </DataGrid.Row>
-  </DataGrid.Body>
-</DataGrid.Root>
+import { DataGrid } from "@flowstack-ui/atom";
+
+const projects = [
+  { id: "alpha", name: "Alpha", status: "Ready" },
+  { id: "bravo", name: "Bravo", status: "Review" },
+];
+
+export function ProjectGrid() {
+  return (
+    <DataGrid.Root
+      aria-label="Projects"
+      rowCount={projects.length + 1}
+      columnCount={2}
+      selectionMode="multiple"
+      defaultValue={["alpha"]}
+      selectOnRowClick
+    >
+      <DataGrid.Caption>Current projects</DataGrid.Caption>
+      <DataGrid.Header>
+        <DataGrid.Row rowIndex={1} selectable={false}>
+          <DataGrid.ColumnHeader columnIndex={1}>Name</DataGrid.ColumnHeader>
+          <DataGrid.ColumnHeader columnIndex={2}>Status</DataGrid.ColumnHeader>
+        </DataGrid.Row>
+      </DataGrid.Header>
+      <DataGrid.Body>
+        {projects.map((project, index) => (
+          <DataGrid.Row key={project.id} rowIndex={index + 2} value={project.id}>
+            <DataGrid.Cell columnIndex={1}>{project.name}</DataGrid.Cell>
+            <DataGrid.Cell columnIndex={2}>{project.status}</DataGrid.Cell>
+          </DataGrid.Row>
+        ))}
+      </DataGrid.Body>
+    </DataGrid.Root>
+  );
+}
 ```
 
-### Sort State Metadata
+### Controlled Sort Metadata
 
 ```tsx
-<DataGrid.ColumnHeader columnIndex={1} sortDirection="ascending">
-  Name
-</DataGrid.ColumnHeader>
+import { useState } from "react";
+import { DataGrid, type DataGridSortDirection } from "@flowstack-ui/atom";
+
+export function SortableHeader() {
+  const [direction, setDirection] = useState<DataGridSortDirection>("ascending");
+
+  return (
+    <DataGrid.Root aria-label="People" rowCount={1} columnCount={1}>
+      <DataGrid.Header>
+        <DataGrid.Row rowIndex={1} selectable={false}>
+          <DataGrid.ColumnHeader columnIndex={1} sortDirection={direction}>
+            <button
+              type="button"
+              onClick={() => setDirection(
+                direction === "ascending" ? "descending" : "ascending",
+              )}
+            >
+              Name
+            </button>
+          </DataGrid.ColumnHeader>
+        </DataGrid.Row>
+      </DataGrid.Header>
+    </DataGrid.Root>
+  );
+}
 ```
 
 ## Accessibility
 
-Implements the WAI-ARIA grid pattern with root focus and `aria-activedescendant`. Horizontal cell navigation mirrors in RTL; vertical navigation does not change with text direction.
+DataGrid follows the
+[WAI-ARIA Grid pattern](https://www.w3.org/WAI/ARIA/apg/patterns/grid/).
+Provide an accessible name with Caption, `aria-label`, or `aria-labelledby`.
+Every navigable row and cell needs a valid one-based index. Root receives DOM
+focus while `aria-activedescendant` identifies the active Cell.
 
 | Key | Description |
 | --- | --- |
-| `ArrowRight` / `ArrowLeft` | Moves between cells in a row; mirrored when `dir="rtl"` |
-| `ArrowDown` / `ArrowUp` | Moves between rows in the same column, skipping disabled cells |
-| `Home` / `End` | Moves within a row |
-| `Ctrl+Home` / `Ctrl+End` | Moves to first or last cell |
-| `Enter` / `Space` | Selects the active row when selection is enabled |
+| `ArrowRight` / `ArrowLeft` | Moves within a row; directions mirror in RTL. |
+| `ArrowDown` / `ArrowUp` | Moves by row, preferring the same column and skipping disabled cells. |
+| `Home` / `End` | Moves to the first or last enabled cell in the current row. |
+| `Ctrl+Home` / `Cmd+Home` | Moves to the first enabled grid cell. |
+| `Ctrl+End` / `Cmd+End` | Moves to the last enabled grid cell. |
+| `Enter` / `Space` | Toggles/selects the active Cell's Row when selection is enabled. |
 
-Rows with `selectable={false}` do not select from click, `Enter`, or `Space`.
-This is useful for header, footer, group, and summary rows that are part of the
-grid but should not become the selected row.
+`readOnly` prevents selection changes but still permits navigation. `disabled`
+prevents Root keyboard handling. Rows with `selectable={false}` ignore row
+selection from click, Enter, and Space.
 
 ## Changelog
 

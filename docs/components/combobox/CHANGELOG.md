@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Corrected required Root options, documented all eleven parts and public
+  utilities, removed nonexistent data attributes, and added complete examples
+  and keyboard guidance.
+
 - Fixed option selection so pointer clicks, including already-selected options,
   close the listbox consistently, and `clearOnSelect` also applies to
   free-solo Enter commits.
