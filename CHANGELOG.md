@@ -4,6 +4,14 @@
 
 - No unreleased changes.
 
+## 0.2.1
+
+- Fixed `Button.Root` direct, `asChild`, and `render` link composition so
+  anchors and inactive-safe link adapters retain native link semantics and
+  keyboard behavior, while disabled or loading composed links lose their live
+  navigation props and cannot activate. Router components that require a
+  string `href` must use an inactive-safe render adapter.
+
 ## 0.2.0
 
 - Fixed Tree pointer targeting so whitespace inside nested groups does not

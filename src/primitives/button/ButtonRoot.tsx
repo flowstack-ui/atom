@@ -1,11 +1,14 @@
 "use client";
 
 import {
+  cloneElement,
   forwardRef,
+  isValidElement,
   useCallback,
   type AnchorHTMLAttributes,
   type KeyboardEventHandler,
   type MouseEventHandler,
+  type ReactElement,
   type ReactNode,
 } from "react";
 import type { NativeButtonProps } from "../../utils/dom.js";
@@ -68,6 +71,11 @@ function isButtonActivationKey(key: string): boolean {
   return key === " " || key === "Enter";
 }
 
+function getElementProps(value: ReactNode | RenderProp | undefined): Record<string, unknown> {
+  if (!isValidElement(value)) return {};
+  return (value as ReactElement<Record<string, unknown>>).props;
+}
+
 export const ButtonRoot = forwardRef<HTMLElement, ButtonRootProps>(
   function ButtonRoot(
     {
@@ -90,15 +98,30 @@ export const ButtonRoot = forwardRef<HTMLElement, ButtonRootProps>(
   ) {
     const isInactive = disabled || loading;
     const defaultTag = href !== undefined ? "a" : "button";
+    const compositionProps = asChild
+      ? getElementProps(children)
+      : getElementProps(render);
+    const composedHref = compositionProps.href;
+    const hasComposedHref = composedHref !== undefined && composedHref !== null;
+    const hasLinkSemantics = href !== undefined || hasComposedHref;
     const isDefaultButton = !asChild && render === undefined && href === undefined;
     const hasNativeSemantics = isDefaultButton ||
       (asChild ? childHasNativeButtonSemantics(children) : renderHasNativeButtonSemantics(render));
     const isNativeButton = isDefaultButton ||
       (asChild ? childIsNativeButton(children) : renderIsNativeButton(render));
-    const isDisabledDefaultAnchor =
-      !asChild && render === undefined && href !== undefined && isInactive;
-    const needsButtonSemantics = href === undefined && !hasNativeSemantics;
-    const resolvedRel = getSafeRel({ rel, target });
+    const isLink = hasLinkSemantics && !isNativeButton;
+    const needsButtonSemantics = !isLink && !hasNativeSemantics;
+    const composedTarget = compositionProps.target;
+    const composedRel = compositionProps.rel;
+    const composedOnClick = compositionProps.onClick;
+    const composedOnKeyDown = compositionProps.onKeyDown;
+    const resolvedTarget = target ?? (
+      typeof composedTarget === "string" ? composedTarget : undefined
+    );
+    const resolvedRel = getSafeRel({
+      rel: rel ?? (typeof composedRel === "string" ? composedRel : undefined),
+      target: resolvedTarget,
+    });
 
     const handleClick = useCallback<MouseEventHandler<HTMLElement>>(
       (event) => {
@@ -108,17 +131,24 @@ export const ButtonRoot = forwardRef<HTMLElement, ButtonRootProps>(
         }
 
         onClick?.(event);
-        if (event.defaultPrevented) return;
+        if (!event.defaultPrevented) {
+          onPress?.(event);
+        }
 
-        onPress?.(event);
+        if (typeof composedOnClick === "function") {
+          composedOnClick(event);
+        }
       },
-      [isInactive, onClick, onPress],
+      [composedOnClick, isInactive, onClick, onPress],
     );
 
     const handleKeyDown = useCallback<KeyboardEventHandler<HTMLElement>>(
       (event) => {
         if (!isButtonActivationKey(event.key)) {
           onKeyDown?.(event);
+          if (typeof composedOnKeyDown === "function") {
+            composedOnKeyDown(event);
+          }
           return;
         }
 
@@ -128,26 +158,32 @@ export const ButtonRoot = forwardRef<HTMLElement, ButtonRootProps>(
         }
 
         onKeyDown?.(event);
-        if (event.defaultPrevented) return;
-
-        if (hasNativeButtonKeyboardActivation(event.currentTarget, event.key)) {
-          return;
+        if (!event.defaultPrevented) {
+          if (!isLink && !hasNativeButtonKeyboardActivation(event.currentTarget, event.key)) {
+            event.preventDefault();
+            event.currentTarget.click();
+          }
         }
 
-        event.preventDefault();
-        event.currentTarget.click();
+        if (typeof composedOnKeyDown === "function") {
+          composedOnKeyDown(event);
+        }
       },
-      [isInactive, onKeyDown],
+      [composedOnKeyDown, isInactive, isLink, onKeyDown],
     );
 
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref,
-      ...(href !== undefined && !isInactive ? { href } : {}),
-      ...(target !== undefined && !isInactive ? { target } : {}),
-      ...(resolvedRel !== undefined && !isInactive ? { rel: resolvedRel } : {}),
+      ...(isLink && isInactive
+        ? { href: null, target: null, rel: null }
+        : {
+            ...(href !== undefined ? { href } : {}),
+            ...(resolvedTarget !== undefined ? { target: resolvedTarget } : {}),
+            ...(resolvedRel !== undefined ? { rel: resolvedRel } : {}),
+          }),
       ...(isNativeButton ? { type, disabled: disabled || undefined } : {}),
-      ...(isDisabledDefaultAnchor ? { role: "link", tabIndex: 0 } : {}),
+      ...(isLink && isInactive ? { role: "link", tabIndex: 0 } : {}),
       ...(needsButtonSemantics ? { role: "button", tabIndex: 0 } : {}),
       "aria-disabled": !isNativeButton && isInactive ? true : undefined,
       "aria-busy": loading || undefined,
@@ -158,11 +194,26 @@ export const ButtonRoot = forwardRef<HTMLElement, ButtonRootProps>(
       onKeyDown: handleKeyDown,
     };
 
+    const compositionOverrides = {
+      onClick: undefined,
+      onKeyDown: undefined,
+    };
+
     if (asChild) {
-      return cloneAndMerge(children, behaviorProps);
+      const resolvedChildren = isValidElement(children)
+        ? cloneElement(children, compositionOverrides)
+        : children;
+      return cloneAndMerge(
+        resolvedChildren,
+        behaviorProps,
+      );
     }
 
-    return renderElement(render, defaultTag, {
+    const resolvedRender = isValidElement(render)
+      ? cloneElement(render, compositionOverrides)
+      : render;
+
+    return renderElement(resolvedRender, defaultTag, {
       ...behaviorProps,
       children,
     });
