@@ -53,3 +53,34 @@ The following are not public package API:
 - internal helper functions that are not exported from a public subpath
 
 Changing non-API files can still be a behavior change if public output changes.
+
+## Composition
+
+Components that document `asChild` clone their only child and merge Atom props
+onto it. Components that document `render` can replace the default element with
+an intrinsic tag, element, or render callback. Both paths preserve forwarded
+refs, native props, and Atom-owned behavior.
+
+Choose a composed element whose native semantics match the interaction. For
+example, a Button link composition should expose its destination through an
+`href` prop so Atom preserves link semantics instead of adding button behavior:
+
+```tsx
+import { Button } from "@flowstack-ui/atom";
+
+<Button.Root asChild>
+  <a href="/settings">Settings</a>
+</Button.Root>;
+```
+
+The same rule applies to custom link adapters and `render` elements: keep
+`href` visible on the element passed to Button. This lets Button identify link
+semantics and replace `href`, `target`, and `rel` with `null` while disabled or
+loading. Native anchors and permissive adapters render without those
+attributes.
+
+A router component that requires `href` to remain a string is not safe for
+direct inactive composition. Use a render adapter that bypasses the router
+component and returns a destination-free anchor when `aria-disabled` is true.
+Atom does not ship router-specific bindings, inspect framework-specific
+navigation props, or retain a live destination on an inactive link.
