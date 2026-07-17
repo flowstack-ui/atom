@@ -11,9 +11,9 @@ Status: implementation, correction-pass verification, focused desktop manual
 qualification, macOS VoiceOver qualification, and iPhone Safari behavioral
 qualification and iPhone VoiceOver qualification succeed. Android Chrome and
 TalkBack qualification is explicitly deferred because no Android device is
-available. Publication readiness remains pending coverage-workbook
-qualification. The package remains `0.2.1`; this pass did not publish, version,
-or tag anything.
+available. Coverage-workbook qualification is complete for the approved focused
+scope and available-device matrix. The change is ready for minor-release review.
+The package remains `0.2.1`; this pass did not publish, version, or tag anything.
 
 | Check | Result |
 | --- | --- |
@@ -31,7 +31,7 @@ or tag anything.
 | iPhone Safari | Pass: touch initial focus, virtual keyboard, allowed-region scrolling, background lock, rotation, nested ownership, dismissal, and cleanup |
 | iPhone VoiceOver | Pass: accessible naming, optional Description relationships, and modal background isolation |
 | Android Chrome and TalkBack | Deferred: no Android device is available; not represented as a pass or failure |
-| Coverage workbook | Pending: no rows were marked tested during partial qualification |
+| Coverage workbook | Pass: Dialog has 104 covered rows, Modal has 112 covered rows, seven physical-iPhone evidence records are passed/ready, formulas recalculate without errors, and the affected sheets passed visual verification |
 
 The playground TypeScript check exposed and verified a cross-environment timer
 handle declaration correction in the Modal development-warning scheduler. The
