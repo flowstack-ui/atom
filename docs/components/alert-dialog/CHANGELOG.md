@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.3.1
+
+- Inherited reliable exit-presence cleanup so closed AlertDialog Content and
+  Overlay cannot remain above the page when CSS emits no end event.
+
 ## 0.3.0
 
 - Fixed native Content ARIA precedence and registered Title/Description

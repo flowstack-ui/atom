@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.3.1
+
+- Inherited reliable Menu exit-presence cleanup for closed Menubar and submenu
+  Content under global motion CSS.
+
 ## 0.2.0
 
 - Fixed local `Menubar.Root dir="rtl"` so shared nested submenu placement also

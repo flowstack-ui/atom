@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.3.1
+
+- Fixed exit-presence cleanup so closed Menu and submenu Content cannot remain
+  over the page when CSS emits no transition or animation end event.
+
 ## 0.2.0
 
 - Fixed Menu part `data-slot` pass-through so Content, Group, Separator,

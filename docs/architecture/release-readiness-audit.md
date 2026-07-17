@@ -6,6 +6,24 @@ The original `0.2.0` published-release audit remains below as a historical
 baseline. The current release outcome records the qualified Modal foundation
 work published in `0.3.0`.
 
+## 0.3.1 Release Candidate - 2026-07-17
+
+Status: local release gate passes; publication pending.
+
+The exact `0.3.1` release tarball passes all 371 package tests, emits all 67
+JavaScript and declaration export targets, and passes clean consumer installs
+with React and React DOM `18.3.1` and `19.2.7`. The archive contains 1,919
+files, is 437,369 compressed bytes, and has SHA-1
+`942b449db1f1ffc96e9f4f2034aa28bb10496a29` and SHA-256
+`c8bc88cff32ef31a6b791af87e44e1e040e4ec4071ac697f4e174bd797e3b104`.
+
+This patch fixes shared exit-presence cleanup when global transition or
+animation CSS advertises motion but the browser emits no matching end event.
+The bounded fallback accounts for repeated timing lists and animation
+iterations and ignores end events bubbled from descendants, preventing closed
+Dialog, Drawer, Menu, Popover, HoverCard, Tooltip, and inherited layers from
+remaining above and blocking the page.
+
 ## 0.3.0 Release Outcome - 2026-07-17
 
 Status: pass; `0.3.0` is published under npm `latest`.

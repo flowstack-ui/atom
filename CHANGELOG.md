@@ -2,11 +2,16 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.3.1
+
 - Fixed presence cleanup so exit-retained layers unmount after their computed
   transition or animation duration even when the browser does not emit a
   `transitionend` or `animationend` event. This prevents closed Dialog, Drawer,
   Popover, Menu, Tooltip, and similar layers from lingering over the page under
-  global transition CSS.
+  global transition CSS. The fallback accounts for repeated CSS timing lists
+  and animation iterations and ignores end events bubbled from descendants.
 
 ## 0.3.0
 

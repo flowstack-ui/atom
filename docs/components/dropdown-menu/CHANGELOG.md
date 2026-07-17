@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.3.1
+
+- Inherited reliable Menu exit-presence cleanup for closed DropdownMenu and
+  submenu Content under global motion CSS.
+
 ## 0.2.0
 
 - Inherited fixed Menu part `data-slot` pass-through so DropdownMenu Content,
