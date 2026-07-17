@@ -93,8 +93,15 @@ container. Set `disabled` to render the children in place.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `container` | `Element \| DocumentFragment \| null` | `document.body` |
+| `container` | `HTMLElement \| null` | `document.body` |
 | `disabled` | `boolean` | `false` |
+
+The container must be an `HTMLElement` in the current document. `ShadowRoot`,
+`DocumentFragment`, and cross-document containers are unsupported. Atom keeps
+the ancestor paths to separate Overlay and Content portals, inline Content,
+nested same-document containers, and registered branches active while making
+background subtrees inert. Global Toast/live-region containers are background
+unless they are within an owned path or registered with `Modal.Branch`.
 
 Portal renders no wrapper element.
 
@@ -102,6 +109,9 @@ Portal renders no wrapper element.
 
 Renders the assistive-technology-hidden backdrop while the alert dialog is
 present. Clicking it never closes an AlertDialog.
+Overlay and Content must remain siblings; Atom rejects Content nested beneath
+the Overlay's `aria-hidden` subtree.
+Separate portals are valid when the committed Content DOM is outside Overlay.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -124,21 +134,33 @@ close, and supplies the generated title and description relationships.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `ariaLabel` | `string` | - |
+| `aria-label` | `string` | - |
+| `aria-labelledby` | `string` | generated from Title when present |
+| `aria-describedby` | `string \| undefined` | generated from Description when present |
+| `ariaLabel` | `string` | compatibility fallback |
+| `initialFocus` | `ModalFocusTarget<ModalInitialFocusDetails>` | Cancel through native `autoFocus` |
+| `finalFocus` | `ModalFocusTarget<ModalFinalFocusDetails>` | prior focus, then Trigger |
 
 | ARIA attribute | Values |
 | --- | --- |
 | `role` | `"alertdialog"` |
-| `aria-modal` | `"true"` while visible |
-| `aria-labelledby` | Generated Title ID when `ariaLabel` is not provided |
-| `aria-label` | Value from `ariaLabel` when provided |
-| `aria-describedby` | Generated Description ID |
+| `aria-modal` | `"true"` while open |
+| `aria-hidden` | `"true"` while retained only for exit presence |
+| `inert` | Present while retained only for exit presence |
+| `aria-labelledby` | Explicit native value, otherwise registered Title ID |
+| `aria-label` | Explicit native value, otherwise `ariaLabel` compatibility value |
+| `aria-describedby` | Explicit native value, otherwise registered Description ID |
 
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"alert-dialog-content"` |
 | `[data-state]` | `"open" \| "closed"` |
 | `[data-positioned]` | Present after the first positioning frame |
+
+Exit-animated Content retained after close immediately loses `aria-modal` and
+becomes inert and accessibility-hidden while the visual exit completes.
+Background isolation, focus ownership, and active scroll containment end when
+`open` becomes false.
 
 ### Title
 
@@ -157,6 +179,22 @@ referenced by `aria-labelledby` and renders an `h2` by default.
 
 Renders a `p` that explains the consequence or decision. It receives the
 generated ID referenced by Content's `aria-describedby`.
+
+Alert dialogs require an accessible description. Atom warns during development
+after registration settles when neither Description nor native
+`aria-describedby` is present. Native ARIA is preferred and takes precedence;
+`ariaLabel` remains supported only for compatibility.
+
+Consumer-owned third-party portals must either wrap their top-level element in
+`<Modal.Branch asChild>` or target the AlertDialog Content element as their
+portal container. Nested modal layers suspend the parent while the child is
+topmost, including focus trapping, Escape handling, and scroll containment.
+
+Cancel's native `autoFocus` remains the safe initial-focus default for keyboard
+and pointer opening, including touch. An explicit `initialFocus` target takes
+precedence. Use `finalFocus` for a different post-decision workflow target. Its
+details describe the closing interaction and include `actionClick`,
+`cancelClick`, or `escapeKeyDown` as applicable.
 
 | Data attribute | Values |
 | --- | --- |

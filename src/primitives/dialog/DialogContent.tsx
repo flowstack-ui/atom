@@ -2,7 +2,13 @@
 
 import { forwardRef, useMemo, type ReactNode } from "react";
 import { FocusScopeProvider } from "../../hooks/focus.js";
-import { useModalContent } from "../modal/useModalContent.js";
+import { getModalPartPresence } from "../modal/parts.js";
+import { useModalContentWithParts } from "../modal/useModalContent.js";
+import type {
+  ModalFinalFocusDetails,
+  ModalInitialFocusDetails,
+} from "../modal/context.js";
+import type { ModalFocusTarget } from "../modal/useModalContent.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { composeRefs } from "../../utils/slot.js";
 
@@ -13,6 +19,10 @@ export interface DialogContentProps extends DialogContentNativeProps {
   children: ReactNode;
   /** Fallback accessible label. */
   ariaLabel?: string;
+  /** Initial focus target. `false` disables automatic initial focus. */
+  initialFocus?: ModalFocusTarget<ModalInitialFocusDetails>;
+  /** Final focus target. `false` disables automatic focus restoration. */
+  finalFocus?: ModalFocusTarget<ModalFinalFocusDetails>;
   /** ARIA role for the content element. */
   role?: "dialog" | "alertdialog";
   /** CSS class for the content element. */
@@ -22,17 +32,20 @@ export interface DialogContentProps extends DialogContentNativeProps {
 }
 
 export const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
-  function DialogContent(
-    {
+  function DialogContent(props, ref) {
+    const {
       children,
       ariaLabel,
+      initialFocus,
+      finalFocus,
+      "aria-label": ariaLabelNative,
+      "aria-labelledby": ariaLabelledBy,
+      "aria-describedby": ariaDescribedBy,
       role = "dialog",
       className,
       "data-slot": dataSlot = "dialog-content",
       ...restProps
-    },
-    ref,
-  ) {
+    } = props;
     const {
       isPresent,
       isHidden,
@@ -41,7 +54,23 @@ export const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
       focusScope,
       presenceRef,
       contentProps,
-    } = useModalContent({ role, ariaLabel });
+    } = useModalContentWithParts(
+      {
+        role,
+        ariaLabel,
+        initialFocus,
+        finalFocus,
+        "aria-label": ariaLabelNative,
+        "aria-labelledby": ariaLabelledBy,
+        ...(Object.prototype.hasOwnProperty.call(
+          props,
+          "aria-describedby",
+        )
+          ? { "aria-describedby": ariaDescribedBy }
+          : {}),
+      },
+      getModalPartPresence(children),
+    );
     const contentRef = useMemo(
       () => composeRefs(presenceRef, ref),
       [presenceRef, ref],

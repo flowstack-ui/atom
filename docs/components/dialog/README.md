@@ -93,13 +93,24 @@ Moves its children to `document.body` by default without adding a wrapper.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `container` | `Element \| DocumentFragment \| null` | `document.body` |
+| `container` | `HTMLElement \| null` | `document.body` |
 | `disabled` | `boolean` | `false` |
+
+The container must be an `HTMLElement` in the current document. `ShadowRoot`,
+`DocumentFragment`, and cross-document containers are unsupported. Atom keeps
+the ancestor paths to separate Overlay and Content portals, inline Content,
+nested same-document containers, and registered branches active while making
+background subtrees inert.
 
 ### Overlay
 
 Creates the backdrop and requests a `backdropClick` close when clicked. Its own
 `disabled` prop suppresses that request without disabling the whole Dialog.
+Overlay and Content must be siblings: Content nested beneath Overlay would be
+inside an `aria-hidden` subtree and Atom rejects that composition. Clicks that
+bubble from Overlay descendants do not dismiss the Dialog; only a click whose
+target is Overlay itself is a backdrop click.
+Separate portals are valid when the committed Content DOM is outside Overlay.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -117,22 +128,29 @@ Creates the backdrop and requests a `backdropClick` close when clicked. Its own
 
 ### Content
 
-Renders the focus-trapped dialog panel as a `div`. Title and Description
-provide its generated accessible name and description unless `ariaLabel`
-supplies a fallback name.
+Renders the focus-trapped dialog panel as a `div`. Registered Title and
+Description parts provide generated relationships unless explicit native ARIA
+is supplied.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `ariaLabel` | `string` | - |
+| `aria-label` | `string` | - |
+| `aria-labelledby` | `string` | generated from Title when present |
+| `aria-describedby` | `string \| undefined` | generated from Description when present |
+| `ariaLabel` | `string` | compatibility fallback |
+| `initialFocus` | `ModalFocusTarget<ModalInitialFocusDetails>` | interaction-aware default |
+| `finalFocus` | `ModalFocusTarget<ModalFinalFocusDetails>` | prior focus, then Trigger |
 | `role` | `"dialog" \| "alertdialog"` | `"dialog"` |
 
 | ARIA attribute | Values |
 | --- | --- |
 | `role` | Value from `role` |
-| `aria-modal` | `"true"` while visible |
-| `aria-label` | Value from `ariaLabel` |
-| `aria-labelledby` | Generated Title ID when `ariaLabel` is absent |
-| `aria-describedby` | Generated Description ID |
+| `aria-modal` | `"true"` while open |
+| `aria-hidden` | `"true"` while retained only for exit presence |
+| `inert` | Present while retained only for exit presence |
+| `aria-label` | Explicit native value, otherwise `ariaLabel` compatibility value |
+| `aria-labelledby` | Explicit native value, otherwise registered Title ID |
+| `aria-describedby` | Explicit native value, otherwise registered Description ID |
 
 | Data attribute | Values |
 | --- | --- |
@@ -142,6 +160,11 @@ supplies a fallback name.
 
 With `keepMounted`, closed Content remains inside a hidden, `aria-hidden`
 wrapper and does not expose `aria-modal`.
+
+If an exit animation keeps Content present after `open` becomes false, Content
+immediately becomes inert and accessibility-hidden and loses `aria-modal` while
+the visual exit completes. Background isolation, active focus containment, and
+scroll ownership end at close rather than at animation completion.
 
 ### Title
 
@@ -182,6 +205,15 @@ default and supports custom composition.
 The Dialog entry point also exports `useModalContext` and `useModalContent` for
 advanced custom modal parts. Prefer the namespaced parts above for ordinary
 dialogs because they supply the complete focus and ARIA contract.
+
+For consumer-owned third-party content portalled outside Content, wrap its
+top-level element in `<Modal.Branch asChild>` or configure the third-party portal
+to use the Content element as its container. Unregistered body portals are
+outside the dialog's focus and scroll ownership.
+
+Global Toast and live-region containers are treated as background while the
+Dialog is open unless they are inside Content or registered with
+`Modal.Branch`.
 
 ## Examples
 
@@ -245,10 +277,27 @@ export function ControlledDialog() {
 
 Dialog follows the
 [WAI-ARIA Modal Dialog pattern](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/).
-Always provide a clear Title or `ariaLabel`; include Description when users
-need context before acting. Focus moves inside when opened, remains within the
+Always provide a clear Title or native `aria-label`; include Description when
+users need context before acting. `ariaLabel` remains a compatibility fallback,
+but native ARIA is preferred and takes precedence. Description is optional and
+Atom omits `aria-describedby` when none is registered. If Title or Description
+is hidden behind an opaque wrapper during server rendering, provide the native
+relationship explicitly. Focus moves inside when opened, remains within the
 dialog and its registered descendant portals, then returns to the prior focus
 target after close.
+
+Nested dialogs share the Modal layer stack. Only the topmost dialog traps focus,
+handles Escape or Overlay dismissal, and owns active scroll containment.
+Long Content and registered portalled controls remain scrollable; background
+wheel and touch movement, including boundary chaining, is suppressed. Atom
+restores the page's prior body styles and scroll position after close.
+
+On touch opening, the default initial target is Content rather than the first
+input, avoiding immediate virtual-keyboard activation. Native `autoFocus` and
+explicit `initialFocus` take precedence. Use `finalFocus` when the next logical
+workflow target differs from the opener; `false` suppresses either automatic
+focus step. The initial callback receives the opening interaction, while the
+final callback receives the closing interaction and close reason.
 
 | Key | Description |
 | --- | --- |

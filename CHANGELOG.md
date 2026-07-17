@@ -2,7 +2,40 @@
 
 ## Unreleased
 
-- No unreleased changes.
+- Fixed Modal-family Content native `aria-label`, `aria-labelledby`, and
+  `aria-describedby` forwarding so explicit native ARIA takes precedence while
+  retaining `ariaLabel` as a compatibility fallback.
+- Added SSR-safe, hydration-stable Title and Description registration so
+  generated relationships are emitted only while their elements exist, and
+  added settled development warnings for missing or duplicate relationships.
+- Added Content-level `initialFocus` and `finalFocus` targets with opening and
+  closing interaction details, native `autoFocus` support, touch-safe Content
+  focus, controlled/triggerless restoration, and explicit workflow targets.
+- Added a shared nested-modal layer stack so only the top layer owns focus,
+  dismissal, and scroll containment, plus public `Modal.Branch` registration
+  for consumer-owned third-party portals.
+- Added metadata-aware focus containment so Menu, Select, Popover, public
+  Branch, and nested modal layers preserve their own Tab contracts while focus
+  cannot escape the active modal.
+- Reworked modal scroll locking per document with wheel/touch boundary
+  containment, registered portal allowances, fixed-body mobile locking, nested
+  cleanup, and exact author style and scroll-position restoration.
+- Added stack-aware background isolation with `inert`, preserving the ancestor
+  paths to separate Content/Overlay portals, inline and custom-container
+  content, dynamic owned branches, and the active nested modal while restoring
+  author-provided inert state exactly.
+- Limited Modal-family custom portal containers to same-document
+  `HTMLElement` nodes; ShadowRoot, DocumentFragment, and cross-document
+  containers are explicitly unsupported.
+- Corrected Modal opening ownership to establish layer activation, isolation,
+  focus containment, and body locking before paint; exit-present Content is now
+  inert and accessibility-hidden after close.
+- Preserved author `inert` mutations made during modal ownership, ref-counted
+  overlapping focus/branch registrations, filtered unavailable Tab candidates,
+  and kept nested scroll-lock handoff continuously locked without intermediate
+  style or scroll restoration.
+- Rejected Content beneath accessibility-hidden Dialog-family Overlays and
+  limited backdrop dismissal to clicks targeted at the Overlay itself.
 
 ## 0.2.1
 

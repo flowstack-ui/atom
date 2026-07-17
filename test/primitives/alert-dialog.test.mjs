@@ -75,7 +75,7 @@ test("AlertDialog renders trigger, content, title, description, cancel, and acti
   assert.doesNotMatch(html, /data-slot="modal-title"/);
   assert.doesNotMatch(html, /data-slot="modal-description"/);
   assert.match(rootSource, /closeOnBackdropClick=\{false\}/);
-  assert.match(actionSource, /onClose\("actionClick"\)/);
-  assert.match(cancelSource, /onClose\("cancelClick"\)/);
+  assert.match(actionSource, /onClose\("actionClick", interactionType\)/);
+  assert.match(cancelSource, /onClose\("cancelClick", interactionType\)/);
   assert.match(contextSource, /AlertDialog compound components must be used within <AlertDialogRoot>/);
 });

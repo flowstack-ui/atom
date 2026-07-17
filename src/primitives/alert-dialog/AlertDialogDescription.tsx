@@ -2,6 +2,7 @@
 
 import { forwardRef } from "react";
 import { ModalDescription, type ModalDescriptionProps } from "../modal/index.js";
+import { markModalPart } from "../modal/parts.js";
 
 export interface AlertDialogDescriptionProps extends ModalDescriptionProps {}
 
@@ -25,3 +26,5 @@ export const AlertDialogDescription = forwardRef<
     );
   },
 );
+
+markModalPart(AlertDialogDescription, "description");

@@ -2,8 +2,10 @@ import { Button } from "@flowstack-ui/atom/button";
 import { Dialog } from "@flowstack-ui/atom/dialog";
 import { Field } from "@flowstack-ui/atom/field";
 import { Input } from "@flowstack-ui/atom/input";
+import { Modal } from "@flowstack-ui/atom/modal";
 import { Select } from "@flowstack-ui/atom/select";
-import { useCallback } from "react";
+import { createPortal } from "react-dom";
+import { useCallback, useRef } from "react";
 import {
   AnatomyPanel,
   type AnatomySection,
@@ -30,7 +32,10 @@ import type {
 import type {
   DialogCompositionMode,
   DialogContentRole,
+  DialogFinalFocusMode,
   DialogHeadingLevel,
+  DialogInitialFocusMode,
+  DialogNameMode,
   DialogScenarioActions,
   DialogScenarioState,
 } from "./useDialogScenario";
@@ -48,13 +53,13 @@ export function DialogScenarioCanvas({
   onControlledOpen: () => void;
   onControlledClose: () => void;
 }) {
+  const workflowTargetRef = useRef<HTMLButtonElement | null>(null);
   const rootProps = state.controlled
     ? {
         open: state.open,
         onOpenChange,
       }
     : {
-        defaultOpen: false,
         onOpenChange,
       };
   const triggerRef = useCallback(
@@ -85,19 +90,21 @@ export function DialogScenarioCanvas({
 
   return (
     <div className="dialog-stage">
-      <Button.Root
-        className="behind-dialog-button"
-        data-playground-dialog-behind
-        tabIndex={-1}
-      >
-        Behind dialog
-      </Button.Root>
+      {state.finalFocusMode === "workflow" ? (
+        <Button.Root
+          className="behind-dialog-button"
+          data-playground-dialog-behind
+          ref={workflowTargetRef}
+        >
+          Workflow target
+        </Button.Root>
+      ) : null}
       <Dialog.Root
         {...rootProps}
-        disabled={state.disabled}
-        keepMounted={state.keepMounted}
-        closeOnEscape={state.closeOnEscape}
-        closeOnBackdropClick={state.closeOnBackdropClick}
+        disabled={state.disabled || undefined}
+        keepMounted={state.keepMounted || undefined}
+        closeOnEscape={state.closeOnEscape ? undefined : false}
+        closeOnBackdropClick={state.closeOnBackdropClick ? undefined : false}
       >
         <DialogTriggerExample
           elementRef={triggerRef}
@@ -137,18 +144,29 @@ export function DialogScenarioCanvas({
             title="overlay prop"
           />
           <Dialog.Content
-            ariaLabel={state.useAriaLabel ? "Project settings" : undefined}
+            aria-label={state.nameMode === "native" ? "Project settings" : undefined}
+            ariaLabel={state.nameMode === "compatibility" ? "Project settings" : undefined}
             className="atom-dialog-content"
             data-playground-dialog-content=""
             data-playground-inspect=""
             {...partProps("content", { propCheck: state.propCheck, customSlot: state.customContentSlot }, "dialog-content-custom")}
             ref={contentRef}
-            role={state.contentRole}
+            role={state.contentRole === "dialog" ? undefined : state.contentRole}
+            initialFocus={state.initialFocusMode === "content"
+              ? () => document.querySelector<HTMLElement>("[data-playground-dialog-content]")
+              : state.initialFocusMode === "name"
+                ? () => document.querySelector<HTMLInputElement>("[data-playground-dialog-name]")
+                : undefined}
+            finalFocus={state.finalFocusMode === "workflow"
+              ? workflowTargetRef
+              : state.finalFocusMode === "none"
+                ? false
+                : undefined}
             title="content prop"
           >
-            {state.useAriaLabel ? null : (
+            {state.nameMode === "title" ? (
               <Dialog.Title
-                as={state.titleHeadingLevel}
+                as={state.titleHeadingLevel === "h2" ? undefined : state.titleHeadingLevel}
                 data-playground-dialog-title=""
                 {...partProps("title", { propCheck: state.propCheck, customSlot: state.customTitleSlot }, "dialog-title-custom")}
                 ref={titleRef}
@@ -156,15 +174,17 @@ export function DialogScenarioCanvas({
               >
                 Project settings
               </Dialog.Title>
-            )}
-            <Dialog.Description
-              data-playground-dialog-description=""
-              {...partProps("description", { propCheck: state.propCheck, customSlot: state.customDescriptionSlot }, "dialog-description-custom")}
-              ref={descriptionRef}
-              title="description prop"
-            >
-              Change a setting, tab through the controls, press Escape, or close the dialog.
-            </Dialog.Description>
+            ) : null}
+            {state.showDescription ? (
+              <Dialog.Description
+                data-playground-dialog-description=""
+                {...partProps("description", { propCheck: state.propCheck, customSlot: state.customDescriptionSlot }, "dialog-description-custom")}
+                ref={descriptionRef}
+                title="description prop"
+              >
+                Change a setting, tab through the controls, press Escape, or close the dialog.
+              </Dialog.Description>
+            ) : null}
             {state.noFocusableContent ? (
               <p className="dialog-static-note">
                 No focusable controls are rendered in this mode.
@@ -173,7 +193,11 @@ export function DialogScenarioCanvas({
               <>
                 <Field.Root className="dialog-form-row" id="dialog-name-field">
                   <Field.Label>Name</Field.Label>
-                  <Input.Root defaultValue="Atom Playground" />
+                  <Input.Root
+                    autoFocus={state.initialFocusMode === "autoFocus"}
+                    data-playground-dialog-name=""
+                    defaultValue="Atom Playground"
+                  />
                 </Field.Root>
                 <Field.Root className="dialog-form-row" id="dialog-mode-field">
                   <Field.Label>Mode</Field.Label>
@@ -182,7 +206,7 @@ export function DialogScenarioCanvas({
                       <Select.Value />
                       <Select.Icon>▾</Select.Icon>
                     </Select.Trigger>
-                    <Select.Content className="atom-select-content" ariaLabel="Mode">
+                    <Select.Content className="atom-select-content" aria-label="Mode">
                       <Select.Viewport className="atom-select-viewport">
                         <Select.Item className="atom-select-item" value="manual">
                           <Select.ItemText>Manual</Select.ItemText>
@@ -195,12 +219,14 @@ export function DialogScenarioCanvas({
                   </Select.Root>
                 </Field.Root>
                 <div className="dialog-actions">
-                  <Button.Root
-                    className="atom-button secondary"
-                    onPress={actions.testFocusEscape}
-                  >
-                    Test focus escape
-                  </Button.Root>
+                  {state.finalFocusMode === "workflow" ? (
+                    <Button.Root
+                      className="atom-button secondary"
+                      onPress={actions.testFocusEscape}
+                    >
+                      Test focus escape
+                    </Button.Root>
+                  ) : null}
                   {state.controlled ? (
                     <Button.Root
                       className="atom-button secondary"
@@ -228,6 +254,39 @@ export function DialogScenarioCanvas({
                     Save
                   </DialogCloseExample>
                 </div>
+                {state.showNestedDialog ? (
+                  <Dialog.Root>
+                    <Dialog.Trigger className="atom-button secondary">
+                      Open nested dialog
+                    </Dialog.Trigger>
+                    <Dialog.Portal>
+                      <Dialog.Overlay className="atom-dialog-overlay nested-dialog-overlay" />
+                      <Dialog.Content
+                        aria-label="Nested dialog"
+                        className="atom-dialog-content nested-dialog-content"
+                        data-playground-nested-dialog=""
+                      >
+                        <p>Only the top nested modal owns focus, dismissal, scrolling, and isolation.</p>
+                        <Dialog.Close className="atom-button">Close nested dialog</Dialog.Close>
+                      </Dialog.Content>
+                    </Dialog.Portal>
+                  </Dialog.Root>
+                ) : null}
+                {state.showThirdPartyBranch
+                  ? createPortal(
+                      <Modal.Branch asChild>
+                        <section
+                          className="dialog-third-party-branch"
+                          data-playground-dialog-branch=""
+                        >
+                          <strong>Consumer portal</strong>
+                          <button type="button">Third-party action</button>
+                          <p>Scroll and focus remain owned by the modal.</p>
+                        </section>
+                      </Modal.Branch>,
+                      document.body,
+                    )
+                  : null}
               </>
             )}
           </Dialog.Content>
@@ -260,6 +319,12 @@ export function DialogScenarioAnatomy({
         { label: "Keep mounted", value: state.keepMounted ? "yes" : "no", category: "state" },
         { label: "Mode", value: state.controlled ? "controlled" : "uncontrolled", category: "state" },
         { label: "No focusables", value: state.noFocusableContent ? "yes" : "no", category: "state" },
+        { label: "Name mode", value: state.nameMode, category: "state" },
+        { label: "Description", value: state.showDescription ? "rendered" : "omitted", category: "state" },
+        { label: "Initial focus", value: state.initialFocusMode, category: "state" },
+        { label: "Final focus", value: state.finalFocusMode, category: "state" },
+        { label: "Third-party branch", value: state.showThirdPartyBranch ? "rendered" : "off", category: "state" },
+        { label: "Nested dialog", value: state.showNestedDialog ? "available" : "off", category: "state" },
         { label: "Title as", value: state.titleHeadingLevel, category: "state" },
       ],
     },
@@ -327,8 +392,21 @@ export function DialogScenarioAnatomy({
         { label: "aria-modal", value: state.parts.contentAriaModal, category: "aria" },
         { label: "role", value: state.parts.contentRole, category: "aria" },
         { label: "Body overflow", value: state.parts.bodyScrollLock, category: "behavior" },
+        { label: "Background inert", value: state.parts.backgroundInert, category: "behavior" },
         { label: "Focused", value: state.parts.contentFocused, category: "behavior" },
         { label: "Hidden", value: state.parts.contentHidden, category: "state" },
+      ],
+    },
+    {
+      title: "Modal Branch",
+      selector: "[data-playground-dialog-branch]",
+      inactive: state.parts.branchExists !== "yes",
+      summary: state.parts.branchExists === "yes" ? "consumer portal" : "not rendered",
+      rows: [
+        { label: "Exists", value: state.parts.branchExists, category: "presence" },
+        { label: "Effectively inert", value: state.parts.branchInert, category: "behavior" },
+        { label: "Tab contract", value: "delegated", category: "behavior" },
+        { label: "Scroll ownership", value: "allowed", category: "behavior" },
       ],
     },
     {
@@ -395,7 +473,7 @@ export function DialogScenarioAnatomy({
 
   return (
     <AnatomyPanel
-      footer="8 parts"
+      footer="9 parts"
       onOpenGroupsChange={onOpenGroupsChange}
       openGroups={openGroups}
       sections={sections}
@@ -448,6 +526,32 @@ export function DialogScenarioToolbar({
             value="no-focusables"
             onChange={actions.setNoFocusableContent}
           />
+          <MenuRadioControl
+            label="Initial focus"
+            options={initialFocusOptions}
+            value={state.initialFocusMode}
+            onChange={actions.setInitialFocusMode}
+          />
+          <MenuRadioControl
+            label="Final focus"
+            options={finalFocusOptions}
+            value={state.finalFocusMode}
+            onChange={actions.setFinalFocusMode}
+          />
+        </MenuSection>
+        <MenuSection label="Infrastructure">
+          <MenuCheckboxControl
+            checked={state.showThirdPartyBranch}
+            label="Third-party branch"
+            value="third-party-branch"
+            onChange={actions.setShowThirdPartyBranch}
+          />
+          <MenuCheckboxControl
+            checked={state.showNestedDialog}
+            label="Nested dialog"
+            value="nested-dialog"
+            onChange={actions.setShowNestedDialog}
+          />
         </MenuSection>
       </ToolbarGroup>
       <ToolbarGroup title="Dismiss" value="dismiss">
@@ -488,11 +592,17 @@ export function DialogScenarioToolbar({
       </ToolbarGroup>
       <ToolbarGroup title="ARIA" value="aria">
         <MenuSection label="Content naming">
+          <MenuRadioControl
+            label="Accessible name"
+            options={nameModeOptions}
+            value={state.nameMode}
+            onChange={actions.setNameMode}
+          />
           <MenuCheckboxControl
-            checked={state.useAriaLabel}
-            label="Use ariaLabel"
-            value="use-aria-label"
-            onChange={actions.setUseAriaLabel}
+            checked={state.showDescription}
+            label="Description"
+            value="description"
+            onChange={actions.setShowDescription}
           />
         </MenuSection>
         <MenuRadioControl
@@ -541,6 +651,9 @@ export function DialogScenarioToolbar({
 const compositionOptions: readonly DialogCompositionMode[] = ["default", "asChild", "render"];
 const dialogRoleOptions: readonly DialogContentRole[] = ["dialog", "alertdialog"];
 const headingLevelOptions: readonly DialogHeadingLevel[] = ["h1", "h2", "h3", "h4", "h5", "h6"];
+const nameModeOptions: readonly DialogNameMode[] = ["title", "native", "compatibility"];
+const initialFocusOptions: readonly DialogInitialFocusMode[] = ["default", "content", "name", "autoFocus"];
+const finalFocusOptions: readonly DialogFinalFocusMode[] = ["trigger", "workflow", "none"];
 
 function DialogTriggerExample({
   elementRef,

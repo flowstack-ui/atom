@@ -2,7 +2,13 @@
 
 import { forwardRef, type ReactNode } from "react";
 import { FocusScopeProvider } from "../../hooks/focus.js";
-import { useModalContent } from "../modal/useModalContent.js";
+import { getModalPartPresence } from "../modal/parts.js";
+import { useModalContentWithParts } from "../modal/useModalContent.js";
+import type {
+  ModalFinalFocusDetails,
+  ModalInitialFocusDetails,
+} from "../modal/context.js";
+import type { ModalFocusTarget } from "../modal/useModalContent.js";
 import { composeRefs } from "../../utils/slot.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 
@@ -15,22 +21,29 @@ export interface DrawerContentProps extends DrawerContentNativeProps {
   placement?: string;
   /** Fallback accessible label. */
   ariaLabel?: string;
+  /** Initial focus target. `false` disables automatic initial focus. */
+  initialFocus?: ModalFocusTarget<ModalInitialFocusDetails>;
+  /** Final focus target. `false` disables automatic focus restoration. */
+  finalFocus?: ModalFocusTarget<ModalFinalFocusDetails>;
   /** Slot override for the drawer panel. */
   "data-slot"?: string;
 }
 
 export const DrawerContent = forwardRef<HTMLDivElement, DrawerContentProps>(
-  function DrawerContent(
-    {
+  function DrawerContent(props, ref) {
+    const {
       children,
       placement,
       ariaLabel,
+      initialFocus,
+      finalFocus,
+      "aria-label": ariaLabelNative,
+      "aria-labelledby": ariaLabelledBy,
+      "aria-describedby": ariaDescribedBy,
       className,
       "data-slot": dataSlot = "drawer-content",
       ...restProps
-    },
-    ref,
-  ) {
+    } = props;
     const {
       isPresent,
       isHidden,
@@ -39,7 +52,22 @@ export const DrawerContent = forwardRef<HTMLDivElement, DrawerContentProps>(
       focusScope,
       presenceRef,
       contentProps,
-    } = useModalContent({ ariaLabel });
+    } = useModalContentWithParts(
+      {
+        ariaLabel,
+        initialFocus,
+        finalFocus,
+        "aria-label": ariaLabelNative,
+        "aria-labelledby": ariaLabelledBy,
+        ...(Object.prototype.hasOwnProperty.call(
+          props,
+          "aria-describedby",
+        )
+          ? { "aria-describedby": ariaDescribedBy }
+          : {}),
+      },
+      getModalPartPresence(children),
+    );
 
     if (!isPresent) return null;
 

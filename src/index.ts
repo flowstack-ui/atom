@@ -736,6 +736,7 @@ export type {
   NavListSectionTriggerProps,
 } from "./primitives/nav-list/index.js";
 export {
+  ModalBranch,
   ModalClose,
   ModalContextProvider,
   ModalDescription,
@@ -747,9 +748,14 @@ export {
   useModalContext,
 } from "./primitives/modal/index.js";
 export type {
+  ModalBranchProps,
   ModalCloseProps,
   ModalCloseReason,
   ModalContextValue,
+  ModalFinalFocusDetails,
+  ModalFocusTarget,
+  ModalInitialFocusDetails,
+  ModalInteractionType,
   ModalDescriptionProps,
   ModalHeadingLevel,
   ModalPortalProps,

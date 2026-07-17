@@ -1,8 +1,10 @@
 "use client";
 
-import { forwardRef, type ReactNode } from "react";
+import { forwardRef, useCallback, useMemo, useRef, type ReactNode } from "react";
 import type { NativeParagraphProps } from "../../utils/dom.js";
+import { composeRefs } from "../../utils/slot.js";
 import { useModalContext } from "./context.js";
+import { markModalPart } from "./parts.js";
 
 type ModalDescriptionNativeProps = NativeParagraphProps<"children">;
 
@@ -28,12 +30,24 @@ export const ModalDescription = forwardRef<
     },
     ref,
   ) {
-    const { descriptionId } = useModalContext();
+    const { descriptionId, registerPart } = useModalContext();
+    const unregisterRef = useRef<(() => void) | null>(null);
+    const registrationRef = useCallback(
+      (node: HTMLParagraphElement | null) => {
+        unregisterRef.current?.();
+        unregisterRef.current = node ? registerPart("description") : null;
+      },
+      [registerPart],
+    );
+    const composedRef = useMemo(
+      () => composeRefs(registrationRef, ref),
+      [registrationRef, ref],
+    );
 
     return (
       <p
         {...restProps}
-        ref={ref}
+        ref={composedRef}
         id={descriptionId}
         data-slot={dataSlot}
         className={className}
@@ -43,3 +57,5 @@ export const ModalDescription = forwardRef<
     );
   },
 );
+
+markModalPart(ModalDescription, "description");

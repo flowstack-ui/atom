@@ -6,6 +6,7 @@ import {
   type ModalHeadingLevel,
   type ModalTitleProps,
 } from "../modal/index.js";
+import { markModalPart } from "../modal/parts.js";
 
 export type AlertDialogHeadingLevel = ModalHeadingLevel;
 export interface AlertDialogTitleProps extends ModalTitleProps {}
@@ -27,3 +28,5 @@ export const AlertDialogTitle = forwardRef<HTMLHeadingElement, AlertDialogTitleP
     );
   },
 );
+
+markModalPart(AlertDialogTitle, "title");

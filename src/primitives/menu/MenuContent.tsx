@@ -34,6 +34,13 @@ import { getTypeaheadMatch } from "../../utils/typeahead.js";
 import { useDirection } from "../direction/index.js";
 import { getMenuSubmenuOpenKey, useMenuContext } from "./context.js";
 
+const menuFocusScopeMetadata = {
+  focusContainment: "owned",
+  tabParticipation: "delegate",
+  scrollParticipation: "allowed",
+  isolation: "owned",
+} as const;
+
 export type MenuSide = "top" | "right" | "bottom" | "left";
 export type MenuAlign = "start" | "center" | "end";
 
@@ -112,9 +119,14 @@ function MenuContent(
   const typeaheadTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useFocusRestore(isOpen, () => triggerRef.current);
-  useFocusScopeContainer(internalRef, isPresent);
+  useFocusScopeContainer(
+    internalRef,
+    isPresent,
+    undefined,
+    menuFocusScopeMetadata,
+  );
   useFocusOnMount(internalRef, isPresent);
-  useScrollLock(isOpen && modal);
+  useScrollLock(isOpen && modal, internalRef);
 
   useEffect(() => {
     if (!isPresent) return undefined;

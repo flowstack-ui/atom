@@ -5,6 +5,7 @@ import {
   ModalDescription,
   type ModalDescriptionProps,
 } from "../modal/index.js";
+import { markModalPart } from "../modal/parts.js";
 
 export interface DialogDescriptionProps extends ModalDescriptionProps {}
 
@@ -28,3 +29,5 @@ export const DialogDescription = forwardRef<
     );
   },
 );
+
+markModalPart(DialogDescription, "description");

@@ -6,6 +6,7 @@ import {
   useMemo,
   type KeyboardEventHandler,
   type MouseEventHandler,
+  type PointerEventHandler,
   type ReactNode,
 } from "react";
 import type { NativeButtonProps } from "../../utils/dom.js";
@@ -17,6 +18,10 @@ import {
   type RenderProp,
 } from "../../utils/slot.js";
 import { useModalContext } from "./context.js";
+import {
+  getModalPointerInteractionType,
+  isModalActivationKey,
+} from "./interaction.js";
 
 type ModalTriggerNativeProps = NativeButtonProps<"children" | "disabled" | "type">;
 
@@ -52,29 +57,63 @@ function ModalTrigger(
     render,
     onClick,
     onKeyDown,
+    onPointerDown,
+    onPointerCancel,
     ...restProps
   },
   ref,
 ) {
-  const { isOpen, onOpen, modalId, triggerRef, disabled } = useModalContext();
+  const {
+    isOpen,
+    onOpen,
+    modalId,
+    triggerRef,
+    disabled,
+    recordInteraction,
+    consumeInteraction,
+    clearInteraction,
+  } = useModalContext();
   const composedRef = useMemo(
     () => composeRefs(triggerRef, ref),
     [ref, triggerRef],
   );
 
-  const handleClick: MouseEventHandler<HTMLElement> = useCallback(() => {
-    if (!disabled) onOpen();
-  }, [disabled, onOpen]);
+  const handleClick: MouseEventHandler<HTMLElement> = useCallback((event) => {
+    (onClick as MouseEventHandler<HTMLElement> | undefined)?.(event);
+    const interactionType = consumeInteraction(event.currentTarget);
+    if (!event.defaultPrevented && !disabled) onOpen(interactionType);
+  }, [consumeInteraction, disabled, onClick, onOpen]);
+
+  const handlePointerDown: PointerEventHandler<HTMLElement> = useCallback(
+    (event) => {
+      if (!disabled) {
+        recordInteraction(
+          getModalPointerInteractionType(event.pointerType),
+          event.currentTarget,
+        );
+      }
+    },
+    [disabled, recordInteraction],
+  );
+
+  const handlePointerCancel: PointerEventHandler<HTMLElement> = useCallback(
+    (event) => clearInteraction(event.currentTarget),
+    [clearInteraction],
+  );
 
   const handleKeyDown: KeyboardEventHandler<HTMLElement> = useCallback(
     (event) => {
-      if (disabled || isNativeKeyboardClickable(event.currentTarget)) return;
-      if (event.key !== " " && event.key !== "Enter") return;
+      if (disabled || !isModalActivationKey(event.key)) return;
+
+      if (isNativeKeyboardClickable(event.currentTarget)) {
+        recordInteraction("keyboard", event.currentTarget);
+        return;
+      }
 
       event.preventDefault();
-      onOpen();
+      onOpen("keyboard");
     },
-    [disabled, onOpen],
+    [disabled, onOpen, recordInteraction],
   );
 
   const triggerProps = {
@@ -90,8 +129,10 @@ function ModalTrigger(
     disabled: disabled || undefined,
     role: asChild || render ? "button" : undefined,
     tabIndex: asChild || render ? (disabled ? -1 : 0) : undefined,
-    onClick: composeEventHandlers(onClick, handleClick),
+    onClick: handleClick,
     onKeyDown: composeEventHandlers(onKeyDown, handleKeyDown),
+    onPointerDown: composeEventHandlers(onPointerDown, handlePointerDown),
+    onPointerCancel: composeEventHandlers(onPointerCancel, handlePointerCancel),
     className,
   };
 
