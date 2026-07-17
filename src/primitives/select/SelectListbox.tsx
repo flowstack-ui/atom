@@ -25,6 +25,13 @@ import type { NativeDivProps } from "../../utils/dom.js";
 import { composeRefs } from "../../utils/slot.js";
 import { useSelectContext } from "./context.js";
 
+const selectFocusScopeMetadata = {
+  focusContainment: "owned",
+  tabParticipation: "delegate",
+  scrollParticipation: "allowed",
+  isolation: "owned",
+} as const;
+
 type SelectListboxNativeProps = NativeDivProps<"children" | "role">;
 
 export interface SelectListboxProps extends SelectListboxNativeProps {
@@ -53,7 +60,12 @@ function SelectListbox(
   const ctx = useSelectContext();
   const internalRef = useRef<HTMLDivElement>(null);
   const [isPositioned, setIsPositioned] = useState(false);
-  useFocusScopeContainer(internalRef, ctx.isOpen);
+  useFocusScopeContainer(
+    internalRef,
+    ctx.isOpen,
+    undefined,
+    selectFocusScopeMetadata,
+  );
   useDismissableLayer({
     enabled: ctx.isOpen,
     onEscapeKeyDown: () => {

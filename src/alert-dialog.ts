@@ -38,6 +38,12 @@ export type {
   AlertDialogTitleProps,
   AlertDialogTriggerProps,
 } from "./primitives/alert-dialog/index.js";
+export type {
+  ModalFinalFocusDetails,
+  ModalFocusTarget,
+  ModalInitialFocusDetails,
+  ModalInteractionType,
+} from "./primitives/modal/index.js";
 
 export const AlertDialog = {
   Root: AlertDialogRoot,

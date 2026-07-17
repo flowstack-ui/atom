@@ -1,10 +1,20 @@
 "use client";
 
-import { forwardRef, useEffect, useMemo, useState } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { usePresence } from "../../hooks/usePresence.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { composeEventHandlers, composeRefs } from "../../utils/slot.js";
 import { useModalContext } from "../modal/index.js";
+import { getModalPointerInteractionType } from "../modal/interaction.js";
+import { setModalLayerOverlay } from "../modal/layer.js";
 
 type DialogOverlayNativeProps = NativeDivProps;
 
@@ -21,18 +31,46 @@ export const DialogOverlay = forwardRef<HTMLDivElement, DialogOverlayProps>(
       disabled = false,
       className,
       onClick,
+      onPointerDown,
+      onPointerCancel,
       "data-slot": dataSlot = "dialog-overlay",
       ...restProps
     },
     ref,
   ) {
-    const { isOpen, onClose, closeOnBackdropClick } = useModalContext();
+    const {
+      isOpen,
+      onClose,
+      closeOnBackdropClick,
+      recordInteraction,
+      consumeInteraction,
+      clearInteraction,
+      layer,
+      isTopLayer,
+    } = useModalContext();
     const { isPresent, ref: presenceRef } = usePresence({ present: isOpen });
     const [isPositioned, setIsPositioned] = useState(false);
-    const composedRef = useMemo(
-      () => composeRefs(presenceRef, ref),
-      [presenceRef, ref],
+    const overlayRef = useRef<HTMLDivElement>(null);
+    const layerRef = useCallback(
+      (node: HTMLDivElement | null) => setModalLayerOverlay(layer, node),
+      [layer],
     );
+    const composedRef = useMemo(
+      () => composeRefs(presenceRef, layerRef, overlayRef, ref),
+      [layerRef, presenceRef, ref],
+    );
+
+    useLayoutEffect(() => {
+      if (
+        overlayRef.current?.querySelector(
+          '[role="dialog"], [role="alertdialog"]',
+        )
+      ) {
+        throw new Error(
+          "Modal-family Content must not be nested inside an aria-hidden Overlay. Render Overlay and Content as siblings.",
+        );
+      }
+    });
 
     useEffect(() => {
       if (!isPresent) return undefined;
@@ -58,9 +96,32 @@ export const DialogOverlay = forwardRef<HTMLDivElement, DialogOverlayProps>(
         {...restProps}
         ref={composedRef}
         className={className}
-        onClick={composeEventHandlers(onClick, () => {
-          if (!disabled && closeOnBackdropClick) onClose("backdropClick");
+        onPointerDown={composeEventHandlers(onPointerDown, (event) => {
+          if (event.target !== event.currentTarget) return;
+          recordInteraction(
+            getModalPointerInteractionType(event.pointerType),
+            event.currentTarget,
+          );
         })}
+        onPointerCancel={composeEventHandlers(onPointerCancel, (event) => {
+          clearInteraction(event.currentTarget);
+        })}
+        onClick={(event) => {
+          onClick?.(event);
+          if (event.target !== event.currentTarget) {
+            clearInteraction(event.currentTarget);
+            return;
+          }
+          const interactionType = consumeInteraction(event.currentTarget);
+          if (
+            !event.defaultPrevented &&
+            isTopLayer &&
+            !disabled &&
+            closeOnBackdropClick
+          ) {
+            onClose("backdropClick", interactionType);
+          }
+        }}
         aria-hidden="true"
         data-slot={dataSlot}
         data-state={isOpen && isPositioned ? "open" : "closed"}

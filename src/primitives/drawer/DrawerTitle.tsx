@@ -6,6 +6,7 @@ import {
   type ModalHeadingLevel,
   type ModalTitleProps,
 } from "../modal/index.js";
+import { markModalPart } from "../modal/parts.js";
 
 export type DrawerHeadingLevel = ModalHeadingLevel;
 export interface DrawerTitleProps extends ModalTitleProps {}
@@ -27,3 +28,5 @@ export const DrawerTitle = forwardRef<HTMLHeadingElement, DrawerTitleProps>(
     );
   },
 );
+
+markModalPart(DrawerTitle, "title");

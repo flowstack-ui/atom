@@ -178,6 +178,7 @@ import {
   MenubarTrigger,
 } from "./primitives/menubar/index.js";
 import {
+  ModalBranch,
   ModalClose,
   ModalDescription,
   ModalPortal,
@@ -624,6 +625,7 @@ export const Modal = {
   Root: ModalRoot,
   Trigger: ModalTrigger,
   Portal: ModalPortal,
+  Branch: ModalBranch,
   Title: ModalTitle,
   Description: ModalDescription,
   Close: ModalClose,

@@ -6,7 +6,10 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
-- No unreleased changes.
+- Expanded the Dialog scenario for native versus compatibility naming,
+  optional Description relationships, explicit initial/final focus targets,
+  consumer-owned `Modal.Branch` portals, background inert evidence, portalled
+  Select integration, and nested modal ownership qualification.
 
 ## 1.0.0 - 2026-07-14
 

@@ -787,6 +787,36 @@ h2 {
   margin-top: 4px;
 }
 
+.dialog-third-party-branch {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 32;
+  display: grid;
+  max-height: 120px;
+  width: min(240px, calc(100vw - 36px));
+  gap: 8px;
+  overflow: auto;
+  border: 1px solid #b9c2ce;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 12px;
+  box-shadow: 0 12px 30px rgba(12, 18, 26, 0.2);
+}
+
+.dialog-third-party-branch button {
+  min-height: 32px;
+}
+
+.nested-dialog-overlay {
+  z-index: 40;
+}
+
+.nested-dialog-content {
+  z-index: 41;
+  width: min(340px, calc(100vw - 48px));
+}
+
 .controlled-actions {
   display: inline-flex;
   flex-wrap: wrap;

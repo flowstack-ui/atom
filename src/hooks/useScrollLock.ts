@@ -1,69 +1,251 @@
 "use client";
 
-import { useEffect, type RefObject } from "react";
+import { useLayoutEffect, useRef, type RefObject } from "react";
 
-const allowedScrollRefs = new Set<RefObject<HTMLElement | null>>();
-let lockCount = 0;
-let previousOverflow = "";
-let previousPaddingRight = "";
-let preventScrollHandler: ((event: WheelEvent) => void) | null = null;
+interface ScrollLockRegistration {
+  allowRef?: RefObject<HTMLElement | null>;
+  isAllowedTarget?: (target: Node) => boolean;
+  active: boolean;
+}
 
-function isAllowedScrollTarget(target: EventTarget | null): boolean {
-  if (!(target instanceof Node)) return false;
+interface BodyStyleSnapshot {
+  overflow: string;
+  paddingRight: string;
+  position: string;
+  top: string;
+  left: string;
+  right: string;
+  width: string;
+}
 
-  for (const ref of allowedScrollRefs) {
-    if (ref.current?.contains(target)) return true;
+interface ScrollLockState {
+  registrations: Set<ScrollLockRegistration>;
+  bodyStyle: BodyStyleSnapshot | null;
+  scrollX: number;
+  scrollY: number;
+  lastTouch: { identifier: number; x: number; y: number } | null;
+  wheelHandler: (event: WheelEvent) => void;
+  touchStartHandler: (event: TouchEvent) => void;
+  touchMoveHandler: (event: TouchEvent) => void;
+  touchEndHandler: (event: TouchEvent) => void;
+}
+
+const statesByDocument = new WeakMap<Document, ScrollLockState>();
+
+function getEventNode(target: EventTarget | null): Node | null {
+  return target instanceof Node ? target : null;
+}
+
+function isAllowedTarget(state: ScrollLockState, target: Node): boolean {
+  for (const registration of state.registrations) {
+    if (!registration.active) continue;
+    if (registration.allowRef?.current?.contains(target)) return true;
+    if (registration.isAllowedTarget?.(target)) return true;
+  }
+  return false;
+}
+
+function canElementConsumeScroll(
+  element: HTMLElement,
+  deltaX: number,
+  deltaY: number,
+): boolean {
+  const styles = getComputedStyle(element);
+  const canScrollY = /(auto|scroll|overlay)/.test(styles.overflowY);
+  const canScrollX = /(auto|scroll|overlay)/.test(styles.overflowX);
+
+  if (deltaY !== 0 && canScrollY && element.scrollHeight > element.clientHeight) {
+    if (deltaY < 0 && element.scrollTop > 0) return true;
+    if (
+      deltaY > 0 &&
+      element.scrollTop + element.clientHeight < element.scrollHeight
+    ) {
+      return true;
+    }
+  }
+
+  if (deltaX !== 0 && canScrollX && element.scrollWidth > element.clientWidth) {
+    if (deltaX < 0 && element.scrollLeft > 0) return true;
+    if (
+      deltaX > 0 &&
+      element.scrollLeft + element.clientWidth < element.scrollWidth
+    ) {
+      return true;
+    }
   }
 
   return false;
 }
 
+function canAllowedRegionConsumeScroll(
+  state: ScrollLockState,
+  target: Node,
+  deltaX: number,
+  deltaY: number,
+): boolean {
+  if (deltaX === 0 && deltaY === 0) return true;
+
+  let element = target instanceof HTMLElement
+    ? target
+    : target.parentElement;
+  while (element && isAllowedTarget(state, element)) {
+    if (canElementConsumeScroll(element, deltaX, deltaY)) return true;
+    element = element.parentElement;
+  }
+  return false;
+}
+
+function preventBackgroundScroll(
+  state: ScrollLockState,
+  event: WheelEvent | TouchEvent,
+  deltaX: number,
+  deltaY: number,
+): void {
+  const target = getEventNode(event.target);
+  if (
+    target &&
+    isAllowedTarget(state, target) &&
+    canAllowedRegionConsumeScroll(state, target, deltaX, deltaY)
+  ) {
+    return;
+  }
+  event.preventDefault();
+}
+
+function getPrimaryTouch(event: TouchEvent): Touch | null {
+  return event.touches.item(0) ?? event.changedTouches.item(0);
+}
+
+function createScrollLockState(): ScrollLockState {
+  const state = {
+    registrations: new Set<ScrollLockRegistration>(),
+    bodyStyle: null,
+    scrollX: 0,
+    scrollY: 0,
+    lastTouch: null,
+  } as ScrollLockState;
+
+  state.wheelHandler = (event) => {
+    preventBackgroundScroll(state, event, event.deltaX, event.deltaY);
+  };
+  state.touchStartHandler = (event) => {
+    const touch = getPrimaryTouch(event);
+    state.lastTouch = touch
+      ? { identifier: touch.identifier, x: touch.clientX, y: touch.clientY }
+      : null;
+  };
+  state.touchMoveHandler = (event) => {
+    const touch = getPrimaryTouch(event);
+    const previous = state.lastTouch;
+    if (!touch || !previous || touch.identifier !== previous.identifier) {
+      event.preventDefault();
+      return;
+    }
+    const deltaX = previous.x - touch.clientX;
+    const deltaY = previous.y - touch.clientY;
+    state.lastTouch = {
+      identifier: touch.identifier,
+      x: touch.clientX,
+      y: touch.clientY,
+    };
+    preventBackgroundScroll(state, event, deltaX, deltaY);
+  };
+  state.touchEndHandler = () => {
+    state.lastTouch = null;
+  };
+  return state;
+}
+
+function getScrollLockState(ownerDocument: Document): ScrollLockState {
+  let state = statesByDocument.get(ownerDocument);
+  if (!state) {
+    state = createScrollLockState();
+    statesByDocument.set(ownerDocument, state);
+  }
+  return state;
+}
+
+function lockDocument(ownerDocument: Document, state: ScrollLockState): void {
+  const body = ownerDocument.body;
+  const view = ownerDocument.defaultView;
+  if (!view) return;
+
+  state.bodyStyle = {
+    overflow: body.style.overflow,
+    paddingRight: body.style.paddingRight,
+    position: body.style.position,
+    top: body.style.top,
+    left: body.style.left,
+    right: body.style.right,
+    width: body.style.width,
+  };
+  state.scrollX = view.scrollX;
+  state.scrollY = view.scrollY;
+
+  const scrollbarWidth = ownerDocument.documentElement.clientWidth > 0
+    ? Math.max(0, view.innerWidth - ownerDocument.documentElement.clientWidth)
+    : 0;
+  if (scrollbarWidth > 0) {
+    const currentPadding = Number.parseFloat(view.getComputedStyle(body).paddingRight) || 0;
+    body.style.paddingRight = `${currentPadding + scrollbarWidth}px`;
+  }
+  body.style.overflow = "hidden";
+  body.style.position = "fixed";
+  body.style.top = `${-state.scrollY}px`;
+  body.style.left = `${-state.scrollX}px`;
+  body.style.right = "0";
+  body.style.width = "100%";
+
+  ownerDocument.addEventListener("wheel", state.wheelHandler, { passive: false });
+  ownerDocument.addEventListener("touchstart", state.touchStartHandler, { passive: true });
+  ownerDocument.addEventListener("touchmove", state.touchMoveHandler, { passive: false });
+  ownerDocument.addEventListener("touchend", state.touchEndHandler);
+  ownerDocument.addEventListener("touchcancel", state.touchEndHandler);
+}
+
+function unlockDocument(ownerDocument: Document, state: ScrollLockState): void {
+  const bodyStyle = state.bodyStyle;
+  const view = ownerDocument.defaultView;
+  if (!bodyStyle || !view) return;
+
+  ownerDocument.removeEventListener("wheel", state.wheelHandler);
+  ownerDocument.removeEventListener("touchstart", state.touchStartHandler);
+  ownerDocument.removeEventListener("touchmove", state.touchMoveHandler);
+  ownerDocument.removeEventListener("touchend", state.touchEndHandler);
+  ownerDocument.removeEventListener("touchcancel", state.touchEndHandler);
+
+  Object.assign(ownerDocument.body.style, bodyStyle);
+  view.scrollTo(state.scrollX, state.scrollY);
+  state.bodyStyle = null;
+  state.lastTouch = null;
+}
+
 export function useScrollLock(
   enabled: boolean,
   allowRef?: RefObject<HTMLElement | null>,
+  isAllowedTarget?: (target: Node) => boolean,
+  active = true,
 ): void {
-  useEffect(() => {
+  const registrationRef = useRef<ScrollLockRegistration | null>(null);
+
+  useLayoutEffect(() => {
     if (!enabled) return undefined;
+    const ownerDocument = allowRef?.current?.ownerDocument ?? document;
+    const state = getScrollLockState(ownerDocument);
+    const registration = { allowRef, isAllowedTarget, active };
+    registrationRef.current = registration;
 
-    if (allowRef) {
-      allowedScrollRefs.add(allowRef);
-    }
-
-    if (lockCount === 0) {
-      previousOverflow = document.body.style.overflow;
-      previousPaddingRight = document.body.style.paddingRight;
-      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-
-      document.body.style.overflow = "hidden";
-      if (scrollbarWidth > 0) {
-        document.body.style.paddingRight = `${scrollbarWidth}px`;
-      }
-
-      preventScrollHandler = (event: WheelEvent) => {
-        if (isAllowedScrollTarget(event.target)) return;
-        event.preventDefault();
-      };
-
-      document.addEventListener("wheel", preventScrollHandler, { passive: false });
-    }
-
-    lockCount += 1;
+    if (state.registrations.size === 0) lockDocument(ownerDocument, state);
+    state.registrations.add(registration);
 
     return () => {
-      if (allowRef) {
-        allowedScrollRefs.delete(allowRef);
-      }
-
-      lockCount = Math.max(0, lockCount - 1);
-      if (lockCount > 0) return;
-
-      document.body.style.overflow = previousOverflow;
-      document.body.style.paddingRight = previousPaddingRight;
-
-      if (preventScrollHandler) {
-        document.removeEventListener("wheel", preventScrollHandler);
-        preventScrollHandler = null;
-      }
+      registrationRef.current = null;
+      state.registrations.delete(registration);
+      if (state.registrations.size === 0) unlockDocument(ownerDocument, state);
     };
-  }, [allowRef, enabled]);
+  }, [allowRef, enabled, isAllowedTarget]);
+
+  useLayoutEffect(() => {
+    if (registrationRef.current) registrationRef.current.active = active;
+  }, [active]);
 }

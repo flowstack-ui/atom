@@ -52,6 +52,13 @@ const focusGuardStyle = {
   pointerEvents: "none",
 } as const;
 
+const popoverFocusScopeMetadata = {
+  focusContainment: "owned",
+  tabParticipation: "delegate",
+  scrollParticipation: "allowed",
+  isolation: "owned",
+} as const;
+
 export interface PopoverContentProps extends PopoverContentNativeProps {
   children: ReactNode;
   side?: PopoverSide;
@@ -191,10 +198,27 @@ function PopoverContent(
 
   useFocusRestore(isOpen && modal);
   useFocusOnMount(contentRef, isPresent);
-  useFocusScopeContainer(contentRef, isPresent);
+  useFocusScopeContainer(
+    contentRef,
+    isPresent,
+    undefined,
+    popoverFocusScopeMetadata,
+  );
+  useFocusScopeContainer(
+    beforeGuardRef,
+    isPresent && !modal,
+    undefined,
+    popoverFocusScopeMetadata,
+  );
+  useFocusScopeContainer(
+    afterGuardRef,
+    isPresent && !modal,
+    undefined,
+    popoverFocusScopeMetadata,
+  );
   useFocusTrap(contentRef, isOpen && modal, { scope: focusScope });
   useFocusScopeContainer(contentRef, isOpen && modal, focusScope);
-  useScrollLock(isOpen && modal);
+  useScrollLock(isOpen && modal, contentRef);
 
   useEffect(() => {
     if (!isPresent) return undefined;

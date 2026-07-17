@@ -181,13 +181,25 @@ test("source keeps shared primitive internals stable", async () => {
     new URL("src/primitives/popover/PopoverArrow.tsx", packageRoot),
     "utf8",
   );
+  const modalIsolationSource = await readFile(
+    new URL("src/primitives/modal/isolation.ts", packageRoot),
+    "utf8",
+  );
+  const modalPortalSource = await readFile(
+    new URL("src/primitives/modal/ModalPortal.tsx", packageRoot),
+    "utf8",
+  );
+  const portalSource = await readFile(
+    new URL("src/utils/Portal.tsx", packageRoot),
+    "utf8",
+  );
 
-  assert.match(scrollLockSource, /let lockCount = 0/);
-  assert.match(scrollLockSource, /const allowedScrollRefs = new Set/);
-  assert.match(scrollLockSource, /if \(lockCount === 0\)/);
-  assert.match(scrollLockSource, /lockCount \+= 1/);
-  assert.match(scrollLockSource, /lockCount = Math\.max\(0, lockCount - 1\)/);
-  assert.match(scrollLockSource, /if \(lockCount > 0\) return/);
+  assert.match(scrollLockSource, /const statesByDocument = new WeakMap/);
+  assert.match(scrollLockSource, /registrations: new Set/);
+  assert.match(scrollLockSource, /canAllowedRegionConsumeScroll/);
+  assert.match(scrollLockSource, /touchMoveHandler/);
+  assert.match(scrollLockSource, /state\.registrations\.size === 0/);
+  assert.match(scrollLockSource, /Object\.assign\(ownerDocument\.body\.style, bodyStyle\)/);
   assert.match(floatingArrowSource, /export function getFloatingArrowGeometry/);
   assert.match(floatingArrowSource, /export const FloatingArrow = forwardRef/);
   assert.match(tooltipArrowSource, /getFloatingArrowGeometry\(side, width, height\)/);
@@ -196,6 +208,12 @@ test("source keeps shared primitive internals stable", async () => {
   assert.doesNotMatch(tooltipArrowSource, /staticSideByPlacement/);
   assert.doesNotMatch(hoverCardArrowSource, /staticSideByPlacement/);
   assert.doesNotMatch(popoverArrowSource, /staticSideByPlacement/);
+  assert.match(modalIsolationSource, /new MutationObserver/);
+  assert.match(modalIsolationSource, /preservedPaths/);
+  assert.match(modalIsolationSource, /restoreAll/);
+  assert.match(modalPortalSource, /current document/);
+  assert.match(portalSource, /container\?: HTMLElement \| null/);
+  assert.doesNotMatch(portalSource, /DocumentFragment/);
 });
 
 test("source exposes refs and client boundaries on public wrappers", async () => {

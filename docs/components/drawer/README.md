@@ -91,13 +91,24 @@ wrapper.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `container` | `Element \| DocumentFragment \| null` | `document.body` |
+| `container` | `HTMLElement \| null` | `document.body` |
 | `disabled` | `boolean` | `false` |
+
+The container must be an `HTMLElement` in the current document. `ShadowRoot`,
+`DocumentFragment`, and cross-document containers are unsupported. Atom keeps
+the ancestor paths to separate Overlay and Content portals, inline Content,
+nested same-document containers, and registered branches active while making
+background subtrees inert. Global Toast/live-region containers are background
+unless they are within an owned path or registered with `Modal.Branch`.
 
 ### Overlay
 
 Renders the accessibility-hidden backdrop. Clicking it closes with reason
 `"backdropClick"` unless Root or this Overlay disables backdrop dismissal.
+Overlay and Content must be siblings; Atom rejects Content nested beneath the
+Overlay's `aria-hidden` subtree. Bubbled clicks from Overlay descendants are not
+backdrop clicks and do not dismiss the Drawer.
+Separate portals are valid when the committed Content DOM is outside Overlay.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -121,15 +132,22 @@ attribute only; it does not apply positioning.
 | Prop | Type | Default |
 | --- | --- | --- |
 | `placement` | `string` | - |
-| `ariaLabel` | `string` | - |
+| `aria-label` | `string` | - |
+| `aria-labelledby` | `string` | generated from Title when present |
+| `aria-describedby` | `string \| undefined` | generated from Description when present |
+| `ariaLabel` | `string` | compatibility fallback |
+| `initialFocus` | `ModalFocusTarget<ModalInitialFocusDetails>` | interaction-aware default |
+| `finalFocus` | `ModalFocusTarget<ModalFinalFocusDetails>` | prior focus, then Trigger |
 
 | ARIA attribute | Values |
 | --- | --- |
 | `role` | `"dialog"` |
-| `aria-modal` | `"true"` while visible |
-| `aria-label` | Value from `ariaLabel` |
-| `aria-labelledby` | Generated Title ID when `ariaLabel` is absent |
-| `aria-describedby` | Generated Description ID |
+| `aria-modal` | `"true"` while open |
+| `aria-hidden` | `"true"` while retained only for exit presence |
+| `inert` | Present while retained only for exit presence |
+| `aria-label` | Explicit native value, otherwise `ariaLabel` compatibility value |
+| `aria-labelledby` | Explicit native value, otherwise registered Title ID |
+| `aria-describedby` | Explicit native value, otherwise registered Description ID |
 
 | Data attribute | Values |
 | --- | --- |
@@ -140,6 +158,11 @@ attribute only; it does not apply positioning.
 
 With `keepMounted`, closed Content remains inside a hidden, `aria-hidden`
 wrapper and preserves its class name and placement metadata.
+
+Exit-animated Content retained after close immediately loses `aria-modal` and
+becomes inert and accessibility-hidden. Background isolation, focus ownership,
+and active scroll containment end when `open` becomes false, not when the visual
+exit ends.
 
 ### Title
 
@@ -178,6 +201,13 @@ default and supports custom composition.
 The Drawer entry point also exports `useModalContext` and `useModalContent` for
 advanced custom modal parts. The namespaced parts are preferred for ordinary
 drawers because they provide the complete contract above.
+
+For a consumer-owned third-party portal outside Content, use
+`<Modal.Branch asChild>` around its top-level element or configure the portal to
+target the Drawer Content element. Nested modal layers suspend the parent
+Drawer's trap, dismissal, and scroll ownership while the child is topmost.
+Long Drawer Content and registered portalled controls remain scrollable while
+background wheel/touch movement and scroll chaining are blocked.
 
 ## Examples
 
@@ -236,8 +266,14 @@ export function ControlledDrawer() {
 
 Drawer uses the
 [WAI-ARIA Modal Dialog pattern](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/).
-Give every drawer a Title or `ariaLabel`, and add Description when the purpose
-needs more explanation. Focus moves inside on open, stays within the drawer and
+Give every drawer a Title or native `aria-label`, and add Description when the
+purpose needs more explanation. `ariaLabel` remains a compatibility fallback;
+native ARIA is preferred and takes precedence. Atom omits `aria-describedby`
+when no Description is registered. Focus moves inside on open, stays within the drawer and
+its registered descendant portals, and restores after close. Touch opening
+focuses Content by default instead of immediately focusing an input; native
+`autoFocus` and explicit `initialFocus` take precedence. Use `finalFocus` for a
+different next workflow target or `false` to suppress automatic restoration.
 its registered descendant portals, and returns after close.
 
 | Key | Description |

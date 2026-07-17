@@ -2,7 +2,23 @@
 
 ## Unreleased
 
-- No unreleased changes.
+- Fixed native Content ARIA precedence and registered Title/Description
+  relationships across SSR and hydration.
+- Added a settled development warning when an alert dialog lacks its required
+  accessible description.
+- Added Content-level `initialFocus` and `finalFocus` while preserving Cancel's
+  native safe autofocus default.
+- Added shared top-layer ownership and `Modal.Branch` support for third-party
+  alert-dialog portals.
+- Preserved descendant composite and nested-modal keyboard contracts through
+  metadata-aware focus containment.
+- Added registered-portal scroll allowances and per-document wheel/touch
+  background containment with exact cleanup.
+- Added stack-aware background isolation and same-document `HTMLElement`
+  portal-container enforcement through the shared Modal foundation.
+- Established shared modal ownership before paint and made exit-present Content
+  inert and accessibility-hidden with uninterrupted nested lock handoff.
+- Rejected Content nested beneath the accessibility-hidden Overlay.
 
 ## 0.2.0
 

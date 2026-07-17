@@ -1,5 +1,7 @@
 export { ModalClose } from "./ModalClose.js";
 export type { ModalCloseProps } from "./ModalClose.js";
+export { ModalBranch } from "./ModalBranch.js";
+export type { ModalBranchProps } from "./ModalBranch.js";
 export { ModalDescription } from "./ModalDescription.js";
 export type { ModalDescriptionProps } from "./ModalDescription.js";
 export { ModalPortal } from "./ModalPortal.js";
@@ -17,9 +19,13 @@ export {
 export type {
   ModalCloseReason,
   ModalContextValue,
+  ModalFinalFocusDetails,
+  ModalInitialFocusDetails,
+  ModalInteractionType,
 } from "./context.js";
 export { useModalContent } from "./useModalContent.js";
 export type {
   UseModalContentOptions,
   UseModalContentReturn,
+  ModalFocusTarget,
 } from "./useModalContent.js";

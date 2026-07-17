@@ -13,6 +13,9 @@ export type DialogLogEntry = {
 export type DialogCompositionMode = "default" | "asChild" | "render";
 export type DialogContentRole = "dialog" | "alertdialog";
 export type DialogHeadingLevel = "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+export type DialogNameMode = "title" | "native" | "compatibility";
+export type DialogInitialFocusMode = "default" | "content" | "name" | "autoFocus";
+export type DialogFinalFocusMode = "trigger" | "workflow" | "none";
 export type DialogRefPart =
   | "trigger"
   | "overlay"
@@ -28,7 +31,12 @@ export type DialogScenarioState = {
   keepMounted: boolean;
   closeOnEscape: boolean;
   closeOnBackdropClick: boolean;
-  useAriaLabel: boolean;
+  nameMode: DialogNameMode;
+  showDescription: boolean;
+  initialFocusMode: DialogInitialFocusMode;
+  finalFocusMode: DialogFinalFocusMode;
+  showThirdPartyBranch: boolean;
+  showNestedDialog: boolean;
   contentRole: DialogContentRole;
   noFocusableContent: boolean;
   titleHeadingLevel: DialogHeadingLevel;
@@ -86,6 +94,9 @@ export type DialogPartsSnapshot = {
   contentLabelledBy: string;
   contentDescribedBy: string;
   bodyScrollLock: string;
+  backgroundInert: string;
+  branchExists: string;
+  branchInert: string;
   controlsMatch: string;
   overlayExists: string;
   overlaySlot: string;
@@ -112,7 +123,12 @@ export type DialogScenarioActions = {
   setKeepMounted: (value: boolean) => void;
   setCloseOnEscape: (value: boolean) => void;
   setCloseOnBackdropClick: (value: boolean) => void;
-  setUseAriaLabel: (value: boolean) => void;
+  setNameMode: (value: DialogNameMode) => void;
+  setShowDescription: (value: boolean) => void;
+  setInitialFocusMode: (value: DialogInitialFocusMode) => void;
+  setFinalFocusMode: (value: DialogFinalFocusMode) => void;
+  setShowThirdPartyBranch: (value: boolean) => void;
+  setShowNestedDialog: (value: boolean) => void;
   setContentRole: (value: DialogContentRole) => void;
   setNoFocusableContent: (value: boolean) => void;
   setTitleHeadingLevel: (value: DialogHeadingLevel) => void;
@@ -150,7 +166,14 @@ export function useDialogScenario() {
   const [keepMounted, setKeepMounted] = useState(false);
   const [closeOnEscape, setCloseOnEscape] = useState(true);
   const [closeOnBackdropClick, setCloseOnBackdropClick] = useState(true);
-  const [useAriaLabel, setUseAriaLabel] = useState(false);
+  const [nameMode, setNameMode] = useState<DialogNameMode>("title");
+  const [showDescription, setShowDescription] = useState(true);
+  const [initialFocusMode, setInitialFocusMode] =
+    useState<DialogInitialFocusMode>("default");
+  const [finalFocusMode, setFinalFocusMode] =
+    useState<DialogFinalFocusMode>("trigger");
+  const [showThirdPartyBranch, setShowThirdPartyBranch] = useState(false);
+  const [showNestedDialog, setShowNestedDialog] = useState(false);
   const [contentRole, setContentRole] = useState<DialogContentRole>("dialog");
   const [noFocusableContent, setNoFocusableContent] = useState(false);
   const [titleHeadingLevel, setTitleHeadingLevel] =
@@ -338,6 +361,7 @@ export function useDialogScenario() {
         "data-prop-check",
         "disabled",
         "hidden",
+        "inert",
         "id",
         "name",
         "role",
@@ -410,7 +434,12 @@ export function useDialogScenario() {
     keepMounted,
     closeOnEscape,
     closeOnBackdropClick,
-    useAriaLabel,
+    nameMode,
+    showDescription,
+    initialFocusMode,
+    finalFocusMode,
+    showThirdPartyBranch,
+    showNestedDialog,
     contentRole,
     noFocusableContent,
     titleHeadingLevel,
@@ -438,7 +467,12 @@ export function useDialogScenario() {
     setKeepMounted,
     setCloseOnEscape,
     setCloseOnBackdropClick,
-    setUseAriaLabel,
+    setNameMode,
+    setShowDescription,
+    setInitialFocusMode,
+    setFinalFocusMode,
+    setShowThirdPartyBranch,
+    setShowNestedDialog,
     setContentRole,
     setNoFocusableContent,
     setTitleHeadingLevel,
@@ -493,6 +527,8 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
   const overlay = document.querySelector("[data-playground-dialog-overlay]");
   const title = document.querySelector("[data-playground-dialog-title]");
   const description = document.querySelector("[data-playground-dialog-description]");
+  const background = document.querySelector("[data-playground-dialog-behind]");
+  const branch = document.querySelector("[data-playground-dialog-branch]");
   const canvas = document.querySelector(".canvas");
   const triggerControls = trigger?.getAttribute("aria-controls") ?? "none";
   const contentId = content?.id || "none";
@@ -561,6 +597,9 @@ function getDialogPartsSnapshot(revision: number): DialogPartsSnapshot {
     contentLabelledBy: labelledBy,
     contentDescribedBy: describedBy,
     bodyScrollLock: document.body.style.overflow || "none",
+    backgroundInert: background?.closest("[inert]") ? "yes" : "no",
+    branchExists: branch ? "yes" : "no",
+    branchInert: branch?.closest("[inert]") ? "yes" : "no",
     controlsMatch: triggerControls !== "none" && triggerControls === contentId ? "yes" : "no",
     overlayExists: overlay ? "yes" : "no",
     overlaySlot: overlay?.getAttribute("data-slot") ?? "not rendered",
@@ -656,6 +695,9 @@ const emptyDialogPartsSnapshot: DialogPartsSnapshot = {
   contentLabelledBy: "none",
   contentDescribedBy: "none",
   bodyScrollLock: "none",
+  backgroundInert: "no",
+  branchExists: "no",
+  branchInert: "no",
   controlsMatch: "no",
   overlayExists: "no",
   overlaySlot: "not rendered",

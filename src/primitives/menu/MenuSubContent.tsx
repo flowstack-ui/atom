@@ -36,6 +36,13 @@ import {
   type MenuInitialHighlight,
 } from "./context.js";
 
+const menuSubFocusScopeMetadata = {
+  focusContainment: "owned",
+  tabParticipation: "delegate",
+  scrollParticipation: "allowed",
+  isolation: "owned",
+} as const;
+
 type MenuSubContentNativeProps = NativeDivProps<"children" | "role">;
 
 export interface MenuSubContentProps extends MenuSubContentNativeProps {
@@ -91,7 +98,12 @@ function MenuSubContent(
   const [nestedOpenSubMenuId, setNestedOpenSubMenuId] = useState<string | null>(null);
   const typeaheadBuffer = useRef("");
   const typeaheadTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  useFocusScopeContainer(internalRef, isPresent);
+  useFocusScopeContainer(
+    internalRef,
+    isPresent,
+    undefined,
+    menuSubFocusScopeMetadata,
+  );
 
   const onNestedSubMenuOpen = useCallback((id: string) => setNestedOpenSubMenuId(id), []);
   const onNestedSubMenuClose = useCallback(() => setNestedOpenSubMenuId(null), []);

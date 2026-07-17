@@ -1,8 +1,10 @@
 "use client";
 
-import { forwardRef, type ReactNode } from "react";
+import { forwardRef, useCallback, useMemo, useRef, type ReactNode } from "react";
 import type { NativeHeadingProps } from "../../utils/dom.js";
+import { composeRefs } from "../../utils/slot.js";
 import { useModalContext } from "./context.js";
+import { markModalPart } from "./parts.js";
 
 export type ModalHeadingLevel = "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 
@@ -30,12 +32,24 @@ export const ModalTitle = forwardRef<HTMLHeadingElement, ModalTitleProps>(
     },
     ref,
   ) {
-    const { titleId } = useModalContext();
+    const { titleId, registerPart } = useModalContext();
+    const unregisterRef = useRef<(() => void) | null>(null);
+    const registrationRef = useCallback(
+      (node: HTMLHeadingElement | null) => {
+        unregisterRef.current?.();
+        unregisterRef.current = node ? registerPart("title") : null;
+      },
+      [registerPart],
+    );
+    const composedRef = useMemo(
+      () => composeRefs(registrationRef, ref),
+      [registrationRef, ref],
+    );
 
     return (
       <Tag
         {...restProps}
-        ref={ref}
+        ref={composedRef}
         id={titleId}
         data-slot={dataSlot}
         className={className}
@@ -45,3 +59,5 @@ export const ModalTitle = forwardRef<HTMLHeadingElement, ModalTitleProps>(
     );
   },
 );
+
+markModalPart(ModalTitle, "title");

@@ -2074,36 +2074,77 @@ function getDialogSource(state: ReturnType<typeof useDialogScenario>["state"]) {
         "onOpenChange={setOpen}",
       ]
     : [
-        "defaultOpen={false}",
         "onOpenChange={handleOpenChange}",
       ];
+  if (state.disabled) rootProps.push("disabled");
+  if (state.keepMounted) rootProps.push("keepMounted");
+  if (!state.closeOnEscape) rootProps.push("closeOnEscape={false}");
+  if (!state.closeOnBackdropClick) rootProps.push("closeOnBackdropClick={false}");
   const trigger = getDialogTriggerSource(state);
-  const title = state.useAriaLabel
-    ? `ariaLabel="Project settings"`
-    : `<Dialog.Title as="${state.titleHeadingLevel}">Project settings</Dialog.Title>`;
+  const nameProp = state.nameMode === "native"
+    ? `aria-label="Project settings"`
+    : state.nameMode === "compatibility"
+      ? `ariaLabel="Project settings"`
+      : "";
+  const title = state.nameMode === "title"
+    ? state.titleHeadingLevel === "h2"
+      ? `<Dialog.Title>Project settings</Dialog.Title>`
+      : `<Dialog.Title as="${state.titleHeadingLevel}">Project settings</Dialog.Title>`
+    : "";
+  const description = state.showDescription
+    ? `<Dialog.Description>
+        Change a setting, tab through the controls, press Escape, or close the dialog.
+      </Dialog.Description>`
+    : "";
+  const initialFocus = state.initialFocusMode === "content"
+    ? `initialFocus={() => document.querySelector("[role=dialog]")}`
+    : state.initialFocusMode === "name"
+      ? `initialFocus={nameRef}`
+      : "";
+  const finalFocus = state.finalFocusMode === "workflow"
+    ? `finalFocus={workflowTargetRef}`
+    : state.finalFocusMode === "none"
+      ? `finalFocus={false}`
+      : "";
+  const autoFocus = state.initialFocusMode === "autoFocus" ? " autoFocus" : "";
+  const nestedDialog = state.showNestedDialog
+    ? `<Dialog.Root>
+        <Dialog.Trigger>Open nested dialog</Dialog.Trigger>
+        <Dialog.Portal>
+          <Dialog.Overlay />
+          <Dialog.Content aria-label="Nested dialog">
+            <Dialog.Close>Close nested dialog</Dialog.Close>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>`
+    : "";
+  const branch = state.showThirdPartyBranch
+    ? `{createPortal(
+        <Modal.Branch asChild>
+          <ThirdParty.Content />
+        </Modal.Branch>,
+        document.body,
+      )}`
+    : "";
   const saveClose = getDialogCloseSource(state.closeComposition, state.blockSaveClose);
 
-  return `<Dialog.Root
+  return `${state.finalFocusMode === "workflow" ? `<button ref={workflowTargetRef}>Workflow target</button>\n` : ""}<Dialog.Root
   ${rootProps.join("\n  ")}
-  disabled={${state.disabled}}
-  keepMounted={${state.keepMounted}}
-  closeOnEscape={${state.closeOnEscape}}
-  closeOnBackdropClick={${state.closeOnBackdropClick}}
 >
   ${trigger}
   <Dialog.Portal>
     <Dialog.Overlay />
     <Dialog.Content
-      ${state.useAriaLabel ? title : ""}
-      role="${state.contentRole}"
+      ${nameProp}
+      ${initialFocus}
+      ${finalFocus}
+      ${state.contentRole === "dialog" ? "" : `role="${state.contentRole}"`}
     >
-      ${state.useAriaLabel ? "" : title}
-      <Dialog.Description>
-        Change a setting, tab through the controls, press Escape, or close the dialog.
-      </Dialog.Description>
+      ${title}
+      ${description}
       <Field.Root id="dialog-name-field">
         <Field.Label>Name</Field.Label>
-        <Input.Root defaultValue="Atom Playground" />
+        <Input.Root${autoFocus} defaultValue="Atom Playground" />
       </Field.Root>
       <Field.Root id="dialog-mode-field">
         <Field.Label>Mode</Field.Label>
@@ -2112,7 +2153,7 @@ function getDialogSource(state: ReturnType<typeof useDialogScenario>["state"]) {
             <Select.Value />
             <Select.Icon>▾</Select.Icon>
           </Select.Trigger>
-          <Select.Content ariaLabel="Mode">
+          <Select.Content aria-label="Mode">
             <Select.Viewport>
               <Select.Item value="manual">
                 <Select.ItemText>Manual</Select.ItemText>
@@ -2126,6 +2167,8 @@ function getDialogSource(state: ReturnType<typeof useDialogScenario>["state"]) {
       </Field.Root>
       <Dialog.Close>Cancel</Dialog.Close>
       ${saveClose}
+      ${nestedDialog}
+      ${branch}
     </Dialog.Content>
   </Dialog.Portal>
 </Dialog.Root>`;
