@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.3.0
+
 - Fixed native Content ARIA precedence and optional Description relationships.
 - Added SSR-safe, hydration-stable Title and Description registration.
 - Added Content-level `initialFocus` and `finalFocus`, touch-safe default focus,

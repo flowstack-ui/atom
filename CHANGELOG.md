@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.3.0
+
 - Fixed Modal-family Content native `aria-label`, `aria-labelledby`, and
   `aria-describedby` forwarding so explicit native ARIA takes precedence while
   retaining `ariaLabel` as a compatibility fallback.

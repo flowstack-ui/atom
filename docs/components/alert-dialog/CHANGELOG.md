@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.3.0
+
 - Fixed native Content ARIA precedence and registered Title/Description
   relationships across SSR and hydration.
 - Added a settled development warning when an alert dialog lacks its required
