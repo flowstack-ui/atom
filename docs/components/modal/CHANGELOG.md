@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.3.2
+
+- Fixed nested isolation handoff and final cleanup so closing every modal
+  restores the application instead of leaving its root `inert`.
+
 ## 0.3.1
 
 - Fixed shared exit-presence cleanup with a computed motion fallback that

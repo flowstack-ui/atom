@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.3.2
+
+- Fixed nested Dialog isolation cleanup so closing the child and parent cannot
+  leave the application root `inert` and unclickable.
+
 ## 0.3.1
 
 - Fixed exit-presence cleanup so closed Dialog Content and Overlay unmount

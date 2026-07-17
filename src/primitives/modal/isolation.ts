@@ -20,7 +20,6 @@ interface IsolationRecord {
 
 interface PendingInertWrite {
   oldValue: string | null;
-  newValue: string | null;
 }
 
 interface IsolationManager {
@@ -66,7 +65,7 @@ function writeInertAttribute(
     pending = [];
     manager.pendingInertWrites.set(element, pending);
   }
-  pending.push({ oldValue: currentValue, newValue: value });
+  pending.push({ oldValue: currentValue });
   if (value === null) element.removeAttribute("inert");
   else element.setAttribute("inert", value);
 }
@@ -172,21 +171,11 @@ function reconcile(manager: IsolationManager): void {
 function ensureObserver(manager: IsolationManager): void {
   if (manager.observer) return;
   manager.observer = new MutationObserver((mutations) => {
-    for (const [index, mutation] of mutations.entries()) {
+    for (const mutation of mutations) {
       if (mutation.type !== "attributes") continue;
       const element = mutation.target as Element;
       const pending = manager.pendingInertWrites.get(element);
-      const nextMutation = mutations
-        .slice(index + 1)
-        .find(
-          (candidate) =>
-            candidate.type === "attributes" && candidate.target === element,
-        );
-      const newValue = nextMutation?.oldValue ?? element.getAttribute("inert");
-      if (
-        pending?.[0]?.oldValue === mutation.oldValue &&
-        pending[0].newValue === newValue
-      ) {
+      if (pending?.[0]?.oldValue === mutation.oldValue) {
         pending.shift();
         if (pending.length === 0) manager.pendingInertWrites.delete(element);
         continue;
@@ -232,12 +221,13 @@ export function registerModalIsolation(
     record.unsubscribeLayer();
     record.unsubscribeFocusScope();
     manager.records.delete(layer);
-    reconcile(manager);
     if (manager.records.size === 0) {
       manager.observer?.disconnect();
       manager.observer = null;
       restoreAll(manager);
       manager.pendingInertWrites.clear();
+      return;
     }
+    reconcile(manager);
   };
 }

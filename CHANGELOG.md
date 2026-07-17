@@ -4,6 +4,12 @@
 
 - No unreleased changes.
 
+## 0.3.2
+
+- Fixed nested modal isolation cleanup so rapid layer handoffs and animated
+  exits cannot leave the application root permanently `inert` after every
+  dialog has closed.
+
 ## 0.3.1
 
 - Fixed presence cleanup so exit-retained layers unmount after their computed
