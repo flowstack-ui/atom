@@ -9,10 +9,11 @@ documentation and changelog corrections in this audit pass.
 
 Status: implementation, correction-pass verification, focused desktop manual
 qualification, macOS VoiceOver qualification, and iPhone Safari behavioral
-qualification succeed. The change is ready for an implementation checkpoint
-commit. Publication readiness remains pending iPhone VoiceOver, Android Chrome
-and TalkBack, and coverage-workbook qualification. The package remains `0.2.1`;
-this pass did not publish, version, or tag anything.
+qualification and iPhone VoiceOver qualification succeed. Android Chrome and
+TalkBack qualification is explicitly deferred because no Android device is
+available. Publication readiness remains pending coverage-workbook
+qualification. The package remains `0.2.1`; this pass did not publish, version,
+or tag anything.
 
 | Check | Result |
 | --- | --- |
@@ -28,8 +29,8 @@ this pass did not publish, version, or tag anything.
 | Focused desktop manual protocol | Pass: native ARIA and optional Description, initial/final focus, portalled Select, consumer Branch, nested modal ownership, cleanup, and Inspector/Logs consistency |
 | Desktop assistive technology | Pass: macOS VoiceOver accessible naming, optional Description, and modal background isolation |
 | iPhone Safari | Pass: touch initial focus, virtual keyboard, allowed-region scrolling, background lock, rotation, nested ownership, dismissal, and cleanup |
-| iPhone VoiceOver | Pending real-device announcement and navigation qualification |
-| Android Chrome and TalkBack | Pending: no Android device was available |
+| iPhone VoiceOver | Pass: accessible naming, optional Description relationships, and modal background isolation |
+| Android Chrome and TalkBack | Deferred: no Android device is available; not represented as a pass or failure |
 | Coverage workbook | Pending: no rows were marked tested during partial qualification |
 
 The playground TypeScript check exposed and verified a cross-environment timer

@@ -2,19 +2,19 @@
 
 Status as of 2026-07-17: partial qualification. The maintainer approved and
 passed a focused desktop protocol covering the changed Modal-family behavior,
-followed by macOS VoiceOver and iPhone Safari behavioral checks. iPhone
-VoiceOver, Android Chrome and TalkBack, and the coverage-workbook update remain
-pending. Do not infer that unexecuted steps below passed, and do not mark
-workbook rows tested until the remaining device matrix and workbook workflow
-are completed.
+followed by macOS VoiceOver, iPhone Safari behavioral checks, and iPhone
+VoiceOver. Android Chrome and TalkBack are explicitly deferred because no
+Android device is available. The coverage-workbook update remains pending. Do
+not infer that unexecuted steps below passed, and do not mark workbook rows
+tested until the workbook workflow is completed.
 
 | Qualification surface | Result |
 | --- | --- |
 | Focused desktop behavior | Pass |
 | macOS VoiceOver | Pass |
 | iPhone Safari behavior | Pass |
-| iPhone VoiceOver | Pending |
-| Android Chrome and TalkBack | Pending: no device available |
+| iPhone VoiceOver | Pass |
+| Android Chrome and TalkBack | Deferred: no device available |
 | Coverage workbook | Pending |
 
 ## Step 0: Playground Smoke Check
