@@ -3,8 +3,25 @@
 Last published-release audit: 2026-07-17
 
 The original `0.2.0` published-release audit remains below as a historical
-baseline. The current release outcome records the exit-presence cleanup patch
-published in `0.3.1`.
+baseline. The current release outcome records the nested-modal isolation
+cleanup patch published in `0.3.2`.
+
+## 0.3.2 Release Outcome - 2026-07-17
+
+Status: pass; `0.3.2` is published under npm `latest` and tagged `v0.3.2`.
+
+The exact `0.3.2` release tarball passes all 372 package tests, emits all 67
+JavaScript and declaration export targets, and passes clean consumer installs
+with React and React DOM `18.3.1` and `19.2.7`. The archive contains 1,919
+files, is 437,174 compressed bytes, and has SHA-1
+`74cc11df993b3b07056f55e899557ae068f5625f` and SHA-256
+`c99b6d64daf7de5029492c1d1e1a840fa1f15001b95b07537a265934bded50ad`.
+The npm registry reports the same SHA-1 and integrity as the qualified archive.
+
+This patch corrects modal isolation bookkeeping across rapid nested-layer
+handoffs and animated exits. Closing a nested Dialog and then its parent now
+restores the application root instead of leaving it permanently `inert` and
+unclickable.
 
 ## 0.3.1 Release Outcome - 2026-07-17
 
