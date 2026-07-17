@@ -1,19 +1,35 @@
 # Release Readiness Audit
 
-Last published-release audit: 2026-07-14
+Last published-release audit: 2026-07-17
 
-Audited commit: `64bac26e719e790afab75e961bb426c51dc94f27`, plus the
-documentation and changelog corrections in this audit pass.
+The original `0.2.0` published-release audit remains below as a historical
+baseline. The current release outcome records the qualified Modal foundation
+work published in `0.3.0`.
 
-## Unreleased Modal Foundation Qualification - 2026-07-17
+## 0.3.0 Release Outcome - 2026-07-17
+
+Status: pass; `0.3.0` is published under npm `latest`.
+
+The exact publication tarball passed all 368 package tests, emitted all 67
+JavaScript and declaration export targets, and passed clean consumer installs
+with React and React DOM `18.3.1` and `19.2.7`. The archive contains 1,919
+files, is 436,217 compressed bytes, and has npm SHA-1
+`02d7f747783b50ba778b3935bc6c1b76853d19e8`.
+
+The minor version reflects new public Modal APIs and materially expanded
+Modal-family capability, including `Modal.Branch`, explicit initial and final
+focus targets, nested layer ownership, focus containment, scroll containment,
+and background isolation.
+
+## Modal Foundation Qualification - 2026-07-17
 
 Status: implementation, correction-pass verification, focused desktop manual
 qualification, macOS VoiceOver qualification, and iPhone Safari behavioral
 qualification and iPhone VoiceOver qualification succeed. Android Chrome and
 TalkBack qualification is explicitly deferred because no Android device is
 available. Coverage-workbook qualification is complete for the approved focused
-scope and available-device matrix. The change is ready for minor-release review.
-The package remains `0.2.1`; this pass did not publish, version, or tag anything.
+scope and available-device matrix. The change qualified for and was published
+in the `0.3.0` minor release.
 
 | Check | Result |
 | --- | --- |
@@ -51,7 +67,9 @@ with the existing non-blocking playground bundle-size note.
 | Tab filtering | Forward and reverse modal traversal excludes disconnected, hidden, inert, accessibility-hidden, disabled, negative-tab-index, and CSS-unavailable candidates, including candidates beneath hidden ancestors. |
 | Dependency metadata | `jsdom` remains a development-only dependency for SSR, hydration, focus, DOM, observer, and scroll regression tests. The temporary exact React pins and Floating UI/tabbable overrides were removed; React retains its prior caret ranges and the pre-audit Floating UI/tabbable lock resolution is unchanged. |
 
-## Result
+## 0.2.0 Published-Release Baseline
+
+### Result
 
 Status: pass; `0.2.0` is published.
 
@@ -60,7 +78,7 @@ exact publication tarball passed the final artifact and consumer verification,
 npm `latest` points to `0.2.0`, and remote tag `v0.2.0` points to the release
 commit.
 
-## Verification
+### Verification
 
 | Check | Result |
 | --- | --- |
@@ -81,7 +99,7 @@ projects with React and React DOM `18.3.1` and `19.2.7`. They verified root
 namespaces, component subpaths, representative direct parts, Portal identity,
 and emitted TypeScript declarations.
 
-## Public API Clarification
+### Public API Clarification
 
 Root imports expose the namespace API. Component subpaths expose their
 namespace and supported direct parts. Direct parts are not independently
@@ -92,7 +110,7 @@ retain shared direct names. For example, `Dialog.Root` composes the directly
 exported `ModalRoot`. The package README and public API guide now document this
 instead of referring to the nonexistent `DialogRoot` export.
 
-## Packaging Notes
+### Packaging Notes
 
 - The audit packed a clean isolated build rather than reusing the working
   repository's ignored `dist/` directory.
@@ -104,7 +122,7 @@ instead of referring to the nonexistent `DialogRoot` export.
   minified and 318 KiB gzip. It does not block the Atom library release, but it
   remains a playground optimization opportunity.
 
-## Release Metadata
+### Release Metadata
 
 - Published Atom version: `0.2.0`
 - npm distribution tag: `latest`
@@ -116,7 +134,7 @@ instead of referring to the nonexistent `DialogRoot` export.
   `64bac26e719e790afab75e961bb426c51dc94f27`
 - Remote playground tag: absent at audit time; this pass did not push it.
 
-## Publication Outcome
+### Publication Outcome
 
 The release was installed from the public npm registry in a fresh React 19
 consumer after publication. Root imports, subpath imports, and server rendering

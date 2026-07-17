@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.3.0
+
 - Prefer native Content ARIA while retaining `ariaLabel` compatibility, and
   preserve explicit native values over generated relationships.
 - Register Title and Description parts with deterministic SSR hints and live,
