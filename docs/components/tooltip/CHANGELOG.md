@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.3.1
+
+- Fixed exit-presence cleanup so closed Tooltip Content unmounts after its CSS
+  motion window even when no end event is emitted.
+
 ## 0.2.0
 
 - Fixed Tooltip render trigger positioning by updating Floating UI after the

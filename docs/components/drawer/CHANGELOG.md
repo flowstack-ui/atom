@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.3.1
+
+- Fixed exit-presence cleanup so closed Drawer Content and Overlay unmount
+  after their CSS motion window even when no end event is emitted.
+
 ## 0.3.0
 
 - Fixed native Content ARIA precedence and optional Description relationships.

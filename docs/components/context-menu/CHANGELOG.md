@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.3.1
+
+- Inherited reliable Menu exit-presence cleanup for closed ContextMenu and
+  submenu Content under global motion CSS.
+
 ## 0.2.0
 
 - Fixed `Trigger` so custom `data-slot` values override the default

@@ -4,6 +4,12 @@
 
 - No unreleased changes.
 
+## 0.3.1
+
+- Fixed shared exit-presence cleanup with a computed motion fallback that
+  handles repeated timing lists and animation iterations without retaining a
+  closed modal layer indefinitely.
+
 ## 0.3.0
 
 - Prefer native Content ARIA while retaining `ariaLabel` compatibility, and
