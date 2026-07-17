@@ -1004,6 +1004,91 @@ test("the shared modal layer stack gives nested portalled dialogs exclusive cont
   });
 });
 
+test("nested modal isolation restores the application after sequential close", async () => {
+  let setParentOpen;
+  let setChildOpen;
+
+  function Fixture() {
+    const [parentOpen, updateParentOpen] = useState(false);
+    const [childOpen, updateChildOpen] = useState(false);
+    setParentOpen = updateParentOpen;
+    setChildOpen = updateChildOpen;
+    return React.createElement(
+      Fragment,
+      null,
+      React.createElement(
+        "button",
+        { "data-testid": "application-action" },
+        "Application action",
+      ),
+      React.createElement(
+        Dialog.Root,
+        { open: parentOpen, onOpenChange: updateParentOpen },
+        React.createElement(Dialog.Overlay, {
+          style: {
+            transitionDuration: "150ms",
+            transitionProperty: "opacity",
+          },
+        }),
+        React.createElement(
+          Dialog.Content,
+          {
+            "aria-label": "Parent dialog",
+            style: {
+              transitionDuration: "150ms",
+              transitionProperty: "opacity",
+            },
+          },
+          React.createElement("button", null, "Parent action"),
+          React.createElement(
+            Dialog.Root,
+            { open: childOpen, onOpenChange: updateChildOpen },
+            React.createElement(
+              Dialog.Portal,
+              null,
+              React.createElement(Dialog.Overlay, {
+                style: {
+                  transitionDuration: "150ms",
+                  transitionProperty: "opacity",
+                },
+              }),
+              React.createElement(
+                Dialog.Content,
+                {
+                  "aria-label": "Child dialog",
+                  style: {
+                    transitionDuration: "150ms",
+                    transitionProperty: "opacity",
+                  },
+                },
+                React.createElement("button", null, "Child action"),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  await withHydratedDom(
+    React.createElement(StrictMode, null, React.createElement(Fixture)),
+    async ({ dom }) => {
+      const application = dom.window.document.querySelector(
+        "[data-testid=application-action]",
+      );
+      await act(async () => setParentOpen(true));
+      await act(async () => setChildOpen(true));
+      await act(async () => setChildOpen(false));
+      await act(async () => new Promise((resolve) => setTimeout(resolve, 100)));
+      await act(async () => setParentOpen(false));
+      await act(async () => new Promise((resolve) => setTimeout(resolve, 250)));
+
+      assert.equal(isEffectivelyInert(application), false);
+      assert.equal(dom.window.document.body.querySelector("[inert]"), null);
+    },
+  );
+});
+
 test("Modal.Branch keeps a consumer-owned third-party portal focusable and scroll-allowed", async () => {
   let hideBranch;
   function ThirdPartyPortal({ children }) {

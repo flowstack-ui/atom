@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.3.2
+
+- Inherited corrected nested-modal isolation handoff and final `inert`
+  restoration from the shared Modal foundation.
+
 ## 0.3.1
 
 - Inherited reliable exit-presence cleanup so closed AlertDialog Content and
