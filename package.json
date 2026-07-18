@@ -302,6 +302,9 @@
   "scripts": {
     "build": "node scripts/clean-dist.mjs && tsc -p tsconfig.build.json && node scripts/prepare-dist.mjs",
     "dev": "tsc -p tsconfig.build.json --watch",
+    "dev:playground": "npm run playground:dev",
+    "dev:playground:network": "npm --prefix playground run dev:network",
+    "dev:test": "node scripts/dev-test.mjs",
     "typecheck": "tsc -p tsconfig.build.json --noEmit",
     "test": "npm run build && node --test test/*.test.mjs test/primitives/*.test.mjs",
     "pack:check": "npm_config_cache=/tmp/atom-ui-npm-cache npm pack --dry-run",
@@ -312,6 +315,7 @@
     "playground:dev": "npm --prefix playground run dev",
     "playground:build": "npm --prefix playground run build",
     "playground:preview": "npm --prefix playground run preview",
+    "test:all": "node scripts/test-all.mjs",
     "release:check": "npm run test && npm run build && npm run pack:check",
     "prepublishOnly": "npm run build"
   },

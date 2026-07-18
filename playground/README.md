@@ -21,7 +21,8 @@ from `@flowstack-ui/atom` package versions and are never published to npm.
 From `package/`:
 
 ```bash
-npm run playground:dev
+npm run dev:playground
+npm run dev:playground:network
 npm run playground:build
 ```
 
@@ -29,8 +30,14 @@ From `package/playground/`:
 
 ```bash
 npm run dev
+npm run dev:network
 npm run build
 ```
+
+Local development uses `http://127.0.0.1:3000`. The network command binds the
+same port to the LAN for real-phone and tablet review. Vite prints the current
+Network URL when it starts. Port `4000` is reserved for a future automated
+browser-test preview.
 
 ## Source Rule
 

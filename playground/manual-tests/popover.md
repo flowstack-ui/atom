@@ -6,7 +6,7 @@ issue.
 
 ## Step 0: Playground Smoke Check
 
-1. Open the playground at `http://127.0.0.1:5174/`.
+1. Open the playground at `http://127.0.0.1:3000/`.
 2. From the top menu, choose `Overlays` > `Popover`.
 3. Expect the page title to be `Popover`.
 4. Expect the visible workbench order to be `Anatomy`, `Canvas`, then `Inspector`.
