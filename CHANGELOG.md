@@ -4,6 +4,14 @@
 
 - No unreleased changes.
 
+## 0.3.3
+
+- Corrected the pure-render Badge primitive and public `./badge` subpath to
+  remain server-safe instead of declaring an unnecessary client boundary.
+- Corrected Badge count guidance so generic inline content uses meaningful
+  surrounding context and attached control counts belong to the owning
+  control's accessible name or equivalent context.
+
 ## 0.3.2
 
 - Fixed nested modal isolation cleanup so rapid layer handoffs and animated

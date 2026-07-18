@@ -1,5 +1,3 @@
-"use client";
-
 import { BadgeRoot } from "./primitives/badge/index.js";
 
 export { BadgeRoot } from "./primitives/badge/index.js";
