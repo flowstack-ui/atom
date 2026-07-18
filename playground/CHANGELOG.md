@@ -6,6 +6,9 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Standardized local playground development on port `3000`, added the matching
+  LAN command for phone/tablet review, reserved preview port `4000`, and made
+  port collisions fail instead of silently selecting another port.
 - Expanded the Dialog scenario for native versus compatibility naming,
   optional Description relationships, explicit initial/final focus targets,
   consumer-owned `Modal.Branch` portals, background inert evidence, portalled

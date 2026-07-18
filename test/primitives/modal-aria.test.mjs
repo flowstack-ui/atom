@@ -212,6 +212,18 @@ async function withHydratedDom(element, run) {
   }
 }
 
+async function waitForCondition(condition, message, timeout = 1000) {
+  const deadline = Date.now() + timeout;
+
+  while (!condition()) {
+    if (Date.now() >= deadline) {
+      assert.fail(message);
+    }
+
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 10)));
+  }
+}
+
 test("registered relationships hydrate without mismatch and track conditional mount/unmount", async () => {
   let setDescription;
   function Fixture() {
@@ -1687,14 +1699,47 @@ test("closing Content is inaccessible during exit presence and abrupt unmount re
 
   await withHydratedDom(React.createElement(Fixture), async ({ dom }) => {
     const query = (value) => dom.window.document.querySelector(`[data-testid=${value}]`);
-    await act(async () => new Promise((resolve) => setTimeout(resolve, 5)));
+    await waitForCondition(
+      () => isEffectivelyInert(query("exit-background")),
+      "expected the open dialog to isolate the background",
+    );
     query("exit-inside").focus();
     assert.equal(isEffectivelyInert(query("exit-background")), true);
+
+    const originalGetComputedStyle = globalThis.getComputedStyle;
+    globalThis.getComputedStyle = (element) => {
+      const styles = originalGetComputedStyle(element);
+      if (!element.matches?.("[data-slot=dialog-content]")) return styles;
+
+      return new Proxy(styles, {
+        get(target, property) {
+          if (property === "animationName") return "exit-test";
+          if (property === "animationDuration") return "1s";
+          if (property === "animationDelay") return "0s";
+          if (property === "animationIterationCount") return "1";
+          return Reflect.get(target, property, target);
+        },
+      });
+    };
 
     await act(async () => {
       setOpen(false);
       await Promise.resolve();
     });
+    await waitForCondition(
+      () => {
+        const content = dom.window.document.querySelector("[role=dialog]");
+        return content?.getAttribute("aria-hidden") === "true"
+          && content.hasAttribute("inert");
+      },
+      "expected closing dialog content to become inaccessible during exit animation",
+    );
+    await waitForCondition(
+      () => !isEffectivelyInert(query("exit-background"))
+        && dom.window.document.body.style.position === ""
+        && dom.window.document.activeElement === query("exit-final"),
+      "expected closing dialog ownership and focus to be restored",
+    );
     const exitingContent = dom.window.document.querySelector("[role=dialog]");
     assert.equal(exitingContent?.isConnected, true);
     assert.equal(exitingContent?.hasAttribute("aria-modal"), false);
@@ -1708,19 +1753,34 @@ test("closing Content is inaccessible during exit presence and abrupt unmount re
       exitingContent.dispatchEvent(new dom.window.Event("animationend", { bubbles: true }));
       await Promise.resolve();
     });
+    await waitForCondition(
+      () => dom.window.document.querySelector("[role=dialog]") === null,
+      "expected exit animation completion to remove dialog content",
+    );
     assert.equal(dom.window.document.querySelector("[role=dialog]"), null);
 
     await act(async () => setOpen(true));
-    await act(async () => new Promise((resolve) => setTimeout(resolve, 5)));
+    await waitForCondition(
+      () => query("exit-inside") !== null
+        && isEffectivelyInert(query("exit-background")),
+      "expected the reopened dialog to restore modal ownership",
+    );
     query("exit-inside").focus();
     await act(async () => {
       setMounted(false);
       await Promise.resolve();
     });
+    await waitForCondition(
+      () => dom.window.document.querySelector("[role=dialog]") === null
+        && !isEffectivelyInert(query("exit-background"))
+        && dom.window.document.activeElement === query("exit-final"),
+      "expected abrupt unmount to restore modal ownership and focus",
+    );
     assert.equal(dom.window.document.querySelector("[role=dialog]"), null);
     assert.equal(isEffectivelyInert(query("exit-background")), false);
     assert.equal(dom.window.document.body.style.position, "");
     assert.equal(dom.window.document.activeElement, query("exit-final"));
+    globalThis.getComputedStyle = originalGetComputedStyle;
   });
 });
 
