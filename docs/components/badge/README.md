@@ -12,6 +12,7 @@ or an appropriate live-region pattern when an update must be announced.
 ## Features
 
 - Renders a native `span` by default.
+- Keeps the explicit `@flowstack-ui/atom/badge` subpath server-safe.
 - Keeps text content in the accessibility tree.
 - Passes native span props through to the rendered element.
 - Supports `asChild` and `render`.
@@ -50,12 +51,12 @@ without changing the meaning or announcement behavior of its children.
 ### Unread Count
 
 ```tsx
-import { Badge } from "@flowstack-ui/atom";
+import { Badge } from "@flowstack-ui/atom/badge";
 
 export function UnreadCount() {
   return (
     <span>
-      Inbox <Badge.Root aria-label="3 unread messages">3</Badge.Root>
+      Unread messages <Badge.Root>3</Badge.Root>
     </span>
   );
 }
@@ -79,7 +80,12 @@ export function AccountStatus() {
 
 WAI-ARIA defines no dedicated Badge pattern. Badge text is announced as normal
 inline content, so make sure a number or status has enough nearby context to be
-understood. Do not communicate meaning through color alone.
+understood. Do not rely on `aria-label` to name the default generic `span`, and
+do not communicate meaning through color alone.
+
+When a visual notification count is attached to a control, include the count
+in that control's accessible name or other appropriate owning context. A
+sibling Badge does not automatically become part of a button's name.
 
 Root does not add `aria-live`. If a changing count must be announced, apply the
 appropriate live-region behavior deliberately based on the urgency and

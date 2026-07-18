@@ -1,10 +1,39 @@
 # Release Readiness Audit
 
-Last published-release audit: 2026-07-17
+Last published-release audit: 2026-07-18
 
 The original `0.2.0` published-release audit remains below as a historical
-baseline. The current release outcome records the nested-modal isolation
-cleanup patch published in `0.3.2`.
+baseline. The current release outcome records the Badge server-safety patch
+published in `0.3.3`.
+
+## 0.3.3 Release Outcome - 2026-07-18
+
+Status: pass; `0.3.3` is published under npm `latest`.
+
+This patch removes the unnecessary client boundary from the pure-render Badge
+primitive and explicit `@flowstack-ui/atom/badge` subpath. The root package
+entrypoint remains client-side. Badge count guidance now uses meaningful
+surrounding or owning-control context, and the playground numeric scenario
+shows that context visibly.
+
+The candidate passes all 374 package tests, including focused source-boundary,
+composition, native-prop, custom-slot, and render assertions. The Atom
+playground production build passes with 542 transformed modules and the
+existing non-blocking large-chunk warning. The exact archive contains 1,919
+files, emits all 67 JavaScript and declaration export targets, and is 437,225
+compressed bytes. Clean packed consumers pass with React and React DOM 18.3.1
+and 19.2.7; the React 19 consumer additionally imports the Badge subpath under
+the `react-server` condition. React 18 receives the ordinary packed server-
+render check because its CommonJS package predates that condition.
+
+The qualified archive has SHA-1
+`5ec36fd507d65af7645311c01f704650285c490c`, SHA-256
+`de58e992eb2d00749d68a0d67c42e3ce54d323acddf75d34f38f95b96d8d2453`, and
+SHA-512 integrity
+`sha512-uCIZ8uarV0y8idB2dKsmmUbyCil6qmdWgIxHprOQ4Umc7iOuMhZOPhZQLRA4l/ZT/+dob/mZ+5GSsEoX3Zu/Nw==`.
+The npm registry reports version and `latest` as `0.3.3`, with the same SHA-1
+and SHA-512 integrity as the qualified archive. Publication verification
+passed; tag and remote-history verification follow this recorded outcome.
 
 ## 0.3.2 Release Outcome - 2026-07-17
 

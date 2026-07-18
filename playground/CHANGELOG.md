@@ -6,6 +6,9 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Corrected the Badge numeric-content scenario so its count has visible
+  surrounding context in both Canvas and Source instead of presenting an
+  unexplained generic `span`.
 - Standardized local playground development on port `3000`, added the matching
   LAN command for phone/tablet review, reserved preview port `4000`, and made
   port collisions fail instead of silently selecting another port.

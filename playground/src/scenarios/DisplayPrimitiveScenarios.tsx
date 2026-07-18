@@ -567,9 +567,15 @@ export function getDisplayPrimitiveSource(
       state.customRootSlot ? `data-slot="badge-custom"` : null,
       state.propCheck ? `data-prop-check="root"` : null,
     ]);
-    return `<Badge.Root${props}>
+    const badgeSource = `<Badge.Root${props}>
   ${state.content}
 </Badge.Root>`;
+    return state.content === "12"
+      ? `<span>
+  Open issues
+${indent(badgeSource, 2)}
+</span>`
+      : badgeSource;
   }
 
   if (scenarioId === "divider") {
@@ -770,17 +776,19 @@ function BadgeScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useBadg
     onClick: scenario.actions.noteClick,
   };
 
+  const badge = scenario.state.composition === "asChild" ? (
+    <Badge.Root {...props} asChild>
+      <strong>{scenario.state.content}</strong>
+    </Badge.Root>
+  ) : scenario.state.composition === "render" ? (
+    <Badge.Root {...props} render={(renderProps) => <strong {...renderProps}>{scenario.state.content}</strong>} />
+  ) : (
+    <Badge.Root {...props}>{scenario.state.content}</Badge.Root>
+  );
+
   return (
     <div className="display-primitive-stage">
-      {scenario.state.composition === "asChild" ? (
-        <Badge.Root {...props} asChild>
-          <strong>{scenario.state.content}</strong>
-        </Badge.Root>
-      ) : scenario.state.composition === "render" ? (
-        <Badge.Root {...props} render={(renderProps) => <strong {...renderProps}>{scenario.state.content}</strong>} />
-      ) : (
-        <Badge.Root {...props}>{scenario.state.content}</Badge.Root>
-      )}
+      {scenario.state.content === "12" ? <span>Open issues {badge}</span> : badge}
     </div>
   );
 }

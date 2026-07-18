@@ -135,8 +135,21 @@ try {
     ].join("\n"),
   );
 
+  await writeFile(
+    path.join(consumerRoot, "rsc.mjs"),
+    [
+      'import { Badge, BadgeRoot } from "@flowstack-ui/atom/badge";',
+      "if (Badge.Root !== BadgeRoot) throw new Error('Badge server export mismatch');",
+      "if (typeof BadgeRoot !== 'object' && typeof BadgeRoot !== 'function') throw new Error('Badge server export missing');",
+      "",
+    ].join("\n"),
+  );
+
   run(tscCommand, ["-p", "tsconfig.json"], consumerRoot);
   run(process.execPath, ["runtime.mjs"], consumerRoot);
+  if (reactLine === "19") {
+    run(process.execPath, ["--conditions", "react-server", "rsc.mjs"], consumerRoot);
+  }
 
   console.log(
     `Verified packed Atom consumer with React ${versions.react} and React DOM ${versions.reactDom}.`,

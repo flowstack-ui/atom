@@ -1,5 +1,3 @@
-"use client";
-
 import { forwardRef, type ReactNode } from "react";
 import type { NativeSpanProps } from "../../utils/dom.js";
 import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
