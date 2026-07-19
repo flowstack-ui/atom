@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.3.4
+
+- Inherited corrected scroll-lock compensation so opening or closing
+  AlertDialog no longer shifts pages that preserve their scrollbar gutter.
+
 ## 0.3.2
 
 - Inherited corrected nested-modal isolation handoff and final `inert`

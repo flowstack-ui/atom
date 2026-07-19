@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.3.4
+
+- Fixed shared scroll locking to avoid duplicate body-padding compensation when
+  the document already preserves its scrollbar gutter.
+
 ## 0.3.2
 
 - Fixed nested isolation handoff and final cleanup so closing every modal

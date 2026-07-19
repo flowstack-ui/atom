@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.3.4
+
+- Fixed modal Popover scroll locking to avoid duplicate body-padding
+  compensation when the document already preserves its scrollbar gutter.
+
 ## 0.3.1
 
 - Fixed exit-presence cleanup so closed Popover Content unmounts after its CSS

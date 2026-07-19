@@ -334,7 +334,9 @@ parts.
   content. It blocks wheel/touch movement on the background and at an owned
   region's scroll boundary so scrolling cannot chain into the page. Author
   inline body overflow, padding, position, offsets, width, and page scroll
-  position are restored exactly after the final lock closes.
+  position are restored exactly after the final lock closes. Scrollbar
+  compensation is based on viewport width actually released by locking, so a
+  document using `scrollbar-gutter: stable` is not compensated twice.
 - Every open layer retains a document lock registration while only the top layer
   supplies active scroll regions. Parent-to-child and child-to-parent handoff
   therefore never restores body styles, calls `scrollTo`, or exposes an unlocked
