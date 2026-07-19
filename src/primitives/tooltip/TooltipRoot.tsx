@@ -15,6 +15,10 @@ import {
   useTooltipProviderContext,
   type TooltipContextValue,
 } from "./context.js";
+import {
+  TooltipTouchContextProvider,
+  type TooltipTouchContextValue,
+} from "./touchContext.js";
 
 export interface TooltipRootProps {
   children: ReactNode;
@@ -28,6 +32,7 @@ export interface TooltipRootProps {
 }
 
 const AUTO_DISMISS_DURATION = 1500;
+const RICH_AUTO_DISMISS_DURATION = 3000;
 
 export function TooltipRoot({
   children,
@@ -50,6 +55,7 @@ export function TooltipRoot({
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoDismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTouchRef = useRef(false);
+  const isTouchSessionActiveRef = useRef(false);
   const tooltipId = useId();
 
   const clearTimers = useCallback(() => {
@@ -81,10 +87,12 @@ export function TooltipRoot({
   const onClose = useCallback(() => {
     clearTimers();
     if (effectiveCloseDelay === 0) {
+      isTouchSessionActiveRef.current = false;
       setOpen(false);
       providerContext?.onTooltipClose();
     } else {
       closeTimerRef.current = setTimeout(() => {
+        isTouchSessionActiveRef.current = false;
         setOpen(false);
         providerContext?.onTooltipClose();
       }, effectiveCloseDelay);
@@ -104,21 +112,38 @@ export function TooltipRoot({
     }
   }, [disabled, onClose]);
 
-  useEffect(() => {
-    if (isOpen && variant === "plain" && isTouchRef.current) {
-      autoDismissTimerRef.current = setTimeout(() => {
-        setOpen(false);
-        providerContext?.onTooltipClose();
-      }, AUTO_DISMISS_DURATION);
-    }
+  const onTouchLongPress = useCallback(() => {
+    if (disabled) return;
+    clearTimers();
+    isTouchRef.current = true;
+    isTouchSessionActiveRef.current = true;
+    setOpen(true);
+  }, [clearTimers, disabled, isTouchRef, setOpen]);
 
-    return () => {
-      if (autoDismissTimerRef.current) clearTimeout(autoDismissTimerRef.current);
-    };
-  }, [isOpen, providerContext, setOpen, variant]);
+  const onTouchRelease = useCallback(() => {
+    if (!isTouchSessionActiveRef.current) return;
+    if (autoDismissTimerRef.current) clearTimeout(autoDismissTimerRef.current);
+    const duration = variant === "rich"
+      ? RICH_AUTO_DISMISS_DURATION
+      : AUTO_DISMISS_DURATION;
+    autoDismissTimerRef.current = setTimeout(() => {
+      isTouchSessionActiveRef.current = false;
+      setOpen(false);
+      providerContext?.onTooltipClose();
+    }, duration);
+  }, [providerContext, setOpen, variant]);
+
+  const onTouchCancel = useCallback(() => {
+    if (!isTouchSessionActiveRef.current) return;
+    clearTimers();
+    isTouchSessionActiveRef.current = false;
+    setOpen(false);
+    providerContext?.onTooltipClose();
+  }, [clearTimers, providerContext, setOpen]);
 
   const handleEscape = useCallback(() => {
     clearTimers();
+    isTouchSessionActiveRef.current = false;
     setOpen(false);
     providerContext?.onTooltipClose();
   }, [clearTimers, providerContext, setOpen]);
@@ -129,6 +154,14 @@ export function TooltipRoot({
   });
 
   useEffect(() => () => clearTimers(), [clearTimers]);
+
+  useEffect(() => {
+    if (disabled) onTouchCancel();
+  }, [disabled, onTouchCancel]);
+
+  useEffect(() => {
+    if (!isOpen) isTouchSessionActiveRef.current = false;
+  }, [isOpen]);
 
   const contextValue: TooltipContextValue = useMemo(
     () => ({
@@ -155,9 +188,20 @@ export function TooltipRoot({
     ],
   );
 
+  const touchContextValue: TooltipTouchContextValue = useMemo(
+    () => ({
+      onTouchLongPress,
+      onTouchRelease,
+      onTouchCancel,
+    }),
+    [onTouchCancel, onTouchLongPress, onTouchRelease],
+  );
+
   return (
-    <TooltipContextProvider value={contextValue}>
-      {children}
-    </TooltipContextProvider>
+    <TooltipTouchContextProvider value={touchContextValue}>
+      <TooltipContextProvider value={contextValue}>
+        {children}
+      </TooltipContextProvider>
+    </TooltipTouchContextProvider>
   );
 }

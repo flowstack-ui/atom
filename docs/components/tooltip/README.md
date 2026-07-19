@@ -13,7 +13,12 @@ the floating content contains buttons, links, or other controls.
 
 - Provider-level delay configuration.
 - Controlled and uncontrolled open state.
-- Opens on pointer hover, keyboard focus-visible, and touch long press.
+- Opens on pointer hover, keyboard focus-visible, and a stationary 700 ms touch
+  long press.
+- Cancels touch opening on early release, movement beyond 10 CSS pixels,
+  scrolling, a second touch, `touchcancel`, disabling, or Trigger unmount.
+- Starts finite touch dismissal after release: 1500 ms for plain and 3000 ms
+  for rich.
 - Floating UI positioning with side, align, side offset, collision shift, flip, and arrow coordinates.
 - `aria-describedby` wiring between trigger and tooltip content.
 - Portal and arrow parts.
@@ -109,7 +114,7 @@ Moves Content to another DOM container without rendering a wrapper.
 
 ### Content
 
-Renders the positioned tooltip text and keeps rich variants open while the
+Renders the positioned tooltip text and keeps Content available while the
 pointer moves from Trigger into Content.
 
 | Prop | Type | Default |
@@ -133,6 +138,12 @@ pointer moves from Trigger into Content.
 | `[data-side]` | `"top" \| "right" \| "bottom" \| "left"` |
 | `[data-variant]` | `"plain" \| "rich"` |
 | `[data-positioned]` | Present after the first positioning frame |
+
+Plain Content is normally one short description. Rich Content may use a short
+title, supporting description, and non-interactive inline formatting. Both
+variants retain `role="tooltip"`; neither may contain links, buttons, inputs,
+or other focusable controls. Use `HoverCard` for a larger non-interactive
+preview and `Popover` for an interactive surface.
 
 ### Arrow
 
@@ -201,17 +212,53 @@ export default function HelpTooltip() {
 }
 ```
 
+### Rich, Non-Interactive Tooltip
+
+```tsx
+import { Tooltip } from "@flowstack-ui/atom";
+
+export default function SearchTooltip() {
+  return (
+    <Tooltip.Provider>
+      <Tooltip.Root variant="rich">
+        <Tooltip.Trigger asChild>
+          <button type="button" aria-label="Search workspace">Search</button>
+        </Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Content>
+            <strong>Workspace search</strong>
+            <span>Search projects, files, and commands.</span>
+          </Tooltip.Content>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+    </Tooltip.Provider>
+  );
+}
+```
+
 ## Accessibility
 
 Tooltip follows the [WAI-ARIA tooltip pattern](https://www.w3.org/WAI/ARIA/apg/patterns/tooltip/).
 Content is referenced by `aria-describedby` while open and must remain
-non-interactive.
+non-interactive in both plain and rich variants. The Trigger needs a complete
+accessible name independently; Tooltip provides only a supplemental
+description.
 
 | Key | Description |
 | --- | --- |
 | `Tab` | Moving focus to a focus-visible trigger can open the tooltip. |
 | `Shift+Tab` | Moving focus away closes the tooltip. |
 | `Escape` | Closes the topmost open tooltip immediately. |
+
+On touch devices, a stationary 700 ms press opens Tooltip immediately without
+adding the hover `openDelay`. Touch-generated compatibility hover/focus events
+do not open Tooltip after a quick tap. Ordinary taps and scrolling are not
+suppressed; native text selection and the context callout are suppressed only
+while the Trigger is tracking the competing stationary long-press gesture.
+An opened Tooltip remains visible while the initiating finger is down. After
+release, plain dismisses after 1500 ms and rich after 3000 ms. Moving more than
+10 CSS pixels, scrolling, adding a second touch, receiving `touchcancel`,
+disabling the Trigger, or unmounting it cancels the touch session.
 
 ## Changelog
 

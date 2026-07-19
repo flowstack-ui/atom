@@ -477,6 +477,85 @@ Reset
 
 Set `Variant: Plain`. Ensure Content is closed.
 
+## Step 11: Touch Session And Dismissal
+
+Setup
+
+Use a touch-capable browser or real phone on the Tooltip scenario. Default
+Provider timing. `Controlled` off, `Disabled` off, `Variant: Plain`. Keep the
+page vertically scrollable and Logs visible.
+
+Action
+
+Press and hold `Save` for less than 700 ms, then release.
+
+Verify
+
+□ Content never opens
+□ Logs contain `touchstart` and `touchend` without `opened`
+□ Touch-generated hover or focus does not open Content after release
+□ Ordinary page scrolling and browser touch behavior remain available
+
+Action
+
+Press and hold `Save` without moving. Observe before and after 700 ms, continue
+holding for longer than 1500 ms, then release.
+
+Verify
+
+□ Content is closed before 700 ms
+□ Content opens once at approximately 700 ms without adding the 400 ms hover delay
+□ Native text selection and the browser context callout do not replace the long press
+□ Content remains open while the initiating finger stays down
+□ The 1500 ms plain dismissal period starts only after release
+□ Content closes once after that post-release period
+
+Action
+
+Set `Variant: Rich`. Repeat the valid stationary hold and release.
+
+Verify
+
+□ Rich opens once at the same 700 ms threshold
+□ Rich remains open at 1500 ms after release
+□ Rich closes after its finite 3000 ms post-release period
+□ Rich Content contains only title/supporting text and no focusable controls
+
+## Step 12: Touch Abandonment
+
+Setup
+
+Touch-capable browser or real phone. Content closed. Repeat each case from a
+fresh touch.
+
+Action
+
+Before 700 ms, separately: move the touch more than approximately 10 CSS
+pixels, drag vertically to scroll, add a second touch, trigger `touchcancel`
+through available device/browser tooling, turn `Disabled` on, and navigate away
+so Trigger unmounts.
+
+Verify
+
+□ No abandoned pending gesture opens Content later
+□ Touch movement and vertical scroll are not default-prevented
+□ Selection/callout suppression ends when active touch tracking ends
+□ Scroll remains native and the page moves normally
+□ Logs expose `touchmove` and `touchcancel` when those events occur
+□ Repeated valid long presses still work after every cancellation case
+
+Action
+
+Open Content with a valid long press, then move more than approximately 10 CSS
+pixels or begin scrolling before release.
+
+Verify
+
+□ The opened touch session closes immediately
+□ No stale dismissal callback reopens or recloses it later
+□ Mouse hover, hoverable Content, focus-visible, blur, and Escape still behave
+as verified in the earlier desktop steps
+
 ## Workbook Cleanup / Rewrite Notes
 
 □ Rows for Provider, Root, and Portal default tag, `data-slot`, native prop passthrough, and refs appear outdated because those public parts are context or portal wrappers with no Atom DOM element.  

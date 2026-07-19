@@ -71,7 +71,9 @@ export type TooltipScenarioActions = {
   handleTriggerFocus: (event: ReactFocusEvent<HTMLElement>) => void;
   handleTriggerBlur: (event: ReactFocusEvent<HTMLElement>) => void;
   handleTriggerTouchStart: (event: ReactTouchEvent<HTMLElement>) => void;
+  handleTriggerTouchMove: (event: ReactTouchEvent<HTMLElement>) => void;
   handleTriggerTouchEnd: (event: ReactTouchEvent<HTMLElement>) => void;
+  handleTriggerTouchCancel: (event: ReactTouchEvent<HTMLElement>) => void;
   handleTriggerKeyDown: (event: ReactKeyboardEvent<HTMLElement>) => void;
   clearLog: () => void;
 };
@@ -147,8 +149,16 @@ export function useTooltipScenario() {
     addLog("trigger user touchstart");
   }, [addLog]);
 
+  const handleTriggerTouchMove = useCallback(() => {
+    addLog("trigger user touchmove");
+  }, [addLog]);
+
   const handleTriggerTouchEnd = useCallback(() => {
     addLog("trigger user touchend");
+  }, [addLog]);
+
+  const handleTriggerTouchCancel = useCallback(() => {
+    addLog("trigger user touchcancel");
   }, [addLog]);
 
   const handleTriggerKeyDown = useCallback((event: ReactKeyboardEvent<HTMLElement>) => {
@@ -210,7 +220,9 @@ export function useTooltipScenario() {
       handleTriggerFocus,
       handleTriggerBlur,
       handleTriggerTouchStart,
+      handleTriggerTouchMove,
       handleTriggerTouchEnd,
+      handleTriggerTouchCancel,
       handleTriggerKeyDown,
       clearLog,
     },
