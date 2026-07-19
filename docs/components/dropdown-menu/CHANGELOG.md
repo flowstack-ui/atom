@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.3.4
+
+- Inherited corrected modal Menu scroll-lock compensation for documents that
+  preserve their scrollbar gutter.
+
 ## 0.3.1
 
 - Inherited reliable Menu exit-presence cleanup for closed DropdownMenu and

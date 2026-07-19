@@ -1468,6 +1468,66 @@ test("scroll containment allows owned regions, blocks boundaries and touch backg
   });
 });
 
+test("scroll lock compensates only for viewport width released by locking", async () => {
+  for (const scenario of [
+    {
+      name: "classic scrollbar",
+      lockedClientWidth: 1200,
+      expectedPadding: "22px",
+    },
+    {
+      name: "stable scrollbar gutter",
+      lockedClientWidth: 1185,
+      expectedPadding: "7px",
+    },
+  ]) {
+    let setOpen;
+    function Fixture() {
+      const [open, updateOpen] = useState(false);
+      setOpen = updateOpen;
+      return React.createElement(
+        Dialog.Root,
+        { open, onOpenChange: updateOpen },
+        React.createElement(
+          Dialog.Content,
+          { "aria-label": scenario.name, initialFocus: false },
+          "Content",
+        ),
+      );
+    }
+
+    await withHydratedDom(React.createElement(Fixture), async ({ dom }) => {
+      const { body, documentElement } = dom.window.document;
+      body.style.paddingRight = "7px";
+      Object.defineProperty(dom.window, "innerWidth", {
+        configurable: true,
+        value: 1200,
+      });
+      Object.defineProperty(documentElement, "clientWidth", {
+        configurable: true,
+        get: () =>
+          body.style.overflow === "hidden" ? scenario.lockedClientWidth : 1185,
+      });
+
+      await act(async () => {
+        setOpen(true);
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      });
+      assert.equal(
+        body.style.paddingRight,
+        scenario.expectedPadding,
+        scenario.name,
+      );
+
+      await act(async () => {
+        setOpen(false);
+        await new Promise((resolve) => setTimeout(resolve, 30));
+      });
+      assert.equal(body.style.paddingRight, "7px", `${scenario.name} restoration`);
+    });
+  }
+});
+
 test("modal isolation preserves separate body portals and nested custom-container paths", async () => {
   function Fixture() {
     const [container, setContainer] = useState(null);

@@ -1,10 +1,38 @@
 # Release Readiness Audit
 
-Last published-release audit: 2026-07-18
+Last published-release audit: 2026-07-19
 
 The original `0.2.0` published-release audit remains below as a historical
-baseline. The current release outcome records the Badge server-safety patch
-published in `0.3.3`.
+baseline. The current release outcome records the scrollbar-compensation patch
+published in `0.3.4`.
+
+## 0.3.4 Release Outcome - 2026-07-19
+
+Status: pass; `0.3.4` is published under npm `latest`.
+
+This patch changes shared scroll locking to compensate only for viewport width
+actually released when the body is locked. Documents using
+`scrollbar-gutter: stable` therefore retain their existing gutter without
+receiving duplicate body padding, while documents with classic disappearing
+scrollbars continue to receive compensation. Dialog, AlertDialog, Drawer,
+modal Popover, and modal Menu consumers inherit the correction.
+
+The candidate passes all 375 package tests, including regressions for classic
+scrollbar compensation, stable-gutter non-compensation, and exact authored
+padding restoration. The Atom playground production build passes with 542
+transformed modules and the existing non-blocking large-chunk warning. The
+exact archive contains 1,919 files, emits all 67 JavaScript and declaration
+export targets, and is 437,249 compressed bytes. Clean packed consumers pass
+with React and React DOM 18.3.1 and 19.2.7; the React 19 consumer also passes
+the `react-server` condition check.
+
+The qualified archive has SHA-1
+`7738730aa3c6056b6868c5e1bddf394191864313`, SHA-256
+`55f6b41df8a737488511d38ec882f72c55ba464430afb6bef2f20656d11f826d`, and
+SHA-512 integrity
+`sha512-GMdrcfIbmN276p0TjbtjeVrnOlXA4M9wg1NWQbcM/wbUSeju/EreG33q8czFMhjWf/RppiNJ4w+vtV1ILOisww==`.
+The npm registry reports version and `latest` as `0.3.4`, with the same SHA-1
+and SHA-512 integrity as the qualified archive.
 
 ## 0.3.3 Release Outcome - 2026-07-18
 

@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.3.4
+
+- Inherited corrected scroll-lock compensation so opening or closing Dialog no
+  longer shifts pages that use `scrollbar-gutter: stable`.
+
 ## 0.3.2
 
 - Fixed nested Dialog isolation cleanup so closing the child and parent cannot

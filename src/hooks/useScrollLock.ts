@@ -182,19 +182,22 @@ function lockDocument(ownerDocument: Document, state: ScrollLockState): void {
   state.scrollX = view.scrollX;
   state.scrollY = view.scrollY;
 
-  const scrollbarWidth = ownerDocument.documentElement.clientWidth > 0
-    ? Math.max(0, view.innerWidth - ownerDocument.documentElement.clientWidth)
-    : 0;
-  if (scrollbarWidth > 0) {
-    const currentPadding = Number.parseFloat(view.getComputedStyle(body).paddingRight) || 0;
-    body.style.paddingRight = `${currentPadding + scrollbarWidth}px`;
-  }
+  const unlockedClientWidth = ownerDocument.documentElement.clientWidth;
+  const currentPadding =
+    Number.parseFloat(view.getComputedStyle(body).paddingRight) || 0;
   body.style.overflow = "hidden";
   body.style.position = "fixed";
   body.style.top = `${-state.scrollY}px`;
   body.style.left = `${-state.scrollX}px`;
   body.style.right = "0";
   body.style.width = "100%";
+  const lockedClientWidth = ownerDocument.documentElement.clientWidth;
+  const releasedScrollbarWidth = unlockedClientWidth > 0
+    ? Math.max(0, lockedClientWidth - unlockedClientWidth)
+    : 0;
+  if (releasedScrollbarWidth > 0) {
+    body.style.paddingRight = `${currentPadding + releasedScrollbarWidth}px`;
+  }
 
   ownerDocument.addEventListener("wheel", state.wheelHandler, { passive: false });
   ownerDocument.addEventListener("touchstart", state.touchStartHandler, { passive: true });

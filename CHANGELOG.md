@@ -4,6 +4,13 @@
 
 - No unreleased changes.
 
+## 0.3.4
+
+- Fixed shared scroll locking so body padding compensates only for viewport
+  width actually released when locking. Pages using `scrollbar-gutter: stable`
+  no longer shift when modal Dialog, AlertDialog, Drawer, Popover, or Menu
+  content opens and closes.
+
 ## 0.3.3
 
 - Corrected the pure-render Badge primitive and public `./badge` subpath to
