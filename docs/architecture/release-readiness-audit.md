@@ -1,10 +1,44 @@
 # Release Readiness Audit
 
-Last published-release audit: 2026-07-19
+Last candidate audit: 2026-07-19
 
 The original `0.2.0` published-release audit remains below as a historical
-baseline. The current release outcome records the scrollbar-compensation patch
-published in `0.3.4`.
+baseline. The current release outcome records the Tooltip patch published in
+`0.3.5`.
+
+## 0.3.5 Tooltip Release Outcome - 2026-07-19
+
+Status: pass; `0.3.5` is published under npm `latest`.
+
+This compatible patch corrects Tooltip touch long press to open once at the
+700 ms threshold without adding hover delay. Early release, movement beyond 10
+CSS pixels, scrolling, a second touch, `touchcancel`, disabled transitions, and
+Trigger unmount cancel the touch session. An opened Tooltip remains visible
+while the initiating finger is held; dismissal begins after release at 1500 ms
+for plain and 3000 ms for rich. Both variants remain non-interactive.
+
+The Node 22 candidate passes all 384 package tests, including nine public-
+composition touch regressions. The playground production build passes with 543
+transformed modules and the existing non-blocking large-chunk warning. The
+exact archive contains 1,923 files, emits all 67 JavaScript and declaration
+export targets, and is 439,952 compressed bytes. Clean packed consumers pass
+with React and React DOM 18.3.1 and 19.2.7; the React 19 consumer also passes
+the `react-server` condition check.
+
+The qualified candidate archive has SHA-1
+`c30bc44f2f9dea75234680f88220904adb1ecdcf`, SHA-256
+`af3afd3691cc5770ff69033841e5e5153c3cdd9e9f43f25d47b7ae0ab858946d`, and
+SHA-512 integrity
+`sha512-FKusR+Nw5HZBI2wpirN/MIalBOY4qZDJv7+LHZ3L5/6NmnwGjp1cSpVNjiCE08r/Uqi0i0Nu8Cb22Z0reowH1w==`.
+The npm registry reports the same SHA-1 and SHA-512 integrity as the qualified
+archive, and the `latest` dist-tag resolves to `0.3.5`.
+
+The reviewed phone protocol passed on physical iPhone Safari after device
+evidence exposed and verified corrections for compatibility hover/focus events
+and native selection/callout interference. The workbook recalculates Tooltip to
+90/90 covered rows; both focused iPhone evidence records are complete and
+`ready`. Android Chrome remains honestly recorded as not run because no device
+was available and is not represented as a pass.
 
 ## 0.3.4 Release Outcome - 2026-07-19
 

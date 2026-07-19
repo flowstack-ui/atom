@@ -6,6 +6,11 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Expanded Tooltip touch evidence with `touchmove` and `touchcancel` logs plus
+  a reviewed protocol for the exact long-press threshold, abandon paths,
+  release-based plain/rich dismissal, compatibility-event suppression,
+  touch-scoped selection/callout handling, scroll preservation, and desktop
+  regressions.
 - Corrected the Badge numeric-content scenario so its count has visible
   surrounding context in both Canvas and Source instead of presenting an
   unexplained generic `span`.

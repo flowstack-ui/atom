@@ -55,7 +55,9 @@ export function TooltipScenarioCanvas({
             onMouseEnter={actions.handleTriggerMouseEnter}
             onMouseLeave={actions.handleTriggerMouseLeave}
             propCheck={state.propCheck}
+            onTouchCancel={actions.handleTriggerTouchCancel}
             onTouchEnd={actions.handleTriggerTouchEnd}
+            onTouchMove={actions.handleTriggerTouchMove}
             onTouchStart={actions.handleTriggerTouchStart}
           />
           {state.controlled ? (
@@ -334,7 +336,9 @@ function TooltipTriggerExample({
   onMouseEnter,
   onMouseLeave,
   propCheck,
+  onTouchCancel,
   onTouchEnd,
+  onTouchMove,
   onTouchStart,
 }: {
   customSlot: boolean;
@@ -345,7 +349,9 @@ function TooltipTriggerExample({
   onMouseEnter: TooltipScenarioActions["handleTriggerMouseEnter"];
   onMouseLeave: TooltipScenarioActions["handleTriggerMouseLeave"];
   propCheck: boolean;
+  onTouchCancel: TooltipScenarioActions["handleTriggerTouchCancel"];
   onTouchEnd: TooltipScenarioActions["handleTriggerTouchEnd"];
+  onTouchMove: TooltipScenarioActions["handleTriggerTouchMove"];
   onTouchStart: TooltipScenarioActions["handleTriggerTouchStart"];
 }) {
   const props = {
@@ -359,7 +365,9 @@ function TooltipTriggerExample({
     onKeyDown,
     onMouseEnter,
     onMouseLeave,
+    onTouchCancel,
     onTouchEnd,
+    onTouchMove,
     onTouchStart,
   };
 

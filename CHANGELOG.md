@@ -1,8 +1,13 @@
 # Atom Changelog
 
-## Unreleased
+## 0.3.5
 
-- No unreleased changes.
+- Corrected Tooltip touch sessions so stationary long press opens immediately
+  at 700 ms, abandoned gestures cancel safely, and plain/rich dismissal begins
+  only after release. Touch-generated compatibility events no longer turn a
+  quick tap into hover/focus opening, and selection/callout suppression is
+  limited to the active long-press gesture. Both variants remain
+  non-interactive Tooltip content.
 
 ## 0.3.4
 

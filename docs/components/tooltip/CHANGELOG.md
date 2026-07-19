@@ -1,8 +1,19 @@
 # Tooltip Changelog
 
-## Unreleased
+## 0.3.5
 
-- No unreleased changes.
+- Corrected touch long press to open once at the 700 ms threshold without also
+  paying the hover delay.
+- Added complete touch-session cancellation for early release, movement beyond
+  10 CSS pixels, scrolling, a second touch, `touchcancel`, disabled changes,
+  and Trigger unmount.
+- Ignored touch-generated compatibility hover/focus events after release so a
+  quick tap cannot enter the desktop opening path, and suppressed native text
+  selection/callout only while a long press is actively being tracked.
+- Moved touch auto-dismissal to release time, retaining 1500 ms for plain and
+  adding a finite 3000 ms rich dismissal.
+- Clarified that plain and rich Content are both non-interactive and that
+  actionable floating content belongs in Popover.
 
 ## 0.3.1
 

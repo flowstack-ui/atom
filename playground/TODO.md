@@ -3,6 +3,12 @@
 Active unfinished playground work only. Conventions and maintenance rules live
 in `CURRENT.md` and `docs/`.
 
+## Mobile Evidence Follow-up
+
+- Tooltip `0.3.5` physical iPhone Safari evidence is complete. Android Chrome
+  remains recorded as `not run` until a named device is available; do not treat
+  the unavailable platform as a pass.
+
 ## 1. Add Browser Smoke Tests
 
 - Add the playground's browser-test setup, scripts, and initial smoke-test
