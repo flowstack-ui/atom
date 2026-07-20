@@ -24,7 +24,7 @@ const validationInputStyle: CSSProperties = {
 };
 
 type CheckboxGroupRootNativeProps = NativeDivProps<
-  "children" | "defaultValue" | "form" | "name" | "onChange" | "role"
+  "aria-required" | "children" | "defaultValue" | "form" | "name" | "onChange" | "role"
 >;
 
 export interface CheckboxGroupRootProps extends CheckboxGroupRootNativeProps {
@@ -181,7 +181,6 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
       "aria-describedby": Object.prototype.hasOwnProperty.call(restProps, "aria-describedby")
         ? restProps["aria-describedby"]
         : fieldset?.describedBy,
-      "aria-required": restProps["aria-required"] ?? (isRequired || undefined),
       "aria-invalid": restProps["aria-invalid"] ?? (isInvalid || undefined),
       "data-slot": dataSlot,
       "data-orientation": orientation,
