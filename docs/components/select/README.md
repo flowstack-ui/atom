@@ -1,6 +1,7 @@
 # Select
 
-Single-value select with a combobox trigger, popup listbox, option collection, scroll controls, portal, and hidden form input.
+Single-value select with a combobox trigger, popup listbox, option collection,
+scroll controls, portal, and a visually hidden native form control.
 
 ## When to Use
 
@@ -15,7 +16,8 @@ filter or enter a value.
 - Controlled and uncontrolled open state.
 - Keyboard navigation, typeahead search, highlighting, and selection.
 - Group, label, separator, viewport, scroll buttons, item text, and item indicator parts.
-- Hidden input for native form submission.
+- Native select for submission, required validity, external form association,
+  and reset behavior.
 - Stack-aware Escape dismissal when nested inside parent overlays.
 - Integrates with `Field.Root` for trigger labels, descriptions, disabled state,
   and required state.
@@ -62,7 +64,7 @@ import { Select } from "@flowstack-ui/atom";
 ### Root
 
 Owns value, open state, item registration, form submission, and Field
-integration. Root renders no DOM wrapper except its hidden form input when
+integration. Root renders no DOM wrapper except its hidden native select when
 `name` is provided.
 
 | Prop | Type | Default |
@@ -74,6 +76,8 @@ integration. Root renders no DOM wrapper except its hidden form input when
 | `defaultOpen` | `boolean` | `false` |
 | `onOpenChange` | `(open: boolean) => void` | - |
 | `disabled` | `boolean` | `false` |
+| `readOnly` | `boolean` | Field state or `false` |
+| `invalid` | `boolean` | Field state or `false` |
 | `required` | `boolean` | `false` |
 | `name` | `string` | - |
 | `form` | `string` | - |
@@ -83,8 +87,8 @@ contract.
 
 **Data attributes:** Root renders no wrapper and exposes none.
 
-When used inside `Field.Root`, `disabled` and `required` default to the Field
-state unless explicitly provided on `Select.Root`.
+When used inside `Field.Root`, disabled, read-only, invalid, and required state
+default to Field unless explicitly provided on `Select.Root`.
 
 ### Trigger
 
@@ -92,7 +96,6 @@ Combobox button that opens the listbox and owns keyboard interaction.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `ariaLabel` | `string` | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -103,11 +106,13 @@ Combobox button that opens the listbox and owns keyboard interaction.
 | `aria-expanded` | Current open state |
 | `aria-controls` | Generated Content/Listbox ID |
 | `aria-activedescendant` | Highlighted Item ID while open |
-| `aria-label` | Explicit native value or value from `ariaLabel` |
+| `aria-label` | Explicit native value |
 | `aria-labelledby` | Explicit IDs or inherited Field label ID |
 | `aria-describedby` | Explicit IDs or inherited Field description/error IDs |
 | `aria-disabled` | `true` when disabled |
 | `aria-required` | `true` when required |
+| `aria-readonly` | `true` when read only |
+| `aria-invalid` | `true` when invalid |
 
 | Data attribute | Values |
 | --- | --- |
@@ -179,13 +184,12 @@ It owns dismissal, initial highlighting, and focus-scope registration.
 | Prop | Type | Default |
 | --- | --- | --- |
 | `disablePortal` | `boolean` | `false` |
-| `ariaLabel` | `string` | - |
 | `container` | `HTMLElement \| null` | `document.body` after mount |
 
 | ARIA attribute | Values |
 | --- | --- |
 | `role` | `"listbox"` |
-| `aria-label` | Value from `ariaLabel` when provided |
+| `aria-label` | Native value when provided |
 
 | Data attribute | Values |
 | --- | --- |
@@ -363,13 +367,12 @@ Use either `Content` or `Listbox`, not both for the same popup.
 | Prop | Type | Default |
 | --- | --- | --- |
 | `disablePortal` | `boolean` | `false` |
-| `ariaLabel` | `string` | - |
 | `container` | `HTMLElement \| null` | `document.body` after mount |
 
 | ARIA attribute | Values |
 | --- | --- |
 | `role` | `"listbox"` |
-| `aria-label` | Value from `ariaLabel` when provided |
+| `aria-label` | Native value when provided |
 
 | Data attribute | Values |
 | --- | --- |
@@ -422,7 +425,7 @@ import { Select } from "@flowstack-ui/atom";
 export default function GroupedSelect() {
   return (
     <Select.Root>
-      <Select.Trigger ariaLabel="Choose a plan">
+      <Select.Trigger aria-label="Choose a plan">
         <Select.Value placeholder="Choose a plan" />
       </Select.Trigger>
       <Select.Content>
@@ -447,7 +450,10 @@ Select follows the
 [WAI-ARIA select-only combobox pattern](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-select-only/):
 a button-based
 combobox controls a listbox, and Trigger references the highlighted option with
-`aria-activedescendant`. Provide a visible Field label, `ariaLabel`, or native
+`aria-activedescendant`. Provide a visible Field label or native
+`aria-label`/`aria-labelledby`. Uncontrolled value returns to `defaultValue`
+on native form reset. The visually hidden native select owns submission and
+required constraint validation.
 `aria-labelledby`.
 Portalled Select content registers with a parent modal focus scope when opened
 inside Dialog, Drawer, or another modal primitive.

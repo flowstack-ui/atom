@@ -1,8 +1,10 @@
 # Select Changelog
 
-## Unreleased
+## 0.5.0
 
-- No unreleased changes.
+- Added complete Field invalid/read-only integration, native-only Trigger and
+  Listbox naming, uncontrolled reset, and a visually hidden native select for
+  submission and required constraint validation.
 
 ## 0.2.0
 

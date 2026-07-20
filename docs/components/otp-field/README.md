@@ -64,16 +64,14 @@ Field state, completion behavior, and optional hidden form input.
 | `readOnly` | `boolean` | `false` |
 | `required` | `boolean` | `false` |
 | `invalid` | `boolean` | `false` |
-| `ariaLabel` | `string` | `"Verification code"` |
-| `ariaDescribedBy` | `string` | Field description IDs |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
 | ARIA attribute | Values |
 | --- | --- |
-| `aria-label` | Value from `ariaLabel`, or `"Verification code"` without an external label |
+| `aria-label` | Native value, or `"Verification code"` without an external label |
 | `aria-labelledby` | Inherited Field label ID when no direct label is provided |
-| `aria-describedby` | Value from `ariaDescribedBy` or Field descriptions |
+| `aria-describedby` | Native value or Field descriptions |
 | `aria-invalid` | Present when invalid |
 | `aria-required` | Present when required |
 
@@ -181,7 +179,9 @@ export function GroupedCode() {
 The root uses `role="group"` and the visible inputs use roving `tabIndex`, so
 Tab enters the OTP field once. Each input receives a generated position label,
 and the separator is hidden from assistive technology. Give the group a clear
-label through `ariaLabel`, native labeling, or Field.
+label through native `aria-label`/`aria-labelledby` or Field. The combined
+visually hidden native input owns named submission and required validity;
+uncontrolled content resets to `defaultValue`.
 
 | Key | Description |
 | --- | --- |

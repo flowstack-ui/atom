@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  useCallback,
+  useEffect,
   forwardRef,
   useId,
   useMemo,
@@ -14,6 +16,7 @@ import {
   type FieldContextValue,
   type FieldOrientation,
 } from "./context.js";
+import { getFieldPartPresence, type FieldPartKind } from "./parts.js";
 
 type FieldRootNativeProps = NativeDivProps<"children">;
 
@@ -52,8 +55,28 @@ export const FieldRoot = forwardRef<HTMLDivElement, FieldRootProps>(
     const labelId = `${baseId}-label`;
     const descriptionId = `${baseId}-description`;
     const errorId = `${baseId}-error`;
-    const [hasDescription, setHasDescription] = useState(false);
-    const [hasError, setHasError] = useState(false);
+    const visibleParts = getFieldPartPresence(children, invalid);
+    const [partCounts, setPartCounts] = useState({ description: 0, error: 0 });
+    const [partRegistryReady, setPartRegistryReady] = useState(false);
+    const hasDescription = partRegistryReady
+      ? partCounts.description > 0
+      : visibleParts.description;
+    const hasError = partRegistryReady ? partCounts.error > 0 : visibleParts.error;
+
+    useEffect(() => setPartRegistryReady(true), []);
+
+    const registerPart = useCallback((kind: FieldPartKind) => {
+      let registered = true;
+      setPartCounts((counts) => ({ ...counts, [kind]: counts[kind] + 1 }));
+      return () => {
+        if (!registered) return;
+        registered = false;
+        setPartCounts((counts) => ({
+          ...counts,
+          [kind]: Math.max(0, counts[kind] - 1),
+        }));
+      };
+    }, []);
     const describedBy = [
       hasDescription ? descriptionId : null,
       hasError ? errorId : null,
@@ -74,8 +97,7 @@ export const FieldRoot = forwardRef<HTMLDivElement, FieldRootProps>(
         describedBy,
         hasDescription,
         hasError,
-        setHasDescription,
-        setHasError,
+        registerPart,
       }),
       [
         controlId,
@@ -89,8 +111,7 @@ export const FieldRoot = forwardRef<HTMLDivElement, FieldRootProps>(
         labelId,
         readOnly,
         required,
-        setHasDescription,
-        setHasError,
+        registerPart,
       ],
     );
 

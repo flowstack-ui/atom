@@ -29,7 +29,6 @@ type SelectTriggerNativeProps = NativeButtonProps<"children" | "disabled" | "rol
 export interface SelectTriggerProps extends SelectTriggerNativeProps {
   children?: ReactNode;
   className?: string;
-  ariaLabel?: string;
   asChild?: boolean;
   render?: RenderProp;
   "data-slot"?: string;
@@ -40,7 +39,6 @@ export const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
     {
       children,
       className,
-      ariaLabel,
       asChild = false,
       render,
       "data-slot": dataSlot = "select-trigger",
@@ -51,7 +49,7 @@ export const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
     ref,
   ) {
     const {
-      "aria-label": nativeAriaLabel = ariaLabel,
+      "aria-label": nativeAriaLabel,
       "aria-labelledby": ariaLabelledBy,
       "aria-describedby": ariaDescribedBy,
       ...buttonProps
@@ -59,6 +57,8 @@ export const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
     const ctx = useSelectContext();
     const {
       disabled,
+      invalid,
+      readOnly,
       fieldControlId,
       fieldDescribedBy,
       fieldLabelId,
@@ -83,12 +83,12 @@ export const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
     const composedRef = useMemo(() => composeRefs(triggerRef, ref), [triggerRef, ref]);
 
     const handleClick: MouseEventHandler<HTMLButtonElement> = useCallback(() => {
-      if (!disabled) onToggle();
-    }, [disabled, onToggle]);
+      if (!disabled && !readOnly) onToggle();
+    }, [disabled, onToggle, readOnly]);
 
     const handleKeyDown: KeyboardEventHandler<HTMLButtonElement> = useCallback(
       (event) => {
-        if (disabled) return;
+        if (disabled || readOnly) return;
 
         const values = getEnabledItemValues();
         const currentValue = highlightedValue ?? getInitialSelectHighlight(ctxRef.current);
@@ -178,6 +178,7 @@ export const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
         onHighlight,
         onOpen,
         onValueChange,
+        readOnly,
       ],
     );
 
@@ -201,10 +202,14 @@ export const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
       "aria-describedby": ariaDescribedBy ?? fieldDescribedBy,
       "aria-required": required || undefined,
       "aria-disabled": disabled || undefined,
+      "aria-readonly": readOnly || undefined,
+      "aria-invalid": invalid || undefined,
       disabled: !asChild && !render ? disabled : undefined,
       "data-slot": dataSlot,
       "data-state": isOpen ? "open" : "closed",
       "data-disabled": disabled ? "" : undefined,
+      "data-readonly": readOnly ? "" : undefined,
+      "data-invalid": invalid ? "" : undefined,
       className,
       onClick: composeEventHandlers(onClick, handleClick),
       onKeyDown: composeEventHandlers(onKeyDown, handleKeyDown),

@@ -1,8 +1,10 @@
 # Switch Changelog
 
-## Unreleased
+## 0.5.0
 
-- No unreleased changes.
+- Added Field state, generated control ID, and description integration; removed
+  `ariaLabel` in favor of native ARIA; uncontrolled state now follows native
+  form reset.
 
 ## 0.2.0
 

@@ -4,7 +4,7 @@ import { useEffect, useRef, type RefObject } from "react";
 
 export interface UseClickAwayOptions {
   refs: RefObject<HTMLElement | null>[];
-  onClickAway: () => void;
+  onClickAway: (event: PointerEvent) => void;
   enabled?: boolean;
   ignore?: (target: Node) => boolean;
 }
@@ -31,7 +31,7 @@ export function useClickAway({
       }
       if (ignoreRef.current?.(target)) return;
 
-      handlerRef.current();
+      handlerRef.current(event);
     };
 
     document.addEventListener("pointerdown", handlePointerDown, true);

@@ -33,7 +33,7 @@ test("Slider compound parts render track range and thumbs", () => {
         name: "price",
         form: "filters-form",
         disabled: true,
-        ariaLabel: "Price",
+        "aria-label": "Price",
         className: "slider-class",
         "data-slot": "price-slider",
       },
@@ -93,7 +93,7 @@ test("Slider percent geometry is normalized for data attributes", () => {
         value: 55.00000000000001,
         min: 0,
         max: 100,
-        ariaLabel: "Volume",
+        "aria-label": "Volume",
       },
       React.createElement(
         SliderTrack,
@@ -122,7 +122,7 @@ test("Slider consumes Direction.Provider for horizontal RTL behavior", () => {
           value: 25,
           min: 0,
           max: 100,
-          ariaLabel: "Volume",
+          "aria-label": "Volume",
         },
         React.createElement(
           SliderTrack,

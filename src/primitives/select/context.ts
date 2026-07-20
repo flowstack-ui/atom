@@ -37,6 +37,8 @@ export interface SelectContextValue {
   getItemValues: () => string[];
   getEnabledItemValues: () => string[];
   disabled: boolean;
+  readOnly: boolean;
+  invalid: boolean;
   required: boolean;
   name: string | undefined;
   fieldControlId: string | undefined;

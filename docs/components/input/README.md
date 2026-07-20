@@ -53,7 +53,8 @@ wrapper element. Local state props override Field context.
 | `invalid` | `boolean` | Field state or `false` |
 
 Native input props, including `type`, `name`, `form`, `onChange`, and explicit
-ARIA relationships, pass through.
+ARIA relationships, pass through. Uncontrolled values return to `defaultValue`
+on native form reset.
 
 | ARIA attribute | Values |
 | --- | --- |

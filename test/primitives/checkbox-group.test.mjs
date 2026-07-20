@@ -23,7 +23,7 @@ test("CheckboxGroupRoot renders group attributes", () => {
         invalid: true,
         readOnly: true,
         orientation: "horizontal",
-        ariaLabel: "Toppings",
+        "aria-label": "Toppings",
         id: "toppings",
         className: "group-class",
       },
@@ -59,7 +59,7 @@ test("CheckboxGroupItem renders group-owned checked state and indicator", () => 
         value: ["cheese"],
         name: "toppings",
         form: "order-form",
-        ariaLabel: "Toppings",
+        "aria-label": "Toppings",
       },
       React.createElement(
         CheckboxGroup.Item,
@@ -97,7 +97,7 @@ test("CheckboxGroupItem inherits disabled readonly invalid and required state", 
         readOnly: true,
         invalid: true,
         required: true,
-        ariaLabel: "Toppings",
+        "aria-label": "Toppings",
       },
       React.createElement(CheckboxGroupItem, { value: "cheese" }, "Cheese"),
     ),
@@ -116,7 +116,7 @@ test("CheckboxGroupItem inherits disabled readonly invalid and required state", 
   assert.match(html, /data-disabled=""/);
   assert.match(html, /data-readonly=""/);
   assert.match(html, /data-invalid=""/);
-  assert.doesNotMatch(html, /required=""/);
+  assert.match(html, /<input type="checkbox" aria-hidden="true" tabindex="-1" required=""/);
 });
 
 test("CheckboxGroupRoot provides selected values through context", () => {
@@ -136,7 +136,7 @@ test("CheckboxGroupRoot provides selected values through context", () => {
   const html = renderToStaticMarkup(
     React.createElement(
       CheckboxGroupRoot,
-      { value: ["cheese"], orientation: "horizontal", ariaLabel: "Toppings" },
+      { value: ["cheese"], orientation: "horizontal", "aria-label": "Toppings" },
       React.createElement(CheckboxGroupProbe),
     ),
   );

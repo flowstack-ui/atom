@@ -38,7 +38,7 @@ test("Select primitives render combobox trigger and option state", () => {
         SelectTrigger,
         {
           className: "select-trigger-class",
-          ariaLabel: "Plan",
+          "aria-label": "Plan",
           title: "Choose plan",
           "data-testid": "select-trigger",
           role: "button",
@@ -124,7 +124,8 @@ test("Select exposes value, item text, indicator, group, label, viewport, and se
   assert.match(html, /data-slot="select-item-indicator"/);
   assert.match(html, /data-slot="select-separator"/);
   assert.match(html, /role="separator"/);
-  assert.match(html, /<input type="hidden"[^>]*name="plan"[^>]*value="pro"/);
+  assert.match(html, /<select[^>]*name="plan"/);
+  assert.match(html, /<option value="pro" selected="">Pro<\/option>/);
 });
 
 test("Select value resolves item text before the listbox mounts", () => {
@@ -195,7 +196,7 @@ test("Select trigger asChild preserves child contents without nesting the child"
   assert.doesNotMatch(html, /<span class="custom-trigger">/);
 });
 
-test("Select hidden form input mirrors disabled and form association", () => {
+test("Select native form control mirrors disabled and form association", () => {
   const html = renderToStaticMarkup(
     React.createElement(
       SelectRoot,
@@ -206,7 +207,7 @@ test("Select hidden form input mirrors disabled and form association", () => {
   );
 
   assert.match(html, /id="plan-trigger"/);
-  assert.match(html, /<input type="hidden"/);
+  assert.match(html, /<select/);
   assert.match(html, /name="plan"/);
   assert.match(html, /value="pro"/);
   assert.match(html, /form="checkout"/);
@@ -242,9 +243,9 @@ test("Select integrates with Field labels, descriptions, and state", () => {
   assert.match(html, /aria-required="true"/);
   assert.match(html, /aria-disabled="true"/);
   assert.match(html, /disabled=""/);
-  assert.match(html, /<input type="hidden"[^>]*disabled=""/);
-  assert.match(html, /<input type="hidden"[^>]*name="plan"/);
-  assert.match(html, /<input type="hidden"[^>]*value="pro"/);
+  assert.match(html, /<select[^>]*disabled=""/);
+  assert.match(html, /<select[^>]*name="plan"/);
+  assert.match(html, /<option value="pro" selected="">Pro<\/option>/);
 });
 
 test("Select explicit trigger labels override Field label wiring", () => {
@@ -326,7 +327,7 @@ test("Select source keeps trigger-owned keyboard navigation and stable registrat
   assert.match(rootSource, /disabled: disabled === true/);
   assert.doesNotMatch(rootSource, /labelMapRef\.current\.delete/);
   assert.match(triggerSource, /case "ArrowDown":/);
-  assert.match(triggerSource, /const \{\s*disabled,\s*fieldControlId,\s*fieldDescribedBy,\s*fieldLabelId,\s*getEnabledItemValues,/);
+  assert.match(triggerSource, /const \{\s*disabled,\s*invalid,\s*readOnly,\s*fieldControlId,\s*fieldDescribedBy,\s*fieldLabelId,\s*getEnabledItemValues,/);
   assert.match(triggerSource, /"aria-describedby": ariaDescribedBy \?\? fieldDescribedBy/);
   assert.match(triggerSource, /onOpen\("current"\)/);
   assert.match(triggerSource, /onOpen\("last"\)/);

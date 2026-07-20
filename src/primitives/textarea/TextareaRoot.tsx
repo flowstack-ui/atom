@@ -12,6 +12,7 @@ import {
   type ReactNode,
 } from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
+import { useFormReset } from "../../hooks/useFormReset.js";
 import { composeEventHandlers } from "../../utils/dom.js";
 import type { NativeTextareaProps } from "../../utils/dom.js";
 import { composeRefs } from "../../utils/slot.js";
@@ -103,12 +104,16 @@ export const TextareaRoot = forwardRef<HTMLTextAreaElement, TextareaRootProps>(
       defaultValue,
       onChange: onValueChange,
     });
+    const reset = useCallback(() => setResolvedValue(defaultValue), [defaultValue, setResolvedValue]);
+    useFormReset(textareaRef, restProps.form, value !== undefined, reset);
     const isDisabled = disabled ?? fieldCtx?.disabled ?? false;
     const isRequired = required ?? fieldCtx?.required ?? false;
     const isReadOnly = readOnly ?? fieldCtx?.readOnly ?? false;
     const isInvalid = invalid ?? fieldCtx?.invalid ?? false;
     const controlId = id ?? fieldCtx?.controlId;
-    const describedBy = ariaDescribedBy ?? fieldCtx?.describedBy;
+    const describedBy = ariaDescribedBy !== undefined
+      ? ariaDescribedBy
+      : fieldCtx?.describedBy;
     const normalizedMinRows = minRows && minRows > 0 ? Math.max(1, Math.floor(minRows)) : undefined;
     const normalizedMaxRows = maxRows && maxRows > 0 ? Math.max(1, Math.floor(maxRows)) : undefined;
 

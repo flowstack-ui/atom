@@ -136,7 +136,7 @@ export function AlertDialogScenarioCanvas({
                   <Select.Value />
                   <Select.Icon>v</Select.Icon>
                 </Select.Trigger>
-                <Select.Content className="atom-select-content" ariaLabel="Nested action">
+                <Select.Content className="atom-select-content" aria-label="Nested action">
                   <Select.Viewport className="atom-select-viewport">
                     <Select.Item className="atom-select-item" value="archive">
                       <Select.ItemText>Archive instead</Select.ItemText>
@@ -456,7 +456,7 @@ export function getAlertDialogSource(state: AlertDialogScenarioState) {
           <Select.Value />
           <Select.Icon>v</Select.Icon>
         </Select.Trigger>
-        <Select.Content ariaLabel="Nested action">
+        <Select.Content aria-label="Nested action">
           <Select.Viewport>
             <Select.Item value="archive">
               <Select.ItemText>Archive instead</Select.ItemText>

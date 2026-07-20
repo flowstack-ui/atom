@@ -6,13 +6,14 @@ export interface FieldsetContextValue {
   invalid: boolean;
   disabled: boolean;
   required: boolean;
+  legendId: string;
   descriptionId: string;
   errorId: string;
   describedBy: string | undefined;
   hasDescription: boolean;
   hasError: boolean;
-  setHasDescription: (value: boolean) => void;
-  setHasError: (value: boolean) => void;
+  hasLegend: boolean;
+  registerPart: (kind: "legend" | "description" | "error") => () => void;
 }
 
 const FieldsetContext = createContext<FieldsetContextValue | null>(null);

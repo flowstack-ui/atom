@@ -38,6 +38,7 @@ import { Textarea } from "@flowstack-ui/atom";
 
 Renders the native textarea element and provides context to `Textarea.Count`.
 Field state is inherited unless the corresponding prop is set directly.
+Uncontrolled values return to `defaultValue` on native form reset.
 
 | Prop | Type | Default |
 | --- | --- | --- |

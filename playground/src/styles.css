@@ -5280,6 +5280,23 @@ h2 {
   justify-content: flex-end;
 }
 
+.form-foundation-grid {
+  display: grid;
+  gap: 1rem;
+  width: min(100%, 44rem);
+}
+
+.form-foundation-grid > [data-slot="field"],
+.form-foundation-grid > [data-slot="fieldset"] {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.form-foundation-note {
+  margin: 0;
+}
+
 @media (max-width: 880px) {
   .menu-bar {
     padding: 0;

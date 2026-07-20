@@ -1,8 +1,9 @@
 # FileUpload Changelog
 
-## Unreleased
+## 0.5.0
 
-- No unreleased changes.
+- Synchronized uncontrolled files, rejection state, and the native picker with
+  native form reset while preserving Field state and relationships.
 
 ## 0.2.0
 

@@ -1,8 +1,14 @@
 # Popover Changelog
 
-## Unreleased
+## 0.4.0
 
-- No unreleased changes.
+- Added visible `Title` and `Description` parts with generated,
+  hydration-stable `aria-labelledby` and `aria-describedby` relationships.
+- Standardized naming on native `aria-label`, `aria-labelledby`, and
+  `aria-describedby`; removed the custom `ariaLabel` alias.
+- Added interaction-aware `initialFocus` and `finalFocus` targets, touch-safe
+  Content focus, hover-without-focus-steal, dismissal reasons, and
+  outside-destination preservation.
 
 ## 0.3.4
 

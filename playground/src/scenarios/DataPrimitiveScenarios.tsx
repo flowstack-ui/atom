@@ -1,12 +1,26 @@
 import { Button } from "@flowstack-ui/atom/button";
+import { Checkbox } from "@flowstack-ui/atom/checkbox";
+import { CheckboxGroup } from "@flowstack-ui/atom/checkbox-group";
+import { Combobox } from "@flowstack-ui/atom/combobox";
 import { DataGrid } from "@flowstack-ui/atom/data-grid";
 import { Direction } from "@flowstack-ui/atom/direction";
 import { Feed } from "@flowstack-ui/atom/feed";
+import { Field } from "@flowstack-ui/atom/field";
+import { Fieldset } from "@flowstack-ui/atom/fieldset";
+import { FileUpload } from "@flowstack-ui/atom/file-upload";
 import { Form } from "@flowstack-ui/atom/form";
 import { Input } from "@flowstack-ui/atom/input";
 import { Menubar } from "@flowstack-ui/atom/menubar";
+import { NumberInput } from "@flowstack-ui/atom/number-input";
+import { OTPField } from "@flowstack-ui/atom/otp-field";
+import { RadioGroup } from "@flowstack-ui/atom/radio-group";
+import { Rating } from "@flowstack-ui/atom/rating";
 import { ScrollArea } from "@flowstack-ui/atom/scroll-area";
+import { Select } from "@flowstack-ui/atom/select";
+import { Slider } from "@flowstack-ui/atom/slider";
+import { Switch } from "@flowstack-ui/atom/switch";
 import { Table } from "@flowstack-ui/atom/table";
+import { Textarea } from "@flowstack-ui/atom/textarea";
 import { Tree } from "@flowstack-ui/atom/tree";
 import { TreeGrid } from "@flowstack-ui/atom/tree-grid";
 import { useCallback, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
@@ -45,7 +59,7 @@ type TreePartKey = "root" | "item" | "itemText" | "group";
 type TreeGridStateMode = "uncontrolled" | "controlled";
 type TreeGridDirectionMode = "default" | "provider-rtl" | "local-ltr" | "local-rtl";
 type TreeGridPartKey = "root" | "caption" | "header" | "row" | "columnHeader" | "body" | "rowHeader" | "cell" | "footer";
-type FormControlType = "native" | "atom";
+type FormControlType = "native" | "atom" | "foundation";
 
 type LogEntry = {
   id: number;
@@ -1087,9 +1101,23 @@ export function getDataPrimitiveSource(scenarioId: string, scenarios?: DataPrimi
       : state.composition === "render"
         ? `</Form.Root>`
         : `</Form.Root>`;
-    const control = state.controlType === "atom"
-      ? `<Input.Root name="project" required value={projectName} onValueChange={setProjectName} />`
-      : `<input name="project" required value={projectName} onChange={(event) => setProjectName(event.target.value)} />`;
+    const control = state.controlType === "foundation"
+      ? `<Field.Root id="project" required>
+    <Field.Label>Project name</Field.Label>
+    <Input.Root name="project" defaultValue="Atom" />
+    <Field.Description>Single-control relationship.</Field.Description>
+  </Field.Root>
+  <Fieldset.Root id="updates" required>
+    <Fieldset.Legend>Notification options</Fieldset.Legend>
+    <CheckboxGroup.Root name="updates" defaultValue={["email"]}>
+      <CheckboxGroup.Item value="email">Email</CheckboxGroup.Item>
+      <CheckboxGroup.Item value="sms">SMS</CheckboxGroup.Item>
+    </CheckboxGroup.Root>
+  </Fieldset.Root>
+  {/* Canvas also includes every Field-aware value control. */}`
+      : state.controlType === "atom"
+        ? `<Input.Root name="project" required value={projectName} onValueChange={setProjectName} />`
+        : `<input name="project" required value={projectName} onChange={(event) => setProjectName(event.target.value)} />`;
     return `${open}
   ${control}
   <Button.Root type="submit">Submit</Button.Root>
@@ -2286,8 +2314,12 @@ function FormScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useFormS
     ...(state.validation !== "none" && { validateOnSubmit: validate }),
     onSubmit: (event: FormEvent<HTMLFormElement>) => {
       const wasDefaultPrevented = event.defaultPrevented;
+      const entries = Array.from(new FormData(event.currentTarget).entries()).map(([name, value]) =>
+        `${name}=${value instanceof File ? value.name || "(empty file)" : value}`,
+      );
       scenario.actions.setStatus("submitted");
       scenario.actions.addLog(`form submitted defaultPrevented ${bool(wasDefaultPrevented)} preventDefaultOnSubmit ${bool(state.preventDefault)}`);
+      scenario.actions.addLog(`FormData ${entries.join(", ") || "(empty)"}`);
       if (!event.defaultPrevented) {
         event.preventDefault();
         scenario.actions.addLog("playground prevented navigation");
@@ -2301,8 +2333,12 @@ function FormScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useFormS
   };
   const children = (
     <>
-      <label htmlFor="form-project-name">Project name</label>
-      {state.controlType === "atom" ? (
+      {state.controlType === "foundation" ? (
+        <FormFoundationControls />
+      ) : (
+        <>
+          <label htmlFor="form-project-name">Project name</label>
+          {state.controlType === "atom" ? (
         <Input.Root
           id="form-project-name"
           name="project"
@@ -2312,7 +2348,7 @@ function FormScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useFormS
           data-playground-inspect=""
           data-playground-form-input=""
         />
-      ) : (
+          ) : (
         <input
           id="form-project-name"
           name="project"
@@ -2322,6 +2358,8 @@ function FormScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useFormS
           data-playground-inspect=""
           data-playground-form-input=""
         />
+          )}
+        </>
       )}
       <div className="playground-form-actions">
         <Button.Root className="atom-button" type="submit" data-playground-inspect="" data-playground-form-submit="">Submit</Button.Root>
@@ -2341,6 +2379,147 @@ function FormScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useFormS
       ) : (
         <Form.Root {...props}>{children}</Form.Root>
       )}
+    </div>
+  );
+}
+
+const formFoundationCities = [
+  { label: "Austin", value: "austin" },
+  { label: "Boston", value: "boston" },
+  { label: "Chicago", value: "chicago" },
+];
+
+function FormFoundationControls() {
+  return (
+    <div className="form-foundation-grid" data-playground-form-foundation="">
+      <p className="form-foundation-note">
+        Change these uncontrolled defaults, submit to inspect FormData in Logs,
+        then reset to verify the native reset contract.
+      </p>
+
+      <Field.Root id="foundation-name" required>
+        <Field.Label>Project name</Field.Label>
+        <Input.Root name="project" defaultValue="Atom" />
+        <Field.Description>Single-control Field relationship.</Field.Description>
+      </Field.Root>
+
+      <Field.Root id="foundation-notes">
+        <Field.Label>Notes</Field.Label>
+        <Textarea.Root name="notes" defaultValue="Reset me" />
+        <Field.Description>Native textarea submission and reset.</Field.Description>
+      </Field.Root>
+
+      <Field.Root id="foundation-checkbox" required>
+        <Field.Label>Terms accepted</Field.Label>
+        <Checkbox.Root name="terms" value="accepted" defaultChecked>
+          <Checkbox.Indicator>Checked</Checkbox.Indicator>
+        </Checkbox.Root>
+        <Field.Description>Checked-only submission.</Field.Description>
+      </Field.Root>
+
+      <Field.Root id="foundation-switch">
+        <Field.Label>Email digest</Field.Label>
+        <Switch.Root name="digest" value="enabled" defaultChecked>
+          <Switch.Thumb />
+        </Switch.Root>
+      </Field.Root>
+
+      <Fieldset.Root id="foundation-updates" required>
+        <Fieldset.Legend>Notification options</Fieldset.Legend>
+        <Fieldset.Description>Select at least one.</Fieldset.Description>
+        <CheckboxGroup.Root name="updates" defaultValue={["email"]}>
+          <CheckboxGroup.Item value="email">Email</CheckboxGroup.Item>
+          <CheckboxGroup.Item value="sms">SMS</CheckboxGroup.Item>
+        </CheckboxGroup.Root>
+        <Fieldset.Error>Choose at least one option.</Fieldset.Error>
+      </Fieldset.Root>
+
+      <Fieldset.Root id="foundation-contact" required>
+        <Fieldset.Legend>Contact preference</Fieldset.Legend>
+        <RadioGroup.Root name="contact" defaultValue="email">
+          <RadioGroup.Radio value="email">Email</RadioGroup.Radio>
+          <RadioGroup.Radio value="phone">Phone</RadioGroup.Radio>
+        </RadioGroup.Root>
+      </Fieldset.Root>
+
+      <Field.Root id="foundation-plan" required>
+        <Field.Label>Plan</Field.Label>
+        <Select.Root name="plan" defaultValue="pro">
+          <Select.Trigger>
+            <Select.Value placeholder="Choose a plan" />
+            <Select.Icon>Open</Select.Icon>
+          </Select.Trigger>
+          <Select.Content aria-label="Plans">
+            <Select.Viewport>
+              <Select.Item value="starter"><Select.ItemText>Starter</Select.ItemText></Select.Item>
+              <Select.Item value="pro"><Select.ItemText>Pro</Select.ItemText></Select.Item>
+            </Select.Viewport>
+          </Select.Content>
+        </Select.Root>
+        <Field.Description>Native select owns validity and FormData.</Field.Description>
+      </Field.Root>
+
+      <Field.Root id="foundation-city" required>
+        <Field.Label>City</Field.Label>
+        <Combobox.Root options={formFoundationCities} name="city" defaultValue="boston">
+          <Combobox.Input />
+          <Combobox.Clear>Clear</Combobox.Clear>
+          <Combobox.Content>
+            <Combobox.Listbox>
+              {formFoundationCities.map((city) => (
+                <Combobox.Item key={city.value} value={city.value}>{city.label}</Combobox.Item>
+              ))}
+              <Combobox.Empty>No city found</Combobox.Empty>
+            </Combobox.Listbox>
+          </Combobox.Content>
+        </Combobox.Root>
+      </Field.Root>
+
+      <Field.Root id="foundation-seats" required>
+        <Field.Label>Seats</Field.Label>
+        <NumberInput.Root name="seats" defaultValue={2} min={1} max={10} />
+      </Field.Root>
+
+      <Field.Root id="foundation-budget">
+        <Field.Label>Budget</Field.Label>
+        <Slider.Root name="budget" defaultValue={40} min={0} max={100}>
+          <Slider.Track><Slider.Range /></Slider.Track>
+          <Slider.Thumb />
+        </Slider.Root>
+      </Field.Root>
+
+      <Field.Root id="foundation-rating" required>
+        <Field.Label>Rating</Field.Label>
+        <Rating.Root name="rating" defaultValue={3}>
+          {[1, 2, 3, 4, 5].map((value) => (
+            <Rating.Item key={value} value={value}>{value}</Rating.Item>
+          ))}
+        </Rating.Root>
+      </Field.Root>
+
+      <Field.Root id="foundation-code" required>
+        <Field.Label>Verification code</Field.Label>
+        <OTPField.Root name="code" defaultValue="123456" length={6}>
+          {Array.from({ length: 6 }, (_, index) => <OTPField.Input key={index} index={index} />)}
+        </OTPField.Root>
+      </Field.Root>
+
+      <Field.Root id="foundation-file">
+        <Field.Label>Document</Field.Label>
+        <FileUpload.Root name="document" maxFiles={1}>
+          <FileUpload.HiddenInput />
+          <FileUpload.Trigger>Choose file</FileUpload.Trigger>
+          <FileUpload.Dropzone>Drop one file here</FileUpload.Dropzone>
+          <FileUpload.ItemGroup>
+            {(file, index) => (
+              <FileUpload.Item key={`${file.name}-${index}`} file={file}>
+                <FileUpload.ItemName />
+                <FileUpload.ItemDeleteTrigger>Remove</FileUpload.ItemDeleteTrigger>
+              </FileUpload.Item>
+            )}
+          </FileUpload.ItemGroup>
+        </FileUpload.Root>
+      </Field.Root>
     </div>
   );
 }
@@ -3306,6 +3485,7 @@ const scrollAreaRoleOptions = [
 const formControlOptions = [
   { label: "Native", value: "native" },
   { label: "Atom", value: "atom" },
+  { label: "Foundation", value: "foundation" },
 ];
 
 const tableRows = [

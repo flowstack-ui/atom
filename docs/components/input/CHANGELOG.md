@@ -1,8 +1,8 @@
 # Input Changelog
 
-## Unreleased
+## 0.5.0
 
-- No unreleased changes.
+- Synchronized uncontrolled Field-aware values with native form reset.
 
 ## 0.2.0
 

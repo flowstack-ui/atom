@@ -1,8 +1,9 @@
 # Combobox Changelog
 
-## Unreleased
+## 0.5.0
 
-- No unreleased changes.
+- Added Field state, generated input ID, label, and description integration plus
+  external-form and uncontrolled reset behavior.
 
 ## 0.2.0
 

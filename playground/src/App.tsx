@@ -2249,7 +2249,7 @@ function getSelectSource(state: ReturnType<typeof useSelectScenario>["state"]) {
   const rootOpenProp = state.openControlled ? `open={open}` : `defaultOpen={false}`;
   const listboxName = state.useListboxAlias ? "Select.Listbox" : "Select.Content";
   const listbox = `<${listboxName}
-    ariaLabel={${state.useAriaLabel ? `"Plans"` : "undefined"}}
+    aria-label={${state.useAriaLabel ? `"Plans"` : "undefined"}}
     disablePortal={${state.disablePortal}}
   >
     ${state.showArrow ? "<Select.Arrow />\n    " : ""}${state.showScrollButtons ? "<Select.ScrollUpButton>Up</Select.ScrollUpButton>\n    " : ""}<Select.Viewport>
@@ -2277,11 +2277,11 @@ function getSelectSource(state: ReturnType<typeof useSelectScenario>["state"]) {
     ${state.showScrollButtons ? "<Select.ScrollDownButton>Down</Select.ScrollDownButton>" : ""}
   </${listboxName}>`;
   const trigger = state.triggerComposition === "default"
-    ? `<Select.Trigger${state.triggerAriaLabel ? ` ariaLabel="Choose plan"` : ""}>
+    ? `<Select.Trigger${state.triggerAriaLabel ? ` aria-label="Choose plan"` : ""}>
       <Select.Value${state.customValueChildren ? `>Custom plan text</Select.Value` : ` placeholder="Choose a plan" />`}
       <Select.Icon>▾</Select.Icon>
     </Select.Trigger>`
-    : `<Select.Trigger ${state.triggerComposition}${state.triggerAriaLabel ? ` ariaLabel="Choose plan"` : ""}>
+    : `<Select.Trigger ${state.triggerComposition}${state.triggerAriaLabel ? ` aria-label="Choose plan"` : ""}>
       <button type="button">
         <Select.Value${state.customValueChildren ? `>Custom plan text</Select.Value` : ` placeholder="Choose a plan" />`}
         <Select.Icon>▾</Select.Icon>

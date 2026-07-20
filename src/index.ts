@@ -828,9 +828,11 @@ export {
   PopoverContentContextProvider,
   PopoverContent,
   PopoverContextProvider,
+  PopoverDescription,
   PopoverPortal,
   PopoverRoot,
   PopoverTrigger,
+  PopoverTitle,
   usePopoverContentContext,
   usePopoverContext,
 } from "./primitives/popover/index.js";
@@ -842,12 +844,21 @@ export type {
   PopoverCloseProps,
   PopoverContentContextValue,
   PopoverContentProps,
+  PopoverCloseReason,
   PopoverContextValue,
+  PopoverDescriptionProps,
+  PopoverFinalFocusDetails,
+  PopoverFocusTarget,
+  PopoverHeadingLevel,
+  PopoverInitialFocusDetails,
+  PopoverInteractionType,
+  PopoverOpenReason,
   PopoverPortalProps,
   PopoverRootProps,
   PopoverSide,
   PopoverTriggerMode,
   PopoverTriggerProps,
+  PopoverTitleProps,
 } from "./primitives/popover/index.js";
 export { PressableRoot } from "./primitives/pressable/index.js";
 export type { PressableRootProps } from "./primitives/pressable/index.js";

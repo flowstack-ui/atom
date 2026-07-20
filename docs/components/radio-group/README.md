@@ -53,14 +53,15 @@ focus behavior for every Radio part inside it.
 | `invalid` | `boolean` | `false` |
 | `orientation` | `"horizontal" \| "vertical"` | `"vertical"` |
 | `loop` | `boolean` | `true` |
-| `ariaLabel` | `string` | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
 | ARIA attribute | Values |
 | --- | --- |
 | `role` | `"radiogroup"` |
-| `aria-label` | Value from `ariaLabel` when provided |
+| `aria-label` | Native value when provided |
+| `aria-labelledby` | Native value or inherited Fieldset Legend ID |
+| `aria-describedby` | Native value or inherited Fieldset messages |
 | `aria-disabled` | `true` when disabled |
 | `aria-required` | `true` when required |
 | `aria-invalid` | `true` when invalid |
@@ -82,7 +83,6 @@ selected value into a hidden native radio input when Root has a `name`.
 | --- | --- | --- |
 | `value` | `string` | Required |
 | `disabled` | `boolean` | Group state |
-| `ariaLabel` | `string` | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -90,7 +90,7 @@ selected value into a hidden native radio input when Root has a `name`.
 | --- | --- |
 | `role` | `"radio"` |
 | `aria-checked` | `true` when selected |
-| `aria-label` | Value from `ariaLabel` when provided |
+| `aria-label` | Native value when provided |
 | `aria-disabled` | `true` when the Radio or group is disabled |
 | `aria-invalid` | `true` when the group is invalid |
 
@@ -128,7 +128,9 @@ export default () => (
 Root exposes
 `role="radiogroup"`, each Radio exposes its checked state, and roving tab focus
 keeps the group to one Tab stop. Provide a group name with `aria-labelledby` or
-`ariaLabel`. Horizontal arrows mirror in RTL through `Direction.Provider`.
+native `aria-label`/`aria-labelledby`, or a surrounding Fieldset Legend.
+Uncontrolled selection returns to `defaultValue` on form reset. Horizontal
+arrows mirror in RTL through `Direction.Provider`.
 
 | Key | Description |
 | --- | --- |

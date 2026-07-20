@@ -10,6 +10,10 @@ submitted, and validation state. A plain `form` is enough when those states are
 not needed. Form does not provide a schema, field messages, or server
 validation; combine it with Field and your application validation.
 
+React function actions keep React's native action contract. Read their pending
+state with `useFormStatus`; Atom's `data-submitting` describes only the optional
+Atom callback/validation path. Rejected callbacks remain observable.
+
 ## Features
 
 - Renders a native `form` and preserves native attributes.
@@ -17,6 +21,8 @@ validation; combine it with Field and your application validation.
 - Optionally prevents the browser's default submit navigation.
 - Tracks submitting, submitted, and failed-validation state.
 - Resets Atom state after an uncancelled native reset.
+- Lets descendant uncontrolled Atom controls restore their defaults through the
+  same native reset event.
 - Exposes state through `useFormContext` and data attributes.
 
 ## Import

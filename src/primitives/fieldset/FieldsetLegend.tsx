@@ -4,12 +4,16 @@ import {
   Children,
   forwardRef,
   isValidElement,
+  useCallback,
+  useMemo,
+  useRef,
   type ReactElement,
   type ReactNode,
 } from "react";
 import type { NativeLegendProps } from "../../utils/dom.js";
-import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
+import { cloneAndMerge, composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
 import { useFieldsetContext } from "./context.js";
+import { markFieldsetPart } from "./parts.js";
 
 type FieldsetLegendNativeProps = NativeLegendProps<"children">;
 
@@ -68,6 +72,15 @@ export const FieldsetLegend = forwardRef<HTMLLegendElement, FieldsetLegendProps>
     ref,
   ) {
     const ctx = useFieldsetContext();
+    const unregisterRef = useRef<(() => void) | null>(null);
+    const registrationRef = useCallback((node: HTMLLegendElement | null) => {
+      unregisterRef.current?.();
+      unregisterRef.current = node && ctx ? ctx.registerPart("legend") : null;
+    }, [ctx]);
+    const composedRef = useMemo(
+      () => composeRefs(registrationRef, ref),
+      [registrationRef, ref],
+    );
     const isRequired = ctx?.required ?? false;
     const renderedRequiredIndicator = renderRequiredIndicator(requiredIndicator);
     const renderedOptionalIndicator = renderOptionalIndicator(optionalIndicator);
@@ -80,7 +93,8 @@ export const FieldsetLegend = forwardRef<HTMLLegendElement, FieldsetLegendProps>
     );
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
-      ref,
+      ref: composedRef,
+      id: ctx?.legendId ?? restProps.id,
       "data-slot": dataSlot,
       ...(ctx?.disabled && { "data-disabled": "" }),
       ...(isRequired && { "data-required": "" }),
@@ -102,3 +116,5 @@ export const FieldsetLegend = forwardRef<HTMLLegendElement, FieldsetLegendProps>
     });
   },
 );
+
+markFieldsetPart(FieldsetLegend, "legend");

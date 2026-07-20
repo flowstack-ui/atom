@@ -41,8 +41,10 @@ test("Fieldset parts render native fieldset semantics and state data attributes"
   assert.match(html, /data-required=""/);
   assert.match(html, /data-disabled=""/);
   assert.match(html, /data-slot="fieldset-legend"/);
+  assert.match(html, /id="shipping-legend"/);
+  assert.match(html, /aria-describedby="shipping-description shipping-error"/);
   assert.match(html, /data-slot="fieldset-description"/);
-  assert.match(html, /role="alert"/);
+  assert.doesNotMatch(html, /role="alert"/);
   assert.match(html, /data-slot="fieldset-error"/);
   assert.equal(Fieldset.Root, FieldsetRoot);
   assert.equal(Fieldset.Legend, FieldsetLegend);

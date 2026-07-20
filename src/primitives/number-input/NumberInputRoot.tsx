@@ -12,6 +12,8 @@ import {
   type RefObject,
 } from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
+import { useFormReset } from "../../hooks/useFormReset.js";
+import { useFieldContext } from "../field/context.js";
 import {
   clampNumberValue,
   formatNumber,
@@ -19,7 +21,14 @@ import {
   stepNumberValue,
 } from "./utils.js";
 
-type NumberInputRootNativeProps = NativeDivProps<"children" | "defaultValue" | "onChange">;
+type NumberInputRootNativeProps = NativeDivProps<
+  | "children"
+  | "defaultValue"
+  | "onChange"
+  | "aria-label"
+  | "aria-describedby"
+  | "aria-valuetext"
+>;
 
 export interface NumberInputRootProps extends NumberInputRootNativeProps {
   /** Current numeric value. Use null to represent an empty controlled value. */
@@ -60,12 +69,12 @@ export interface NumberInputRootProps extends NumberInputRootNativeProps {
   form?: string;
   /** HTML id attribute. */
   id?: string;
-  /** Accessible label for the inner spinbutton input. */
-  ariaLabel?: string;
+  /** Native accessible label forwarded to the inner spinbutton input. */
+  "aria-label"?: string;
   /** Human-readable value text for the inner spinbutton input. */
-  ariaValueText?: (value: number) => string;
-  /** ARIA described-by IDs for the inner spinbutton input. */
-  ariaDescribedBy?: string;
+  "aria-valuetext"?: string | ((value: number) => string);
+  /** Native description relationship forwarded to the inner spinbutton input. */
+  "aria-describedby"?: string;
   /** CSS class name on the root container. */
   className?: string;
   /** CSS class name on the input element. */
@@ -109,23 +118,29 @@ export const NumberInputRoot = forwardRef<HTMLDivElement, NumberInputRootProps>(
       clampOnBlur = true,
       formatter,
       parser,
-      disabled = false,
-      readOnly = false,
-      required = false,
-      invalid = false,
+      disabled,
+      readOnly,
+      required,
+      invalid,
       placeholder,
       name,
       form,
       id,
-      ariaLabel,
-      ariaValueText,
-      ariaDescribedBy,
+      "aria-label": ariaLabel,
+      "aria-valuetext": ariaValueText,
+      "aria-describedby": ariaDescribedBy,
       className,
       inputClassName,
       children,
       "data-slot": dataSlot = "number-input",
       ...restProps
     } = props;
+
+    const field = useFieldContext();
+    const isDisabled = disabled ?? field?.disabled ?? false;
+    const isReadOnly = readOnly ?? field?.readOnly ?? false;
+    const isRequired = required ?? field?.required ?? false;
+    const isInvalid = invalid ?? field?.invalid ?? false;
 
     const effectiveLargeStep = largeStepProp ?? step * 10;
     const isControlled = props.value !== undefined;
@@ -150,6 +165,18 @@ export const NumberInputRoot = forwardRef<HTMLDivElement, NumberInputRootProps>(
       },
       [formatter, precision, step],
     );
+    const reset = useCallback(() => {
+      if (isControlled) return;
+      const nextValue = defaultValue ?? null;
+      setInternalValue(nextValue);
+      setDisplayValue(toDisplayString(nextValue));
+    }, [defaultValue, isControlled, toDisplayString]);
+    useFormReset(inputRef, form, isControlled, reset);
+    const resolvedAriaValueText = numericValue !== null && typeof ariaValueText === "function"
+      ? ariaValueText(numericValue)
+      : typeof ariaValueText === "string"
+        ? ariaValueText
+        : undefined;
 
     const updateValue = useCallback(
       (newValue: number | null) => {
@@ -163,7 +190,7 @@ export const NumberInputRoot = forwardRef<HTMLDivElement, NumberInputRootProps>(
 
     const handleStep = useCallback(
       (direction: 1 | -1, stepSize?: number) => {
-        if (disabled || readOnly) return;
+        if (isDisabled || isReadOnly) return;
 
         const currentStep = stepSize ?? step;
         const current = numericValue ?? (direction === 1 ? min ?? 0 : max ?? 0);
@@ -176,12 +203,12 @@ export const NumberInputRoot = forwardRef<HTMLDivElement, NumberInputRootProps>(
         updateValue(nextValue);
         setDisplayValue(toDisplayString(nextValue));
       },
-      [disabled, max, min, numericValue, precision, readOnly, step, toDisplayString, updateValue],
+      [isDisabled, isReadOnly, max, min, numericValue, precision, step, toDisplayString, updateValue],
     );
 
     const handleKeyDown = useCallback(
       (event: KeyboardEvent<HTMLInputElement>) => {
-        if (disabled || readOnly) return;
+        if (isDisabled || isReadOnly) return;
 
         let handled = true;
 
@@ -219,12 +246,12 @@ export const NumberInputRoot = forwardRef<HTMLDivElement, NumberInputRootProps>(
         }
       },
       [
-        disabled,
+        isDisabled,
         effectiveLargeStep,
         handleStep,
         max,
         min,
-        readOnly,
+        isReadOnly,
         toDisplayString,
         updateValue,
       ],
@@ -291,8 +318,8 @@ export const NumberInputRoot = forwardRef<HTMLDivElement, NumberInputRootProps>(
       displayValue,
       isAtMin,
       isAtMax,
-      disabled,
-      readOnly,
+      disabled: isDisabled,
+      readOnly: isReadOnly,
       handleStep,
       inputRef,
     };
@@ -303,21 +330,23 @@ export const NumberInputRoot = forwardRef<HTMLDivElement, NumberInputRootProps>(
         ref={ref}
         data-slot={dataSlot}
         className={className}
-        {...(disabled && { "data-disabled": "" })}
-        {...(readOnly && { "data-readonly": "" })}
-        {...(invalid && { "data-invalid": "" })}
+        {...(isDisabled && { "data-disabled": "" })}
+        {...(isReadOnly && { "data-readonly": "" })}
+        {...(isInvalid && { "data-invalid": "" })}
+        {...(isRequired && { "data-required": "" })}
       >
         <input
           ref={inputRef}
           type="text"
           inputMode="decimal"
           role="spinbutton"
-          id={id}
+          id={id ?? field?.controlId}
           value={displayValue}
           placeholder={placeholder}
-          disabled={disabled}
-          readOnly={readOnly}
-          required={required}
+          disabled={isDisabled}
+          readOnly={isReadOnly}
+          required={isRequired}
+          form={form}
           className={inputClassName}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
@@ -327,15 +356,13 @@ export const NumberInputRoot = forwardRef<HTMLDivElement, NumberInputRootProps>(
           aria-valuenow={numericValue ?? undefined}
           aria-valuemin={min}
           aria-valuemax={max}
-          aria-valuetext={
-            numericValue !== null && ariaValueText
-              ? ariaValueText(numericValue)
-              : undefined
-          }
-          aria-invalid={invalid || undefined}
-          aria-required={required || undefined}
-          aria-readonly={readOnly || undefined}
-          aria-describedby={ariaDescribedBy}
+          aria-valuetext={resolvedAriaValueText}
+          aria-invalid={isInvalid || undefined}
+          aria-required={isRequired || undefined}
+          aria-readonly={isReadOnly || undefined}
+          aria-describedby={Object.prototype.hasOwnProperty.call(props, "aria-describedby")
+            ? ariaDescribedBy
+            : field?.describedBy}
           autoComplete="off"
         />
 
@@ -345,7 +372,7 @@ export const NumberInputRoot = forwardRef<HTMLDivElement, NumberInputRootProps>(
             name={name}
             form={form}
             value={numericValue ?? ""}
-            disabled={disabled}
+            disabled={isDisabled}
           />
         ) : null}
 

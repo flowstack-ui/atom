@@ -5,7 +5,7 @@ import {
   type AnatomySection,
 } from "../AnatomyPanel";
 import { ControlToolbar, MenuCheckboxControl, MenuRadioControl, MenuSection, PropsToolbarGroup, ScenarioEventLog, ToolbarGroup, partProps } from "../WorkbenchPrimitives";
-import { useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import type {
   PopoverArrowSize,
   PopoverAlign,
@@ -25,6 +25,8 @@ export function PopoverScenarioCanvas({
   actions: PopoverScenarioActions;
 }) {
   const [portalContainer, setPortalContainer] = useState<HTMLDivElement | null>(null);
+  const preferredFocusRef = useRef<HTMLButtonElement | null>(null);
+  const finalFocusRef = useRef<HTMLButtonElement | null>(null);
   const rootProps = state.controlled
     ? { open: state.open, onOpenChange: actions.handleOpenChange }
     : { defaultOpen: state.defaultOpen, onOpenChange: actions.handleOpenChange };
@@ -77,7 +79,9 @@ export function PopoverScenarioCanvas({
         ) : null}
         <Popover.Portal container={portalContainerProp} disabled={portalDisabled}>
           <Popover.Content
-            ariaLabel={state.useAriaLabel ? "Project quick actions" : undefined}
+            aria-label={state.useNativeAriaLabel ? "Project quick actions" : undefined}
+            initialFocus={state.customFocusTargets ? preferredFocusRef : undefined}
+            finalFocus={state.customFocusTargets ? finalFocusRef : undefined}
             className="atom-popover-content"
             data-playground-popover-content=""
             data-playground-inspect=""
@@ -87,15 +91,21 @@ export function PopoverScenarioCanvas({
             sideOffset={state.sideOffset}
           >
             <p className="popover-kicker">Project</p>
-            <h2 className="popover-title">Quick actions</h2>
-            <p className="popover-copy">
+            <Popover.Title className="popover-title" data-playground-popover-title="" data-playground-inspect="">
+              Quick actions
+            </Popover.Title>
+            <Popover.Description className="popover-copy" data-playground-popover-description="" data-playground-inspect="">
               Change placement, anchor behavior, modal focus, and dismiss rules.
-            </p>
+            </Popover.Description>
+            <label>
+              Project name
+              <input defaultValue="Atom" data-playground-popover-input="" />
+            </label>
             {state.nestedPopover ? <NestedPopoverExample /> : null}
             <div className="dialog-actions">
-              <Button.Root className="atom-button secondary">
+              <button ref={preferredFocusRef} className="atom-button secondary" type="button">
                 Secondary action
-              </Button.Root>
+              </button>
               <PopoverCloseExample
                 mode={state.closeComposition}
                 customSlot={state.customCloseSlot}
@@ -120,9 +130,9 @@ export function PopoverScenarioCanvas({
         data-playground-popover-portal-target=""
         ref={setPortalContainer}
       />
-      <Button.Root className="behind-dialog-button" tabIndex={-1}>
+      <button ref={finalFocusRef} className="atom-button behind-dialog-button" type="button">
         Outside focus target
-      </Button.Root>
+      </button>
     </div>
   );
 }
@@ -142,6 +152,8 @@ export function PopoverScenarioAnatomy({
   const arrow = document.querySelector<HTMLElement>("[data-playground-popover-arrow]");
   const portalTarget = document.querySelector<HTMLElement>("[data-playground-popover-portal-target]");
   const close = document.querySelector<HTMLElement>("[data-playground-popover-close]");
+  const title = document.querySelector<HTMLElement>("[data-playground-popover-title]");
+  const description = document.querySelector<HTMLElement>("[data-playground-popover-description]");
   const nestedContent = document.querySelector<HTMLElement>("[data-playground-nested-popover-content]");
 
   const sections: AnatomySection[] = [
@@ -215,6 +227,40 @@ export function PopoverScenarioAnatomy({
         { label: "Offset", value: String(state.sideOffset), category: "behavior" },
         { label: "Nested enabled", value: state.nestedPopover ? "yes" : "no", category: "behavior" },
         { label: "Nested content", value: nestedContent ? "yes" : "no", category: "presence" },
+        { label: "Custom focus targets", value: state.customFocusTargets ? "yes" : "no", category: "behavior" },
+      ],
+    },
+    {
+      title: "Title",
+      selector: "[data-playground-popover-title]",
+      inactive: !title,
+      summary: title?.tagName.toLowerCase() ?? "not rendered",
+      rows: [
+        { label: "Exists", value: title ? "yes" : "no", category: "presence" },
+        { label: "ID", value: title?.id ?? "none", category: "identity" },
+        { label: "Names Content", value: content?.getAttribute("aria-labelledby") === title?.id ? "yes" : "no", category: "aria" },
+      ],
+    },
+    {
+      title: "Description",
+      selector: "[data-playground-popover-description]",
+      inactive: !description,
+      summary: description?.tagName.toLowerCase() ?? "not rendered",
+      rows: [
+        { label: "Exists", value: description ? "yes" : "no", category: "presence" },
+        { label: "ID", value: description?.id ?? "none", category: "identity" },
+        { label: "Describes Content", value: content?.getAttribute("aria-describedby") === description?.id ? "yes" : "no", category: "aria" },
+      ],
+    },
+    {
+      title: "Close",
+      selector: "[data-playground-popover-close]",
+      inactive: !content,
+      summary: state.closeComposition,
+      rows: [
+        { label: "Exists", value: close ? "yes" : "no", category: "presence" },
+        { label: "Composition", value: state.closeComposition, category: "composition" },
+        { label: "data-slot", value: close?.dataset.slot ?? "none", category: "data" },
       ],
     },
     {
@@ -229,17 +275,6 @@ export function PopoverScenarioAnatomy({
         { label: "width", value: arrow?.getAttribute("width") ?? "none", category: "identity" },
         { label: "height", value: arrow?.getAttribute("height") ?? "none", category: "identity" },
         { label: "data-side", value: arrow?.dataset.side ?? "none", category: "data" },
-      ],
-    },
-    {
-      title: "Close",
-      selector: "[data-playground-popover-close]",
-      inactive: !content,
-      summary: state.closeComposition,
-      rows: [
-        { label: "Exists", value: close ? "yes" : "no", category: "presence" },
-        { label: "Composition", value: state.closeComposition, category: "composition" },
-        { label: "data-slot", value: close?.dataset.slot ?? "none", category: "data" },
       ],
     },
   ];
@@ -278,7 +313,8 @@ export function PopoverScenarioToolbar({
       <ToolbarGroup title="Popup" value="popup">
         <MenuSection label="Anchor">
           <MenuCheckboxControl checked={state.useAnchor} label="Use anchor" value="use-anchor" onChange={actions.setUseAnchor} />
-          <MenuCheckboxControl checked={state.useAriaLabel} label="Use ariaLabel" value="use-aria-label" onChange={actions.setUseAriaLabel} />
+          <MenuCheckboxControl checked={state.useNativeAriaLabel} label="Use native aria-label" value="use-native-aria-label" onChange={actions.setUseNativeAriaLabel} />
+          <MenuCheckboxControl checked={state.customFocusTargets} label="Custom focus targets" value="custom-focus-targets" onChange={actions.setCustomFocusTargets} />
           <MenuCheckboxControl checked={state.nestedPopover} label="Nested Popover" value="nested-popover" onChange={actions.setNestedPopover} />
         </MenuSection>
         <MenuRadioControl label="Portal" options={portalModeOptions} value={state.portalMode} onChange={actions.setPortalMode} />
@@ -341,14 +377,16 @@ export function getPopoverSource(state: PopoverScenarioState) {
   ${getPopoverTriggerSource(state)}
   <Popover.Portal${portalProps ? ` ${portalProps}` : ""}>
     <Popover.Content
-      ${state.useAriaLabel ? `ariaLabel="Project quick actions"` : ""}
+      ${state.useNativeAriaLabel ? `aria-label="Project quick actions"` : ""}
+      ${state.customFocusTargets ? `initialFocus={preferredFocusRef} finalFocus={finalFocusRef}` : ""}
       ${sourceProps("content", state.customContentSlot, state.propCheck, "popover-content-custom")}
       side="${state.side}"
       align="${state.align}"
       sideOffset={${state.sideOffset}}
     >
-      <h2>Quick actions</h2>
-      <p>Change placement, anchor behavior, modal focus, and dismiss rules.</p>
+      <Popover.Title>Quick actions</Popover.Title>
+      <Popover.Description>Change placement, anchor behavior, modal focus, and dismiss rules.</Popover.Description>
+      <label>Project name <input defaultValue="Atom" /></label>
       ${state.nestedPopover ? getNestedPopoverSource() : ""}
       ${getPopoverCloseSource(state)}
       ${getPopoverArrowSource(state)}
@@ -525,7 +563,6 @@ function NestedPopoverExample() {
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content
-          ariaLabel="Nested quick actions"
           className="atom-popover-content nested-popover-content"
           data-playground-nested-popover-content=""
           data-playground-inspect=""
@@ -534,7 +571,8 @@ function NestedPopoverExample() {
           sideOffset={8}
         >
           <p className="popover-kicker">Nested</p>
-          <p className="popover-copy">Escape should close this layer before the outer popover.</p>
+          <Popover.Title className="popover-title">Nested quick actions</Popover.Title>
+          <Popover.Description className="popover-copy">Escape should close this layer before the outer popover.</Popover.Description>
           <Popover.Close className="atom-button secondary" data-playground-nested-popover-close="" data-playground-inspect="">
             Close nested
           </Popover.Close>
@@ -634,7 +672,9 @@ function getNestedPopoverSource() {
   return `<Popover.Root>
         <Popover.Trigger>Nested popover</Popover.Trigger>
         <Popover.Portal>
-          <Popover.Content ariaLabel="Nested quick actions" side="right" align="start">
+          <Popover.Content side="right" align="start">
+            <Popover.Title>Nested quick actions</Popover.Title>
+            <Popover.Description>Escape closes this layer first.</Popover.Description>
             <Popover.Close>Close nested</Popover.Close>
             <Popover.Arrow />
           </Popover.Content>

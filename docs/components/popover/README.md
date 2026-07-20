@@ -13,7 +13,11 @@ page inside a floating box.
 ## Features
 
 - Controlled and uncontrolled open state.
-- Click or hover trigger mode.
+- Click or hover trigger mode with opening-reason tracking; pointer hover never
+  moves focus.
+- Visible Title and Description parts with generated accessible relationships.
+- Configurable interaction-aware initial and final focus, including a
+  touch-safe Content default and outside-dismissal focus preservation.
 - Optional anchor separate from the trigger.
 - Floating UI positioning with side, align, side offset, collision shift, flip, and arrow coordinates.
 - Modal mode with focus trap and scroll lock.
@@ -35,8 +39,10 @@ import { Popover } from "@flowstack-ui/atom";
   <Popover.Trigger />
   <Popover.Portal>
     <Popover.Content>
-      <Popover.Arrow />
+      <Popover.Title />
+      <Popover.Description />
       <Popover.Close />
+      <Popover.Arrow />
     </Popover.Content>
   </Popover.Portal>
 </Popover.Root>
@@ -53,7 +59,7 @@ position Content. Root renders no DOM element.
 | --- | --- | --- |
 | `open` | `boolean` | - |
 | `defaultOpen` | `boolean` | `false` |
-| `onOpenChange` | `(open: boolean) => void` | - |
+| `onOpenChange` | `(open: boolean, reason?: PopoverCloseReason) => void` | - |
 | `modal` | `boolean` | `false` |
 | `triggerMode` | `"click" \| "hover"` | `"click"` |
 | `openDelay` | `number` | `200` |
@@ -131,12 +137,15 @@ focus leaves its trigger/content scope.
 | `side` | `"top" \| "right" \| "bottom" \| "left"` | `"bottom"` |
 | `align` | `"start" \| "center" \| "end"` | `"center"` |
 | `sideOffset` | `number` | `8` |
-| `ariaLabel` | `string` | - |
+| `initialFocus` | `PopoverFocusTarget<PopoverInitialFocusDetails>` | safe interaction-aware target |
+| `finalFocus` | `PopoverFocusTarget<PopoverFinalFocusDetails>` | prior valid target, then Trigger |
 
 | ARIA attribute | Values |
 | --- | --- |
 | `role` | `"dialog"` |
-| `aria-label` | Value from `ariaLabel` when provided |
+| `aria-label` | Native explicit value |
+| `aria-labelledby` | Native value or generated Title relationship |
+| `aria-describedby` | Native value or generated Description relationship |
 | `aria-modal` | `true` in modal mode |
 
 | Data attribute | Values |
@@ -145,6 +154,54 @@ focus leaves its trigger/content scope.
 | `[data-state]` | `"open" \| "closed"` |
 | `[data-side]` | `"top" \| "right" \| "bottom" \| "left"` |
 | `[data-positioned]` | Present after the first positioning frame |
+
+Native `aria-label`, `aria-labelledby`, and `aria-describedby` pass through.
+Explicitly passing
+`aria-describedby={undefined}` suppresses the generated description
+relationship. `initialFocus` and `finalFocus` accept an element ref, a callback
+receiving interaction/reason details, or `false` to suppress that automatic
+operation.
+
+### Title
+
+Renders the visible heading that names Content. It defaults to `h2`, accepts
+`as="h1"` through `as="h6"`, forwards heading props/ref, and registers its
+stable ID with Content.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `as` | `"h1" \| "h2" \| "h3" \| "h4" \| "h5" \| "h6"` | `"h2"` |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"popover-title"` |
+
+### Description
+
+Renders a visible paragraph that describes Content and registers its stable ID
+for the generated `aria-describedby` relationship.
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"popover-description"` |
+
+### Close
+
+Renders a button that requests Root to close after any consumer click handler
+runs without preventing the event. Close records keyboard, mouse, pen, or touch
+activation so final-focus callbacks receive accurate details.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+**ARIA:** Close uses native button semantics. Give icon-only controls an
+`aria-label`.
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"popover-close"` |
 
 ### Arrow
 
@@ -165,23 +222,6 @@ handling. `getPopoverArrowGeometry` exposes the same geometry for custom arrows.
 | `[data-slot]` | `"popover-arrow"` |
 | `[data-side]` | `"top" \| "right" \| "bottom" \| "left"` |
 
-### Close
-
-Renders a button that requests Root to close after any consumer click handler
-runs without preventing the event.
-
-| Prop | Type | Default |
-| --- | --- | --- |
-| `asChild` | `boolean` | `false` |
-| `render` | `RenderProp` | - |
-
-**ARIA:** Close uses native button semantics. Give icon-only controls an
-`aria-label`.
-
-| Data attribute | Values |
-| --- | --- |
-| `[data-slot]` | `"popover-close"` |
-
 Advanced compound parts can read `usePopoverContext` or
 `usePopoverContentContext`. Their matching context providers are also public
 for low-level composition. `getPopoverArrowGeometry` returns the SVG geometry
@@ -199,7 +239,11 @@ export default function ActionsPopover() {
     <Popover.Root>
       <Popover.Trigger>Actions</Popover.Trigger>
       <Popover.Portal>
-        <Popover.Content ariaLabel="Project actions">
+        <Popover.Content>
+          <Popover.Title>Project actions</Popover.Title>
+          <Popover.Description>
+            Choose one compact action for this project.
+          </Popover.Description>
           <button type="button">Duplicate</button>
           <Popover.Close>Done</Popover.Close>
           <Popover.Arrow />
@@ -223,7 +267,8 @@ export default function AnchoredPopover() {
       </Popover.Anchor>
       <Popover.Trigger>Open account actions</Popover.Trigger>
       <Popover.Portal>
-        <Popover.Content side="right" align="start" ariaLabel="Account actions">
+        <Popover.Content side="right" align="start">
+          <Popover.Title>Account actions</Popover.Title>
           <button type="button">View profile</button>
           <Popover.Close>Close</Popover.Close>
         </Popover.Content>
@@ -237,9 +282,18 @@ export default function AnchoredPopover() {
 
 Popover uses the [WAI-ARIA dialog pattern](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/)
 for Content and an
-`aria-haspopup="dialog"` trigger. Provide `ariaLabel` when Content does not have
-another accessible name. In modal mode, focus remains contained inside the
-popover scope, including registered portalled layers opened by descendants.
+`aria-haspopup="dialog"` trigger. Render one visible `Popover.Title` or provide
+native `aria-label`/`aria-labelledby`. Description connects automatically when
+rendered. Popover intentionally exposes no camel-case `ariaLabel` alias.
+
+Intentional keyboard, mouse, and pen openings focus an explicit
+`initialFocus`, native `autoFocus`, the first available descendant, or Content.
+Touch defaults to Content so opening does not unexpectedly raise a virtual
+keyboard. Pointer-hover opening never moves focus. Escape and Close restore a
+valid explicit `finalFocus`, the prior element, or Trigger; outside pointer and
+focus dismissal preserve the destination. In modal mode, focus remains
+contained inside the popover scope, including registered portalled layers
+opened by descendants.
 
 | Key | Description |
 | --- | --- |

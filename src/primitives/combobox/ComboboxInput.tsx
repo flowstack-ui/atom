@@ -59,6 +59,9 @@ export const ComboboxInput = forwardRef<HTMLInputElement, ComboboxInputProps>(
       clearOnSelect,
       disabled,
       filteredOptions,
+      fieldDescribedBy,
+      fieldLabelId,
+      form,
       freeSolo,
       getEnabledItemValues,
       getItemId,
@@ -207,6 +210,7 @@ export const ComboboxInput = forwardRef<HTMLInputElement, ComboboxInputProps>(
       role: "combobox",
       value: inputValue,
       autoComplete,
+      form,
       disabled: disabled || undefined,
       readOnly: readOnly || undefined,
       required: required || undefined,
@@ -217,6 +221,11 @@ export const ComboboxInput = forwardRef<HTMLInputElement, ComboboxInputProps>(
       "aria-autocomplete": "list",
       "aria-invalid": invalid || undefined,
       "aria-required": required || undefined,
+      "aria-labelledby": restProps["aria-labelledby"] ??
+        (restProps["aria-label"] === undefined ? fieldLabelId : undefined),
+      "aria-describedby": Object.prototype.hasOwnProperty.call(restProps, "aria-describedby")
+        ? restProps["aria-describedby"]
+        : fieldDescribedBy,
       "data-slot": dataSlot,
       "data-state": isOpen ? "open" : "closed",
       "data-disabled": disabled ? "" : undefined,

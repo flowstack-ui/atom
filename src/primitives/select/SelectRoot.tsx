@@ -17,6 +17,7 @@ import {
   type SelectContextValue,
 } from "./context.js";
 import { useCollection } from "../../collection.js";
+import { useFormReset } from "../../hooks/useFormReset.js";
 import { useFieldContext } from "../field/context.js";
 import { SelectItemText } from "./SelectItemText.js";
 
@@ -29,6 +30,8 @@ export interface SelectRootProps {
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
   disabled?: boolean;
+  readOnly?: boolean;
+  invalid?: boolean;
   required?: boolean;
   name?: string;
   form?: string;
@@ -43,12 +46,16 @@ export function SelectRoot({
   defaultOpen = false,
   onOpenChange,
   disabled,
+  readOnly,
+  invalid,
   required,
   name,
   form,
 }: SelectRootProps) {
   const fieldCtx = useFieldContext();
   const isDisabled = disabled ?? fieldCtx?.disabled ?? false;
+  const isReadOnly = readOnly ?? fieldCtx?.readOnly ?? false;
+  const isInvalid = invalid ?? fieldCtx?.invalid ?? false;
   const isRequired = required ?? fieldCtx?.required ?? false;
   const isOpenControlled = controlledOpen !== undefined;
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
@@ -67,11 +74,11 @@ export function SelectRoot({
     useState<SelectContextValue["openHighlightIntent"]>(null);
 
   const onOpen = useCallback((highlightIntent: SelectContextValue["openHighlightIntent"] = "current") => {
-    if (!isDisabled) {
+    if (!isDisabled && !isReadOnly) {
       setOpenHighlightIntent(highlightIntent);
       setOpen(true);
     }
-  }, [isDisabled, setOpen]);
+  }, [isDisabled, isReadOnly, setOpen]);
 
   const onClose = useCallback(() => {
     setOpen(false);
@@ -80,13 +87,13 @@ export function SelectRoot({
   }, [setOpen]);
 
   const onToggle = useCallback(() => {
-    if (isDisabled) return;
+    if (isDisabled || isReadOnly) return;
     if (isOpen) {
       onClose();
     } else {
       setOpen(true);
     }
-  }, [isDisabled, isOpen, onClose, setOpen]);
+  }, [isDisabled, isOpen, isReadOnly, onClose, setOpen]);
 
   const isValueControlled = controlledValue !== undefined;
   const [internalValue, setInternalValue] = useState(defaultValue);
@@ -94,12 +101,13 @@ export function SelectRoot({
 
   const handleValueChange = useCallback(
     (next: string) => {
+      if (isDisabled || isReadOnly) return;
       if (!isValueControlled) setInternalValue(next);
       onValueChange?.(next);
       setOpen(false);
       setHighlightedValue(null);
     },
-    [isValueControlled, onValueChange, setOpen],
+    [isDisabled, isReadOnly, isValueControlled, onValueChange, setOpen],
   );
 
   const [isInsidePortal, setInsidePortal] = useState(false);
@@ -110,6 +118,12 @@ export function SelectRoot({
   const listboxId = `select-listbox-${idPrefix}`;
 
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const reset = useCallback(() => {
+    if (!isValueControlled) setInternalValue(defaultValue);
+    if (!isOpenControlled) setInternalOpen(defaultOpen);
+    setHighlightedValue(null);
+  }, [defaultOpen, defaultValue, isOpenControlled, isValueControlled]);
+  useFormReset(triggerRef, form, false, reset);
   const listboxRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const labelMapRef = useRef<Map<string, string>>(new Map());
@@ -211,6 +225,8 @@ export function SelectRoot({
       getItemValues,
       getEnabledItemValues,
       disabled: isDisabled,
+      readOnly: isReadOnly,
+      invalid: isInvalid,
       required: isRequired,
       name,
       fieldControlId: fieldCtx?.controlId,
@@ -238,6 +254,8 @@ export function SelectRoot({
       isInsidePortal,
       isOpen,
       isDisabled,
+      isInvalid,
+      isReadOnly,
       isRequired,
       listboxId,
       name,
@@ -261,15 +279,34 @@ export function SelectRoot({
     <SelectContextProvider value={ctx}>
       {children}
       {name ? (
-        <input
-          type="hidden"
+        <select
           name={name}
           value={value ?? ""}
           form={form}
           disabled={isDisabled}
+          required={isRequired}
           aria-hidden="true"
           tabIndex={-1}
-        />
+          onChange={() => undefined}
+          style={{
+            position: "absolute",
+            width: 1,
+            height: 1,
+            padding: 0,
+            margin: -1,
+            overflow: "hidden",
+            clip: "rect(0, 0, 0, 0)",
+            whiteSpace: "nowrap",
+            borderWidth: 0,
+          }}
+        >
+          <option value="" />
+          {Array.from(staticItems.keys()).map((itemValue) => (
+            <option key={itemValue} value={itemValue}>
+              {getLabel(itemValue) ?? itemValue}
+            </option>
+          ))}
+        </select>
       ) : null}
     </SelectContextProvider>
   );

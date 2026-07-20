@@ -37,7 +37,6 @@ type SelectListboxNativeProps = NativeDivProps<"children" | "role">;
 export interface SelectListboxProps extends SelectListboxNativeProps {
   children: ReactNode;
   className?: string;
-  ariaLabel?: string;
   container?: HTMLElement | null;
   disablePortal?: boolean;
   "data-slot"?: string;
@@ -48,7 +47,6 @@ function SelectListbox(
   {
     children,
     className,
-    ariaLabel,
     container,
     disablePortal = false,
     style,
@@ -159,7 +157,6 @@ function SelectListbox(
         ref={composedRef}
         id={ctx.listboxId}
         role="listbox"
-        aria-label={ariaLabel}
         tabIndex={-1}
         data-slot={dataSlot}
         data-state="open"

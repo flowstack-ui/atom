@@ -1,5 +1,26 @@
 # Atom Changelog
 
+## 0.5.0
+
+- Reworked the form foundation so Field and Fieldset relationships are stable
+  in server markup and hydration, grouped and single-value controls inherit the
+  correct context, errors do not announce unless requested, and custom values
+  follow native submission, validity, external-form, and reset behavior.
+- Removed the remaining form-control `ariaLabel` compatibility props in favor
+  of native `aria-label`, `aria-labelledby`, and `aria-describedby`; added
+  Field/Fieldset integration to Checkbox, Switch, CheckboxGroup, RadioGroup,
+  Combobox, NumberInput, Slider, Rating, Select, and OTPField.
+- Preserved React function-action semantics in Form and stopped swallowing
+  rejected Atom submit callbacks.
+
+## 0.4.0
+
+- Added Popover `Title` and `Description` parts with generated visible naming
+  relationships, native ARIA naming, and no custom `ariaLabel` alias.
+- Added interaction-aware Popover initial/final focus targets, touch-safe
+  default focus, hover-without-focus-steal, and dismissal-aware restoration
+  that preserves outside destinations.
+
 ## 0.3.5
 
 - Corrected Tooltip touch sessions so stationary long press opens immediately

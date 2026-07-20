@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
+import { useFormReset } from "../../hooks/useFormReset.js";
 import { useFieldContext } from "../field/context.js";
 import type { NativeInputProps } from "../../utils/dom.js";
 import { composeEventHandlers } from "../../utils/dom.js";
@@ -76,12 +77,16 @@ export const InputRoot = forwardRef<HTMLInputElement, InputRootProps>(
       defaultValue,
       onChange: onValueChange,
     });
+    const reset = useCallback(() => setResolvedValue(defaultValue), [defaultValue, setResolvedValue]);
+    useFormReset(inputRef, restProps.form, value !== undefined, reset);
     const isDisabled = disabled ?? fieldCtx?.disabled ?? false;
     const isRequired = required ?? fieldCtx?.required ?? false;
     const isReadOnly = readOnly ?? fieldCtx?.readOnly ?? false;
     const isInvalid = invalid ?? fieldCtx?.invalid ?? false;
     const controlId = id ?? fieldCtx?.controlId;
-    const describedBy = ariaDescribedBy ?? fieldCtx?.describedBy;
+    const describedBy = ariaDescribedBy !== undefined
+      ? ariaDescribedBy
+      : fieldCtx?.describedBy;
 
     const handleChange = useCallback<ChangeEventHandler<HTMLInputElement>>(
       (event) => {

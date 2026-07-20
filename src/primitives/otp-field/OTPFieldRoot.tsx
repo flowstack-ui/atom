@@ -9,8 +9,10 @@ import {
   useRef,
   useState,
   type ReactNode,
+  type CSSProperties,
 } from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
+import { useFormReset } from "../../hooks/useFormReset.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
 import { useFieldContext } from "../field/context.js";
@@ -31,6 +33,18 @@ type OTPFieldRootNativeProps = NativeDivProps<
   "children" | "defaultValue" | "onChange"
 >;
 
+const hiddenInputStyle: CSSProperties = {
+  position: "absolute",
+  width: 1,
+  height: 1,
+  padding: 0,
+  margin: -1,
+  overflow: "hidden",
+  clip: "rect(0, 0, 0, 0)",
+  whiteSpace: "nowrap",
+  borderWidth: 0,
+};
+
 export interface OTPFieldRootProps extends OTPFieldRootNativeProps {
   children: ReactNode;
   value?: string;
@@ -50,16 +64,14 @@ export interface OTPFieldRootProps extends OTPFieldRootNativeProps {
   name?: string;
   form?: string;
   inputId?: string;
-  ariaLabel?: string;
-  ariaDescribedBy?: string;
   render?: RenderProp;
   asChild?: boolean;
   "data-slot"?: string;
 }
 
 export const OTPFieldRoot = forwardRef<HTMLDivElement, OTPFieldRootProps>(
-  function OTPFieldRoot(
-    {
+  function OTPFieldRoot(props, ref) {
+    const {
       children,
       value,
       defaultValue = "",
@@ -78,8 +90,6 @@ export const OTPFieldRoot = forwardRef<HTMLDivElement, OTPFieldRootProps>(
       name,
       form,
       inputId,
-      ariaLabel,
-      ariaDescribedBy,
       render,
       asChild,
       id: providedId,
@@ -88,9 +98,7 @@ export const OTPFieldRoot = forwardRef<HTMLDivElement, OTPFieldRootProps>(
       "aria-describedby": nativeAriaDescribedBy,
       "data-slot": dataSlot = "otp-field",
       ...restProps
-    },
-    ref,
-  ) {
+    } = props;
     const fieldContext = useFieldContext();
     const autoId = useId();
     const baseId = providedId ?? autoId;
@@ -108,15 +116,27 @@ export const OTPFieldRoot = forwardRef<HTMLDivElement, OTPFieldRootProps>(
     const isReadOnly = readOnly ?? fieldContext?.readOnly ?? false;
     const isRequired = required ?? fieldContext?.required ?? false;
     const isInvalid = invalid ?? fieldContext?.invalid ?? false;
-    const resolvedAriaDescribedBy =
-      nativeAriaDescribedBy ?? ariaDescribedBy ?? fieldContext?.describedBy;
+    const resolvedAriaDescribedBy = Object.prototype.hasOwnProperty.call(
+      props,
+      "aria-describedby",
+    )
+      ? nativeAriaDescribedBy
+      : fieldContext?.describedBy;
     const hasExternalLabel = nativeAriaLabelledBy ?? fieldContext?.labelId;
     const resolvedAriaLabel =
-      nativeAriaLabel ?? ariaLabel ?? (hasExternalLabel ? undefined : "Verification code");
+      nativeAriaLabel ?? (hasExternalLabel ? undefined : "Verification code");
     const resolvedAriaLabelledBy =
       nativeAriaLabelledBy ?? (resolvedAriaLabel ? undefined : fieldContext?.labelId);
     const firstInputId = inputId ?? fieldContext?.controlId ?? `${baseId}-input-1`;
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+    const hiddenInputRef = useRef<HTMLInputElement>(null);
+    const reset = useCallback(() => {
+      if (value === undefined) {
+        setCurrentValue(filterOTPFieldValue(defaultValue, pattern, normalizedLength));
+      }
+      setActiveIndex(0);
+    }, [defaultValue, normalizedLength, pattern, setCurrentValue, value]);
+    useFormReset(hiddenInputRef, form, value !== undefined, reset);
     const didAutoFocusRef = useRef(false);
     const registeredInputKeysRef = useRef(new Set<string>());
     const inputIndexStateRef = useRef({
@@ -382,14 +402,17 @@ export const OTPFieldRoot = forwardRef<HTMLDivElement, OTPFieldRootProps>(
         {element}
         {name ? (
           <input
-            type="hidden"
+            ref={hiddenInputRef}
+            type="text"
             name={name}
             value={currentValue}
             form={form}
             disabled={isDisabled}
+            required={isRequired}
             aria-hidden="true"
             tabIndex={-1}
             readOnly
+            style={hiddenInputStyle}
           />
         ) : null}
       </OTPFieldContextProvider>

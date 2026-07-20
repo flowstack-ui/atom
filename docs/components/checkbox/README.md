@@ -55,7 +55,6 @@ checkbox input for form submission.
 | `name` | `string` | - |
 | `value` | `string` | `"on"` |
 | `form` | `string` | - |
-| `ariaLabel` | `string` | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -63,7 +62,7 @@ checkbox input for form submission.
 | --- | --- |
 | `role` | `"checkbox"` |
 | `aria-checked` | `"true" \| "false" \| "mixed"` |
-| `aria-label` | Value from `ariaLabel` when provided |
+| `aria-label` | Native value when provided |
 | `aria-required` | `"true"` when required |
 | `aria-invalid` | `"true"` when invalid |
 | `aria-readonly` | `"true"` when read-only |
@@ -113,7 +112,7 @@ export function SelectAllCheckbox() {
   return (
     <Checkbox.Root
       defaultChecked="indeterminate"
-      ariaLabel="Select all messages"
+      aria-label="Select all messages"
     >
       <Checkbox.Indicator>Selected</Checkbox.Indicator>
     </Checkbox.Root>
@@ -145,7 +144,10 @@ Checkbox follows the
 [WAI-ARIA Checkbox pattern](https://www.w3.org/WAI/ARIA/apg/patterns/checkbox/).
 Root exposes `role="checkbox"` and its state through `aria-checked`; the
 indeterminate state is announced as `mixed`. Provide an accessible name through
-visible text, `ariaLabel`, or `aria-labelledby`.
+visible text, native `aria-label`, or `aria-labelledby`. Inside `Field.Root`,
+Checkbox inherits the control ID, state, and description relationships unless
+an explicit control prop overrides that state. Uncontrolled checked state
+returns to `defaultChecked` on native form reset.
 
 Indicator is decorative and hidden from assistive technology because Root
 already communicates the state. Disabled Root is removed from interaction;

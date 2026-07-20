@@ -21,7 +21,7 @@ test("SwitchRoot renders WAI-ARIA switch state attributes", () => {
         checked: true,
         disabled: true,
         invalid: true,
-        ariaLabel: "Notifications",
+        "aria-label": "Notifications",
         className: "switch-class",
       },
       React.createElement("span", null, "thumb"),
@@ -51,7 +51,7 @@ test("SwitchRoot passes native button attributes without losing Atom behavior", 
       {
         id: "sync-switch",
         checked: true,
-        ariaLabel: "Enable sync",
+        "aria-label": "Enable sync",
         title: "Sync",
         "data-testid": "switch-root",
         style: { color: "red" },
@@ -85,7 +85,7 @@ test("SwitchThumb renders checked state inside SwitchRoot", () => {
       SwitchRoot,
       {
         checked: true,
-        ariaLabel: "Enable sync",
+        "aria-label": "Enable sync",
       },
       React.createElement(SwitchThumb, null),
     ),
@@ -103,7 +103,7 @@ test("SwitchThumb renders unchecked state inside SwitchRoot", () => {
       SwitchRoot,
       {
         checked: false,
-        ariaLabel: "Enable sync",
+        "aria-label": "Enable sync",
       },
       React.createElement(SwitchThumb, null),
     ),
@@ -122,7 +122,7 @@ test("SwitchThumb inherits disabled state from SwitchRoot", () => {
       {
         checked: true,
         disabled: true,
-        ariaLabel: "Enable sync",
+        "aria-label": "Enable sync",
       },
       React.createElement(SwitchThumb, null),
     ),
@@ -143,7 +143,7 @@ test("SwitchRoot and SwitchThumb expose required readonly and invalid state", ()
         readOnly: true,
         required: true,
         invalid: true,
-        ariaLabel: "Enable sync",
+        "aria-label": "Enable sync",
       },
       React.createElement(SwitchThumb, null),
     ),
@@ -168,7 +168,7 @@ test("SwitchRoot readOnly remains focusable without native disabled", () => {
     React.createElement(SwitchRoot, {
       checked: true,
       readOnly: true,
-      ariaLabel: "Enable sync",
+      "aria-label": "Enable sync",
     }),
   );
 
@@ -188,7 +188,7 @@ test("SwitchRoot renders a hidden checkbox input for form submission when named"
         value: "enabled",
         form: "settings-form",
         required: true,
-        ariaLabel: "Enable sync",
+        "aria-label": "Enable sync",
       },
       React.createElement(SwitchThumb, null),
     ),
@@ -214,7 +214,7 @@ test("SwitchRoot omits form input when name is not provided", () => {
       SwitchRoot,
       {
         defaultChecked: true,
-        ariaLabel: "Enable sync",
+        "aria-label": "Enable sync",
       },
       React.createElement(SwitchThumb, null),
     ),
@@ -229,7 +229,7 @@ test("SwitchRoot still supports arbitrary children without SwitchThumb", () => {
       SwitchRoot,
       {
         defaultChecked: true,
-        ariaLabel: "Enable sync",
+        "aria-label": "Enable sync",
       },
       React.createElement("span", null, "custom thumb"),
     ),
@@ -246,7 +246,7 @@ test("SwitchRoot asChild merges behavior without replacing child content", () =>
       {
         asChild: true,
         checked: false,
-        ariaLabel: "Power",
+        "aria-label": "Power",
         className: "root-class",
       },
       React.createElement("span", { className: "child-class" }, "Power"),

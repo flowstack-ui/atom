@@ -1,9 +1,10 @@
 "use client";
 
-import { forwardRef, useEffect, type ReactNode } from "react";
+import { forwardRef, useCallback, useMemo, useRef, type ReactNode } from "react";
 import type { NativeParagraphProps } from "../../utils/dom.js";
-import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
+import { cloneAndMerge, composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
 import { useFieldsetContext } from "./context.js";
+import { markFieldsetPart } from "./parts.js";
 
 type FieldsetDescriptionNativeProps = NativeParagraphProps<"children">;
 
@@ -29,16 +30,19 @@ export const FieldsetDescription = forwardRef<
     ref,
   ) {
     const ctx = useFieldsetContext();
-    const setHasDescription = ctx?.setHasDescription;
-
-    useEffect(() => {
-      setHasDescription?.(true);
-      return () => setHasDescription?.(false);
-    }, [setHasDescription]);
+    const unregisterRef = useRef<(() => void) | null>(null);
+    const registrationRef = useCallback((node: HTMLParagraphElement | null) => {
+      unregisterRef.current?.();
+      unregisterRef.current = node && ctx ? ctx.registerPart("description") : null;
+    }, [ctx]);
+    const composedRef = useMemo(
+      () => composeRefs(registrationRef, ref),
+      [registrationRef, ref],
+    );
 
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
-      ref,
+      ref: composedRef,
       id: ctx?.descriptionId ?? restProps.id,
       "data-slot": dataSlot,
     };
@@ -53,3 +57,5 @@ export const FieldsetDescription = forwardRef<
     });
   },
 );
+
+markFieldsetPart(FieldsetDescription, "description");

@@ -4,16 +4,19 @@ import {
   forwardRef,
   useCallback,
   useMemo,
+  useRef,
   type KeyboardEventHandler,
   type ReactNode,
 } from "react";
 import { useCollection } from "../../collection.js";
 import { useControllableState } from "../../hooks/useControllableState.js";
+import { useFormReset } from "../../hooks/useFormReset.js";
 import { useDirection, type DirectionValue } from "../direction/index.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import {
   cloneAndMerge,
   composeEventHandlers,
+  composeRefs,
   renderElement,
   type RenderProp,
 } from "../../utils/slot.js";
@@ -21,6 +24,7 @@ import {
   RadioGroupContextProvider,
   type RadioGroupContextValue,
 } from "./context.js";
+import { useFieldsetContext } from "../fieldset/context.js";
 
 type RadioGroupRootNativeProps = NativeDivProps<
   "children" | "defaultValue" | "form" | "name" | "onChange" | "role"
@@ -73,8 +77,6 @@ export interface RadioGroupRootProps extends RadioGroupRootNativeProps {
   orientation?: RadioGroupOrientation;
   /** Arrow-key wrapping. */
   loop?: boolean;
-  /** Accessible label for the group. */
-  ariaLabel?: string;
   /** Override the rendered element. */
   render?: RenderProp;
   /** Merge behavior props onto a single child element. */
@@ -95,12 +97,11 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
       onValueChange,
       name,
       form,
-      disabled = false,
-      required = false,
-      invalid = false,
+      disabled,
+      required,
+      invalid,
       orientation = "vertical",
       loop = true,
-      ariaLabel,
       render,
       asChild,
       children,
@@ -111,12 +112,19 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
     },
     ref,
   ) {
+    const fieldset = useFieldsetContext();
+    const isDisabled = disabled ?? fieldset?.disabled ?? false;
+    const isRequired = required ?? fieldset?.required ?? false;
+    const isInvalid = invalid ?? fieldset?.invalid ?? false;
+    const rootRef = useRef<HTMLDivElement>(null);
     const dir = useDirection();
     const [activeValue, setActiveValue] = useControllableState({
       value,
       defaultValue,
       onChange: onValueChange,
     });
+    const reset = useCallback(() => setActiveValue(defaultValue), [defaultValue, setActiveValue]);
+    useFormReset(rootRef, form, value !== undefined, reset);
     const {
       version: registryVersion,
       registerItem: registerCollectionRadio,
@@ -228,9 +236,9 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
         setActiveValue,
         name,
         form,
-        disabled,
-        required,
-        invalid,
+        disabled: isDisabled,
+        required: isRequired,
+        invalid: isInvalid,
         orientation,
         loop,
         registerRadio,
@@ -240,17 +248,17 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
       }),
       [
         activeValue,
-        disabled,
+        isDisabled,
         form,
         getRadioElement,
         getRadioValues,
-        invalid,
+        isInvalid,
         loop,
         name,
         orientation,
         registerRadio,
         registryVersion,
-        required,
+        isRequired,
         setActiveValue,
         unregisterRadio,
       ],
@@ -258,17 +266,24 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
 
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
-      ref,
+      ref: composeRefs(rootRef, ref),
       role: "radiogroup",
-      ...(ariaLabel !== undefined && { "aria-label": ariaLabel }),
-      "aria-disabled": disabled || undefined,
-      "aria-required": required || undefined,
-      "aria-invalid": invalid || undefined,
+      "aria-labelledby": restProps["aria-labelledby"] ??
+        (restProps["aria-label"] === undefined && fieldset?.hasLegend
+          ? fieldset.legendId
+          : undefined),
+      "aria-describedby": Object.prototype.hasOwnProperty.call(restProps, "aria-describedby")
+        ? restProps["aria-describedby"]
+        : fieldset?.describedBy,
+      "aria-disabled": restProps["aria-disabled"] ?? (isDisabled || undefined),
+      "aria-required": restProps["aria-required"] ?? (isRequired || undefined),
+      "aria-invalid": restProps["aria-invalid"] ?? (isInvalid || undefined),
       "aria-orientation": orientation,
       "data-slot": dataSlot,
       "data-orientation": orientation,
-      ...(disabled && { "data-disabled": "" }),
-      ...(invalid && { "data-invalid": "" }),
+      ...(isDisabled && { "data-disabled": "" }),
+      ...(isInvalid && { "data-invalid": "" }),
+      ...(isRequired && { "data-required": "" }),
       className,
       onKeyDown: composeEventHandlers(onKeyDown, handleKeyDown),
     };

@@ -1,8 +1,10 @@
 # Fieldset Changelog
 
-## Unreleased
+## 0.5.0
 
-- No unreleased changes.
+- Added a stable Legend ID plus server-stable Description/Error relationships.
+- Added native naming and state integration for CheckboxGroup and RadioGroup,
+  and removed the forced alert role from Error.
 
 ## 0.2.0
 

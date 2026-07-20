@@ -24,7 +24,7 @@ test("CheckboxRoot renders WAI-ARIA checkbox state attributes", () => {
         checked: true,
         required: true,
         invalid: true,
-        ariaLabel: "Accept terms",
+        "aria-label": "Accept terms",
         "aria-describedby": "terms-help",
         id: "terms",
         className: "checkbox-class",
@@ -59,7 +59,7 @@ test("CheckboxIndicator renders checked state inside CheckboxRoot", () => {
   const html = renderToStaticMarkup(
     React.createElement(
       Checkbox.Root,
-      { checked: true, ariaLabel: "Accept terms" },
+      { checked: true, "aria-label": "Accept terms" },
       React.createElement(Checkbox.Indicator, { className: "indicator-class" }, "check"),
     ),
   );
@@ -77,7 +77,7 @@ test("CheckboxIndicator renders indeterminate state inside CheckboxRoot", () => 
   const html = renderToStaticMarkup(
     React.createElement(
       CheckboxRoot,
-      { checked: "indeterminate", ariaLabel: "Select all" },
+      { checked: "indeterminate", "aria-label": "Select all" },
       React.createElement(CheckboxIndicator, null, "mixed"),
     ),
   );
@@ -92,7 +92,7 @@ test("CheckboxIndicator omits unchecked state unless forceMounted", () => {
   const html = renderToStaticMarkup(
     React.createElement(
       CheckboxRoot,
-      { checked: false, ariaLabel: "Accept terms" },
+      { checked: false, "aria-label": "Accept terms" },
       React.createElement(CheckboxIndicator, null, "check"),
     ),
   );
@@ -107,7 +107,7 @@ test("CheckboxIndicator forceMount mirrors unchecked and disabled state", () => 
   const html = renderToStaticMarkup(
     React.createElement(
       CheckboxRoot,
-      { checked: false, disabled: true, ariaLabel: "Accept terms" },
+      { checked: false, disabled: true, "aria-label": "Accept terms" },
       React.createElement(CheckboxIndicator, { forceMount: true }, "check"),
     ),
   );
@@ -127,7 +127,7 @@ test("CheckboxRoot renders a hidden checkbox input for form submission when name
       value: "accepted",
       form: "signup-form",
       required: true,
-      ariaLabel: "Accept terms",
+      "aria-label": "Accept terms",
     }),
   );
 
@@ -148,7 +148,7 @@ test("CheckboxRoot omits form input when name is not provided", () => {
   const html = renderToStaticMarkup(
     React.createElement(CheckboxRoot, {
       defaultChecked: true,
-      ariaLabel: "Accept terms",
+      "aria-label": "Accept terms",
     }),
   );
 
@@ -161,7 +161,7 @@ test("CheckboxRoot passes native button attributes without losing Atom behavior"
     React.createElement(CheckboxRoot, {
       id: "terms-checkbox",
       checked: true,
-      ariaLabel: "Terms",
+      "aria-label": "Terms",
       title: "Terms",
       "data-testid": "checkbox-root",
       style: { color: "green" },
@@ -181,7 +181,7 @@ test("CheckboxRoot renders indeterminate mixed state", () => {
   const html = renderToStaticMarkup(
     React.createElement(CheckboxRoot, {
       checked: "indeterminate",
-      ariaLabel: "Select all",
+      "aria-label": "Select all",
     }),
   );
 
@@ -201,7 +201,7 @@ test("CheckboxRoot readOnly remains focusable and exposes readonly state", () =>
     React.createElement(CheckboxRoot, {
       checked: false,
       readOnly: true,
-      ariaLabel: "Read only",
+      "aria-label": "Read only",
     }),
   );
 
@@ -219,7 +219,7 @@ test("CheckboxRoot asChild merges behavior without replacing child content", () 
       {
         asChild: true,
         checked: false,
-        ariaLabel: "Remember me",
+        "aria-label": "Remember me",
         className: "root-class",
       },
       React.createElement("span", { className: "child-class" }, "Remember"),

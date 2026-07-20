@@ -6,6 +6,7 @@ import {
   useMemo,
   type KeyboardEventHandler,
   type MouseEventHandler,
+  type PointerEventHandler,
   type ReactNode,
 } from "react";
 import type { NativeButtonProps } from "../../utils/dom.js";
@@ -17,6 +18,10 @@ import {
   type RenderProp,
 } from "../../utils/slot.js";
 import { usePopoverContext } from "./context.js";
+import {
+  getPopoverPointerInteractionType,
+  isPopoverActivationKey,
+} from "./interaction.js";
 
 type PopoverTriggerNativeProps = NativeButtonProps<"children" | "disabled" | "type">;
 
@@ -49,6 +54,8 @@ function PopoverTrigger(
     onKeyDown,
     onMouseEnter,
     onMouseLeave,
+    onPointerDown,
+    onPointerCancel,
     ...restProps
   },
   ref,
@@ -62,34 +69,60 @@ function PopoverTrigger(
     triggerRef,
     disabled,
     triggerMode,
+    recordInteraction,
+    consumeInteraction,
+    clearInteraction,
   } = usePopoverContext();
   const composedRef = useMemo(
     () => composeRefs(triggerRef, ref),
     [ref, triggerRef],
   );
 
-  const handleClick: MouseEventHandler<HTMLElement> = useCallback(() => {
-    if (!disabled) onToggle();
-  }, [disabled, onToggle]);
+  const handleClick: MouseEventHandler<HTMLElement> = useCallback((event) => {
+    (onClick as MouseEventHandler<HTMLElement> | undefined)?.(event);
+    const interactionType = consumeInteraction(event.currentTarget);
+    if (!event.defaultPrevented && !disabled) onToggle(interactionType);
+  }, [consumeInteraction, disabled, onClick, onToggle]);
+
+  const handlePointerDown: PointerEventHandler<HTMLElement> = useCallback(
+    (event) => {
+      if (!disabled) {
+        recordInteraction(
+          getPopoverPointerInteractionType(event.pointerType),
+          event.currentTarget,
+        );
+      }
+    },
+    [disabled, recordInteraction],
+  );
+
+  const handlePointerCancel: PointerEventHandler<HTMLElement> = useCallback(
+    (event) => clearInteraction(event.currentTarget),
+    [clearInteraction],
+  );
 
   const handleKeyDown: KeyboardEventHandler<HTMLElement> = useCallback(
     (event) => {
-      if (disabled || isNativeKeyboardClickable(event.currentTarget)) return;
-      if (event.key !== " " && event.key !== "Enter") return;
+      if (disabled) return;
+      if (!isPopoverActivationKey(event.key)) return;
+      if (isNativeKeyboardClickable(event.currentTarget)) {
+        recordInteraction("keyboard", event.currentTarget);
+        return;
+      }
       event.preventDefault();
-      onToggle();
+      onToggle("keyboard");
     },
-    [disabled, onToggle],
+    [disabled, onToggle, recordInteraction],
   );
 
   const handleMouseEnter: MouseEventHandler<HTMLElement> = useCallback(() => {
     if (disabled || triggerMode !== "hover") return;
-    onOpen();
+    onOpen("triggerHover", "mouse");
   }, [disabled, onOpen, triggerMode]);
 
   const handleMouseLeave: MouseEventHandler<HTMLElement> = useCallback(() => {
     if (disabled || triggerMode !== "hover") return;
-    onClose();
+    onClose("hoverLeave", "mouse");
   }, [disabled, onClose, triggerMode]);
 
   const triggerProps = {
@@ -106,7 +139,7 @@ function PopoverTrigger(
     disabled: disabled || undefined,
     role: asChild || render ? "button" : undefined,
     tabIndex: asChild || render ? (disabled ? -1 : 0) : undefined,
-    onClick: composeEventHandlers(onClick, handleClick),
+    onClick: handleClick,
     onKeyDown: composeEventHandlers(onKeyDown, handleKeyDown),
     onMouseEnter:
       triggerMode === "hover"
@@ -116,6 +149,8 @@ function PopoverTrigger(
       triggerMode === "hover"
         ? composeEventHandlers(onMouseLeave, handleMouseLeave)
         : onMouseLeave,
+    onPointerDown: composeEventHandlers(onPointerDown, handlePointerDown),
+    onPointerCancel: composeEventHandlers(onPointerCancel, handlePointerCancel),
     className,
   };
 
