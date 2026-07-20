@@ -56,7 +56,7 @@ export function SelectScenarioCanvas({
   };
   const listbox = (
     <ListboxPart
-      ariaLabel={state.useAriaLabel ? "Plans" : undefined}
+      aria-label={state.useAriaLabel ? "Plans" : undefined}
       className="atom-select-content playground-select-content"
       container={!state.usePortalWrapper && state.useCustomContainer ? portalContainerRef.current : undefined}
       data-playground-inspect=""
@@ -359,7 +359,7 @@ export function SelectScenarioToolbar({
         <MenuSection label="Trigger">
           <MenuCheckboxControl
             checked={state.triggerAriaLabel}
-            label="ariaLabel prop"
+            label="Native aria-label"
             value="trigger-aria-label"
             onChange={actions.setTriggerAriaLabel}
           />
@@ -373,7 +373,7 @@ export function SelectScenarioToolbar({
         <MenuSection label="Content">
           <MenuCheckboxControl
             checked={state.useAriaLabel}
-            label="ariaLabel prop"
+            label="Native aria-label"
             value="use-aria-label"
             onChange={actions.setUseAriaLabel}
           />
@@ -855,7 +855,7 @@ function SelectTriggerExample({
     className: "atom-select-trigger playground-select-trigger",
     "data-playground-select-trigger": "",
     ...partProps("trigger", { propCheck, customSlot: customTriggerSlot }, "select-trigger-custom"),
-    ...(triggerAriaLabel ? { ariaLabel: "Plan selector" } : {}),
+    ...(triggerAriaLabel ? { "aria-label": "Plan selector" } : {}),
     ...(useTriggerIdProp ? { id: "select-trigger-prop" } : {}),
     name: "select-trigger-name",
     title: "trigger prop",

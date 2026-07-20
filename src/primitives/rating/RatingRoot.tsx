@@ -4,10 +4,12 @@ import {
   forwardRef,
   useCallback,
   useMemo,
+  useRef,
   type KeyboardEventHandler,
   type ReactNode,
 } from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
+import { useFormReset } from "../../hooks/useFormReset.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { useDirection, type DirectionValue } from "../direction/index.js";
 import {
@@ -15,6 +17,7 @@ import {
   composeEventHandlers,
   renderElement,
   type RenderProp,
+  composeRefs,
 } from "../../utils/slot.js";
 import {
   RatingContextProvider,
@@ -27,6 +30,7 @@ import {
   normalizeRatingRange,
   snapRatingValue,
 } from "./utils.js";
+import { useFieldContext } from "../field/context.js";
 
 type RatingRootNativeProps = NativeDivProps<
   | "children"
@@ -100,10 +104,10 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
       max: maxProp = 5,
       step: stepProp = 1,
       largeStep: largeStepProp,
-      disabled = false,
-      readOnly = false,
-      invalid = false,
-      required = false,
+      disabled,
+      readOnly,
+      invalid,
+      required,
       dir: dirProp,
       name,
       formValue,
@@ -120,6 +124,12 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
     },
     ref,
   ) {
+    const field = useFieldContext();
+    const isDisabled = disabled ?? field?.disabled ?? false;
+    const isReadOnly = readOnly ?? field?.readOnly ?? false;
+    const isInvalid = invalid ?? field?.invalid ?? false;
+    const isRequired = required ?? field?.required ?? false;
+    const rootRef = useRef<HTMLDivElement>(null);
     const range = useMemo(
       () => normalizeRatingRange(minProp, maxProp),
       [maxProp, minProp],
@@ -139,6 +149,12 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
       onChange: onValueChange,
     });
     const clampedValue = clampRatingValue(ratingValue, range.min, range.max);
+    const reset = useCallback(() => {
+      if (value === undefined) {
+        setRatingValue(clampRatingValue(defaultValue ?? range.min, range.min, range.max));
+      }
+    }, [defaultValue, range.max, range.min, setRatingValue, value]);
+    useFormReset(rootRef, form, value !== undefined, reset);
     const valueText =
       ariaValueText ??
       getValueLabel?.(clampedValue, range.min, range.max) ??
@@ -146,11 +162,11 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
 
     const setValue = useCallback(
       (nextValue: number) => {
-        if (disabled || readOnly) return;
+        if (isDisabled || isReadOnly) return;
         const snapped = snapRatingValue(nextValue, step, range.min);
         setRatingValue(clampRatingValue(snapped, range.min, range.max));
       },
-      [disabled, range.max, range.min, readOnly, setRatingValue, step],
+      [isDisabled, isReadOnly, range.max, range.min, setRatingValue, step],
     );
 
     const getItemState = useCallback(
@@ -160,7 +176,7 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
 
     const handleKeyDown = useCallback<KeyboardEventHandler<HTMLDivElement>>(
       (event) => {
-        if (disabled || readOnly) return;
+        if (isDisabled || isReadOnly) return;
 
         let nextValue = clampedValue;
         let handled = true;
@@ -200,12 +216,12 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
       },
       [
         clampedValue,
-        disabled,
+        isDisabled,
         dir,
         largeStep,
         range.max,
         range.min,
-        readOnly,
+        isReadOnly,
         setValue,
         step,
       ],
@@ -217,23 +233,23 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
         min: range.min,
         max: range.max,
         step,
-        disabled,
-        readOnly,
-        invalid,
-        required,
+        disabled: isDisabled,
+        readOnly: isReadOnly,
+        invalid: isInvalid,
+        required: isRequired,
         dir,
         setValue,
         getItemState,
       }),
       [
         clampedValue,
-        disabled,
+        isDisabled,
         getItemState,
-        invalid,
+        isInvalid,
         range.max,
         range.min,
-        readOnly,
-        required,
+        isReadOnly,
+        isRequired,
         dir,
         setValue,
         step,
@@ -242,17 +258,23 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
 
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
-      ref,
+      ref: composeRefs(rootRef, ref),
+      id: restProps.id ?? field?.controlId,
       role: "slider",
       tabIndex: tabIndex ?? 0,
       "aria-valuemin": range.min,
       "aria-valuemax": range.max,
       "aria-valuenow": clampedValue,
       "aria-valuetext": valueText,
-      ...(disabled && { "aria-disabled": true, "data-disabled": "" }),
-      ...(readOnly && { "aria-readonly": true, "data-readonly": "" }),
-      ...(invalid && { "aria-invalid": true, "data-invalid": "" }),
-      ...(required && { "aria-required": true, "data-required": "" }),
+      "aria-labelledby": restProps["aria-labelledby"] ??
+        (restProps["aria-label"] === undefined ? field?.labelId : undefined),
+      "aria-describedby": Object.prototype.hasOwnProperty.call(restProps, "aria-describedby")
+        ? restProps["aria-describedby"]
+        : field?.describedBy,
+      ...(isDisabled && { "aria-disabled": true, "data-disabled": "" }),
+      ...(isReadOnly && { "aria-readonly": true, "data-readonly": "" }),
+      ...(isInvalid && { "aria-invalid": true, "data-invalid": "" }),
+      ...(isRequired && { "aria-required": true, "data-required": "" }),
       "data-slot": dataSlot,
       dir,
       "data-value": clampedValue,
@@ -275,7 +297,7 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
             name={name}
             value={formValue ?? String(clampedValue)}
             form={form}
-            disabled={disabled}
+            disabled={isDisabled}
           />
         ) : null}
       </RatingContextProvider>

@@ -10,6 +10,7 @@ import {
   type PointerEvent,
   type ReactNode,
 } from "react";
+import { useFormReset } from "../../hooks/useFormReset.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { useDirection, type DirectionValue } from "../direction/index.js";
 import {
@@ -20,6 +21,8 @@ import {
   valueToPercent,
 } from "./utils.js";
 import { SliderContextProvider } from "./context.js";
+import { useFieldContext } from "../field/context.js";
+import { composeRefs } from "../../utils/slot.js";
 
 export type SliderOrientation = "horizontal" | "vertical";
 export type SliderValue = number | number[];
@@ -47,6 +50,12 @@ export interface SliderRootProps extends SliderRootNativeProps {
   minStepsBetweenThumbs?: number;
   /** Disable interaction. */
   disabled?: boolean;
+  /** Keep the slider focusable but prevent edits. */
+  readOnly?: boolean;
+  /** Mark the slider invalid. */
+  invalid?: boolean;
+  /** Mark the slider required for ARIA state. */
+  required?: boolean;
   /** Slider orientation. */
   orientation?: SliderOrientation;
   /** Text direction used for horizontal pointer and keyboard behavior. */
@@ -55,8 +64,8 @@ export interface SliderRootProps extends SliderRootNativeProps {
   name?: string;
   /** Associates hidden inputs with a form by ID. */
   form?: string;
-  /** Accessible label for screen readers. */
-  ariaLabel?: string;
+  /** Native accessible label used by slider thumbs. */
+  "aria-label"?: string;
   /** Function to generate aria-valuetext from the current value. */
   ariaValueText?: (value: number) => string;
   /** CSS class name on the root container. */
@@ -77,6 +86,11 @@ export interface SliderThumbBehaviorProps {
   "aria-label"?: string;
   "aria-valuetext"?: string;
   "aria-disabled"?: true;
+  "aria-readonly"?: true;
+  "aria-invalid"?: true;
+  "aria-required"?: true;
+  "aria-labelledby"?: string;
+  "aria-describedby"?: string;
   "data-slot": "slider-thumb";
   onKeyDown: (event: KeyboardEvent) => void;
   onPointerDown: (event: PointerEvent) => void;
@@ -107,17 +121,21 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
       largeStep: largeStepProp,
       minStepsBetweenThumbs,
       disabled: disabledProp,
+      readOnly: readOnlyProp,
+      invalid: invalidProp,
+      required: requiredProp,
       orientation: orientationProp,
       dir: dirProp,
       name,
       form,
-      ariaLabel,
+      "aria-label": ariaLabel,
       ariaValueText,
       className,
       children,
       "data-slot": dataSlot = "slider",
       ...restProps
     } = props;
+    const field = useFieldContext();
     const min = minProp ?? 0;
     const max = maxProp ?? 100;
     const step = stepProp ?? 1;
@@ -127,7 +145,10 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
     const contextDir = useDirection();
     const dir = dirProp ?? contextDir;
     const isHorizontal = orientation === "horizontal";
-    const disabled = disabledProp ?? false;
+    const disabled = disabledProp ?? field?.disabled ?? false;
+    const readOnly = readOnlyProp ?? field?.readOnly ?? false;
+    const invalid = invalidProp ?? field?.invalid ?? false;
+    const required = requiredProp ?? field?.required ?? false;
     const isControlled = value !== undefined;
     const [internalValues, setInternalValues] = useState<number[]>(
       normalizeValues(defaultValue, min),
@@ -135,7 +156,12 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
     const values = isControlled ? normalizeValues(value, min) : internalValues;
     const isRange = values.length > 1;
     const trackRef = useRef<HTMLDivElement>(null);
+    const rootRef = useRef<HTMLDivElement>(null);
     const draggingRef = useRef<number | null>(null);
+    const reset = useCallback(() => {
+      if (!isControlled) setInternalValues(normalizeValues(defaultValue, min));
+    }, [defaultValue, isControlled, min]);
+    useFormReset(rootRef, form, isControlled, reset);
 
     const updateValues = useCallback(
       (newValues: number[]) => {
@@ -195,7 +221,7 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
     }, [dir, isHorizontal, max, min, step]);
 
     const handleTrackPointerDown = useCallback((event: PointerEvent) => {
-      if (disabled) return;
+      if (disabled || readOnly) return;
       event.preventDefault();
 
       const clickValue = pointerToValue(event.clientX, event.clientY);
@@ -209,6 +235,7 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
     }, [
       constrainValue,
       disabled,
+      readOnly,
       isRange,
       pointerToValue,
       updateValues,
@@ -216,7 +243,7 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
     ]);
 
     const handlePointerMove = useCallback((event: PointerEvent) => {
-      if (draggingRef.current === null || disabled) return;
+      if (draggingRef.current === null || disabled || readOnly) return;
 
       const thumbIndex = draggingRef.current;
       const newValues = [...values];
@@ -226,7 +253,7 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
         values,
       );
       updateValues(newValues);
-    }, [constrainValue, disabled, pointerToValue, updateValues, values]);
+    }, [constrainValue, disabled, pointerToValue, readOnly, updateValues, values]);
 
     const handlePointerUp = useCallback(() => {
       if (draggingRef.current !== null) {
@@ -236,7 +263,7 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
     }, [commitValues, values]);
 
     const handleThumbKeyDown = useCallback((event: KeyboardEvent, thumbIndex: number) => {
-      if (disabled) return;
+      if (disabled || readOnly) return;
 
       let newValue = values[thumbIndex];
       let handled = true;
@@ -287,6 +314,7 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
       max,
       min,
       step,
+      readOnly,
       updateValues,
       values,
     ]);
@@ -307,10 +335,15 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
           : undefined,
         "aria-valuetext": ariaValueText?.(thumbValue),
         "aria-disabled": disabled || undefined,
+        "aria-readonly": readOnly || undefined,
+        "aria-invalid": invalid || undefined,
+        "aria-required": required || undefined,
+        "aria-labelledby": ariaLabel === undefined ? field?.labelId : undefined,
+        "aria-describedby": field?.describedBy,
         "data-slot": "slider-thumb",
         onKeyDown: (event) => handleThumbKeyDown(event, thumbIndex),
         onPointerDown: (event) => {
-          if (disabled) return;
+          if (disabled || readOnly) return;
           event.stopPropagation();
           draggingRef.current = thumbIndex;
           (event.target as HTMLElement).setPointerCapture(event.pointerId);
@@ -323,13 +356,18 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
       ariaLabel,
       ariaValueText,
       disabled,
+      field?.describedBy,
+      field?.labelId,
       handlePointerMove,
       handlePointerUp,
       handleThumbKeyDown,
       isRange,
+      invalid,
       max,
       min,
       orientation,
+      readOnly,
+      required,
       values,
     ]);
 
@@ -419,11 +457,14 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
     const root = (
       <div
         {...restProps}
-        ref={ref}
+        ref={composeRefs(rootRef, ref)}
         dir={dir}
         data-slot={dataSlot}
         data-orientation={orientation}
         {...(disabled ? { "data-disabled": "" } : {})}
+        {...(readOnly ? { "data-readonly": "" } : {})}
+        {...(invalid ? { "data-invalid": "" } : {})}
+        {...(required ? { "data-required": "" } : {})}
         className={className}
       >
         {children}

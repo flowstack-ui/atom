@@ -1243,7 +1243,7 @@ export function getCheckboxSource(state: CheckboxScenario["state"]) {
   ${stateLine}
   name="email-updates"
   value="yes"
-  ariaLabel="Email updates"
+  aria-label="Email updates"
   ${rootExtras}
   onCheckedChange={setChecked}
 >${rootChildren}${closing}`;
@@ -1266,7 +1266,7 @@ export function getSwitchSource(state: SwitchScenario["state"]) {
     state.controlled ? `checked={checked}` : `defaultChecked={false}`,
     `name="notifications"`,
     `value="enabled"`,
-    `ariaLabel="Notifications"`,
+    `aria-label="Notifications"`,
     ...rootExtras,
     `onCheckedChange={setChecked}`,
   ];
@@ -1491,7 +1491,7 @@ function SwitchRootExample({
   const props = {
     ...rootProps,
     className: "control-switch",
-    ariaLabel: "Notifications",
+    "aria-label": "Notifications",
     "data-playground-inspect": "",
     "data-playground-switch-root": "",
     ...partProps("root", { propCheck, customSlot: customRootSlot }, "switch-root-custom"),

@@ -50,7 +50,6 @@ provides state to Thumb and renders a hidden checkbox when `name` is present.
 | `name` | `string` | - |
 | `value` | `string` | `"on"` |
 | `form` | `string` | - |
-| `ariaLabel` | `string` | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -58,7 +57,7 @@ provides state to Thumb and renders a hidden checkbox when `name` is present.
 | --- | --- |
 | `role` | `"switch"` |
 | `aria-checked` | Current checked state |
-| `aria-label` | Value from `ariaLabel` when provided |
+| `aria-label` | Native value when provided |
 | `aria-required` | `true` when required |
 | `aria-readonly` | `true` when read-only |
 | `aria-invalid` | `true` when invalid |
@@ -106,7 +105,7 @@ Advanced compound parts can read `useSwitchContext` or use the public
 import { Switch } from "@flowstack-ui/atom";
 
 export default function NotificationSetting() {
-  return <Switch.Root name="notifications" value="enabled" ariaLabel="Notifications"><Switch.Thumb /></Switch.Root>;
+  return <Switch.Root name="notifications" value="enabled" aria-label="Notifications"><Switch.Thumb /></Switch.Root>;
 }
 ```
 
@@ -118,7 +117,7 @@ import { Switch } from "@flowstack-ui/atom";
 
 export default function ControlledSwitch() {
   const [enabled, setEnabled] = useState(false);
-  return <Switch.Root checked={enabled} onCheckedChange={setEnabled} ariaLabel="Notifications"><Switch.Thumb /></Switch.Root>;
+  return <Switch.Root checked={enabled} onCheckedChange={setEnabled} aria-label="Notifications"><Switch.Thumb /></Switch.Root>;
 }
 ```
 
@@ -132,7 +131,9 @@ Root owns the switch role and checked state; Thumb is decorative.
 | `Enter` | Toggles checked state. |
 | `Space` | Toggles checked state. |
 
-Provide visible text, `ariaLabel`, or `aria-labelledby`. Read-only switches remain focusable but cannot toggle. Disabled switches use native button disabled behavior. Non-native `asChild` and `render` switches receive Atom keyboard activation.
+Provide visible text, native `aria-label`, or `aria-labelledby`. Inside Field,
+Switch inherits state, control ID, and descriptions. Uncontrolled state resets
+to `defaultChecked`. Read-only switches remain focusable but cannot toggle.
 
 ## Changelog
 

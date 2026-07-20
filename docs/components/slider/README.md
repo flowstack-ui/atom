@@ -54,12 +54,15 @@ and hidden form inputs. Root renders a `div`; each Thumb owns slider semantics.
 | `step` | `number` | `1` |
 | `largeStep` | `number` | `step * 10` |
 | `minStepsBetweenThumbs` | `number` | `0` |
-| `disabled` | `boolean` | `false` |
+| `disabled` | `boolean` | Field state or `false` |
+| `readOnly` | `boolean` | Field state or `false` |
+| `invalid` | `boolean` | Field state or `false` |
+| `required` | `boolean` | Field state or `false` |
 | `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` |
 | `dir` | `"ltr" \| "rtl"` | Direction context |
 | `name` | `string` | - |
 | `form` | `string` | - |
-| `ariaLabel` | `string` | - |
+| `aria-label` | `string` | Field label relationship |
 | `ariaValueText` | `(value: number) => string` | - |
 
 **ARIA:** Root adds no role or ARIA attributes. Its label and value-text props
@@ -152,7 +155,7 @@ import { Slider } from "@flowstack-ui/atom";
 
 export default function VolumeSlider() {
   return (
-    <Slider.Root defaultValue={50} ariaLabel="Volume">
+    <Slider.Root defaultValue={50} aria-label="Volume">
       <Slider.Track><Slider.Range /><Slider.Thumb /></Slider.Track>
     </Slider.Root>
   );
@@ -166,7 +169,7 @@ import { Slider } from "@flowstack-ui/atom";
 
 export default function PriceRange() {
   return (
-    <Slider.Root defaultValue={[20, 80]} minStepsBetweenThumbs={2} ariaLabel="Price">
+    <Slider.Root defaultValue={[20, 80]} minStepsBetweenThumbs={2} aria-label="Price">
       <Slider.Track>
         <Slider.Range />
         <Slider.Thumb index={0} />
@@ -180,8 +183,10 @@ export default function PriceRange() {
 ## Accessibility
 
 Slider follows the [WAI-ARIA slider pattern](https://www.w3.org/WAI/ARIA/apg/patterns/slider/).
-Each Thumb is a focusable slider with its own value. Provide `ariaLabel`, and
-use `ariaValueText` when a raw number would not explain the value.
+Each Thumb is a focusable slider with its own value. Provide native
+`aria-label`, or use Field for the label and messages. `ariaValueText` can
+describe non-obvious values. Field state reaches every Thumb, read-only blocks
+editing, and uncontrolled values reset to `defaultValue`.
 
 | Key | Description |
 | --- | --- |

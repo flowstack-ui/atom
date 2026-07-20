@@ -62,8 +62,6 @@ export interface RadioRootProps extends RadioRootNativeProps {
   value: string;
   /** Per-item disabled state. */
   disabled?: boolean;
-  /** Accessible label when no visible label is provided. */
-  ariaLabel?: string;
   /** Override the rendered element. */
   render?: RenderProp;
   /** Merge behavior props onto a single child element. */
@@ -81,7 +79,6 @@ export const RadioRoot = forwardRef<HTMLButtonElement, RadioRootProps>(
     {
       value,
       disabled = false,
-      ariaLabel,
       render,
       asChild,
       children,
@@ -159,7 +156,6 @@ export const RadioRoot = forwardRef<HTMLButtonElement, RadioRootProps>(
       type: "button",
       role: "radio",
       "aria-checked": isChecked,
-      ...(ariaLabel !== undefined && { "aria-label": ariaLabel }),
       "aria-disabled": isDisabled || undefined,
       "aria-invalid": isInvalid || undefined,
       tabIndex,

@@ -54,6 +54,8 @@ formatFileSize()
 
 Renders a `div`, owns selection and validation state, and supplies behavior to
 all parts. Local field-state props override Field context.
+An uncancelled native form reset restores uncontrolled `defaultFiles`, clears
+rejections and drag state, and resets the native file picker.
 
 | Prop | Type | Default |
 | --- | --- | --- |

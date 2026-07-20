@@ -22,8 +22,8 @@ test("NumberInputRoot renders WAI-ARIA spinbutton attributes", () => {
       invalid: true,
       name: "quantity",
       form: "order-form",
-      ariaLabel: "Quantity",
-      ariaDescribedBy: "quantity-help",
+      "aria-label": "Quantity",
+      "aria-describedby": "quantity-help",
       className: "number-class",
       inputClassName: "input-class",
       "data-slot": "quantity-input",
@@ -70,7 +70,7 @@ test("NumberInputRoot accepts null as an empty controlled value", () => {
     React.createElement(NumberInputRoot, {
       value: null,
       name: "quantity",
-      ariaLabel: "Quantity",
+      "aria-label": "Quantity",
     }),
   );
 

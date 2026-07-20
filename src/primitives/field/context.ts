@@ -16,8 +16,7 @@ export interface FieldContextValue {
   describedBy: string | undefined;
   hasDescription: boolean;
   hasError: boolean;
-  setHasDescription: (value: boolean) => void;
-  setHasError: (value: boolean) => void;
+  registerPart: (kind: "description" | "error") => () => void;
 }
 
 const FieldContext = createContext<FieldContextValue | null>(null);

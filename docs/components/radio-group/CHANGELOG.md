@@ -1,8 +1,9 @@
 # RadioGroup Changelog
 
-## Unreleased
+## 0.5.0
 
-- No unreleased changes.
+- Added Fieldset naming/state/description integration, native-only ARIA naming,
+  and uncontrolled native form reset behavior.
 
 ## 0.2.0
 

@@ -6,6 +6,11 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Updated the form-control scenarios and generated Source examples for the
+  native-ARIA-only form API. Added coverage for Field/Fieldset inheritance,
+  server-stable descriptions, native submission and required validity, and
+  uncontrolled reset behavior. Atom `0.5.0` shipped from automated
+  qualification; the new manual rows remain open for the owner's later QA.
 - Expanded Popover with visible Title/Description relationship evidence,
   opening/closing reason logs, a real text-input touch-safety target, explicit
   initial/final focus targets, hover-without-focus-steal checks, and

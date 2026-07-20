@@ -50,29 +50,29 @@ input.
 | `clampOnBlur` | `boolean` | `true` |
 | `formatter` | `(value: string) => string` | - |
 | `parser` | `(displayValue: string) => string` | - |
-| `disabled` | `boolean` | `false` |
-| `readOnly` | `boolean` | `false` |
-| `required` | `boolean` | `false` |
-| `invalid` | `boolean` | `false` |
+| `disabled` | `boolean` | Field state or `false` |
+| `readOnly` | `boolean` | Field state or `false` |
+| `required` | `boolean` | Field state or `false` |
+| `invalid` | `boolean` | Field state or `false` |
 | `placeholder` | `string` | - |
 | `name` | `string` | - |
 | `form` | `string` | - |
 | `id` | `string` | - |
-| `ariaLabel` | `string` | - |
-| `ariaValueText` | `(value: number) => string` | - |
-| `ariaDescribedBy` | `string` | - |
+| `aria-label` | `string` | Field label relationship |
+| `aria-valuetext` | `string \| (value: number) => string` | - |
+| `aria-describedby` | `string` | Field messages |
 | `className` | `string` | - |
 | `inputClassName` | `string` | - |
 | `children` | `ReactNode \| (state: NumberInputRenderState) => ReactNode` | - |
 
 | ARIA attribute | Values |
 | --- | --- |
-| `aria-label` | Value from `ariaLabel` |
+| `aria-label` | Native value when provided |
 | `aria-valuenow` | Current numeric value when not empty |
 | `aria-valuemin` | Value from `min` |
 | `aria-valuemax` | Value from `max` |
-| `aria-valuetext` | Result of `ariaValueText` |
-| `aria-describedby` | Value from `ariaDescribedBy` |
+| `aria-valuetext` | Native string or callback result |
+| `aria-describedby` | Native value or inherited Field messages |
 | `aria-invalid` | Present when invalid |
 | `aria-readonly` | Present when read only |
 | `aria-required` | Present when required |
@@ -97,7 +97,7 @@ new styled parts to Atom.
 import { NumberInput } from "@flowstack-ui/atom";
 
 export function QuantityInput() {
-  return <NumberInput.Root ariaLabel="Quantity" min={0} max={10} step={1} />;
+  return <NumberInput.Root aria-label="Quantity" min={0} max={10} step={1} />;
 }
 ```
 
@@ -109,7 +109,7 @@ import { NumberInput } from "@flowstack-ui/atom";
 export function CurrencyInput() {
   return (
     <NumberInput.Root
-      ariaLabel="Price"
+      aria-label="Price"
       parser={(value) => value.replace(/[$,]/g, "")}
       formatter={(value) => `$${value}`}
     />
@@ -127,7 +127,9 @@ NumberInput follows the [WAI-ARIA spinbutton pattern](https://www.w3.org/WAI/ARI
 The inner input renders `role="spinbutton"`.
 - Atom owns `aria-valuenow`, `aria-valuemin`, `aria-valuemax`,
   `aria-valuetext`, `aria-required`, `aria-readonly`, and `aria-invalid`.
-- Provide an accessible name through `ariaLabel` or external labeling.
+- Provide an accessible name through native ARIA or Field. The visible
+  spinbutton participates in external-form validity; the hidden value input
+  submits the parsed number. Uncontrolled state resets to `defaultValue`.
 
 | Key | Description |
 | --- | --- |

@@ -52,14 +52,15 @@ Owns the selected values and the state shared by every Item. It renders a
 | `readOnly` | `boolean` | `false` |
 | `invalid` | `boolean` | `false` |
 | `orientation` | `"horizontal" \| "vertical"` | `"vertical"` |
-| `ariaLabel` | `string` | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
 | ARIA attribute | Values |
 | --- | --- |
 | `role` | `"group"` |
-| `aria-label` | Value from `ariaLabel` |
+| `aria-label` | Native value when provided |
+| `aria-labelledby` | Native value or inherited Fieldset Legend ID |
+| `aria-describedby` | Native value or inherited Fieldset messages |
 | `aria-required` | `"true"` when required |
 | `aria-readonly` | `"true"` when read only |
 | `aria-invalid` | `"true"` when invalid |
@@ -87,7 +88,6 @@ form submission.
 | `required` | `boolean` | Root state |
 | `readOnly` | `boolean` | Root state |
 | `invalid` | `boolean` | Root state |
-| `ariaLabel` | `string` | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -95,7 +95,7 @@ form submission.
 | --- | --- |
 | `role` | `"checkbox"` |
 | `aria-checked` | Current checked state |
-| `aria-label` | Value from `ariaLabel` |
+| `aria-label` | Native value when provided |
 | `aria-disabled` | `"true"` when disabled |
 | `aria-required` | `"true"` when required |
 | `aria-readonly` | `"true"` when read only |
@@ -110,10 +110,10 @@ form submission.
 | `[data-readonly]` | Present when read only |
 | `[data-invalid]` | Present when invalid |
 
-The hidden input is `aria-hidden`, removed from the tab order, and receives
+Each item input is `aria-hidden`, removed from the tab order, and receives
 `name`, `value`, `form`, checked, disabled, and read-only state. `required`
-describes the accessible group/item state; CheckboxGroup does not attach native
-`required` validation to those hidden inputs.
+adds one group-level native validity control, so at least one item—not every
+item—must be checked.
 
 ## Examples
 
@@ -127,7 +127,7 @@ export function NotificationMethods() {
     <CheckboxGroup.Root
       name="notifications"
       defaultValue={["email"]}
-      ariaLabel="Notification methods"
+      aria-label="Notification methods"
     >
       <CheckboxGroup.Item value="email">Email</CheckboxGroup.Item>
       <CheckboxGroup.Item value="sms">Text message</CheckboxGroup.Item>
@@ -150,7 +150,7 @@ export function ControlledTopics() {
     <CheckboxGroup.Root
       value={topics}
       onValueChange={setTopics}
-      ariaLabel="Email topics"
+      aria-label="Email topics"
     >
       <CheckboxGroup.Item value="product">Product news</CheckboxGroup.Item>
       <CheckboxGroup.Item value="events">Events</CheckboxGroup.Item>
@@ -164,7 +164,8 @@ export function ControlledTopics() {
 
 Root names and groups the choices, while each Item follows the
 [WAI-ARIA Checkbox pattern](https://www.w3.org/WAI/ARIA/apg/patterns/checkbox/).
-Provide a concise group name with `ariaLabel` or a native labeling structure.
+Provide a concise group name with native `aria-label`/`aria-labelledby`, or
+nest the group under Fieldset so its Legend and messages are inherited.
 Disabled and read-only items cannot change value.
 
 | Key | Description |

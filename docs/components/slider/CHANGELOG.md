@@ -1,8 +1,9 @@
 # Slider Changelog
 
-## Unreleased
+## 0.5.0
 
-- No unreleased changes.
+- Added Field disabled/read-only/invalid/required, generated naming and
+  description integration, native `aria-label`, and uncontrolled reset.
 
 ## 0.2.0
 

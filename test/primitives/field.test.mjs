@@ -13,6 +13,7 @@ import {
   FieldRequiredIndicator,
   FieldRoot,
   Label,
+  Input,
 } from "../../dist/index.js";
 
 test("Field parts render generated IDs and state data attributes", () => {
@@ -28,6 +29,7 @@ test("Field parts render generated IDs and state data attributes", () => {
         "data-testid": "field-root",
       },
       React.createElement(Field.Label, null, "Email"),
+      React.createElement(Input.Root, { name: "email" }),
       React.createElement(Field.Description, null, "Use a work address."),
       React.createElement(Field.Error, null, "Email is required."),
       React.createElement(Field.RequiredIndicator, { fallback: " optional" }),
@@ -45,7 +47,8 @@ test("Field parts render generated IDs and state data attributes", () => {
   assert.match(html, /id="email-label"/);
   assert.match(html, /for="email-control"/);
   assert.match(html, /data-slot="field-description"/);
-  assert.match(html, /role="alert"/);
+  assert.match(html, /aria-describedby="email-description email-error"/);
+  assert.doesNotMatch(html, /role="alert"/);
   assert.match(html, /data-slot="field-error"/);
   assert.match(html, /data-slot="field-required-indicator"/);
   assert.match(html, /data-slot="field-label"[^>]*data-invalid=""/);

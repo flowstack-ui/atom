@@ -470,7 +470,7 @@ function useOTPFieldScenario() {
   const [autoSubmit, setAutoSubmit] = useState(false);
   const [formOwner, setFormOwner] = useState(false);
   const [autoFocus, setAutoFocus] = useState(false);
-  const [ariaLabel, setAriaLabel] = useState(true);
+  const [useNativeAriaLabel, setUseNativeAriaLabel] = useState(true);
   const [value, setValue] = useState("123");
   const [rootComposition, setRootComposition] = useState<CompositionMode>("default");
   const [inputComposition, setInputComposition] = useState<CompositionMode>("default");
@@ -495,7 +495,7 @@ function useOTPFieldScenario() {
       autoSubmit,
       formOwner,
       autoFocus,
-      ariaLabel,
+      useNativeAriaLabel,
       value,
       rootComposition,
       inputComposition,
@@ -522,7 +522,7 @@ function useOTPFieldScenario() {
       setAutoSubmit,
       setFormOwner,
       setAutoFocus,
-      setAriaLabel,
+      setUseNativeAriaLabel,
       setRootComposition,
       setInputComposition,
       setSeparatorComposition,
@@ -912,7 +912,7 @@ export function FormFieldScenarioToolbar({
           <MenuRadioControl label="Type" options={otpTypeOptions} value={scenario.state.type} onChange={(next) => scenario.actions.setType(next as "numeric" | "alphanumeric")} />
           <MenuCheckboxControl checked={scenario.state.mask} label="Mask" value="mask" onChange={scenario.actions.setMask} />
           <MenuCheckboxControl checked={scenario.state.autoFocus} label="Auto Focus" value="auto-focus" onChange={scenario.actions.setAutoFocus} />
-          <MenuCheckboxControl checked={scenario.state.ariaLabel} label="Aria Label" value="aria-label" onChange={scenario.actions.setAriaLabel} />
+          <MenuCheckboxControl checked={scenario.state.useNativeAriaLabel} label="Native aria-label" value="aria-label" onChange={scenario.actions.setUseNativeAriaLabel} />
           <MenuCheckboxControl checked={scenario.state.formOwner} label="Form Owner" value="form-owner" onChange={scenario.actions.setFormOwner} />
         </ToolbarGroup>
         <ToolbarGroup title="Composition" value="composition">
@@ -1130,7 +1130,7 @@ function FieldsetChoiceControls({ scenario }: { scenario: ReturnType<typeof useF
   if (state.controlType === "atom") {
     return (
       <RadioGroup.Root
-        ariaLabel="Contact preference"
+        aria-label="Contact preference"
         className="field-option-row"
         disabled={state.disabled}
         invalid={state.invalid}
@@ -1425,9 +1425,9 @@ function NumberInputCanvas({ scenario }: { scenario: ReturnType<typeof useNumber
 
   const numberInput = (
     <NumberInput.Root
-      ariaDescribedBy={state.fieldWrapped ? "number-input-seats-description" : undefined}
-      ariaLabel="Seats"
-      ariaValueText={(value) => `${value} seats`}
+      aria-describedby={state.fieldWrapped ? "number-input-seats-description" : undefined}
+      aria-label="Seats"
+      aria-valuetext={(value: number) => `${value} seats`}
       className="number-input-demo"
       clampOnBlur={state.clampOnBlur}
       {...partProps("root", { customSlot: state.customRootSlot, propCheck: state.propCheck }, "number-input-custom")}
@@ -1626,8 +1626,8 @@ function OTPFieldCanvas({ scenario }: { scenario: ReturnType<typeof useOTPFieldS
     </>
   );
   const rootProps = {
-    ariaDescribedBy: state.invalid ? "otp-code-description otp-code-error" : "otp-code-description",
-    ariaLabel: state.ariaLabel ? "Verification code" : undefined,
+    "aria-describedby": state.invalid ? "otp-code-description otp-code-error" : "otp-code-description",
+    "aria-label": state.useNativeAriaLabel ? "Verification code" : undefined,
     autoFocus: state.autoFocus,
     autoSubmit: state.autoSubmit,
     className: "playground-otp",
@@ -2328,7 +2328,7 @@ function otpFieldSections(state: ReturnType<typeof useOTPFieldScenario>["state"]
         { label: "Mask", value: bool(state.mask), category: "state" },
         { label: "Auto Submit", value: bool(state.autoSubmit), category: "behavior" },
         { label: "Auto Focus", value: bool(state.autoFocus), category: "behavior" },
-        { label: "Aria Label", value: bool(state.ariaLabel), category: "behavior" },
+        { label: "Native aria-label", value: bool(state.useNativeAriaLabel), category: "behavior" },
         { label: "Form Owner", value: bool(state.formOwner), category: "behavior" },
         { label: "Composition", value: state.rootComposition, category: "composition" },
         { label: "Disabled", value: bool(state.disabled), category: "state" },
@@ -2613,7 +2613,7 @@ ${rootClose}`;
 function getFieldsetChoicesSource(state: ReturnType<typeof useFieldsetScenario>["state"]) {
   if (state.controlType === "atom") {
     return `<RadioGroup.Root
-    ariaLabel="Contact preference"
+    aria-label="Contact preference"
     name="contact-preference"
     orientation="horizontal"
     value={choice}
@@ -2804,9 +2804,9 @@ function getNumberInputSource(state: ReturnType<typeof useNumberInputScenario>["
     state.readOnly ? "readOnly" : "",
     state.withHiddenInput ? 'name="seats"' : "",
     state.withHiddenInput && state.withFormOwner ? 'form="number-input-demo-form"' : "",
-    'ariaLabel="Seats"',
-    'ariaValueText={(value) => `${value} seats`}',
-    state.fieldWrapped ? 'ariaDescribedBy="number-input-seats-description"' : "",
+    'aria-label="Seats"',
+    'aria-valuetext={(value) => `${value} seats`}',
+    state.fieldWrapped ? 'aria-describedby="number-input-seats-description"' : "",
     "onValueChange={setValue}",
   ].filter(Boolean);
   const numberInput = `<NumberInput.Root${rootProps}
@@ -2865,22 +2865,22 @@ function getPasswordToggleFieldSource(state: ReturnType<typeof usePasswordToggle
 
 function getPasswordInputSource(state: ReturnType<typeof usePasswordToggleFieldScenario>["state"]) {
   const inputProps = sourcePartProps("input", state.propCheck, state.customInputSlot, "password-toggle-field-input-custom");
-  const ariaLabel = state.fieldWrapped ? "" : ' aria-label="Password"';
+  const nativeAriaLabelSource = state.fieldWrapped ? "" : ' aria-label="Password"';
   const fieldLinkProps = state.fieldWrapped
     ? ` id="password-field-control" aria-describedby="${state.invalid ? "password-field-description password-field-error" : "password-field-description"}"`
     : "";
 
   if (state.inputComposition === "asChild") {
-    return `<PasswordToggleField.Input${inputProps}${ariaLabel}${fieldLinkProps} asChild>
+    return `<PasswordToggleField.Input${inputProps}${nativeAriaLabelSource}${fieldLinkProps} asChild>
     <input />
   </PasswordToggleField.Input>`;
   }
 
   if (state.inputComposition === "render") {
-    return `<PasswordToggleField.Input${inputProps}${ariaLabel}${fieldLinkProps} render={(props) => <input {...props} />} />`;
+    return `<PasswordToggleField.Input${inputProps}${nativeAriaLabelSource}${fieldLinkProps} render={(props) => <input {...props} />} />`;
   }
 
-  return `<PasswordToggleField.Input${inputProps}${ariaLabel}${fieldLinkProps} />`;
+  return `<PasswordToggleField.Input${inputProps}${nativeAriaLabelSource}${fieldLinkProps} />`;
 }
 
 function getPasswordToggleSource(state: ReturnType<typeof usePasswordToggleFieldScenario>["state"]) {
@@ -2916,8 +2916,8 @@ function getOTPFieldRootSourceProps(state: ReturnType<typeof useOTPFieldScenario
     state.mask ? "mask" : "",
     state.autoFocus ? "autoFocus" : "",
     state.autoSubmit ? "autoSubmit" : "",
-    state.ariaLabel ? 'ariaLabel="Verification code"' : "",
-    `ariaDescribedBy="${state.invalid ? "otp-code-description otp-code-error" : "otp-code-description"}"`,
+    state.useNativeAriaLabel ? 'aria-label="Verification code"' : "",
+    `aria-describedby="${state.invalid ? "otp-code-description otp-code-error" : "otp-code-description"}"`,
     state.disabled ? "disabled" : "",
     state.invalid ? "invalid" : "",
     state.required ? "required" : "",

@@ -643,7 +643,7 @@ test("namespace exports provide the long-term compound API", () => {
     React.createElement(
       Select.Root,
       { defaultValue: "pro", defaultOpen: true },
-      React.createElement(Select.Trigger, { ariaLabel: "Plan" }, "Plan"),
+      React.createElement(Select.Trigger, { "aria-label": "Plan" }, "Plan"),
       React.createElement(Select.Item, { value: "pro" }, "Pro"),
     ),
   );

@@ -26,7 +26,7 @@ test("RadioGroupRoot renders WAI-ARIA radiogroup attributes", () => {
         required: true,
         invalid: true,
         orientation: "horizontal",
-        ariaLabel: "Contact method",
+        "aria-label": "Contact method",
         "aria-describedby": "contact-help",
         id: "contact",
         className: "group-class",
@@ -76,14 +76,14 @@ test("RadioRoot renders selected and unselected radio items inside group", () =>
         required: true,
         disabled: true,
         invalid: true,
-        ariaLabel: "Contact method",
+        "aria-label": "Contact method",
       },
       React.createElement(RadioRoot, {
         value: "email",
-        ariaLabel: "Email",
+        "aria-label": "Email",
         className: "radio-class",
       }),
-      React.createElement(RadioRoot, { value: "phone", ariaLabel: "Phone" }),
+      React.createElement(RadioRoot, { value: "phone", "aria-label": "Phone" }),
     ),
   );
 
@@ -113,8 +113,8 @@ test("RadioRoot omits hidden input when group name is not provided", () => {
   const html = renderToStaticMarkup(
     React.createElement(
       RadioGroupRoot,
-      { value: "email", ariaLabel: "Contact method" },
-      React.createElement(RadioRoot, { value: "email", ariaLabel: "Email" }),
+      { value: "email", "aria-label": "Contact method" },
+      React.createElement(RadioRoot, { value: "email", "aria-label": "Email" }),
     ),
   );
 
@@ -126,11 +126,11 @@ test("RadioRoot passes native button attributes without losing group behavior", 
   const html = renderToStaticMarkup(
     React.createElement(
       RadioGroupRoot,
-      { value: "email", ariaLabel: "Contact method" },
+      { value: "email", "aria-label": "Contact method" },
       React.createElement(RadioRoot, {
         id: "email-radio",
         value: "email",
-        ariaLabel: "Email",
+        "aria-label": "Email",
         title: "Email",
         "data-testid": "radio-root",
         style: { color: "purple" },
@@ -151,13 +151,13 @@ test("RadioRoot asChild merges behavior inside group", () => {
   const html = renderToStaticMarkup(
     React.createElement(
       RadioGroupRoot,
-      { value: "sms", ariaLabel: "Contact method" },
+      { value: "sms", "aria-label": "Contact method" },
       React.createElement(
         RadioRoot,
         {
           asChild: true,
           value: "sms",
-          ariaLabel: "SMS",
+          "aria-label": "SMS",
           className: "root-class",
         },
         React.createElement("span", { className: "child-class" }, "SMS"),
@@ -178,7 +178,7 @@ test("RadioRoot asChild exposes disabled state on non-native elements", () => {
   const html = renderToStaticMarkup(
     React.createElement(
       RadioGroupRoot,
-      { defaultValue: "email", ariaLabel: "Contact method" },
+      { defaultValue: "email", "aria-label": "Contact method" },
       React.createElement(
         RadioRoot,
         { asChild: true, value: "email" },

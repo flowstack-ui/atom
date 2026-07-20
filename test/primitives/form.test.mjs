@@ -75,7 +75,8 @@ test("Form source wires submit, reset, validation, and async state", async () =>
   assert.match(rootSource, /const submitResult = onSubmit\?\.\(event\)/);
   assert.match(rootSource, /if \(isPromiseLike\(submitResult\)\)/);
   assert.match(rootSource, /await submitResult;\s*\}\s*setSubmitted\(true\);/);
-  assert.match(rootSource, /catch \{\s*setSubmitted\(false\);/);
+  assert.match(rootSource, /catch \(error\) \{\s*setSubmitted\(false\);\s*throw error;/);
+  assert.match(rootSource, /typeof action === "function"/);
   assert.match(rootSource, /setSubmitting\(false\)/);
   assert.match(rootSource, /onReset\?\.\(event\)/);
   assert.match(rootSource, /if \(event\.defaultPrevented\) return/);

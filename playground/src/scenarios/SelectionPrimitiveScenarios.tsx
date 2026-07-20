@@ -597,7 +597,7 @@ export function SelectionPrimitiveScenarioCanvas({ scenarioId, scenarios }: { sc
 
 function CheckboxGroupCanvas({ scenario }: { scenario: ReturnType<typeof useCheckboxGroupScenario> }) {
   const s = scenario.state;
-  const props = { className: "playground-checkbox-group", disabled: s.disabled, invalid: s.invalid, orientation: s.orientation, readOnly: s.readOnly, required: s.required, name: "updates", ariaLabel: "Notification options", onValueChange: scenario.actions.handleValueChange, ...partProps("root", { propCheck: s.propCheck, customSlot: s.customRootSlot }, "checkbox-group-root-custom"), ...(s.controlled ? { value: s.value } : { defaultValue: s.value }) };
+  const props = { className: "playground-checkbox-group", disabled: s.disabled, invalid: s.invalid, orientation: s.orientation, readOnly: s.readOnly, required: s.required, name: "updates", "aria-label": "Notification options", onValueChange: scenario.actions.handleValueChange, ...partProps("root", { propCheck: s.propCheck, customSlot: s.customRootSlot }, "checkbox-group-root-custom"), ...(s.controlled ? { value: s.value } : { defaultValue: s.value }) };
   const content = <><CheckboxGroupItem mode={s.composition} value="email" propCheck={s.propCheck} customSlot={s.customItemSlot}>Email updates</CheckboxGroupItem><CheckboxGroupItem mode={s.composition} value="sms" propCheck={s.propCheck} customSlot={s.customItemSlot}>SMS alerts</CheckboxGroupItem><CheckboxGroupItem disabled={s.pushDisabled} mode={s.composition} value="push" propCheck={s.propCheck} customSlot={s.customItemSlot}>Push digest</CheckboxGroupItem></>;
   return <CheckboxGroup.Root {...props}>{content}</CheckboxGroup.Root>;
 }
@@ -1064,7 +1064,7 @@ function getCheckboxGroupSource(state: ReturnType<typeof useCheckboxGroupScenari
     state.invalid ? "invalid" : null,
     state.orientation !== "vertical" ? `orientation="${state.orientation}"` : null,
     `name="updates"`,
-    `ariaLabel="Notification options"`,
+    `aria-label="Notification options"`,
     sourcePartProps("root", state.propCheck, state.customRootSlot, "checkbox-group-root-custom").trim(),
     "onValueChange={setValue}",
   ].filter(Boolean).join("\n  ");

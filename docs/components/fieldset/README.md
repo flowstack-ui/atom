@@ -42,8 +42,8 @@ useRequiredFieldsetContext()
 
 ### Root
 
-Renders a native `fieldset`, owns shared state, and references only the
-Description and currently visible Error parts that are mounted.
+Renders a native `fieldset`, owns shared state, and emits server-stable
+relationships to its Description and currently visible Error.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -55,7 +55,7 @@ Description and currently visible Error parts that are mounted.
 
 | ARIA attribute | Values |
 | --- | --- |
-| `aria-describedby` | Mounted Description and visible Error IDs |
+| `aria-describedby` | Description and visible Error IDs unless explicitly provided |
 | `aria-invalid` | `"true"` when invalid |
 
 Root does not emit `aria-required`; required group state must be communicated
@@ -70,8 +70,8 @@ through Legend text and the descendant controls where appropriate.
 
 ### Legend
 
-Renders the native `legend` that names the group. It appends the required or
-optional indicator selected by Root state.
+Renders the native `legend` that names the fieldset and receives the stable ID
+used by nested CheckboxGroup or RadioGroup widgets.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -93,7 +93,7 @@ indicators remain readable.
 
 ### Description
 
-Renders a `p` and registers its generated ID for Root's accessible description.
+Renders a `p` with a server-stable generated ID for Root's description.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -106,18 +106,15 @@ Renders a `p` and registers its generated ID for Root's accessible description.
 
 ### Error
 
-Renders only when Root is invalid or `forceMatch` is true and registers itself
-in Root's accessible description.
+Renders only when Root is invalid or `forceMatch` is true and participates in
+Root's accessible description. It has no live role by default; pass native
+`role="alert"` or `aria-live` for a newly inserted announcement.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `forceMatch` | `boolean` | `false` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
-
-| ARIA attribute | Values |
-| --- | --- |
-| `role` | `"alert"` while rendered |
 
 | Data attribute | Values |
 | --- | --- |
@@ -149,8 +146,8 @@ export function ShippingMethod() {
       <Fieldset.Legend>Shipping method</Fieldset.Legend>
       <Fieldset.Description>Choose how quickly the order should arrive.</Fieldset.Description>
       <RadioGroup.Root value={method} onValueChange={setMethod}>
-        <RadioGroup.Item value="standard">Standard</RadioGroup.Item>
-        <RadioGroup.Item value="express">Express</RadioGroup.Item>
+        <RadioGroup.Radio value="standard">Standard</RadioGroup.Radio>
+        <RadioGroup.Radio value="express">Express</RadioGroup.Radio>
       </RadioGroup.Root>
       <Fieldset.Error>Choose a shipping method.</Fieldset.Error>
     </Fieldset.Root>

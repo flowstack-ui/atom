@@ -1,13 +1,27 @@
 "use client";
 
-import { forwardRef, useCallback, useMemo, useRef, useState, type ReactNode } from "react";
+import { forwardRef, useCallback, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
+import { useFormReset } from "../../hooks/useFormReset.js";
 import type { NativeDivProps } from "../../utils/dom.js";
-import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
+import { cloneAndMerge, composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
 import {
   CheckboxGroupContextProvider,
   type CheckboxGroupContextValue,
 } from "./context.js";
+import { useFieldsetContext } from "../fieldset/context.js";
+
+const validationInputStyle: CSSProperties = {
+  position: "absolute",
+  width: 1,
+  height: 1,
+  padding: 0,
+  margin: -1,
+  overflow: "hidden",
+  clip: "rect(0, 0, 0, 0)",
+  whiteSpace: "nowrap",
+  borderWidth: 0,
+};
 
 type CheckboxGroupRootNativeProps = NativeDivProps<
   "children" | "defaultValue" | "form" | "name" | "onChange" | "role"
@@ -34,8 +48,6 @@ export interface CheckboxGroupRootProps extends CheckboxGroupRootNativeProps {
   invalid?: boolean;
   /** Layout orientation. */
   orientation?: "horizontal" | "vertical";
-  /** Accessible label for the group. */
-  ariaLabel?: string;
   /** Override the rendered element. */
   render?: RenderProp;
   /** Merge behavior props onto a single child element. */
@@ -56,12 +68,11 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
       onValueChange,
       name,
       form,
-      disabled = false,
-      required = false,
-      readOnly = false,
-      invalid = false,
+      disabled,
+      required,
+      readOnly,
+      invalid,
       orientation = "vertical",
-      ariaLabel,
       render,
       asChild,
       children,
@@ -71,11 +82,19 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
     },
     ref,
   ) {
+    const fieldset = useFieldsetContext();
+    const isDisabled = disabled ?? fieldset?.disabled ?? false;
+    const isRequired = required ?? fieldset?.required ?? false;
+    const isInvalid = invalid ?? fieldset?.invalid ?? false;
+    const isReadOnly = readOnly ?? false;
+    const rootRef = useRef<HTMLDivElement>(null);
     const [activeValues, setActiveValues] = useControllableState({
       value,
       defaultValue,
       onChange: onValueChange,
     });
+    const reset = useCallback(() => setActiveValues(defaultValue), [defaultValue, setActiveValues]);
+    useFormReset(rootRef, form, value !== undefined, reset);
     const itemValuesRef = useRef<Set<string>>(new Set());
     const [allItemValues, setAllItemValues] = useState<string[]>([]);
 
@@ -91,7 +110,7 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
 
     const toggleItem = useCallback(
       (value: string) => {
-        if (disabled || readOnly) return;
+        if (isDisabled || isReadOnly) return;
 
         setActiveValues((currentValues) =>
           currentValues.includes(value)
@@ -99,16 +118,16 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
             : [...currentValues, value],
         );
       },
-      [disabled, readOnly, setActiveValues],
+      [isDisabled, isReadOnly, setActiveValues],
     );
 
     const toggleAll = useCallback(
       (checked: boolean) => {
-        if (disabled || readOnly) return;
+        if (isDisabled || isReadOnly) return;
 
         setActiveValues(checked ? Array.from(itemValuesRef.current) : []);
       },
-      [disabled, readOnly, setActiveValues],
+      [isDisabled, isReadOnly, setActiveValues],
     );
 
     const isItemChecked = useCallback(
@@ -127,24 +146,24 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
         unregisterItem,
         name,
         form,
-        disabled,
-        required,
-        readOnly,
-        invalid,
+        disabled: isDisabled,
+        required: isRequired,
+        readOnly: isReadOnly,
+        invalid: isInvalid,
         orientation,
       }),
       [
         activeValues,
         allItemValues,
-        disabled,
+        isDisabled,
         form,
-        invalid,
+        isInvalid,
         isItemChecked,
         name,
         orientation,
-        readOnly,
+        isReadOnly,
         registerItem,
-        required,
+        isRequired,
         toggleAll,
         toggleItem,
         unregisterItem,
@@ -153,16 +172,23 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
 
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
-      ref,
+      ref: composeRefs(rootRef, ref),
       role: "group",
-      ...(ariaLabel !== undefined && { "aria-label": ariaLabel }),
-      "aria-required": required || undefined,
-      "aria-invalid": invalid || undefined,
+      "aria-labelledby": restProps["aria-labelledby"] ??
+        (restProps["aria-label"] === undefined && fieldset?.hasLegend
+          ? fieldset.legendId
+          : undefined),
+      "aria-describedby": Object.prototype.hasOwnProperty.call(restProps, "aria-describedby")
+        ? restProps["aria-describedby"]
+        : fieldset?.describedBy,
+      "aria-required": restProps["aria-required"] ?? (isRequired || undefined),
+      "aria-invalid": restProps["aria-invalid"] ?? (isInvalid || undefined),
       "data-slot": dataSlot,
       "data-orientation": orientation,
-      ...(disabled && { "data-disabled": "" }),
-      ...(readOnly && { "aria-readonly": true, "data-readonly": "" }),
-      ...(invalid && { "data-invalid": "" }),
+      ...(isDisabled && { "data-disabled": "" }),
+      ...(isReadOnly && { "aria-readonly": true, "data-readonly": "" }),
+      ...(isInvalid && { "data-invalid": "" }),
+      ...(isRequired && { "data-required": "" }),
       className,
     };
 
@@ -173,6 +199,19 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
     return (
       <CheckboxGroupContextProvider value={contextValue}>
         {element}
+        {isRequired ? (
+          <input
+            type="checkbox"
+            aria-hidden="true"
+            tabIndex={-1}
+            form={form}
+            checked={activeValues.length > 0}
+            required
+            disabled={isDisabled}
+            readOnly
+            style={validationInputStyle}
+          />
+        ) : null}
       </CheckboxGroupContextProvider>
     );
   },

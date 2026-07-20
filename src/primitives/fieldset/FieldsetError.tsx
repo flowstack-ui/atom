@@ -1,9 +1,10 @@
 "use client";
 
-import { forwardRef, useEffect, type ReactNode } from "react";
+import { forwardRef, useCallback, useMemo, useRef, type ReactNode } from "react";
 import type { NativeParagraphProps } from "../../utils/dom.js";
-import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
+import { cloneAndMerge, composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
 import { useFieldsetContext } from "./context.js";
+import { markFieldsetPart } from "./parts.js";
 
 type FieldsetErrorNativeProps = NativeParagraphProps<"children">;
 
@@ -29,21 +30,22 @@ export const FieldsetError = forwardRef<HTMLParagraphElement, FieldsetErrorProps
   ) {
     const ctx = useFieldsetContext();
     const shouldShow = forceMatch || (ctx?.invalid ?? false);
-    const setHasError = ctx?.setHasError;
-
-    useEffect(() => {
-      if (!shouldShow) return undefined;
-      setHasError?.(true);
-      return () => setHasError?.(false);
-    }, [setHasError, shouldShow]);
+    const unregisterRef = useRef<(() => void) | null>(null);
+    const registrationRef = useCallback((node: HTMLParagraphElement | null) => {
+      unregisterRef.current?.();
+      unregisterRef.current = node && ctx ? ctx.registerPart("error") : null;
+    }, [ctx]);
+    const composedRef = useMemo(
+      () => composeRefs(registrationRef, ref),
+      [registrationRef, ref],
+    );
 
     if (!shouldShow) return null;
 
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
-      ref,
+      ref: composedRef,
       id: ctx?.errorId ?? restProps.id,
-      role: "alert",
       "data-slot": dataSlot,
     };
 
@@ -57,3 +59,5 @@ export const FieldsetError = forwardRef<HTMLParagraphElement, FieldsetErrorProps
     });
   },
 );
+
+markFieldsetPart(FieldsetError, "error");

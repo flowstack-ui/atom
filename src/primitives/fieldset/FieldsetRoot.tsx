@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  useCallback,
+  useEffect,
   forwardRef,
   useId,
   useMemo,
@@ -13,6 +15,7 @@ import {
   FieldsetContextProvider,
   type FieldsetContextValue,
 } from "./context.js";
+import { getFieldsetPartPresence, type FieldsetPartKind } from "./parts.js";
 
 type FieldsetRootNativeProps = NativeFieldsetProps<"children" | "disabled">;
 
@@ -43,10 +46,32 @@ export const FieldsetRoot = forwardRef<HTMLFieldSetElement, FieldsetRootProps>(
   ) {
     const autoId = useId();
     const baseId = providedId ?? autoId;
+    const legendId = `${baseId}-legend`;
     const descriptionId = `${baseId}-description`;
     const errorId = `${baseId}-error`;
-    const [hasDescription, setHasDescription] = useState(false);
-    const [hasError, setHasError] = useState(false);
+    const visibleParts = getFieldsetPartPresence(children, invalid);
+    const [partCounts, setPartCounts] = useState({ legend: 0, description: 0, error: 0 });
+    const [partRegistryReady, setPartRegistryReady] = useState(false);
+    const hasLegend = partRegistryReady ? partCounts.legend > 0 : visibleParts.legend;
+    const hasDescription = partRegistryReady
+      ? partCounts.description > 0
+      : visibleParts.description;
+    const hasError = partRegistryReady ? partCounts.error > 0 : visibleParts.error;
+
+    useEffect(() => setPartRegistryReady(true), []);
+
+    const registerPart = useCallback((kind: FieldsetPartKind) => {
+      let registered = true;
+      setPartCounts((counts) => ({ ...counts, [kind]: counts[kind] + 1 }));
+      return () => {
+        if (!registered) return;
+        registered = false;
+        setPartCounts((counts) => ({
+          ...counts,
+          [kind]: Math.max(0, counts[kind] - 1),
+        }));
+      };
+    }, []);
     const describedBy = [
       hasDescription ? descriptionId : null,
       hasError ? errorId : null,
@@ -59,13 +84,14 @@ export const FieldsetRoot = forwardRef<HTMLFieldSetElement, FieldsetRootProps>(
         invalid,
         disabled,
         required,
+        legendId,
         descriptionId,
         errorId,
         describedBy,
         hasDescription,
         hasError,
-        setHasDescription,
-        setHasError,
+        hasLegend,
+        registerPart,
       }),
       [
         describedBy,
@@ -75,18 +101,27 @@ export const FieldsetRoot = forwardRef<HTMLFieldSetElement, FieldsetRootProps>(
         hasDescription,
         hasError,
         invalid,
+        legendId,
         required,
-        setHasDescription,
-        setHasError,
+        hasLegend,
+        registerPart,
       ],
     );
+
+    const hasExplicitDescription = Object.prototype.hasOwnProperty.call(
+      restProps,
+      "aria-describedby",
+    );
+    const resolvedAriaDescribedBy = hasExplicitDescription
+      ? restProps["aria-describedby"]
+      : describedBy;
 
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref,
       id: providedId,
       disabled: disabled || undefined,
-      "aria-describedby": describedBy,
+      "aria-describedby": resolvedAriaDescribedBy,
       "aria-invalid": invalid || undefined,
       "data-slot": dataSlot,
       ...(invalid && { "data-invalid": "" }),

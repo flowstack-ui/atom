@@ -10,6 +10,8 @@ import {
 } from "react";
 import { useCollection } from "../../collection.js";
 import { useControllableState } from "../../hooks/useControllableState.js";
+import { useFormReset } from "../../hooks/useFormReset.js";
+import { useFieldContext } from "../field/context.js";
 import {
   ComboboxContextProvider,
   type ComboboxContextValue,
@@ -72,13 +74,18 @@ export function ComboboxRoot({
   loading = false,
   noOptionsText = "No options",
   loadingText = "Loading",
-  disabled = false,
-  readOnly = false,
-  required = false,
-  invalid = false,
+  disabled,
+  readOnly,
+  required,
+  invalid,
   name,
   form,
 }: ComboboxRootProps) {
+  const field = useFieldContext();
+  const isDisabled = disabled ?? field?.disabled ?? false;
+  const isReadOnly = readOnly ?? field?.readOnly ?? false;
+  const isRequired = required ?? field?.required ?? false;
+  const isInvalid = invalid ?? field?.invalid ?? false;
   const [isOpen, setOpen] = useControllableState<boolean>({
     value: controlledOpen,
     defaultValue: defaultOpen,
@@ -100,12 +107,29 @@ export function ComboboxRoot({
 
   const idPrefix = useId();
   const comboboxId = `combobox-${idPrefix}`;
-  const inputId = `combobox-input-${idPrefix}`;
+  const inputId = field?.controlId ?? `combobox-input-${idPrefix}`;
   const listboxId = `combobox-listbox-${idPrefix}`;
 
   const inputRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const suppressInputFocusOpenRef = useRef(false);
+  const reset = useCallback(() => {
+    if (controlledValue === undefined) setValue(defaultValue);
+    if (controlledInputValue === undefined) setInputValueState(defaultInputValue);
+    if (controlledOpen === undefined) setOpen(defaultOpen);
+    setHighlightedValue(null);
+  }, [
+    controlledInputValue,
+    controlledOpen,
+    controlledValue,
+    defaultInputValue,
+    defaultOpen,
+    defaultValue,
+    setInputValueState,
+    setOpen,
+    setValue,
+  ]);
+  useFormReset(inputRef, form, false, reset);
   const {
     version: registryVersion,
     registerItem: registerCollectionItem,
@@ -130,8 +154,8 @@ export function ComboboxRoot({
   );
 
   const onOpen = useCallback(() => {
-    if (!disabled && !readOnly) setOpen(true);
-  }, [disabled, readOnly, setOpen]);
+    if (!isDisabled && !isReadOnly) setOpen(true);
+  }, [isDisabled, isReadOnly, setOpen]);
 
   const onClose = useCallback(() => {
     setOpen(false);
@@ -139,13 +163,13 @@ export function ComboboxRoot({
   }, [setOpen]);
 
   const onToggle = useCallback(() => {
-    if (disabled || readOnly) return;
+    if (isDisabled || isReadOnly) return;
     if (isOpen) {
       onClose();
     } else {
       setOpen(true);
     }
-  }, [disabled, isOpen, onClose, readOnly, setOpen]);
+  }, [isDisabled, isOpen, isReadOnly, onClose, setOpen]);
 
   const registerItem = useCallback((itemValue: string, entry: ComboboxItemEntry) => {
     registerCollectionItem(itemValue, entry.element, {
@@ -195,7 +219,7 @@ export function ComboboxRoot({
 
   const selectOption = useCallback(
     (option: ComboboxOption) => {
-      if (disabled || readOnly || option.disabled) return;
+      if (isDisabled || isReadOnly || option.disabled) return;
 
       setValue(option.value);
       const nextInputValue = clearOnSelect ? "" : getComboboxOptionLabel(option);
@@ -203,16 +227,16 @@ export function ComboboxRoot({
       onClose();
       inputRef.current?.focus({ preventScroll: true });
     },
-    [clearOnSelect, disabled, onClose, readOnly, setInputValue, setValue],
+    [clearOnSelect, isDisabled, isReadOnly, onClose, setInputValue, setValue],
   );
 
   const clearSelection = useCallback(() => {
-    if (disabled || readOnly) return;
+    if (isDisabled || isReadOnly) return;
     setValue(null);
     setInputValue("");
     setHighlightedValue(null);
     inputRef.current?.focus({ preventScroll: true });
-  }, [disabled, readOnly, setInputValue, setValue]);
+  }, [isDisabled, isReadOnly, setInputValue, setValue]);
 
   const contextValue = useMemo<ComboboxContextValue>(
     () => ({
@@ -233,6 +257,9 @@ export function ComboboxRoot({
       inputId,
       listboxId,
       inputRef,
+      fieldLabelId: field?.labelId,
+      fieldDescribedBy: field?.describedBy,
+      form,
       contentRef,
       registerItem,
       unregisterItem,
@@ -247,10 +274,10 @@ export function ComboboxRoot({
       suppressNextInputFocusOpen,
       consumeInputFocusOpenSuppression,
       clearSelection,
-      disabled,
-      readOnly,
-      required,
-      invalid,
+      disabled: isDisabled,
+      readOnly: isReadOnly,
+      required: isRequired,
+      invalid: isInvalid,
       freeSolo,
       clearOnSelect,
       openOnFocus,
@@ -262,7 +289,9 @@ export function ComboboxRoot({
       comboboxId,
       clearSelection,
       clearOnSelect,
-      disabled,
+      field?.describedBy,
+      field?.labelId,
+      form,
       emptyMounted,
       filteredOptions,
       freeSolo,
@@ -275,7 +304,8 @@ export function ComboboxRoot({
       highlightedValue,
       inputId,
       inputValue,
-      invalid,
+      isDisabled,
+      isInvalid,
       isOpen,
       listboxId,
       loading,
@@ -286,11 +316,11 @@ export function ComboboxRoot({
       onToggle,
       openOnFocus,
       options,
-      readOnly,
+      isReadOnly,
       registerEmpty,
       registerItem,
       registryVersion,
-      required,
+      isRequired,
       selectOption,
       setInputValue,
       setValue,
@@ -310,7 +340,7 @@ export function ComboboxRoot({
           name={name}
           value={value ?? ""}
           form={form}
-          disabled={disabled}
+          disabled={isDisabled}
           aria-hidden="true"
           tabIndex={-1}
         />

@@ -40,6 +40,7 @@ export const FormRoot = forwardRef<HTMLFormElement, FormRootProps>(
       onReset,
       preventDefaultOnSubmit = false,
       validateOnSubmit,
+      action,
       render,
       asChild,
       "data-slot": dataSlot = "form",
@@ -53,6 +54,15 @@ export const FormRoot = forwardRef<HTMLFormElement, FormRootProps>(
 
     const handleSubmit = useCallback(
       async (event: FormEvent<HTMLFormElement>) => {
+        if (
+          typeof action === "function" &&
+          onSubmit === undefined &&
+          validateOnSubmit === undefined &&
+          !preventDefaultOnSubmit
+        ) {
+          return;
+        }
+
         setSubmitting(true);
         setSubmitted(false);
 
@@ -74,21 +84,20 @@ export const FormRoot = forwardRef<HTMLFormElement, FormRootProps>(
 
           setInvalid(false);
 
-          try {
-            const submitResult = onSubmit?.(event);
-            if (isPromiseLike(submitResult)) {
-              await submitResult;
-            }
-
-            setSubmitted(true);
-          } catch {
-            setSubmitted(false);
+          const submitResult = onSubmit?.(event);
+          if (isPromiseLike(submitResult)) {
+            await submitResult;
           }
+
+          setSubmitted(true);
+        } catch (error) {
+          setSubmitted(false);
+          throw error;
         } finally {
           setSubmitting(false);
         }
       },
-      [onSubmit, preventDefaultOnSubmit, validateOnSubmit],
+      [action, onSubmit, preventDefaultOnSubmit, validateOnSubmit],
     );
 
     const handleReset = useCallback(
@@ -114,6 +123,7 @@ export const FormRoot = forwardRef<HTMLFormElement, FormRootProps>(
 
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
+      action,
       ref,
       "data-slot": dataSlot,
       ...(submitting && { "data-submitting": "" }),

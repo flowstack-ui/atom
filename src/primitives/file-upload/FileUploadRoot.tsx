@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
+import { useFormReset } from "../../hooks/useFormReset.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
 import { useFieldContext } from "../field/context.js";
@@ -107,6 +108,13 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
         inputRef.current.value = "";
       }
     }, []);
+    const reset = useCallback(() => {
+      if (files === undefined) setResolvedFiles(defaultFiles);
+      setRejectedFiles([]);
+      setDragState("idle");
+      resetNativeInput();
+    }, [defaultFiles, files, resetNativeInput, setResolvedFiles]);
+    useFormReset(inputRef, form, files !== undefined, reset);
 
     const setFilesFromList = useCallback(
       (nextFiles: FileList | File[]) => {

@@ -98,8 +98,8 @@ as provided.
 
 ### Description
 
-Renders a `p` and registers its generated ID while mounted so Field-aware
-controls can include it in `aria-describedby`.
+Renders a `p` with a generated ID. Statically visible parts are included in
+server markup; committed registration keeps conditional client parts current.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -112,8 +112,10 @@ controls can include it in `aria-describedby`.
 
 ### Error
 
-Renders a live alert only when Field is invalid and `match` is not false, or
-when `forceMatch` is true. A visible Error registers for `aria-describedby`.
+Renders only when Field is invalid and `match` is not false, or when
+`forceMatch` is true. A visible Error participates in `aria-describedby`.
+Error does not announce by default; pass native `role="alert"` or `aria-live`
+when a newly inserted message should be announced.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -121,10 +123,6 @@ when `forceMatch` is true. A visible Error registers for `aria-describedby`.
 | `forceMatch` | `boolean` | `false` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
-
-| ARIA attribute | Values |
-| --- | --- |
-| `role` | `"alert"` while rendered |
 
 | Data attribute | Values |
 | --- | --- |
@@ -206,7 +204,7 @@ Field follows native form labeling and the
 [WAI forms labeling guidance](https://www.w3.org/WAI/tutorials/forms/labels/).
 Field-aware controls use Label's ID relationship and include mounted
 Description and visible Error IDs in `aria-describedby`. Error uses
-`role="alert"`; do not use invalid state before there is a useful message for
+an explicit live-region role; do not use invalid state before there is a useful message for
 the user. Field owns no keyboard behavior.
 
 ## Changelog

@@ -192,6 +192,9 @@ Rating follows the
 so the whole control is one Tab
 stop. Items are decorative and hidden from assistive technology. Provide an
 accessible name on Root with `aria-label` or `aria-labelledby`.
+Inside Field, Rating inherits the generated control ID, accessible name,
+description relationships, and state unless a local prop is supplied.
+Uncontrolled value returns to `defaultValue` on native form reset.
 
 | Key | Description |
 | --- | --- |

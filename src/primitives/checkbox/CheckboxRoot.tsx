@@ -6,13 +6,17 @@ import {
   type KeyboardEventHandler,
   type MouseEventHandler,
   type ReactNode,
+  useCallback,
   useMemo,
+  useRef,
 } from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
+import { useFormReset } from "../../hooks/useFormReset.js";
 import type { NativeButtonProps } from "../../utils/dom.js";
 import {
   cloneAndMerge,
   composeEventHandlers,
+  composeRefs,
   renderElement,
   type RenderProp,
 } from "../../utils/slot.js";
@@ -21,6 +25,7 @@ import {
   type CheckboxCheckedState,
   type CheckboxDataState,
 } from "./context.js";
+import { useFieldContext } from "../field/context.js";
 
 type CheckboxRootNativeProps = NativeButtonProps<
   | "children"
@@ -67,8 +72,6 @@ export interface CheckboxRootProps extends CheckboxRootNativeProps {
   form?: string;
   /** Whether the field is required. */
   required?: boolean;
-  /** Accessible label. */
-  ariaLabel?: string;
   /** Override the rendered element. */
   render?: RenderProp;
   /** Merge behavior props onto a single child element. */
@@ -93,14 +96,13 @@ export const CheckboxRoot = forwardRef<HTMLButtonElement, CheckboxRootProps>(
       checked,
       defaultChecked = false,
       onCheckedChange,
-      disabled = false,
-      readOnly = false,
-      invalid = false,
+      disabled,
+      readOnly,
+      invalid,
       name,
       value = "on",
       form,
       required,
-      ariaLabel,
       render,
       asChild,
       children,
@@ -112,6 +114,12 @@ export const CheckboxRoot = forwardRef<HTMLButtonElement, CheckboxRootProps>(
     },
     ref,
   ) {
+    const field = useFieldContext();
+    const isDisabled = disabled ?? field?.disabled ?? false;
+    const isReadOnly = readOnly ?? field?.readOnly ?? false;
+    const isInvalid = invalid ?? field?.invalid ?? false;
+    const isRequired = required ?? field?.required ?? false;
+    const inputRef = useRef<HTMLInputElement>(null);
     const [isChecked, setIsChecked] = useControllableState({
       value: checked,
       defaultValue: defaultChecked,
@@ -119,9 +127,11 @@ export const CheckboxRoot = forwardRef<HTMLButtonElement, CheckboxRootProps>(
     });
 
     const toggle = () => {
-      if (disabled || readOnly) return;
+      if (isDisabled || isReadOnly) return;
       setIsChecked((currentChecked) => getNextCheckboxCheckedState(currentChecked));
     };
+    const reset = useCallback(() => setIsChecked(defaultChecked), [defaultChecked, setIsChecked]);
+    useFormReset(inputRef, form, checked !== undefined, reset);
 
     const handleClick: MouseEventHandler<HTMLButtonElement> = () => {
       toggle();
@@ -143,27 +153,31 @@ export const CheckboxRoot = forwardRef<HTMLButtonElement, CheckboxRootProps>(
     const ariaChecked: boolean | "mixed" =
       isChecked === "indeterminate" ? "mixed" : isChecked;
     const contextValue = useMemo(
-      () => ({ state: dataState, disabled }),
-      [dataState, disabled],
+      () => ({ state: dataState, disabled: isDisabled }),
+      [dataState, isDisabled],
     );
 
     // Native props pass through first; Atom state, ARIA, and handlers remain authoritative.
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref,
+      id: restProps.id ?? field?.controlId,
       type: "button",
       role: "checkbox",
       "aria-checked": ariaChecked,
-      ...(ariaLabel !== undefined && { "aria-label": ariaLabel }),
-      "aria-required": required || undefined,
-      "aria-invalid": invalid || undefined,
-      tabIndex: disabled ? undefined : 0,
-      disabled: disabled || undefined,
+      "aria-describedby": Object.prototype.hasOwnProperty.call(restProps, "aria-describedby")
+        ? restProps["aria-describedby"]
+        : field?.describedBy,
+      "aria-required": restProps["aria-required"] ?? (isRequired || undefined),
+      "aria-invalid": restProps["aria-invalid"] ?? (isInvalid || undefined),
+      tabIndex: isDisabled ? undefined : 0,
+      disabled: isDisabled || undefined,
       "data-state": dataState,
       "data-slot": dataSlot,
-      ...(disabled && { "data-disabled": "" }),
-      ...(readOnly && { "aria-readonly": true, "data-readonly": "" }),
-      ...(invalid && { "data-invalid": "" }),
+      ...(isDisabled && { "data-disabled": "" }),
+      ...(isReadOnly && { "aria-readonly": true, "data-readonly": "" }),
+      ...(isInvalid && { "data-invalid": "" }),
+      ...(isRequired && { "data-required": "" }),
       className,
       onClick: composeEventHandlers(onClick, handleClick),
       onKeyDown: composeEventHandlers(onKeyDown, handleKeyDown),
@@ -178,6 +192,7 @@ export const CheckboxRoot = forwardRef<HTMLButtonElement, CheckboxRootProps>(
         {rootElement}
         {name !== undefined ? (
           <input
+            ref={inputRef}
             type="checkbox"
             aria-hidden="true"
             tabIndex={-1}
@@ -185,8 +200,8 @@ export const CheckboxRoot = forwardRef<HTMLButtonElement, CheckboxRootProps>(
             value={value}
             form={form}
             checked={isChecked === true}
-            disabled={disabled}
-            required={required}
+            disabled={isDisabled}
+            required={isRequired}
             readOnly
             style={hiddenInputStyle}
           />

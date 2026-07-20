@@ -6,9 +6,12 @@ import {
   type KeyboardEventHandler,
   type MouseEventHandler,
   type ReactNode,
+  useCallback,
   useMemo,
+  useRef,
 } from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
+import { useFormReset } from "../../hooks/useFormReset.js";
 import type { NativeButtonProps } from "../../utils/dom.js";
 import {
   cloneAndMerge,
@@ -17,6 +20,7 @@ import {
   type RenderProp,
 } from "../../utils/slot.js";
 import { SwitchContextProvider } from "./context.js";
+import { useFieldContext } from "../field/context.js";
 
 type SwitchRootNativeProps = NativeButtonProps<
   | "children"
@@ -63,8 +67,6 @@ export interface SwitchRootProps extends SwitchRootNativeProps {
   form?: string;
   /** Marks the hidden input as required for native form validation. */
   required?: boolean;
-  /** Accessible label. */
-  ariaLabel?: string;
   /** Override the rendered element. */
   render?: RenderProp;
   /** Merge behavior props onto a single child element. */
@@ -83,14 +85,13 @@ export const SwitchRoot = forwardRef<HTMLButtonElement, SwitchRootProps>(
       checked,
       defaultChecked = false,
       onCheckedChange,
-      disabled = false,
-      readOnly = false,
-      invalid = false,
+      disabled,
+      readOnly,
+      invalid,
       name,
       value = "on",
       form,
       required,
-      ariaLabel,
       render,
       asChild,
       children,
@@ -102,6 +103,12 @@ export const SwitchRoot = forwardRef<HTMLButtonElement, SwitchRootProps>(
     },
     ref,
   ) {
+    const field = useFieldContext();
+    const isDisabled = disabled ?? field?.disabled ?? false;
+    const isReadOnly = readOnly ?? field?.readOnly ?? false;
+    const isInvalid = invalid ?? field?.invalid ?? false;
+    const isRequired = required ?? field?.required ?? false;
+    const inputRef = useRef<HTMLInputElement>(null);
     const [isChecked, setIsChecked] = useControllableState({
       value: checked,
       defaultValue: defaultChecked,
@@ -109,7 +116,7 @@ export const SwitchRoot = forwardRef<HTMLButtonElement, SwitchRootProps>(
     });
 
     const handleClick: MouseEventHandler<HTMLButtonElement> = () => {
-      if (disabled || readOnly) return;
+      if (isDisabled || isReadOnly) return;
       setIsChecked((currentChecked) => !currentChecked);
     };
 
@@ -117,35 +124,40 @@ export const SwitchRoot = forwardRef<HTMLButtonElement, SwitchRootProps>(
       if (event.currentTarget instanceof HTMLButtonElement) return;
       if (event.key !== "Enter" && event.key !== " ") return;
       event.preventDefault();
-      if (disabled || readOnly) return;
+      if (isDisabled || isReadOnly) return;
       setIsChecked((currentChecked) => !currentChecked);
     };
+    const reset = useCallback(() => setIsChecked(defaultChecked), [defaultChecked, setIsChecked]);
+    useFormReset(inputRef, form, checked !== undefined, reset);
 
     const contextValue = useMemo(
       () => ({
         checked: isChecked,
-        disabled,
-        readOnly,
-        invalid,
-        required: Boolean(required),
+        disabled: isDisabled,
+        readOnly: isReadOnly,
+        invalid: isInvalid,
+        required: isRequired,
       }),
-      [disabled, invalid, isChecked, readOnly, required],
+      [isDisabled, isInvalid, isChecked, isReadOnly, isRequired],
     );
 
     // Native props pass through first; Atom-owned behavior props below stay authoritative.
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref,
+      id: restProps.id ?? field?.controlId,
       type: "button",
       role: "switch",
       "aria-checked": isChecked,
-      ...(ariaLabel !== undefined && { "aria-label": ariaLabel }),
-      "aria-required": required || undefined,
-      tabIndex: disabled ? undefined : 0,
-      ...(disabled && { disabled: true, "data-disabled": "" }),
-      ...(readOnly && { "aria-readonly": true, "data-readonly": "" }),
-      ...(invalid && { "aria-invalid": true, "data-invalid": "" }),
-      ...(required && { "data-required": "" }),
+      "aria-describedby": Object.prototype.hasOwnProperty.call(restProps, "aria-describedby")
+        ? restProps["aria-describedby"]
+        : field?.describedBy,
+      "aria-required": restProps["aria-required"] ?? (isRequired || undefined),
+      tabIndex: isDisabled ? undefined : 0,
+      ...(isDisabled && { disabled: true, "data-disabled": "" }),
+      ...(isReadOnly && { "aria-readonly": true, "data-readonly": "" }),
+      ...(isInvalid && { "aria-invalid": true, "data-invalid": "" }),
+      ...(isRequired && { "data-required": "" }),
       "data-state": isChecked ? "checked" : "unchecked",
       "data-slot": dataSlot,
       onClick: composeEventHandlers(onClick, handleClick),
@@ -162,6 +174,7 @@ export const SwitchRoot = forwardRef<HTMLButtonElement, SwitchRootProps>(
         {rootElement}
         {name !== undefined ? (
           <input
+            ref={inputRef}
             type="checkbox"
             aria-hidden="true"
             tabIndex={-1}
@@ -169,8 +182,8 @@ export const SwitchRoot = forwardRef<HTMLButtonElement, SwitchRootProps>(
             value={value}
             form={form}
             checked={isChecked}
-            disabled={disabled}
-            required={required}
+            disabled={isDisabled}
+            required={isRequired}
             readOnly
             style={hiddenInputStyle}
           />

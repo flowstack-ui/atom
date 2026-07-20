@@ -1,8 +1,9 @@
 # Rating Changelog
 
-## Unreleased
+## 0.5.0
 
-- No unreleased changes.
+- Added Field state, generated ID, label, and description integration plus
+  uncontrolled form reset behavior.
 
 ## 0.2.0
 

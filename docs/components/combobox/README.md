@@ -89,8 +89,10 @@ adds an accessibility-hidden input containing the selected value.
 | `name` | `string` | - |
 | `form` | `string` | - |
 
-The hidden input receives `name`, `form`, value, and disabled state. Root does
-not attach native `required` validation to that hidden input.
+The hidden value input receives `name`, `form`, value, and disabled state. The
+visible Input receives Field state, the generated control ID, Field label and
+description relationships, and external form association. Uncontrolled value,
+input text, and open state return to their defaults on native form reset.
 
 ### Label
 

@@ -56,8 +56,6 @@ export interface CheckboxGroupItemProps extends CheckboxGroupItemNativeProps {
   name?: string;
   /** Associates this item's hidden input with a form by ID. Defaults to the group form. */
   form?: string;
-  /** Accessible label when no visible label is provided. */
-  ariaLabel?: string;
   /** Override the rendered element. */
   render?: RenderProp;
   /** Merge behavior props onto a single child element. */
@@ -80,7 +78,6 @@ export const CheckboxGroupItem = forwardRef<HTMLButtonElement, CheckboxGroupItem
       required,
       name,
       form,
-      ariaLabel,
       render,
       asChild,
       children,
@@ -132,7 +129,6 @@ export const CheckboxGroupItem = forwardRef<HTMLButtonElement, CheckboxGroupItem
       type: "button",
       role: "checkbox",
       "aria-checked": isChecked,
-      ...(ariaLabel !== undefined && { "aria-label": ariaLabel }),
       "aria-disabled": isDisabled || undefined,
       "aria-required": isRequired || undefined,
       ...(isReadOnly && { "aria-readonly": true }),
