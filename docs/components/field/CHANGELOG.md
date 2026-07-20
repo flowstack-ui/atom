@@ -1,5 +1,10 @@
 # Field Changelog
 
+## 0.5.1
+
+- Made Root `asChild` inspect the composed wrapper's immediate children so
+  Description and visible Error relationships remain present in server markup.
+
 ## 0.5.0
 
 - Added server-stable Description/Error relationships with hydration-safe

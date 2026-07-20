@@ -18,6 +18,8 @@ state or description/error wiring is needed.
 - Supports built-in or separately composed required/optional indicators.
 - Exposes layout orientation as metadata without applying layout.
 - Supports custom parts through public context hooks.
+- Preserves server relationships when Root composes one wrapper with
+  `asChild`.
 
 ## Import
 
@@ -196,6 +198,22 @@ export function NicknameField() {
     </Field.Root>
   );
 }
+```
+
+### Composed Root
+
+`asChild` composes Root state and props onto one wrapper. Put Label, the
+Field-aware control, Description, and Error directly inside that wrapper so
+their generated relationships are present in server markup.
+
+```tsx
+<Field.Root asChild id="email">
+  <section>
+    <Field.Label>Email</Field.Label>
+    <Input.Root name="email" />
+    <Field.Description>Use a work address.</Field.Description>
+  </section>
+</Field.Root>
 ```
 
 ## Accessibility

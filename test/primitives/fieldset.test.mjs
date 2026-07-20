@@ -87,3 +87,39 @@ test("FieldsetLegend asChild preserves indicators and supports optional marker",
   assert.match(requiredHtml, /Notifications<span aria-hidden="true" data-slot="fieldset-required-indicator"> \*<\/span>/);
   assert.match(optionalHtml, /Billing<span data-slot="fieldset-optional-indicator"> \(optional\)<\/span>/);
 });
+
+test("FieldsetRoot asChild inspects the composed fieldset children during server render", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Fieldset.Root,
+      {
+        asChild: true,
+        id: "notification-methods",
+        invalid: true,
+        className: "brick-fieldset",
+      },
+      React.createElement(
+        "fieldset",
+        { className: "consumer-fieldset" },
+        React.createElement(Fieldset.Legend, null, "Notification methods"),
+        React.createElement(
+          Fieldset.Description,
+          null,
+          "Choose at least one.",
+        ),
+        React.createElement(Fieldset.Error, null, "Selection required."),
+      ),
+    ),
+  );
+
+  assert.match(html, /^<fieldset/);
+  assert.match(html, /class="consumer-fieldset brick-fieldset"/);
+  assert.match(html, /data-slot="fieldset"/);
+  assert.match(html, /id="notification-methods-legend"/);
+  assert.match(
+    html,
+    /aria-describedby="notification-methods-description notification-methods-error"/,
+  );
+  assert.match(html, /id="notification-methods-description"/);
+  assert.match(html, /id="notification-methods-error"/);
+});

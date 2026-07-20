@@ -1,6 +1,11 @@
 import { JSDOM } from "jsdom";
-import { createRoot } from "react-dom/client";
-import { assert, test, React } from "../test-utils.mjs";
+import { createRoot, hydrateRoot } from "react-dom/client";
+import {
+  assert,
+  test,
+  React,
+  renderToStaticMarkup,
+} from "../test-utils.mjs";
 
 import {
   Checkbox,
@@ -173,6 +178,91 @@ test("Field relationships survive hydration and conditional error removal", asyn
     assert.equal(container.querySelector('[data-slot="field-error"]'), null);
   } finally {
     await React.act(async () => root.unmount());
+    cleanup();
+  }
+});
+
+test("asChild Field and Fieldset relationships survive hydration and conditional errors", async () => {
+  const { container, cleanup } = installDom();
+  let root;
+
+  function Example({ invalid }) {
+    return React.createElement(
+      React.Fragment,
+      null,
+      React.createElement(
+        Field.Root,
+        { asChild: true, id: "account-email", invalid },
+        React.createElement(
+          "section",
+          null,
+          React.createElement(Field.Label, null, "Email"),
+          React.createElement(Input.Root, { name: "email" }),
+          React.createElement(Field.Description, null, "Use a work address."),
+          React.createElement(Field.Error, null, "Invalid address."),
+        ),
+      ),
+      React.createElement(
+        Fieldset.Root,
+        { asChild: true, id: "topics", invalid },
+        React.createElement(
+          "fieldset",
+          null,
+          React.createElement(Fieldset.Legend, null, "Topics"),
+          React.createElement(Fieldset.Description, null, "Choose topics."),
+          React.createElement(
+            CheckboxGroup.Root,
+            { name: "topics" },
+            React.createElement(CheckboxGroup.Item, { value: "news" }, "News"),
+          ),
+          React.createElement(Fieldset.Error, null, "Choose a topic."),
+        ),
+      ),
+    );
+  }
+
+  try {
+    container.innerHTML = renderToStaticMarkup(
+      React.createElement(Example, { invalid: true }),
+    );
+
+    const input = container.querySelector('input[name="email"]');
+    const group = container.querySelector('[data-slot="checkbox-group"]');
+    assert.equal(
+      input.getAttribute("aria-describedby"),
+      "account-email-description account-email-error",
+    );
+    assert.equal(
+      group.getAttribute("aria-describedby"),
+      "topics-description topics-error",
+    );
+    assert.equal(group.getAttribute("aria-labelledby"), "topics-legend");
+
+    await React.act(async () => {
+      root = hydrateRoot(
+        container,
+        React.createElement(Example, { invalid: true }),
+      );
+    });
+
+    assert.equal(
+      input.getAttribute("aria-describedby"),
+      "account-email-description account-email-error",
+    );
+    assert.equal(
+      group.getAttribute("aria-describedby"),
+      "topics-description topics-error",
+    );
+
+    await React.act(async () => {
+      root.render(React.createElement(Example, { invalid: false }));
+    });
+
+    assert.equal(input.getAttribute("aria-describedby"), "account-email-description");
+    assert.equal(group.getAttribute("aria-describedby"), "topics-description");
+    assert.equal(container.querySelectorAll('[data-slot$="-error"]').length, 0);
+  } finally {
+    if (root) await React.act(async () => root.unmount());
     cleanup();
   }
 });

@@ -12,7 +12,8 @@ validation; combine it with Field and your application validation.
 
 React function actions keep React's native action contract. Read their pending
 state with `useFormStatus`; Atom's `data-submitting` describes only the optional
-Atom callback/validation path. Rejected callbacks remain observable.
+Atom callback/validation path. Rejected callbacks remain observable and are
+rethrown after Atom clears its callback submission state.
 
 ## Features
 
@@ -59,7 +60,8 @@ Async validation always prevents default navigation so validation can finish.
 A synchronous `false` result also prevents submission and marks the Form
 invalid. For an async `onSubmit` without async validation, set
 `preventDefaultOnSubmit` when browser navigation is not wanted. Rejected submit
-handlers leave submitted state false; the error is not rethrown by Form.
+handlers leave submitted state false and rethrow the error so the application
+or framework can observe it.
 
 | Data attribute | Values |
 | --- | --- |

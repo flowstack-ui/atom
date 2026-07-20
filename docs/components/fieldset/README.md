@@ -18,6 +18,8 @@ group represents.
 - Exposes required and invalid group state without invalid `aria-required` usage.
 - Supports required and optional legend indicators.
 - Exposes public optional and required context hooks.
+- Preserves server relationships when Root composes one fieldset wrapper with
+  `asChild`.
 
 ## Import
 
@@ -163,6 +165,11 @@ Legend supplies the group name, native `disabled` disables descendant controls,
 and Root references its supporting messages. Required state is not valid on a
 fieldset through `aria-required`, so communicate it in the Legend and apply
 required semantics to the actual controls. Fieldset owns no keyboard behavior.
+
+When Root uses `asChild`, the composed element must remain a native `fieldset`
+and forward Atom props and the ref. Keep Legend, Description, and Error direct
+children of that element so their generated server relationships remain
+deterministic.
 
 ## Changelog
 

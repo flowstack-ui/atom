@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   forwardRef,
+  isValidElement,
   useId,
   useMemo,
   useState,
@@ -55,7 +56,11 @@ export const FieldRoot = forwardRef<HTMLDivElement, FieldRootProps>(
     const labelId = `${baseId}-label`;
     const descriptionId = `${baseId}-description`;
     const errorId = `${baseId}-error`;
-    const visibleParts = getFieldPartPresence(children, invalid);
+    const relationshipChildren =
+      asChild && isValidElement<{ children?: ReactNode }>(children)
+        ? children.props.children
+        : children;
+    const visibleParts = getFieldPartPresence(relationshipChildren, invalid);
     const [partCounts, setPartCounts] = useState({ description: 0, error: 0 });
     const [partRegistryReady, setPartRegistryReady] = useState(false);
     const hasDescription = partRegistryReady
