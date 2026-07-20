@@ -1,5 +1,10 @@
 # Field Changelog
 
+## 0.5.2
+
+- Added `markFieldPart` for styled Description and Error wrappers that must
+  remain statically discoverable during server rendering.
+
 ## 0.5.1
 
 - Made Root `asChild` inspect the composed wrapper's immediate children so

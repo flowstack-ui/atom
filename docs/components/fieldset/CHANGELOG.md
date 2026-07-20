@@ -1,5 +1,10 @@
 # Fieldset Changelog
 
+## 0.5.2
+
+- Added `markFieldsetPart` for styled Legend, Description, and Error wrappers
+  that must remain statically discoverable during server rendering.
+
 ## 0.5.1
 
 - Made Root `asChild` inspect the composed fieldset's immediate children so

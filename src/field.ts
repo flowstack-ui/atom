@@ -15,6 +15,7 @@ export {
   FieldLabel,
   FieldRequiredIndicator,
   FieldRoot,
+  markFieldPart,
   useFieldContext,
   useRequiredFieldContext,
 } from "./primitives/field/index.js";
@@ -24,6 +25,7 @@ export type {
   FieldErrorProps,
   FieldLabelProps,
   FieldOrientation,
+  FieldPartKind,
   FieldRequiredIndicatorProps,
   FieldRootProps,
 } from "./primitives/field/index.js";

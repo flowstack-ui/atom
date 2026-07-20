@@ -19,13 +19,31 @@ export interface FieldsetPartPresence {
   error: boolean;
 }
 
-/** @internal Marks a semantic Fieldset part for deterministic server inspection. */
-export function markFieldsetPart(component: object, kind: FieldsetPartKind): void {
+/**
+ * Marks a public wrapper as a semantic Fieldset part for deterministic server
+ * inspection. Call once at module scope after creating a wrapper around the
+ * matching Atom part.
+ */
+export function markFieldsetPart<T extends object>(
+  component: T,
+  kind: FieldsetPartKind,
+): T {
+  const existingKind = (component as MarkedFieldsetPart)[FIELDSET_PART];
+  if (existingKind !== undefined) {
+    if (existingKind !== kind) {
+      throw new Error(
+        `Fieldset part is already marked as ${existingKind}; it cannot be marked as ${kind}.`,
+      );
+    }
+    return component;
+  }
+
   Object.defineProperty(component, FIELDSET_PART, {
     configurable: false,
     enumerable: false,
     value: kind,
   });
+  return component;
 }
 
 /** Inspects statically visible direct children, arrays, and fragments. */

@@ -419,6 +419,7 @@ export {
   FieldLabel,
   FieldRequiredIndicator,
   FieldRoot,
+  markFieldPart,
   useFieldContext,
   useRequiredFieldContext,
 } from "./primitives/field/index.js";
@@ -428,6 +429,7 @@ export type {
   FieldErrorProps,
   FieldLabelProps,
   FieldOrientation,
+  FieldPartKind,
   FieldRequiredIndicatorProps,
   FieldRootProps,
 } from "./primitives/field/index.js";
@@ -437,6 +439,7 @@ export {
   FieldsetError,
   FieldsetLegend,
   FieldsetRoot,
+  markFieldsetPart,
   useFieldsetContext,
   useRequiredFieldsetContext,
 } from "./primitives/fieldset/index.js";
@@ -446,6 +449,7 @@ export type {
   FieldsetErrorProps,
   FieldsetLegendProps,
   FieldsetRootProps,
+  FieldsetPartKind,
 } from "./primitives/fieldset/index.js";
 export {
   FeedContextProvider,

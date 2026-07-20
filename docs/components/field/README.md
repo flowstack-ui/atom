@@ -39,6 +39,7 @@ import { Field } from "@flowstack-ui/atom";
 
 useFieldContext()
 useRequiredFieldContext()
+markFieldPart()
 ```
 
 ## API Reference
@@ -159,6 +160,26 @@ Returns Field state and generated relationships, or `null` outside Root.
 
 Returns the same context but throws when used outside Root. Use it for a custom
 part that cannot function without Field.
+
+### markFieldPart
+
+Marks a styled public wrapper around `Field.Description` or `Field.Error` so
+Root can include that wrapper in deterministic server-rendered relationships.
+Call it once at module scope after creating the wrapper. The wrapper must
+render the matching Atom part and forward its props and ref.
+
+```tsx
+const StyledDescription = markFieldPart(
+  forwardRef<HTMLParagraphElement, FieldDescriptionProps>((props, ref) => (
+    <Field.Description {...props} className="description" ref={ref} />
+  )),
+  "description",
+);
+```
+
+Calling it again with the same kind is safe. Marking one component as two
+different semantic kinds throws so server inspection cannot silently use the
+wrong relationship.
 
 ## Examples
 

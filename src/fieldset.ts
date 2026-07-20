@@ -13,6 +13,7 @@ export {
   FieldsetError,
   FieldsetLegend,
   FieldsetRoot,
+  markFieldsetPart,
   useFieldsetContext,
   useRequiredFieldsetContext,
 } from "./primitives/fieldset/index.js";
@@ -22,6 +23,7 @@ export type {
   FieldsetErrorProps,
   FieldsetLegendProps,
   FieldsetRootProps,
+  FieldsetPartKind,
 } from "./primitives/fieldset/index.js";
 
 export const Fieldset = {
