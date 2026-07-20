@@ -1,5 +1,11 @@
 # Fieldset Changelog
 
+## 0.5.1
+
+- Made Root `asChild` inspect the composed fieldset's immediate children so
+  Legend, Description, and visible Error relationships remain present in
+  server markup.
+
 ## 0.5.0
 
 - Added a stable Legend ID plus server-stable Description/Error relationships.

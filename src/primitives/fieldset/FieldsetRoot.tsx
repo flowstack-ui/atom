@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   forwardRef,
+  isValidElement,
   useId,
   useMemo,
   useState,
@@ -49,7 +50,14 @@ export const FieldsetRoot = forwardRef<HTMLFieldSetElement, FieldsetRootProps>(
     const legendId = `${baseId}-legend`;
     const descriptionId = `${baseId}-description`;
     const errorId = `${baseId}-error`;
-    const visibleParts = getFieldsetPartPresence(children, invalid);
+    const relationshipChildren =
+      asChild && isValidElement<{ children?: ReactNode }>(children)
+        ? children.props.children
+        : children;
+    const visibleParts = getFieldsetPartPresence(
+      relationshipChildren,
+      invalid,
+    );
     const [partCounts, setPartCounts] = useState({ legend: 0, description: 0, error: 0 });
     const [partRegistryReady, setPartRegistryReady] = useState(false);
     const hasLegend = partRegistryReady ? partCounts.legend > 0 : visibleParts.legend;

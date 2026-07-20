@@ -1,5 +1,11 @@
 # Atom Changelog
 
+## 0.5.1
+
+- Preserved server-rendered Field and Fieldset semantic-part relationships when
+  Root composes one consumer wrapper through `asChild`, and corrected Form
+  guidance to match observable rethrown callback failures.
+
 ## 0.5.0
 
 - Reworked the form foundation so Field and Fieldset relationships are stable

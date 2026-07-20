@@ -84,6 +84,38 @@ test("FieldLabel asChild preserves behavior props and indicator content", () => 
   assert.match(html, /Name<span aria-hidden="true" data-slot="field-required-indicator"> \*<\/span>/);
 });
 
+test("FieldRoot asChild inspects the composed element children during server render", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Field.Root,
+      {
+        asChild: true,
+        id: "profile-email",
+        invalid: true,
+        className: "brick-field",
+      },
+      React.createElement(
+        "section",
+        { className: "consumer-field" },
+        React.createElement(Field.Label, null, "Email"),
+        React.createElement(Input.Root, { name: "email" }),
+        React.createElement(Field.Description, null, "Use a work address."),
+        React.createElement(Field.Error, null, "Invalid address."),
+      ),
+    ),
+  );
+
+  assert.match(html, /^<section/);
+  assert.match(html, /class="consumer-field brick-field"/);
+  assert.match(html, /data-slot="field"/);
+  assert.match(
+    html,
+    /aria-describedby="profile-email-description profile-email-error"/,
+  );
+  assert.match(html, /id="profile-email-description"/);
+  assert.match(html, /id="profile-email-error"/);
+});
+
 test("FieldError match only accepts boolean visibility control", () => {
   const html = renderToStaticMarkup(
     React.createElement(
