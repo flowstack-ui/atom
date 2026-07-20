@@ -61,7 +61,6 @@ Owns the selected values and the state shared by every Item. It renders a
 | `aria-label` | Native value when provided |
 | `aria-labelledby` | Native value or inherited Fieldset Legend ID |
 | `aria-describedby` | Native value or inherited Fieldset messages |
-| `aria-required` | `"true"` when required |
 | `aria-readonly` | `"true"` when read only |
 | `aria-invalid` | `"true"` when invalid |
 
@@ -72,6 +71,7 @@ Owns the selected values and the state shared by every Item. It renders a
 | `[data-disabled]` | Present when disabled |
 | `[data-readonly]` | Present when read only |
 | `[data-invalid]` | Present when invalid |
+| `[data-required]` | Present when required |
 
 ### Item
 
@@ -113,7 +113,9 @@ form submission.
 Each item input is `aria-hidden`, removed from the tab order, and receives
 `name`, `value`, `form`, checked, disabled, and read-only state. `required`
 adds one group-level native validity control, so at least one item—not every
-item—must be checked.
+item—must be checked. Root does not emit `aria-required` because ARIA does not
+permit that property on `role="group"`; required state remains exposed on the
+checkbox items, through `[data-required]`, and through native form validity.
 
 ## Examples
 

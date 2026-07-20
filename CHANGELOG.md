@@ -1,5 +1,11 @@
 # Atom Changelog
 
+## 0.5.3
+
+- Removed invalid `aria-required` output from CheckboxGroup Root while
+  preserving item semantics, required data state, and one-or-more native form
+  validity.
+
 ## 0.5.2
 
 - Added public Field and Fieldset semantic-part marking for styled wrapper

@@ -1,5 +1,10 @@
 # CheckboxGroup Changelog
 
+## 0.5.3
+
+- Removed `aria-required` from Root because `role="group"` does not support
+  that property; required items, data state, and native validity remain intact.
+
 ## 0.5.0
 
 - Added Fieldset naming/state/description integration and native one-or-more
