@@ -546,13 +546,26 @@ export type {
 } from "./primitives/listbox/index.js";
 export {
   CheckboxGroupItem,
+  CheckboxGroupItemDescription,
+  CheckboxGroupItemLabel,
+  CheckboxGroupItemContextProvider,
+  CheckboxGroupParent,
   CheckboxGroupContextProvider,
   CheckboxGroupRoot,
+  getCheckboxGroupItemPartPresence,
+  markCheckboxGroupItemPart,
   useCheckboxGroupContext,
+  useCheckboxGroupItemContext,
 } from "./primitives/checkbox-group/index.js";
 export type {
   CheckboxGroupContextValue,
+  CheckboxGroupItemContextValue,
+  CheckboxGroupItemDescriptionProps,
+  CheckboxGroupItemLabelProps,
+  CheckboxGroupItemPartKind,
+  CheckboxGroupItemPartPresence,
   CheckboxGroupItemProps,
+  CheckboxGroupParentProps,
   CheckboxGroupRootProps,
 } from "./primitives/checkbox-group/index.js";
 export {

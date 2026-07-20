@@ -1,10 +1,34 @@
 # Release Readiness Audit
 
-Last candidate audit: 2026-07-19
+Last candidate audit: 2026-07-20
 
 The original `0.2.0` published-release audit remains below as a historical
 baseline. The current release outcome records the Tooltip patch published in
 `0.3.5`.
+
+## 0.6.0 CheckboxGroup Release Outcome - 2026-07-20
+
+Status: pass; `0.6.0` is published under npm `latest`. Owner manual protocol
+and physical workbook evidence remain open and are not represented as passed.
+
+This backward-compatible feature release adds Root `allValues`, deterministic
+Parent unchecked/mixed/checked state, structured ItemLabel and ItemDescription
+relationships, and public semantic wrapper marking. Existing Root/Item groups
+without Parent remain valid.
+
+The candidate passes 410 package tests, all 67 JavaScript and declaration
+export targets, the playground production build, a verified 1,967-file archive
+at 459,965 compressed bytes, and clean packed consumers with React and React
+DOM 18.3.1 and 19.2.7. The
+focused manual protocol is drafted but has not been represented as passed. The
+physical coverage workbook is likewise unchanged until the approved spreadsheet
+artifact runtime is available and owner evidence exists.
+
+The exact publish candidate is `flowstack-ui-atom-0.6.0.tgz`, with npm SHA-1
+`bd6953dca6fae5ef1cd2173222ce9358dea1bf67` and integrity
+`sha512-ER+BDMWpmVTV9X+sFlOA9EnrGCTtOU6fjIvpHoY9IsOetMdbpHu9W00tRJ93ZbYTi8fqEO8dILOkWFCRQ7lmPg==`.
+The npm registry reports the same SHA-1 and SHA-512 integrity, and its `latest`
+dist-tag resolves to `0.6.0`.
 
 ## 0.3.5 Tooltip Release Outcome - 2026-07-19
 

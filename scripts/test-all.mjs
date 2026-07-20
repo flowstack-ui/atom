@@ -13,6 +13,7 @@ function run(command, args) {
     env: {
       ...process.env,
       npm_config_audit: "false",
+      npm_config_cache: resolve(archiveDirectory, "npm-cache"),
       npm_config_fund: "false",
     },
     stdio: "inherit",

@@ -1,5 +1,10 @@
 # Checkbox Changelog
 
+## 0.6.0
+
+- Exposed `aria-disabled="true"` consistently on disabled Root composition,
+  including non-button `asChild` and `render` targets.
+
 ## 0.5.0
 
 - Added Field state, generated control ID, and description integration; removed

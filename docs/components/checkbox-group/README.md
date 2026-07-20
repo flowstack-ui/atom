@@ -15,6 +15,10 @@ important, consider native `fieldset` and `legend` around the group.
 - Supports controlled and uncontrolled arrays of selected values.
 - Shares disabled, required, read-only, invalid, name, and form state.
 - Allows each Item to override shared state where supported.
+- Provides deterministic Parent/select-all state from an explicit complete
+  value set.
+- Provides structured ItemLabel and ItemDescription relationships while
+  preserving plain Item children.
 - Creates a hidden checkbox input per named Item for form submission.
 - Supports vertical and horizontal metadata without imposing layout.
 - Preserves native button props and custom composition.
@@ -29,7 +33,11 @@ import { CheckboxGroup } from "@flowstack-ui/atom";
 
 ```tsx
 <CheckboxGroup.Root>
-  <CheckboxGroup.Item />
+  <CheckboxGroup.Parent />
+  <CheckboxGroup.Item>
+    <CheckboxGroup.ItemLabel />
+    <CheckboxGroup.ItemDescription />
+  </CheckboxGroup.Item>
 </CheckboxGroup.Root>
 ```
 
@@ -45,6 +53,7 @@ Owns the selected values and the state shared by every Item. It renders a
 | `value` | `string[]` | - |
 | `defaultValue` | `string[]` | `[]` |
 | `onValueChange` | `(value: string[]) => void` | - |
+| `allValues` | `string[]` | - |
 | `name` | `string` | - |
 | `form` | `string` | - |
 | `disabled` | `boolean` | `false` |
@@ -72,6 +81,12 @@ Owns the selected values and the state shared by every Item. It renders a
 | `[data-readonly]` | Present when read only |
 | `[data-invalid]` | Present when invalid |
 | `[data-required]` | Present when required |
+
+`allValues` is the explicit complete selectable value set used by Parent. It
+is optional for groups without Parent. Duplicate values are normalized in
+first-occurrence order. Omit an individually disabled Item's value while it is
+disabled so Parent controls only currently selectable Items; selected values
+outside the declared set are preserved.
 
 ### Item
 
@@ -117,6 +132,40 @@ item—must be checked. Root does not emit `aria-required` because ARIA does not
 permit that property on `role="group"`; required state remains exposed on the
 checkbox items, through `[data-required]`, and through native form validity.
 
+Plain Item children provide the accessible name from button content. For a
+structured choice, nest ItemLabel and ItemDescription. Item then receives
+stable `aria-labelledby` and `aria-describedby` relationships in server markup
+and after hydration. Explicit native ARIA props take precedence.
+
+### ItemLabel
+
+Renders a `span` that provides the structured accessible name for its Item.
+It supports native span props, ref, `asChild`, and `render`, and exposes
+`data-slot="checkbox-group-item-label"`. Its relationship ID is owned by Item
+so it always matches Item's generated `aria-labelledby` value.
+
+### ItemDescription
+
+Renders a `span` that provides additional described-by content for its Item.
+It supports native span props, ref, `asChild`, and `render`, and exposes
+`data-slot="checkbox-group-item-description"`. Its relationship ID is owned by
+Item so it always matches Item's generated `aria-describedby` value.
+
+### Parent
+
+Renders an aggregate checkbox button. Parent requires `allValues` on Root so
+its checked, mixed, and unchecked state is correct during server rendering.
+Activating an unchecked or mixed Parent selects every declared value;
+activating a checked Parent clears the declared values. Selected values outside
+the declared set are preserved.
+
+Parent inherits group disabled, read-only, and invalid state. It does not
+render a named input and never contributes its own form value. Compose
+`Checkbox.Indicator` inside it when a visual layer needs state content. Parent
+accepts Checkbox Root's native button, ref, `asChild`, and `render` surface
+except controlled state and form-value props, which are group-owned. It exposes
+`data-slot="checkbox-group-parent"` and the normal Checkbox state attributes.
+
 ## Examples
 
 ### Notification Methods
@@ -132,6 +181,39 @@ export function NotificationMethods() {
       aria-label="Notification methods"
     >
       <CheckboxGroup.Item value="email">Email</CheckboxGroup.Item>
+      <CheckboxGroup.Item value="sms">Text message</CheckboxGroup.Item>
+      <CheckboxGroup.Item value="push">Push notification</CheckboxGroup.Item>
+    </CheckboxGroup.Root>
+  );
+}
+```
+
+### Select All and Structured Items
+
+```tsx
+import { Checkbox, CheckboxGroup } from "@flowstack-ui/atom";
+
+const methods = ["email", "sms", "push"];
+
+export function CompleteNotificationMethods() {
+  return (
+    <CheckboxGroup.Root
+      allValues={methods}
+      defaultValue={["email"]}
+      name="notifications"
+      aria-label="Notification methods"
+    >
+      <CheckboxGroup.Parent>
+        <Checkbox.Indicator />
+        Select all
+      </CheckboxGroup.Parent>
+      <CheckboxGroup.Item value="email">
+        <Checkbox.Indicator />
+        <CheckboxGroup.ItemLabel>Email</CheckboxGroup.ItemLabel>
+        <CheckboxGroup.ItemDescription>
+          Recommended for account notices.
+        </CheckboxGroup.ItemDescription>
+      </CheckboxGroup.Item>
       <CheckboxGroup.Item value="sms">Text message</CheckboxGroup.Item>
       <CheckboxGroup.Item value="push">Push notification</CheckboxGroup.Item>
     </CheckboxGroup.Root>
@@ -169,6 +251,10 @@ Root names and groups the choices, while each Item follows the
 Provide a concise group name with native `aria-label`/`aria-labelledby`, or
 nest the group under Fieldset so its Legend and messages are inherited.
 Disabled and read-only items cannot change value.
+
+Parent follows the APG mixed-checkbox model. Structured Item parts keep the
+visible name and supporting description separately addressable. Plain Item
+children remain appropriate for concise options.
 
 | Key | Description |
 | --- | --- |
