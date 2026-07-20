@@ -15,6 +15,8 @@ import {
   Input,
   RadioGroup,
   Switch,
+  markFieldPart,
+  markFieldsetPart,
 } from "../../dist/index.js";
 
 function installDom() {
@@ -261,6 +263,119 @@ test("asChild Field and Fieldset relationships survive hydration and conditional
     assert.equal(input.getAttribute("aria-describedby"), "account-email-description");
     assert.equal(group.getAttribute("aria-describedby"), "topics-description");
     assert.equal(container.querySelectorAll('[data-slot$="-error"]').length, 0);
+  } finally {
+    if (root) await React.act(async () => root.unmount());
+    cleanup();
+  }
+});
+
+test("marked styled parts keep server relationships through hydration", async () => {
+  const { container, cleanup } = installDom();
+  let root;
+  const StyledDescription = markFieldPart(
+    React.forwardRef((props, ref) => React.createElement(Field.Description, {
+      ...props,
+      className: "styled-field-description",
+      ref,
+    })),
+    "description",
+  );
+  const StyledError = markFieldPart(
+    React.forwardRef((props, ref) => React.createElement(Field.Error, {
+      ...props,
+      className: "styled-field-error",
+      ref,
+    })),
+    "error",
+  );
+  const StyledLegend = markFieldsetPart(
+    React.forwardRef((props, ref) => React.createElement(Fieldset.Legend, {
+      ...props,
+      className: "styled-fieldset-legend",
+      ref,
+    })),
+    "legend",
+  );
+  const StyledFieldsetDescription = markFieldsetPart(
+    React.forwardRef((props, ref) => React.createElement(Fieldset.Description, {
+      ...props,
+      className: "styled-fieldset-description",
+      ref,
+    })),
+    "description",
+  );
+  const StyledFieldsetError = markFieldsetPart(
+    React.forwardRef((props, ref) => React.createElement(Fieldset.Error, {
+      ...props,
+      className: "styled-fieldset-error",
+      ref,
+    })),
+    "error",
+  );
+
+  function Example({ invalid }) {
+    return React.createElement(
+      React.Fragment,
+      null,
+      React.createElement(
+        Field.Root,
+        { id: "styled-email", invalid },
+        React.createElement(Field.Label, null, "Email"),
+        React.createElement(Input.Root, { name: "email" }),
+        React.createElement(StyledDescription, null, "Use a work address."),
+        React.createElement(StyledError, null, "Invalid address."),
+      ),
+      React.createElement(
+        Fieldset.Root,
+        { id: "styled-topics", invalid },
+        React.createElement(StyledLegend, null, "Topics"),
+        React.createElement(StyledFieldsetDescription, null, "Choose topics."),
+        React.createElement(
+          CheckboxGroup.Root,
+          { name: "topics" },
+          React.createElement(CheckboxGroup.Item, { value: "news" }, "News"),
+        ),
+        React.createElement(StyledFieldsetError, null, "Choose a topic."),
+      ),
+    );
+  }
+
+  try {
+    container.innerHTML = renderToStaticMarkup(
+      React.createElement(Example, { invalid: true }),
+    );
+
+    const input = container.querySelector('input[name="email"]');
+    const group = container.querySelector('[data-slot="checkbox-group"]');
+    assert.equal(
+      input.getAttribute("aria-describedby"),
+      "styled-email-description styled-email-error",
+    );
+    assert.equal(group.getAttribute("aria-labelledby"), "styled-topics-legend");
+    assert.equal(
+      group.getAttribute("aria-describedby"),
+      "styled-topics-description styled-topics-error",
+    );
+
+    await React.act(async () => {
+      root = hydrateRoot(container, React.createElement(Example, { invalid: true }));
+    });
+
+    assert.equal(
+      input.getAttribute("aria-describedby"),
+      "styled-email-description styled-email-error",
+    );
+    assert.equal(
+      group.getAttribute("aria-describedby"),
+      "styled-topics-description styled-topics-error",
+    );
+
+    await React.act(async () => {
+      root.render(React.createElement(Example, { invalid: false }));
+    });
+
+    assert.equal(input.getAttribute("aria-describedby"), "styled-email-description");
+    assert.equal(group.getAttribute("aria-describedby"), "styled-topics-description");
   } finally {
     if (root) await React.act(async () => root.unmount());
     cleanup();

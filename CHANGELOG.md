@@ -1,5 +1,11 @@
 # Atom Changelog
 
+## 0.5.2
+
+- Added public Field and Fieldset semantic-part marking for styled wrapper
+  libraries so generated naming and description relationships remain complete
+  in server markup and hydration.
+
 ## 0.5.1
 
 - Preserved server-rendered Field and Fieldset semantic-part relationships when

@@ -11,6 +11,7 @@ import {
   FieldsetError,
   FieldsetLegend,
   FieldsetRoot,
+  markFieldsetPart,
 } from "../../dist/index.js";
 
 test("Fieldset parts render native fieldset semantics and state data attributes", () => {
@@ -122,4 +123,59 @@ test("FieldsetRoot asChild inspects the composed fieldset children during server
   );
   assert.match(html, /id="notification-methods-description"/);
   assert.match(html, /id="notification-methods-error"/);
+});
+
+test("marked public Fieldset wrappers preserve server relationships", () => {
+  const StyledLegend = markFieldsetPart(
+    React.forwardRef(function StyledLegend(props, ref) {
+      return React.createElement(Fieldset.Legend, {
+        ...props,
+        className: `styled-legend ${props.className ?? ""}`.trim(),
+        ref,
+      });
+    }),
+    "legend",
+  );
+  const StyledDescription = markFieldsetPart(
+    React.forwardRef(function StyledDescription(props, ref) {
+      return React.createElement(Fieldset.Description, {
+        ...props,
+        className: `styled-description ${props.className ?? ""}`.trim(),
+        ref,
+      });
+    }),
+    "description",
+  );
+  const StyledError = markFieldsetPart(
+    React.forwardRef(function StyledError(props, ref) {
+      return React.createElement(Fieldset.Error, {
+        ...props,
+        className: `styled-error ${props.className ?? ""}`.trim(),
+        ref,
+      });
+    }),
+    "error",
+  );
+
+  assert.equal(markFieldsetPart(StyledLegend, "legend"), StyledLegend);
+  assert.throws(
+    () => markFieldsetPart(StyledLegend, "description"),
+    /already marked as legend/,
+  );
+
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Fieldset.Root,
+      { id: "styled-options", invalid: true },
+      React.createElement(StyledLegend, null, "Options"),
+      React.createElement(StyledDescription, null, "Choose one."),
+      React.createElement(StyledError, null, "Selection required."),
+    ),
+  );
+
+  assert.match(html, /class="styled-legend"/);
+  assert.match(
+    html,
+    /aria-describedby="styled-options-description styled-options-error"/,
+  );
 });

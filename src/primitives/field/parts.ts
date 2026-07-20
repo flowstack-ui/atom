@@ -18,13 +18,31 @@ export interface FieldPartPresence {
   error: boolean;
 }
 
-/** @internal Marks a semantic Field part for deterministic server inspection. */
-export function markFieldPart(component: object, kind: FieldPartKind): void {
+/**
+ * Marks a public wrapper as a semantic Field part for deterministic server
+ * inspection. Call once at module scope after creating a wrapper around the
+ * matching Atom part.
+ */
+export function markFieldPart<T extends object>(
+  component: T,
+  kind: FieldPartKind,
+): T {
+  const existingKind = (component as MarkedFieldPart)[FIELD_PART];
+  if (existingKind !== undefined) {
+    if (existingKind !== kind) {
+      throw new Error(
+        `Field part is already marked as ${existingKind}; it cannot be marked as ${kind}.`,
+      );
+    }
+    return component;
+  }
+
   Object.defineProperty(component, FIELD_PART, {
     configurable: false,
     enumerable: false,
     value: kind,
   });
+  return component;
 }
 
 /** Inspects statically visible direct children, arrays, and fragments. */

@@ -12,3 +12,5 @@ export { FieldsetLegend } from "./FieldsetLegend.js";
 export type { FieldsetLegendProps } from "./FieldsetLegend.js";
 export { FieldsetRoot } from "./FieldsetRoot.js";
 export type { FieldsetRootProps } from "./FieldsetRoot.js";
+export { markFieldsetPart } from "./parts.js";
+export type { FieldsetPartKind } from "./parts.js";

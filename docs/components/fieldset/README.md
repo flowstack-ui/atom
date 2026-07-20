@@ -38,6 +38,7 @@ import { Fieldset } from "@flowstack-ui/atom";
 
 useFieldsetContext()
 useRequiredFieldsetContext()
+markFieldsetPart()
 ```
 
 ## API Reference
@@ -130,6 +131,26 @@ Returns group state and generated relationships, or `null` outside Root.
 
 Returns the same context but throws outside Root. Use it for custom parts that
 require a Fieldset parent.
+
+### markFieldsetPart
+
+Marks a styled public wrapper around `Fieldset.Legend`,
+`Fieldset.Description`, or `Fieldset.Error` so Root can include that wrapper
+in deterministic server-rendered naming and description relationships. Call
+it once at module scope after creating the wrapper. The wrapper must render
+the matching Atom part and forward its props and ref.
+
+```tsx
+const StyledLegend = markFieldsetPart(
+  forwardRef<HTMLLegendElement, FieldsetLegendProps>((props, ref) => (
+    <Fieldset.Legend {...props} className="legend" ref={ref} />
+  )),
+  "legend",
+);
+```
+
+Calling it again with the same kind is safe. A conflicting semantic kind
+throws rather than producing a silently incorrect server relationship.
 
 ## Examples
 

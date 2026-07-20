@@ -17,3 +17,5 @@ export { FieldRequiredIndicator } from "./FieldRequiredIndicator.js";
 export type { FieldRequiredIndicatorProps } from "./FieldRequiredIndicator.js";
 export { FieldRoot } from "./FieldRoot.js";
 export type { FieldRootProps } from "./FieldRoot.js";
+export { markFieldPart } from "./parts.js";
+export type { FieldPartKind } from "./parts.js";

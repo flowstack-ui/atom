@@ -14,6 +14,7 @@ import {
   FieldRoot,
   Label,
   Input,
+  markFieldPart,
 } from "../../dist/index.js";
 
 test("Field parts render generated IDs and state data attributes", () => {
@@ -114,6 +115,53 @@ test("FieldRoot asChild inspects the composed element children during server ren
   );
   assert.match(html, /id="profile-email-description"/);
   assert.match(html, /id="profile-email-error"/);
+});
+
+test("marked public Field wrappers preserve server relationships", () => {
+  const StyledDescription = markFieldPart(
+    React.forwardRef(function StyledDescription(props, ref) {
+      return React.createElement(Field.Description, {
+        ...props,
+        className: `styled-description ${props.className ?? ""}`.trim(),
+        ref,
+      });
+    }),
+    "description",
+  );
+  const StyledError = markFieldPart(
+    React.forwardRef(function StyledError(props, ref) {
+      return React.createElement(Field.Error, {
+        ...props,
+        className: `styled-error ${props.className ?? ""}`.trim(),
+        ref,
+      });
+    }),
+    "error",
+  );
+
+  assert.equal(markFieldPart(StyledDescription, "description"), StyledDescription);
+  assert.throws(
+    () => markFieldPart(StyledDescription, "error"),
+    /already marked as description/,
+  );
+
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Field.Root,
+      { id: "styled-email", invalid: true },
+      React.createElement(Field.Label, null, "Email"),
+      React.createElement(Input.Root, { name: "email" }),
+      React.createElement(StyledDescription, null, "Use a work address."),
+      React.createElement(StyledError, null, "Invalid address."),
+    ),
+  );
+
+  assert.match(html, /class="styled-description"/);
+  assert.match(html, /class="styled-error"/);
+  assert.match(
+    html,
+    /aria-describedby="styled-email-description styled-email-error"/,
+  );
 });
 
 test("FieldError match only accepts boolean visibility control", () => {
