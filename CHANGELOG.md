@@ -1,5 +1,13 @@
 # Atom Changelog
 
+## 0.4.0
+
+- Added Popover `Title` and `Description` parts with generated visible naming
+  relationships, native ARIA naming, and no custom `ariaLabel` alias.
+- Added interaction-aware Popover initial/final focus targets, touch-safe
+  default focus, hover-without-focus-steal, and dismissal-aware restoration
+  that preserves outside destinations.
+
 ## 0.3.5
 
 - Corrected Tooltip touch sessions so stationary long press opens immediately

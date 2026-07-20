@@ -2,15 +2,64 @@
 
 import { createContext, useContext, type RefObject } from "react";
 import type { PopoverSide } from "./PopoverContent.js";
+import type { PopoverPartKind } from "./parts.js";
 
 export type PopoverTriggerMode = "click" | "hover";
+export type PopoverInteractionType =
+  | "keyboard"
+  | "mouse"
+  | "touch"
+  | "pen"
+  | "programmatic";
+export type PopoverOpenReason =
+  | "triggerClick"
+  | "triggerHover"
+  | "programmatic";
+export type PopoverCloseReason =
+  | "triggerClick"
+  | "hoverLeave"
+  | "escapeKeyDown"
+  | "closeClick"
+  | "interactOutside"
+  | "focusOutside"
+  | "programmatic";
+
+export interface PopoverInitialFocusDetails {
+  interactionType: PopoverInteractionType;
+  reason: PopoverOpenReason;
+}
+
+export interface PopoverFinalFocusDetails {
+  interactionType: PopoverInteractionType;
+  reason: PopoverCloseReason;
+}
 
 export interface PopoverContextValue {
   isOpen: boolean;
-  onToggle: () => void;
-  onOpen: () => void;
-  onClose: () => void;
+  onToggle: (interactionType?: PopoverInteractionType) => void;
+  onOpen: (
+    reason?: PopoverOpenReason,
+    interactionType?: PopoverInteractionType,
+  ) => void;
+  onClose: (
+    reason?: PopoverCloseReason,
+    interactionType?: PopoverInteractionType,
+  ) => void;
+  initialFocusDetails: PopoverInitialFocusDetails;
+  finalFocusDetails: PopoverFinalFocusDetails;
+  recordInteraction: (
+    interactionType: Exclude<PopoverInteractionType, "programmatic">,
+    target: EventTarget | null,
+  ) => void;
+  consumeInteraction: (target: EventTarget | null) => PopoverInteractionType;
+  clearInteraction: (target?: EventTarget | null) => void;
   popoverId: string;
+  titleId: string;
+  descriptionId: string;
+  titleCount: number;
+  descriptionCount: number;
+  partRegistryReady: boolean;
+  registerPart: (kind: PopoverPartKind) => () => void;
   triggerRef: RefObject<HTMLElement | null>;
   anchorRef: RefObject<HTMLElement | null>;
   disabled: boolean;

@@ -13,9 +13,11 @@ import {
   PopoverArrow,
   PopoverClose,
   PopoverContent,
+  PopoverDescription,
   PopoverPortal,
   PopoverRoot,
   PopoverTrigger,
+  PopoverTitle,
 } from "../../dist/index.js";
 
 import {
@@ -125,6 +127,62 @@ test("Popover trigger supports asChild and exposes portal arrow and close parts"
   assert.match(html, /data-slot="popover-arrow"/);
   assert.match(html, /aria-hidden="true"/);
   assert.match(html, /data-slot="popover-close"/);
+});
+
+test("Popover visible semantic parts generate server-stable relationships", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      PopoverRoot,
+      { defaultOpen: true },
+      React.createElement(PopoverTrigger, null, "Open"),
+      React.createElement(
+        PopoverContent,
+        null,
+        React.createElement(PopoverTitle, null, "Project settings"),
+        React.createElement(
+          PopoverDescription,
+          null,
+          "Change compact options.",
+        ),
+      ),
+    ),
+  );
+  const content = html.match(/<div ([^>]*role="dialog"[^>]*)>/)?.[1];
+  const titleId = html.match(/<h2 id="([^"]+)"/)?.[1];
+  const descriptionId = html.match(/<p id="([^"]+)"/)?.[1];
+
+  assert.ok(content);
+  assert.ok(titleId);
+  assert.ok(descriptionId);
+  assert.match(content, new RegExp(`aria-labelledby="${titleId}"`));
+  assert.match(content, new RegExp(`aria-describedby="${descriptionId}"`));
+  assert.match(html, /data-slot="popover-title"/);
+  assert.match(html, /data-slot="popover-description"/);
+});
+
+test("Popover native ARIA overrides generated semantic relationships", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      PopoverRoot,
+      { defaultOpen: true },
+      React.createElement(
+        PopoverContent,
+        {
+          "aria-label": "Native label",
+          "aria-labelledby": "external-title",
+          "aria-describedby": "external-description",
+        },
+        React.createElement(PopoverTitle, null, "Generated title"),
+        React.createElement(PopoverDescription, null, "Generated description"),
+      ),
+    ),
+  );
+  const content = html.match(/<div ([^>]*role="dialog"[^>]*)>/)?.[1];
+
+  assert.ok(content);
+  assert.match(content, /aria-label="Native label"/);
+  assert.match(content, /aria-labelledby="external-title"/);
+  assert.match(content, /aria-describedby="external-description"/);
 });
 
 test("PopoverArrow geometry keeps width as triangle spread and height as protrusion", () => {

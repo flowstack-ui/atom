@@ -187,7 +187,8 @@ import { Popover } from "@flowstack-ui/atom/popover";
   <Popover.Trigger>Open</Popover.Trigger>
   <Popover.Portal>
     <Popover.Content>
-      Content
+      <Popover.Title>Project settings</Popover.Title>
+      <Popover.Description>Change compact options.</Popover.Description>
       <Popover.Arrow />
     </Popover.Content>
   </Popover.Portal>

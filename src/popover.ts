@@ -5,9 +5,11 @@ import {
   PopoverArrow,
   PopoverClose,
   PopoverContent,
+  PopoverDescription,
   PopoverPortal,
   PopoverRoot,
   PopoverTrigger,
+  PopoverTitle,
 } from "./primitives/popover/index.js";
 
 export {
@@ -18,9 +20,11 @@ export {
   PopoverContentContextProvider,
   PopoverContent,
   PopoverContextProvider,
+  PopoverDescription,
   PopoverPortal,
   PopoverRoot,
   PopoverTrigger,
+  PopoverTitle,
   usePopoverContentContext,
   usePopoverContext,
 } from "./primitives/popover/index.js";
@@ -32,12 +36,21 @@ export type {
   PopoverCloseProps,
   PopoverContentContextValue,
   PopoverContentProps,
+  PopoverCloseReason,
   PopoverContextValue,
+  PopoverDescriptionProps,
+  PopoverFinalFocusDetails,
+  PopoverFocusTarget,
+  PopoverHeadingLevel,
+  PopoverInitialFocusDetails,
+  PopoverInteractionType,
+  PopoverOpenReason,
   PopoverPortalProps,
   PopoverRootProps,
   PopoverSide,
   PopoverTriggerMode,
   PopoverTriggerProps,
+  PopoverTitleProps,
 } from "./primitives/popover/index.js";
 
 export const Popover = {
@@ -46,6 +59,8 @@ export const Popover = {
   Trigger: PopoverTrigger,
   Portal: PopoverPortal,
   Content: PopoverContent,
-  Arrow: PopoverArrow,
+  Title: PopoverTitle,
+  Description: PopoverDescription,
   Close: PopoverClose,
+  Arrow: PopoverArrow,
 } as const;

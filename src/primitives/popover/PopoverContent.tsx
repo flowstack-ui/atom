@@ -4,11 +4,13 @@ import {
   forwardRef,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type MouseEventHandler,
   type ReactNode,
+  type RefObject,
 } from "react";
 import {
   arrow as floatingArrow,
@@ -25,9 +27,8 @@ import {
   FocusScopeProvider,
   useCreateFocusScope,
   useFocusScopeContainer,
-  useFocusOnMount,
-  useFocusRestore,
   useFocusTrap,
+  focusFirstDescendant,
 } from "../../hooks/focus.js";
 import { usePresence } from "../../hooks/usePresence.js";
 import { useScrollLock } from "../../hooks/useScrollLock.js";
@@ -37,7 +38,15 @@ import {
   PopoverContentContextProvider,
   usePopoverContext,
   type PopoverContentContextValue,
+  type PopoverFinalFocusDetails,
+  type PopoverInitialFocusDetails,
 } from "./context.js";
+import { getPopoverPartPresence } from "./parts.js";
+import { getPopoverPointerInteractionType } from "./interaction.js";
+
+declare const process:
+  | { env?: { NODE_ENV?: string } }
+  | undefined;
 
 export type PopoverSide = "top" | "right" | "bottom" | "left";
 export type PopoverAlign = "start" | "center" | "end";
@@ -65,9 +74,15 @@ export interface PopoverContentProps extends PopoverContentNativeProps {
   align?: PopoverAlign;
   sideOffset?: number;
   className?: string;
-  ariaLabel?: string;
+  initialFocus?: PopoverFocusTarget<PopoverInitialFocusDetails>;
+  finalFocus?: PopoverFocusTarget<PopoverFinalFocusDetails>;
   "data-slot"?: string;
 }
+
+export type PopoverFocusTarget<Details> =
+  | RefObject<HTMLElement | null>
+  | ((details: Details) => HTMLElement | null | false | undefined)
+  | false;
 
 function toPlacement(side: PopoverSide, align: PopoverAlign): Placement {
   if (align === "center") return side;
@@ -80,6 +95,29 @@ function sideFromPlacement(placement: Placement): PopoverSide {
 
 function focusWithoutScrolling(element: HTMLElement): void {
   element.focus({ preventScroll: true });
+}
+
+function resolveFocusTarget<Details>(
+  target: PopoverFocusTarget<Details> | undefined,
+  details: Details,
+): HTMLElement | null | false | undefined {
+  if (target === false || target === undefined) return target;
+  if (typeof target === "function") return target(details);
+  return target.current;
+}
+
+function isAvailableFocusTarget(target: HTMLElement): boolean {
+  if (!target.isConnected) return false;
+  if ("disabled" in target && target.disabled === true) return false;
+  if (target.getAttribute("aria-disabled") === "true") return false;
+  return !target.hidden && !target.closest("[hidden], [inert]");
+}
+
+function isRestorableFocusTarget(
+  target: HTMLElement | null,
+): target is HTMLElement {
+  if (!target || !isAvailableFocusTarget(target)) return false;
+  return target.tabIndex >= 0 || target.isContentEditable;
 }
 
 function focusNextElementAfterTrigger(
@@ -161,22 +199,24 @@ function isInsideNestedPopoverLayer(
 }
 
 export const PopoverContent = forwardRef<HTMLDivElement, PopoverContentProps>(
-function PopoverContent(
-  {
+function PopoverContent(props, ref) {
+  const {
     children,
     side = "bottom",
     align = "center",
     sideOffset = 8,
     className,
-    ariaLabel,
+    initialFocus,
+    finalFocus,
+    "aria-label": nativeAriaLabel,
+    "aria-labelledby": nativeAriaLabelledBy,
+    "aria-describedby": nativeAriaDescribedBy,
     onMouseEnter,
     onMouseLeave,
     "data-slot": dataSlot = "popover-content",
     style,
     ...restProps
-  },
-  ref,
-) {
+  } = props;
   const {
     isOpen,
     onOpen,
@@ -187,6 +227,13 @@ function PopoverContent(
     modal,
     closeOnInteractOutside,
     triggerMode,
+    titleId,
+    descriptionId,
+    titleCount,
+    descriptionCount,
+    partRegistryReady,
+    initialFocusDetails,
+    finalFocusDetails,
   } = usePopoverContext();
   const contentRef = useRef<HTMLDivElement>(null);
   const focusScope = useCreateFocusScope();
@@ -195,9 +242,43 @@ function PopoverContent(
   const arrowRef = useRef<SVGSVGElement>(null);
   const { isPresent, ref: presenceRef } = usePresence({ present: isOpen });
   const [isPositioned, setIsPositioned] = useState(false);
+  const visibleParts = getPopoverPartPresence(children);
+  const warnedRef = useRef(new Set<string>());
+  const initialFocusRef = useRef(initialFocus);
+  const finalFocusRef = useRef(finalFocus);
+  const initialFocusDetailsRef = useRef(initialFocusDetails);
+  const finalFocusDetailsRef = useRef(finalFocusDetails);
+  const previousElementRef = useRef<HTMLElement | null>(null);
+  const didMoveFocusRef = useRef(false);
+  const initialFocusAppliedRef = useRef(false);
+  initialFocusRef.current = initialFocus;
+  finalFocusRef.current = finalFocus;
+  initialFocusDetailsRef.current = initialFocusDetails;
+  finalFocusDetailsRef.current = finalFocusDetails;
 
-  useFocusRestore(isOpen && modal);
-  useFocusOnMount(contentRef, isPresent);
+  const titlePresent = partRegistryReady
+    ? titleCount > 0
+    : visibleParts.title;
+  const descriptionPresent = partRegistryReady
+    ? descriptionCount > 0
+    : visibleParts.description;
+  const hasNativeName =
+    nativeAriaLabel !== undefined || nativeAriaLabelledBy !== undefined;
+  const resolvedAriaLabelledBy = hasNativeName
+    ? nativeAriaLabelledBy
+    : titlePresent
+      ? titleId
+      : undefined;
+  const hasExplicitDescription = Object.prototype.hasOwnProperty.call(
+    props,
+    "aria-describedby",
+  );
+  const resolvedAriaDescribedBy = hasExplicitDescription
+    ? nativeAriaDescribedBy
+    : descriptionPresent
+      ? descriptionId
+      : undefined;
+
   useFocusScopeContainer(
     contentRef,
     isPresent,
@@ -220,6 +301,94 @@ function PopoverContent(
   useFocusScopeContainer(contentRef, isOpen && modal, focusScope);
   useScrollLock(isOpen && modal, contentRef);
 
+  useLayoutEffect(() => {
+    if (!isOpen) return undefined;
+
+    previousElementRef.current = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    didMoveFocusRef.current = false;
+    initialFocusAppliedRef.current = false;
+
+    return () => {
+      queueMicrotask(() => {
+        const details = finalFocusDetailsRef.current;
+        const content = contentRef.current;
+        const activeElement = document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
+        const focusIsInside = Boolean(
+          activeElement &&
+          (content?.contains(activeElement) || focusScope.contains(activeElement)),
+        );
+        const preserveDestination =
+          details.reason === "interactOutside" ||
+          details.reason === "focusOutside" ||
+          details.reason === "hoverLeave";
+
+        if (preserveDestination) return;
+        if (!didMoveFocusRef.current && !focusIsInside) return;
+
+        const explicitTarget = resolveFocusTarget(
+          finalFocusRef.current,
+          details,
+        );
+        if (explicitTarget === false) return;
+        if (
+          explicitTarget instanceof HTMLElement &&
+          isAvailableFocusTarget(explicitTarget)
+        ) {
+          explicitTarget.focus({ preventScroll: true });
+          return;
+        }
+        if (isRestorableFocusTarget(previousElementRef.current)) {
+          previousElementRef.current.focus({ preventScroll: true });
+          return;
+        }
+        if (isRestorableFocusTarget(triggerRef.current)) {
+          triggerRef.current.focus({ preventScroll: true });
+        }
+      });
+    };
+  }, [focusScope, isOpen, triggerRef]);
+
+  useLayoutEffect(() => {
+    if (!isOpen || !isPresent || initialFocusAppliedRef.current) return;
+    const content = contentRef.current;
+    if (!content) return;
+    initialFocusAppliedRef.current = true;
+
+    const details = initialFocusDetailsRef.current;
+    if (details.reason === "triggerHover") return;
+    if (
+      content.contains(document.activeElement) ||
+      focusScope.contains(document.activeElement)
+    ) {
+      return;
+    }
+
+    const explicitTarget = resolveFocusTarget(initialFocusRef.current, details);
+    if (explicitTarget === false) return;
+    if (
+      explicitTarget instanceof HTMLElement &&
+      isAvailableFocusTarget(explicitTarget) &&
+      (content.contains(explicitTarget) || focusScope.contains(explicitTarget))
+    ) {
+      explicitTarget.focus({ preventScroll: true });
+      didMoveFocusRef.current = true;
+      return;
+    }
+
+    if (details.interactionType === "touch") {
+      content.focus({ preventScroll: true });
+      didMoveFocusRef.current = true;
+      return;
+    }
+
+    focusFirstDescendant(content);
+    didMoveFocusRef.current = true;
+  }, [focusScope, isOpen, isPresent]);
+
   useEffect(() => {
     if (!isPresent) return undefined;
     setIsPositioned(false);
@@ -234,7 +403,10 @@ function PopoverContent(
 
   useClickAway({
     refs: clickAwayRefs,
-    onClickAway: onClose,
+    onClickAway: (event) => onClose(
+      "interactOutside",
+      getPopoverPointerInteractionType(event.pointerType),
+    ),
     enabled: isOpen && closeOnInteractOutside,
     ignore: (target) => isInsideNestedPopoverLayer(target, contentRef.current),
   });
@@ -258,7 +430,7 @@ function PopoverContent(
           relatedTarget !== beforeGuard &&
           relatedTarget !== afterGuard)
       ) {
-        onClose();
+        onClose("focusOutside", "programmatic");
       }
     };
 
@@ -269,6 +441,67 @@ function PopoverContent(
       content?.removeEventListener("focusout", handleFocusOut);
     };
   }, [isOpen, modal, onClose, triggerRef]);
+
+  useEffect(() => {
+    if (!partRegistryReady || !isOpen) return undefined;
+    if (typeof process !== "undefined" && process.env?.NODE_ENV === "production") {
+      return undefined;
+    }
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let settleFrame = 0;
+    const frame = requestAnimationFrame(() => {
+      settleFrame = requestAnimationFrame(() => {
+        timer = setTimeout(() => {
+          const warnings = new Map<string, string>();
+          if (
+            nativeAriaLabel === undefined &&
+            resolvedAriaLabelledBy === undefined
+          ) {
+            warnings.set(
+              "missing-name",
+              "Popover content requires an accessible name. Render Popover.Title or provide native aria-label/aria-labelledby.",
+            );
+          }
+          if (titleCount > 1) {
+            warnings.set(
+              "duplicate-title",
+              "Popover content has multiple registered Title parts. Use one Title or an explicit native aria-labelledby relationship.",
+            );
+          }
+          if (descriptionCount > 1) {
+            warnings.set(
+              "duplicate-description",
+              "Popover content has multiple registered Description parts. Use one Description or an explicit native aria-describedby relationship.",
+            );
+          }
+
+          for (const key of Array.from(warnedRef.current)) {
+            if (!warnings.has(key)) warnedRef.current.delete(key);
+          }
+          for (const [key, message] of warnings) {
+            if (warnedRef.current.has(key)) continue;
+            warnedRef.current.add(key);
+            console.warn(`[Atom Popover] ${message}`);
+          }
+        }, 50);
+      });
+    });
+
+    return () => {
+      cancelAnimationFrame(frame);
+      cancelAnimationFrame(settleFrame);
+      if (timer !== undefined) clearTimeout(timer);
+    };
+  }, [
+    descriptionCount,
+    isOpen,
+    partRegistryReady,
+    resolvedAriaDescribedBy,
+    nativeAriaLabel,
+    resolvedAriaLabelledBy,
+    titleCount,
+  ]);
 
   const referenceElement = getPopoverReferenceElement(anchorRef.current, triggerRef.current);
   const middleware = useMemo(
@@ -311,18 +544,18 @@ function PopoverContent(
   const actualSide = sideFromPlacement(placement);
   const arrowData = middlewareData.arrow;
   const hoverOpen: MouseEventHandler<HTMLDivElement> = useCallback(
-    () => onOpen(),
+    () => onOpen("triggerHover", "mouse"),
     [onOpen],
   );
   const hoverClose: MouseEventHandler<HTMLDivElement> = useCallback(
-    () => onClose(),
+    () => onClose("hoverLeave", "mouse"),
     [onClose],
   );
   const handleBeforeGuardFocus = useCallback(() => {
     const trigger = triggerRef.current;
     if (!trigger) return;
 
-    onClose();
+    onClose("focusOutside", "keyboard");
     focusWithoutScrolling(trigger);
   }, [onClose, triggerRef]);
   const handleAfterGuardFocus = useCallback(() => {
@@ -333,7 +566,7 @@ function PopoverContent(
 
     if (!trigger || !content) return;
 
-    onClose();
+    onClose("focusOutside", "keyboard");
     focusNextElementAfterTrigger(
       trigger,
       content,
@@ -373,7 +606,9 @@ function PopoverContent(
         data-state={isOpen ? "open" : "closed"}
         data-side={actualSide}
         {...(isPositioned ? { "data-positioned": "" } : {})}
-        aria-label={ariaLabel}
+        aria-label={nativeAriaLabel}
+        aria-labelledby={resolvedAriaLabelledBy}
+        aria-describedby={resolvedAriaDescribedBy}
         aria-modal={modal || undefined}
         tabIndex={-1}
         className={className}

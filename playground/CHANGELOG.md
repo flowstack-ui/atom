@@ -6,6 +6,11 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Expanded Popover with visible Title/Description relationship evidence,
+  opening/closing reason logs, a real text-input touch-safety target, explicit
+  initial/final focus targets, hover-without-focus-steal checks, and
+  outside-destination preservation. Naming examples use native `aria-label`
+  and expose no custom Popover alias.
 - Expanded Tooltip touch evidence with `touchmove` and `touchcancel` logs plus
   a reviewed protocol for the exact long-press threshold, abandon paths,
   release-based plain/rich dismissal, compatibility-event suppression,

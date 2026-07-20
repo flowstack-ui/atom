@@ -608,6 +608,8 @@ test("namespace exports provide the long-term compound API", () => {
   assert.equal(typeof Menubar.RadioItem, "function");
   assert.equal(typeof Menubar.SubContent, "object");
   assert.equal(typeof Popover.Content, "object");
+  assert.equal(typeof Popover.Title, "object");
+  assert.equal(typeof Popover.Description, "object");
   assert.equal(typeof Popover.Portal, "function");
   assert.equal(typeof Popover.Arrow, "object");
   assert.equal(typeof Tooltip.Content, "object");

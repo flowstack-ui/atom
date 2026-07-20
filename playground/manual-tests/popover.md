@@ -307,7 +307,8 @@ Pass condition: Portal mode behavior and matching Source output are verified wit
    - Attributes tag: `div`
    - Attributes: `role="dialog"`
    - Attributes: `tabindex="-1"`
-   - ARIA: `aria-label="Project quick actions"`
+   - ARIA: `aria-labelledby` references the visible Popover Title.
+   - ARIA: `aria-describedby` references the visible Popover Description.
    - ARIA: no `aria-modal`
    - Data: `data-slot="popover-content"`
    - Data: `data-state="open"`
@@ -333,27 +334,29 @@ Pass condition: Portal mode behavior and matching Source output are verified wit
    - `data-side="bottom"`
    - `data-positioned`
 9. Disable `Content Slot`.
-10. Disable `Use ariaLabel`.
-11. Expected Content ARIA: no `aria-label`.
-12. Enable `Use ariaLabel`.
+10. Confirm `Use native aria-label` is disabled.
+11. Expected Content ARIA: generated `aria-labelledby` and
+    `aria-describedby`; no `aria-label`.
+12. Enable `Use native aria-label`.
 13. Expected Content ARIA: `aria-label="Project quick actions"`.
 14. Enable `Modal`.
 15. Expected Content ARIA:
    - `aria-label="Project quick actions"`
    - `aria-modal="true"`
 16. Disable `Modal`.
-17. Set `Side` to `Top`.
-18. Expected Content `Side` row: `top`; expected Data `data-side="top"` unless collision flips it.
-19. Set `Side` to `Right`.
-20. Expected Content `Side` row: `right`; expected Data `data-side="right"` unless collision flips it.
-21. Set `Side` to `Left`.
-22. Expected Content `Side` row: `left`; expected Data `data-side="left"` unless collision flips it.
-23. Set `Side` back to `Bottom`.
-24. Set `Align` to `Start`, `Center`, then `End`.
-25. Expected Content `Align` row changes to `start`, `center`, then `end`.
-26. Set `Offset` to `0`, `8`, then `16`.
-27. Expected Content `Offset` row changes to `0`, `8`, then `16`.
-28. Return `Align` to `Center` and `Offset` to `8`.
+17. Disable `Use native aria-label` so the visible Title relationship is restored.
+18. Set `Side` to `Top`.
+19. Expected Content `Side` row: `top`; expected Data `data-side="top"` unless collision flips it.
+20. Set `Side` to `Right`.
+21. Expected Content `Side` row: `right`; expected Data `data-side="right"` unless collision flips it.
+22. Set `Side` to `Left`.
+23. Expected Content `Side` row: `left`; expected Data `data-side="left"` unless collision flips it.
+24. Set `Side` back to `Bottom`.
+25. Set `Align` to `Start`, `Center`, then `End`.
+26. Expected Content `Align` row changes to `start`, `center`, then `end`.
+27. Set `Offset` to `0`, `8`, then `16`.
+28. Expected Content `Offset` row changes to `0`, `8`, then `16`.
+29. Return `Align` to `Center` and `Offset` to `8`.
 
 Pass condition: Content identity, role, ARIA, `data-state`, `data-side`, `data-positioned`, placement controls, props, and slots are verified without nested behavior or logs.
 
@@ -474,7 +477,7 @@ Pass condition: Close identity, props/slots, composition, close behavior, and cl
    - Does not include `closeOnInteractOutside={false}`
    - Includes `<Popover.Trigger>Open popover</Popover.Trigger>`
    - Includes `<Popover.Portal>`
-   - Includes `ariaLabel="Project quick actions"`
+   - Includes `aria-label="Project quick actions"`
    - Includes `side="bottom"`
    - Includes `align="center"`
    - Includes `sideOffset={8}`
@@ -519,7 +522,7 @@ Pass condition: Close identity, props/slots, composition, close behavior, and cl
 29. Set `Arrow Size` to `Wide`.
 30. Expected Source includes `<Popover.Arrow` with `width={16}` and `height={8}`.
 31. Enable `Nested Popover`.
-32. Expected Source includes nested `<Popover.Root>`, nested `<Popover.Trigger>Nested popover</Popover.Trigger>`, nested `<Popover.Content ariaLabel="Nested quick actions" side="right" align="start">`, nested `<Popover.Close>Close nested</Popover.Close>`, and nested `<Popover.Arrow />`.
+32. Expected Source includes nested `<Popover.Root>`, nested `<Popover.Trigger>Nested popover</Popover.Trigger>`, nested `<Popover.Content side="right" align="start">`, nested `<Popover.Title>Nested quick actions</Popover.Title>`, nested `<Popover.Description>`, nested `<Popover.Close>Close nested</Popover.Close>`, and nested `<Popover.Arrow />`.
 33. Enable `Block trigger event`.
 34. Expected Source includes Trigger event props:
    - `onClick={(event) => event.preventDefault()}`
@@ -548,7 +551,7 @@ Pass condition: Source output exactly tracks active consumer-facing props and om
    - tag: `div`
    - Attributes include `role="dialog"`
    - Attributes include `tabindex="-1"`
-   - ARIA includes `aria-label="Project quick actions"`
+   - ARIA includes generated `aria-labelledby` and `aria-describedby`.
    - Data includes `data-slot="popover-content"`
    - Data includes `data-state="open"`
    - Data includes `data-side="bottom"`
@@ -600,7 +603,8 @@ Pass condition: Selected, Focused, and Logs work as inspector surfaces without i
    - Attributes tag: `div`
    - Attributes: `role="dialog"`
    - Attributes: `tabindex="-1"`
-   - ARIA: `aria-label="Nested quick actions"`
+   - ARIA: generated `aria-labelledby` references `Nested quick actions`.
+   - ARIA: generated `aria-describedby` references the nested description.
    - Data: `data-slot="popover-content"`
    - Data: `data-state="open"`
    - Data: `data-side="right"` unless collision flips it.
@@ -627,10 +631,56 @@ Pass condition: Selected, Focused, and Logs work as inspector surfaces without i
 
 Pass condition: nested popover, Escape top-layer order, outside close, and modal focus containment work in the integrated overlay case.
 
-## Step 12: Workbook Cleanup / Rewrite Notes
+## Step 12: Semantic And Focus Release Checks
+
+1. Reload the Popover page so all controls use their defaults.
+2. Open the Popover with the mouse.
+3. Expect the `Project name` input to receive focus.
+4. Close with the visible Close control.
+5. Expect focus to return to `Open popover`.
+6. Open with the keyboard using Enter, then close with Escape.
+7. Expect keyboard focus to return to `Open popover` and the log to report
+   `closed: escapeKeyDown`.
+8. Enable `Custom focus targets`.
+9. Open the Popover.
+10. Expect `Secondary action` to receive initial focus instead of the input.
+11. Close with the visible Close control.
+12. Expect `Outside focus target` to receive final focus.
+13. Disable `Custom focus targets`.
+14. Set Trigger mode to `Hover`, move the pointer onto `Open popover`, and do
+    not click.
+15. Expect Content to open after the delay while focus stays where it was;
+    neither the input nor Content receives focus from hover alone.
+16. Move across Trigger and Content, then leave both; expect the documented
+    delayed hover session to remain usable and close without a focus jump.
+17. Return Trigger mode to `Click`, open the Popover, then pointer-down/click
+    `Outside focus target`.
+18. Expect Content to close and outside focus to remain on that target rather
+    than bouncing back to Trigger.
+19. Enable `Use native aria-label` and reopen.
+20. Expect native Content inspection to show `aria-label="Project quick
+    actions"` and no generated `aria-labelledby`; Description remains
+    generated unless explicitly overridden.
+21. Disable `Use native aria-label`, reopen, and inspect Title and Description.
+22. Expect Title to render as `h2` with `data-slot="popover-title"`, and
+    Description to render as `p` with `data-slot="popover-description"`.
+23. Expect each visible part to have a stable ID, and Content relationships to
+    match those exact IDs.
+24. On a physical touch device, tap the Trigger with `Custom focus targets`
+    disabled.
+25. Expect Content itself to receive focus; the `Project name` input must not
+    receive focus and the virtual keyboard must not open.
+
+Pass condition: visible semantics, native explicit naming, mouse/keyboard/touch
+initial focus, explicit focus targets, hover-without-focus-steal, Escape/Close
+restoration, and outside-destination preservation match the release contract.
+
+## Step 13: Workbook Cleanup / Rewrite Notes
 
 Workbook cleanup was completed after this protocol passed. Root and Portal are
 kept as non-DOM behavior/utility parts; Arrow evidence follows the verified
 package source; and portal modes, Arrow composition and sizing, nested Escape
 order, collision behavior, and touch behavior are represented by current rows.
-Every current Popover row is implemented, tested, and covered.
+The semantic/focus release rows remain open until this revised owner protocol
+and the workbook update are completed. Do not preserve the earlier blanket
+completion claim for the new release evidence.

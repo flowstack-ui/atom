@@ -3,7 +3,11 @@ import type {
   KeyboardEvent as ReactKeyboardEvent,
   MouseEvent as ReactMouseEvent,
 } from "react";
-import type { PopoverAlign, PopoverSide } from "@flowstack-ui/atom/popover";
+import type {
+  PopoverAlign,
+  PopoverCloseReason,
+  PopoverSide,
+} from "@flowstack-ui/atom/popover";
 
 export type { PopoverAlign, PopoverSide };
 
@@ -25,7 +29,8 @@ export type PopoverScenarioState = {
   modal: boolean;
   closeOnInteractOutside: boolean;
   useAnchor: boolean;
-  useAriaLabel: boolean;
+  useNativeAriaLabel: boolean;
+  customFocusTargets: boolean;
   nestedPopover: boolean;
   triggerMode: PopoverTriggerMode;
   portalMode: PopoverPortalMode;
@@ -56,7 +61,8 @@ export type PopoverScenarioActions = {
   setModal: (value: boolean) => void;
   setCloseOnInteractOutside: (value: boolean) => void;
   setUseAnchor: (value: boolean) => void;
-  setUseAriaLabel: (value: boolean) => void;
+  setUseNativeAriaLabel: (value: boolean) => void;
+  setCustomFocusTargets: (value: boolean) => void;
   setNestedPopover: (value: boolean) => void;
   setTriggerMode: (value: PopoverTriggerMode) => void;
   setPortalMode: (value: PopoverPortalMode) => void;
@@ -77,7 +83,7 @@ export type PopoverScenarioActions = {
   setCustomArrowSlot: (value: boolean) => void;
   setCustomCloseSlot: (value: boolean) => void;
   setControlledOpen: (value: boolean) => void;
-  handleOpenChange: (open: boolean) => void;
+  handleOpenChange: (open: boolean, reason?: PopoverCloseReason) => void;
   handleTriggerClick: (event: ReactMouseEvent<HTMLElement>) => void;
   handleTriggerKeyDown: (event: ReactKeyboardEvent<HTMLElement>) => void;
   handleCloseClick: (event: ReactMouseEvent<HTMLElement>) => void;
@@ -92,7 +98,8 @@ export function usePopoverScenario() {
   const [modal, setModal] = useState(false);
   const [closeOnInteractOutside, setCloseOnInteractOutside] = useState(true);
   const [useAnchor, setUseAnchor] = useState(false);
-  const [useAriaLabel, setUseAriaLabel] = useState(true);
+  const [useNativeAriaLabel, setUseNativeAriaLabel] = useState(false);
+  const [customFocusTargets, setCustomFocusTargets] = useState(false);
   const [nestedPopover, setNestedPopover] = useState(false);
   const [triggerMode, setTriggerMode] = useState<PopoverTriggerMode>("click");
   const [portalMode, setPortalMode] = useState<PopoverPortalMode>("body");
@@ -139,9 +146,12 @@ export function usePopoverScenario() {
     addLog(`${nextOpen ? "opened" : "closed"} by external control`);
   }, [addLog]);
 
-  const handleOpenChange = useCallback((nextOpen: boolean) => {
+  const handleOpenChange = useCallback((
+    nextOpen: boolean,
+    reason?: PopoverCloseReason,
+  ) => {
     setOpen(nextOpen);
-    addLog(nextOpen ? "opened" : "closed");
+    addLog(nextOpen ? "opened" : `closed: ${reason ?? "programmatic"}`);
   }, [addLog]);
 
   const handleTriggerClick = useCallback((event: ReactMouseEvent<HTMLElement>) => {
@@ -189,7 +199,8 @@ export function usePopoverScenario() {
       modal,
       closeOnInteractOutside,
       useAnchor,
-      useAriaLabel,
+      useNativeAriaLabel,
+      customFocusTargets,
       nestedPopover,
       triggerMode,
       portalMode,
@@ -219,7 +230,8 @@ export function usePopoverScenario() {
       setModal,
       setCloseOnInteractOutside,
       setUseAnchor,
-      setUseAriaLabel,
+      setUseNativeAriaLabel,
+      setCustomFocusTargets,
       setNestedPopover,
       setTriggerMode,
       setPortalMode,

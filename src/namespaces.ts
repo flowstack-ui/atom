@@ -232,9 +232,11 @@ import {
   PopoverArrow,
   PopoverClose,
   PopoverContent,
+  PopoverDescription,
   PopoverPortal,
   PopoverRoot,
   PopoverTrigger,
+  PopoverTitle,
 } from "./primitives/popover/index.js";
 import { PressableRoot } from "./primitives/pressable/index.js";
 import {
@@ -686,8 +688,10 @@ export const Popover = {
   Trigger: PopoverTrigger,
   Portal: PopoverPortal,
   Content: PopoverContent,
-  Arrow: PopoverArrow,
+  Title: PopoverTitle,
+  Description: PopoverDescription,
   Close: PopoverClose,
+  Arrow: PopoverArrow,
 } as const;
 
 export const Pressable = {
