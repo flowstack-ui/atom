@@ -168,6 +168,7 @@ export const CheckboxRoot = forwardRef<HTMLButtonElement, CheckboxRootProps>(
       "aria-describedby": Object.prototype.hasOwnProperty.call(restProps, "aria-describedby")
         ? restProps["aria-describedby"]
         : field?.describedBy,
+      "aria-disabled": isDisabled || undefined,
       "aria-required": restProps["aria-required"] ?? (isRequired || undefined),
       "aria-invalid": restProps["aria-invalid"] ?? (isInvalid || undefined),
       tabIndex: isDisabled ? undefined : 0,

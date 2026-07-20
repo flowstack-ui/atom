@@ -63,6 +63,7 @@ checkbox input for form submission.
 | `role` | `"checkbox"` |
 | `aria-checked` | `"true" \| "false" \| "mixed"` |
 | `aria-label` | Native value when provided |
+| `aria-disabled` | `"true"` when disabled |
 | `aria-required` | `"true"` when required |
 | `aria-invalid` | `"true"` when invalid |
 | `aria-readonly` | `"true"` when read-only |
@@ -77,8 +78,9 @@ checkbox input for form submission.
 
 The hidden input receives `name`, `value`, `form`, `checked`, `disabled`, and
 `required` from Root. Indeterminate is an ARIA state and does not submit the
-hidden input as checked. A disabled default Root uses the native `disabled`
-attribute; read-only Root remains focusable but does not toggle.
+hidden input as checked. A disabled Root exposes `aria-disabled`; the default
+button also uses the native `disabled` attribute. Read-only Root remains
+focusable but does not toggle.
 
 ### Indicator
 

@@ -2,11 +2,16 @@
 
 import {
   forwardRef,
+  isValidElement,
   type CSSProperties,
   type KeyboardEventHandler,
   type MouseEventHandler,
   type ReactNode,
+  useCallback,
   useEffect,
+  useId,
+  useMemo,
+  useState,
 } from "react";
 import { CheckboxContextProvider, type CheckboxDataState } from "../checkbox/index.js";
 import type { NativeButtonProps } from "../../utils/dom.js";
@@ -16,7 +21,13 @@ import {
   renderElement,
   type RenderProp,
 } from "../../utils/slot.js";
-import { useCheckboxGroupContext } from "./context.js";
+import {
+  CheckboxGroupItemContextProvider,
+  useCheckboxGroupContext,
+  type CheckboxGroupItemContextValue,
+  type CheckboxGroupItemPartKind,
+} from "./context.js";
+import { getCheckboxGroupItemPartPresence } from "./parts.js";
 
 type CheckboxGroupItemNativeProps = NativeButtonProps<
   | "children"
@@ -90,6 +101,37 @@ export const CheckboxGroupItem = forwardRef<HTMLButtonElement, CheckboxGroupItem
     ref,
   ) {
     const context = useCheckboxGroupContext();
+    const autoId = useId();
+    const providedId = restProps.id;
+    const baseId = providedId ?? autoId;
+    const labelId = `${baseId}-label`;
+    const descriptionId = `${baseId}-description`;
+    const relationshipChildren =
+      asChild && isValidElement<{ children?: ReactNode }>(children)
+        ? children.props.children
+        : children;
+    const visibleParts = getCheckboxGroupItemPartPresence(relationshipChildren);
+    const [partCounts, setPartCounts] = useState({ label: 0, description: 0 });
+    const [partRegistryReady, setPartRegistryReady] = useState(false);
+    const hasLabel = partRegistryReady ? partCounts.label > 0 : visibleParts.label;
+    const hasDescription = partRegistryReady
+      ? partCounts.description > 0
+      : visibleParts.description;
+
+    useEffect(() => setPartRegistryReady(true), []);
+
+    const registerPart = useCallback((kind: CheckboxGroupItemPartKind) => {
+      let registered = true;
+      setPartCounts((counts) => ({ ...counts, [kind]: counts[kind] + 1 }));
+      return () => {
+        if (!registered) return;
+        registered = false;
+        setPartCounts((counts) => ({
+          ...counts,
+          [kind]: Math.max(0, counts[kind] - 1),
+        }));
+      };
+    }, []);
     const isChecked = context.isItemChecked(value);
     const isDisabled = disabled || context.disabled;
     const isReadOnly = readOnly || context.readOnly;
@@ -98,6 +140,16 @@ export const CheckboxGroupItem = forwardRef<HTMLButtonElement, CheckboxGroupItem
     const inputName = name ?? context.name;
     const inputForm = form ?? context.form;
     const dataState: CheckboxDataState = isChecked ? "checked" : "unchecked";
+    const itemContextValue = useMemo<CheckboxGroupItemContextValue>(
+      () => ({
+        labelId,
+        descriptionId,
+        hasLabel,
+        hasDescription,
+        registerPart,
+      }),
+      [descriptionId, hasDescription, hasLabel, labelId, registerPart],
+    );
 
     useEffect(() => {
       context.registerItem(value);
@@ -126,9 +178,16 @@ export const CheckboxGroupItem = forwardRef<HTMLButtonElement, CheckboxGroupItem
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref,
+      id: baseId,
       type: "button",
       role: "checkbox",
       "aria-checked": isChecked,
+      "aria-labelledby": Object.prototype.hasOwnProperty.call(restProps, "aria-labelledby")
+        ? restProps["aria-labelledby"]
+        : (restProps["aria-label"] === undefined && hasLabel ? labelId : undefined),
+      "aria-describedby": Object.prototype.hasOwnProperty.call(restProps, "aria-describedby")
+        ? restProps["aria-describedby"]
+        : (hasDescription ? descriptionId : undefined),
       "aria-disabled": isDisabled || undefined,
       "aria-required": isRequired || undefined,
       ...(isReadOnly && { "aria-readonly": true }),
@@ -151,23 +210,25 @@ export const CheckboxGroupItem = forwardRef<HTMLButtonElement, CheckboxGroupItem
       : renderElement(render, "button", { ...behaviorProps, children });
 
     return (
-      <CheckboxContextProvider value={{ state: dataState, disabled: isDisabled }}>
-        {itemElement}
-        {inputName !== undefined ? (
-          <input
-            type="checkbox"
-            aria-hidden="true"
-            tabIndex={-1}
-            name={inputName}
-            value={value}
-            form={inputForm}
-            checked={isChecked}
-            disabled={isDisabled}
-            readOnly
-            style={hiddenInputStyle}
-          />
-        ) : null}
-      </CheckboxContextProvider>
+      <CheckboxGroupItemContextProvider value={itemContextValue}>
+        <CheckboxContextProvider value={{ state: dataState, disabled: isDisabled }}>
+          {itemElement}
+          {inputName !== undefined ? (
+            <input
+              type="checkbox"
+              aria-hidden="true"
+              tabIndex={-1}
+              name={inputName}
+              value={value}
+              form={inputForm}
+              checked={isChecked}
+              disabled={isDisabled}
+              readOnly
+              style={hiddenInputStyle}
+            />
+          ) : null}
+        </CheckboxContextProvider>
+      </CheckboxGroupItemContextProvider>
     );
   },
 );

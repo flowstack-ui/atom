@@ -34,6 +34,8 @@ export interface CheckboxGroupRootProps extends CheckboxGroupRootNativeProps {
   defaultValue?: string[];
   /** Fires when selection changes. */
   onValueChange?: (values: string[]) => void;
+  /** Complete selectable value set used by deterministic aggregate controls. */
+  allValues?: string[];
   /** Form field name shared across checkboxes. */
   name?: string;
   /** Associates item hidden inputs with a form by ID. */
@@ -66,6 +68,7 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
       value,
       defaultValue = [],
       onValueChange,
+      allValues,
       name,
       form,
       disabled,
@@ -97,6 +100,10 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
     useFormReset(rootRef, form, value !== undefined, reset);
     const itemValuesRef = useRef<Set<string>>(new Set());
     const [allItemValues, setAllItemValues] = useState<string[]>([]);
+    const normalizedAllValues = useMemo(
+      () => allValues === undefined ? undefined : Array.from(new Set(allValues)),
+      [allValues],
+    );
 
     const registerItem = useCallback((value: string) => {
       itemValuesRef.current.add(value);
@@ -125,9 +132,18 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
       (checked: boolean) => {
         if (isDisabled || isReadOnly) return;
 
-        setActiveValues(checked ? Array.from(itemValuesRef.current) : []);
+        const targetValues = normalizedAllValues ?? Array.from(itemValuesRef.current);
+        const targetSet = new Set(targetValues);
+        setActiveValues((currentValues) =>
+          checked
+            ? [
+                ...currentValues,
+                ...targetValues.filter((itemValue) => !currentValues.includes(itemValue)),
+              ]
+            : currentValues.filter((itemValue) => !targetSet.has(itemValue)),
+        );
       },
-      [isDisabled, isReadOnly, setActiveValues],
+      [isDisabled, isReadOnly, normalizedAllValues, setActiveValues],
     );
 
     const isItemChecked = useCallback(
@@ -139,6 +155,7 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
       () => ({
         groupValues: activeValues,
         allItemValues,
+        allValues: normalizedAllValues,
         toggleItem,
         toggleAll,
         isItemChecked,
@@ -155,6 +172,7 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
       [
         activeValues,
         allItemValues,
+        normalizedAllValues,
         isDisabled,
         form,
         isInvalid,

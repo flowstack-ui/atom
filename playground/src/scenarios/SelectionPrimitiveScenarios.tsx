@@ -96,7 +96,10 @@ function useCheckboxGroupScenario() {
   const [composition, setComposition] = useState<CompositionMode>("default");
   const [propCheck, setPropCheck] = useState(false);
   const [customRootSlot, setCustomRootSlot] = useState(false);
+  const [customParentSlot, setCustomParentSlot] = useState(false);
   const [customItemSlot, setCustomItemSlot] = useState(false);
+  const [customLabelSlot, setCustomLabelSlot] = useState(false);
+  const [customDescriptionSlot, setCustomDescriptionSlot] = useState(false);
   const { log, addLog, clearLog } = useScenarioLog();
 
   const handleValueChange = (nextValue: string[]) => {
@@ -105,8 +108,8 @@ function useCheckboxGroupScenario() {
   };
 
   return {
-    state: { value, controlled, disabled, readOnly, required, invalid, pushDisabled, orientation, composition, propCheck, customRootSlot, customItemSlot, log },
-    actions: { setValue, setControlled, setDisabled, setReadOnly, setRequired, setInvalid, setPushDisabled, setOrientation, setComposition, setPropCheck, setCustomRootSlot, setCustomItemSlot, handleValueChange, clearLog },
+    state: { value, controlled, disabled, readOnly, required, invalid, pushDisabled, orientation, composition, propCheck, customRootSlot, customParentSlot, customItemSlot, customLabelSlot, customDescriptionSlot, log },
+    actions: { setValue, setControlled, setDisabled, setReadOnly, setRequired, setInvalid, setPushDisabled, setOrientation, setComposition, setPropCheck, setCustomRootSlot, setCustomParentSlot, setCustomItemSlot, setCustomLabelSlot, setCustomDescriptionSlot, handleValueChange, clearLog },
   };
 }
 
@@ -443,7 +446,10 @@ export function SelectionPrimitiveScenarioToolbar({ scenarioId, scenarios }: { s
           onPropCheckChange={s.actions.setPropCheck}
           customSlots={[
             { checked: s.state.customRootSlot, label: "Root", value: "root-slot", onChange: s.actions.setCustomRootSlot },
+            { checked: s.state.customParentSlot, label: "Parent", value: "parent-slot", onChange: s.actions.setCustomParentSlot },
             { checked: s.state.customItemSlot, label: "Item", value: "item-slot", onChange: s.actions.setCustomItemSlot },
+            { checked: s.state.customLabelSlot, label: "Item Label", value: "label-slot", onChange: s.actions.setCustomLabelSlot },
+            { checked: s.state.customDescriptionSlot, label: "Item Description", value: "description-slot", onChange: s.actions.setCustomDescriptionSlot },
           ]}
         />
       </ControlToolbar>
@@ -597,9 +603,18 @@ export function SelectionPrimitiveScenarioCanvas({ scenarioId, scenarios }: { sc
 
 function CheckboxGroupCanvas({ scenario }: { scenario: ReturnType<typeof useCheckboxGroupScenario> }) {
   const s = scenario.state;
-  const props = { className: "playground-checkbox-group", disabled: s.disabled, invalid: s.invalid, orientation: s.orientation, readOnly: s.readOnly, required: s.required, name: "updates", "aria-label": "Notification options", onValueChange: scenario.actions.handleValueChange, ...partProps("root", { propCheck: s.propCheck, customSlot: s.customRootSlot }, "checkbox-group-root-custom"), ...(s.controlled ? { value: s.value } : { defaultValue: s.value }) };
-  const content = <><CheckboxGroupItem mode={s.composition} value="email" propCheck={s.propCheck} customSlot={s.customItemSlot}>Email updates</CheckboxGroupItem><CheckboxGroupItem mode={s.composition} value="sms" propCheck={s.propCheck} customSlot={s.customItemSlot}>SMS alerts</CheckboxGroupItem><CheckboxGroupItem disabled={s.pushDisabled} mode={s.composition} value="push" propCheck={s.propCheck} customSlot={s.customItemSlot}>Push digest</CheckboxGroupItem></>;
+  const props = { allValues: s.pushDisabled ? ["email", "sms"] : ["email", "sms", "push"], className: "playground-checkbox-group", disabled: s.disabled, invalid: s.invalid, orientation: s.orientation, readOnly: s.readOnly, required: s.required, name: "updates", "aria-label": "Notification options", onValueChange: scenario.actions.handleValueChange, ...partProps("root", { propCheck: s.propCheck, customSlot: s.customRootSlot }, "checkbox-group-root-custom"), ...(s.controlled ? { value: s.value } : { defaultValue: s.value }) };
+  const content = <><CheckboxGroupParentPart mode={s.composition} propCheck={s.propCheck} customSlot={s.customParentSlot} /><CheckboxGroupItem mode={s.composition} value="email" propCheck={s.propCheck} customSlot={s.customItemSlot}><CheckboxGroupItemLabelPart mode={s.composition} propCheck={s.propCheck} customSlot={s.customLabelSlot}>Email updates</CheckboxGroupItemLabelPart><CheckboxGroupItemDescriptionPart mode={s.composition} propCheck={s.propCheck} customSlot={s.customDescriptionSlot}>Account and product notices</CheckboxGroupItemDescriptionPart></CheckboxGroupItem><CheckboxGroupItem mode={s.composition} value="sms" propCheck={s.propCheck} customSlot={s.customItemSlot}>SMS alerts</CheckboxGroupItem><CheckboxGroupItem disabled={s.pushDisabled} mode={s.composition} value="push" propCheck={s.propCheck} customSlot={s.customItemSlot}>Push digest</CheckboxGroupItem></>;
   return <CheckboxGroup.Root {...props}>{content}</CheckboxGroup.Root>;
+}
+
+function CheckboxGroupParentPart({ mode, propCheck, customSlot }: { mode: CompositionMode; propCheck: boolean; customSlot: boolean }) {
+  const className = "playground-checkbox-group-item";
+  const props = partProps("parent", { propCheck, customSlot }, "checkbox-group-parent-custom");
+  const content = <><span aria-hidden="true" className="playground-checkbox-box" />Select all notifications</>;
+  if (mode === "asChild") return <CheckboxGroup.Parent asChild {...props}><button className={className} type="button">{content}</button></CheckboxGroup.Parent>;
+  if (mode === "render") return <CheckboxGroup.Parent {...props} render={(renderProps) => <button {...renderProps} className={className} />}>{content}</CheckboxGroup.Parent>;
+  return <CheckboxGroup.Parent className={className} {...props}>{content}</CheckboxGroup.Parent>;
 }
 
 function CheckboxGroupItem({ children, disabled, mode, value, propCheck, customSlot }: { children: ReactNode; disabled?: boolean; mode: CompositionMode; value: string; propCheck: boolean; customSlot: boolean }) {
@@ -608,6 +623,20 @@ function CheckboxGroupItem({ children, disabled, mode, value, propCheck, customS
   if (mode === "asChild") return <CheckboxGroup.Item asChild {...props}><button className={className} type="button"><span aria-hidden="true" className="playground-checkbox-box" />{children}</button></CheckboxGroup.Item>;
   if (mode === "render") return <CheckboxGroup.Item {...props} render={(renderProps) => <button {...renderProps} className={className} />}><span aria-hidden="true" className="playground-checkbox-box" />{children}</CheckboxGroup.Item>;
   return <CheckboxGroup.Item className={className} {...props}><span aria-hidden="true" className="playground-checkbox-box" />{children}</CheckboxGroup.Item>;
+}
+
+function CheckboxGroupItemLabelPart({ children, mode, propCheck, customSlot }: { children: ReactNode; mode: CompositionMode; propCheck: boolean; customSlot: boolean }) {
+  const props = partProps("item-label", { propCheck, customSlot }, "checkbox-group-item-label-custom");
+  if (mode === "asChild") return <CheckboxGroup.ItemLabel asChild {...props}><strong>{children}</strong></CheckboxGroup.ItemLabel>;
+  if (mode === "render") return <CheckboxGroup.ItemLabel {...props} render={(renderProps) => <strong {...renderProps} />}>{children}</CheckboxGroup.ItemLabel>;
+  return <CheckboxGroup.ItemLabel {...props}>{children}</CheckboxGroup.ItemLabel>;
+}
+
+function CheckboxGroupItemDescriptionPart({ children, mode, propCheck, customSlot }: { children: ReactNode; mode: CompositionMode; propCheck: boolean; customSlot: boolean }) {
+  const props = partProps("item-description", { propCheck, customSlot }, "checkbox-group-item-description-custom");
+  if (mode === "asChild") return <CheckboxGroup.ItemDescription asChild {...props}><small>{children}</small></CheckboxGroup.ItemDescription>;
+  if (mode === "render") return <CheckboxGroup.ItemDescription {...props} render={(renderProps) => <small {...renderProps} />}>{children}</CheckboxGroup.ItemDescription>;
+  return <CheckboxGroup.ItemDescription {...props}>{children}</CheckboxGroup.ItemDescription>;
 }
 
 function SliderCanvas({ scenario }: { scenario: ReturnType<typeof useSliderScenario> }) {
@@ -1058,6 +1087,9 @@ export function getSelectionPrimitiveSource(scenarioId: string, scenarios?: Sele
 function getCheckboxGroupSource(state: ReturnType<typeof useCheckboxGroupScenario>["state"]) {
   const rootProps = [
     state.controlled ? `value={${JSON.stringify(state.value)}}` : `defaultValue={${JSON.stringify(state.value)}}`,
+    state.pushDisabled
+      ? `allValues={["email", "sms"]}`
+      : `allValues={["email", "sms", "push"]}`,
     state.disabled ? "disabled" : null,
     state.readOnly ? "readOnly" : null,
     state.required ? "required" : null,
@@ -1069,17 +1101,37 @@ function getCheckboxGroupSource(state: ReturnType<typeof useCheckboxGroupScenari
     "onValueChange={setValue}",
   ].filter(Boolean).join("\n  ");
   const itemProps = (value: string) => sourcePartProps(`item-${value}`, state.propCheck, state.customItemSlot, "checkbox-group-item-custom");
+  const parentProps = sourcePartProps("parent", state.propCheck, state.customParentSlot, "checkbox-group-parent-custom");
+  const labelProps = sourcePartProps("item-label", state.propCheck, state.customLabelSlot, "checkbox-group-item-label-custom");
+  const descriptionProps = sourcePartProps("item-description", state.propCheck, state.customDescriptionSlot, "checkbox-group-item-description-custom");
   const itemOpen = (value: string) => state.composition === "asChild"
     ? `<CheckboxGroup.Item value="${value}" asChild${value === "push" && state.pushDisabled ? " disabled" : ""}${itemProps(value)}><button type="button">`
     : state.composition === "render"
       ? `<CheckboxGroup.Item value="${value}"${value === "push" && state.pushDisabled ? " disabled" : ""}${itemProps(value)} render={(props) => <button {...props} type="button" />}>`
       : `<CheckboxGroup.Item value="${value}"${value === "push" && state.pushDisabled ? " disabled" : ""}${itemProps(value)}>`;
   const itemClose = state.composition === "asChild" ? "</button></CheckboxGroup.Item>" : "</CheckboxGroup.Item>";
+  const parent = state.composition === "asChild"
+    ? `<CheckboxGroup.Parent asChild${parentProps}><button type="button">Select all notifications</button></CheckboxGroup.Parent>`
+    : state.composition === "render"
+      ? `<CheckboxGroup.Parent${parentProps} render={(props) => <button {...props} type="button" />}>Select all notifications</CheckboxGroup.Parent>`
+      : `<CheckboxGroup.Parent${parentProps}>Select all notifications</CheckboxGroup.Parent>`;
+  const itemLabel = state.composition === "asChild"
+    ? `<CheckboxGroup.ItemLabel asChild${labelProps}><strong>Email updates</strong></CheckboxGroup.ItemLabel>`
+    : state.composition === "render"
+      ? `<CheckboxGroup.ItemLabel${labelProps} render={(props) => <strong {...props} />}>Email updates</CheckboxGroup.ItemLabel>`
+      : `<CheckboxGroup.ItemLabel${labelProps}>Email updates</CheckboxGroup.ItemLabel>`;
+  const itemDescription = state.composition === "asChild"
+    ? `<CheckboxGroup.ItemDescription asChild${descriptionProps}><small>Account and product notices</small></CheckboxGroup.ItemDescription>`
+    : state.composition === "render"
+      ? `<CheckboxGroup.ItemDescription${descriptionProps} render={(props) => <small {...props} />}>Account and product notices</CheckboxGroup.ItemDescription>`
+      : `<CheckboxGroup.ItemDescription${descriptionProps}>Account and product notices</CheckboxGroup.ItemDescription>`;
 
   return `<CheckboxGroup.Root
   ${rootProps}
 >
-  ${itemOpen("email")}Email updates${itemClose}
+  ${parent}
+  ${itemOpen("email")}${itemLabel}
+    ${itemDescription}${itemClose}
   ${itemOpen("sms")}SMS alerts${itemClose}
   ${itemOpen("push")}Push digest${itemClose}
 </CheckboxGroup.Root>`;
@@ -1336,6 +1388,14 @@ function getSections(scenarioId: string, scenarios: SelectionPrimitiveScenarios)
 }
 
 function checkboxGroupSections(state: ReturnType<typeof useCheckboxGroupScenario>["state"]): AnatomySection[] {
+  const parentValues = state.pushDisabled ? ["email", "sms"] : ["email", "sms", "push"];
+  const parentSelectedCount = parentValues.filter((value) => state.value.includes(value)).length;
+  const parentState = parentSelectedCount === parentValues.length
+    ? "true"
+    : parentSelectedCount > 0
+      ? "mixed"
+      : "false";
+
   return [
     baseSection("Root", state.value.join(", ") || "none", slotSelector("checkbox-group", "checkbox-group-root-custom"), [
       row("Controlled", bool(state.controlled), "state"),
@@ -1346,7 +1406,17 @@ function checkboxGroupSections(state: ReturnType<typeof useCheckboxGroupScenario
       row("Orientation", state.orientation, "state"),
       row("Composition", state.composition, "composition"),
     ]),
+    baseSection("Parent", "aggregate", slotSelector("checkbox-group-parent", "checkbox-group-parent-custom"), [
+      row("Checked", parentState, "aria"),
+      row("Composition", state.composition, "composition"),
+    ]),
     checkboxGroupItemSection("Item: Email", "email", state),
+    baseSection("Item Label", "Email updates", slotSelector("checkbox-group-item-label", "checkbox-group-item-label-custom"), [
+      row("Composition", state.composition, "composition"),
+    ]),
+    baseSection("Item Description", "Account and product notices", slotSelector("checkbox-group-item-description", "checkbox-group-item-description-custom"), [
+      row("Composition", state.composition, "composition"),
+    ]),
     checkboxGroupItemSection("Item: SMS", "sms", state),
     checkboxGroupItemSection("Item: Push", "push", state, state.pushDisabled),
     baseSection("Hidden Input", "generated", "input[name='updates']"),

@@ -141,6 +141,9 @@ import {
   Checkbox,
   CheckboxGroup,
   CheckboxGroupItem,
+  CheckboxGroupItemDescription,
+  CheckboxGroupItemLabel,
+  CheckboxGroupParent,
   CheckboxIndicator,
   CheckboxRoot,
   CheckboxGroupRoot,
@@ -294,6 +297,10 @@ test("package subpath exports can be imported through package self-reference", a
     if (subpath === "checkbox-group") {
       assert.equal(mod.CheckboxGroup.Root, mod.CheckboxGroupRoot);
       assert.equal(mod.CheckboxGroup.Item, mod.CheckboxGroupItem);
+      assert.equal(mod.CheckboxGroup.ItemLabel, mod.CheckboxGroupItemLabel);
+      assert.equal(mod.CheckboxGroup.ItemDescription, mod.CheckboxGroupItemDescription);
+      assert.equal(mod.CheckboxGroup.Parent, mod.CheckboxGroupParent);
+      assert.equal(typeof mod.markCheckboxGroupItemPart, "function");
     }
 
     if (subpath === "alert-dialog") {
@@ -559,6 +566,9 @@ test("namespace exports provide the long-term compound API", () => {
   assert.match(dialogHtml, /data-slot="dialog-description"/);
   assert.match(dialogHtml, /data-slot="dialog-close"/);
   assert.equal(typeof Modal.Portal, "function");
+  assert.equal(CheckboxGroup.ItemLabel, CheckboxGroupItemLabel);
+  assert.equal(CheckboxGroup.ItemDescription, CheckboxGroupItemDescription);
+  assert.equal(CheckboxGroup.Parent, CheckboxGroupParent);
 
   const modalCloseHtml = renderToStaticMarkup(
     React.createElement(

@@ -1,5 +1,16 @@
 # Atom Changelog
 
+## 0.6.0
+
+- Completed the CheckboxGroup family with deterministic Parent/select-all
+  state from an explicit selectable-value set and structured ItemLabel and
+  ItemDescription relationships that remain stable across server rendering and
+  hydration.
+- Added public direct, namespace, and checkbox-group subpath exports for the new
+  parts plus semantic wrapper marking for styled libraries.
+- Exposed disabled Checkbox state through `aria-disabled` consistently for the
+  default button and custom composition targets.
+
 ## 0.5.3
 
 - Removed invalid `aria-required` output from CheckboxGroup Root while

@@ -6,6 +6,10 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Expanded Checkbox Group with the complete Parent/select-all and structured
+  ItemLabel/ItemDescription anatomy, live mixed-state and relationship
+  inspection, disabled-value handling, matching Source, and a draft focused
+  desktop/mobile manual protocol.
 - Updated the form-control scenarios and generated Source examples for the
   native-ARIA-only form API. Added coverage for Field/Fieldset inheritance,
   server-stable descriptions, native submission and required validity, and

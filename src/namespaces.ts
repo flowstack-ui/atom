@@ -63,6 +63,9 @@ import { ButtonRoot } from "./primitives/button/index.js";
 import { CheckboxIndicator, CheckboxRoot } from "./primitives/checkbox/index.js";
 import {
   CheckboxGroupItem,
+  CheckboxGroupItemDescription,
+  CheckboxGroupItemLabel,
+  CheckboxGroupParent,
   CheckboxGroupRoot,
 } from "./primitives/checkbox-group/index.js";
 import {
@@ -448,6 +451,9 @@ export const Checkbox = {
 export const CheckboxGroup = {
   Root: CheckboxGroupRoot,
   Item: CheckboxGroupItem,
+  ItemLabel: CheckboxGroupItemLabel,
+  ItemDescription: CheckboxGroupItemDescription,
+  Parent: CheckboxGroupParent,
 } as const;
 
 export const Collapsible = {

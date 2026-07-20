@@ -113,6 +113,7 @@ test("CheckboxIndicator forceMount mirrors unchecked and disabled state", () => 
   );
 
   assert.match(html, /disabled=""/);
+  assert.match(html, /aria-disabled="true"/);
   assert.match(html, /data-disabled=""/);
   assert.match(html, /data-state="unchecked"/);
   assert.match(html, /data-slot="checkbox-indicator"/);
