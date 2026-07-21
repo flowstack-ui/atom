@@ -1,5 +1,10 @@
 # CheckboxGroup Changelog
 
+## 0.6.11
+
+- Restored one-or-more native required validation by keeping the group
+  validation proxy eligible for browser constraint validation.
+
 ## 0.6.0
 
 - Added deterministic `allValues` plus Parent/select-all behavior with

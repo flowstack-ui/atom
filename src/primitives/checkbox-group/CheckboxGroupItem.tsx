@@ -223,7 +223,7 @@ export const CheckboxGroupItem = forwardRef<HTMLButtonElement, CheckboxGroupItem
               form={inputForm}
               checked={isChecked}
               disabled={isDisabled}
-              readOnly
+              onChange={() => undefined}
               style={hiddenInputStyle}
             />
           ) : null}

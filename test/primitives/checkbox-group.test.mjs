@@ -529,6 +529,7 @@ test("CheckboxGroupItem inherits disabled readonly invalid and required state", 
   assert.match(html, /data-readonly=""/);
   assert.match(html, /data-invalid=""/);
   assert.match(html, /<input type="checkbox" aria-hidden="true" tabindex="-1" required=""/);
+  assert.doesNotMatch(html, /<input[^>]*readonly=/);
 });
 
 test("CheckboxGroupRoot provides selected values through context", () => {

@@ -141,14 +141,56 @@ test("required CheckboxGroup validates one-or-more while RadioGroup submits one 
     const group = container.querySelector('[data-slot="checkbox-group"]');
     assert.equal(group.getAttribute("aria-labelledby"), "topics-legend");
     assert.equal(group.getAttribute("aria-describedby"), "topics-description");
+    const validationInput = form.querySelector('input[type="checkbox"][required]');
+    assert.equal(validationInput.readOnly, false);
+    assert.equal(validationInput.willValidate, true);
+    assert.equal(validationInput.validity.valueMissing, true);
     assert.equal(form.checkValidity(), false);
 
     await click(container.querySelector('[data-slot="checkbox-group-item"]'));
+    assert.equal(validationInput.validity.valueMissing, false);
     assert.equal(form.checkValidity(), true);
     assert.deepEqual(Array.from(new window.FormData(form).entries()), [
       ["topics", "news"],
       ["contact", "email"],
     ]);
+  } finally {
+    await React.act(async () => root.unmount());
+    cleanup();
+  }
+});
+
+test("required Checkbox remains eligible for native constraint validation", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  try {
+    await React.act(async () => {
+      root.render(
+        React.createElement(
+          "form",
+          null,
+          React.createElement(
+            Field.Root,
+            { id: "acknowledgement", required: true },
+            React.createElement(Field.Label, null, "Release acknowledgement"),
+            React.createElement(Checkbox.Root, { name: "acknowledgement" }, "Reviewed"),
+          ),
+        ),
+      );
+    });
+
+    const form = container.querySelector("form");
+    const control = container.querySelector('[data-slot="checkbox"]');
+    const input = form.querySelector('input[type="checkbox"]');
+    assert.equal(input.required, true);
+    assert.equal(input.readOnly, false);
+    assert.equal(input.willValidate, true);
+    assert.equal(input.validity.valueMissing, true);
+    assert.equal(form.checkValidity(), false);
+
+    await click(control);
+    assert.equal(input.validity.valueMissing, false);
+    assert.equal(form.checkValidity(), true);
   } finally {
     await React.act(async () => root.unmount());
     cleanup();

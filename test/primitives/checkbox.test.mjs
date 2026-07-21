@@ -143,6 +143,7 @@ test("CheckboxRoot renders a hidden checkbox input for form submission when name
   assert.match(html, /form="signup-form"/);
   assert.match(html, /checked=""/);
   assert.match(html, /required=""/);
+  assert.doesNotMatch(html, /<input[^>]*readonly=/);
 });
 
 test("CheckboxRoot omits form input when name is not provided", () => {
