@@ -2,7 +2,23 @@ import { assert, test } from "./test-utils.mjs";
 import {
   getFloatingAvailableSizeMiddleware,
   getFloatingFallbackPlacements,
+  resolveFloatingDirection,
 } from "../dist/_internal/utils/floatingPlacement.js";
+
+test("floating direction prefers explicit, then reference, then provider direction", () => {
+  const originalWindow = globalThis.window;
+  globalThis.window = {
+    getComputedStyle: () => ({ direction: "rtl" }),
+  };
+
+  try {
+    assert.equal(resolveFloatingDirection("ltr", {}, "rtl"), "ltr");
+    assert.equal(resolveFloatingDirection(undefined, {}, "ltr"), "rtl");
+    assert.equal(resolveFloatingDirection(undefined, null, "rtl"), "rtl");
+  } finally {
+    globalThis.window = originalWindow;
+  }
+});
 
 test("floating size middleware exposes headless available dimensions", async () => {
   const middleware = getFloatingAvailableSizeMiddleware();

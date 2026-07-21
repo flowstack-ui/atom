@@ -20,10 +20,12 @@ import {
   type Placement,
 } from "@floating-ui/react";
 import { usePresence } from "../../hooks/usePresence.js";
+import { useDirection } from "../direction/index.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import {
   getFloatingAvailableSizeMiddleware,
   getFloatingFallbackPlacements,
+  resolveFloatingDirection,
 } from "../../utils/floatingPlacement.js";
 import { composeEventHandlers, composeRefs } from "../../utils/slot.js";
 import {
@@ -67,6 +69,7 @@ function TooltipContent(
     sideOffset = 4,
     className,
     ariaLabel,
+    dir: dirProp,
     onMouseEnter,
     onMouseLeave,
     "data-slot": dataSlot = "tooltip",
@@ -84,6 +87,7 @@ function TooltipContent(
     triggerRef,
     variant,
   } = useTooltipContext();
+  const contextDir = useDirection();
   const arrowRef = useRef<SVGSVGElement>(null);
   const { isPresent, ref: presenceRef } = usePresence({ present: isOpen });
   const [isPositioned, setIsPositioned] = useState(false);
@@ -138,6 +142,11 @@ function TooltipContent(
   );
 
   const actualSide = sideFromPlacement(placement);
+  const resolvedDir = resolveFloatingDirection(
+    dirProp,
+    referenceElement ?? triggerRef.current,
+    contextDir,
+  );
   const arrowData = middlewareData.arrow;
   const contentContextValue: TooltipContentContextValue = useMemo(
     () => ({
@@ -161,6 +170,7 @@ function TooltipContent(
         data-slot={dataSlot}
         data-state={isOpen ? "open" : "closed"}
         data-side={actualSide}
+        dir={dirProp ?? resolvedDir}
         data-variant={variant}
         {...(isPositioned ? { "data-positioned": "" } : {})}
         aria-label={ariaLabel}

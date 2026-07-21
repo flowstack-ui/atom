@@ -20,10 +20,12 @@ import {
   type Placement,
 } from "@floating-ui/react";
 import { usePresence } from "../../hooks/usePresence.js";
+import { useDirection } from "../direction/index.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import {
   getFloatingAvailableSizeMiddleware,
   getFloatingFallbackPlacements,
+  resolveFloatingDirection,
 } from "../../utils/floatingPlacement.js";
 import { composeEventHandlers, composeRefs } from "../../utils/slot.js";
 import {
@@ -67,6 +69,7 @@ function HoverCardContent(
     sideOffset = 8,
     className,
     ariaLabel,
+    dir: dirProp,
     onMouseEnter,
     onMouseLeave,
     "data-slot": dataSlot = "hover-card-content",
@@ -83,6 +86,7 @@ function HoverCardContent(
     floatingRootContext,
     getFloatingProps,
   } = useHoverCardContext();
+  const contextDir = useDirection();
   const arrowRef = useRef<SVGSVGElement>(null);
   const { isPresent, ref: presenceRef } = usePresence({ present: isOpen });
   const [isPositioned, setIsPositioned] = useState(false);
@@ -134,6 +138,11 @@ function HoverCardContent(
   );
 
   const actualSide = sideFromPlacement(placement);
+  const resolvedDir = resolveFloatingDirection(
+    dirProp,
+    referenceElement ?? triggerRef.current,
+    contextDir,
+  );
   const arrowData = middlewareData.arrow;
   const contentContextValue: HoverCardContentContextValue = useMemo(
     () => ({
@@ -156,6 +165,7 @@ function HoverCardContent(
         data-slot={dataSlot}
         data-state={isOpen ? "open" : "closed"}
         data-side={actualSide}
+        dir={dirProp ?? resolvedDir}
         {...(isPositioned ? { "data-positioned": "" } : {})}
         aria-label={ariaLabel}
         className={className}

@@ -18,6 +18,7 @@ import {
   PopoverRoot,
   PopoverTrigger,
   PopoverTitle,
+  DirectionProvider,
 } from "../../dist/index.js";
 
 import {
@@ -189,6 +190,23 @@ test("Popover native ARIA overrides generated semantic relationships", () => {
   assert.match(content, /aria-label="Native label"/);
   assert.match(content, /aria-labelledby="external-title"/);
   assert.match(content, /aria-describedby="external-description"/);
+});
+
+test("PopoverContent preserves provider direction across its portal boundary", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      DirectionProvider,
+      { dir: "rtl" },
+      React.createElement(
+        PopoverRoot,
+        { defaultOpen: true },
+        React.createElement(PopoverTrigger, null, "Open"),
+        React.createElement(PopoverContent, { "aria-label": "Settings" }, "Body"),
+      ),
+    ),
+  );
+
+  assert.match(html, /role="dialog" dir="rtl"/);
 });
 
 test("PopoverArrow geometry keeps width as triangle spread and height as protrusion", () => {

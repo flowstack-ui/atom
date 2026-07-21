@@ -138,6 +138,8 @@ Arrow remains its sibling so styled layers can scroll the viewport without
 clipping the pointer. Content exposes measured
 `--atom-floating-available-width` and `--atom-floating-available-height`
 properties.
+Portalled Content preserves an explicit `dir`; otherwise it resolves direction
+from the mounted Anchor/Trigger and then `Direction.Provider`.
 
 | Prop | Type | Default |
 | --- | --- | --- |

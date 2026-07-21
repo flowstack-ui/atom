@@ -1,5 +1,10 @@
 # Tooltip Changelog
 
+## 0.6.9
+
+- Preserved resolved Trigger or provider direction on portalled Content while
+  retaining explicit Content `dir` precedence.
+
 ## 0.6.8
 
 - Exposed measured available dimensions through headless floating properties
