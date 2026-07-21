@@ -1,5 +1,14 @@
 # Atom Changelog
 
+## 0.6.3
+
+- Standardized HoverCard, Tooltip, and Popover collision priority so alternate
+  alignments on the requested side and opposite side are exhausted before a
+  perpendicular side is considered.
+- Added tag-gated npm trusted publishing through GitHub Actions with OIDC,
+  release metadata validation, complete package tests, archive verification,
+  and React 18/19 consumer checks.
+
 ## 0.6.2
 
 - Added perpendicular-axis collision fallbacks to HoverCard, Tooltip, and

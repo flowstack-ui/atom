@@ -33,6 +33,7 @@ import {
 import { usePresence } from "../../hooks/usePresence.js";
 import { useScrollLock } from "../../hooks/useScrollLock.js";
 import type { NativeDivProps } from "../../utils/dom.js";
+import { getFloatingFallbackPlacements } from "../../utils/floatingPlacement.js";
 import { composeEventHandlers, composeRefs } from "../../utils/slot.js";
 import {
   PopoverContentContextProvider,
@@ -507,11 +508,14 @@ function PopoverContent(props, ref) {
   const middleware = useMemo(
     () => [
       offset(sideOffset),
-      flip({ fallbackAxisSideDirection: "start" }),
+      flip({
+        fallbackPlacements: getFloatingFallbackPlacements(side, align),
+        fallbackStrategy: "bestFit",
+      }),
       shift({ padding: 8 }),
       floatingArrow({ element: arrowRef, padding: 8 }),
     ],
-    [sideOffset],
+    [align, side, sideOffset],
   );
 
   const { refs, floatingStyles, placement, middlewareData } = useFloating({

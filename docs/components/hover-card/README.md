@@ -16,8 +16,9 @@ accessibility relationship, so never put required actions inside it.
 - Supports controlled and uncontrolled open state.
 - Opens from pointer hover and focus-visible Trigger interaction.
 - Uses configurable open and close delays and keeps open while Content is hovered.
-- Positions Content with offset, collision shift, opposite- and perpendicular-side
-  fallbacks, and Arrow coordinates.
+- Positions Content by trying alternate alignments on the requested side,
+  repeating them on the opposite side, and using perpendicular sides only as
+  final fallbacks; collision shift and Arrow coordinates follow the result.
 - Supports inline or custom-container portals.
 - Participates in topmost-layer Escape dismissal.
 

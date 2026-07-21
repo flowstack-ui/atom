@@ -1,5 +1,10 @@
 # HoverCard Changelog
 
+## 0.6.3
+
+- Prioritized every usable alignment on the requested side, followed by the
+  opposite side, before allowing perpendicular-axis collision fallbacks.
+
 ## 0.6.2
 
 - Added perpendicular-side collision fallbacks after the preferred and opposite
