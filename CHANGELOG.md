@@ -1,5 +1,17 @@
 # Atom Changelog
 
+## 0.6.12
+
+- Aligned native constraint-validation controls with their visible composite
+  owners across Checkbox, CheckboxGroup, Switch, RadioGroup, Select, Combobox,
+  Rating, and FileUpload, including correct validation without a submission
+  name and focus redirection to the operable control.
+- Moved OTPField required validity to its first visible cell while retaining a
+  submission-only combined named value.
+- Synchronized accepted FileUpload files back to the native file input when
+  the browser permits programmatic `FileList` assignment, keeping drag/drop,
+  native required validity, and FormData consistent.
+
 ## 0.6.11
 
 - Restored native required constraint validation for Checkbox and

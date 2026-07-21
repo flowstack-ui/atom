@@ -11,6 +11,7 @@ import {
 import { useCollection } from "../../collection.js";
 import { useControllableState } from "../../hooks/useControllableState.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
+import { formControlProxyStyle, useFormControlProxy } from "../../hooks/useFormControlProxy.js";
 import { useFieldContext } from "../field/context.js";
 import {
   ComboboxContextProvider,
@@ -111,6 +112,8 @@ export function ComboboxRoot({
   const listboxId = `combobox-listbox-${idPrefix}`;
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const validationInputRef = useRef<HTMLInputElement>(null);
+  useFormControlProxy(validationInputRef, inputRef);
   const contentRef = useRef<HTMLDivElement>(null);
   const suppressInputFocusOpenRef = useRef(false);
   const reset = useCallback(() => {
@@ -333,18 +336,23 @@ export function ComboboxRoot({
 
   return (
     <ComboboxContextProvider value={contextValue}>
-      {children}
-      {name ? (
+      {name !== undefined || isRequired ? (
         <input
-          type="hidden"
+          ref={validationInputRef}
+          type="text"
           name={name}
           value={value ?? ""}
           form={form}
           disabled={isDisabled}
+          required={isRequired}
           aria-hidden="true"
           tabIndex={-1}
+          onFocus={() => inputRef.current?.focus()}
+          onChange={() => undefined}
+          style={formControlProxyStyle}
         />
       ) : null}
+      {children}
     </ComboboxContextProvider>
   );
 }

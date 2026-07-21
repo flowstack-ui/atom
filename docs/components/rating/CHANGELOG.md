@@ -1,5 +1,10 @@
 # Rating Changelog
 
+## 0.6.12
+
+- Added aligned native required validation that treats the minimum rating as
+  empty and redirects browser focus to Root.
+
 ## 0.5.0
 
 - Added Field state, generated ID, label, and description integration plus

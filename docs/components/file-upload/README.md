@@ -92,8 +92,11 @@ rejections and drag state, and resets the native file picker.
 
 ### HiddenInput
 
-Renders the hidden native `input type="file"`, opens through Trigger, and sends
-selected `FileList` values into Root validation.
+Renders the transparent native `input type="file"`, opens through Trigger, and
+sends selected `FileList` values into Root validation. It is aligned with
+Trigger so native required feedback points to the visible control and redirects
+validation focus there. Accepted drag/drop files are synchronized back to the
+native input when the browser permits `FileList` assignment.
 
 | Prop | Type | Default |
 | --- | --- | --- |

@@ -11,6 +11,7 @@ import {
 import { useCollection } from "../../collection.js";
 import { useControllableState } from "../../hooks/useControllableState.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
+import { formControlProxyStyle, useFormControlProxy } from "../../hooks/useFormControlProxy.js";
 import { useDirection, type DirectionValue } from "../direction/index.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import {
@@ -117,6 +118,7 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
     const isRequired = required ?? fieldset?.required ?? false;
     const isInvalid = invalid ?? fieldset?.invalid ?? false;
     const rootRef = useRef<HTMLDivElement>(null);
+    const validationInputRef = useRef<HTMLInputElement>(null);
     const dir = useDirection();
     const [activeValue, setActiveValue] = useControllableState({
       value,
@@ -152,6 +154,10 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
     const getRadioValues = useCallback((): string[] => {
       return getCollectionRadioValues();
     }, [getCollectionRadioValues]);
+    const firstEnabledRadio = getRadioValues()
+      .map(getRadioElement)
+      .find((element) => element && !isRadioElementDisabled(element)) ?? null;
+    useFormControlProxy(validationInputRef, { current: firstEnabledRadio });
 
     const findNextValue = useCallback(
       (values: string[], currentIndex: number, direction: 1 | -1): string | null => {
@@ -294,6 +300,21 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
 
     return (
       <RadioGroupContextProvider value={contextValue}>
+        {isRequired ? (
+          <input
+            ref={validationInputRef}
+            type="checkbox"
+            checked={activeValue !== ""}
+            required
+            disabled={isDisabled}
+            form={form}
+            aria-hidden="true"
+            tabIndex={-1}
+            onFocus={() => firstEnabledRadio?.focus()}
+            onChange={() => undefined}
+            style={formControlProxyStyle}
+          />
+        ) : null}
         {element}
       </RadioGroupContextProvider>
     );

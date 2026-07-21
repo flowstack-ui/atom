@@ -36,7 +36,10 @@ import { Switch } from "@flowstack-ui/atom";
 ### Root
 
 Owns the checked and form state and renders a native button by default. It also
-provides state to Thumb and renders a hidden checkbox when `name` is present.
+provides state to Thumb and renders a transparent native checkbox when `name`
+or `required` needs native form behavior. The proxy is aligned to Root,
+participates in required validation without `readonly`, and redirects browser
+validation focus to the visible switch.
 
 | Prop | Type | Default |
 | --- | --- | --- |

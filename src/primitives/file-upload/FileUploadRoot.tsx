@@ -3,6 +3,7 @@
 import {
   forwardRef,
   useCallback,
+  useEffect,
   useId,
   useMemo,
   useRef,
@@ -81,6 +82,7 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
     const fieldCtx = useFieldContext();
     const autoId = useId();
     const inputRef = useRef<HTMLInputElement | null>(null);
+    const triggerRef = useRef<HTMLElement | null>(null);
     const [rejectedFiles, setRejectedFiles] = useState<FileUploadRejectedFile[]>([]);
     const [dragState, setDragState] = useState<FileUploadDragState>("idle");
     const [resolvedFiles, setResolvedFiles] = useControllableState<File[]>({
@@ -115,6 +117,19 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
       resetNativeInput();
     }, [defaultFiles, files, resetNativeInput, setResolvedFiles]);
     useFormReset(inputRef, form, files !== undefined, reset);
+
+    useEffect(() => {
+      const input = inputRef.current;
+      if (!input || typeof DataTransfer === "undefined") return;
+
+      try {
+        const transfer = new DataTransfer();
+        resolvedFiles.forEach((file) => transfer.items.add(file));
+        input.files = transfer.files;
+      } catch {
+        // Some browsers expose FileList as read-only; picker selections still stay native.
+      }
+    }, [resolvedFiles]);
 
     const setFilesFromList = useCallback(
       (nextFiles: FileList | File[]) => {
@@ -180,6 +195,7 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
         clearFiles,
         openFilePicker,
         inputRef,
+        triggerRef,
         disabled: isDisabled,
         readOnly: isReadOnly,
         required: isRequired,

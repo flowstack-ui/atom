@@ -1,5 +1,10 @@
 # CheckboxGroup Changelog
 
+## 0.6.12
+
+- Aligned the one-or-more validation proxy with the first enabled Item and
+  redirected browser validation focus to that visible checkbox.
+
 ## 0.6.11
 
 - Restored one-or-more native required validation by keeping the group

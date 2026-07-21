@@ -90,7 +90,8 @@ test("Combobox compound parts render combobox/listbox anatomy", () => {
   assert.match(html, /data-slot="combobox-label"/);
   assert.match(html, /role="option"[^>]+aria-selected="true"[^>]+data-value="apple"/);
   assert.match(html, /role="option"[^>]+aria-disabled="true"[^>]+data-value="banana"/);
-  assert.match(html, /<input type="hidden"[^>]+name="fruit"[^>]+value="apple"/);
+  assert.match(html, /<input type="text"[^>]+required=""[^>]+name="fruit"[^>]+value="apple"/);
+  assert.doesNotMatch(html, /role="combobox"[^>]+required=""/);
   assert.equal(Combobox.Root, ComboboxRoot);
   assert.equal(Combobox.Input, ComboboxInput);
   assert.equal(Combobox.Clear, ComboboxClear);

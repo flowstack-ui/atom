@@ -89,9 +89,12 @@ adds an accessibility-hidden input containing the selected value.
 | `name` | `string` | - |
 | `form` | `string` | - |
 
-The hidden value input receives `name`, `form`, value, and disabled state. The
-visible Input receives Field state, the generated control ID, Field label and
-description relationships, and external form association. Uncontrolled value,
+The transparent native value proxy receives `name`, `form`, the committed
+value, disabled state, and required state. It aligns to the visible Input and
+redirects browser validation focus there, so typed display text does not
+satisfy required validity until a value is committed. The visible Input
+receives Field state, the generated control ID, Field label and description
+relationships, and external form association. Uncontrolled value,
 input text, and open state return to their defaults on native form reset.
 
 ### Label

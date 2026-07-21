@@ -180,6 +180,8 @@ export const OTPFieldInput = forwardRef<HTMLInputElement, OTPFieldInputProps>(
       tabIndex: context.activeIndex === resolvedIndex ? 0 : -1,
       disabled: context.disabled || undefined,
       readOnly: context.readOnly || undefined,
+      required: context.required && resolvedIndex === 0 ? true : undefined,
+      form: context.form,
       "aria-label": ariaLabel ?? `${cellNoun} ${resolvedIndex + 1} of ${context.length}`,
       "aria-invalid": context.invalid || undefined,
       "aria-required": context.required || undefined,

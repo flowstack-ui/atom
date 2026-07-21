@@ -213,7 +213,6 @@ export const ComboboxInput = forwardRef<HTMLInputElement, ComboboxInputProps>(
       form,
       disabled: disabled || undefined,
       readOnly: readOnly || undefined,
-      required: required || undefined,
       "aria-expanded": isOpen,
       "aria-haspopup": "listbox",
       "aria-controls": listboxId,

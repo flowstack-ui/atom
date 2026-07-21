@@ -78,6 +78,9 @@ focus behavior for every Radio part inside it.
 
 Renders one option, registers it for keyboard navigation, and mirrors the
 selected value into a hidden native radio input when Root has a `name`.
+Required validity is owned once at group level by a transparent native proxy
+aligned with the first enabled Radio. It works without a submission name and
+redirects browser validation focus to that Radio.
 
 | Prop | Type | Default |
 | --- | --- | --- |

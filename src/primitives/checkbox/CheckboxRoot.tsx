@@ -2,7 +2,6 @@
 
 import {
   forwardRef,
-  type CSSProperties,
   type KeyboardEventHandler,
   type MouseEventHandler,
   type ReactNode,
@@ -12,6 +11,10 @@ import {
 } from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
+import {
+  formControlProxyStyle,
+  useFormControlProxy,
+} from "../../hooks/useFormControlProxy.js";
 import type { NativeButtonProps } from "../../utils/dom.js";
 import {
   cloneAndMerge,
@@ -38,18 +41,6 @@ type CheckboxRootNativeProps = NativeButtonProps<
   | "type"
   | "value"
 >;
-
-const hiddenInputStyle: CSSProperties = {
-  position: "absolute",
-  width: 1,
-  height: 1,
-  padding: 0,
-  margin: -1,
-  overflow: "hidden",
-  clip: "rect(0, 0, 0, 0)",
-  whiteSpace: "nowrap",
-  borderWidth: 0,
-};
 
 export interface CheckboxRootProps extends CheckboxRootNativeProps {
   /** Controlled checked state. Use "indeterminate" for the mixed state. */
@@ -120,6 +111,8 @@ export const CheckboxRoot = forwardRef<HTMLButtonElement, CheckboxRootProps>(
     const isInvalid = invalid ?? field?.invalid ?? false;
     const isRequired = required ?? field?.required ?? false;
     const inputRef = useRef<HTMLInputElement>(null);
+    const rootRef = useRef<HTMLButtonElement>(null);
+    useFormControlProxy(inputRef, rootRef);
     const [isChecked, setIsChecked] = useControllableState({
       value: checked,
       defaultValue: defaultChecked,
@@ -160,7 +153,7 @@ export const CheckboxRoot = forwardRef<HTMLButtonElement, CheckboxRootProps>(
     // Native props pass through first; Atom state, ARIA, and handlers remain authoritative.
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
-      ref,
+      ref: composeRefs(rootRef, ref),
       id: restProps.id ?? field?.controlId,
       type: "button",
       role: "checkbox",
@@ -190,8 +183,7 @@ export const CheckboxRoot = forwardRef<HTMLButtonElement, CheckboxRootProps>(
 
     return (
       <CheckboxContextProvider value={contextValue}>
-        {rootElement}
-        {name !== undefined ? (
+        {name !== undefined || isRequired ? (
           <input
             ref={inputRef}
             type="checkbox"
@@ -203,10 +195,12 @@ export const CheckboxRoot = forwardRef<HTMLButtonElement, CheckboxRootProps>(
             checked={isChecked === true}
             disabled={isDisabled}
             required={isRequired}
+            onFocus={() => rootRef.current?.focus()}
             onChange={() => undefined}
-            style={hiddenInputStyle}
+            style={formControlProxyStyle}
           />
         ) : null}
+        {rootElement}
       </CheckboxContextProvider>
     );
   },

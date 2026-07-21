@@ -185,7 +185,6 @@ export const RadioRoot = forwardRef<HTMLButtonElement, RadioRootProps>(
             value={value}
             form={context.form}
             checked={isChecked}
-            required={context.required}
             disabled={isDisabled}
             readOnly
             style={hiddenInputStyle}
