@@ -1,5 +1,12 @@
 # HoverCard Changelog
 
+## 0.6.4
+
+- Limited hover disclosure to mouse-capable pointers so touch keeps the
+  Trigger's native tap and long-press behavior.
+- Added a safe geometric corridor from Trigger to Content and prevented
+  exit-retained Content from reopening itself during its closing motion.
+
 ## 0.6.3
 
 - Prioritized every usable alignment on the requested side, followed by the

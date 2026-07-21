@@ -9,6 +9,12 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import {
+  safePolygon,
+  useFloatingRootContext,
+  useHover,
+  useInteractions,
+} from "@floating-ui/react";
 import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
 import {
   HoverCardContextProvider,
@@ -38,6 +44,8 @@ export function HoverCardRoot({
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const isOpen = isControlled ? controlledOpen : internalOpen;
   const triggerRef = useRef<HTMLElement | null>(null);
+  const [triggerElement, setTriggerElement] = useState<HTMLElement | null>(null);
+  const [contentElement, setContentElement] = useState<HTMLElement | null>(null);
   const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hoverCardId = useId();
@@ -54,6 +62,32 @@ export function HoverCardRoot({
     },
     [isControlled, onOpenChange],
   );
+
+  const floatingRootContext = useFloatingRootContext({
+    open: isOpen,
+    onOpenChange: (nextOpen, event) => {
+      const target = event?.target;
+      const closingContentTriedToReopen =
+        nextOpen &&
+        !isOpen &&
+        contentElement !== null &&
+        target !== null &&
+        contentElement.contains(target as Node);
+      if (!disabled && !closingContentTriedToReopen) setOpen(nextOpen);
+    },
+    elements: {
+      reference: triggerElement,
+      floating: contentElement,
+    },
+  });
+  const hover = useHover(floatingRootContext, {
+    enabled: !disabled,
+    mouseOnly: true,
+    delay: { open: openDelay, close: closeDelay },
+    handleClose: safePolygon(),
+    move: false,
+  });
+  const { getReferenceProps, getFloatingProps } = useInteractions([hover]);
 
   const onOpen = useCallback(() => {
     if (disabled) return;
@@ -74,16 +108,6 @@ export function HoverCardRoot({
     }
   }, [clearTimers, closeDelay, setOpen]);
 
-  const onContentEnter = useCallback(() => {
-    if (disabled) return;
-    clearTimers();
-    setOpen(true);
-  }, [clearTimers, disabled, setOpen]);
-
-  const onContentLeave = useCallback(() => {
-    if (!disabled) onClose();
-  }, [disabled, onClose]);
-
   const handleEscape = useCallback(() => {
     clearTimers();
     setOpen(false);
@@ -100,20 +124,26 @@ export function HoverCardRoot({
       isOpen,
       onOpen,
       onClose,
-      onContentEnter,
-      onContentLeave,
       hoverCardId,
       triggerRef,
+      setTriggerElement,
+      setContentElement,
+      floatingRootContext,
+      getReferenceProps,
+      getFloatingProps,
       disabled,
     }),
     [
       disabled,
       hoverCardId,
       isOpen,
+      floatingRootContext,
+      getFloatingProps,
+      getReferenceProps,
       onClose,
-      onContentEnter,
-      onContentLeave,
       onOpen,
+      setContentElement,
+      setTriggerElement,
     ],
   );
 

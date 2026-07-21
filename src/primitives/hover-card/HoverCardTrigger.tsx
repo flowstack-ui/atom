@@ -6,7 +6,6 @@ import {
   useMemo,
   type FocusEvent,
   type FocusEventHandler,
-  type MouseEventHandler,
   type ReactNode,
 } from "react";
 import type { NativeSpanProps } from "../../utils/dom.js";
@@ -46,19 +45,19 @@ function HoverCardTrigger(
   },
   ref,
 ) {
-  const { isOpen, onOpen, onClose, triggerRef, disabled } = useHoverCardContext();
+  const {
+    isOpen,
+    onOpen,
+    onClose,
+    triggerRef,
+    setTriggerElement,
+    getReferenceProps,
+    disabled,
+  } = useHoverCardContext();
   const composedRef = useMemo(
-    () => composeRefs(triggerRef, ref),
-    [ref, triggerRef],
+    () => composeRefs(triggerRef, setTriggerElement, ref),
+    [ref, setTriggerElement, triggerRef],
   );
-
-  const handleMouseEnter: MouseEventHandler<HTMLSpanElement> = useCallback(() => {
-    if (!disabled) onOpen();
-  }, [disabled, onOpen]);
-
-  const handleMouseLeave: MouseEventHandler<HTMLSpanElement> = useCallback(() => {
-    if (!disabled) onClose();
-  }, [disabled, onClose]);
 
   const handleFocus: FocusEventHandler<HTMLSpanElement> = useCallback(
     (event: FocusEvent<HTMLElement>) => {
@@ -73,16 +72,19 @@ function HoverCardTrigger(
     if (!disabled) onClose();
   }, [disabled, onClose]);
 
+  const interactionProps = getReferenceProps({
+    onMouseEnter,
+    onMouseLeave,
+    onFocus: composeEventHandlers(onFocus, handleFocus),
+    onBlur: composeEventHandlers(onBlur, handleBlur),
+  });
   const triggerProps = {
     ...restProps,
+    ...interactionProps,
     ref: composedRef,
     "data-slot": dataSlot,
     "data-state": isOpen ? "open" : "closed",
     tabIndex: asChild ? tabIndex : (tabIndex ?? (disabled ? -1 : 0)),
-    onMouseEnter: composeEventHandlers(onMouseEnter, handleMouseEnter),
-    onMouseLeave: composeEventHandlers(onMouseLeave, handleMouseLeave),
-    onFocus: composeEventHandlers(onFocus, handleFocus),
-    onBlur: composeEventHandlers(onBlur, handleBlur),
     className,
   };
 
