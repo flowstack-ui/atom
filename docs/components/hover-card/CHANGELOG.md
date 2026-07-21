@@ -1,8 +1,9 @@
 # HoverCard Changelog
 
-## Unreleased
+## 0.6.2
 
-- No unreleased changes.
+- Added perpendicular-side collision fallbacks after the preferred and opposite
+  sides, preventing wide previews from remaining cropped on a constrained axis.
 
 ## 0.3.1
 

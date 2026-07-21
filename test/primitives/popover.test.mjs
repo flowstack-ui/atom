@@ -84,6 +84,7 @@ test("PopoverContent resolves a display contents anchor to its child reference",
   assert.match(source, /child instanceof HTMLElement/);
   assert.match(source, /return child/);
   assert.match(source, /refs\.setReference\(getPopoverReferenceElement\(anchorRef\.current, triggerRef\.current\)\)/);
+  assert.match(source, /flip\(\{ fallbackAxisSideDirection: "start" \}\)/);
 });
 
 test("PopoverContent treats portalled descendant popover layers as inside", async () => {

@@ -1,5 +1,11 @@
 # Atom Changelog
 
+## 0.6.2
+
+- Added perpendicular-axis collision fallbacks to HoverCard, Tooltip, and
+  Popover so positioned content can choose an axis with sufficient viewport
+  room instead of remaining cropped after an opposite-side flip.
+
 ## 0.6.1
 
 - Corrected Tooltip touch dismissal so an outside touch or scrolling closes an

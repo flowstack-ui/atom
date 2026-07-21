@@ -507,7 +507,7 @@ function PopoverContent(props, ref) {
   const middleware = useMemo(
     () => [
       offset(sideOffset),
-      flip(),
+      flip({ fallbackAxisSideDirection: "start" }),
       shift({ padding: 8 }),
       floatingArrow({ element: arrowRef, padding: 8 }),
     ],
