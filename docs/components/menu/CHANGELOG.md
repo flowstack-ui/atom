@@ -1,8 +1,9 @@
 # Menu Changelog
 
-## Unreleased
+## 0.6.7
 
-- No unreleased changes.
+- Modal Menu now inherits root/body overflow locking without fixed-body
+  repositioning or unlock-time scroll restoration on iOS Safari.
 
 ## 0.3.4
 

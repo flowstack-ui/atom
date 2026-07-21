@@ -1,5 +1,12 @@
 # Atom Changelog
 
+## 0.6.7
+
+- Replaced fixed-body modal scroll locking with document-root and body overflow
+  locking, preserving scroll coordinates and avoiding iOS Safari browser-chrome
+  transitions when Dialog, AlertDialog, Drawer, modal Popover, or modal Menu
+  opens and closes.
+
 ## 0.6.6
 
 - Prevented touch-only browsers from installing HoverCard hover opening and

@@ -1,8 +1,12 @@
 # Modal Changelog
 
-## Unreleased
+## 0.6.7
 
-- No unreleased changes.
+- Replaced fixed-body scroll locking with root/body overflow locking while
+  retaining nested ownership, internal scroll containment, scrollbar
+  compensation, and exact authored-style restoration.
+- Preserved document scroll coordinates without an unlock-time `scrollTo`,
+  preventing iOS Safari visual-viewport and browser-toolbar transitions.
 
 ## 0.3.4
 
