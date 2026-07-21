@@ -300,7 +300,9 @@ Intentional keyboard, mouse, and pen openings focus an explicit
 Touch defaults to Content so opening does not unexpectedly raise a virtual
 keyboard. Pointer-hover opening never moves focus. Escape and Close restore a
 valid explicit `finalFocus`, the prior element, or Trigger; outside pointer and
-focus dismissal preserve the destination. In modal mode, focus remains
+focus dismissal preserve the destination. Touch and pen outside interactions
+dismiss only after resolving as taps; movement, scrolling, and pointer
+cancellation keep the Popover open. In modal mode, focus remains
 contained inside the popover scope, including registered portalled layers
 opened by descendants.
 

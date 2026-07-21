@@ -89,11 +89,21 @@ function dispatchPointerActivation(element, pointerType) {
 }
 
 function dispatchPointerDown(element, pointerType = "mouse") {
+  dispatchPointerEvent(element, "pointerdown", pointerType);
+}
+
+function dispatchPointerEvent(
+  element,
+  type,
+  pointerType = "mouse",
+  { pointerId = 1, clientX = 0, clientY = 0 } = {},
+) {
   const event = new element.ownerDocument.defaultView.MouseEvent(
-    "pointerdown",
-    { bubbles: true, button: 0 },
+    type,
+    { bubbles: true, button: 0, clientX, clientY },
   );
   Object.defineProperty(event, "pointerType", { value: pointerType });
+  Object.defineProperty(event, "pointerId", { value: pointerId });
   element.dispatchEvent(event);
 }
 
@@ -212,6 +222,71 @@ test("Popover Close restores focus while outside pointer dismissal preserves its
         await new Promise((resolve) => setTimeout(resolve, 20));
       });
       assert.equal(dom.window.document.activeElement, outside);
+      assert.equal(dom.window.document.querySelector("[data-slot=popover-content]"), null);
+    },
+  );
+});
+
+test("Popover distinguishes an outside touch tap from a scroll gesture", async () => {
+  await withHydratedDom(
+    React.createElement(FocusFixture),
+    async (dom) => {
+      const trigger = dom.window.document.querySelector("[data-slot=popover-trigger]");
+      const outside = dom.window.document.getElementById("outside");
+      await act(async () => {
+        dispatchPointerActivation(trigger, "touch");
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      });
+
+      await act(async () => {
+        dispatchPointerEvent(outside, "pointerdown", "touch", {
+          pointerId: 7,
+          clientX: 20,
+          clientY: 20,
+        });
+        dom.window.document.dispatchEvent(new dom.window.Event("scroll"));
+        dispatchPointerEvent(outside, "pointerup", "touch", {
+          pointerId: 7,
+          clientX: 20,
+          clientY: 20,
+        });
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      });
+      assert.ok(dom.window.document.querySelector("[data-slot=popover-content]"));
+
+      await act(async () => {
+        dispatchPointerEvent(outside, "pointerdown", "touch", {
+          pointerId: 8,
+          clientX: 20,
+          clientY: 20,
+        });
+        dispatchPointerEvent(outside, "pointermove", "touch", {
+          pointerId: 8,
+          clientX: 20,
+          clientY: 40,
+        });
+        dispatchPointerEvent(outside, "pointerup", "touch", {
+          pointerId: 8,
+          clientX: 20,
+          clientY: 40,
+        });
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      });
+      assert.ok(dom.window.document.querySelector("[data-slot=popover-content]"));
+
+      await act(async () => {
+        dispatchPointerEvent(outside, "pointerdown", "touch", {
+          pointerId: 9,
+          clientX: 20,
+          clientY: 20,
+        });
+        dispatchPointerEvent(outside, "pointerup", "touch", {
+          pointerId: 9,
+          clientX: 22,
+          clientY: 22,
+        });
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      });
       assert.equal(dom.window.document.querySelector("[data-slot=popover-content]"), null);
     },
   );

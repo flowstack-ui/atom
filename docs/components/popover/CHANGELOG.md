@@ -1,5 +1,11 @@
 # Popover Changelog
 
+## 0.6.10
+
+- Distinguished outside touch and pen taps from scroll gestures so scrolling
+  no longer dismisses an open Popover; mouse outside dismissal remains
+  immediate.
+
 ## 0.6.9
 
 - Preserved resolved trigger/anchor or provider direction on portalled Content,
