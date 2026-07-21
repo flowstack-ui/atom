@@ -1,5 +1,11 @@
 # Atom Changelog
 
+## 0.6.11
+
+- Restored native required constraint validation for Checkbox and
+  CheckboxGroup by keeping their controlled hidden checkbox inputs eligible
+  for browser validation while visible read-only controls remain non-editable.
+
 ## 0.6.10
 
 - Kept Popover open during touch and pen scrolling by deferring outside

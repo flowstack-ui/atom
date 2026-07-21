@@ -225,7 +225,7 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
             checked={activeValues.length > 0}
             required
             disabled={isDisabled}
-            readOnly
+            onChange={() => undefined}
             style={validationInputStyle}
           />
         ) : null}

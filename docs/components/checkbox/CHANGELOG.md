@@ -1,5 +1,10 @@
 # Checkbox Changelog
 
+## 0.6.11
+
+- Restored native required validation by keeping the controlled hidden form
+  input eligible for browser constraint validation.
+
 ## 0.6.0
 
 - Exposed `aria-disabled="true"` consistently on disabled Root composition,

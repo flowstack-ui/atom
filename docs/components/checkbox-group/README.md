@@ -126,11 +126,13 @@ form submission.
 | `[data-invalid]` | Present when invalid |
 
 Each item input is `aria-hidden`, removed from the tab order, and receives
-`name`, `value`, `form`, checked, disabled, and read-only state. `required`
-adds one group-level native validity control, so at least one item—not every
-item—must be checked. Root does not emit `aria-required` because ARIA does not
-permit that property on `role="group"`; required state remains exposed on the
-checkbox items, through `[data-required]`, and through native form validity.
+`name`, `value`, `form`, checked, and disabled state. `required` adds one
+group-level native validity control that remains eligible for constraint
+validation, so at least one item—not every item—must be checked. Read-only
+behavior belongs to the visible semantic controls and does not bar the hidden
+inputs from validation. Root does not emit `aria-required` because ARIA does
+not permit that property on `role="group"`; required state remains exposed on
+the checkbox items, through `[data-required]`, and through native form validity.
 
 Plain Item children provide the accessible name from button content. For a
 structured choice, nest ItemLabel and ItemDescription. Item then receives

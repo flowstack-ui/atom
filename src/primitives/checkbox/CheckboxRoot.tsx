@@ -203,7 +203,7 @@ export const CheckboxRoot = forwardRef<HTMLButtonElement, CheckboxRootProps>(
             checked={isChecked === true}
             disabled={isDisabled}
             required={isRequired}
-            readOnly
+            onChange={() => undefined}
             style={hiddenInputStyle}
           />
         ) : null}

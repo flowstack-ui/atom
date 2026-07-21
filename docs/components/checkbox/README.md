@@ -77,10 +77,12 @@ checkbox input for form submission.
 | `[data-invalid]` | Present when invalid |
 
 The hidden input receives `name`, `value`, `form`, `checked`, `disabled`, and
-`required` from Root. Indeterminate is an ARIA state and does not submit the
-hidden input as checked. A disabled Root exposes `aria-disabled`; the default
-button also uses the native `disabled` attribute. Read-only Root remains
-focusable but does not toggle.
+`required` from Root. It remains eligible for native constraint validation;
+read-only behavior belongs to the visible semantic Root and does not place a
+`readonly` attribute on the hidden checkbox. Indeterminate is an ARIA state and
+does not submit the hidden input as checked. A disabled Root exposes
+`aria-disabled`; the default button also uses the native `disabled` attribute.
+Read-only Root remains focusable but does not toggle.
 
 ### Indicator
 
