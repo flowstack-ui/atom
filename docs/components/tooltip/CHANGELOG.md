@@ -1,5 +1,10 @@
 # Tooltip Changelog
 
+## 0.6.2
+
+- Added perpendicular-side collision fallbacks after the preferred and opposite
+  sides so constrained tooltips can resolve onto the axis with available room.
+
 ## 0.6.1
 
 - Added immediate outside-touch and scroll dismissal after a long-press Tooltip

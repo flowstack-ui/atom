@@ -19,7 +19,8 @@ page inside a floating box.
 - Configurable interaction-aware initial and final focus, including a
   touch-safe Content default and outside-dismissal focus preservation.
 - Optional anchor separate from the trigger.
-- Floating UI positioning with side, align, side offset, collision shift, flip, and arrow coordinates.
+- Floating UI positioning with side, align, side offset, collision shift,
+  opposite- and perpendicular-side fallbacks, and arrow coordinates.
 - Modal mode with focus trap and scroll lock.
 - Non-modal focus guards and outside interaction dismissal.
 - Stack-aware Escape dismissal for nested overlays.

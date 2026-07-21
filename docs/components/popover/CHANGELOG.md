@@ -1,5 +1,10 @@
 # Popover Changelog
 
+## 0.6.2
+
+- Added perpendicular-side collision fallbacks after the preferred and opposite
+  sides so constrained popovers can resolve onto the axis with available room.
+
 ## 0.4.0
 
 - Added visible `Title` and `Description` parts with generated,

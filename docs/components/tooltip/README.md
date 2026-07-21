@@ -19,7 +19,8 @@ the floating content contains buttons, links, or other controls.
   scrolling, a second touch, `touchcancel`, disabling, or Trigger unmount.
 - Starts finite touch dismissal after release: 1500 ms for plain and 3000 ms
   for rich.
-- Floating UI positioning with side, align, side offset, collision shift, flip, and arrow coordinates.
+- Floating UI positioning with side, align, side offset, collision shift,
+  opposite- and perpendicular-side fallbacks, and arrow coordinates.
 - `aria-describedby` wiring between trigger and tooltip content.
 - Portal and arrow parts.
 
