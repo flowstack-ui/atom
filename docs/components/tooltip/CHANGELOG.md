@@ -1,5 +1,10 @@
 # Tooltip Changelog
 
+## 0.6.1
+
+- Added immediate outside-touch and scroll dismissal after a long-press Tooltip
+  has opened and the initiating finger is released.
+
 ## 0.3.5
 
 - Corrected touch long press to open once at the 700 ms threshold without also

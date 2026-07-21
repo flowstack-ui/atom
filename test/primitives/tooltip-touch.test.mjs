@@ -161,6 +161,42 @@ test("Tooltip rich touch uses a finite 3000ms post-release dismissal", async () 
   }
 });
 
+test("Tooltip touch dismisses on outside touch and scroll after release", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  const changes = [];
+  try {
+    await React.act(async () => {
+      root.render(React.createElement(TouchTooltip, {
+        onOpenChange: (open) => changes.push(open),
+      }));
+    });
+    const trigger = container.querySelector("button");
+    const outsideTouch = touch(20);
+    await dispatchTouch(trigger, "touchstart", { touches: [outsideTouch] });
+    await wait(740);
+    await dispatchTouch(trigger, "touchend", {
+      touches: [],
+      changedTouches: [outsideTouch],
+    });
+    await dispatchTouch(document.body, "touchstart", { touches: [touch(21)] });
+    assert.deepEqual(changes, [true, false]);
+
+    const scrollTouch = touch(22);
+    await dispatchTouch(trigger, "touchstart", { touches: [scrollTouch] });
+    await wait(740);
+    await dispatchTouch(trigger, "touchend", {
+      touches: [],
+      changedTouches: [scrollTouch],
+    });
+    await React.act(async () => window.dispatchEvent(new window.Event("scroll")));
+    assert.deepEqual(changes, [true, false, true, false]);
+  } finally {
+    await React.act(async () => root.unmount());
+    cleanup();
+  }
+});
+
 test("Tooltip cancels abandoned pending touch gestures", async () => {
   const { container, cleanup } = installDom();
   const root = createRoot(container);
