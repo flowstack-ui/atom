@@ -6,7 +6,9 @@ import {
   useMemo,
   type FocusEvent,
   type FocusEventHandler,
+  type PointerEvent as ReactPointerEvent,
   type ReactNode,
+  type TouchEvent as ReactTouchEvent,
 } from "react";
 import type { NativeSpanProps } from "../../utils/dom.js";
 import {
@@ -40,6 +42,8 @@ function HoverCardTrigger(
     onMouseLeave,
     onFocus,
     onBlur,
+    onPointerDown,
+    onTouchStart,
     tabIndex,
     ...restProps
   },
@@ -52,6 +56,8 @@ function HoverCardTrigger(
     triggerRef,
     setTriggerElement,
     getReferenceProps,
+    markTouchInteraction,
+    hasRecentTouchInteraction,
     disabled,
   } = useHoverCardContext();
   const composedRef = useMemo(
@@ -61,11 +67,22 @@ function HoverCardTrigger(
 
   const handleFocus: FocusEventHandler<HTMLSpanElement> = useCallback(
     (event: FocusEvent<HTMLElement>) => {
-      if (event.target.matches(":focus-visible")) {
+      if (!hasRecentTouchInteraction() && event.target.matches(":focus-visible")) {
         if (!disabled) onOpen();
       }
     },
-    [disabled, onOpen],
+    [disabled, hasRecentTouchInteraction, onOpen],
+  );
+
+  const handleTouchStart = useCallback(() => {
+    markTouchInteraction();
+  }, [markTouchInteraction]);
+
+  const handlePointerDown = useCallback(
+    (event: ReactPointerEvent<Element>) => {
+      if (event.pointerType === "touch") markTouchInteraction();
+    },
+    [markTouchInteraction],
   );
 
   const handleBlur: FocusEventHandler<HTMLSpanElement> = useCallback(() => {
@@ -77,6 +94,14 @@ function HoverCardTrigger(
     onMouseLeave,
     onFocus: composeEventHandlers(onFocus, handleFocus),
     onBlur: composeEventHandlers(onBlur, handleBlur),
+    onPointerDown: (event) => {
+      onPointerDown?.(event as ReactPointerEvent<HTMLSpanElement>);
+      handlePointerDown(event);
+    },
+    onTouchStart: (event) => {
+      onTouchStart?.(event as ReactTouchEvent<HTMLSpanElement>);
+      handleTouchStart();
+    },
   });
   const triggerProps = {
     ...restProps,

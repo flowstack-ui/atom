@@ -15,6 +15,8 @@ export interface HoverCardContextValue {
   floatingRootContext: FloatingRootContext;
   getReferenceProps: UseInteractionsReturn["getReferenceProps"];
   getFloatingProps: UseInteractionsReturn["getFloatingProps"];
+  markTouchInteraction: () => void;
+  hasRecentTouchInteraction: () => boolean;
   disabled: boolean;
 }
 

@@ -131,6 +131,56 @@ test("HoverCard ignores touch and touch-generated compatibility mouse events", a
   }
 });
 
+test("HoverCard ignores compatibility hover when Safari omits pointer metadata", async () => {
+  const { container, dom, cleanup } = installDom();
+  const root = createRoot(container);
+  const changes = [];
+  try {
+    await React.act(async () => root.render(React.createElement(Fixture, {
+      onOpenChange: (open) => changes.push(open),
+    })));
+    const trigger = container.querySelector("a");
+    await actDispatch(() => {
+      trigger.dispatchEvent(new dom.window.Event("touchstart", { bubbles: true }));
+    });
+    await wait(30);
+    await actDispatch(() => dispatchMouse(trigger, "mouseenter"));
+    await wait(20);
+
+    assert.deepEqual(changes, []);
+    assert.equal(container.textContent.includes("Profile preview"), false);
+    assert.equal(trigger.getAttribute("href"), "/people/ada");
+  } finally {
+    await React.act(async () => root.unmount());
+    cleanup();
+  }
+});
+
+test("HoverCard ignores focus created by a touch interaction", async () => {
+  const { container, dom, cleanup } = installDom();
+  const root = createRoot(container);
+  const changes = [];
+  try {
+    await React.act(async () => root.render(React.createElement(Fixture, {
+      onOpenChange: (open) => changes.push(open),
+    })));
+    const trigger = container.querySelector("a");
+    const originalMatches = trigger.matches.bind(trigger);
+    trigger.matches = (selector) => selector === ":focus-visible" || originalMatches(selector);
+    await actDispatch(() => {
+      trigger.dispatchEvent(new dom.window.Event("touchstart", { bubbles: true }));
+      trigger.focus();
+    });
+    await wait(20);
+
+    assert.deepEqual(changes, []);
+    assert.equal(container.textContent.includes("Profile preview"), false);
+  } finally {
+    await React.act(async () => root.unmount());
+    cleanup();
+  }
+});
+
 test("HoverCard still opens for a mouse pointer", async () => {
   const { container, cleanup } = installDom();
   const root = createRoot(container);
