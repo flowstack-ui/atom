@@ -32,6 +32,13 @@ export interface HoverCardRootProps {
 }
 
 const TOUCH_COMPATIBILITY_EVENT_WINDOW = 1_000;
+const HOVER_INPUT_QUERY = "(any-hover: hover)";
+
+function supportsHoverInput() {
+  return typeof window === "undefined" ||
+    typeof window.matchMedia !== "function" ||
+    window.matchMedia(HOVER_INPUT_QUERY).matches;
+}
 
 export function HoverCardRoot({
   children,
@@ -44,6 +51,7 @@ export function HoverCardRoot({
 }: HoverCardRootProps) {
   const isControlled = controlledOpen !== undefined;
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
+  const [hoverInputAvailable, setHoverInputAvailable] = useState(supportsHoverInput);
   const isOpen = isControlled ? controlledOpen : internalOpen;
   const triggerRef = useRef<HTMLElement | null>(null);
   const [triggerElement, setTriggerElement] = useState<HTMLElement | null>(null);
@@ -96,7 +104,7 @@ export function HoverCardRoot({
     },
   });
   const hover = useHover(floatingRootContext, {
-    enabled: !disabled,
+    enabled: !disabled && hoverInputAvailable,
     mouseOnly: true,
     delay: { open: openDelay, close: closeDelay },
     handleClose: safePolygon(),
@@ -132,6 +140,14 @@ export function HoverCardRoot({
     enabled: isOpen,
     onEscapeKeyDown: handleEscape,
   });
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") return undefined;
+    const hoverMedia = window.matchMedia(HOVER_INPUT_QUERY);
+    const updateHoverInput = () => setHoverInputAvailable(hoverMedia.matches);
+    updateHoverInput();
+    hoverMedia.addEventListener("change", updateHoverInput);
+    return () => hoverMedia.removeEventListener("change", updateHoverInput);
+  }, []);
   useEffect(() => () => clearTimers(), [clearTimers]);
 
   const contextValue: HoverCardContextValue = useMemo(

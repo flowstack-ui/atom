@@ -1,5 +1,11 @@
 # Atom Changelog
 
+## 0.6.6
+
+- Prevented touch-only browsers from installing HoverCard hover opening and
+  captured touch modality before compatibility `mouseenter` on hybrid devices,
+  eliminating the remaining zero-delay edge-tap race.
+
 ## 0.6.5
 
 - Suppressed delayed compatibility hover and focus events after touch so

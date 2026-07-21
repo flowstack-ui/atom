@@ -1,5 +1,11 @@
 # HoverCard Changelog
 
+## 0.6.6
+
+- Disabled hover interaction when the browser reports no hover-capable input
+  and captured touch pointer entry before native compatibility mouse events on
+  hybrid devices.
+
 ## 0.6.5
 
 - Added a short post-touch compatibility-event guard so intermittent Safari

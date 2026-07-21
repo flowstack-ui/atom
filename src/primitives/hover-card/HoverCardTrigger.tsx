@@ -43,7 +43,9 @@ function HoverCardTrigger(
     onFocus,
     onBlur,
     onPointerDown,
+    onPointerOverCapture,
     onTouchStart,
+    onTouchStartCapture,
     tabIndex,
     ...restProps
   },
@@ -85,6 +87,13 @@ function HoverCardTrigger(
     [markTouchInteraction],
   );
 
+  const handlePointerOverCapture = useCallback(
+    (event: ReactPointerEvent<Element>) => {
+      if (event.pointerType === "touch") markTouchInteraction();
+    },
+    [markTouchInteraction],
+  );
+
   const handleBlur: FocusEventHandler<HTMLSpanElement> = useCallback(() => {
     if (!disabled) onClose();
   }, [disabled, onClose]);
@@ -95,12 +104,20 @@ function HoverCardTrigger(
     onFocus: composeEventHandlers(onFocus, handleFocus),
     onBlur: composeEventHandlers(onBlur, handleBlur),
     onPointerDown: (event) => {
-      onPointerDown?.(event as ReactPointerEvent<HTMLSpanElement>);
       handlePointerDown(event);
+      onPointerDown?.(event as ReactPointerEvent<HTMLSpanElement>);
+    },
+    onPointerOverCapture: (event) => {
+      handlePointerOverCapture(event);
+      onPointerOverCapture?.(event as ReactPointerEvent<HTMLSpanElement>);
     },
     onTouchStart: (event) => {
-      onTouchStart?.(event as ReactTouchEvent<HTMLSpanElement>);
       handleTouchStart();
+      onTouchStart?.(event as ReactTouchEvent<HTMLSpanElement>);
+    },
+    onTouchStartCapture: (event) => {
+      handleTouchStart();
+      onTouchStartCapture?.(event as ReactTouchEvent<HTMLSpanElement>);
     },
   });
   const triggerProps = {

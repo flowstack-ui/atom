@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { assert, test, React } from "../test-utils.mjs";
 import { HoverCard } from "../../dist/index.js";
 
-function installDom() {
+function installDom({ hoverInput = true } = {}) {
   const dom = new JSDOM(
     "<!doctype html><html><body><div id=\"root\"></div></body></html>",
     { pretendToBeVisual: true, url: "https://example.test/" },
@@ -18,6 +18,20 @@ function installDom() {
     configurable: true,
     writable: true,
     value: PointerEvent,
+  });
+  Object.defineProperty(dom.window, "matchMedia", {
+    configurable: true,
+    writable: true,
+    value: (media) => ({
+      matches: hoverInput,
+      media,
+      onchange: null,
+      addEventListener() {},
+      removeEventListener() {},
+      addListener() {},
+      removeListener() {},
+      dispatchEvent() { return true; },
+    }),
   });
   const globals = {
     window: dom.window,
@@ -150,6 +164,49 @@ test("HoverCard ignores compatibility hover when Safari omits pointer metadata",
     assert.deepEqual(changes, []);
     assert.equal(container.textContent.includes("Profile preview"), false);
     assert.equal(trigger.getAttribute("href"), "/people/ada");
+  } finally {
+    await React.act(async () => root.unmount());
+    cleanup();
+  }
+});
+
+test("HoverCard never installs hover opening on a touch-only device", async () => {
+  const { container, cleanup } = installDom({ hoverInput: false });
+  const root = createRoot(container);
+  const changes = [];
+  try {
+    await React.act(async () => root.render(React.createElement(Fixture, {
+      onOpenChange: (open) => changes.push(open),
+    })));
+    const trigger = container.querySelector("a");
+    await actDispatch(() => dispatchMouse(trigger, "mouseenter"));
+    await wait(20);
+
+    assert.deepEqual(changes, []);
+    assert.equal(container.textContent.includes("Profile preview"), false);
+  } finally {
+    await React.act(async () => root.unmount());
+    cleanup();
+  }
+});
+
+test("HoverCard captures touch modality before compatibility mouseenter on a hybrid device", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  const changes = [];
+  try {
+    await React.act(async () => root.render(React.createElement(Fixture, {
+      onOpenChange: (open) => changes.push(open),
+    })));
+    const trigger = container.querySelector("a");
+    await actDispatch(() => {
+      dispatchPointer(trigger, "pointerover", "touch");
+      dispatchMouse(trigger, "mouseenter");
+    });
+    await wait(20);
+
+    assert.deepEqual(changes, []);
+    assert.equal(container.textContent.includes("Profile preview"), false);
   } finally {
     await React.act(async () => root.unmount());
     cleanup();
