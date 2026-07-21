@@ -1,5 +1,11 @@
 # Popover Changelog
 
+## 0.6.7
+
+- Modal Popover now inherits root/body overflow locking without fixed-body
+  repositioning or unlock-time scroll restoration, avoiding iOS Safari
+  browser-toolbar flicker while retaining focus and scroll containment.
+
 ## 0.6.3
 
 - Prioritized every usable alignment on the requested side, followed by the

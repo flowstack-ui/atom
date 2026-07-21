@@ -1,8 +1,10 @@
 # Drawer Changelog
 
-## Unreleased
+## 0.6.7
 
-- No unreleased changes.
+- Inherited root/body overflow locking without fixed-body repositioning or
+  unlock-time scroll restoration, avoiding iOS Safari browser-toolbar
+  transitions and top-edge clipping caused by the compact address bar.
 
 ## 0.3.4
 

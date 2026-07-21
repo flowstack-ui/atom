@@ -380,7 +380,8 @@ test("modal ownership and isolation are established before a later layout effect
       observations.push({
         ariaModal: content?.getAttribute("aria-modal"),
         backgroundInert: isEffectivelyInert(background),
-        bodyLocked: document.body.style.position === "fixed",
+        bodyLocked: document.body.style.overflow === "hidden"
+          && document.documentElement.style.overflow === "hidden",
       });
     }, []);
     return null;
@@ -1374,6 +1375,8 @@ test("scroll containment allows owned regions, blocks boundaries and touch backg
 
   await withHydratedDom(React.createElement(Fixture), async ({ dom }) => {
     const body = dom.window.document.body;
+    const documentElement = dom.window.document.documentElement;
+    documentElement.style.overflow = "scroll";
     body.style.overflow = "clip";
     body.style.paddingRight = "7px";
     body.style.position = "relative";
@@ -1390,12 +1393,13 @@ test("scroll containment allows owned regions, blocks boundaries and touch backg
       setOpen(true);
       await new Promise((resolve) => setTimeout(resolve, 10));
     });
+    assert.equal(documentElement.style.overflow, "hidden");
     assert.equal(body.style.overflow, "hidden");
-    assert.equal(body.style.position, "fixed");
-    assert.equal(body.style.top, "-34px");
-    assert.equal(body.style.left, "-12px");
-    assert.equal(body.style.right, "0px");
-    assert.equal(body.style.width, "100%");
+    assert.equal(body.style.position, "relative");
+    assert.equal(body.style.top, "3px");
+    assert.equal(body.style.left, "4px");
+    assert.equal(body.style.right, "5px");
+    assert.equal(body.style.width, "80%");
 
     const longContent = dom.window.document.querySelector("[data-testid=long-content]");
     Object.defineProperty(longContent, "clientHeight", { configurable: true, value: 100 });
@@ -1457,6 +1461,7 @@ test("scroll containment allows owned regions, blocks boundaries and touch backg
       setOpen(false);
       await new Promise((resolve) => setTimeout(resolve, 30));
     });
+    assert.equal(documentElement.style.overflow, "scroll");
     assert.equal(body.style.overflow, "clip");
     assert.equal(body.style.paddingRight, "7px");
     assert.equal(body.style.position, "relative");
@@ -1464,7 +1469,7 @@ test("scroll containment allows owned regions, blocks boundaries and touch backg
     assert.equal(body.style.left, "4px");
     assert.equal(body.style.right, "5px");
     assert.equal(body.style.width, "80%");
-    assert.deepEqual(scrollRestores.at(-1), [12, 34]);
+    assert.deepEqual(scrollRestores, []);
   });
 });
 
@@ -1526,6 +1531,55 @@ test("scroll lock compensates only for viewport width released by locking", asyn
       assert.equal(body.style.paddingRight, "7px", `${scenario.name} restoration`);
     });
   }
+});
+
+test("modal Popover locks root overflow without fixing or repositioning the body", async () => {
+  let setOpen;
+  function Fixture() {
+    const [open, updateOpen] = useState(false);
+    setOpen = updateOpen;
+    return React.createElement(
+      Popover.Root,
+      { modal: true, open, onOpenChange: updateOpen },
+      React.createElement(Popover.Trigger, null, "Open"),
+      React.createElement(
+        Popover.Content,
+        { "aria-label": "Modal settings", initialFocus: false },
+        "Settings",
+      ),
+    );
+  }
+
+  await withHydratedDom(React.createElement(Fixture), async ({ dom }) => {
+    const { body, documentElement } = dom.window.document;
+    body.style.position = "relative";
+    body.style.top = "5px";
+    Object.defineProperty(dom.window, "scrollX", { configurable: true, value: 8 });
+    Object.defineProperty(dom.window, "scrollY", { configurable: true, value: 144 });
+    const restores = [];
+    dom.window.scrollTo = (...coordinates) => restores.push(coordinates);
+
+    await act(async () => {
+      setOpen(true);
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    });
+    assert.equal(documentElement.style.overflow, "hidden");
+    assert.equal(body.style.overflow, "hidden");
+    assert.equal(body.style.position, "relative");
+    assert.equal(body.style.top, "5px");
+    assert.equal(dom.window.scrollX, 8);
+    assert.equal(dom.window.scrollY, 144);
+
+    await act(async () => {
+      setOpen(false);
+      await new Promise((resolve) => setTimeout(resolve, 30));
+    });
+    assert.equal(documentElement.style.overflow, "");
+    assert.equal(body.style.overflow, "");
+    assert.equal(body.style.position, "relative");
+    assert.equal(body.style.top, "5px");
+    assert.deepEqual(restores, []);
+  });
 });
 
 test("modal isolation preserves separate body portals and nested custom-container paths", async () => {
@@ -1796,7 +1850,8 @@ test("closing Content is inaccessible during exit presence and abrupt unmount re
     );
     await waitForCondition(
       () => !isEffectivelyInert(query("exit-background"))
-        && dom.window.document.body.style.position === ""
+        && dom.window.document.body.style.overflow === ""
+        && dom.window.document.documentElement.style.overflow === ""
         && dom.window.document.activeElement === query("exit-final"),
       "expected closing dialog ownership and focus to be restored",
     );
@@ -1806,7 +1861,8 @@ test("closing Content is inaccessible during exit presence and abrupt unmount re
     assert.equal(exitingContent?.getAttribute("aria-hidden"), "true");
     assert.equal(exitingContent?.hasAttribute("inert"), true);
     assert.equal(isEffectivelyInert(query("exit-background")), false);
-    assert.equal(dom.window.document.body.style.position, "");
+    assert.equal(dom.window.document.body.style.overflow, "");
+    assert.equal(dom.window.document.documentElement.style.overflow, "");
     assert.equal(dom.window.document.activeElement, query("exit-final"));
 
     await act(async () => {
@@ -1838,7 +1894,8 @@ test("closing Content is inaccessible during exit presence and abrupt unmount re
     );
     assert.equal(dom.window.document.querySelector("[role=dialog]"), null);
     assert.equal(isEffectivelyInert(query("exit-background")), false);
-    assert.equal(dom.window.document.body.style.position, "");
+    assert.equal(dom.window.document.body.style.overflow, "");
+    assert.equal(dom.window.document.documentElement.style.overflow, "");
     assert.equal(dom.window.document.activeElement, query("exit-final"));
     globalThis.getComputedStyle = originalGetComputedStyle;
   });
@@ -1959,7 +2016,8 @@ test("nested modal scroll-lock handoff never unlocks or restores scroll between 
     const restores = [];
     dom.window.scrollTo = (...coordinates) => restores.push(coordinates);
     const lockedStyle = dom.window.document.body.style.cssText;
-    assert.equal(dom.window.document.body.style.position, "fixed");
+    assert.equal(dom.window.document.body.style.overflow, "hidden");
+    assert.equal(dom.window.document.documentElement.style.overflow, "hidden");
 
     await act(async () => setChildOpen(true));
     assert.equal(dom.window.document.body.style.cssText, lockedStyle);
@@ -1970,8 +2028,9 @@ test("nested modal scroll-lock handoff never unlocks or restores scroll between 
     assert.deepEqual(restores, []);
 
     await act(async () => setParentOpen(false));
-    assert.equal(dom.window.document.body.style.position, "");
-    assert.equal(restores.length, 1);
+    assert.equal(dom.window.document.body.style.overflow, "");
+    assert.equal(dom.window.document.documentElement.style.overflow, "");
+    assert.equal(restores.length, 0);
   });
 });
 

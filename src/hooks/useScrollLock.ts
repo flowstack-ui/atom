@@ -18,11 +18,14 @@ interface BodyStyleSnapshot {
   width: string;
 }
 
+interface DocumentElementStyleSnapshot {
+  overflow: string;
+}
+
 interface ScrollLockState {
   registrations: Set<ScrollLockRegistration>;
   bodyStyle: BodyStyleSnapshot | null;
-  scrollX: number;
-  scrollY: number;
+  documentElementStyle: DocumentElementStyleSnapshot | null;
   lastTouch: { identifier: number; x: number; y: number } | null;
   wheelHandler: (event: WheelEvent) => void;
   touchStartHandler: (event: TouchEvent) => void;
@@ -120,8 +123,7 @@ function createScrollLockState(): ScrollLockState {
   const state = {
     registrations: new Set<ScrollLockRegistration>(),
     bodyStyle: null,
-    scrollX: 0,
-    scrollY: 0,
+    documentElementStyle: null,
     lastTouch: null,
   } as ScrollLockState;
 
@@ -167,6 +169,7 @@ function getScrollLockState(ownerDocument: Document): ScrollLockState {
 
 function lockDocument(ownerDocument: Document, state: ScrollLockState): void {
   const body = ownerDocument.body;
+  const documentElement = ownerDocument.documentElement;
   const view = ownerDocument.defaultView;
   if (!view) return;
 
@@ -179,19 +182,16 @@ function lockDocument(ownerDocument: Document, state: ScrollLockState): void {
     right: body.style.right,
     width: body.style.width,
   };
-  state.scrollX = view.scrollX;
-  state.scrollY = view.scrollY;
+  state.documentElementStyle = {
+    overflow: documentElement.style.overflow,
+  };
 
-  const unlockedClientWidth = ownerDocument.documentElement.clientWidth;
+  const unlockedClientWidth = documentElement.clientWidth;
   const currentPadding =
     Number.parseFloat(view.getComputedStyle(body).paddingRight) || 0;
+  documentElement.style.overflow = "hidden";
   body.style.overflow = "hidden";
-  body.style.position = "fixed";
-  body.style.top = `${-state.scrollY}px`;
-  body.style.left = `${-state.scrollX}px`;
-  body.style.right = "0";
-  body.style.width = "100%";
-  const lockedClientWidth = ownerDocument.documentElement.clientWidth;
+  const lockedClientWidth = documentElement.clientWidth;
   const releasedScrollbarWidth = unlockedClientWidth > 0
     ? Math.max(0, lockedClientWidth - unlockedClientWidth)
     : 0;
@@ -208,8 +208,8 @@ function lockDocument(ownerDocument: Document, state: ScrollLockState): void {
 
 function unlockDocument(ownerDocument: Document, state: ScrollLockState): void {
   const bodyStyle = state.bodyStyle;
-  const view = ownerDocument.defaultView;
-  if (!bodyStyle || !view) return;
+  const documentElementStyle = state.documentElementStyle;
+  if (!bodyStyle || !documentElementStyle) return;
 
   ownerDocument.removeEventListener("wheel", state.wheelHandler);
   ownerDocument.removeEventListener("touchstart", state.touchStartHandler);
@@ -217,9 +217,10 @@ function unlockDocument(ownerDocument: Document, state: ScrollLockState): void {
   ownerDocument.removeEventListener("touchend", state.touchEndHandler);
   ownerDocument.removeEventListener("touchcancel", state.touchEndHandler);
 
+  Object.assign(ownerDocument.documentElement.style, documentElementStyle);
   Object.assign(ownerDocument.body.style, bodyStyle);
-  view.scrollTo(state.scrollX, state.scrollY);
   state.bodyStyle = null;
+  state.documentElementStyle = null;
   state.lastTouch = null;
 }
 
