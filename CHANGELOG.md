@@ -1,5 +1,11 @@
 # Atom Changelog
 
+## 0.6.5
+
+- Suppressed delayed compatibility hover and focus events after touch so
+  HoverCard remains closed on Safari and tablet browsers even when pointer
+  metadata is omitted.
+
 ## 0.6.4
 
 - Made HoverCard hover interaction touch-safe while preserving native Trigger

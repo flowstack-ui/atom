@@ -31,6 +31,8 @@ export interface HoverCardRootProps {
   disabled?: boolean;
 }
 
+const TOUCH_COMPATIBILITY_EVENT_WINDOW = 1_000;
+
 export function HoverCardRoot({
   children,
   open: controlledOpen,
@@ -48,7 +50,16 @@ export function HoverCardRoot({
   const [contentElement, setContentElement] = useState<HTMLElement | null>(null);
   const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastTouchInteractionRef = useRef(0);
   const hoverCardId = useId();
+
+  const markTouchInteraction = useCallback(() => {
+    lastTouchInteractionRef.current = Date.now();
+  }, []);
+  const hasRecentTouchInteraction = useCallback(
+    () => Date.now() - lastTouchInteractionRef.current < TOUCH_COMPATIBILITY_EVENT_WINDOW,
+    [],
+  );
 
   const clearTimers = useCallback(() => {
     if (openTimerRef.current) clearTimeout(openTimerRef.current);
@@ -65,15 +76,19 @@ export function HoverCardRoot({
 
   const floatingRootContext = useFloatingRootContext({
     open: isOpen,
-    onOpenChange: (nextOpen, event) => {
+    onOpenChange: (nextOpen, event, reason) => {
       const target = event?.target;
+      const touchGeneratedHoverTriedToOpen =
+        nextOpen && reason === "hover" && hasRecentTouchInteraction();
       const closingContentTriedToReopen =
         nextOpen &&
         !isOpen &&
         contentElement !== null &&
         target !== null &&
         contentElement.contains(target as Node);
-      if (!disabled && !closingContentTriedToReopen) setOpen(nextOpen);
+      if (!disabled && !touchGeneratedHoverTriedToOpen && !closingContentTriedToReopen) {
+        setOpen(nextOpen);
+      }
     },
     elements: {
       reference: triggerElement,
@@ -131,6 +146,8 @@ export function HoverCardRoot({
       floatingRootContext,
       getReferenceProps,
       getFloatingProps,
+      markTouchInteraction,
+      hasRecentTouchInteraction,
       disabled,
     }),
     [
@@ -140,6 +157,8 @@ export function HoverCardRoot({
       floatingRootContext,
       getFloatingProps,
       getReferenceProps,
+      hasRecentTouchInteraction,
+      markTouchInteraction,
       onClose,
       onOpen,
       setContentElement,

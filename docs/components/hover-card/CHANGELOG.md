@@ -1,5 +1,10 @@
 # HoverCard Changelog
 
+## 0.6.5
+
+- Added a short post-touch compatibility-event guard so intermittent Safari
+  mouse and focus synthesis cannot open HoverCard after touch activation.
+
 ## 0.6.4
 
 - Limited hover disclosure to mouse-capable pointers so touch keeps the

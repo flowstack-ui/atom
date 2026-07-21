@@ -15,7 +15,8 @@ accessibility relationship, so never put required actions inside it.
 
 - Supports controlled and uncontrolled open state.
 - Opens from mouse-capable pointer hover and focus-visible Trigger interaction;
-  touch input does not open the preview or replace the Trigger's native action.
+  touch input and its browser-generated compatibility events do not open the
+  preview or replace the Trigger's native action.
 - Uses configurable open and close delays and a safe pointer corridor that keeps
   Content open while the pointer crosses the gap from Trigger to Content.
 - Positions Content by trying alternate alignments on the requested side,
