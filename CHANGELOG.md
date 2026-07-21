@@ -1,5 +1,13 @@
 # Atom Changelog
 
+## 0.6.4
+
+- Made HoverCard hover interaction touch-safe while preserving native Trigger
+  activation, and added a geometric pointer corridor between Trigger and
+  Content to prevent flicker while crossing their visual gap.
+- Prevented closing HoverCard Content retained for exit motion from reopening
+  itself when the pointer crosses its fading hit area.
+
 ## 0.6.3
 
 - Standardized HoverCard, Tooltip, and Popover collision priority so alternate

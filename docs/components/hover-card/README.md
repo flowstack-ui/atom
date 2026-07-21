@@ -14,8 +14,10 @@ accessibility relationship, so never put required actions inside it.
 ## Features
 
 - Supports controlled and uncontrolled open state.
-- Opens from pointer hover and focus-visible Trigger interaction.
-- Uses configurable open and close delays and keeps open while Content is hovered.
+- Opens from mouse-capable pointer hover and focus-visible Trigger interaction;
+  touch input does not open the preview or replace the Trigger's native action.
+- Uses configurable open and close delays and a safe pointer corridor that keeps
+  Content open while the pointer crosses the gap from Trigger to Content.
 - Positions Content by trying alternate alignments on the requested side,
   repeating them on the opposite side, and using perpendicular sides only as
   final fallbacks; collision shift and Arrow coordinates follow the result.
@@ -60,8 +62,9 @@ Owns delayed open state and renders no wrapper.
 
 ### Trigger
 
-Provides the positioning reference and hover/focus events. It renders a
-focusable `span` by default. With `asChild`, the child keeps its own tab order.
+Provides the positioning reference and mouse-capable hover/focus events. It
+renders a focusable `span` by default. With `asChild`, the child keeps its own
+tab order and native touch behavior.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -170,7 +173,8 @@ export function ProfilePreview() {
 HoverCard has no standalone WAI-ARIA popup pattern. Trigger remains the
 semantic element supplied by the consumer, Content is supplemental document
 content, and Arrow is hidden from assistive technology. The preview must not be
-the only place important information or actions are available.
+the only place important information or actions are available. Touch does not
+open HoverCard, so a Trigger link keeps its normal tap and long-press behavior.
 
 | Key | Description |
 | --- | --- |

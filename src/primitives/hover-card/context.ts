@@ -1,16 +1,20 @@
 "use client";
 
 import { createContext, useContext, type RefObject } from "react";
+import type { FloatingRootContext, UseInteractionsReturn } from "@floating-ui/react";
 import type { HoverCardSide } from "./HoverCardContent.js";
 
 export interface HoverCardContextValue {
   isOpen: boolean;
   onOpen: () => void;
   onClose: () => void;
-  onContentEnter: () => void;
-  onContentLeave: () => void;
   hoverCardId: string;
   triggerRef: RefObject<HTMLElement | null>;
+  setTriggerElement: (element: HTMLElement | null) => void;
+  setContentElement: (element: HTMLElement | null) => void;
+  floatingRootContext: FloatingRootContext;
+  getReferenceProps: UseInteractionsReturn["getReferenceProps"];
+  getFloatingProps: UseInteractionsReturn["getFloatingProps"];
   disabled: boolean;
 }
 

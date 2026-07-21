@@ -74,11 +74,11 @@ function HoverCardContent(
 ) {
   const {
     isOpen,
-    onClose,
-    onContentEnter,
-    onContentLeave,
     hoverCardId,
     triggerRef,
+    setContentElement,
+    floatingRootContext,
+    getFloatingProps,
   } = useHoverCardContext();
   const arrowRef = useRef<SVGSVGElement>(null);
   const { isPresent, ref: presenceRef } = usePresence({ present: isOpen });
@@ -110,19 +110,16 @@ function HoverCardContent(
   );
 
   const { refs, floatingStyles, placement, middlewareData } = useFloating({
+    rootContext: floatingRootContext,
     elements: { reference: referenceElement },
     placement: toPlacement(side, align),
     middleware,
     whileElementsMounted: autoUpdate,
-    open: isOpen,
-    onOpenChange: (open) => {
-      if (!open) onClose();
-    },
   });
 
   const composedRef = useMemo(
-    () => composeRefs(refs.setFloating, presenceRef, ref),
-    [presenceRef, ref, refs.setFloating],
+    () => composeRefs(refs.setFloating, setContentElement, presenceRef, ref),
+    [presenceRef, ref, refs.setFloating, setContentElement],
   );
 
   const setFloatingRef = useCallback(
@@ -149,7 +146,7 @@ function HoverCardContent(
   return (
     <HoverCardContentContextProvider value={contentContextValue}>
       <div
-        {...restProps}
+        {...getFloatingProps({ ...restProps, onMouseEnter, onMouseLeave })}
         ref={setFloatingRef}
         id={hoverCardId}
         data-slot={dataSlot}
@@ -162,8 +159,6 @@ function HoverCardContent(
           ...style,
           ...floatingStyles,
         }}
-        onMouseEnter={composeEventHandlers(onMouseEnter, onContentEnter)}
-        onMouseLeave={composeEventHandlers(onMouseLeave, onContentLeave)}
       >
         {children}
       </div>
