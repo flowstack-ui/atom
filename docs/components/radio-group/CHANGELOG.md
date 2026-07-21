@@ -1,5 +1,10 @@
 # RadioGroup Changelog
 
+## 0.6.12
+
+- Added one group-level required proxy aligned with the first enabled Radio,
+  preserving named radio submission and validation without a name.
+
 ## 0.5.0
 
 - Added Fieldset naming/state/description integration, native-only ARIA naming,

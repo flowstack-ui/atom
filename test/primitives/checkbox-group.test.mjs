@@ -76,7 +76,7 @@ test("CheckboxGroupRoot renders group attributes", () => {
     ),
   );
 
-  assert.match(html, /^<div/);
+  assert.match(html, /<div/);
   assert.match(html, /role="group"/);
   assert.match(html, /aria-label="Toppings"/);
   assert.doesNotMatch(html, /aria-orientation=/);

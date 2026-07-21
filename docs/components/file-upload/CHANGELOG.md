@@ -1,5 +1,10 @@
 # FileUpload Changelog
 
+## 0.6.12
+
+- Aligned the native file input with Trigger for required feedback and
+  synchronized accepted files after picker and drag/drop updates.
+
 ## 0.5.0
 
 - Synchronized uncontrolled files, rejection state, and the native picker with

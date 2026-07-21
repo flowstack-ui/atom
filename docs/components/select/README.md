@@ -452,8 +452,9 @@ a button-based
 combobox controls a listbox, and Trigger references the highlighted option with
 `aria-activedescendant`. Provide a visible Field label or native
 `aria-label`/`aria-labelledby`. Uncontrolled value returns to `defaultValue`
-on native form reset. The visually hidden native select owns submission and
-required constraint validation.
+on native form reset. The transparent native select owns submission and
+required constraint validation, is aligned with Trigger, works when required
+without a submission name, and redirects browser validation focus to Trigger.
 `aria-labelledby`.
 Portalled Select content registers with a parent modal focus scope when opened
 inside Dialog, Drawer, or another modal primitive.

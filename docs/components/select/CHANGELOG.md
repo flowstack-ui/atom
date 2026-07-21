@@ -1,5 +1,10 @@
 # Select Changelog
 
+## 0.6.12
+
+- Aligned the native select with Trigger and redirected browser validation
+  focus, including required Selects without a submission name.
+
 ## 0.5.0
 
 - Added complete Field invalid/read-only integration, native-only Trigger and

@@ -1,5 +1,10 @@
 # Combobox Changelog
 
+## 0.6.12
+
+- Moved native required validity to an aligned proxy holding the committed
+  logical value, so display text alone no longer satisfies selection validity.
+
 ## 0.5.0
 
 - Added Field state, generated input ID, label, and description integration plus

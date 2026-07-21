@@ -16,6 +16,7 @@ import {
 } from "../../utils/native-semantics.js";
 import {
   cloneAndMerge,
+  composeRefs,
   renderElement,
   type RenderProp,
 } from "../../utils/slot.js";
@@ -100,7 +101,7 @@ export const FileUploadTrigger = forwardRef<HTMLElement, FileUploadTriggerProps>
 
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
-      ref,
+      ref: composeRefs(ctx.triggerRef, ref),
       ...(isNativeButton
         ? { type: "button", disabled: isInactive || undefined }
         : { role: "button", tabIndex: 0, "aria-disabled": isInactive || undefined }),

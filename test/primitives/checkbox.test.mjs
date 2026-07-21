@@ -33,7 +33,7 @@ test("CheckboxRoot renders WAI-ARIA checkbox state attributes", () => {
     ),
   );
 
-  assert.match(html, /^<button/);
+  assert.match(html, /<button/);
   assert.match(html, /type="button"/);
   assert.match(html, /role="checkbox"/);
   assert.match(html, /aria-checked="true"/);
@@ -120,7 +120,7 @@ test("CheckboxIndicator forceMount mirrors unchecked and disabled state", () => 
   assert.match(html, /aria-hidden="true"/);
 });
 
-test("CheckboxRoot renders a hidden checkbox input for form submission when named", () => {
+test("CheckboxRoot renders an aligned native checkbox proxy when named", () => {
   const html = renderToStaticMarkup(
     React.createElement(CheckboxRoot, {
       defaultChecked: true,
@@ -132,7 +132,7 @@ test("CheckboxRoot renders a hidden checkbox input for form submission when name
     }),
   );
 
-  assert.match(html, /^<button/);
+  assert.match(html, /<button/);
   assert.match(html, /role="checkbox"/);
   assert.match(html, /aria-checked="true"/);
   assert.match(html, /type="checkbox"/);
@@ -144,6 +144,17 @@ test("CheckboxRoot renders a hidden checkbox input for form submission when name
   assert.match(html, /checked=""/);
   assert.match(html, /required=""/);
   assert.doesNotMatch(html, /<input[^>]*readonly=/);
+  assert.match(html, /opacity:0/);
+  assert.doesNotMatch(html, /clip:/);
+});
+
+test("CheckboxRoot renders a validation proxy when required without a name", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(CheckboxRoot, { required: true, "aria-label": "Accept" }),
+  );
+
+  assert.match(html, /<input[^>]*type="checkbox"[^>]*required=""/);
+  assert.doesNotMatch(html, /<input[^>]*name=/);
 });
 
 test("CheckboxRoot omits form input when name is not provided", () => {

@@ -15,8 +15,8 @@ export interface CheckboxGroupContextValue {
   toggleAll: (checked: boolean) => void;
   /** Check if a specific item is selected. */
   isItemChecked: (value: string) => boolean;
-  /** Register an item value on mount. */
-  registerItem: (value: string) => void;
+  /** Register an item value and visible control on mount. */
+  registerItem: (value: string, element: HTMLButtonElement) => void;
   /** Unregister an item value on unmount. */
   unregisterItem: (value: string) => void;
   /** Form field name shared across checkboxes. */

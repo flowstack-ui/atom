@@ -195,6 +195,9 @@ accessible name on Root with `aria-label` or `aria-labelledby`.
 Inside Field, Rating inherits the generated control ID, accessible name,
 description relationships, and state unless a local prop is supplied.
 Uncontrolled value returns to `defaultValue` on native form reset.
+When required, a transparent native proxy aligned with Root treats the minimum
+value as empty and redirects browser validation focus to the visible slider.
+The optional named hidden input remains submission-only.
 
 | Key | Description |
 | --- | --- |

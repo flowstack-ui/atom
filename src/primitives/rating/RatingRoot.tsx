@@ -10,6 +10,7 @@ import {
 } from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
+import { formControlProxyStyle, useFormControlProxy } from "../../hooks/useFormControlProxy.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { useDirection, type DirectionValue } from "../direction/index.js";
 import {
@@ -130,6 +131,8 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
     const isInvalid = invalid ?? field?.invalid ?? false;
     const isRequired = required ?? field?.required ?? false;
     const rootRef = useRef<HTMLDivElement>(null);
+    const validationInputRef = useRef<HTMLInputElement>(null);
+    useFormControlProxy(validationInputRef, rootRef);
     const range = useMemo(
       () => normalizeRatingRange(minProp, maxProp),
       [maxProp, minProp],
@@ -290,6 +293,21 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
 
     return (
       <RatingContextProvider value={contextValue}>
+        {isRequired ? (
+          <input
+            ref={validationInputRef}
+            type="checkbox"
+            checked={clampedValue > range.min}
+            required
+            disabled={isDisabled}
+            form={form}
+            aria-hidden="true"
+            tabIndex={-1}
+            onFocus={() => rootRef.current?.focus()}
+            onChange={() => undefined}
+            style={formControlProxyStyle}
+          />
+        ) : null}
         {root}
         {name ? (
           <input

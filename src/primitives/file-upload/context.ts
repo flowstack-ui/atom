@@ -13,6 +13,7 @@ export interface FileUploadContextValue {
   clearFiles: () => void;
   openFilePicker: () => void;
   inputRef: RefObject<HTMLInputElement | null>;
+  triggerRef: RefObject<HTMLElement | null>;
   disabled: boolean;
   readOnly: boolean;
   required: boolean;

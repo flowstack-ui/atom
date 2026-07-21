@@ -11,6 +11,7 @@ import {
   useEffect,
   useId,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { CheckboxContextProvider, type CheckboxDataState } from "../checkbox/index.js";
@@ -18,6 +19,7 @@ import type { NativeButtonProps } from "../../utils/dom.js";
 import {
   cloneAndMerge,
   composeEventHandlers,
+  composeRefs,
   renderElement,
   type RenderProp,
 } from "../../utils/slot.js";
@@ -101,6 +103,7 @@ export const CheckboxGroupItem = forwardRef<HTMLButtonElement, CheckboxGroupItem
     ref,
   ) {
     const context = useCheckboxGroupContext();
+    const itemRef = useRef<HTMLButtonElement>(null);
     const autoId = useId();
     const providedId = restProps.id;
     const baseId = providedId ?? autoId;
@@ -152,11 +155,12 @@ export const CheckboxGroupItem = forwardRef<HTMLButtonElement, CheckboxGroupItem
     );
 
     useEffect(() => {
-      context.registerItem(value);
+      if (!itemRef.current) return;
+      context.registerItem(value, itemRef.current);
       return () => {
         context.unregisterItem(value);
       };
-    }, [context.registerItem, context.unregisterItem, value]);
+    }, [context.registerItem, context.unregisterItem, isDisabled, value]);
 
     const toggle = () => {
       if (isDisabled || isReadOnly) return;
@@ -177,7 +181,7 @@ export const CheckboxGroupItem = forwardRef<HTMLButtonElement, CheckboxGroupItem
     // Native button props pass through first; group state, ARIA, and handlers stay authoritative.
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
-      ref,
+      ref: composeRefs(itemRef, ref),
       id: baseId,
       type: "button",
       role: "checkbox",

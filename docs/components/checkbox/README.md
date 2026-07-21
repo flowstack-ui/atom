@@ -39,9 +39,9 @@ import { Checkbox } from "@flowstack-ui/atom";
 
 ### Root
 
-Renders a `button` with checkbox semantics and owns the checked state. When
-`name` is provided, Root also renders an assistive-technology-hidden native
-checkbox input for form submission.
+Renders a `button` with checkbox semantics and owns the checked state. Root
+also renders an assistive-technology-hidden native checkbox when `name` or
+`required` needs native form behavior.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -76,10 +76,12 @@ checkbox input for form submission.
 | `[data-readonly]` | Present when read-only |
 | `[data-invalid]` | Present when invalid |
 
-The hidden input receives `name`, `value`, `form`, `checked`, `disabled`, and
-`required` from Root. It remains eligible for native constraint validation;
+The transparent native proxy receives `name`, `value`, `form`, `checked`,
+`disabled`, and `required` from Root. It is aligned to the visible Root and
+remains eligible for native constraint validation even without `name`;
 read-only behavior belongs to the visible semantic Root and does not place a
-`readonly` attribute on the hidden checkbox. Indeterminate is an ARIA state and
+`readonly` attribute on the proxy. Native validation focus is redirected to
+the visible Root. Indeterminate is an ARIA state and
 does not submit the hidden input as checked. A disabled Root exposes
 `aria-disabled`; the default button also uses the native `disabled` attribute.
 Read-only Root remains focusable but does not toggle.

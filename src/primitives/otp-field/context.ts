@@ -13,6 +13,7 @@ export interface OTPFieldContextValue {
   readOnly: boolean;
   required: boolean;
   invalid: boolean;
+  form: string | undefined;
   inputMode: "numeric" | "text";
   inputRefs: RefObject<(HTMLInputElement | null)[]>;
   activeIndex: number;

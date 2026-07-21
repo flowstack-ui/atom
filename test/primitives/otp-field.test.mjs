@@ -54,7 +54,8 @@ test("OTPField compound parts render grouped one-time-code inputs", () => {
   assert.match(html, /tabindex="-1"[^>]*data-index="3"/);
   assert.match(html, /data-filled=""/);
   assert.match(html, /data-slot="otp-field-separator"/);
-  assert.match(html, /<input(?=[^>]*type="text")(?=[^>]*name="code")(?=[^>]*value="12")(?=[^>]*required="")[^>]*>/);
+  assert.match(html, /<input(?=[^>]*type="text")(?=[^>]*required="")(?=[^>]*data-index="0")[^>]*>/);
+  assert.match(html, /<input(?=[^>]*type="hidden")(?=[^>]*name="code")(?=[^>]*value="12")[^>]*>/);
   assert.equal(OTPField.Root, OTPFieldRoot);
   assert.equal(OTPField.Input, OTPFieldInput);
   assert.equal(OTPField.Separator, OTPFieldSeparator);

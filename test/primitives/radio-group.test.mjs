@@ -36,7 +36,7 @@ test("RadioGroupRoot renders WAI-ARIA radiogroup attributes", () => {
     ),
   );
 
-  assert.match(html, /^<div/);
+  assert.match(html, /<div/);
   assert.match(html, /role="radiogroup"/);
   assert.match(html, /aria-label="Contact method"/);
   assert.match(html, /aria-disabled="true"/);

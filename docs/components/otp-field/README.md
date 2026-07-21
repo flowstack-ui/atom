@@ -179,8 +179,9 @@ export function GroupedCode() {
 The root uses `role="group"` and the visible inputs use roving `tabIndex`, so
 Tab enters the OTP field once. Each input receives a generated position label,
 and the separator is hidden from assistive technology. Give the group a clear
-label through native `aria-label`/`aria-labelledby` or Field. The combined
-visually hidden native input owns named submission and required validity;
+label through native `aria-label`/`aria-labelledby` or Field. The first visible
+cell owns required validity and anchors native browser feedback. The combined
+hidden native input is submission-only;
 uncontrolled content resets to `defaultValue`.
 
 | Key | Description |

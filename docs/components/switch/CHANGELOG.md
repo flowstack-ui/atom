@@ -1,5 +1,10 @@
 # Switch Changelog
 
+## 0.6.12
+
+- Restored native required validity by removing `readonly` from the aligned
+  proxy, including required Switches without a submission name.
+
 ## 0.5.0
 
 - Added Field state, generated control ID, and description integration; removed

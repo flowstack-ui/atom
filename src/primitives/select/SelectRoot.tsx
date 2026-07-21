@@ -18,6 +18,10 @@ import {
 } from "./context.js";
 import { useCollection } from "../../collection.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
+import {
+  formControlProxyStyle,
+  useFormControlProxy,
+} from "../../hooks/useFormControlProxy.js";
 import { useFieldContext } from "../field/context.js";
 import { SelectItemText } from "./SelectItemText.js";
 
@@ -118,6 +122,8 @@ export function SelectRoot({
   const listboxId = `select-listbox-${idPrefix}`;
 
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const selectRef = useRef<HTMLSelectElement>(null);
+  useFormControlProxy(selectRef, triggerRef);
   const reset = useCallback(() => {
     if (!isValueControlled) setInternalValue(defaultValue);
     if (!isOpenControlled) setInternalOpen(defaultOpen);
@@ -277,9 +283,9 @@ export function SelectRoot({
 
   return (
     <SelectContextProvider value={ctx}>
-      {children}
-      {name ? (
+      {name !== undefined || isRequired ? (
         <select
+          ref={selectRef}
           name={name}
           value={value ?? ""}
           form={form}
@@ -287,18 +293,9 @@ export function SelectRoot({
           required={isRequired}
           aria-hidden="true"
           tabIndex={-1}
+          onFocus={() => triggerRef.current?.focus()}
           onChange={() => undefined}
-          style={{
-            position: "absolute",
-            width: 1,
-            height: 1,
-            padding: 0,
-            margin: -1,
-            overflow: "hidden",
-            clip: "rect(0, 0, 0, 0)",
-            whiteSpace: "nowrap",
-            borderWidth: 0,
-          }}
+          style={formControlProxyStyle}
         >
           <option value="" />
           {Array.from(staticItems.keys()).map((itemValue) => (
@@ -308,6 +305,7 @@ export function SelectRoot({
           ))}
         </select>
       ) : null}
+      {children}
     </SelectContextProvider>
   );
 }

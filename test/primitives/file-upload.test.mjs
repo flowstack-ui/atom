@@ -80,7 +80,9 @@ test("FileUpload renders native file input, Field state, and file item parts", (
   assert.match(html, /data-invalid=""/);
   assert.match(html, /<input/);
   assert.match(html, /type="file"/);
-  assert.match(html, /hidden=""/);
+  assert.match(html, /aria-hidden="true"/);
+  assert.match(html, /opacity:0/);
+  assert.doesNotMatch(html, / hidden=""/);
   assert.match(html, /id="avatar-control"/);
   assert.match(html, /name="avatar"/);
   assert.match(html, /form="profile-form"/);

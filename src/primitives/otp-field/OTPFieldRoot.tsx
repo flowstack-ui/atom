@@ -9,7 +9,6 @@ import {
   useRef,
   useState,
   type ReactNode,
-  type CSSProperties,
 } from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
@@ -32,18 +31,6 @@ import {
 type OTPFieldRootNativeProps = NativeDivProps<
   "children" | "defaultValue" | "onChange"
 >;
-
-const hiddenInputStyle: CSSProperties = {
-  position: "absolute",
-  width: 1,
-  height: 1,
-  padding: 0,
-  margin: -1,
-  overflow: "hidden",
-  clip: "rect(0, 0, 0, 0)",
-  whiteSpace: "nowrap",
-  borderWidth: 0,
-};
 
 export interface OTPFieldRootProps extends OTPFieldRootNativeProps {
   children: ReactNode;
@@ -330,6 +317,7 @@ export const OTPFieldRoot = forwardRef<HTMLDivElement, OTPFieldRootProps>(
         readOnly: isReadOnly,
         required: isRequired,
         invalid: isInvalid,
+        form,
         inputMode: type === "numeric" ? "numeric" : "text",
         inputRefs,
         activeIndex,
@@ -353,6 +341,7 @@ export const OTPFieldRoot = forwardRef<HTMLDivElement, OTPFieldRootProps>(
         clearPreviousCell,
         currentValue,
         focusCell,
+        form,
         getDisplayChar,
         getInputIndex,
         getInputId,
@@ -403,16 +392,11 @@ export const OTPFieldRoot = forwardRef<HTMLDivElement, OTPFieldRootProps>(
         {name ? (
           <input
             ref={hiddenInputRef}
-            type="text"
+            type="hidden"
             name={name}
             value={currentValue}
             form={form}
             disabled={isDisabled}
-            required={isRequired}
-            aria-hidden="true"
-            tabIndex={-1}
-            readOnly
-            style={hiddenInputStyle}
           />
         ) : null}
       </OTPFieldContextProvider>

@@ -6,6 +6,7 @@ import {
   type ChangeEventHandler,
 } from "react";
 import type { NativeInputProps } from "../../utils/dom.js";
+import { formControlProxyStyle, useFormControlProxy } from "../../hooks/useFormControlProxy.js";
 import { composeEventHandlers } from "../../utils/dom.js";
 import { composeRefs } from "../../utils/slot.js";
 import { useFileUploadContext } from "./context.js";
@@ -39,6 +40,7 @@ export const FileUploadHiddenInput = forwardRef<
   ref,
 ) {
   const ctx = useFileUploadContext();
+  useFormControlProxy(ctx.inputRef, ctx.triggerRef);
   const composedRef = useCallback(
     (node: HTMLInputElement | null) => {
       composeRefs(ctx.inputRef, ref)(node);
@@ -67,8 +69,11 @@ export const FileUploadHiddenInput = forwardRef<
       required={ctx.required || undefined}
       aria-describedby={ctx.describedBy}
       aria-invalid={ctx.invalid || undefined}
-      hidden
+      aria-hidden="true"
+      tabIndex={-1}
+      style={formControlProxyStyle}
       data-slot={dataSlot}
+      onFocus={() => ctx.triggerRef.current?.focus()}
       onChange={composeEventHandlers(onChange, handleChange)}
     />
   );

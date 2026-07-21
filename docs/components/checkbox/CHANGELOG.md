@@ -1,5 +1,10 @@
 # Checkbox Changelog
 
+## 0.6.12
+
+- Aligned the native validation proxy with Root, redirected validation focus,
+  and supported required validity without a submission name.
+
 ## 0.6.11
 
 - Restored native required validation by keeping the controlled hidden form

@@ -128,7 +128,9 @@ form submission.
 Each item input is `aria-hidden`, removed from the tab order, and receives
 `name`, `value`, `form`, checked, and disabled state. `required` adds one
 group-level native validity control that remains eligible for constraint
-validation, so at least one item—not every item—must be checked. Read-only
+validation, so at least one item—not every item—must be checked. The proxy is
+aligned with the first enabled item and redirects browser validation focus to
+that visible checkbox. Read-only
 behavior belongs to the visible semantic controls and does not bar the hidden
 inputs from validation. Root does not emit `aria-required` because ARIA does
 not permit that property on `role="group"`; required state remains exposed on

@@ -1,8 +1,9 @@
 "use client";
 
-import { forwardRef, useCallback, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { forwardRef, useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
+import { formControlProxyStyle, useFormControlProxy } from "../../hooks/useFormControlProxy.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { cloneAndMerge, composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
 import {
@@ -10,18 +11,6 @@ import {
   type CheckboxGroupContextValue,
 } from "./context.js";
 import { useFieldsetContext } from "../fieldset/context.js";
-
-const validationInputStyle: CSSProperties = {
-  position: "absolute",
-  width: 1,
-  height: 1,
-  padding: 0,
-  margin: -1,
-  overflow: "hidden",
-  clip: "rect(0, 0, 0, 0)",
-  whiteSpace: "nowrap",
-  borderWidth: 0,
-};
 
 type CheckboxGroupRootNativeProps = NativeDivProps<
   "aria-required" | "children" | "defaultValue" | "form" | "name" | "onChange" | "role"
@@ -91,6 +80,7 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
     const isInvalid = invalid ?? fieldset?.invalid ?? false;
     const isReadOnly = readOnly ?? false;
     const rootRef = useRef<HTMLDivElement>(null);
+    const validationInputRef = useRef<HTMLInputElement>(null);
     const [activeValues, setActiveValues] = useControllableState({
       value,
       defaultValue,
@@ -98,22 +88,31 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
     });
     const reset = useCallback(() => setActiveValues(defaultValue), [defaultValue, setActiveValues]);
     useFormReset(rootRef, form, value !== undefined, reset);
-    const itemValuesRef = useRef<Set<string>>(new Set());
+    const itemElementsRef = useRef<Map<string, HTMLButtonElement>>(new Map());
     const [allItemValues, setAllItemValues] = useState<string[]>([]);
+    const [firstEnabledItem, setFirstEnabledItem] = useState<HTMLButtonElement | null>(null);
+    useFormControlProxy(validationInputRef, { current: firstEnabledItem });
     const normalizedAllValues = useMemo(
       () => allValues === undefined ? undefined : Array.from(new Set(allValues)),
       [allValues],
     );
 
-    const registerItem = useCallback((value: string) => {
-      itemValuesRef.current.add(value);
-      setAllItemValues(Array.from(itemValuesRef.current));
+    const updateItemState = useCallback(() => {
+      setAllItemValues(Array.from(itemElementsRef.current.keys()));
+      setFirstEnabledItem(
+        Array.from(itemElementsRef.current.values()).find((item) => !item.disabled) ?? null,
+      );
     }, []);
 
+    const registerItem = useCallback((value: string, element: HTMLButtonElement) => {
+      itemElementsRef.current.set(value, element);
+      updateItemState();
+    }, [updateItemState]);
+
     const unregisterItem = useCallback((value: string) => {
-      itemValuesRef.current.delete(value);
-      setAllItemValues(Array.from(itemValuesRef.current));
-    }, []);
+      itemElementsRef.current.delete(value);
+      updateItemState();
+    }, [updateItemState]);
 
     const toggleItem = useCallback(
       (value: string) => {
@@ -132,7 +131,7 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
       (checked: boolean) => {
         if (isDisabled || isReadOnly) return;
 
-        const targetValues = normalizedAllValues ?? Array.from(itemValuesRef.current);
+        const targetValues = normalizedAllValues ?? Array.from(itemElementsRef.current.keys());
         const targetSet = new Set(targetValues);
         setActiveValues((currentValues) =>
           checked
@@ -215,9 +214,9 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
 
     return (
       <CheckboxGroupContextProvider value={contextValue}>
-        {element}
         {isRequired ? (
           <input
+            ref={validationInputRef}
             type="checkbox"
             aria-hidden="true"
             tabIndex={-1}
@@ -225,10 +224,12 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
             checked={activeValues.length > 0}
             required
             disabled={isDisabled}
+            onFocus={() => firstEnabledItem?.focus()}
             onChange={() => undefined}
-            style={validationInputStyle}
+            style={formControlProxyStyle}
           />
         ) : null}
+        {element}
       </CheckboxGroupContextProvider>
     );
   },
