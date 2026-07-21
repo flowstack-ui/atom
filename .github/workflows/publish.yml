@@ -1,0 +1,81 @@
+name: Publish npm package
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: npm-publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: verify and publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: npm
+
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - name: Install trusted-publishing npm CLI
+        run: npm install --global npm@11.18.0
+
+      - name: Validate release tag and repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_version="$(node --input-type=module -e 'import pkg from "./package.json" with { type: "json" }; process.stdout.write(pkg.version)')"
+          repository_url="$(node --input-type=module -e 'import pkg from "./package.json" with { type: "json" }; process.stdout.write(pkg.repository.url)')"
+          tag_version="${GITHUB_REF_NAME#v}"
+
+          test "$GITHUB_REF_NAME" = "v$package_version"
+          test "$tag_version" = "$package_version"
+          test "$repository_url" = "git+https://github.com/flowstack-ui/atom.git"
+          git fetch --no-tags origin main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+
+          if npm view "@flowstack-ui/atom@$package_version" version >/dev/null 2>&1; then
+            echo "@flowstack-ui/atom@$package_version is already published" >&2
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and test package
+        run: npm test
+
+      - name: Create verified package archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/atom-package"
+          npm pack --pack-destination "$RUNNER_TEMP/atom-package"
+          npm run verify:pack -- "$RUNNER_TEMP/atom-package"
+
+      - name: Smoke test React 18 consumer
+        run: npm run verify:consumer -- "$RUNNER_TEMP/atom-package" 18
+
+      - name: Smoke test React 19 consumer
+        run: npm run verify:consumer -- "$RUNNER_TEMP/atom-package" 19
+
+      - name: Publish verified archive to npm
+        shell: bash
+        run: npm publish "$RUNNER_TEMP"/atom-package/*.tgz --access public

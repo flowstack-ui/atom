@@ -2,7 +2,7 @@
 
 GitHub Actions checks every pull request to `main`, every push to `main`, and
 every manual CI run. CI verifies changes; it does not publish Atom or create
-release tags.
+release tags. The separate tag-only publishing workflow is described below.
 
 ## Required Checks
 
@@ -66,12 +66,27 @@ a registry or advisory-service outage does not block an unrelated change.
 Dependabot checks the pinned GitHub Action revisions weekly. npm dependency
 updates remain a deliberate maintainer task.
 
+## Trusted Publishing
+
+`.github/workflows/publish.yml` runs only when a semantic version tag such as
+`v0.6.3` is pushed. It repeats the package, archive, and React consumer checks,
+then publishes the verified archive through npm trusted publishing and GitHub
+OIDC. It has no manual-dispatch or branch-push trigger and stores no npm write
+token.
+
+The job rejects mismatched tag/package versions, tagged commits outside
+`main`, incorrect repository metadata, and versions already present on npm.
+The `npm` GitHub environment is the deployment boundary and should require
+maintainer approval. npm must trust organization `flowstack-ui`, repository
+`atom`, workflow `publish.yml`, environment `npm`, with publish-only access.
+
 ## Security And Publishing Boundary
 
-CI has read-only repository permissions, checkout does not preserve write
-credentials, and the workflows do not receive an npm publishing token. Package
-publication, version changes, Git tags, and GitHub releases remain part of the
-separate release workflow.
+CI has read-only repository permissions and checkout does not preserve write
+credentials. Only the tag-gated publishing job receives `id-token: write`, and
+that short-lived OIDC identity is restricted by npm to the exact repository,
+workflow, and environment. Version changes, Git tags, and GitHub releases remain
+deliberate maintainer actions.
 
 ## Updating Matrices
 

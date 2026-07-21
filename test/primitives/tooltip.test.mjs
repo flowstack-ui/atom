@@ -149,5 +149,5 @@ test("TooltipContent updates Floating UI after the trigger ref commits", async (
 
   assert.match(source, /setReferenceElement\(triggerRef\.current\)/);
   assert.match(source, /elements: \{ reference: referenceElement \}/);
-  assert.match(source, /flip\(\{ fallbackAxisSideDirection: "start" \}\)/);
+  assert.match(source, /getFloatingFallbackPlacements\(side, align\)/);
 });
