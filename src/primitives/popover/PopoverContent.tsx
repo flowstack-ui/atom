@@ -33,10 +33,12 @@ import {
 } from "../../hooks/focus.js";
 import { usePresence } from "../../hooks/usePresence.js";
 import { useScrollLock } from "../../hooks/useScrollLock.js";
+import { useDirection } from "../direction/index.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import {
   getFloatingAvailableSizeMiddleware,
   getFloatingFallbackPlacements,
+  resolveFloatingDirection,
 } from "../../utils/floatingPlacement.js";
 import { composeEventHandlers, composeRefs } from "../../utils/slot.js";
 import {
@@ -216,6 +218,7 @@ function PopoverContent(props, ref) {
     "aria-label": nativeAriaLabel,
     "aria-labelledby": nativeAriaLabelledBy,
     "aria-describedby": nativeAriaDescribedBy,
+    dir: dirProp,
     onMouseEnter,
     onMouseLeave,
     "data-slot": dataSlot = "popover-content",
@@ -240,6 +243,7 @@ function PopoverContent(props, ref) {
     initialFocusDetails,
     finalFocusDetails,
   } = usePopoverContext();
+  const contextDir = useDirection();
   const contentRef = useRef<HTMLDivElement>(null);
   const focusScope = useCreateFocusScope();
   const beforeGuardRef = useRef<HTMLSpanElement>(null);
@@ -512,6 +516,7 @@ function PopoverContent(props, ref) {
   ]);
 
   const referenceElement = getPopoverReferenceElement(anchorRef.current, triggerRef.current);
+  const resolvedDir = resolveFloatingDirection(dirProp, referenceElement, contextDir);
   const middleware = useMemo(
     () => [
       offset(sideOffset),
@@ -614,6 +619,7 @@ function PopoverContent(props, ref) {
         ref={setFloatingRef}
         id={popoverId}
         role="dialog"
+        dir={dirProp ?? resolvedDir}
         data-slot={dataSlot}
         data-state={isOpen ? "open" : "closed"}
         data-side={actualSide}

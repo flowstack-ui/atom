@@ -1,5 +1,11 @@
 # Atom Changelog
 
+## 0.6.9
+
+- Preserved explicit, trigger/anchor-inherited, and provider direction across
+  portalled Popover, HoverCard, and Tooltip Content so logical placement and
+  DOM layout remain RTL-correct.
+
 ## 0.6.8
 
 - Exposed measured available dimensions on Tooltip, HoverCard, and Popover

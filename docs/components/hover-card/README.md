@@ -98,6 +98,8 @@ Renders a positioned generic `div`. It has no owned landmark or popup role;
 `ariaLabel` is passed as `aria-label` but does not create a Trigger relationship.
 Content exposes measured `--atom-floating-available-width` and
 `--atom-floating-available-height` properties.
+Portalled Content preserves an explicit `dir`; otherwise it resolves direction
+from Trigger and then `Direction.Provider`.
 
 | Prop | Type | Default |
 | --- | --- | --- |

@@ -1,5 +1,10 @@
 # Popover Changelog
 
+## 0.6.9
+
+- Preserved resolved trigger/anchor or provider direction on portalled Content,
+  while retaining explicit Content `dir` precedence.
+
 ## 0.6.8
 
 - Added an internal `[data-slot="popover-viewport"]` around non-Arrow Content

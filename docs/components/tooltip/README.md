@@ -120,6 +120,8 @@ Renders the positioned tooltip text and keeps Content available while the
 pointer moves from Trigger into Content.
 Content exposes measured `--atom-floating-available-width` and
 `--atom-floating-available-height` properties.
+Portalled Content preserves an explicit `dir`; otherwise it resolves direction
+from Trigger and then `Direction.Provider`.
 
 | Prop | Type | Default |
 | --- | --- | --- |

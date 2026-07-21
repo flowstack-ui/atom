@@ -1,7 +1,20 @@
 import { size, type Middleware, type Placement } from "@floating-ui/react";
+import type { DirectionValue } from "../primitives/direction/index.js";
 
 export type FloatingSide = "top" | "right" | "bottom" | "left";
 export type FloatingAlign = "start" | "center" | "end";
+
+export function resolveFloatingDirection(
+  explicitDir: string | undefined,
+  reference: HTMLElement | null,
+  contextDir: DirectionValue,
+): DirectionValue {
+  if (explicitDir === "ltr" || explicitDir === "rtl") return explicitDir;
+  if (reference && typeof window !== "undefined") {
+    return window.getComputedStyle(reference).direction === "rtl" ? "rtl" : "ltr";
+  }
+  return contextDir;
+}
 
 const oppositeSide: Record<FloatingSide, FloatingSide> = {
   top: "bottom",
