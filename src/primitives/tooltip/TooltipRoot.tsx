@@ -54,15 +54,22 @@ export function TooltipRoot({
   const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoDismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touchDismissCleanupRef = useRef<(() => void) | null>(null);
   const isTouchRef = useRef(false);
   const isTouchSessionActiveRef = useRef(false);
   const tooltipId = useId();
+
+  const clearTouchDismissListeners = useCallback(() => {
+    touchDismissCleanupRef.current?.();
+    touchDismissCleanupRef.current = null;
+  }, []);
 
   const clearTimers = useCallback(() => {
     if (openTimerRef.current) clearTimeout(openTimerRef.current);
     if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
     if (autoDismissTimerRef.current) clearTimeout(autoDismissTimerRef.current);
-  }, []);
+    clearTouchDismissListeners();
+  }, [clearTouchDismissListeners]);
 
   const setOpen = useCallback(
     (value: boolean) => {
@@ -127,11 +134,37 @@ export function TooltipRoot({
       ? RICH_AUTO_DISMISS_DURATION
       : AUTO_DISMISS_DURATION;
     autoDismissTimerRef.current = setTimeout(() => {
+      clearTouchDismissListeners();
       isTouchSessionActiveRef.current = false;
       setOpen(false);
       providerContext?.onTooltipClose();
     }, duration);
-  }, [providerContext, setOpen, variant]);
+
+    const ownerDocument = triggerRef.current?.ownerDocument;
+    const ownerWindow = ownerDocument?.defaultView;
+    if (ownerDocument) {
+      const dismiss = (event: Event) => {
+        if (
+          event.type === "touchstart" &&
+          triggerRef.current?.contains(event.target as Node)
+        ) {
+          return;
+        }
+        clearTimers();
+        isTouchSessionActiveRef.current = false;
+        setOpen(false);
+        providerContext?.onTooltipClose();
+      };
+      ownerDocument.addEventListener("touchstart", dismiss, true);
+      ownerDocument.addEventListener("scroll", dismiss, true);
+      ownerWindow?.addEventListener("scroll", dismiss, true);
+      touchDismissCleanupRef.current = () => {
+        ownerDocument.removeEventListener("touchstart", dismiss, true);
+        ownerDocument.removeEventListener("scroll", dismiss, true);
+        ownerWindow?.removeEventListener("scroll", dismiss, true);
+      };
+    }
+  }, [clearTimers, clearTouchDismissListeners, providerContext, setOpen, variant]);
 
   const onTouchCancel = useCallback(() => {
     if (!isTouchSessionActiveRef.current) return;

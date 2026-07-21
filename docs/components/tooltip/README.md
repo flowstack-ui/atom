@@ -256,9 +256,10 @@ do not open Tooltip after a quick tap. Ordinary taps and scrolling are not
 suppressed; native text selection and the context callout are suppressed only
 while the Trigger is tracking the competing stationary long-press gesture.
 An opened Tooltip remains visible while the initiating finger is down. After
-release, plain dismisses after 1500 ms and rich after 3000 ms. Moving more than
-10 CSS pixels, scrolling, adding a second touch, receiving `touchcancel`,
-disabling the Trigger, or unmounting it cancels the touch session.
+release, plain dismisses after 1500 ms and rich after 3000 ms; an outside touch
+or scroll dismisses either immediately. Moving more than 10 CSS pixels,
+scrolling, adding a second touch, receiving `touchcancel`, disabling the
+Trigger, or unmounting it cancels the touch session.
 
 ## Changelog
 

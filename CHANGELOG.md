@@ -1,5 +1,10 @@
 # Atom Changelog
 
+## 0.6.1
+
+- Corrected Tooltip touch dismissal so an outside touch or scrolling closes an
+  opened post-release Tooltip immediately while preserving ordinary page input.
+
 ## 0.6.0
 
 - Completed the CheckboxGroup family with deterministic Parent/select-all
