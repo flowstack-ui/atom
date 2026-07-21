@@ -1,5 +1,11 @@
 # Atom Changelog
 
+## 0.6.10
+
+- Kept Popover open during touch and pen scrolling by deferring outside
+  dismissal until a gesture resolves as a tap, while preserving immediate
+  mouse dismissal.
+
 ## 0.6.9
 
 - Preserved explicit, trigger/anchor-inherited, and provider direction across

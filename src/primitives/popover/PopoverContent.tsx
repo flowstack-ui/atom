@@ -421,6 +421,7 @@ function PopoverContent(props, ref) {
     ),
     enabled: isOpen && closeOnInteractOutside,
     ignore: (target) => isInsideNestedPopoverLayer(target, contentRef.current),
+    deferTouch: true,
   });
 
   useEffect(() => {
