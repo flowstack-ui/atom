@@ -1,5 +1,25 @@
 import { assert, test } from "./test-utils.mjs";
-import { getFloatingFallbackPlacements } from "../dist/_internal/utils/floatingPlacement.js";
+import {
+  getFloatingAvailableSizeMiddleware,
+  getFloatingFallbackPlacements,
+} from "../dist/_internal/utils/floatingPlacement.js";
+
+test("floating size middleware exposes headless available dimensions", async () => {
+  const middleware = getFloatingAvailableSizeMiddleware();
+  const values = new Map();
+  const floating = {
+    style: { setProperty: (name, value) => values.set(name, value) },
+  };
+
+  middleware.options[0].apply({
+    availableHeight: 180,
+    availableWidth: 240,
+    elements: { floating },
+  });
+
+  assert.equal(values.get("--atom-floating-available-height"), "180px");
+  assert.equal(values.get("--atom-floating-available-width"), "240px");
+});
 
 test("floating fallbacks preserve side, then opposite side, before changing axes", () => {
   assert.deepEqual(getFloatingFallbackPlacements("left", "start"), [

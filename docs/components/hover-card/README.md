@@ -96,6 +96,8 @@ Moves Content to `document.body` by default without a wrapper.
 
 Renders a positioned generic `div`. It has no owned landmark or popup role;
 `ariaLabel` is passed as `aria-label` but does not create a Trigger relationship.
+Content exposes measured `--atom-floating-available-width` and
+`--atom-floating-available-height` properties.
 
 | Prop | Type | Default |
 | --- | --- | --- |

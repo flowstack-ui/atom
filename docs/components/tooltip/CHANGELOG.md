@@ -1,5 +1,10 @@
 # Tooltip Changelog
 
+## 0.6.8
+
+- Exposed measured available dimensions through headless floating properties
+  for constrained styled surfaces.
+
 ## 0.6.3
 
 - Prioritized every usable alignment on the requested side, followed by the

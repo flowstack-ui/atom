@@ -1,5 +1,12 @@
 # Atom Changelog
 
+## 0.6.8
+
+- Exposed measured available dimensions on Tooltip, HoverCard, and Popover
+  Content through headless `--atom-floating-available-*` properties.
+- Added an internal Popover viewport so styled layers can constrain and scroll
+  interactive content without clipping the sibling Arrow.
+
 ## 0.6.7
 
 - Replaced fixed-body modal scroll locking with document-root and body overflow

@@ -125,7 +125,12 @@ test("Popover trigger supports asChild and exposes portal arrow and close parts"
   assert.match(html, /role="button"/);
   assert.match(html, /tabindex="0"/);
   assert.match(html, /data-slot="popover-content"/);
+  assert.match(html, /data-slot="popover-viewport"/);
   assert.match(html, /data-slot="popover-arrow"/);
+  assert.match(
+    html,
+    /data-slot="popover-viewport"[^>]*>Body[\s\S]*?<\/div><svg[^>]*data-slot="popover-arrow"/,
+  );
   assert.match(html, /aria-hidden="true"/);
   assert.match(html, /data-slot="popover-close"/);
 });

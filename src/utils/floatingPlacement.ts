@@ -1,4 +1,4 @@
-import type { Placement } from "@floating-ui/react";
+import { size, type Middleware, type Placement } from "@floating-ui/react";
 
 export type FloatingSide = "top" | "right" | "bottom" | "left";
 export type FloatingAlign = "start" | "center" | "end";
@@ -46,4 +46,20 @@ export function getFloatingFallbackPlacements(
   );
 
   return [...sameSideAlternates, ...opposite, ...perpendicular];
+}
+
+export function getFloatingAvailableSizeMiddleware(): Middleware {
+  return size({
+    padding: 8,
+    apply({ availableHeight, availableWidth, elements }) {
+      elements.floating.style.setProperty(
+        "--atom-floating-available-height",
+        `${Math.max(0, availableHeight)}px`,
+      );
+      elements.floating.style.setProperty(
+        "--atom-floating-available-width",
+        `${Math.max(0, availableWidth)}px`,
+      );
+    },
+  });
 }
