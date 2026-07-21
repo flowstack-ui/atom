@@ -6,11 +6,12 @@ import {
 } from "react";
 
 export type PopoverPartKind = "title" | "description";
+type MarkedPopoverPartKind = PopoverPartKind | "arrow";
 
 const POPOVER_PART = Symbol("@flowstack-ui/atom/popover-part");
 
 type MarkedPopoverPart = ComponentType<unknown> & {
-  [POPOVER_PART]?: PopoverPartKind;
+  [POPOVER_PART]?: MarkedPopoverPartKind;
 };
 
 export interface PopoverPartPresence {
@@ -18,10 +19,15 @@ export interface PopoverPartPresence {
   description: boolean;
 }
 
+export function isPopoverPart(node: ReactNode, kind: MarkedPopoverPartKind): boolean {
+  return isValidElement(node) &&
+    (node.type as MarkedPopoverPart)[POPOVER_PART] === kind;
+}
+
 /** @internal Marks a semantic Popover part for deterministic server inspection. */
 export function markPopoverPart(
   component: object,
-  kind: PopoverPartKind,
+  kind: MarkedPopoverPartKind,
 ): void {
   Object.defineProperty(component, POPOVER_PART, {
     configurable: false,
@@ -50,7 +56,7 @@ export function getPopoverPartPresence(
     }
 
     const kind = (node.type as MarkedPopoverPart)[POPOVER_PART];
-    if (kind) presence[kind] = true;
+    if (kind === "title" || kind === "description") presence[kind] = true;
   }
 
   inspect(children);

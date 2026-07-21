@@ -13,6 +13,7 @@ import {
 } from "../../utils/floatingArrow.js";
 import { usePopoverContentContext } from "./context.js";
 import type { PopoverSide } from "./PopoverContent.js";
+import { markPopoverPart } from "./parts.js";
 
 type PopoverArrowNativeProps = Omit<SVGProps<SVGSVGElement>, "children">;
 
@@ -72,3 +73,5 @@ function PopoverArrow(
     </FloatingArrow>
   );
 });
+
+markPopoverPart(PopoverArrow, "arrow");

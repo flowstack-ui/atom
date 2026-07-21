@@ -21,7 +21,10 @@ import {
 } from "@floating-ui/react";
 import { usePresence } from "../../hooks/usePresence.js";
 import type { NativeDivProps } from "../../utils/dom.js";
-import { getFloatingFallbackPlacements } from "../../utils/floatingPlacement.js";
+import {
+  getFloatingAvailableSizeMiddleware,
+  getFloatingFallbackPlacements,
+} from "../../utils/floatingPlacement.js";
 import { composeEventHandlers, composeRefs } from "../../utils/slot.js";
 import {
   TooltipContentContextProvider,
@@ -105,6 +108,7 @@ function TooltipContent(
         fallbackStrategy: "bestFit",
       }),
       shift({ padding: 8 }),
+      getFloatingAvailableSizeMiddleware(),
       floatingArrow({ element: arrowRef, padding: 8 }),
     ],
     [align, side, sideOffset],

@@ -1,5 +1,10 @@
 # HoverCard Changelog
 
+## 0.6.8
+
+- Exposed measured available dimensions through headless floating properties
+  for constrained styled surfaces.
+
 ## 0.6.6
 
 - Disabled hover interaction when the browser reports no hover-capable input

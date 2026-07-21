@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Children,
   forwardRef,
   useCallback,
   useEffect,
@@ -33,7 +34,10 @@ import {
 import { usePresence } from "../../hooks/usePresence.js";
 import { useScrollLock } from "../../hooks/useScrollLock.js";
 import type { NativeDivProps } from "../../utils/dom.js";
-import { getFloatingFallbackPlacements } from "../../utils/floatingPlacement.js";
+import {
+  getFloatingAvailableSizeMiddleware,
+  getFloatingFallbackPlacements,
+} from "../../utils/floatingPlacement.js";
 import { composeEventHandlers, composeRefs } from "../../utils/slot.js";
 import {
   PopoverContentContextProvider,
@@ -42,7 +46,7 @@ import {
   type PopoverFinalFocusDetails,
   type PopoverInitialFocusDetails,
 } from "./context.js";
-import { getPopoverPartPresence } from "./parts.js";
+import { getPopoverPartPresence, isPopoverPart } from "./parts.js";
 import { getPopoverPointerInteractionType } from "./interaction.js";
 
 declare const process:
@@ -244,6 +248,9 @@ function PopoverContent(props, ref) {
   const { isPresent, ref: presenceRef } = usePresence({ present: isOpen });
   const [isPositioned, setIsPositioned] = useState(false);
   const visibleParts = getPopoverPartPresence(children);
+  const childArray = Children.toArray(children);
+  const arrowChildren = childArray.filter((child) => isPopoverPart(child, "arrow"));
+  const viewportChildren = childArray.filter((child) => !isPopoverPart(child, "arrow"));
   const warnedRef = useRef(new Set<string>());
   const initialFocusRef = useRef(initialFocus);
   const finalFocusRef = useRef(finalFocus);
@@ -513,6 +520,7 @@ function PopoverContent(props, ref) {
         fallbackStrategy: "bestFit",
       }),
       shift({ padding: 8 }),
+      getFloatingAvailableSizeMiddleware(),
       floatingArrow({ element: arrowRef, padding: 8 }),
     ],
     [align, side, sideOffset],
@@ -632,7 +640,10 @@ function PopoverContent(props, ref) {
         }
       >
         <FocusScopeProvider scope={focusScope}>
-          {children}
+          <div data-slot="popover-viewport">
+            {viewportChildren}
+          </div>
+          {arrowChildren}
         </FocusScopeProvider>
       </div>
       {!modal ? (

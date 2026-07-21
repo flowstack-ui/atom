@@ -133,6 +133,11 @@ ancestors. It renders no wrapper.
 Renders the positioned dialog, manages outside dismissal, and manages focus.
 Modal Content traps focus and locks scrolling; non-modal Content closes when
 focus leaves its trigger/content scope.
+Non-Arrow children render inside `[data-slot="popover-viewport"]`; a direct
+Arrow remains its sibling so styled layers can scroll the viewport without
+clipping the pointer. Content exposes measured
+`--atom-floating-available-width` and `--atom-floating-available-height`
+properties.
 
 | Prop | Type | Default |
 | --- | --- | --- |

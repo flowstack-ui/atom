@@ -118,6 +118,8 @@ Moves Content to another DOM container without rendering a wrapper.
 
 Renders the positioned tooltip text and keeps Content available while the
 pointer moves from Trigger into Content.
+Content exposes measured `--atom-floating-available-width` and
+`--atom-floating-available-height` properties.
 
 | Prop | Type | Default |
 | --- | --- | --- |

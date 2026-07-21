@@ -1,5 +1,11 @@
 # Popover Changelog
 
+## 0.6.8
+
+- Added an internal `[data-slot="popover-viewport"]` around non-Arrow Content
+  children so constrained content can scroll without clipping the Arrow.
+- Exposed measured available dimensions through headless floating properties.
+
 ## 0.6.7
 
 - Modal Popover now inherits root/body overflow locking without fixed-body
