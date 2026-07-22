@@ -50,7 +50,6 @@ function installDom() {
   globalThis.IS_REACT_ACT_ENVIRONMENT = true;
   dom.window.HTMLElement.prototype.attachEvent = () => undefined;
   dom.window.HTMLElement.prototype.detachEvent = () => undefined;
-  dom.window.HTMLElement.prototype.scrollIntoView = () => undefined;
 
   return {
     container: dom.window.document.getElementById("root"),
