@@ -17,6 +17,7 @@ export interface FieldsetPartPresence {
   legend: boolean;
   description: boolean;
   error: boolean;
+  errorPresenter: boolean;
 }
 
 /**
@@ -55,6 +56,7 @@ export function getFieldsetPartPresence(
     legend: false,
     description: false,
     error: false,
+    errorPresenter: false,
   };
 
   function inspect(node: ReactNode): void {
@@ -73,6 +75,7 @@ export function getFieldsetPartPresence(
     if (kind === "description") presence.description = true;
     if (kind === "error") {
       const props = node.props as { forceMatch?: boolean };
+      presence.errorPresenter = true;
       presence.error = Boolean(props.forceMatch || invalid);
     }
   }

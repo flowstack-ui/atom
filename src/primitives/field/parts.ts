@@ -16,6 +16,7 @@ type MarkedFieldPart = ComponentType<unknown> & {
 export interface FieldPartPresence {
   description: boolean;
   error: boolean;
+  errorPresenter: boolean;
 }
 
 /**
@@ -50,7 +51,11 @@ export function getFieldPartPresence(
   children: ReactNode,
   invalid: boolean,
 ): FieldPartPresence {
-  const presence: FieldPartPresence = { description: false, error: false };
+  const presence: FieldPartPresence = {
+    description: false,
+    error: false,
+    errorPresenter: false,
+  };
 
   function inspect(node: ReactNode): void {
     if (Array.isArray(node)) {
@@ -67,6 +72,7 @@ export function getFieldPartPresence(
     if (kind === "description") presence.description = true;
     if (kind === "error") {
       const props = node.props as { forceMatch?: boolean; match?: boolean };
+      presence.errorPresenter = props.match === undefined || props.match;
       presence.error = Boolean(
         props.forceMatch || (invalid && (props.match === undefined || props.match)),
       );

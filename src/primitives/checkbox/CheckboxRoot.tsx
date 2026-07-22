@@ -11,6 +11,7 @@ import {
 } from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
+import { useFormValidation } from "../../hooks/useFormValidation.js";
 import {
   formControlProxyStyle,
   useFormControlProxy,
@@ -29,6 +30,7 @@ import {
   type CheckboxDataState,
 } from "./context.js";
 import { useFieldContext } from "../field/context.js";
+import type { ValidationBehavior } from "../form/validation.js";
 
 type CheckboxRootNativeProps = NativeButtonProps<
   | "children"
@@ -63,6 +65,8 @@ export interface CheckboxRootProps extends CheckboxRootNativeProps {
   form?: string;
   /** Whether the field is required. */
   required?: boolean;
+  /** Chooses inline Atom presentation or the browser's native validation UI. */
+  validationBehavior?: ValidationBehavior;
   /** Override the rendered element. */
   render?: RenderProp;
   /** Merge behavior props onto a single child element. */
@@ -94,6 +98,7 @@ export const CheckboxRoot = forwardRef<HTMLButtonElement, CheckboxRootProps>(
       value = "on",
       form,
       required,
+      validationBehavior,
       render,
       asChild,
       children,
@@ -108,7 +113,6 @@ export const CheckboxRoot = forwardRef<HTMLButtonElement, CheckboxRootProps>(
     const field = useFieldContext();
     const isDisabled = disabled ?? field?.disabled ?? false;
     const isReadOnly = readOnly ?? field?.readOnly ?? false;
-    const isInvalid = invalid ?? field?.invalid ?? false;
     const isRequired = required ?? field?.required ?? false;
     const inputRef = useRef<HTMLInputElement>(null);
     const rootRef = useRef<HTMLButtonElement>(null);
@@ -118,6 +122,17 @@ export const CheckboxRoot = forwardRef<HTMLButtonElement, CheckboxRootProps>(
       defaultValue: defaultChecked,
       onChange: onCheckedChange,
     });
+    const validation = useFormValidation({
+      validityRef: inputRef,
+      ownerRef: rootRef,
+      invalid,
+      inheritedInvalid: field?.invalid,
+      validationBehavior,
+      inheritedValidationBehavior: field?.validationBehavior,
+      form,
+      reportValidity: field?.reportControlValidity,
+    });
+    const isInvalid = validation.invalid;
 
     const toggle = () => {
       if (isDisabled || isReadOnly) return;
@@ -196,7 +211,7 @@ export const CheckboxRoot = forwardRef<HTMLButtonElement, CheckboxRootProps>(
             disabled={isDisabled}
             required={isRequired}
             onFocus={() => rootRef.current?.focus()}
-            onChange={() => undefined}
+            {...validation.validationProps}
             style={formControlProxyStyle}
           />
         ) : null}

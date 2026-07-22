@@ -86,6 +86,7 @@ adds an accessibility-hidden input containing the selected value.
 | `readOnly` | `boolean` | `false` |
 | `required` | `boolean` | `false` |
 | `invalid` | `boolean` | `false` |
+| `validationBehavior` | `"inline" \| "native"` | Field/Form value or `"native"` |
 | `name` | `string` | - |
 | `form` | `string` | - |
 
@@ -357,6 +358,10 @@ export function TagCombobox() {
 ```
 
 ## Accessibility
+
+The aligned committed-value input owns required validity. A validation attempt
+is mirrored to the visible Input and Field. Inline behavior suppresses the
+browser bubble; native behavior keeps it and redirects focus to Input.
 
 Combobox follows the
 [WAI-ARIA Editable Combobox pattern](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/).

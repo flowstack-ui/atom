@@ -1,7 +1,10 @@
 "use client";
 
-import { useCallback, useMemo, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useMemo, useState, type ReactNode } from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
+import { useFieldContext } from "../field/context.js";
+import { useOptionalFormContext } from "../form/context.js";
+import type { ValidationBehavior } from "../form/validation.js";
 import {
   PasswordToggleFieldContextProvider,
   type PasswordToggleFieldContextValue,
@@ -16,6 +19,7 @@ export interface PasswordToggleFieldRootProps {
   readOnly?: boolean;
   invalid?: boolean;
   required?: boolean;
+  validationBehavior?: ValidationBehavior;
 }
 
 export function PasswordToggleFieldRoot({
@@ -23,11 +27,25 @@ export function PasswordToggleFieldRoot({
   visible: controlledVisible,
   defaultVisible = false,
   onVisibleChange,
-  disabled = false,
-  readOnly = false,
-  invalid = false,
-  required = false,
+  disabled,
+  readOnly,
+  invalid,
+  required,
+  validationBehavior,
 }: PasswordToggleFieldRootProps) {
+  const field = useFieldContext();
+  const formContext = useOptionalFormContext();
+  const validationId = useId();
+  const isDisabled = disabled ?? field?.disabled ?? false;
+  const isReadOnly = readOnly ?? field?.readOnly ?? false;
+  const isRequired = required ?? field?.required ?? false;
+  const [invalidControlIds, setInvalidControlIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const locallyInvalid = Boolean(invalid) || invalidControlIds.size > 0;
+  const isInvalid = locallyInvalid || (field?.invalid ?? false);
+  const resolvedValidationBehavior =
+    validationBehavior ?? field?.validationBehavior ?? formContext?.validationBehavior;
   const [visible, setResolvedVisible] = useControllableState<boolean>({
     value: controlledVisible,
     defaultValue: defaultVisible,
@@ -36,28 +54,58 @@ export function PasswordToggleFieldRoot({
 
   const setVisible = useCallback(
     (next: boolean) => {
-      if (disabled) return;
+      if (isDisabled) return;
       setResolvedVisible(next);
     },
-    [disabled, setResolvedVisible],
+    [isDisabled, setResolvedVisible],
   );
 
   const onToggle = useCallback(() => {
-    if (disabled) return;
+    if (isDisabled) return;
     setResolvedVisible((currentVisible) => !currentVisible);
-  }, [disabled, setResolvedVisible]);
+  }, [isDisabled, setResolvedVisible]);
+
+  const reportControlValidity = useCallback((id: string, nextInvalid: boolean) => {
+    setInvalidControlIds((current) => {
+      const next = new Set(current);
+      if (nextInvalid) next.add(id);
+      else next.delete(id);
+      return next.size === current.size && [...next].every((value) => current.has(value))
+        ? current
+        : next;
+    });
+  }, []);
+  const parentReportValidity =
+    field?.reportControlValidity ?? formContext?.reportControlValidity;
+
+  useEffect(() => {
+    parentReportValidity?.(validationId, locallyInvalid);
+    return () => parentReportValidity?.(validationId, false);
+  }, [locallyInvalid, parentReportValidity, validationId]);
 
   const contextValue = useMemo<PasswordToggleFieldContextValue>(
     () => ({
       visible,
       onVisibleChange: setVisible,
       onToggle,
-      disabled,
-      readOnly,
-      invalid,
-      required,
+      disabled: isDisabled,
+      readOnly: isReadOnly,
+      invalid: isInvalid,
+      required: isRequired,
+      validationBehavior: resolvedValidationBehavior,
+      reportControlValidity,
     }),
-    [disabled, invalid, onToggle, readOnly, required, setVisible, visible],
+    [
+      isDisabled,
+      isInvalid,
+      isReadOnly,
+      isRequired,
+      onToggle,
+      reportControlValidity,
+      resolvedValidationBehavior,
+      setVisible,
+      visible,
+    ],
   );
 
   return (

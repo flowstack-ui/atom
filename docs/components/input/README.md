@@ -51,6 +51,7 @@ wrapper element. Local state props override Field context.
 | `required` | `boolean` | Field state or `false` |
 | `readOnly` | `boolean` | Field state or `false` |
 | `invalid` | `boolean` | Field state or `false` |
+| `validationBehavior` | `"inline" \| "native"` | Field/Form value or `"native"` |
 
 Native input props, including `type`, `name`, `form`, `onChange`, and explicit
 ARIA relationships, pass through. Uncontrolled values return to `defaultValue`
@@ -141,6 +142,10 @@ export function SearchInput() {
 ```
 
 ## Accessibility
+
+After native constraint validation runs, Root mirrors `ValidityState` through
+`aria-invalid` and `data-invalid`. Inline behavior suppresses the browser
+bubble while preserving native submission blocking; native behavior keeps it.
 
 Root uses native input semantics. Give it an accessible name with a native
 label, Field.Label, `aria-label`, or `aria-labelledby`. Clear has an accessible

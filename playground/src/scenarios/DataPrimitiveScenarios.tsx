@@ -8,7 +8,7 @@ import { Feed } from "@flowstack-ui/atom/feed";
 import { Field } from "@flowstack-ui/atom/field";
 import { Fieldset } from "@flowstack-ui/atom/fieldset";
 import { FileUpload } from "@flowstack-ui/atom/file-upload";
-import { Form } from "@flowstack-ui/atom/form";
+import { Form, type ValidationBehavior } from "@flowstack-ui/atom/form";
 import { Input } from "@flowstack-ui/atom/input";
 import { Menubar } from "@flowstack-ui/atom/menubar";
 import { NumberInput } from "@flowstack-ui/atom/number-input";
@@ -60,6 +60,7 @@ type TreeGridStateMode = "uncontrolled" | "controlled";
 type TreeGridDirectionMode = "default" | "provider-rtl" | "local-ltr" | "local-rtl";
 type TreeGridPartKey = "root" | "caption" | "header" | "row" | "columnHeader" | "body" | "rowHeader" | "cell" | "footer";
 type FormControlType = "native" | "atom" | "foundation";
+type FormValidationBehavior = "auto" | ValidationBehavior;
 
 type LogEntry = {
   id: number;
@@ -518,6 +519,7 @@ function useFormScenario() {
   const [validation, setValidation] = useState<"none" | "pass" | "fail">("pass");
   const [asyncValidation, setAsyncValidation] = useState(false);
   const [controlType, setControlType] = useState<FormControlType>("atom");
+  const [validationBehavior, setValidationBehavior] = useState<FormValidationBehavior>("auto");
   const [projectName, setProjectName] = useState("Atom");
   const [composition, setComposition] = useState<CompositionMode>("default");
   const [propCheck, setPropCheck] = useState(false);
@@ -530,8 +532,8 @@ function useFormScenario() {
   }, []);
 
   return {
-    state: { preventDefault, validation, asyncValidation, controlType, projectName, composition, propCheck, customRootSlot, status, rootRef, log },
-    actions: { setPreventDefault, setValidation, setAsyncValidation, setControlType, setProjectName, setComposition, setPropCheck, setCustomRootSlot, setStatus, markRootRef, clearLog, addLog },
+    state: { preventDefault, validation, asyncValidation, controlType, validationBehavior, projectName, composition, propCheck, customRootSlot, status, rootRef, log },
+    actions: { setPreventDefault, setValidation, setAsyncValidation, setControlType, setValidationBehavior, setProjectName, setComposition, setPropCheck, setCustomRootSlot, setStatus, markRootRef, clearLog, addLog },
   };
 }
 
@@ -823,6 +825,12 @@ export function DataPrimitiveScenarioToolbar({
           <div className="toolbar-menu-separator" role="separator" />
           <MenuCheckboxControl checked={scenario.state.asyncValidation} label="Async validation" value="async" onChange={scenario.actions.setAsyncValidation} />
           <MenuRadioControl label="Control" options={formControlOptions} value={scenario.state.controlType} onChange={scenario.actions.setControlType} />
+          <MenuRadioControl
+            label="Validation presentation"
+            options={formValidationBehaviorOptions}
+            value={scenario.state.validationBehavior}
+            onChange={(value) => scenario.actions.setValidationBehavior(value as FormValidationBehavior)}
+          />
         </ToolbarGroup>
         <CompositionToolbarGroup value={scenario.state.composition} onChange={scenario.actions.setComposition} />
         <PropsToolbarGroup
@@ -946,7 +954,7 @@ export function getDataPrimitiveCanvasFooter(
 
   if (scenarioId === "form") {
     const state = scenarios.form.state;
-    return `Status ${state.status} | preventDefaultOnSubmit ${state.preventDefault} | Validate ${state.validation}`;
+    return `Status ${state.status} | preventDefaultOnSubmit ${state.preventDefault} | Validate ${state.validation} | Presentation ${state.validationBehavior}`;
   }
 
   return "";
@@ -1085,7 +1093,10 @@ export function getDataPrimitiveSource(scenarioId: string, scenarios?: DataPrimi
         ? ""
         : `
   validateOnSubmit={${state.asyncValidation ? "asyncValidate" : state.validation === "pass" ? "validatePass" : "validateFail"}}`;
-    const props = `${state.preventDefault ? " preventDefaultOnSubmit" : ""}${validation}`;
+    const behavior = state.validationBehavior === "auto"
+      ? ""
+      : ` validationBehavior="${state.validationBehavior}"`;
+    const props = `${behavior}${state.preventDefault ? " preventDefaultOnSubmit" : ""}${validation}`;
     const rootDataProps = `${state.customRootSlot ? " data-slot=\"form-custom\"" : ""}${state.propCheck ? " data-prop-check=\"root\"" : ""}`;
     const open = state.composition === "asChild"
       ? `<Form.Root${props} asChild>
@@ -2311,6 +2322,9 @@ function FormScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useFormS
     ...partProps("root", { customSlot: state.customRootSlot, propCheck: state.propCheck }, "form-custom"),
     ref: scenario.actions.markRootRef,
     preventDefaultOnSubmit: state.preventDefault,
+    ...(state.validationBehavior !== "auto" && {
+      validationBehavior: state.validationBehavior,
+    }),
     ...(state.validation !== "none" && { validateOnSubmit: validate }),
     onSubmit: (event: FormEvent<HTMLFormElement>) => {
       const wasDefaultPrevented = event.defaultPrevented;
@@ -2401,6 +2415,7 @@ function FormFoundationControls() {
         <Field.Label>Project name</Field.Label>
         <Input.Root name="project" defaultValue="Atom" />
         <Field.Description>Single-control Field relationship.</Field.Description>
+        <Field.Error>Project name is required.</Field.Error>
       </Field.Root>
 
       <Field.Root id="foundation-notes">
@@ -2415,6 +2430,7 @@ function FormFoundationControls() {
           <Checkbox.Indicator>Checked</Checkbox.Indicator>
         </Checkbox.Root>
         <Field.Description>Checked-only submission.</Field.Description>
+        <Field.Error>Accept the terms to continue.</Field.Error>
       </Field.Root>
 
       <Field.Root id="foundation-switch">
@@ -2765,6 +2781,7 @@ function getDataPrimitiveSections(
         row("Validation", state.validation, "behavior"),
         row("Async validation", bool(state.asyncValidation), "behavior"),
         row("Control", state.controlType, "behavior"),
+        row("Validation presentation", state.validationBehavior, "behavior"),
         row("Composition", state.composition, "composition"),
       ]),
     ];
@@ -3486,6 +3503,12 @@ const formControlOptions = [
   { label: "Native", value: "native" },
   { label: "Atom", value: "atom" },
   { label: "Foundation", value: "foundation" },
+];
+
+const formValidationBehaviorOptions = [
+  { label: "Automatic", value: "auto" },
+  { label: "Inline", value: "inline" },
+  { label: "Native", value: "native" },
 ];
 
 const tableRows = [

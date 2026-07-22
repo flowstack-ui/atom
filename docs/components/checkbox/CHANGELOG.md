@@ -1,5 +1,10 @@
 # Checkbox Changelog
 
+## 0.6.13
+
+- Mirrored aligned-proxy validity to the visible Checkbox, Field, and Form with
+  inline Error presentation or opt-in native browser UI.
+
 ## 0.6.12
 
 - Aligned the native validation proxy with Root, redirected validation focus,

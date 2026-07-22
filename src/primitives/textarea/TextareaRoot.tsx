@@ -13,10 +13,12 @@ import {
 } from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
+import { useFormValidation } from "../../hooks/useFormValidation.js";
 import { composeEventHandlers } from "../../utils/dom.js";
 import type { NativeTextareaProps } from "../../utils/dom.js";
 import { composeRefs } from "../../utils/slot.js";
 import { useFieldContext } from "../field/context.js";
+import type { ValidationBehavior } from "../form/validation.js";
 import {
   TextareaContextProvider,
   type TextareaContextValue,
@@ -44,6 +46,7 @@ export interface TextareaRootProps extends TextareaRootNativeProps {
   disabled?: boolean;
   required?: boolean;
   readOnly?: boolean;
+  validationBehavior?: ValidationBehavior;
   autoResize?: boolean;
   minRows?: number;
   maxRows?: number;
@@ -81,6 +84,7 @@ export const TextareaRoot = forwardRef<HTMLTextAreaElement, TextareaRootProps>(
       disabled,
       required,
       readOnly,
+      validationBehavior,
       autoResize = false,
       minRows,
       maxRows,
@@ -109,7 +113,17 @@ export const TextareaRoot = forwardRef<HTMLTextAreaElement, TextareaRootProps>(
     const isDisabled = disabled ?? fieldCtx?.disabled ?? false;
     const isRequired = required ?? fieldCtx?.required ?? false;
     const isReadOnly = readOnly ?? fieldCtx?.readOnly ?? false;
-    const isInvalid = invalid ?? fieldCtx?.invalid ?? false;
+    const validation = useFormValidation({
+      validityRef: textareaRef,
+      ownerRef: textareaRef,
+      invalid,
+      inheritedInvalid: fieldCtx?.invalid,
+      validationBehavior,
+      inheritedValidationBehavior: fieldCtx?.validationBehavior,
+      form: restProps.form,
+      reportValidity: fieldCtx?.reportControlValidity,
+    });
+    const isInvalid = validation.invalid;
     const controlId = id ?? fieldCtx?.controlId;
     const describedBy = ariaDescribedBy !== undefined
       ? ariaDescribedBy
@@ -185,6 +199,8 @@ export const TextareaRoot = forwardRef<HTMLTextAreaElement, TextareaRootProps>(
       ],
     );
 
+    const consumerOnInvalid = restProps.onInvalid;
+    const consumerOnInput = restProps.onInput;
     const behaviorProps = {
       ...restProps,
       ref: composedRef,
@@ -205,7 +221,20 @@ export const TextareaRoot = forwardRef<HTMLTextAreaElement, TextareaRootProps>(
       ...(isReadOnly && { "data-readonly": "" }),
       ...(isInvalid && { "data-invalid": "" }),
       ...(autoResize && { "data-autoresize": "" }),
-      onChange: composeEventHandlers(onChange, handleChange),
+      "data-atom-validation-owner": validation.validationProps["data-atom-validation-owner"],
+      "data-atom-validation-behavior": validation.validationBehavior,
+      onInvalid: (event: React.FormEvent<HTMLTextAreaElement>) => {
+        consumerOnInvalid?.(event);
+        validation.validationProps.onInvalid(event);
+      },
+      onInput: (event: React.InputEvent<HTMLTextAreaElement>) => {
+        consumerOnInput?.(event);
+        validation.validationProps.onInput();
+      },
+      onChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+        composeEventHandlers(onChange, handleChange)(event);
+        validation.validationProps.onChange();
+      },
       onFocus: composeEventHandlers(onFocus, handleFocus),
       onBlur: composeEventHandlers(onBlur, handleBlur),
     };

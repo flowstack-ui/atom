@@ -161,17 +161,23 @@ import { Input } from "@flowstack-ui/atom/input";
 </Field.Root>;
 ```
 
-`Form.Root` owns the native form element, submit/reset event flow, and coarse
-form status data attributes. It intentionally does not duplicate `Field`.
+`Form.Root` owns the native form element, submit/reset event flow, validation
+presentation policy, and aggregate form status data attributes. It
+intentionally does not duplicate `Field`.
 
 ```tsx
 import { Form } from "@flowstack-ui/atom/form";
 
-<Form.Root preventDefaultOnSubmit onSubmit={handleSubmit}>
+<Form.Root validationBehavior="inline" preventDefaultOnSubmit onSubmit={handleSubmit}>
   {/* fields */}
   <button type="submit">Submit</button>
 </Form.Root>;
 ```
+
+`validationBehavior="inline"` preserves native constraints and invalid-submit
+blocking while presenting invalid state through Atom's visible controls and
+`Field.Error` or `Fieldset.Error`. Use `"native"` to retain the browser's
+validation bubble as well. A control can override its Field, Fieldset, or Form.
 
 ## Overlays And Positioned Content
 

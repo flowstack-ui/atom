@@ -60,6 +60,15 @@ async function click(element) {
   });
 }
 
+async function checkValidity(element) {
+  let valid;
+  await React.act(async () => {
+    valid = element.checkValidity();
+    await Promise.resolve();
+  });
+  return valid;
+}
+
 test("custom checkbox and switch values submit and restore uncontrolled defaults on reset", async () => {
   const { container, cleanup } = installDom();
   const root = createRoot(container);
@@ -145,11 +154,11 @@ test("required CheckboxGroup validates one-or-more while RadioGroup submits one 
     assert.equal(validationInput.readOnly, false);
     assert.equal(validationInput.willValidate, true);
     assert.equal(validationInput.validity.valueMissing, true);
-    assert.equal(form.checkValidity(), false);
+    assert.equal(await checkValidity(form), false);
 
     await click(container.querySelector('[data-slot="checkbox-group-item"]'));
     assert.equal(validationInput.validity.valueMissing, false);
-    assert.equal(form.checkValidity(), true);
+    assert.equal(await checkValidity(form), true);
     assert.deepEqual(Array.from(new window.FormData(form).entries()), [
       ["topics", "news"],
       ["contact", "email"],
@@ -186,11 +195,11 @@ test("required Checkbox remains eligible for native constraint validation", asyn
     assert.equal(input.readOnly, false);
     assert.equal(input.willValidate, true);
     assert.equal(input.validity.valueMissing, true);
-    assert.equal(form.checkValidity(), false);
+    assert.equal(await checkValidity(form), false);
 
     await click(control);
     assert.equal(input.validity.valueMissing, false);
-    assert.equal(form.checkValidity(), true);
+    assert.equal(await checkValidity(form), true);
   } finally {
     await React.act(async () => root.unmount());
     cleanup();

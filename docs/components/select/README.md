@@ -79,6 +79,7 @@ integration. Root renders no DOM wrapper except its hidden native select when
 | `readOnly` | `boolean` | Field state or `false` |
 | `invalid` | `boolean` | Field state or `false` |
 | `required` | `boolean` | `false` |
+| `validationBehavior` | `"inline" \| "native"` | Field/Form value or `"native"` |
 | `name` | `string` | - |
 | `form` | `string` | - |
 
@@ -445,6 +446,10 @@ export default function GroupedSelect() {
 ```
 
 ## Accessibility
+
+The aligned native select owns required validity. A validation attempt mirrors
+its state to Trigger and Field. Inline behavior suppresses the browser bubble;
+native behavior keeps it and redirects focus to Trigger.
 
 Select follows the
 [WAI-ARIA select-only combobox pattern](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-select-only/):

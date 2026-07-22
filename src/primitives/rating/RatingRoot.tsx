@@ -10,6 +10,7 @@ import {
 } from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
+import { useFormValidation } from "../../hooks/useFormValidation.js";
 import { formControlProxyStyle, useFormControlProxy } from "../../hooks/useFormControlProxy.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { useDirection, type DirectionValue } from "../direction/index.js";
@@ -32,6 +33,7 @@ import {
   snapRatingValue,
 } from "./utils.js";
 import { useFieldContext } from "../field/context.js";
+import type { ValidationBehavior } from "../form/validation.js";
 
 type RatingRootNativeProps = NativeDivProps<
   | "children"
@@ -77,6 +79,8 @@ export interface RatingRootProps extends RatingRootNativeProps {
   formValue?: string;
   /** Associates the hidden input with a form by ID. */
   form?: string;
+  /** Chooses inline Atom presentation or the browser's native validation UI. */
+  validationBehavior?: ValidationBehavior;
   /** Human-readable value text for assistive technologies. */
   "aria-valuetext"?: string;
   /** Generate human-readable value text for assistive technologies. */
@@ -113,6 +117,7 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
       name,
       formValue,
       form,
+      validationBehavior,
       "aria-valuetext": ariaValueText,
       getValueLabel,
       render,
@@ -128,11 +133,21 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
     const field = useFieldContext();
     const isDisabled = disabled ?? field?.disabled ?? false;
     const isReadOnly = readOnly ?? field?.readOnly ?? false;
-    const isInvalid = invalid ?? field?.invalid ?? false;
     const isRequired = required ?? field?.required ?? false;
     const rootRef = useRef<HTMLDivElement>(null);
     const validationInputRef = useRef<HTMLInputElement>(null);
     useFormControlProxy(validationInputRef, rootRef);
+    const validation = useFormValidation({
+      validityRef: validationInputRef,
+      ownerRef: rootRef,
+      invalid,
+      inheritedInvalid: field?.invalid,
+      validationBehavior,
+      inheritedValidationBehavior: field?.validationBehavior,
+      form,
+      reportValidity: field?.reportControlValidity,
+    });
+    const isInvalid = validation.invalid;
     const range = useMemo(
       () => normalizeRatingRange(minProp, maxProp),
       [maxProp, minProp],
@@ -304,7 +319,7 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
             aria-hidden="true"
             tabIndex={-1}
             onFocus={() => rootRef.current?.focus()}
-            onChange={() => undefined}
+            {...validation.validationProps}
             style={formControlProxyStyle}
           />
         ) : null}

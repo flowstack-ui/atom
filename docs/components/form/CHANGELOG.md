@@ -1,5 +1,10 @@
 # Form Changelog
 
+## 0.6.13
+
+- Added inherited inline/native validation presentation and aggregate
+  descendant invalid state without disabling native constraints.
+
 ## 0.5.0
 
 - Preserved native and React function-action submission paths, kept React action

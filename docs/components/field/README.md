@@ -55,6 +55,7 @@ state. It does not render the actual form control.
 | `required` | `boolean` | `false` |
 | `readOnly` | `boolean` | `false` |
 | `invalid` | `boolean` | `false` |
+| `validationBehavior` | `"inline" \| "native"` | Form value, then automatic |
 | `orientation` | `"vertical" \| "horizontal"` | `"vertical"` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
@@ -238,6 +239,13 @@ their generated relationships are present in server markup.
 ```
 
 ## Accessibility
+
+A native validation attempt from a Field-aware control marks Root and the
+visible control invalid. A compatible Error part makes omitted behavior resolve
+to `inline`; otherwise it resolves to `native`. Inline behavior reveals Error,
+suppresses only the browser bubble, and focuses the first invalid visible
+control. Correcting the value or resetting the form clears native-derived state
+without clearing an explicit `invalid` source.
 
 Field follows native form labeling and the
 [WAI forms labeling guidance](https://www.w3.org/WAI/tutorials/forms/labels/).

@@ -13,7 +13,9 @@ import {
 } from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
+import { useFormValidation } from "../../hooks/useFormValidation.js";
 import { useFieldContext } from "../field/context.js";
+import type { ValidationBehavior } from "../form/validation.js";
 import {
   clampNumberValue,
   formatNumber,
@@ -61,6 +63,8 @@ export interface NumberInputRootProps extends NumberInputRootNativeProps {
   required?: boolean;
   /** Mark as invalid. */
   invalid?: boolean;
+  /** Chooses inline Atom presentation or the browser's native validation UI. */
+  validationBehavior?: ValidationBehavior;
   /** Placeholder text when empty. */
   placeholder?: string;
   /** HTML name attribute for form submission. */
@@ -122,6 +126,7 @@ export const NumberInputRoot = forwardRef<HTMLDivElement, NumberInputRootProps>(
       readOnly,
       required,
       invalid,
+      validationBehavior,
       placeholder,
       name,
       form,
@@ -140,7 +145,6 @@ export const NumberInputRoot = forwardRef<HTMLDivElement, NumberInputRootProps>(
     const isDisabled = disabled ?? field?.disabled ?? false;
     const isReadOnly = readOnly ?? field?.readOnly ?? false;
     const isRequired = required ?? field?.required ?? false;
-    const isInvalid = invalid ?? field?.invalid ?? false;
 
     const effectiveLargeStep = largeStepProp ?? step * 10;
     const isControlled = props.value !== undefined;
@@ -156,6 +160,17 @@ export const NumberInputRoot = forwardRef<HTMLDivElement, NumberInputRootProps>(
     });
     const [isEditing, setIsEditing] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
+    const validation = useFormValidation({
+      validityRef: inputRef,
+      ownerRef: inputRef,
+      invalid,
+      inheritedInvalid: field?.invalid,
+      validationBehavior,
+      inheritedValidationBehavior: field?.validationBehavior,
+      form,
+      reportValidity: field?.reportControlValidity,
+    });
+    const isInvalid = validation.invalid;
 
     const toDisplayString = useCallback(
       (value: number | null): string => {
@@ -348,7 +363,12 @@ export const NumberInputRoot = forwardRef<HTMLDivElement, NumberInputRootProps>(
           required={isRequired}
           form={form}
           className={inputClassName}
-          onChange={handleChange}
+          onChange={(event) => {
+            handleChange(event);
+            validation.validationProps.onChange();
+          }}
+          onInput={validation.validationProps.onInput}
+          onInvalid={validation.validationProps.onInvalid}
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
           onBlur={handleBlur}
@@ -364,6 +384,8 @@ export const NumberInputRoot = forwardRef<HTMLDivElement, NumberInputRootProps>(
             ? ariaDescribedBy
             : field?.describedBy}
           autoComplete="off"
+          data-atom-validation-owner=""
+          data-atom-validation-behavior={validation.validationBehavior}
         />
 
         {name ? (

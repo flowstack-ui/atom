@@ -54,6 +54,7 @@ input.
 | `readOnly` | `boolean` | Field state or `false` |
 | `required` | `boolean` | Field state or `false` |
 | `invalid` | `boolean` | Field state or `false` |
+| `validationBehavior` | `"inline" \| "native"` | Field/Form value or `"native"` |
 | `placeholder` | `string` | - |
 | `name` | `string` | - |
 | `form` | `string` | - |
@@ -122,6 +123,10 @@ The package also exports `clampNumberValue`, `formatNumber`, `parseNumber`,
 numeric calculations outside the rendered component.
 
 ## Accessibility
+
+The visible spinbutton owns native required validity; the named hidden input
+remains submission-only. A validation attempt is mirrored to Root and the
+spinbutton. Inline behavior suppresses only the browser bubble.
 
 NumberInput follows the [WAI-ARIA spinbutton pattern](https://www.w3.org/WAI/ARIA/apg/patterns/spinbutton/).
 The inner input renders `role="spinbutton"`.

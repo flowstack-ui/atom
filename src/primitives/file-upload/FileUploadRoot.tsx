@@ -15,6 +15,8 @@ import { useFormReset } from "../../hooks/useFormReset.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
 import { useFieldContext } from "../field/context.js";
+import { useOptionalFormContext } from "../form/context.js";
+import type { ValidationBehavior } from "../form/validation.js";
 import {
   FileUploadContextProvider,
   type FileUploadContextValue,
@@ -45,6 +47,7 @@ export interface FileUploadRootProps extends FileUploadRootNativeProps {
   required?: boolean;
   readOnly?: boolean;
   invalid?: boolean;
+  validationBehavior?: ValidationBehavior;
   render?: RenderProp;
   asChild?: boolean;
   "data-slot"?: string;
@@ -70,6 +73,7 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
       required,
       readOnly,
       invalid,
+      validationBehavior,
       render,
       asChild,
       id: providedId,
@@ -80,6 +84,8 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
     ref,
   ) {
     const fieldCtx = useFieldContext();
+    const formContext = useOptionalFormContext();
+    const validationId = useId();
     const autoId = useId();
     const inputRef = useRef<HTMLInputElement | null>(null);
     const triggerRef = useRef<HTMLElement | null>(null);
@@ -93,7 +99,15 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
     const isDisabled = disabled ?? fieldCtx?.disabled ?? false;
     const isRequired = required ?? fieldCtx?.required ?? false;
     const isReadOnly = readOnly ?? fieldCtx?.readOnly ?? false;
-    const isInvalid = invalid ?? fieldCtx?.invalid ?? false;
+    const [invalidControlIds, setInvalidControlIds] = useState<Set<string>>(
+      () => new Set(),
+    );
+    const locallyInvalid = Boolean(invalid) || invalidControlIds.size > 0;
+    const isInvalid = locallyInvalid || (fieldCtx?.invalid ?? false);
+    const resolvedValidationBehavior =
+      validationBehavior ??
+      fieldCtx?.validationBehavior ??
+      formContext?.validationBehavior;
     const controlId = fieldCtx?.controlId ?? (providedId ? `${providedId}-input` : `${autoId}-control`);
     const describedBy = ariaDescribedBy ?? fieldCtx?.describedBy;
 
@@ -104,6 +118,23 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
       },
       [onRejectedFilesChange],
     );
+    const reportControlValidity = useCallback((id: string, nextInvalid: boolean) => {
+      setInvalidControlIds((current) => {
+        const next = new Set(current);
+        if (nextInvalid) next.add(id);
+        else next.delete(id);
+        return next.size === current.size && [...next].every((value) => current.has(value))
+          ? current
+          : next;
+      });
+    }, []);
+    const parentReportValidity =
+      fieldCtx?.reportControlValidity ?? formContext?.reportControlValidity;
+
+    useEffect(() => {
+      parentReportValidity?.(validationId, locallyInvalid);
+      return () => parentReportValidity?.(validationId, false);
+    }, [locallyInvalid, parentReportValidity, validationId]);
 
     const resetNativeInput = useCallback(() => {
       if (inputRef.current) {
@@ -208,6 +239,8 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
         describedBy,
         dragState,
         setDragState,
+        validationBehavior: resolvedValidationBehavior,
+        reportControlValidity,
       }),
       [
         accept,
@@ -227,6 +260,8 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
         removeFile,
         resolvedFiles,
         setFilesFromList,
+        reportControlValidity,
+        resolvedValidationBehavior,
       ],
     );
 

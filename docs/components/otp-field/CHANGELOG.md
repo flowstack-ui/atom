@@ -1,5 +1,10 @@
 # OTPField Changelog
 
+## 0.6.13
+
+- Added logical-field inline/native validation presentation and synchronized
+  invalid state across Root, visible cells, Field, and Form.
+
 ## 0.6.12
 
 - Moved required validity to the first visible cell and made the combined

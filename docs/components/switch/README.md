@@ -50,6 +50,7 @@ validation focus to the visible switch.
 | `readOnly` | `boolean` | `false` |
 | `invalid` | `boolean` | `false` |
 | `required` | `boolean` | `false` |
+| `validationBehavior` | `"inline" \| "native"` | Field/Form value or `"native"` |
 | `name` | `string` | - |
 | `value` | `string` | `"on"` |
 | `form` | `string` | - |
@@ -125,6 +126,10 @@ export default function ControlledSwitch() {
 ```
 
 ## Accessibility
+
+After native constraint validation runs, proxy invalidity is mirrored to the
+visible Root and its Field. Inline behavior suppresses the browser bubble while
+native behavior keeps the aligned browser UI.
 
 Switch follows the [WAI-ARIA switch pattern](https://www.w3.org/WAI/ARIA/apg/patterns/switch/).
 Root owns the switch role and checked state; Thumb is decorative.

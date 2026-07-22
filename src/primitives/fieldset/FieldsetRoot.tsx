@@ -7,16 +7,25 @@ import {
   isValidElement,
   useId,
   useMemo,
+  useRef,
   useState,
+  type FormEventHandler,
+  type InputEventHandler,
   type ReactNode,
 } from "react";
 import type { NativeFieldsetProps } from "../../utils/dom.js";
-import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
+import { cloneAndMerge, composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
 import {
   FieldsetContextProvider,
   type FieldsetContextValue,
 } from "./context.js";
 import { getFieldsetPartPresence, type FieldsetPartKind } from "./parts.js";
+import { useOptionalFormContext } from "../form/context.js";
+import {
+  isNativeValidityElement,
+  runValidationCapture,
+  type ValidationBehavior,
+} from "../form/validation.js";
 
 type FieldsetRootNativeProps = NativeFieldsetProps<"children" | "disabled">;
 
@@ -25,6 +34,7 @@ export interface FieldsetRootProps extends FieldsetRootNativeProps {
   disabled?: boolean;
   invalid?: boolean;
   required?: boolean;
+  validationBehavior?: ValidationBehavior;
   render?: RenderProp;
   asChild?: boolean;
   "data-slot"?: string;
@@ -37,6 +47,7 @@ export const FieldsetRoot = forwardRef<HTMLFieldSetElement, FieldsetRootProps>(
       disabled = false,
       invalid = false,
       required = false,
+      validationBehavior,
       render,
       asChild,
       id: providedId,
@@ -45,6 +56,10 @@ export const FieldsetRoot = forwardRef<HTMLFieldSetElement, FieldsetRootProps>(
     },
     ref,
   ) {
+    const formContext = useOptionalFormContext();
+    const formReportValidity = formContext?.reportControlValidity;
+    const validationId = useId();
+    const rootRef = useRef<HTMLFieldSetElement>(null);
     const autoId = useId();
     const baseId = providedId ?? autoId;
     const legendId = `${baseId}-legend`;
@@ -54,9 +69,22 @@ export const FieldsetRoot = forwardRef<HTMLFieldSetElement, FieldsetRootProps>(
       asChild && isValidElement<{ children?: ReactNode }>(children)
         ? children.props.children
         : children;
+    const presenterParts = getFieldsetPartPresence(relationshipChildren, false);
+    const resolvedValidationBehavior =
+      validationBehavior ??
+      formContext?.validationBehavior ??
+      (presenterParts.errorPresenter ? "inline" : undefined);
+    const [invalidControlIds, setInvalidControlIds] = useState<Set<string>>(
+      () => new Set(),
+    );
+    const [invalidNativeElements, setInvalidNativeElements] = useState<Set<Element>>(
+      () => new Set(),
+    );
+    const effectiveInvalid =
+      invalid || invalidControlIds.size > 0 || invalidNativeElements.size > 0;
     const visibleParts = getFieldsetPartPresence(
       relationshipChildren,
-      invalid,
+      effectiveInvalid,
     );
     const [partCounts, setPartCounts] = useState({ legend: 0, description: 0, error: 0 });
     const [partRegistryReady, setPartRegistryReady] = useState(false);
@@ -80,6 +108,30 @@ export const FieldsetRoot = forwardRef<HTMLFieldSetElement, FieldsetRootProps>(
         }));
       };
     }, []);
+    const reportControlValidity = useCallback((id: string, isInvalid: boolean) => {
+      setInvalidControlIds((current) => {
+        const next = new Set(current);
+        if (isInvalid) next.add(id);
+        else next.delete(id);
+        return next.size === current.size && [...next].every((value) => current.has(value))
+          ? current
+          : next;
+      });
+    }, []);
+    useEffect(() => {
+      formReportValidity?.(validationId, effectiveInvalid);
+      return () => formReportValidity?.(validationId, false);
+    }, [effectiveInvalid, formReportValidity, validationId]);
+
+    useEffect(() => {
+      const form = rootRef.current?.form;
+      if (!form) return undefined;
+      const clearNativeInvalid = () => {
+        setInvalidNativeElements(new Set());
+      };
+      form.addEventListener("reset", clearNativeInvalid);
+      return () => form.removeEventListener("reset", clearNativeInvalid);
+    }, []);
     const describedBy = [
       hasDescription ? descriptionId : null,
       hasError ? errorId : null,
@@ -89,7 +141,7 @@ export const FieldsetRoot = forwardRef<HTMLFieldSetElement, FieldsetRootProps>(
 
     const contextValue = useMemo<FieldsetContextValue>(
       () => ({
-        invalid,
+        invalid: effectiveInvalid,
         disabled,
         required,
         legendId,
@@ -100,6 +152,8 @@ export const FieldsetRoot = forwardRef<HTMLFieldSetElement, FieldsetRootProps>(
         hasError,
         hasLegend,
         registerPart,
+        validationBehavior: resolvedValidationBehavior,
+        reportControlValidity,
       }),
       [
         describedBy,
@@ -108,16 +162,44 @@ export const FieldsetRoot = forwardRef<HTMLFieldSetElement, FieldsetRootProps>(
         errorId,
         hasDescription,
         hasError,
-        invalid,
+        effectiveInvalid,
         legendId,
         required,
         hasLegend,
         registerPart,
+        reportControlValidity,
+        resolvedValidationBehavior,
       ],
     );
 
+    const {
+      onInvalidCapture,
+      onInputCapture,
+      ...fieldsetProps
+    } = restProps;
+    const handleInvalidCapture: FormEventHandler<HTMLFieldSetElement> = (event) => {
+      onInvalidCapture?.(event);
+      runValidationCapture(event, resolvedValidationBehavior, (target) => {
+        setInvalidNativeElements((current) => {
+          if (current.has(target)) return current;
+          return new Set(current).add(target);
+        });
+      });
+    };
+    const handleInputCapture: InputEventHandler<HTMLFieldSetElement> = (event) => {
+      onInputCapture?.(event);
+      const target = event.target;
+      if (!isNativeValidityElement(target) || !target.validity.valid) return;
+      setInvalidNativeElements((current) => {
+        if (!current.has(target)) return current;
+        const next = new Set(current);
+        next.delete(target);
+        return next;
+      });
+    };
+
     const hasExplicitDescription = Object.prototype.hasOwnProperty.call(
-      restProps,
+      fieldsetProps,
       "aria-describedby",
     );
     const resolvedAriaDescribedBy = hasExplicitDescription
@@ -125,16 +207,20 @@ export const FieldsetRoot = forwardRef<HTMLFieldSetElement, FieldsetRootProps>(
       : describedBy;
 
     const behaviorProps: Record<string, unknown> = {
-      ...restProps,
-      ref,
+      ...fieldsetProps,
+      ref: composeRefs(rootRef, ref),
       id: providedId,
       disabled: disabled || undefined,
       "aria-describedby": resolvedAriaDescribedBy,
-      "aria-invalid": invalid || undefined,
+      "aria-invalid": effectiveInvalid || undefined,
       "data-slot": dataSlot,
-      ...(invalid && { "data-invalid": "" }),
+      "data-atom-validation-scope": "",
+      "data-atom-validation-behavior": resolvedValidationBehavior ?? "native",
+      ...(effectiveInvalid && { "data-invalid": "" }),
       ...(disabled && { "data-disabled": "" }),
       ...(required && { "data-required": "" }),
+      onInvalidCapture: handleInvalidCapture,
+      onInputCapture: handleInputCapture,
     };
 
     const element = asChild

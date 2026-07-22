@@ -18,11 +18,13 @@ import {
 } from "./context.js";
 import { useCollection } from "../../collection.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
+import { useFormValidation } from "../../hooks/useFormValidation.js";
 import {
   formControlProxyStyle,
   useFormControlProxy,
 } from "../../hooks/useFormControlProxy.js";
 import { useFieldContext } from "../field/context.js";
+import type { ValidationBehavior } from "../form/validation.js";
 import { SelectItemText } from "./SelectItemText.js";
 
 export interface SelectRootProps {
@@ -39,6 +41,7 @@ export interface SelectRootProps {
   required?: boolean;
   name?: string;
   form?: string;
+  validationBehavior?: ValidationBehavior;
 }
 
 export function SelectRoot({
@@ -55,11 +58,11 @@ export function SelectRoot({
   required,
   name,
   form,
+  validationBehavior,
 }: SelectRootProps) {
   const fieldCtx = useFieldContext();
   const isDisabled = disabled ?? fieldCtx?.disabled ?? false;
   const isReadOnly = readOnly ?? fieldCtx?.readOnly ?? false;
-  const isInvalid = invalid ?? fieldCtx?.invalid ?? false;
   const isRequired = required ?? fieldCtx?.required ?? false;
   const isOpenControlled = controlledOpen !== undefined;
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
@@ -124,6 +127,17 @@ export function SelectRoot({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const selectRef = useRef<HTMLSelectElement>(null);
   useFormControlProxy(selectRef, triggerRef);
+  const validation = useFormValidation({
+    validityRef: selectRef,
+    ownerRef: triggerRef,
+    invalid,
+    inheritedInvalid: fieldCtx?.invalid,
+    validationBehavior,
+    inheritedValidationBehavior: fieldCtx?.validationBehavior,
+    form,
+    reportValidity: fieldCtx?.reportControlValidity,
+  });
+  const isInvalid = validation.invalid;
   const reset = useCallback(() => {
     if (!isValueControlled) setInternalValue(defaultValue);
     if (!isOpenControlled) setInternalOpen(defaultOpen);
@@ -294,7 +308,7 @@ export function SelectRoot({
           aria-hidden="true"
           tabIndex={-1}
           onFocus={() => triggerRef.current?.focus()}
-          onChange={() => undefined}
+          {...validation.validationProps}
           style={formControlProxyStyle}
         >
           <option value="" />

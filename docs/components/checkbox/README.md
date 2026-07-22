@@ -52,6 +52,7 @@ also renders an assistive-technology-hidden native checkbox when `name` or
 | `readOnly` | `boolean` | `false` |
 | `invalid` | `boolean` | `false` |
 | `required` | `boolean` | `false` |
+| `validationBehavior` | `"inline" \| "native"` | Field/Form value or `"native"` |
 | `name` | `string` | - |
 | `value` | `string` | `"on"` |
 | `form` | `string` | - |
@@ -145,6 +146,10 @@ export function TermsCheckbox() {
 ```
 
 ## Accessibility
+
+After native constraint validation runs, proxy invalidity is mirrored to the
+visible Root and its Field. Inline behavior suppresses the browser bubble and
+uses Field Error when available; native behavior keeps the aligned browser UI.
 
 Checkbox follows the
 [WAI-ARIA Checkbox pattern](https://www.w3.org/WAI/ARIA/apg/patterns/checkbox/).

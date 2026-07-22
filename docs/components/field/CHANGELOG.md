@@ -1,5 +1,10 @@
 # Field Changelog
 
+## 0.6.13
+
+- Added validation behavior inheritance, native-invalid aggregation, automatic
+  Error presentation, and visible-control focus support.
+
 ## 0.5.2
 
 - Added `markFieldPart` for styled Description and Error wrappers that must

@@ -60,6 +60,7 @@ Owns the selected values and the state shared by every Item. It renders a
 | `required` | `boolean` | `false` |
 | `readOnly` | `boolean` | `false` |
 | `invalid` | `boolean` | `false` |
+| `validationBehavior` | `"inline" \| "native"` | Fieldset/Form value or `"native"` |
 | `orientation` | `"horizontal" \| "vertical"` | `"vertical"` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
@@ -249,6 +250,12 @@ export function ControlledTopics() {
 ```
 
 ## Accessibility
+
+Required validity means at least one item, never that the first item must be
+selected. A validation attempt marks Root and Fieldset invalid and focuses the
+first enabled item. Inline behavior reveals Fieldset Error and suppresses the
+proxy's option-like browser message; native behavior keeps browser UI by
+explicit request.
 
 Root names and groups the choices, while each Item follows the
 [WAI-ARIA Checkbox pattern](https://www.w3.org/WAI/ARIA/apg/patterns/checkbox/).

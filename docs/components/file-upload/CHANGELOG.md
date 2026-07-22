@@ -1,5 +1,10 @@
 # FileUpload Changelog
 
+## 0.6.13
+
+- Mirrored HiddenInput constraints to the visible upload surface, Field, and
+  Form under the shared inline/native validation contract.
+
 ## 0.6.12
 
 - Aligned the native file input with Trigger for required feedback and

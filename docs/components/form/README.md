@@ -53,6 +53,7 @@ provides submission state to descendants.
 | `onReset` | `(event) => void` | - |
 | `preventDefaultOnSubmit` | `boolean` | `false` |
 | `validateOnSubmit` | `(event) => boolean \| Promise<boolean>` | - |
+| `validationBehavior` | `"inline" \| "native"` | Automatic |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -68,12 +69,13 @@ or framework can observe it.
 | `[data-slot]` | `"form"` |
 | `[data-submitting]` | Present while validation or async submission is pending |
 | `[data-submitted]` | Present after the handler completes successfully |
-| `[data-invalid]` | Present after `validateOnSubmit` returns false |
+| `[data-invalid]` | Present after callback validation fails or a descendant reports invalid |
 
 ### useFormContext
 
-Returns `{ submitting, submitted, invalid }` for custom status parts. It must
-be called below Root.
+Returns submission state, derived invalid state, inherited validation behavior,
+and the validity reporter used by custom Atom-aware controls. It must be called
+below Root.
 
 ## Examples
 
@@ -131,9 +133,16 @@ export function InvitationForm() {
 
 ## Accessibility
 
+`validationBehavior="inline"` keeps HTML constraints and invalid submission
+blocking active while suppressing the browser validation bubble. Descendant
+Atom controls expose the failure through `aria-invalid` and `data-invalid`.
+`"native"` keeps the browser bubble. An explicit control value overrides Field,
+Fieldset, and Form inheritance.
+
 Form preserves native form semantics and owns no special keyboard model.
-Consumers must label controls, expose errors, move focus when appropriate, and
-announce asynchronous results. Use Field and Fieldset for accessible names,
+Consumers must label controls, provide error content, and announce asynchronous
+results. Inline constraint validation moves focus to the first invalid visible
+control. Use Field and Fieldset for accessible names,
 descriptions, and visible validation messages.
 
 ## Changelog

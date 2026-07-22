@@ -106,7 +106,8 @@ test("PasswordToggleField source keeps functional toggle and validation state wi
 
   assert.match(hookSource, /SetStateAction/);
   assert.match(rootSource, /setResolvedVisible\(\(currentVisible\) => !currentVisible\)/);
-  assert.match(inputSource, /"aria-invalid": ctx\.invalid \|\| undefined/);
+  assert.match(inputSource, /"aria-invalid": validation\.invalid \|\| undefined/);
+  assert.match(inputSource, /useFormValidation\(/);
   assert.match(inputSource, /"aria-required": ctx\.required \|\| undefined/);
   assert.match(toggleSource, /const \{ onToggle \} = ctx/);
   assert.match(toggleSource, /"data-readonly": ctx\.readOnly \? "" : undefined/);

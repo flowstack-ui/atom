@@ -6,6 +6,9 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Added Form Foundation evidence for automatic inline/native constraint
+  presentation, visible invalid state, Error relationships, correction, reset,
+  and group-level required validation introduced in Atom `0.6.13`.
 - Expanded Checkbox Group with the complete Parent/select-all and structured
   ItemLabel/ItemDescription anatomy, live mixed-state and relationship
   inspection, disabled-value handling, matching Source, and a draft focused

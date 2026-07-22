@@ -1,5 +1,10 @@
 # Select Changelog
 
+## 0.6.13
+
+- Mirrored aligned native-select validity to Trigger, Field, and Form under the
+  shared inline/native validation contract.
+
 ## 0.6.12
 
 - Aligned the native select with Trigger and redirected browser validation

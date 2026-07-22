@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
+import type { ValidationBehavior } from "../form/validation.js";
 
 export interface PasswordToggleFieldContextValue {
   visible: boolean;
@@ -10,6 +11,8 @@ export interface PasswordToggleFieldContextValue {
   readOnly: boolean;
   invalid: boolean;
   required: boolean;
+  validationBehavior: ValidationBehavior | undefined;
+  reportControlValidity: (id: string, invalid: boolean) => void;
 }
 
 const PasswordToggleFieldContext =

@@ -1,5 +1,10 @@
 # Combobox Changelog
 
+## 0.6.13
+
+- Mirrored committed-value proxy validity to the visible Combobox, Field, and
+  Form under the shared inline/native validation contract.
+
 ## 0.6.12
 
 - Moved native required validity to an aligned proxy holding the committed

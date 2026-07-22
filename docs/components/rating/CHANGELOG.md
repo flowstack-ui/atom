@@ -1,5 +1,10 @@
 # Rating Changelog
 
+## 0.6.13
+
+- Mirrored aligned required validity to Rating, Field, and Form under the
+  shared inline/native validation contract.
+
 ## 0.6.12
 
 - Added aligned native required validation that treats the minimum rating as

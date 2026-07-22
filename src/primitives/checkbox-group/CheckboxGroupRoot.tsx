@@ -3,6 +3,7 @@
 import { forwardRef, useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
+import { useFormValidation } from "../../hooks/useFormValidation.js";
 import { formControlProxyStyle, useFormControlProxy } from "../../hooks/useFormControlProxy.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { cloneAndMerge, composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
@@ -11,6 +12,7 @@ import {
   type CheckboxGroupContextValue,
 } from "./context.js";
 import { useFieldsetContext } from "../fieldset/context.js";
+import type { ValidationBehavior } from "../form/validation.js";
 
 type CheckboxGroupRootNativeProps = NativeDivProps<
   "aria-required" | "children" | "defaultValue" | "form" | "name" | "onChange" | "role"
@@ -37,6 +39,8 @@ export interface CheckboxGroupRootProps extends CheckboxGroupRootNativeProps {
   readOnly?: boolean;
   /** Invalid state. */
   invalid?: boolean;
+  /** Chooses inline Atom presentation or the browser's native validation UI. */
+  validationBehavior?: ValidationBehavior;
   /** Layout orientation. */
   orientation?: "horizontal" | "vertical";
   /** Override the rendered element. */
@@ -64,6 +68,7 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
       required,
       readOnly,
       invalid,
+      validationBehavior,
       orientation = "vertical",
       render,
       asChild,
@@ -77,7 +82,6 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
     const fieldset = useFieldsetContext();
     const isDisabled = disabled ?? fieldset?.disabled ?? false;
     const isRequired = required ?? fieldset?.required ?? false;
-    const isInvalid = invalid ?? fieldset?.invalid ?? false;
     const isReadOnly = readOnly ?? false;
     const rootRef = useRef<HTMLDivElement>(null);
     const validationInputRef = useRef<HTMLInputElement>(null);
@@ -92,6 +96,17 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
     const [allItemValues, setAllItemValues] = useState<string[]>([]);
     const [firstEnabledItem, setFirstEnabledItem] = useState<HTMLButtonElement | null>(null);
     useFormControlProxy(validationInputRef, { current: firstEnabledItem });
+    const validation = useFormValidation({
+      validityRef: validationInputRef,
+      ownerRef: { current: firstEnabledItem },
+      invalid,
+      inheritedInvalid: fieldset?.invalid,
+      validationBehavior,
+      inheritedValidationBehavior: fieldset?.validationBehavior,
+      form,
+      reportValidity: fieldset?.reportControlValidity,
+    });
+    const isInvalid = validation.invalid;
     const normalizedAllValues = useMemo(
       () => allValues === undefined ? undefined : Array.from(new Set(allValues)),
       [allValues],
@@ -225,7 +240,7 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
             required
             disabled={isDisabled}
             onFocus={() => firstEnabledItem?.focus()}
-            onChange={() => undefined}
+            {...validation.validationProps}
             style={formControlProxyStyle}
           />
         ) : null}

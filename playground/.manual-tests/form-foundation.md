@@ -39,19 +39,37 @@ native form attribute.
 
 ## 4. Submission and validity
 
-1. For Checkbox and Switch, confirm an unchecked control is absent from
+1. In Form Foundation with Validation presentation set to Automatic, uncheck
+   the required Checkbox and clear the required CheckboxGroup, then submit.
+   Confirm no browser validation bubble appears, each authored Error appears,
+   Form/Field/Fieldset/visible controls expose invalid state, and focus lands
+   on the first invalid visible control rather than a transparent proxy.
+2. Correct only the Checkbox. Confirm its Field and visible checkbox clear
+   invalid state while the CheckboxGroup, Fieldset, and Form remain invalid.
+   Select one group item and confirm the remaining invalid state clears.
+3. For Checkbox and Switch, confirm an unchecked control is absent from
    FormData and a checked control submits its configured value.
-2. For CheckboxGroup, enable required, clear every item, and submit. Confirm
-   the form is invalid; select one item and confirm it becomes valid. Confirm
-   every selected item submits under the group name.
-3. For RadioGroup, enable required and confirm no selection is invalid; choose
+4. For CheckboxGroup, confirm every selected item submits under the group name
+   and the required failure remains one group-level error rather than an error
+   that requires the first option specifically.
+5. For RadioGroup, enable required and confirm no selection is invalid; choose
    one radio and confirm one value submits.
-4. For Select and OTPField, enable required and confirm the native associated
+6. For Select and OTPField, enable required and confirm the native associated
    control reports missing value until a value is supplied.
-5. Repeat an available form-owner case with the control outside the form and
+7. Repeat an available form-owner case with the control outside the form and
    confirm `form="…"` associates submission and validity with that form.
 
-## 5. Native reset
+## 5. Validation presentation overrides
+
+1. Repeat the missing required Checkbox in Form Foundation with presentation
+   set to Native. Confirm the browser owns its validation indication and Atom
+   still mirrors invalid state to the visible control, Field, Error, and Form.
+2. Set presentation to Inline. Confirm the browser indication is suppressed
+   while native submission blocking remains active.
+3. Inspect Source and verify Automatic omits `validationBehavior`, while the
+   other choices pass only `"inline"` or `"native"` to Form.
+
+## 6. Native reset
 
 1. In each uncontrolled control scenario, change the initial value or checked
    state, then activate the owning form's Reset button.
@@ -61,7 +79,7 @@ native form attribute.
 3. Repeat a controlled scenario and confirm reset does not overwrite the
    consumer-controlled value.
 
-## 6. Form behavior
+## 7. Form behavior
 
 1. In Form, verify passing, failing, and async Atom callback validation.
 2. Confirm reset clears `data-submitting`, `data-submitted`, and `data-invalid`.
@@ -70,7 +88,7 @@ native form attribute.
 4. Force an Atom async submit callback rejection and confirm the rejection is
    observable while pending state still settles.
 
-## 7. Regression sweep
+## 8. Regression sweep
 
 1. Check keyboard focus, Space/Enter selection, and Tab order for every custom
    control touched above.

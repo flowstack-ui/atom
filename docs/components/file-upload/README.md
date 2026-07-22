@@ -75,6 +75,7 @@ rejections and drag state, and resets the native file picker.
 | `required` | `boolean` | Field state or `false` |
 | `readOnly` | `boolean` | Field state or `false` |
 | `invalid` | `boolean` | Field state or `false` |
+| `validationBehavior` | `"inline" \| "native"` | Field/Form value or `"native"` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -312,6 +313,10 @@ export function ImageUpload() {
 ```
 
 ## Accessibility
+
+HiddenInput remains an aligned native file control and owns its constraints.
+A validation attempt is mirrored to Root, Trigger, and Field. Inline behavior
+suppresses the browser bubble; native behavior keeps it at Trigger's bounds.
 
 HiddenInput supplies native file-input semantics and must be present for
 Trigger to open a picker. Give the upload a visible Field.Label or another

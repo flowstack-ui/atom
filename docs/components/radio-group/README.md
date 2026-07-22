@@ -51,6 +51,7 @@ focus behavior for every Radio part inside it.
 | `disabled` | `boolean` | `false` |
 | `required` | `boolean` | `false` |
 | `invalid` | `boolean` | `false` |
+| `validationBehavior` | `"inline" \| "native"` | Fieldset/Form value or `"native"` |
 | `orientation` | `"horizontal" \| "vertical"` | `"vertical"` |
 | `loop` | `boolean` | `true` |
 | `asChild` | `boolean` | `false` |
@@ -125,6 +126,11 @@ export default () => (
 ```
 
 ## Accessibility
+
+Missing required selection is one group-level invalid state. A validation
+attempt marks Root and Fieldset invalid and focuses the first enabled Radio.
+Inline behavior reveals Fieldset Error and suppresses the browser bubble;
+native behavior keeps it.
 
 `RadioGroup` follows the
 [WAI-ARIA radio group pattern](https://www.w3.org/WAI/ARIA/apg/patterns/radio/).

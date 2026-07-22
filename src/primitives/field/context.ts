@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
+import type { ValidationBehavior } from "../form/validation.js";
 
 export type FieldOrientation = "vertical" | "horizontal";
 
@@ -16,6 +17,8 @@ export interface FieldContextValue {
   describedBy: string | undefined;
   hasDescription: boolean;
   hasError: boolean;
+  validationBehavior?: ValidationBehavior;
+  reportControlValidity?: (id: string, invalid: boolean) => void;
   registerPart: (kind: "description" | "error") => () => void;
 }
 

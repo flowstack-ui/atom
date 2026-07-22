@@ -1,5 +1,10 @@
 # Switch Changelog
 
+## 0.6.13
+
+- Mirrored aligned-proxy validity to the visible Switch, Field, and Form under
+  the shared inline/native validation contract.
+
 ## 0.6.12
 
 - Restored native required validity by removing `readonly` from the aligned
