@@ -1,5 +1,10 @@
 # Checkbox Changelog
 
+## 0.6.16
+
+- Explicitly scrolled the visible Root into view when inline validation directs
+  focus there.
+
 ## 0.6.15
 
 - Exposed inline validation-directed focus on the visible Root through

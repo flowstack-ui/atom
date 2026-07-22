@@ -1,5 +1,10 @@
 # CheckboxGroup Changelog
 
+## 0.6.16
+
+- Explicitly scrolled the first enabled Item into view when inline validation
+  directs focus there.
+
 ## 0.6.15
 
 - Exposed inline validation-directed focus on the first enabled Item through

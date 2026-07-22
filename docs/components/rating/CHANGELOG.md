@@ -1,5 +1,9 @@
 # Rating Changelog
 
+## 0.6.16
+
+- Explicitly scrolled inline validation-directed focus into view.
+
 ## 0.6.15
 
 - Exposed inline validation-directed focus through `[data-focus-visible]`

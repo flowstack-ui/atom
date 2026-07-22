@@ -1,5 +1,11 @@
 # Atom Changelog
 
+## 0.6.16
+
+- Made inline validation focus explicitly scroll its visible target into view,
+  avoiding real-device Safari failures where programmatic focus and its visible
+  indicator were applied without revealing the invalid control.
+
 ## 0.6.15
 
 - Exposed validation-directed focus through `[data-focus-visible]` until blur,
