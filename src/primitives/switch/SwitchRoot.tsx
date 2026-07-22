@@ -11,6 +11,7 @@ import {
 } from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
+import { useFormValidation } from "../../hooks/useFormValidation.js";
 import {
   formControlProxyStyle,
   useFormControlProxy,
@@ -25,6 +26,7 @@ import {
 } from "../../utils/slot.js";
 import { SwitchContextProvider } from "./context.js";
 import { useFieldContext } from "../field/context.js";
+import type { ValidationBehavior } from "../form/validation.js";
 
 type SwitchRootNativeProps = NativeButtonProps<
   | "children"
@@ -59,6 +61,8 @@ export interface SwitchRootProps extends SwitchRootNativeProps {
   form?: string;
   /** Marks the hidden input as required for native form validation. */
   required?: boolean;
+  /** Chooses inline Atom presentation or the browser's native validation UI. */
+  validationBehavior?: ValidationBehavior;
   /** Override the rendered element. */
   render?: RenderProp;
   /** Merge behavior props onto a single child element. */
@@ -84,6 +88,7 @@ export const SwitchRoot = forwardRef<HTMLButtonElement, SwitchRootProps>(
       value = "on",
       form,
       required,
+      validationBehavior,
       render,
       asChild,
       children,
@@ -98,7 +103,6 @@ export const SwitchRoot = forwardRef<HTMLButtonElement, SwitchRootProps>(
     const field = useFieldContext();
     const isDisabled = disabled ?? field?.disabled ?? false;
     const isReadOnly = readOnly ?? field?.readOnly ?? false;
-    const isInvalid = invalid ?? field?.invalid ?? false;
     const isRequired = required ?? field?.required ?? false;
     const inputRef = useRef<HTMLInputElement>(null);
     const rootRef = useRef<HTMLButtonElement>(null);
@@ -108,6 +112,17 @@ export const SwitchRoot = forwardRef<HTMLButtonElement, SwitchRootProps>(
       defaultValue: defaultChecked,
       onChange: onCheckedChange,
     });
+    const validation = useFormValidation({
+      validityRef: inputRef,
+      ownerRef: rootRef,
+      invalid,
+      inheritedInvalid: field?.invalid,
+      validationBehavior,
+      inheritedValidationBehavior: field?.validationBehavior,
+      form,
+      reportValidity: field?.reportControlValidity,
+    });
+    const isInvalid = validation.invalid;
 
     const handleClick: MouseEventHandler<HTMLButtonElement> = () => {
       if (isDisabled || isReadOnly) return;
@@ -178,7 +193,7 @@ export const SwitchRoot = forwardRef<HTMLButtonElement, SwitchRootProps>(
             disabled={isDisabled}
             required={isRequired}
             onFocus={() => rootRef.current?.focus()}
-            onChange={() => undefined}
+            {...validation.validationProps}
             style={formControlProxyStyle}
           />
         ) : null}

@@ -1,5 +1,10 @@
 # CheckboxGroup Changelog
 
+## 0.6.13
+
+- Added one group-level inline/native validation state, Fieldset Error
+  presentation, and first-enabled-item focus for missing required selection.
+
 ## 0.6.12
 
 - Aligned the one-or-more validation proxy with the first enabled Item and

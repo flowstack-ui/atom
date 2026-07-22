@@ -53,6 +53,7 @@ export const OTPFieldInput = forwardRef<HTMLInputElement, OTPFieldInputProps>(
       onKeyDown,
       onPaste,
       onFocus,
+      onInvalid,
       ...restProps
     },
     ref,
@@ -191,8 +192,22 @@ export const OTPFieldInput = forwardRef<HTMLInputElement, OTPFieldInputProps>(
       ...(context.disabled && { "data-disabled": "" }),
       ...(context.readOnly && { "data-readonly": "" }),
       ...(context.invalid && { "data-invalid": "" }),
-      onInput: composeEventHandlers(onInput, handleInput),
-      onChange: composeEventHandlers(onChange, handleChange),
+      ...(resolvedIndex === 0 && {
+        "data-atom-validation-owner": "",
+        "data-atom-validation-behavior": context.validationBehavior,
+      }),
+      onInvalid: (event: React.FormEvent<HTMLInputElement>) => {
+        onInvalid?.(event);
+        if (resolvedIndex === 0) context.onValidationInvalid(event);
+      },
+      onInput: (event: React.InputEvent<HTMLInputElement>) => {
+        composeEventHandlers(onInput, handleInput)(event);
+        if (resolvedIndex === 0) context.syncValidation();
+      },
+      onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
+        composeEventHandlers(onChange, handleChange)(event);
+        if (resolvedIndex === 0) context.syncValidation();
+      },
       onKeyDown: composeEventHandlers(onKeyDown, handleKeyDown),
       onPaste: composeEventHandlers(onPaste, handlePaste),
       onFocus: composeEventHandlers(onFocus, handleFocus),

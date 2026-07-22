@@ -1,5 +1,10 @@
 # NumberInput Changelog
 
+## 0.6.13
+
+- Added inline/native validation presentation and native numeric-invalid
+  reporting to the visible spinbutton, Field, and Form.
+
 ## 0.5.0
 
 - Added complete Field integration, native ARIA prop names, external-form

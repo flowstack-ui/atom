@@ -53,6 +53,7 @@ relationships to its Description and currently visible Error.
 | `disabled` | `boolean` | `false` |
 | `required` | `boolean` | `false` |
 | `invalid` | `boolean` | `false` |
+| `validationBehavior` | `"inline" \| "native"` | Form value, then automatic |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -179,6 +180,12 @@ export function ShippingMethod() {
 ```
 
 ## Accessibility
+
+A grouped control reports native constraint failures to Root as one logical
+invalid state. A compatible Error part makes omitted behavior resolve to
+`inline`; otherwise it resolves to `native`. Inline behavior suppresses the
+browser bubble, reveals the group Error, and focuses the first enabled item
+without adding the group container to the Tab order.
 
 Fieldset follows native
 [WAI grouped-control guidance](https://www.w3.org/WAI/tutorials/forms/grouping/).

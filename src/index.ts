@@ -506,6 +506,7 @@ export {
 export type {
   FormContextValue,
   FormRootProps,
+  ValidationBehavior,
 } from "./primitives/form/index.js";
 export { LabelRoot } from "./primitives/label/index.js";
 export type { LabelRootProps } from "./primitives/label/index.js";

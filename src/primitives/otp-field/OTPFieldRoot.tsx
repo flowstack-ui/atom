@@ -12,9 +12,11 @@ import {
 } from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
+import { useFormValidation } from "../../hooks/useFormValidation.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
 import { useFieldContext } from "../field/context.js";
+import type { ValidationBehavior } from "../form/validation.js";
 import {
   OTPFieldContextProvider,
   type OTPFieldContextValue,
@@ -51,6 +53,7 @@ export interface OTPFieldRootProps extends OTPFieldRootNativeProps {
   name?: string;
   form?: string;
   inputId?: string;
+  validationBehavior?: ValidationBehavior;
   render?: RenderProp;
   asChild?: boolean;
   "data-slot"?: string;
@@ -77,6 +80,7 @@ export const OTPFieldRoot = forwardRef<HTMLDivElement, OTPFieldRootProps>(
       name,
       form,
       inputId,
+      validationBehavior,
       render,
       asChild,
       id: providedId,
@@ -102,7 +106,6 @@ export const OTPFieldRoot = forwardRef<HTMLDivElement, OTPFieldRootProps>(
     const isDisabled = disabled ?? fieldContext?.disabled ?? false;
     const isReadOnly = readOnly ?? fieldContext?.readOnly ?? false;
     const isRequired = required ?? fieldContext?.required ?? false;
-    const isInvalid = invalid ?? fieldContext?.invalid ?? false;
     const resolvedAriaDescribedBy = Object.prototype.hasOwnProperty.call(
       props,
       "aria-describedby",
@@ -116,6 +119,21 @@ export const OTPFieldRoot = forwardRef<HTMLDivElement, OTPFieldRootProps>(
       nativeAriaLabelledBy ?? (resolvedAriaLabel ? undefined : fieldContext?.labelId);
     const firstInputId = inputId ?? fieldContext?.controlId ?? `${baseId}-input-1`;
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+    const firstInputRef = useMemo(
+      () => ({ get current() { return inputRefs.current[0] ?? null; } }),
+      [],
+    );
+    const validation = useFormValidation({
+      validityRef: firstInputRef,
+      ownerRef: firstInputRef,
+      invalid,
+      inheritedInvalid: fieldContext?.invalid,
+      validationBehavior,
+      inheritedValidationBehavior: fieldContext?.validationBehavior,
+      form,
+      reportValidity: fieldContext?.reportControlValidity,
+    });
+    const isInvalid = validation.invalid;
     const hiddenInputRef = useRef<HTMLInputElement>(null);
     const reset = useCallback(() => {
       if (value === undefined) {
@@ -334,6 +352,9 @@ export const OTPFieldRoot = forwardRef<HTMLDivElement, OTPFieldRootProps>(
         clearCell,
         clearPreviousCell,
         pasteValue,
+        validationBehavior: validation.validationBehavior,
+        onValidationInvalid: validation.validationProps.onInvalid,
+        syncValidation: validation.validationProps.onInput,
       }),
       [
         chars,
@@ -359,6 +380,9 @@ export const OTPFieldRoot = forwardRef<HTMLDivElement, OTPFieldRootProps>(
         type,
         unregisterInput,
         updateCell,
+        validation.validationBehavior,
+        validation.validationProps.onInput,
+        validation.validationProps.onInvalid,
       ],
     );
 

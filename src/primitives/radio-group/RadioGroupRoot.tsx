@@ -11,6 +11,7 @@ import {
 import { useCollection } from "../../collection.js";
 import { useControllableState } from "../../hooks/useControllableState.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
+import { useFormValidation } from "../../hooks/useFormValidation.js";
 import { formControlProxyStyle, useFormControlProxy } from "../../hooks/useFormControlProxy.js";
 import { useDirection, type DirectionValue } from "../direction/index.js";
 import type { NativeDivProps } from "../../utils/dom.js";
@@ -26,6 +27,7 @@ import {
   type RadioGroupContextValue,
 } from "./context.js";
 import { useFieldsetContext } from "../fieldset/context.js";
+import type { ValidationBehavior } from "../form/validation.js";
 
 type RadioGroupRootNativeProps = NativeDivProps<
   "children" | "defaultValue" | "form" | "name" | "onChange" | "role"
@@ -74,6 +76,8 @@ export interface RadioGroupRootProps extends RadioGroupRootNativeProps {
   required?: boolean;
   /** Marks the group as invalid. */
   invalid?: boolean;
+  /** Chooses inline Atom presentation or the browser's native validation UI. */
+  validationBehavior?: ValidationBehavior;
   /** Keyboard navigation direction. */
   orientation?: RadioGroupOrientation;
   /** Arrow-key wrapping. */
@@ -101,6 +105,7 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
       disabled,
       required,
       invalid,
+      validationBehavior,
       orientation = "vertical",
       loop = true,
       render,
@@ -116,7 +121,6 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
     const fieldset = useFieldsetContext();
     const isDisabled = disabled ?? fieldset?.disabled ?? false;
     const isRequired = required ?? fieldset?.required ?? false;
-    const isInvalid = invalid ?? fieldset?.invalid ?? false;
     const rootRef = useRef<HTMLDivElement>(null);
     const validationInputRef = useRef<HTMLInputElement>(null);
     const dir = useDirection();
@@ -158,6 +162,17 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
       .map(getRadioElement)
       .find((element) => element && !isRadioElementDisabled(element)) ?? null;
     useFormControlProxy(validationInputRef, { current: firstEnabledRadio });
+    const validation = useFormValidation({
+      validityRef: validationInputRef,
+      ownerRef: { current: firstEnabledRadio },
+      invalid,
+      inheritedInvalid: fieldset?.invalid,
+      validationBehavior,
+      inheritedValidationBehavior: fieldset?.validationBehavior,
+      form,
+      reportValidity: fieldset?.reportControlValidity,
+    });
+    const isInvalid = validation.invalid;
 
     const findNextValue = useCallback(
       (values: string[], currentIndex: number, direction: 1 | -1): string | null => {
@@ -311,7 +326,7 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
             aria-hidden="true"
             tabIndex={-1}
             onFocus={() => firstEnabledRadio?.focus()}
-            onChange={() => undefined}
+            {...validation.validationProps}
             style={formControlProxyStyle}
           />
         ) : null}

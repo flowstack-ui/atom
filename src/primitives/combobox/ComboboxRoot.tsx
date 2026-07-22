@@ -11,8 +11,10 @@ import {
 import { useCollection } from "../../collection.js";
 import { useControllableState } from "../../hooks/useControllableState.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
+import { useFormValidation } from "../../hooks/useFormValidation.js";
 import { formControlProxyStyle, useFormControlProxy } from "../../hooks/useFormControlProxy.js";
 import { useFieldContext } from "../field/context.js";
+import type { ValidationBehavior } from "../form/validation.js";
 import {
   ComboboxContextProvider,
   type ComboboxContextValue,
@@ -53,6 +55,7 @@ export interface ComboboxRootProps {
   invalid?: boolean;
   name?: string;
   form?: string;
+  validationBehavior?: ValidationBehavior;
 }
 
 export function ComboboxRoot({
@@ -81,12 +84,12 @@ export function ComboboxRoot({
   invalid,
   name,
   form,
+  validationBehavior,
 }: ComboboxRootProps) {
   const field = useFieldContext();
   const isDisabled = disabled ?? field?.disabled ?? false;
   const isReadOnly = readOnly ?? field?.readOnly ?? false;
   const isRequired = required ?? field?.required ?? false;
-  const isInvalid = invalid ?? field?.invalid ?? false;
   const [isOpen, setOpen] = useControllableState<boolean>({
     value: controlledOpen,
     defaultValue: defaultOpen,
@@ -114,6 +117,17 @@ export function ComboboxRoot({
   const inputRef = useRef<HTMLInputElement>(null);
   const validationInputRef = useRef<HTMLInputElement>(null);
   useFormControlProxy(validationInputRef, inputRef);
+  const validation = useFormValidation({
+    validityRef: validationInputRef,
+    ownerRef: inputRef,
+    invalid,
+    inheritedInvalid: field?.invalid,
+    validationBehavior,
+    inheritedValidationBehavior: field?.validationBehavior,
+    form,
+    reportValidity: field?.reportControlValidity,
+  });
+  const isInvalid = validation.invalid;
   const contentRef = useRef<HTMLDivElement>(null);
   const suppressInputFocusOpenRef = useRef(false);
   const reset = useCallback(() => {
@@ -348,7 +362,7 @@ export function ComboboxRoot({
           aria-hidden="true"
           tabIndex={-1}
           onFocus={() => inputRef.current?.focus()}
-          onChange={() => undefined}
+          {...validation.validationProps}
           style={formControlProxyStyle}
         />
       ) : null}

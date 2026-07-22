@@ -1,7 +1,8 @@
 "use client";
 
-import { createContext, useContext, type RefObject } from "react";
+import { createContext, useContext, type FormEvent, type RefObject } from "react";
 import type { OTPFieldType } from "./utils.js";
+import type { ValidationBehavior } from "../form/validation.js";
 
 export interface OTPFieldContextValue {
   value: string;
@@ -30,6 +31,9 @@ export interface OTPFieldContextValue {
   clearCell: (index: number) => void;
   clearPreviousCell: (index: number) => void;
   pasteValue: (value: string) => void;
+  validationBehavior: ValidationBehavior;
+  onValidationInvalid: (event: FormEvent<HTMLInputElement>) => void;
+  syncValidation: () => void;
 }
 
 const OTPFieldContext = createContext<OTPFieldContextValue | null>(null);

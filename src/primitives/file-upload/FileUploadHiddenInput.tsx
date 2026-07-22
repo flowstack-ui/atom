@@ -7,6 +7,7 @@ import {
 } from "react";
 import type { NativeInputProps } from "../../utils/dom.js";
 import { formControlProxyStyle, useFormControlProxy } from "../../hooks/useFormControlProxy.js";
+import { useFormValidation } from "../../hooks/useFormValidation.js";
 import { composeEventHandlers } from "../../utils/dom.js";
 import { composeRefs } from "../../utils/slot.js";
 import { useFileUploadContext } from "./context.js";
@@ -40,6 +41,14 @@ export const FileUploadHiddenInput = forwardRef<
   ref,
 ) {
   const ctx = useFileUploadContext();
+  const validation = useFormValidation({
+    validityRef: ctx.inputRef,
+    ownerRef: ctx.triggerRef,
+    inheritedInvalid: ctx.invalid,
+    inheritedValidationBehavior: ctx.validationBehavior,
+    form: ctx.form,
+    reportValidity: ctx.reportControlValidity,
+  });
   useFormControlProxy(ctx.inputRef, ctx.triggerRef);
   const composedRef = useCallback(
     (node: HTMLInputElement | null) => {
@@ -68,13 +77,26 @@ export const FileUploadHiddenInput = forwardRef<
       disabled={ctx.disabled || undefined}
       required={ctx.required || undefined}
       aria-describedby={ctx.describedBy}
-      aria-invalid={ctx.invalid || undefined}
+      aria-invalid={validation.invalid || undefined}
       aria-hidden="true"
       tabIndex={-1}
       style={formControlProxyStyle}
       data-slot={dataSlot}
+      data-atom-validation-owner=""
+      data-atom-validation-behavior={validation.validationBehavior}
       onFocus={() => ctx.triggerRef.current?.focus()}
-      onChange={composeEventHandlers(onChange, handleChange)}
+      onInvalid={(event) => {
+        restProps.onInvalid?.(event);
+        validation.validationProps.onInvalid(event);
+      }}
+      onInput={(event) => {
+        restProps.onInput?.(event);
+        validation.validationProps.onInput();
+      }}
+      onChange={(event) => {
+        composeEventHandlers(onChange, handleChange)(event);
+        validation.validationProps.onChange();
+      }}
     />
   );
 });

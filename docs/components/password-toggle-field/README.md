@@ -52,6 +52,7 @@ DOM element.
 | `readOnly` | `boolean` | `false` |
 | `required` | `boolean` | `false` |
 | `invalid` | `boolean` | `false` |
+| `validationBehavior` | `"inline" \| "native"` | Field/Form value or `"native"` |
 
 ### Input
 
@@ -166,6 +167,10 @@ export function ControlledPasswordField() {
 ```
 
 ## Accessibility
+
+The visible password input owns native validity. After a validation attempt,
+Root coordinates its invalid state across Input and Toggle. Inline behavior
+suppresses the browser bubble while keeping constraint validation active.
 
 The toggle remains keyboard reachable. Its accessible label changes between “Show password” and “Hide password”; `aria-pressed` is intentionally not used because the label already communicates the action.
 

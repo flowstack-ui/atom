@@ -1,5 +1,10 @@
 # Fieldset Changelog
 
+## 0.6.13
+
+- Added validation behavior inheritance and group-level native-invalid/Error
+  presentation with first-enabled-control focus support.
+
 ## 0.5.2
 
 - Added `markFieldsetPart` for styled Legend, Description, and Error wrappers

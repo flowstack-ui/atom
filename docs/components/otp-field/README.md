@@ -64,6 +64,7 @@ Field state, completion behavior, and optional hidden form input.
 | `readOnly` | `boolean` | `false` |
 | `required` | `boolean` | `false` |
 | `invalid` | `boolean` | `false` |
+| `validationBehavior` | `"inline" \| "native"` | Field/Form value or `"native"` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -175,6 +176,10 @@ export function GroupedCode() {
 ```
 
 ## Accessibility
+
+The first visible cell owns required validity for the logical OTP value; the
+combined named input remains submission-only. A validation attempt is mirrored
+across Root and every cell. Inline behavior suppresses the browser bubble.
 
 The root uses `role="group"` and the visible inputs use roving `tabIndex`, so
 Tab enters the OTP field once. Each input receives a generated position label,

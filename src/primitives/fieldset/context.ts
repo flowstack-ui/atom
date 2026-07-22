@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
+import type { ValidationBehavior } from "../form/validation.js";
 
 export interface FieldsetContextValue {
   invalid: boolean;
@@ -13,6 +14,8 @@ export interface FieldsetContextValue {
   hasDescription: boolean;
   hasError: boolean;
   hasLegend: boolean;
+  validationBehavior?: ValidationBehavior;
+  reportControlValidity?: (id: string, invalid: boolean) => void;
   registerPart: (kind: "legend" | "description" | "error") => () => void;
 }
 

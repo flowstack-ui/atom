@@ -57,6 +57,7 @@ focusable control; Item parts only provide pointer targets and visual state.
 | `readOnly` | `boolean` | `false` |
 | `invalid` | `boolean` | `false` |
 | `required` | `boolean` | `false` |
+| `validationBehavior` | `"inline" \| "native"` | Field/Form value or `"native"` |
 | `dir` | `"ltr" \| "rtl"` | Direction context |
 | `name` | `string` | - |
 | `formValue` | `string` | Current value |
@@ -186,6 +187,10 @@ export default function ReviewRating() {
 ```
 
 ## Accessibility
+
+Required validity is owned by the aligned native proxy and means a value above
+the minimum. A validation attempt is mirrored to the visible slider and Field.
+Inline behavior suppresses the browser bubble; native behavior keeps it.
 
 Rating follows the
 [WAI-ARIA slider pattern](https://www.w3.org/WAI/ARIA/apg/patterns/slider/)

@@ -87,7 +87,8 @@ try {
   await writeFile(
     path.join(consumerRoot, "smoke.mts"),
     [
-      'import { CheckboxGroup, Dialog, Select, Portal } from "@flowstack-ui/atom";',
+      'import { CheckboxGroup, Dialog, Select, Portal, type ValidationBehavior } from "@flowstack-ui/atom";',
+      'import type { ValidationBehavior as FormValidationBehavior } from "@flowstack-ui/atom/form";',
       'import { CheckboxGroupItemDescription, CheckboxGroupItemLabel, CheckboxGroupParent } from "@flowstack-ui/atom/checkbox-group";',
       'import { DialogContent, ModalRoot } from "@flowstack-ui/atom/dialog";',
       'import { SelectRoot, SelectTrigger } from "@flowstack-ui/atom/select";',
@@ -98,7 +99,9 @@ try {
       "const checkboxGroupParent: typeof CheckboxGroup.Parent = CheckboxGroupParent;",
       "const checkboxGroupItemLabel: typeof CheckboxGroup.ItemLabel = CheckboxGroupItemLabel;",
       "const checkboxGroupItemDescription: typeof CheckboxGroup.ItemDescription = CheckboxGroupItemDescription;",
-      "void [dialogRoot, dialogContent, selectRoot, selectTrigger, checkboxGroupParent, checkboxGroupItemLabel, checkboxGroupItemDescription, Portal];",
+      'const validationBehavior: ValidationBehavior = "inline";',
+      "const formValidationBehavior: FormValidationBehavior = validationBehavior;",
+      "void [dialogRoot, dialogContent, selectRoot, selectTrigger, checkboxGroupParent, checkboxGroupItemLabel, checkboxGroupItemDescription, validationBehavior, formValidationBehavior, Portal];",
       "",
     ].join("\n"),
   );

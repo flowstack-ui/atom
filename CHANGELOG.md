@@ -1,5 +1,16 @@
 # Atom Changelog
 
+## 0.6.13
+
+- Added shared `validationBehavior="inline" | "native"` presentation policy
+  across Form, Field, Fieldset, and every native-validity-owning Atom control.
+- Mirrored attempted native constraint failures to visible controls and their
+  Field, Fieldset, and Form state, with correction/reset cleanup and
+  first-invalid visible focus in inline mode.
+- Made compatible Field and Fieldset Error parts automatically select inline
+  presentation while retaining native constraints, invalid submission
+  blocking, and explicit control-level overrides.
+
 ## 0.6.12
 
 - Aligned native constraint-validation controls with their visible composite

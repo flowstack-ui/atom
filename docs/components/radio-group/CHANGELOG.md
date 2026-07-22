@@ -1,5 +1,10 @@
 # RadioGroup Changelog
 
+## 0.6.13
+
+- Added one group-level inline/native validation state, Fieldset Error
+  presentation, and first-enabled-radio focus for missing required selection.
+
 ## 0.6.12
 
 - Added one group-level required proxy aligned with the first enabled Radio,

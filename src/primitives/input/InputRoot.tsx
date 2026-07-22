@@ -12,7 +12,9 @@ import {
 } from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
+import { useFormValidation } from "../../hooks/useFormValidation.js";
 import { useFieldContext } from "../field/context.js";
+import type { ValidationBehavior } from "../form/validation.js";
 import type { NativeInputProps } from "../../utils/dom.js";
 import { composeEventHandlers } from "../../utils/dom.js";
 import { composeRefs } from "../../utils/slot.js";
@@ -43,6 +45,7 @@ export interface InputRootProps extends InputRootNativeProps {
   disabled?: boolean;
   required?: boolean;
   readOnly?: boolean;
+  validationBehavior?: ValidationBehavior;
   onChange?: ChangeEventHandler<HTMLInputElement>;
   "data-slot"?: string;
 }
@@ -58,6 +61,7 @@ export const InputRoot = forwardRef<HTMLInputElement, InputRootProps>(
       disabled,
       required,
       readOnly,
+      validationBehavior,
       id,
       onChange,
       onFocus,
@@ -82,7 +86,17 @@ export const InputRoot = forwardRef<HTMLInputElement, InputRootProps>(
     const isDisabled = disabled ?? fieldCtx?.disabled ?? false;
     const isRequired = required ?? fieldCtx?.required ?? false;
     const isReadOnly = readOnly ?? fieldCtx?.readOnly ?? false;
-    const isInvalid = invalid ?? fieldCtx?.invalid ?? false;
+    const validation = useFormValidation({
+      validityRef: inputRef,
+      ownerRef: inputRef,
+      invalid,
+      inheritedInvalid: fieldCtx?.invalid,
+      validationBehavior,
+      inheritedValidationBehavior: fieldCtx?.validationBehavior,
+      form: restProps.form,
+      reportValidity: fieldCtx?.reportControlValidity,
+    });
+    const isInvalid = validation.invalid;
     const controlId = id ?? fieldCtx?.controlId;
     const describedBy = ariaDescribedBy !== undefined
       ? ariaDescribedBy
@@ -133,6 +147,8 @@ export const InputRoot = forwardRef<HTMLInputElement, InputRootProps>(
       ],
     );
 
+    const consumerOnInvalid = restProps.onInvalid;
+    const consumerOnInput = restProps.onInput;
     const behaviorProps = {
       ...restProps,
       ref: composedRef,
@@ -152,7 +168,20 @@ export const InputRoot = forwardRef<HTMLInputElement, InputRootProps>(
       ...(isRequired && { "data-required": "" }),
       ...(isReadOnly && { "data-readonly": "" }),
       ...(isInvalid && { "data-invalid": "" }),
-      onChange: composeEventHandlers(onChange, handleChange),
+      "data-atom-validation-owner": validation.validationProps["data-atom-validation-owner"],
+      "data-atom-validation-behavior": validation.validationBehavior,
+      onInvalid: (event: React.FormEvent<HTMLInputElement>) => {
+        consumerOnInvalid?.(event);
+        validation.validationProps.onInvalid(event);
+      },
+      onInput: (event: React.InputEvent<HTMLInputElement>) => {
+        consumerOnInput?.(event);
+        validation.validationProps.onInput();
+      },
+      onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
+        composeEventHandlers(onChange, handleChange)(event);
+        validation.validationProps.onChange();
+      },
       onFocus: composeEventHandlers(onFocus, handleFocus),
       onBlur: composeEventHandlers(onBlur, handleBlur),
     };

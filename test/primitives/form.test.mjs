@@ -70,7 +70,7 @@ test("Form source wires submit, reset, validation, and async state", async () =>
   assert.match(rootSource, /preventDefaultOnSubmit \|\| isPromiseLike\(validationResult\)/);
   assert.match(rootSource, /if \(isValid === false\)/);
   assert.match(rootSource, /event\.preventDefault\(\)/);
-  assert.match(rootSource, /setInvalid\(true\)/);
+  assert.match(rootSource, /setCallbackInvalid\(true\)/);
   assert.match(rootSource, /setSubmitting\(true\);\s*setSubmitted\(false\);/);
   assert.match(rootSource, /const submitResult = onSubmit\?\.\(event\)/);
   assert.match(rootSource, /if \(isPromiseLike\(submitResult\)\)/);
@@ -81,5 +81,7 @@ test("Form source wires submit, reset, validation, and async state", async () =>
   assert.match(rootSource, /onReset\?\.\(event\)/);
   assert.match(rootSource, /if \(event\.defaultPrevented\) return/);
   assert.match(rootSource, /setSubmitted\(false\)/);
-  assert.match(rootSource, /setInvalid\(false\)/);
+  assert.match(rootSource, /setCallbackInvalid\(false\)/);
+  assert.match(rootSource, /validationBehavior\?: ValidationBehavior/);
+  assert.match(rootSource, /runValidationCapture\(event, validationBehavior/);
 });

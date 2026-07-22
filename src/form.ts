@@ -10,6 +10,7 @@ export {
 export type {
   FormContextValue,
   FormRootProps,
+  ValidationBehavior,
 } from "./primitives/form/index.js";
 
 export const Form = {

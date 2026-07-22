@@ -2,6 +2,7 @@
 
 import { createContext, useContext, type RefObject } from "react";
 import type { FileUploadRejectedFile } from "./utils.js";
+import type { ValidationBehavior } from "../form/validation.js";
 
 export type FileUploadDragState = "idle" | "accept" | "reject";
 
@@ -26,6 +27,8 @@ export interface FileUploadContextValue {
   describedBy: string | undefined;
   dragState: FileUploadDragState;
   setDragState: (state: FileUploadDragState) => void;
+  validationBehavior: ValidationBehavior | undefined;
+  reportControlValidity: (id: string, invalid: boolean) => void;
 }
 
 export interface FileUploadItemContextValue {

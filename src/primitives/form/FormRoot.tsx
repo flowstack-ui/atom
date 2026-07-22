@@ -6,6 +6,8 @@ import {
   useMemo,
   useState,
   type FormEvent,
+  type FormEventHandler,
+  type InputEventHandler,
   type ReactNode,
 } from "react";
 import type { NativeFormProps } from "../../utils/dom.js";
@@ -14,6 +16,11 @@ import {
   FormContextProvider,
   type FormContextValue,
 } from "./context.js";
+import {
+  isNativeValidityElement,
+  runValidationCapture,
+  type ValidationBehavior,
+} from "./validation.js";
 
 type FormRootNativeProps = NativeFormProps<"children" | "onReset" | "onSubmit">;
 
@@ -23,6 +30,7 @@ export interface FormRootProps extends FormRootNativeProps {
   onReset?: (event: FormEvent<HTMLFormElement>) => void;
   preventDefaultOnSubmit?: boolean;
   validateOnSubmit?: (event: FormEvent<HTMLFormElement>) => boolean | Promise<boolean>;
+  validationBehavior?: ValidationBehavior;
   render?: RenderProp;
   asChild?: boolean;
   "data-slot"?: string;
@@ -40,6 +48,7 @@ export const FormRoot = forwardRef<HTMLFormElement, FormRootProps>(
       onReset,
       preventDefaultOnSubmit = false,
       validateOnSubmit,
+      validationBehavior,
       action,
       render,
       asChild,
@@ -50,7 +59,54 @@ export const FormRoot = forwardRef<HTMLFormElement, FormRootProps>(
   ) {
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
-    const [invalid, setInvalid] = useState(false);
+    const [callbackInvalid, setCallbackInvalid] = useState(false);
+    const [invalidControlIds, setInvalidControlIds] = useState<Set<string>>(
+      () => new Set(),
+    );
+    const [invalidNativeElements, setInvalidNativeElements] = useState<Set<Element>>(
+      () => new Set(),
+    );
+    const {
+      onInvalidCapture,
+      onInputCapture,
+      ...formProps
+    } = restProps;
+
+    const reportControlValidity = useCallback((id: string, isInvalid: boolean) => {
+      setInvalidControlIds((current) => {
+        const next = new Set(current);
+        if (isInvalid) next.add(id);
+        else next.delete(id);
+        return next.size === current.size && [...next].every((value) => current.has(value))
+          ? current
+          : next;
+      });
+    }, []);
+
+    const handleInvalidCapture: FormEventHandler<HTMLFormElement> = (event) => {
+      onInvalidCapture?.(event);
+      runValidationCapture(event, validationBehavior, (target) => {
+        setInvalidNativeElements((current) => {
+          if (current.has(target)) return current;
+          return new Set(current).add(target);
+        });
+      });
+    };
+
+    const handleInputCapture: InputEventHandler<HTMLFormElement> = (event) => {
+      onInputCapture?.(event);
+      const target = event.target;
+      if (!isNativeValidityElement(target) || !target.validity.valid) return;
+      setInvalidNativeElements((current) => {
+        if (!current.has(target)) return current;
+        const next = new Set(current);
+        next.delete(target);
+        return next;
+      });
+    };
+
+    const invalid =
+      callbackInvalid || invalidControlIds.size > 0 || invalidNativeElements.size > 0;
 
     const handleSubmit = useCallback(
       async (event: FormEvent<HTMLFormElement>) => {
@@ -78,11 +134,11 @@ export const FormRoot = forwardRef<HTMLFormElement, FormRootProps>(
 
           if (isValid === false) {
             event.preventDefault();
-            setInvalid(true);
+            setCallbackInvalid(true);
             return;
           }
 
-          setInvalid(false);
+          setCallbackInvalid(false);
 
           const submitResult = onSubmit?.(event);
           if (isPromiseLike(submitResult)) {
@@ -107,7 +163,8 @@ export const FormRoot = forwardRef<HTMLFormElement, FormRootProps>(
 
         setSubmitting(false);
         setSubmitted(false);
-        setInvalid(false);
+        setCallbackInvalid(false);
+        setInvalidNativeElements(new Set());
       },
       [onReset],
     );
@@ -117,12 +174,14 @@ export const FormRoot = forwardRef<HTMLFormElement, FormRootProps>(
         submitting,
         submitted,
         invalid,
+        validationBehavior,
+        reportControlValidity,
       }),
-      [invalid, submitted, submitting],
+      [invalid, reportControlValidity, submitted, submitting, validationBehavior],
     );
 
     const behaviorProps: Record<string, unknown> = {
-      ...restProps,
+      ...formProps,
       action,
       ref,
       "data-slot": dataSlot,
@@ -131,6 +190,8 @@ export const FormRoot = forwardRef<HTMLFormElement, FormRootProps>(
       ...(invalid && { "data-invalid": "" }),
       onSubmit: handleSubmit,
       onReset: handleReset,
+      onInvalidCapture: handleInvalidCapture,
+      onInputCapture: handleInputCapture,
     };
 
     const element = asChild

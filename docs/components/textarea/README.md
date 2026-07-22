@@ -52,6 +52,7 @@ Uncontrolled values return to `defaultValue` on native form reset.
 | `required` | `boolean` | Field context or `false` |
 | `readOnly` | `boolean` | Field context or `false` |
 | `invalid` | `boolean` | Field context or `false` |
+| `validationBehavior` | `"inline" \| "native"` | Field/Form value or `"native"` |
 | `id` | `string` | Field control ID |
 
 | ARIA attribute | Values |
@@ -124,6 +125,10 @@ export default () => (
 ```
 
 ## Accessibility
+
+After native constraint validation runs, Root mirrors `ValidityState` through
+`aria-invalid` and `data-invalid`. Inline behavior suppresses the browser
+bubble while preserving native submission blocking; native behavior keeps it.
 
 Textarea uses native HTML textbox semantics rather than a custom WAI-ARIA
 widget. Provide a visible label or accessible name. Inside Field, description
