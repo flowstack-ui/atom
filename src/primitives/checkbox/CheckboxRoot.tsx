@@ -2,10 +2,12 @@
 
 import {
   forwardRef,
+  type FocusEventHandler,
   type KeyboardEventHandler,
   type MouseEventHandler,
   type ReactNode,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
 } from "react";
@@ -105,6 +107,7 @@ export const CheckboxRoot = forwardRef<HTMLButtonElement, CheckboxRootProps>(
       className,
       "data-slot": dataSlot = "checkbox",
       onClick,
+      onBlur,
       onKeyDown,
       ...restProps
     },
@@ -116,6 +119,7 @@ export const CheckboxRoot = forwardRef<HTMLButtonElement, CheckboxRootProps>(
     const isRequired = required ?? field?.required ?? false;
     const inputRef = useRef<HTMLInputElement>(null);
     const rootRef = useRef<HTMLButtonElement>(null);
+    const interactedRef = useRef(false);
     useFormControlProxy(inputRef, rootRef);
     const [isChecked, setIsChecked] = useControllableState({
       value: checked,
@@ -136,10 +140,19 @@ export const CheckboxRoot = forwardRef<HTMLButtonElement, CheckboxRootProps>(
 
     const toggle = () => {
       if (isDisabled || isReadOnly) return;
+      interactedRef.current = true;
       setIsChecked((currentChecked) => getNextCheckboxCheckedState(currentChecked));
     };
-    const reset = useCallback(() => setIsChecked(defaultChecked), [defaultChecked, setIsChecked]);
+    const reset = useCallback(() => {
+      interactedRef.current = false;
+      validation.clearNativeInvalid();
+      setIsChecked(defaultChecked);
+    }, [defaultChecked, setIsChecked, validation.clearNativeInvalid]);
     useFormReset(inputRef, form, checked !== undefined, reset);
+
+    useEffect(() => {
+      if (interactedRef.current) validation.revealNativeInvalid();
+    }, [isChecked, validation.revealNativeInvalid]);
 
     const handleClick: MouseEventHandler<HTMLButtonElement> = () => {
       toggle();
@@ -150,6 +163,10 @@ export const CheckboxRoot = forwardRef<HTMLButtonElement, CheckboxRootProps>(
         event.preventDefault();
         toggle();
       }
+    };
+
+    const handleBlur: FocusEventHandler<HTMLButtonElement> = () => {
+      validation.revealNativeInvalid();
     };
 
     const dataState: CheckboxDataState =
@@ -189,6 +206,7 @@ export const CheckboxRoot = forwardRef<HTMLButtonElement, CheckboxRootProps>(
       ...(isRequired && { "data-required": "" }),
       className,
       onClick: composeEventHandlers(onClick, handleClick),
+      onBlur: composeEventHandlers(onBlur, handleBlur),
       onKeyDown: composeEventHandlers(onKeyDown, handleKeyDown),
     };
 

@@ -1,5 +1,11 @@
 # CheckboxGroup Changelog
 
+## 0.6.14
+
+- Revealed one group-level required error after focus leaves an empty group or
+  interaction removes its last selection, without treating focus movement
+  between Items as group blur.
+
 ## 0.6.13
 
 - Added one group-level inline/native validation state, Fieldset Error

@@ -252,10 +252,14 @@ export function ControlledTopics() {
 ## Accessibility
 
 Required validity means at least one item, never that the first item must be
-selected. A validation attempt marks Root and Fieldset invalid and focuses the
-first enabled item. Inline behavior reveals Fieldset Error and suppresses the
-proxy's option-like browser message; native behavior keeps browser UI by
-explicit request.
+selected. An untouched empty group remains visually neutral. Leaving the whole
+group empty, removing its last selection after interaction, or attempting
+validation marks Root and Fieldset invalid. Moving focus between Items does not
+count as leaving the group. Correction clears the derived invalid state, form
+reset returns it to untouched, and a validation attempt focuses the first
+enabled Item. Inline behavior reveals Fieldset Error and suppresses the proxy's
+option-like browser message; native behavior keeps browser UI by explicit
+request.
 
 Root names and groups the choices, while each Item follows the
 [WAI-ARIA Checkbox pattern](https://www.w3.org/WAI/ARIA/apg/patterns/checkbox/).
