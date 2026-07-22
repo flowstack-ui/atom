@@ -147,9 +147,12 @@ export function TermsCheckbox() {
 
 ## Accessibility
 
-After native constraint validation runs, proxy invalidity is mirrored to the
-visible Root and its Field. Inline behavior suppresses the browser bubble and
-uses Field Error when available; native behavior keeps the aligned browser UI.
+An untouched required Checkbox remains visually neutral. Leaving it unchecked
+after focus, removing its checked state after interaction, or attempting
+validation mirrors proxy invalidity to the visible Root and its Field.
+Correction clears the derived invalid state immediately, and form reset returns
+it to untouched. Inline behavior suppresses the browser bubble and uses Field
+Error when available; native behavior keeps the aligned browser UI.
 
 Checkbox follows the
 [WAI-ARIA Checkbox pattern](https://www.w3.org/WAI/ARIA/apg/patterns/checkbox/).

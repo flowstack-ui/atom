@@ -1,5 +1,11 @@
 # Atom Changelog
 
+## 0.6.14
+
+- Added touched validation presentation for required Checkbox and CheckboxGroup:
+  invalid state now appears after leaving an empty control or removing its last
+  required selection, clears on correction, and returns to untouched on reset.
+
 ## 0.6.13
 
 - Added shared `validationBehavior="inline" | "native"` presentation policy

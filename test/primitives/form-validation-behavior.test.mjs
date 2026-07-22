@@ -87,6 +87,13 @@ async function click(element) {
   });
 }
 
+async function focus(element) {
+  await React.act(async () => {
+    element.focus();
+    await Promise.resolve();
+  });
+}
+
 test("Field Error selects inline behavior and mirrors a native Checkbox failure", async () => {
   const { container, root, cleanup } = await render(
     React.createElement(
@@ -131,6 +138,44 @@ test("Field Error selects inline behavior and mirrors a native Checkbox failure"
     assert.equal(form.hasAttribute("data-invalid"), false);
     assert.equal(visible.hasAttribute("data-invalid"), false);
     assert.equal(container.querySelector('[data-slot="field-error"]'), null);
+  } finally {
+    await cleanup(root);
+  }
+});
+
+test("required Checkbox reveals invalid state after blur or removing its selection", async () => {
+  const { container, root, cleanup } = await render(
+    React.createElement(
+      Form.Root,
+      null,
+      React.createElement(
+        Field.Root,
+        { id: "terms", required: true },
+        React.createElement(Field.Label, null, "Terms"),
+        React.createElement(Checkbox.Root, null, "Accept terms"),
+        React.createElement(Field.Error, null, "Accept the terms."),
+      ),
+      React.createElement("button", { type: "button" }, "Next"),
+    ),
+  );
+
+  try {
+    const visible = container.querySelector('[data-slot="checkbox"]');
+    const next = container.querySelector("form > button");
+
+    assert.equal(visible.hasAttribute("data-invalid"), false);
+    await focus(visible);
+    await focus(next);
+    assert.equal(visible.hasAttribute("data-invalid"), true);
+
+    await click(visible);
+    assert.equal(visible.hasAttribute("data-invalid"), false);
+
+    await click(visible);
+    assert.equal(visible.hasAttribute("data-invalid"), true);
+
+    await React.act(async () => container.querySelector("form").reset());
+    assert.equal(visible.hasAttribute("data-invalid"), false);
   } finally {
     await cleanup(root);
   }
@@ -215,6 +260,49 @@ test("CheckboxGroup reveals one group error and focuses its first enabled item",
       container.querySelectorAll('[data-slot="fieldset-error"]').length,
       1,
     );
+  } finally {
+    await cleanup(root);
+  }
+});
+
+test("required CheckboxGroup reveals only after leaving the group or removing its last value", async () => {
+  const { container, root, cleanup } = await render(
+    React.createElement(
+      Form.Root,
+      null,
+      React.createElement(
+        Fieldset.Root,
+        { id: "reports", required: true },
+        React.createElement(Fieldset.Legend, null, "Reports"),
+        React.createElement(
+          CheckboxGroup.Root,
+          null,
+          React.createElement(CheckboxGroup.Item, { value: "email" }, "Email"),
+          React.createElement(CheckboxGroup.Item, { value: "sms" }, "SMS"),
+        ),
+        React.createElement(Fieldset.Error, null, "Choose at least one report."),
+      ),
+      React.createElement("button", { type: "button" }, "Next"),
+    ),
+  );
+
+  try {
+    const group = container.querySelector('[data-slot="checkbox-group"]');
+    const items = container.querySelectorAll('[data-slot="checkbox-group-item"]');
+    const next = container.querySelector("form > button");
+
+    await focus(items[0]);
+    await focus(items[1]);
+    assert.equal(group.hasAttribute("data-invalid"), false);
+
+    await focus(next);
+    assert.equal(group.hasAttribute("data-invalid"), true);
+
+    await click(items[0]);
+    assert.equal(group.hasAttribute("data-invalid"), false);
+
+    await click(items[0]);
+    assert.equal(group.hasAttribute("data-invalid"), true);
   } finally {
     await cleanup(root);
   }

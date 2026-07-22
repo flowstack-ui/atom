@@ -1,12 +1,27 @@
 "use client";
 
-import { forwardRef, useCallback, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FocusEventHandler,
+  type ReactNode,
+} from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
 import { useFormValidation } from "../../hooks/useFormValidation.js";
 import { formControlProxyStyle, useFormControlProxy } from "../../hooks/useFormControlProxy.js";
 import type { NativeDivProps } from "../../utils/dom.js";
-import { cloneAndMerge, composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
+import {
+  cloneAndMerge,
+  composeEventHandlers,
+  composeRefs,
+  renderElement,
+  type RenderProp,
+} from "../../utils/slot.js";
 import {
   CheckboxGroupContextProvider,
   type CheckboxGroupContextValue,
@@ -75,6 +90,7 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
       children,
       className,
       "data-slot": dataSlot = "checkbox-group",
+      onBlur,
       ...restProps
     },
     ref,
@@ -85,13 +101,12 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
     const isReadOnly = readOnly ?? false;
     const rootRef = useRef<HTMLDivElement>(null);
     const validationInputRef = useRef<HTMLInputElement>(null);
+    const interactedRef = useRef(false);
     const [activeValues, setActiveValues] = useControllableState({
       value,
       defaultValue,
       onChange: onValueChange,
     });
-    const reset = useCallback(() => setActiveValues(defaultValue), [defaultValue, setActiveValues]);
-    useFormReset(rootRef, form, value !== undefined, reset);
     const itemElementsRef = useRef<Map<string, HTMLButtonElement>>(new Map());
     const [allItemValues, setAllItemValues] = useState<string[]>([]);
     const [firstEnabledItem, setFirstEnabledItem] = useState<HTMLButtonElement | null>(null);
@@ -107,6 +122,16 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
       reportValidity: fieldset?.reportControlValidity,
     });
     const isInvalid = validation.invalid;
+    const reset = useCallback(() => {
+      interactedRef.current = false;
+      validation.clearNativeInvalid();
+      setActiveValues(defaultValue);
+    }, [defaultValue, setActiveValues, validation.clearNativeInvalid]);
+    useFormReset(rootRef, form, value !== undefined, reset);
+
+    useEffect(() => {
+      if (interactedRef.current) validation.revealNativeInvalid();
+    }, [activeValues, validation.revealNativeInvalid]);
     const normalizedAllValues = useMemo(
       () => allValues === undefined ? undefined : Array.from(new Set(allValues)),
       [allValues],
@@ -133,6 +158,8 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
       (value: string) => {
         if (isDisabled || isReadOnly) return;
 
+        interactedRef.current = true;
+
         setActiveValues((currentValues) =>
           currentValues.includes(value)
             ? currentValues.filter((itemValue) => itemValue !== value)
@@ -146,6 +173,8 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
       (checked: boolean) => {
         if (isDisabled || isReadOnly) return;
 
+        interactedRef.current = true;
+
         const targetValues = normalizedAllValues ?? Array.from(itemElementsRef.current.keys());
         const targetSet = new Set(targetValues);
         setActiveValues((currentValues) =>
@@ -158,6 +187,15 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
         );
       },
       [isDisabled, isReadOnly, normalizedAllValues, setActiveValues],
+    );
+
+    const handleBlur = useCallback<FocusEventHandler<HTMLDivElement>>(
+      (event) => {
+        const nextTarget = event.relatedTarget;
+        if (nextTarget instanceof Node && event.currentTarget.contains(nextTarget)) return;
+        validation.revealNativeInvalid();
+      },
+      [validation.revealNativeInvalid],
     );
 
     const isItemChecked = useCallback(
@@ -221,6 +259,7 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
       ...(isInvalid && { "data-invalid": "" }),
       ...(isRequired && { "data-required": "" }),
       className,
+      onBlur: composeEventHandlers(onBlur, handleBlur),
     };
 
     const element = asChild

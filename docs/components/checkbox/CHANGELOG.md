@@ -1,5 +1,11 @@
 # Checkbox Changelog
 
+## 0.6.14
+
+- Revealed required invalid state after the visible checkbox loses focus or an
+  interacted checkbox becomes unchecked, while preserving neutral initial and
+  reset states.
+
 ## 0.6.13
 
 - Mirrored aligned-proxy validity to the visible Checkbox, Field, and Form with

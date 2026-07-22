@@ -37,6 +37,7 @@ export interface FormValidationResult<T extends NativeValidityElement> {
     onInput: () => void;
     onChange: () => void;
   };
+  revealNativeInvalid: () => void;
   clearNativeInvalid: () => void;
 }
 
@@ -69,6 +70,13 @@ export function useFormValidation<T extends NativeValidityElement>({
     setNativeInvalid(!validityOwner.validity.valid);
   }, [validityRef]);
 
+  const revealNativeInvalid = useCallback(() => {
+    attemptedRef.current = true;
+    const validityOwner = validityRef.current;
+    if (!validityOwner) return;
+    setNativeInvalid(!validityOwner.validity.valid);
+  }, [validityRef]);
+
   const clearNativeInvalid = useCallback(() => {
     attemptedRef.current = false;
     setNativeInvalid(false);
@@ -76,8 +84,7 @@ export function useFormValidation<T extends NativeValidityElement>({
 
   const handleInvalid = useCallback(
     (event: FormEvent<T>) => {
-      attemptedRef.current = true;
-      setNativeInvalid(true);
+      revealNativeInvalid();
 
       if (resolvedBehavior === "inline") {
         event.preventDefault();
@@ -88,7 +95,7 @@ export function useFormValidation<T extends NativeValidityElement>({
         }
       }
     },
-    [ownerRef, resolvedBehavior, validityRef],
+    [ownerRef, resolvedBehavior, revealNativeInvalid, validityRef],
   );
 
   useEffect(syncNativeValidity);
@@ -131,6 +138,7 @@ export function useFormValidation<T extends NativeValidityElement>({
       onInput: syncNativeValidity,
       onChange: syncNativeValidity,
     },
+    revealNativeInvalid,
     clearNativeInvalid,
   };
 }
