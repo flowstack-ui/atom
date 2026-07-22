@@ -142,10 +142,10 @@ Fieldset, and Form inheritance.
 Form preserves native form semantics and owns no special keyboard model.
 Consumers must label controls, provide error content, and announce asynchronous
 results. Inline constraint validation moves focus to the first invalid visible
-control and marks that control with `[data-focus-visible]` until focus leaves,
-so styled layers can render the same focus indicator after pointer and keyboard
-submission. Use Field and Fieldset for accessible names,
-descriptions, and visible validation messages.
+control, explicitly scrolls it into view, and marks it with
+`[data-focus-visible]` until focus leaves, so styled layers can render the same
+focus indicator after pointer and keyboard submission. Use Field and Fieldset
+for accessible names, descriptions, and visible validation messages.
 
 ## Changelog
 

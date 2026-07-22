@@ -1,5 +1,10 @@
 # Form Changelog
 
+## 0.6.16
+
+- Explicitly scrolled inline validation's first invalid visible control into
+  view after focusing it.
+
 ## 0.6.15
 
 - Marked the first invalid control focused by inline validation with

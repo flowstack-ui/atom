@@ -48,11 +48,14 @@ function focusVisibleOwner(visibleOwner: HTMLElement): void {
 
   visibleOwner.setAttribute(FOCUS_VISIBLE_ATTRIBUTE, "");
   visibleOwner.addEventListener("blur", clearFocusVisible, { once: true });
-  visibleOwner.focus();
+  visibleOwner.focus({ preventScroll: true });
 
   if (visibleOwner.ownerDocument.activeElement !== visibleOwner) {
     clearFocusVisible();
+    return;
   }
+
+  visibleOwner.scrollIntoView({ block: "center", inline: "nearest" });
 }
 
 export function scheduleFirstInvalidFocus(

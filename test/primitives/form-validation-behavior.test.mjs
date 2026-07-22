@@ -50,6 +50,7 @@ function installDom() {
   globalThis.IS_REACT_ACT_ENVIRONMENT = true;
   dom.window.HTMLElement.prototype.attachEvent = () => undefined;
   dom.window.HTMLElement.prototype.detachEvent = () => undefined;
+  dom.window.HTMLElement.prototype.scrollIntoView = () => undefined;
 
   return {
     container: dom.window.document.getElementById("root"),
@@ -114,6 +115,16 @@ test("Field Error selects inline behavior and mirrors a native Checkbox failure"
     const field = container.querySelector('[data-slot="field"]');
     const visible = container.querySelector('[data-slot="checkbox"]');
     const proxy = container.querySelector("input[required]");
+    const nativeFocus = visible.focus.bind(visible);
+    let focusOptions;
+    let scrollOptions;
+    visible.focus = (options) => {
+      focusOptions = options;
+      nativeFocus(options);
+    };
+    visible.scrollIntoView = (options) => {
+      scrollOptions = options;
+    };
 
     assert.equal(proxy.dataset.atomValidationBehavior, "inline");
     assert.equal(field.hasAttribute("data-invalid"), false);
@@ -132,6 +143,8 @@ test("Field Error selects inline behavior and mirrors a native Checkbox failure"
     assert.equal(visible.getAttribute("aria-describedby"), "release-error");
     assert.equal(document.activeElement, visible);
     assert.equal(visible.hasAttribute("data-focus-visible"), true);
+    assert.deepEqual(focusOptions, { preventScroll: true });
+    assert.deepEqual(scrollOptions, { block: "center", inline: "nearest" });
 
     await React.act(async () => visible.blur());
     assert.equal(visible.hasAttribute("data-focus-visible"), false);
