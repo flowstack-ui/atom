@@ -1,5 +1,10 @@
 # Atom Changelog
 
+## 0.6.17
+
+- Preserved explicit validation-focus scrolling in browsers while tolerating
+  non-browser DOM implementations that do not provide `scrollIntoView`.
+
 ## 0.6.16
 
 - Made inline validation focus explicitly scroll its visible target into view,

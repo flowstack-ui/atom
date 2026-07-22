@@ -1,5 +1,10 @@
 # Form Changelog
 
+## 0.6.17
+
+- Kept explicit inline validation focus scrolling safe in non-browser DOM
+  implementations that omit `scrollIntoView`.
+
 ## 0.6.16
 
 - Explicitly scrolled inline validation's first invalid visible control into

@@ -55,7 +55,7 @@ function focusVisibleOwner(visibleOwner: HTMLElement): void {
     return;
   }
 
-  visibleOwner.scrollIntoView({ block: "center", inline: "nearest" });
+  visibleOwner.scrollIntoView?.({ block: "center", inline: "nearest" });
 }
 
 export function scheduleFirstInvalidFocus(
