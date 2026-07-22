@@ -131,6 +131,10 @@ test("Field Error selects inline behavior and mirrors a native Checkbox failure"
     );
     assert.equal(visible.getAttribute("aria-describedby"), "release-error");
     assert.equal(document.activeElement, visible);
+    assert.equal(visible.hasAttribute("data-focus-visible"), true);
+
+    await React.act(async () => visible.blur());
+    assert.equal(visible.hasAttribute("data-focus-visible"), false);
 
     await click(visible);
     assert.equal(proxy.validity.valid, true);
@@ -354,6 +358,8 @@ test("Form inline behavior also handles an ordinary native input", async () => {
     });
     assert.equal(event.defaultPrevented, true);
     assert.equal(form.hasAttribute("data-invalid"), true);
+    assert.equal(document.activeElement, input);
+    assert.equal(input.hasAttribute("data-focus-visible"), true);
 
     await React.act(async () => {
       input.value = "Ada";
@@ -562,6 +568,13 @@ test("every native validity owner mirrors an inline failure to its visible contr
         visible.hasAttribute("data-invalid"),
         true,
         `${testCase.name} mirrors invalid state`,
+      );
+      assert.equal(
+        environment.container.ownerDocument.activeElement.hasAttribute(
+          "data-focus-visible",
+        ),
+        true,
+        `${testCase.name} marks validation-directed focus as visible`,
       );
     } finally {
       await environment.cleanup(environment.root);

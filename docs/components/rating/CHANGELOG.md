@@ -1,5 +1,10 @@
 # Rating Changelog
 
+## 0.6.15
+
+- Exposed inline validation-directed focus through `[data-focus-visible]`
+  until blur.
+
 ## 0.6.13
 
 - Mirrored aligned required validity to Rating, Field, and Form under the

@@ -1,8 +1,9 @@
 # PasswordToggleField Changelog
 
-## Unreleased
+## 0.6.15
 
-- No unreleased changes.
+- Exposed inline validation-directed focus through `[data-focus-visible]`
+  until blur.
 
 ## 0.6.13
 

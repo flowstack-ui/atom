@@ -1,5 +1,10 @@
 # RadioGroup Changelog
 
+## 0.6.15
+
+- Exposed inline validation-directed focus through `[data-focus-visible]`
+  until blur.
+
 ## 0.6.13
 
 - Added one group-level inline/native validation state, Fieldset Error

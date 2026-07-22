@@ -257,9 +257,10 @@ group empty, removing its last selection after interaction, or attempting
 validation marks Root and Fieldset invalid. Moving focus between Items does not
 count as leaving the group. Correction clears the derived invalid state, form
 reset returns it to untouched, and a validation attempt focuses the first
-enabled Item. Inline behavior reveals Fieldset Error and suppresses the proxy's
-option-like browser message; native behavior keeps browser UI by explicit
-request.
+enabled Item. That Item exposes `[data-focus-visible]` until blur so a styled
+layer can expose validation-directed focus. Inline behavior reveals Fieldset
+Error and suppresses the proxy's option-like browser message; native behavior
+keeps browser UI by explicit request.
 
 Root names and groups the choices, while each Item follows the
 [WAI-ARIA Checkbox pattern](https://www.w3.org/WAI/ARIA/apg/patterns/checkbox/).
