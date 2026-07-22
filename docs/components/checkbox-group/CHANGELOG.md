@@ -1,5 +1,10 @@
 # CheckboxGroup Changelog
 
+## 0.6.15
+
+- Exposed inline validation-directed focus on the first enabled Item through
+  `[data-focus-visible]` until blur.
+
 ## 0.6.14
 
 - Revealed one group-level required error after focus leaves an empty group or

@@ -1,5 +1,10 @@
 # Input Changelog
 
+## 0.6.15
+
+- Exposed inline validation-directed focus through `[data-focus-visible]`
+  until blur.
+
 ## 0.6.13
 
 - Mirrored attempted native validity to Input, Field, and Form under the new

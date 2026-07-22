@@ -1,5 +1,10 @@
 # Form Changelog
 
+## 0.6.15
+
+- Marked the first invalid control focused by inline validation with
+  `[data-focus-visible]` until blur so styled layers can expose the focus move.
+
 ## 0.6.13
 
 - Added inherited inline/native validation presentation and aggregate

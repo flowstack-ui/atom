@@ -1,5 +1,11 @@
 # Atom Changelog
 
+## 0.6.15
+
+- Exposed validation-directed focus through `[data-focus-visible]` until blur,
+  allowing styled consumers to render a visible focus indicator after pointer
+  as well as keyboard submission.
+
 ## 0.6.14
 
 - Added touched validation presentation for required Checkbox and CheckboxGroup:

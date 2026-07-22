@@ -1,5 +1,10 @@
 # Select Changelog
 
+## 0.6.15
+
+- Exposed inline validation-directed focus through `[data-focus-visible]`
+  until blur.
+
 ## 0.6.13
 
 - Mirrored aligned native-select validity to Trigger, Field, and Form under the

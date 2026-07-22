@@ -1,5 +1,10 @@
 # Checkbox Changelog
 
+## 0.6.15
+
+- Exposed inline validation-directed focus on the visible Root through
+  `[data-focus-visible]` until blur.
+
 ## 0.6.14
 
 - Revealed required invalid state after the visible checkbox loses focus or an

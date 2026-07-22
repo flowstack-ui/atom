@@ -5,6 +5,7 @@ export type ValidationBehavior = "inline" | "native";
 export const VALIDATION_OWNER_ATTRIBUTE = "data-atom-validation-owner";
 export const VALIDATION_BEHAVIOR_ATTRIBUTE = "data-atom-validation-behavior";
 export const VALIDATION_SCOPE_ATTRIBUTE = "data-atom-validation-scope";
+export const FOCUS_VISIBLE_ATTRIBUTE = "data-focus-visible";
 
 export type NativeValidityElement =
   | HTMLInputElement
@@ -40,6 +41,20 @@ export function getValidationBehavior(
 
 const pendingFocusScopes = new WeakSet<Document | HTMLFormElement>();
 
+function focusVisibleOwner(visibleOwner: HTMLElement): void {
+  const clearFocusVisible = () => {
+    visibleOwner.removeAttribute(FOCUS_VISIBLE_ATTRIBUTE);
+  };
+
+  visibleOwner.setAttribute(FOCUS_VISIBLE_ATTRIBUTE, "");
+  visibleOwner.addEventListener("blur", clearFocusVisible, { once: true });
+  visibleOwner.focus();
+
+  if (visibleOwner.ownerDocument.activeElement !== visibleOwner) {
+    clearFocusVisible();
+  }
+}
+
 export function scheduleFirstInvalidFocus(
   validityOwner: NativeValidityElement,
   visibleOwner: HTMLElement,
@@ -50,7 +65,7 @@ export function scheduleFirstInvalidFocus(
   pendingFocusScopes.add(scope);
   queueMicrotask(() => {
     if (visibleOwner.isConnected && !visibleOwner.hasAttribute("disabled")) {
-      visibleOwner.focus();
+      focusVisibleOwner(visibleOwner);
     }
 
     setTimeout(() => pendingFocusScopes.delete(scope), 0);

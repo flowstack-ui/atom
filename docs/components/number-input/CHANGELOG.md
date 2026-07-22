@@ -1,5 +1,10 @@
 # NumberInput Changelog
 
+## 0.6.15
+
+- Exposed inline validation-directed focus through `[data-focus-visible]`
+  until blur.
+
 ## 0.6.13
 
 - Added inline/native validation presentation and native numeric-invalid
