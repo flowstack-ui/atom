@@ -42,6 +42,7 @@ Component anatomy uses the main package import. See
 - [HoverCard](./hover-card/README.md)
 - [Input](./input/README.md)
 - [Label](./label/README.md)
+- [Link](./link/README.md)
 - [List](./list/README.md)
 - [Listbox](./listbox/README.md)
 - [Menu](./menu/README.md)

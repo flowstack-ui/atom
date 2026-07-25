@@ -1,5 +1,13 @@
 # Atom Changelog
 
+## 0.7.0
+
+- Added a server-safe native Link primitive and public `link` subpath with
+  native anchor attributes and router composition through `render` and
+  `asChild`.
+- Made disabled Toolbar links omit direct and composed destination attributes
+  instead of leaving an unavailable `href` live.
+
 ## 0.6.17
 
 - Preserved explicit validation-focus scrolling in browsers while tolerating

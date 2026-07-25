@@ -21,6 +21,7 @@ Subpaths are stable focused entrypoints.
 
 ```tsx
 import { Select } from "@flowstack-ui/atom/select";
+import { Link } from "@flowstack-ui/atom/link";
 import { useControllableState } from "@flowstack-ui/atom/hooks";
 ```
 
@@ -84,3 +85,8 @@ direct inactive composition. Use a render adapter that bypasses the router
 component and returns a destination-free anchor when `aria-disabled` is true.
 Atom does not ship router-specific bindings, inspect framework-specific
 navigation props, or retain a live destination on an inactive link.
+
+The generic `Link.Root` is narrower than Button link mode. Its default render
+requires `href`, while `render` or `asChild` may supply a router adapter that
+owns the final destination. Link does not add action, loading, disabled, or
+router-provider behavior and remains server-safe.

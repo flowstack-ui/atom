@@ -638,6 +638,33 @@ h2 {
   color: #26313e;
 }
 
+.playground-link-evidence {
+  display: grid;
+  gap: 1rem;
+  width: min(100%, 48rem);
+}
+
+.playground-link-evidence > div {
+  align-items: start;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  display: grid;
+  gap: 0.65rem;
+  padding: 1rem;
+}
+
+.playground-link {
+  color: #6d4aff;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  width: fit-content;
+}
+
+.playground-link:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
 .atom-button.secondary:disabled,
 .atom-button.secondary[data-disabled] {
   border-color: #c9d0d9;

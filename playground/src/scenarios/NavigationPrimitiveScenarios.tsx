@@ -4,6 +4,7 @@ import { BottomNavigation } from "@flowstack-ui/atom/bottom-navigation";
 import { Breadcrumb } from "@flowstack-ui/atom/breadcrumb";
 import { Button } from "@flowstack-ui/atom/button";
 import { Direction } from "@flowstack-ui/atom/direction";
+import { Link } from "@flowstack-ui/atom/link";
 import { NavList } from "@flowstack-ui/atom/nav-list";
 import { Pagination, usePaginationContext } from "@flowstack-ui/atom/pagination";
 import { Tabs } from "@flowstack-ui/atom/tabs";
@@ -41,6 +42,7 @@ const navListSlotParts: NavListSlotPart[] = ["root", "section", "sectionTrigger"
 
 export const navigationPrimitiveScenarioIds = new Set([
   "app-bar",
+  "link",
   "tabs",
   "accordion",
   "breadcrumb",
@@ -77,12 +79,40 @@ function useScenarioLog() {
 export function useNavigationPrimitiveScenarios() {
   return {
     appBar: useAppBarScenario(),
+    link: useLinkScenario(),
     tabs: useTabsScenario(),
     accordion: useAccordionScenario(),
     breadcrumb: useBreadcrumbScenario(),
     pagination: usePaginationScenario(),
     bottomNavigation: useBottomNavigationScenario(),
     navList: useNavListScenario(),
+  };
+}
+
+function useLinkScenario() {
+  const [composition, setComposition] = useState<CompositionMode>("default");
+  const [current, setCurrent] = useState(false);
+  const [nativeProps, setNativeProps] = useState(true);
+  const [propCheck, setPropCheck] = useState(false);
+  const [customSlot, setCustomSlot] = useState(false);
+  const [refTarget, setRefTarget] = useState("none");
+  const { log, addLog, clearLog } = useScenarioLog();
+
+  return {
+    state: { composition, current, nativeProps, propCheck, customSlot, refTarget, log },
+    actions: {
+      setComposition,
+      setCurrent,
+      setNativeProps,
+      setPropCheck,
+      setCustomSlot,
+      clearLog,
+      markRef: (element: HTMLAnchorElement | null) => {
+        if (!element) return;
+        setRefTarget(element.tagName.toLowerCase());
+      },
+      noteActivation: (label: string) => addLog(`activated ${label}`),
+    },
   };
 }
 
@@ -742,6 +772,31 @@ export function NavigationPrimitiveScenarioToolbar({
   scenarioId: string;
   scenarios: NavigationPrimitiveScenarios;
 }) {
+  if (scenarioId === "link") {
+    const scenario = scenarios.link;
+    return (
+      <ControlToolbar label="Link controls">
+        <ToolbarGroup title="Composition" value="composition">
+          <MenuRadioControl label="Root" options={compositionOptions} value={scenario.state.composition} onChange={scenario.actions.setComposition} />
+        </ToolbarGroup>
+        <ToolbarGroup title="Native state" value="native-state">
+          <MenuCheckboxControl checked={scenario.state.current} label="Current Page" value="current" onChange={scenario.actions.setCurrent} />
+          <MenuCheckboxControl checked={scenario.state.nativeProps} label="Native Props" value="native-props" onChange={scenario.actions.setNativeProps} />
+        </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={scenario.state.propCheck}
+          onPropCheckChange={scenario.actions.setPropCheck}
+          customSlots={[{
+            checked: scenario.state.customSlot,
+            label: "Root Slot",
+            value: "root-slot",
+            onChange: scenario.actions.setCustomSlot,
+          }]}
+        />
+      </ControlToolbar>
+    );
+  }
+
   if (scenarioId === "app-bar") {
     const scenario = scenarios.appBar;
     return (
@@ -1039,6 +1094,7 @@ export function NavigationPrimitiveScenarioCanvas({
   scenarioId: string;
   scenarios: NavigationPrimitiveScenarios;
 }) {
+  if (scenarioId === "link") return <LinkCanvas scenario={scenarios.link} />;
   if (scenarioId === "app-bar") return <AppBarCanvas scenario={scenarios.appBar} />;
   if (scenarioId === "tabs") return <TabsCanvas scenario={scenarios.tabs} />;
   if (scenarioId === "accordion") return <AccordionCanvas scenario={scenarios.accordion} />;
@@ -1047,6 +1103,60 @@ export function NavigationPrimitiveScenarioCanvas({
   if (scenarioId === "bottom-navigation") return <BottomNavigationCanvas scenario={scenarios.bottomNavigation} />;
   if (scenarioId === "nav-list") return <NavListCanvas scenario={scenarios.navList} />;
   return null;
+}
+
+function PlaygroundRouterLink({ to, ...props }: React.ComponentPropsWithoutRef<"a"> & { to: string }) {
+  return <a {...props} href={to} data-router-adapter="playground" />;
+}
+
+function LinkCanvas({ scenario }: { scenario: ReturnType<typeof useLinkScenario> }) {
+  const state = scenario.state;
+  const props = {
+    "aria-current": state.current ? "page" as const : undefined,
+    className: "playground-link",
+    onClick: () => scenario.actions.noteActivation("primary link"),
+    ref: scenario.actions.markRef,
+    title: state.nativeProps ? "Link playground destination" : undefined,
+    rel: state.nativeProps ? "help" : undefined,
+    ...partProps("root", { propCheck: state.propCheck, customSlot: state.customSlot }, "link-custom"),
+  };
+
+  let primary: ReactNode;
+  if (state.composition === "asChild") {
+    primary = (
+      <Link.Root {...props} asChild>
+        <PlaygroundRouterLink to="#link-destination">Router-composed guide</PlaygroundRouterLink>
+      </Link.Root>
+    );
+  } else if (state.composition === "render") {
+    primary = (
+      <Link.Root {...props} render={<PlaygroundRouterLink to="#link-destination" />}>
+        Render-composed guide
+      </Link.Root>
+    );
+  } else {
+    primary = <Link.Root {...props} href="#link-destination">Native guide</Link.Root>;
+  }
+
+  return (
+    <section className="playground-link-evidence" aria-label="Link behavior evidence">
+      <div>
+        <strong>Primary contract</strong>
+        {primary}
+      </div>
+      <div>
+        <strong>Native examples</strong>
+        <Link.Root className="playground-link" href="#link-destination" aria-current="location">Current location</Link.Root>
+        <Link.Root className="playground-link" href="https://example.com" target="_blank" rel="noopener">External resource</Link.Root>
+      </div>
+      <div>
+        <strong>Semantic comparison</strong>
+        <Link.Root className="playground-link" href="#link-destination">Navigate to evidence</Link.Root>
+        <Button.Root className="atom-button secondary" onPress={() => scenario.actions.noteActivation("comparison action")}>Run an action</Button.Root>
+      </div>
+      <p id="link-destination" tabIndex={-1}>Same-page destination for native link testing.</p>
+    </section>
+  );
 }
 
 function AppBarCanvas({ scenario }: { scenario: ReturnType<typeof useAppBarScenario> }) {
@@ -2312,6 +2422,17 @@ export function NavigationPrimitiveScenarioAnatomy({
 }
 
 function getNavigationSections(scenarioId: string, scenarios: NavigationPrimitiveScenarios): AnatomySection[] {
+  if (scenarioId === "link") {
+    const state = scenarios.link.state;
+    const selector = `[data-slot='${state.customSlot ? "link-custom" : "link"}'].playground-link`;
+    return [baseSection("Root", state.composition, selector, [
+      row("Composition", state.composition, "composition"),
+      row("Ref target", state.refTarget, "identity"),
+      row("Final href", "#link-destination", "behavior"),
+      row("Current", state.current ? "page" : "none", "aria"),
+      row("Router adapter", state.composition === "default" ? "none" : "playground", "data"),
+    ])];
+  }
   if (scenarioId === "app-bar") return appBarSections(scenarios.appBar.state);
   if (scenarioId === "tabs") return tabsSections(scenarios.tabs.state);
   if (scenarioId === "accordion") return accordionSections(scenarios.accordion.state);
@@ -2705,6 +2826,7 @@ export function NavigationPrimitiveScenarioLog({ scenarioId, scenarios }: { scen
 }
 
 function getNavigationLog(scenarioId: string, scenarios: NavigationPrimitiveScenarios) {
+  if (scenarioId === "link") return scenarios.link.state.log;
   if (scenarioId === "app-bar") return scenarios.appBar.state.log;
   if (scenarioId === "tabs") return scenarios.tabs.state.log;
   if (scenarioId === "accordion") return scenarios.accordion.state.log;
@@ -2720,6 +2842,7 @@ export function getNavigationPrimitiveEventCount(scenarioId: string, scenarios: 
 }
 
 export function clearNavigationPrimitiveLog(scenarioId: string, scenarios: NavigationPrimitiveScenarios) {
+  if (scenarioId === "link") scenarios.link.actions.clearLog();
   if (scenarioId === "app-bar") scenarios.appBar.actions.clearLog();
   if (scenarioId === "tabs") scenarios.tabs.actions.clearLog();
   if (scenarioId === "accordion") scenarios.accordion.actions.clearLog();
@@ -2730,6 +2853,7 @@ export function clearNavigationPrimitiveLog(scenarioId: string, scenarios: Navig
 }
 
 export function getNavigationPrimitiveCanvasFooter(scenarioId: string, scenarios: NavigationPrimitiveScenarios) {
+  if (scenarioId === "link") return `${scenarios.link.state.composition} | ${scenarios.link.state.current ? "current page" : "ordinary link"}`;
   if (scenarioId === "app-bar") return `${scenarios.appBar.state.position} | ${scenarios.appBar.state.density}`;
   if (scenarioId === "tabs") return `${scenarios.tabs.state.controlled ? "Controlled" : "Uncontrolled"} ${scenarios.tabs.state.value} | ${scenarios.tabs.state.activationMode} | ${scenarios.tabs.state.orientation}`;
   if (scenarioId === "accordion") return `${scenarios.accordion.state.multiple ? "multiple" : "single"} | ${formatAccordionValueLabel(scenarios.accordion.state.value)}`;
@@ -2741,6 +2865,24 @@ export function getNavigationPrimitiveCanvasFooter(scenarioId: string, scenarios
 }
 
 export function getNavigationPrimitiveSource(scenarioId: string, scenarios?: NavigationPrimitiveScenarios) {
+  if (scenarioId === "link") {
+    if (!scenarios) return `<Link.Root href="/guides">Read the guides</Link.Root>`;
+    const state = scenarios.link.state;
+    const shared = [
+      state.current ? `aria-current="page"` : "",
+      state.nativeProps ? `title="Link playground destination" rel="help"` : "",
+      sourcePartProps("root", state.propCheck, state.customSlot, "link-custom"),
+    ].filter(Boolean).join(" ");
+    const suffix = shared ? ` ${shared}` : "";
+    if (state.composition === "asChild") {
+      return `<Link.Root${suffix} asChild>\n  <RouterLink to="#link-destination">Router-composed guide</RouterLink>\n</Link.Root>`;
+    }
+    if (state.composition === "render") {
+      return `<Link.Root${suffix} render={<RouterLink to="#link-destination" />}>\n  Render-composed guide\n</Link.Root>`;
+    }
+    return `<Link.Root href="#link-destination"${suffix}>Native guide</Link.Root>`;
+  }
+
   if (scenarioId === "app-bar") {
     return scenarios ? getAppBarSource(scenarios.appBar.state) : `<AppBar.Root aria-label="Demo app bar">
   <AppBar.Toolbar>

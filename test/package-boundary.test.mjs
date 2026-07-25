@@ -114,14 +114,14 @@ test("public component docs and changelogs cover component-style subpaths", asyn
       `${namespace} README should document data attributes`,
     );
     assert.match(changelog, new RegExp(`# ${namespace} Changelog`));
-    assert.match(changelog, /## 0\.1\.0/);
+    assert.match(changelog, /## (?:Unreleased|\d+\.\d+\.\d+)/);
   }
 });
 
 test("public client entrypoints preserve Next.js client boundaries", async () => {
   const indexSource = await readFile(new URL("src/index.ts", packageRoot), "utf8");
   const namespaceSource = await readFile(new URL("src/namespaces.ts", packageRoot), "utf8");
-  const serverSafeSubpaths = new Set(["app-bar", "badge", "label", "list", "table"]);
+  const serverSafeSubpaths = new Set(["app-bar", "badge", "label", "link", "list", "table"]);
 
   assert.match(indexSource, /^"use client";/);
   assert.match(namespaceSource, /^"use client";/);

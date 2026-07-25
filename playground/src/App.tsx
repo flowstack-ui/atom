@@ -413,6 +413,12 @@ const scenarios: Scenario[] = [
     checks: ["Current page marks", "Separators render", "Ellipsis toggles"],
   },
   {
+    id: "link",
+    label: "Link",
+    category: "Navigation",
+    checks: ["Native navigation remains", "Current state passes through", "Router composition keeps one anchor"],
+  },
+  {
     id: "pagination",
     label: "Pagination",
     category: "Navigation",
