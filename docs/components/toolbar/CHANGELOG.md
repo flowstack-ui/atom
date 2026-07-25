@@ -1,8 +1,10 @@
 # Toolbar Changelog
 
-## Unreleased
+## 0.7.0
 
-- No unreleased changes.
+- Removed live native and composed destination attributes from disabled
+  Toolbar links while preserving their disabled announcement and toolbar-owned
+  roving-focus behavior.
 
 ## 0.2.0
 

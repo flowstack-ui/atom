@@ -60,6 +60,7 @@ import {
   BottomNavigationRoot,
 } from "./primitives/bottom-navigation/index.js";
 import { ButtonRoot } from "./primitives/button/index.js";
+import { LinkRoot } from "./primitives/link/index.js";
 import { CheckboxIndicator, CheckboxRoot } from "./primitives/checkbox/index.js";
 import {
   CheckboxGroupItem,
@@ -441,6 +442,10 @@ export const BottomNavigation = {
 
 export const Button = {
   Root: ButtonRoot,
+} as const;
+
+export const Link = {
+  Root: LinkRoot,
 } as const;
 
 export const Checkbox = {

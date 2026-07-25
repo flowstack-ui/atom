@@ -1,10 +1,13 @@
 "use client";
 
 import {
+  cloneElement,
   forwardRef,
+  isValidElement,
   useCallback,
   useMemo,
   type MouseEvent,
+  type ReactElement,
   type ReactNode,
 } from "react";
 import type { NativeAnchorProps } from "../../utils/dom.js";
@@ -18,6 +21,11 @@ import {
 import { useToolbarItem } from "./useToolbarItem.js";
 
 type ToolbarLinkNativeProps = NativeAnchorProps<"children" | "href">;
+
+function getElementProps(value: ReactNode | RenderProp | undefined): Record<string, unknown> {
+  if (!isValidElement(value)) return {};
+  return (value as ReactElement<Record<string, unknown>>).props;
+}
 
 export interface ToolbarLinkProps extends ToolbarLinkNativeProps {
   /** Link content. */
@@ -49,6 +57,9 @@ export const ToolbarLink = forwardRef<HTMLAnchorElement, ToolbarLinkProps>(
       href,
       target,
       rel,
+      download,
+      ping,
+      referrerPolicy,
       disabled = false,
       className,
       ariaLabel,
@@ -63,33 +74,71 @@ export const ToolbarLink = forwardRef<HTMLAnchorElement, ToolbarLinkProps>(
   ) {
     const { itemRef, tabIndex, handleFocus } = useToolbarItem(disabled);
     const composedRef = useMemo(() => composeRefs(itemRef, ref), [itemRef, ref]);
+    const compositionProps = asChild
+      ? getElementProps(children)
+      : getElementProps(render);
+    const composedOnClick = compositionProps.onClick;
 
-    const handleClick = useCallback((event: MouseEvent<HTMLElement>) => {
+    const handleClick = useCallback((event: MouseEvent<HTMLAnchorElement>) => {
+      onClick?.(event);
+
       if (disabled) {
         event.preventDefault();
+        return;
       }
-    }, [disabled]);
+
+      if (typeof composedOnClick === "function") {
+        composedOnClick(event);
+      }
+    }, [composedOnClick, disabled, onClick]);
 
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref: composedRef,
-      href,
-      ...(target !== undefined && { target }),
-      ...(rel !== undefined && { rel }),
+      ...(disabled
+        ? {
+            href: null,
+            target: null,
+            rel: null,
+            download: null,
+            ping: null,
+            referrerPolicy: null,
+          }
+        : {
+            href,
+            ...(target !== undefined && { target }),
+            ...(rel !== undefined && { rel }),
+            ...(download !== undefined && { download }),
+            ...(ping !== undefined && { ping }),
+            ...(referrerPolicy !== undefined && { referrerPolicy }),
+          }),
       tabIndex,
       ...(ariaLabel !== undefined && { "aria-label": ariaLabel }),
       "aria-disabled": disabled || undefined,
       "data-slot": dataSlot,
       ...(disabled ? { "data-disabled": "" } : {}),
       className,
-      onClick: composeEventHandlers(onClick, handleClick),
+      onClick: handleClick,
       onFocus: composeEventHandlers(onFocus, () => handleFocus()),
     };
 
     if (asChild) {
-      return cloneAndMerge(children, behaviorProps);
+      const resolvedChildren = isValidElement(children)
+        ? cloneElement(
+            children as ReactElement<Record<string, unknown>>,
+            { onClick: undefined },
+          )
+        : children;
+      return cloneAndMerge(resolvedChildren, behaviorProps);
     }
 
-    return renderElement(render, "a", { ...behaviorProps, children });
+    const resolvedRender = isValidElement(render)
+      ? cloneElement(
+          render as ReactElement<Record<string, unknown>>,
+          { onClick: undefined },
+        )
+      : render;
+
+    return renderElement(resolvedRender, "a", { ...behaviorProps, children });
   },
 );

@@ -55,11 +55,51 @@ test("Toolbar primitives render toolbar roles and focusable items", () => {
   assert.match(html, /data-slot="toolbar-link"/);
   assert.match(html, /href="\/docs"/);
   assert.match(html, /class="link-class"/);
-  assert.match(html, /href="\/admin"/);
+  assert.doesNotMatch(html, /href="\/admin"/);
   assert.match(html, /aria-disabled="true"/);
   assert.match(html, /data-disabled=""/);
   assert.match(html, /data-slot="toolbar-separator"/);
   assert.match(html, /role="separator"/);
+});
+
+test("Toolbar disabled links remove direct and composed destinations", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      ToolbarRoot,
+      { ariaLabel: "Editor tools" },
+      React.createElement(
+        ToolbarLink,
+        {
+          href: "/direct",
+          target: "_blank",
+          rel: "help",
+          download: "guide.pdf",
+          ping: "/audit",
+          referrerPolicy: "no-referrer",
+          disabled: true,
+        },
+        "Direct",
+      ),
+      React.createElement(
+        ToolbarLink,
+        { href: "/root", disabled: true, asChild: true },
+        React.createElement(
+          "a",
+          { href: "/child", target: "_blank", rel: "external", download: true },
+          "Composed",
+        ),
+      ),
+    ),
+  );
+
+  assert.equal((html.match(/aria-disabled="true"/g) ?? []).length, 2);
+  assert.equal((html.match(/data-disabled=""/g) ?? []).length, 2);
+  assert.doesNotMatch(html, /href=/);
+  assert.doesNotMatch(html, /target=/);
+  assert.doesNotMatch(html, /rel=/);
+  assert.doesNotMatch(html, /download=/);
+  assert.doesNotMatch(html, /ping=/);
+  assert.doesNotMatch(html, /referrerpolicy=/);
 });
 
 test("ToolbarRoot resolves local and provider direction", () => {

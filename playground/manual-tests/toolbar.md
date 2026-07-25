@@ -260,6 +260,7 @@ Verify
 
 □ Link ARIA includes `aria-disabled="true"`.
 □ Link Data includes `data-disabled`.
+□ Link Attributes no longer include `href`.
 □ Clicking Help does not change the page hash.
 
 Reset

@@ -6,6 +6,12 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Added a dedicated Link workbench for native anchors, current-state
+  passthrough, router-shaped `render`/`asChild` composition, native attributes,
+  Link-versus-Button semantics, inspected output, and a focused draft manual
+  protocol.
+- Reopened disabled Toolbar Link evidence for the corrected destination-free
+  output contract.
 - Added Form Foundation evidence for automatic inline/native constraint
   presentation, visible invalid state, Error relationships, correction, reset,
   and group-level required validation introduced in Atom `0.6.13`.

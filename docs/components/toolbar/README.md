@@ -88,13 +88,17 @@ Renders a command button and registers it in the toolbar's roving focus order.
 ### Link
 
 Renders a navigation link that participates in roving focus. Disabled links
-cannot navigate and are announced as disabled.
+cannot navigate, expose no destination attributes, and are announced as
+disabled.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `href` | `string` | required |
 | `target` | `string` | - |
 | `rel` | `string` | - |
+| `download` | Native anchor value | - |
+| `ping` | `string` | - |
+| `referrerPolicy` | Native anchor value | - |
 | `disabled` | `boolean` | `false` |
 | `ariaLabel` | `string` | - |
 | `render` | `RenderProp` | - |
@@ -109,6 +113,13 @@ cannot navigate and are announced as disabled.
 | --- | --- |
 | `[data-slot]` | `"toolbar-link"` |
 | `[data-disabled]` | Present when disabled |
+
+While disabled, Link omits `href`, `target`, `rel`, `download`, `ping`, and
+`referrerPolicy`, including values supplied by an `asChild` or element-valued
+`render` adapter. Toolbar retains ownership of its roving-focus position and
+prevents click navigation. A strict router component that requires a live
+destination must be adapted to render a destination-free anchor while
+disabled.
 
 ### Separator
 

@@ -37,6 +37,7 @@ const publicSubpaths = [
   "hover-card",
   "input",
   "label",
+  "link",
   "list",
   "listbox",
   "menu",

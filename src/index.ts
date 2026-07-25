@@ -29,6 +29,7 @@ export {
   HoverCard,
   Input,
   Label,
+  Link,
   List,
   Listbox,
   Menu,
@@ -207,6 +208,8 @@ export type {
 } from "./primitives/avatar/index.js";
 export { BadgeRoot } from "./primitives/badge/index.js";
 export type { BadgeRootProps } from "./primitives/badge/index.js";
+export { LinkRoot } from "./primitives/link/index.js";
+export type { LinkRootProps } from "./primitives/link/index.js";
 export {
   BreadcrumbEllipsis,
   BreadcrumbItem,

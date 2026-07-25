@@ -2,7 +2,8 @@
 
 import { forwardRef, type ReactNode } from "react";
 import type { NativeAnchorProps } from "../../utils/dom.js";
-import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
+import type { RenderProp } from "../../utils/slot.js";
+import { LinkRoot } from "../link/index.js";
 
 type BreadcrumbLinkNativeProps = NativeAnchorProps<"children">;
 
@@ -28,19 +29,23 @@ export const BreadcrumbLink = forwardRef<HTMLAnchorElement, BreadcrumbLinkProps>
     },
     ref,
   ) {
-    const behaviorProps: Record<string, unknown> = {
-      ...restProps,
-      ref,
-      "data-slot": dataSlot,
-    };
-
     if (asChild) {
-      return cloneAndMerge(children, behaviorProps);
+      return (
+        <LinkRoot {...restProps} ref={ref} asChild data-slot={dataSlot}>
+          {children}
+        </LinkRoot>
+      );
     }
 
-    return renderElement(render, "a", {
-      ...behaviorProps,
-      children,
-    });
+    return (
+      <LinkRoot
+        {...restProps}
+        ref={ref}
+        render={render ?? "a"}
+        data-slot={dataSlot}
+      >
+        {children}
+      </LinkRoot>
+    );
   },
 );
