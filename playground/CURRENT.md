@@ -47,6 +47,9 @@ Top menu -> Anatomy -> Canvas toolbar -> Canvas component -> Inspector
 - Form-like scenario controls should use Atom form primitives when practical.
 - Scenario pages should reuse `src/WorkbenchPrimitives.tsx` before adding
   local toolbar, log, or prop-check helpers.
+- Image scenarios must distinguish informative `alt` text from authored
+  decorative `alt=""`, and expose loaded, broken, and absent sources without
+  inferring accessibility content.
 
 ## Anatomy Direction
 

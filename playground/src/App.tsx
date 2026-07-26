@@ -521,6 +521,12 @@ const scenarios: Scenario[] = [
     checks: ["Image loads", "Fallback renders", "Group renders"],
   },
   {
+    id: "image",
+    label: "Image",
+    category: "Display",
+    checks: ["Source status updates", "Content and fallback switch", "Native image props pass"],
+  },
+  {
     id: "list",
     label: "List",
     category: "Display",

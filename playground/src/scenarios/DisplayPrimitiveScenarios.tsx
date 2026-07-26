@@ -3,6 +3,7 @@ import { Avatar } from "@flowstack-ui/atom/avatar";
 import { Badge } from "@flowstack-ui/atom/badge";
 import { Divider } from "@flowstack-ui/atom/divider";
 import { Input } from "@flowstack-ui/atom/input";
+import { Image } from "@flowstack-ui/atom/image";
 import { Label } from "@flowstack-ui/atom/label";
 import { List } from "@flowstack-ui/atom/list";
 import { useCallback, useRef, useState, type Dispatch, type SetStateAction } from "react";
@@ -14,6 +15,7 @@ type DividerOrientation = "horizontal" | "vertical";
 type AspectRatioValue = "16:9" | "4:3" | "1:1" | "invalid";
 type AvatarImageMode = "loaded" | "broken" | "loading";
 type AvatarAltMode = "meaningful" | "decorative";
+type ImageMode = "loaded" | "broken" | "absent";
 type LabelControlType = "native" | "atom";
 
 type LogEntry = {
@@ -27,12 +29,14 @@ export const displayPrimitiveScenarioIds = new Set([
   "divider",
   "aspect-ratio",
   "avatar",
+  "image",
   "label",
   "list",
 ]);
 
 const avatarLoadedSrc = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%231c2430'/%3E%3Ccircle cx='32' cy='25' r='11' fill='%23ffffff'/%3E%3Cpath d='M14 56c3.5-12 12-18 18-18s14.5 6 18 18' fill='%23ffffff'/%3E%3C/svg%3E";
 const avatarLoadingSrc = "/avatar-loading-never-resolves.svg?delay=avatar";
+const imageLoadedSrc = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 180'%3E%3Crect width='320' height='180' fill='%2323344f'/%3E%3Ccircle cx='240' cy='55' r='24' fill='%23f4c95d'/%3E%3Cpath d='m0 165 90-75 55 42 48-55 127 88' fill='%235aa17f'/%3E%3C/svg%3E";
 
 function nowTime() {
   return new Intl.DateTimeFormat("en-US", {
@@ -65,9 +69,18 @@ export function useDisplayPrimitiveScenarios() {
     divider: useDividerScenario(),
     aspectRatio: useAspectRatioScenario(),
     avatar: useAvatarScenario(),
+    image: useImageScenario(),
     label: useLabelScenario(),
     list: useListScenario(),
   };
+}
+
+function useImageScenario() {
+  const [mode, setMode] = useState<ImageMode>("loaded");
+  const [decorative, setDecorative] = useState(false);
+  const [status, setStatus] = useState("loading");
+  const { log, addLog, clearLog } = useScenarioLog();
+  return { state: { mode, decorative, status, log }, actions: { setMode, setDecorative, setStatus: (value: string) => { setStatus(value); addLog(`status ${value}`); }, clearLog } };
 }
 
 function useBadgeScenario() {
@@ -399,6 +412,11 @@ export function DisplayPrimitiveScenarioToolbar({
     );
   }
 
+  if (scenarioId === "image") {
+    const scenario = scenarios.image;
+    return <ControlToolbar label="Image controls"><ToolbarGroup title="Source" value="source"><MenuRadioControl label="Mode" options={[{ label: "Loaded", value: "loaded" }, { label: "Broken", value: "broken" }, { label: "Absent", value: "absent" }]} value={scenario.state.mode} onChange={(value) => scenario.actions.setMode(value as ImageMode)} /><MenuCheckboxControl checked={scenario.state.decorative} label="Decorative alt" value="decorative" onChange={scenario.actions.setDecorative} /></ToolbarGroup></ControlToolbar>;
+  }
+
   if (scenarioId === "label") {
     const scenario = scenarios.label;
     return (
@@ -468,6 +486,7 @@ export function DisplayPrimitiveScenarioCanvas({
   if (scenarioId === "divider") return <DividerScenarioCanvas scenario={scenarios.divider} />;
   if (scenarioId === "aspect-ratio") return <AspectRatioScenarioCanvas scenario={scenarios.aspectRatio} />;
   if (scenarioId === "avatar") return <AvatarScenarioCanvas scenario={scenarios.avatar} />;
+  if (scenarioId === "image") return <ImageScenarioCanvas scenario={scenarios.image} />;
   if (scenarioId === "label") return <LabelScenarioCanvas scenario={scenarios.label} />;
   if (scenarioId === "list") return <ListScenarioCanvas scenario={scenarios.list} />;
   return null;
@@ -543,6 +562,8 @@ export function getDisplayPrimitiveCanvasFooter(
     const state = scenarios.avatar.state;
     return `Image ${state.imageMode} | Status ${state.status} | Group ${state.group}`;
   }
+
+  if (scenarioId === "image") return `Source ${scenarios.image.state.mode} | Status ${scenarios.image.state.status} | Decorative ${scenarios.image.state.decorative}`;
 
   if (scenarioId === "label") {
     const state = scenarios.label.state;
@@ -674,6 +695,15 @@ ${indent(avatar, 2)}
     <Avatar.Fallback>FS</Avatar.Fallback>
   </Avatar.Root>
 </Avatar.Group>`;
+  }
+
+  if (scenarioId === "image") {
+    const state = scenarios.image.state;
+    const src = state.mode === "loaded" ? imageLoadedSrc : state.mode === "broken" ? "/missing-image.png" : undefined;
+    return `<Image.Root src={${src ? `"${src}"` : "undefined"}}>
+  <Image.Content alt="${state.decorative ? "" : "Mountain workspace landscape"}" width={320} height={180} />
+  <Image.Fallback>Media ${state.status}</Image.Fallback>
+</Image.Root>`;
   }
 
   if (scenarioId === "label") {
@@ -916,6 +946,14 @@ function AvatarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useAva
       ) : avatar}
     </div>
   );
+}
+
+function ImageScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useImageScenario> }) {
+  const src = scenario.state.mode === "loaded" ? imageLoadedSrc : scenario.state.mode === "broken" ? "/missing-image.png" : undefined;
+  return <Image.Root className="display-image" data-playground-image-root="" src={src} onLoadingStatusChange={scenario.actions.setStatus}>
+    <Image.Content alt={scenario.state.decorative ? "" : "Mountain workspace landscape"} data-playground-image-content="" decoding="async" height={180} loading="lazy" sizes="(max-width: 40rem) 100vw, 320px" width={320} />
+    <Image.Fallback data-playground-image-fallback="">Media {scenario.state.status}</Image.Fallback>
+  </Image.Root>;
 }
 
 function LabelScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useLabelScenario> }) {
@@ -1214,6 +1252,12 @@ function getDisplayPrimitiveSections(
   scenarioId: string,
   scenarios: DisplayPrimitiveScenarios,
 ): AnatomySection[] {
+  if (scenarioId === "image") {
+    const root = document.querySelector<HTMLElement>("[data-playground-image-root]");
+    const content = document.querySelector<HTMLElement>("[data-playground-image-content]");
+    const fallback = document.querySelector<HTMLElement>("[data-playground-image-fallback]");
+    return [{ title: "Root", selector: "[data-playground-image-root]", summary: scenarios.image.state.status, rows: [{ label: "Exists", value: bool(!!root), category: "presence" }, { label: "Source", value: scenarios.image.state.mode, category: "state" }, { label: "Status", value: scenarios.image.state.status, category: "state" }] }, { title: "Content", selector: "[data-playground-image-content]", inactive: !content, summary: content ? "rendered" : "not rendered", rows: [{ label: "Exists", value: bool(!!content), category: "presence" }, { label: "Alt", value: scenarios.image.state.decorative ? "(empty)" : "Mountain workspace landscape", category: "state" }] }, { title: "Fallback", selector: "[data-playground-image-fallback]", inactive: !fallback, summary: fallback?.textContent ?? "not rendered", rows: [{ label: "Exists", value: bool(!!fallback), category: "presence" }] }];
+  }
   if (scenarioId === "badge") {
     const root = document.querySelector<HTMLElement>("[data-playground-badge-root]");
     return [{
@@ -1534,6 +1578,7 @@ function getDisplayPrimitiveLog(
   if (scenarioId === "divider") return scenarios.divider.state.log;
   if (scenarioId === "aspect-ratio") return scenarios.aspectRatio.state.log;
   if (scenarioId === "avatar") return scenarios.avatar.state.log;
+  if (scenarioId === "image") return scenarios.image.state.log;
   if (scenarioId === "label") return scenarios.label.state.log;
   if (scenarioId === "list") return scenarios.list.state.log;
   return [];
@@ -1547,6 +1592,7 @@ function getDisplayPrimitiveActions(
   if (scenarioId === "divider") return scenarios.divider.actions;
   if (scenarioId === "aspect-ratio") return scenarios.aspectRatio.actions;
   if (scenarioId === "avatar") return scenarios.avatar.actions;
+  if (scenarioId === "image") return scenarios.image.actions;
   if (scenarioId === "label") return scenarios.label.actions;
   if (scenarioId === "list") return scenarios.list.actions;
   return null;

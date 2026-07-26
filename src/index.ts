@@ -28,6 +28,7 @@ export {
   FileUpload,
   Form,
   HoverCard,
+  Image,
   Input,
   Label,
   Link,
@@ -207,6 +208,8 @@ export type {
   AvatarRootProps,
   ImageLoadingStatus,
 } from "./primitives/avatar/index.js";
+export { ImageContent, ImageContext, ImageFallback, ImageRoot, useImageContext } from "./primitives/image/index.js";
+export type { ImageContentProps, ImageContextValue, ImageFallbackProps, ImageFallbackWhen, ImageRootProps } from "./primitives/image/index.js";
 export { BadgeRoot } from "./primitives/badge/index.js";
 export type { BadgeRootProps } from "./primitives/badge/index.js";
 export { LinkRoot } from "./primitives/link/index.js";

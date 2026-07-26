@@ -1324,6 +1324,21 @@ h2 {
   box-shadow: 0 8px 22px rgba(31, 40, 52, 0.1);
 }
 
+.display-image {
+  display: grid;
+  inline-size: min(100%, 20rem);
+  min-block-size: 11.25rem;
+  overflow: hidden;
+  place-items: center;
+  border: 1px dashed currentcolor;
+}
+
+.display-image img {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+}
+
 .display-avatar-group {
   display: inline-flex;
   align-items: center;

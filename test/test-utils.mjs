@@ -36,6 +36,7 @@ const publicSubpaths = [
   "form",
   "hooks",
   "hover-card",
+  "image",
   "input",
   "label",
   "link",

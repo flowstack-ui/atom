@@ -45,6 +45,7 @@ import {
   AvatarImage,
   AvatarRoot,
 } from "./primitives/avatar/index.js";
+import { ImageContent, ImageFallback, ImageRoot } from "./primitives/image/index.js";
 import { BadgeRoot } from "./primitives/badge/index.js";
 import {
   BreadcrumbEllipsis,
@@ -764,6 +765,12 @@ export const ScrollArea = {
 export const SkipLink = {
   Root: SkipLinkRoot,
   Target: SkipLinkTarget,
+} as const;
+
+export const Image = {
+  Root: ImageRoot,
+  Content: ImageContent,
+  Fallback: ImageFallback,
 } as const;
 
 export const Select = {
