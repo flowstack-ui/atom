@@ -61,6 +61,16 @@ import {
 } from "./primitives/bottom-navigation/index.js";
 import { ButtonRoot } from "./primitives/button/index.js";
 import { LinkRoot } from "./primitives/link/index.js";
+import {
+  ClipboardControl,
+  ClipboardIndicator,
+  ClipboardInput,
+  ClipboardLabel,
+  ClipboardRoot,
+  ClipboardStatus,
+  ClipboardTrigger,
+  ClipboardValueText,
+} from "./primitives/clipboard/index.js";
 import { CheckboxIndicator, CheckboxRoot } from "./primitives/checkbox/index.js";
 import {
   CheckboxGroupItem,
@@ -446,6 +456,17 @@ export const Button = {
 
 export const Link = {
   Root: LinkRoot,
+} as const;
+
+export const Clipboard = {
+  Root: ClipboardRoot,
+  Label: ClipboardLabel,
+  Control: ClipboardControl,
+  Input: ClipboardInput,
+  ValueText: ClipboardValueText,
+  Trigger: ClipboardTrigger,
+  Indicator: ClipboardIndicator,
+  Status: ClipboardStatus,
 } as const;
 
 export const Checkbox = {

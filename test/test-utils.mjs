@@ -19,6 +19,7 @@ const publicSubpaths = [
   "button",
   "checkbox",
   "checkbox-group",
+  "clipboard",
   "collapsible",
   "collection",
   "context-menu",

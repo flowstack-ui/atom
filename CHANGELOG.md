@@ -1,5 +1,12 @@
 # Atom Changelog
 
+## 0.8.0
+
+- Added the headless Clipboard compound primitive with controlled and
+  uncontrolled text, native Label/Input relationships, truthful asynchronous
+  copied/error state, timeout reset, stale-operation protection, authored live
+  feedback, and a public `clipboard` subpath.
+
 ## 0.7.0
 
 - Added a server-safe native Link primitive and public `link` subpath with

@@ -6,6 +6,10 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Added a dedicated Clipboard workbench with editable controlled and
+  uncontrolled values, disabled behavior, simulated success and rejection,
+  truthful pending/success/error feedback, timeout reset, all public anatomy,
+  inspected output, event history, workbook coverage, and a draft protocol.
 - Added a dedicated Link workbench for native anchors, current-state
   passthrough, router-shaped `render`/`asChild` composition, native attributes,
   Link-versus-Button semantics, inspected output, and a focused draft manual

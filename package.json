@@ -1,6 +1,6 @@
 {
   "name": "@flowstack-ui/atom",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Headless accessible React primitives for Flowstack Atom.",
   "type": "module",
   "license": "MIT",
@@ -78,6 +78,10 @@
     "./checkbox-group": {
       "types": "./dist/checkbox-group.d.ts",
       "default": "./dist/checkbox-group.js"
+    },
+    "./clipboard": {
+      "types": "./dist/clipboard.d.ts",
+      "default": "./dist/clipboard.js"
     },
     "./collapsible": {
       "types": "./dist/collapsible.d.ts",
