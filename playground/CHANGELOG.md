@@ -6,6 +6,10 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Added a dedicated Image workbench for loaded, broken, and absent sources,
+  informative and decorative alternatives, native image attributes, public
+  anatomy, composition, inspected state, transition logs, workbook coverage,
+  and a focused manual protocol.
 - Added a dedicated Clipboard workbench with editable controlled and
   uncontrolled values, disabled behavior, simulated success and rejection,
   truthful pending/success/error feedback, timeout reset, all public anatomy,

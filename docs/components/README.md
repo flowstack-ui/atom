@@ -41,6 +41,7 @@ Component anatomy uses the main package import. See
 - [FileUpload](./file-upload/README.md)
 - [Form](./form/README.md)
 - [HoverCard](./hover-card/README.md)
+- [Image](./image/README.md)
 - [Input](./input/README.md)
 - [Label](./label/README.md)
 - [Link](./link/README.md)

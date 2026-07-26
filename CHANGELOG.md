@@ -1,5 +1,10 @@
 # Atom Changelog
 
+## 0.9.0
+
+- Added the generic headless Image primitive with source loading state and
+  conditional Content/Fallback anatomy.
+
 ## 0.8.0
 
 - Added the headless Clipboard compound primitive with controlled and
