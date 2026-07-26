@@ -37,6 +37,7 @@ export {
   Menu,
   Menubar,
   Modal,
+  MultiSelect,
   NavigationMenu,
   NavList,
   NumberInput,
@@ -1311,3 +1312,5 @@ export { useScrollLock } from "./hooks/useScrollLock.js";
 
 export { Portal } from "./utils/Portal.js";
 export type { PortalProps } from "./utils/Portal.js";
+
+export * from "./primitives/multi-select/index.js";

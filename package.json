@@ -1,6 +1,6 @@
 {
   "name": "@flowstack-ui/atom",
-  "version": "0.9.3",
+  "version": "0.10.0",
   "description": "Headless accessible React primitives for Flowstack Atom.",
   "type": "module",
   "license": "MIT",
@@ -242,6 +242,10 @@
     "./select": {
       "types": "./dist/select.d.ts",
       "default": "./dist/select.js"
+    },
+    "./multi-select": {
+      "types": "./dist/multi-select.d.ts",
+      "default": "./dist/multi-select.js"
     },
     "./sidebar": {
       "types": "./dist/sidebar.d.ts",

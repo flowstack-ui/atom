@@ -234,6 +234,7 @@ Atom includes structural and interactive data primitives:
 - `TreeGrid` for hierarchical grid behavior.
 - `List` for native list structure.
 - `Listbox` for selectable option lists.
+- `MultiSelect` for several predefined values behind one compact trigger.
 - `Feed` for WAI-ARIA feed navigation.
 - `Virtualizer` helpers for large scrollable collections.
 - `Collection` helpers for registry-backed composite widgets.

@@ -1,0 +1,48 @@
+"use client";
+
+import { forwardRef, useMemo, type CSSProperties, type ReactNode } from "react";
+import type { NativeSpanProps } from "../../utils/dom.js";
+import { composeRefs } from "../../utils/slot.js";
+import { useMultiSelectContentContext } from "./context.js";
+
+type MultiSelectArrowNativeProps = NativeSpanProps<"children">;
+
+export interface MultiSelectArrowProps extends MultiSelectArrowNativeProps {
+  children?: ReactNode;
+  className?: string;
+  "data-slot"?: string;
+}
+
+export const MultiSelectArrow = forwardRef<HTMLSpanElement, MultiSelectArrowProps>(
+  function MultiSelectArrow({ className, style, "data-slot": dataSlot = "multi-select-arrow", ...restProps }, ref) {
+    const { align, arrowRef, arrowX, arrowY, side } = useMultiSelectContentContext();
+    const composedRef = useMemo(() => composeRefs(arrowRef, ref), [arrowRef, ref]);
+    const staticSide = {
+      top: "bottom",
+      right: "left",
+      bottom: "top",
+      left: "right",
+    }[side] as "top" | "right" | "bottom" | "left";
+    const positionStyle: CSSProperties = {
+      position: "absolute",
+      left: arrowX === undefined ? undefined : `${arrowX}px`,
+      top: arrowY === undefined ? undefined : `${arrowY}px`,
+      right: "",
+      bottom: "",
+      [staticSide]: 0,
+    };
+
+    return (
+      <span
+        {...restProps}
+        ref={composedRef}
+        aria-hidden="true"
+        data-slot={dataSlot}
+        data-side={side}
+        data-align={align}
+        className={className}
+        style={{ ...style, ...positionStyle }}
+      />
+    );
+  },
+);

@@ -291,6 +291,25 @@ import {
   SelectViewport,
 } from "./primitives/select/index.js";
 import {
+  MultiSelectArrow,
+  MultiSelectContent,
+  MultiSelectGroup,
+  MultiSelectIcon,
+  MultiSelectItem,
+  MultiSelectItemIndicator,
+  MultiSelectItemText,
+  MultiSelectLabel,
+  MultiSelectListbox,
+  MultiSelectPortal,
+  MultiSelectRoot,
+  MultiSelectScrollDownButton,
+  MultiSelectScrollUpButton,
+  MultiSelectSeparator,
+  MultiSelectTrigger,
+  MultiSelectValue,
+  MultiSelectViewport,
+} from "./primitives/multi-select/index.js";
+import {
   SidebarMain,
   SidebarPanel,
   SidebarRoot,
@@ -791,6 +810,26 @@ export const Select = {
   Label: SelectLabel,
   Separator: SelectSeparator,
   Arrow: SelectArrow,
+} as const;
+
+export const MultiSelect = {
+  Root: MultiSelectRoot,
+  Trigger: MultiSelectTrigger,
+  Value: MultiSelectValue,
+  Icon: MultiSelectIcon,
+  Portal: MultiSelectPortal,
+  Content: MultiSelectContent,
+  Viewport: MultiSelectViewport,
+  ScrollUpButton: MultiSelectScrollUpButton,
+  ScrollDownButton: MultiSelectScrollDownButton,
+  Listbox: MultiSelectListbox,
+  Item: MultiSelectItem,
+  ItemText: MultiSelectItemText,
+  ItemIndicator: MultiSelectItemIndicator,
+  Group: MultiSelectGroup,
+  Label: MultiSelectLabel,
+  Separator: MultiSelectSeparator,
+  Arrow: MultiSelectArrow,
 } as const;
 
 export const Sidebar = {

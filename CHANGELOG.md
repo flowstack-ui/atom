@@ -1,6 +1,10 @@
 # Atom Changelog
 
-## Unreleased
+## 0.10.0
+
+- Added the headless MultiSelect compound primitive with array selection,
+  button-owned multi-select listbox semantics, focus and keyboard behavior,
+  positioning, dismissal, summary rendering, and Field/Form participation.
 
 ## 0.9.3
 
