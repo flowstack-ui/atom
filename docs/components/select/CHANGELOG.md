@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.9.3
+
+- Fixed Arrow's public TypeScript props to accept replaceable decorative
+  children.
+
 ## 0.9.2
 
 - Deferred touch and pen outside dismissal until the gesture resolves as a

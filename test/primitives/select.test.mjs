@@ -402,6 +402,7 @@ test("Select source avoids dead listbox keyboard handling and portal/scroll foot
   assert.match(contextSource, /SelectContentContextProvider/);
   assert.match(contextSource, /Select\.Arrow must be used within <Select\.Content>/);
   assert.match(arrowSource, /composeRefs\(arrowRef, ref\)/);
+  assert.match(arrowSource, /children\?: ReactNode/);
   assert.match(arrowSource, /data-side=\{side\}/);
   assert.match(arrowSource, /data-align=\{align\}/);
   assert.match(arrowSource, /\[staticSide\]: 0/);

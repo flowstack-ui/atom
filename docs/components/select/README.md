@@ -352,8 +352,8 @@ Provides a decorative `span` hook positioned against the trigger by the same
 Floating UI calculation as Content. Consumers draw the arrow and may size it
 with CSS; Atom owns its collision-aware physical edge and coordinates.
 
-**Props:** Arrow has no Atom-owned behavior props and accepts native `span`
-props.
+**Props:** Arrow has no Atom-owned behavior props, accepts optional decorative
+`children`, and forwards native `span` props.
 
 | ARIA attribute | Values |
 | --- | --- |
@@ -367,8 +367,8 @@ props.
 
 Arrow must be inside Content/Listbox. Atom composes its ref with the positioning
 middleware and applies absolute positioning through inline `top`/`left` plus
-the appropriate static edge. Consumer `className`, native span props, and
-non-positioning style values remain supported.
+the appropriate static edge. Consumer `children`, `className`, native span
+props, and non-positioning style values remain supported.
 
 ### Listbox
 

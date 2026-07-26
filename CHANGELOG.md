@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.9.3
+
+- Fixed Select Arrow's public TypeScript props to accept the decorative
+  children already supported by its rendered span.
+
 ## 0.9.2
 
 - Made tagged publication retry-safe and added automatic GitHub Release
