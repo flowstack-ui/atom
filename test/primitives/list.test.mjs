@@ -83,7 +83,7 @@ test("List barrels do not create a client boundary", async () => {
     "utf8",
   );
 
-  assert.doesNotMatch(rootSource, /NativeOrderedListProps/);
+  assert.match(rootSource, /NativeListProps/);
   assert.doesNotMatch(primitiveIndexSource, /^"use client";/);
   assert.doesNotMatch(subpathSource, /^"use client";/);
 });

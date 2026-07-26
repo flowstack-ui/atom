@@ -35,8 +35,9 @@ import { List } from "@flowstack-ui/atom";
 
 ### Root
 
-Renders `ul` by default or `ol` when `ordered` is true. Native list props such
-as `start` and `reversed` pass through when the rendered element supports them.
+Renders `ul` by default or `ol` when `ordered` is true. Its public TypeScript
+contract accepts native ordered-list `start` and `reversed` props and forwards
+them to the rendered host.
 
 | Prop | Type | Default |
 | --- | --- | --- |

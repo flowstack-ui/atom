@@ -77,8 +77,10 @@ export type NativeParagraphProps<Blocked extends PropertyKey = never> = NativePr
 /** Native props for primitives that render a nav by default. */
 export type NativeNavProps<Blocked extends PropertyKey = never> = NativeProps<"nav", Blocked>;
 
-/** Native props for primitives that render a ul by default. */
-export type NativeListProps<Blocked extends PropertyKey = never> = NativeProps<"ul", Blocked>;
+/** Native props for primitives that render a ul by default and may switch to ol. */
+export type NativeListProps<Blocked extends PropertyKey = never> =
+  NativeProps<"ul", Blocked> &
+  Pick<NativeProps<"ol", never>, "reversed" | "start">;
 
 /** Native props for primitives that render an ol by default. */
 export type NativeOrderedListProps<Blocked extends PropertyKey = never> = NativeProps<"ol", Blocked>;
