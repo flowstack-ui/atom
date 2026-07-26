@@ -1,5 +1,10 @@
 # Atom Changelog
 
+## 0.11.1
+
+- Made explicit RadioGroup Root `dir` override Direction context for horizontal
+  arrow-key mapping while remaining on the rendered group.
+
 ## 0.11.0
 
 - Added RadioGroup group-level read-only semantics and selection locking while

@@ -30,7 +30,7 @@ import { useFieldsetContext } from "../fieldset/context.js";
 import type { ValidationBehavior } from "../form/validation.js";
 
 type RadioGroupRootNativeProps = NativeDivProps<
-  "children" | "defaultValue" | "form" | "name" | "onChange" | "role"
+  "children" | "defaultValue" | "dir" | "form" | "name" | "onChange" | "role"
 >;
 
 type RadioGroupOrientation = "horizontal" | "vertical";
@@ -82,6 +82,8 @@ export interface RadioGroupRootProps extends RadioGroupRootNativeProps {
   validationBehavior?: ValidationBehavior;
   /** Keyboard navigation direction. */
   orientation?: RadioGroupOrientation;
+  /** Logical direction used by horizontal arrow navigation. */
+  dir?: DirectionValue;
   /** Arrow-key wrapping. */
   loop?: boolean;
   /** Override the rendered element. */
@@ -110,6 +112,7 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
       invalid,
       validationBehavior,
       orientation = "vertical",
+      dir: dirProp,
       loop = true,
       render,
       asChild,
@@ -126,7 +129,8 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
     const isRequired = required ?? fieldset?.required ?? false;
     const rootRef = useRef<HTMLDivElement>(null);
     const validationInputRef = useRef<HTMLInputElement>(null);
-    const dir = useDirection();
+    const contextDir = useDirection();
+    const dir = dirProp ?? contextDir;
     const [activeValue, setActiveValue] = useControllableState({
       value,
       defaultValue,
@@ -292,6 +296,7 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
 
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
+      dir: dirProp,
       ref: composeRefs(rootRef, ref),
       role: "radiogroup",
       "aria-labelledby": restProps["aria-labelledby"] ??
