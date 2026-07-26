@@ -232,3 +232,8 @@ DOM wrappers only to make a future automated check easier.
 
 Manual testing should remain focused on behavior that still needs a tester:
 keyboard, focus, pointer, browser behavior, nested layers, and user experience.
+
+The current Select update has a draft protocol at
+[`../.manual-tests/select.md`](../.manual-tests/select.md). Promote it only after
+the desktop and real touch-hardware steps pass and its workbook rows are marked
+from the observed results.

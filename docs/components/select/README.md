@@ -197,6 +197,8 @@ It owns dismissal, initial highlighting, and focus-scope registration.
 | `[data-slot]` | `"select-listbox"` |
 | `[data-state]` | `"open"` while rendered |
 | `[data-positioned]` | Present after the first positioning frame |
+| `[data-side]` | `"top" \| "right" \| "bottom" \| "left"` after collision handling |
+| `[data-align]` | `"start" \| "center" \| "end"` after collision handling |
 
 ### ScrollUpButton
 
@@ -346,8 +348,9 @@ Atom-owned behavior props.
 
 ### Arrow
 
-Provides a decorative `span` hook for a consumer-drawn popup arrow. Select does
-not calculate arrow geometry.
+Provides a decorative `span` hook positioned against the trigger by the same
+Floating UI calculation as Content. Consumers draw the arrow and may size it
+with CSS; Atom owns its collision-aware physical edge and coordinates.
 
 **Props:** Arrow has no Atom-owned behavior props and accepts native `span`
 props.
@@ -359,6 +362,13 @@ props.
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"select-arrow"` |
+| `[data-side]` | Actual Content side after collision handling |
+| `[data-align]` | Actual Content alignment after collision handling |
+
+Arrow must be inside Content/Listbox. Atom composes its ref with the positioning
+middleware and applies absolute positioning through inline `top`/`left` plus
+the appropriate static edge. Consumer `className`, native span props, and
+non-positioning style values remain supported.
 
 ### Listbox
 
@@ -380,6 +390,8 @@ Use either `Content` or `Listbox`, not both for the same popup.
 | `[data-slot]` | `"select-listbox"` |
 | `[data-state]` | `"open"` while rendered |
 | `[data-positioned]` | Present after the first positioning frame |
+| `[data-side]` | Actual physical side after collision handling |
+| `[data-align]` | Actual alignment after collision handling |
 
 Advanced compound parts can read `useSelectContext`, `useSelectItemContext`,
 or `useSelectGroupContext`. Their matching public providers expose the same

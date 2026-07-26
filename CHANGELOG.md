@@ -2,8 +2,12 @@
 
 ## Unreleased
 
+## 0.9.2
+
 - Made tagged publication retry-safe and added automatic GitHub Release
   creation after successful npm publication.
+- Made Select touch/pen outside dismissal gesture-safe and added
+  collision-aware Arrow positioning with resolved side/alignment state.
 
 ## 0.9.1
 

@@ -1,5 +1,14 @@
 # Select Changelog
 
+## Unreleased
+
+## 0.9.2
+
+- Deferred touch and pen outside dismissal until the gesture resolves as a
+  tap, preserving the open Select during movement, cancellation, or scrolling.
+- Positioned Arrow through the Select Floating UI calculation and exposed
+  collision-resolved `data-side` and `data-align` on Content and Arrow.
+
 ## 0.6.16
 
 - Explicitly scrolled inline validation-directed focus into view.

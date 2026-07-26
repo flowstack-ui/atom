@@ -621,6 +621,8 @@ export function SelectScenarioAnatomy({
         { label: "Rendered as", value: state.parts.listboxAlias, category: "composition" },
         { label: "Props", value: state.parts.listboxProps, category: "composition" },
         { label: "data-positioned", value: state.parts.listboxPositioned, category: "data" },
+        { label: "data-side", value: state.parts.listboxSide, category: "data" },
+        { label: "data-align", value: state.parts.listboxAlign, category: "data" },
         { label: "data-slot", value: state.parts.listboxSlot, category: "data" },
         { label: "data-state", value: state.parts.listboxState, category: "data" },
         { label: "aria-label", value: state.parts.listboxLabel, category: "aria" },
@@ -800,6 +802,8 @@ export function SelectScenarioAnatomy({
         { label: "Props", value: state.parts.arrowProps, category: "composition" },
         { label: "data-slot", value: state.parts.arrowSlot, category: "data" },
         { label: "aria-hidden", value: state.parts.arrowHidden, category: "aria" },
+        { label: "data-side", value: state.parts.arrowSide, category: "data" },
+        { label: "data-align", value: state.parts.arrowAlign, category: "data" },
       ],
     },
   ];
