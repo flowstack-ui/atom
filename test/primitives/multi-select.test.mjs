@@ -92,11 +92,19 @@ test("MultiSelect summarizes values and allows custom summary rendering", () => 
 
 test("MultiSelect native multiple select submits every value and required state", () => {
   const html = renderToStaticMarkup(fixture({ required: true, form: "profile" }));
+  assert.doesNotMatch(html, /<button[^>]*aria-required=/);
+  assert.match(html, /role="listbox"[^>]*aria-required="true"/);
   assert.match(html, /<select[^>]*name="skills"[^>]*multiple=""/);
   assert.match(html, /form="profile"/);
   assert.match(html, /required=""/);
   assert.match(html, /<option value="design" selected="">Design<\/option>/);
   assert.match(html, /<option value="docs" selected="">Documentation<\/option>/);
+});
+
+test("MultiSelect exposes read-only state on the listbox, not its button trigger", () => {
+  const html = renderToStaticMarkup(fixture({ readOnly: true }));
+  assert.doesNotMatch(html, /<button[^>]*aria-readonly=/);
+  assert.match(html, /role="listbox"[^>]*aria-readonly="true"/);
 });
 
 test("MultiSelect inherits Field relationships and disabled state", () => {
