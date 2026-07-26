@@ -497,6 +497,12 @@ const scenarios: Scenario[] = [
     checks: ["Viewport scrolls", "Focusable option works", "Region naming works"],
   },
   {
+    id: "clipboard",
+    label: "Clipboard",
+    category: "Utilities",
+    checks: ["Current value writes", "Status is truthful", "Failure remains visible"],
+  },
+  {
     id: "form",
     label: "Form",
     category: "Fields",

@@ -1,4 +1,5 @@
 import { Collapsible } from "@flowstack-ui/atom/collapsible";
+import { Clipboard, type ClipboardStatusValue } from "@flowstack-ui/atom/clipboard";
 import { useCollection, type UseCollectionReturn } from "@flowstack-ui/atom/collection";
 import { Direction, useDirection } from "@flowstack-ui/atom/direction";
 import { Drawer } from "@flowstack-ui/atom/drawer";
@@ -69,6 +70,7 @@ type LogEntry = {
 
 export const utilityPrimitiveScenarioIds = new Set([
   "direction",
+  "clipboard",
   "modal",
   "drawer",
   "menubar",
@@ -110,6 +112,7 @@ function useScenarioLog() {
 
 export function useUtilityPrimitiveScenarios() {
   return {
+    clipboard: useClipboardScenario(),
     direction: useDirectionScenario(),
     modal: useModalScenario(),
     drawer: useDrawerScenario(),
@@ -127,6 +130,38 @@ export function useUtilityPrimitiveScenarios() {
     portal: usePortalScenario(),
     collection: useCollectionScenario(),
     virtualizer: useVirtualizerScenario(),
+  };
+}
+
+type ClipboardResult = "success" | "failure";
+
+function useClipboardScenario() {
+  const [value, setValue] = useState("npm install @flowstack-ui/atom");
+  const [controlled, setControlled] = useState(false);
+  const [disabled, setDisabled] = useState(false);
+  const [result, setResult] = useState<ClipboardResult>("success");
+  const [status, setStatus] = useState<ClipboardStatusValue>("idle");
+  const [propCheck, setPropCheck] = useState(false);
+  const { log, addLog, clearLog } = useScenarioLog();
+  return {
+    state: { value, controlled, disabled, result, status, propCheck, log },
+    actions: {
+      setValue,
+      setControlled,
+      setDisabled,
+      setResult,
+      setPropCheck,
+      clearLog,
+      writeValue: async (nextValue: string) => {
+        addLog(`write requested: ${nextValue}`);
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        if (result === "failure") throw new Error("Playground write rejected");
+      },
+      onStatusChange: ({ status: nextStatus }: { status: ClipboardStatusValue }) => {
+        setStatus(nextStatus);
+        addLog(`status ${nextStatus}`);
+      },
+    },
   };
 }
 
@@ -1268,6 +1303,20 @@ export function UtilityPrimitiveScenarioToolbar({
   scenarioId: string;
   scenarios: UtilityPrimitiveScenarios;
 }) {
+  if (scenarioId === "clipboard") {
+    const scenario = scenarios.clipboard;
+    return (
+      <ControlToolbar label="Clipboard controls">
+        <ToolbarGroup title="State" value="state">
+          <MenuCheckboxControl checked={scenario.state.controlled} label="Controlled value" value="controlled" onChange={scenario.actions.setControlled} />
+          <MenuCheckboxControl checked={scenario.state.disabled} label="Disabled" value="disabled" onChange={scenario.actions.setDisabled} />
+          <MenuRadioControl label="Write result" options={["success", "failure"]} value={scenario.state.result} onChange={(value) => scenario.actions.setResult(value as ClipboardResult)} />
+        </ToolbarGroup>
+        <PropsToolbarGroup propCheck={scenario.state.propCheck} onPropCheckChange={scenario.actions.setPropCheck} />
+      </ControlToolbar>
+    );
+  }
+
   if (scenarioId === "direction") {
     const scenario = scenarios.direction;
     return (
@@ -1883,6 +1932,7 @@ export function UtilityPrimitiveScenarioCanvas({
   scenarios: UtilityPrimitiveScenarios;
 }) {
   if (scenarioId === "direction") return <DirectionScenarioCanvas scenario={scenarios.direction} />;
+  if (scenarioId === "clipboard") return <ClipboardScenarioCanvas scenario={scenarios.clipboard} />;
   if (scenarioId === "modal") return <ModalScenarioCanvas scenario={scenarios.modal} />;
   if (scenarioId === "drawer") return <DrawerScenarioCanvas scenario={scenarios.drawer} />;
   if (scenarioId === "menubar") return <MenubarScenarioCanvas scenario={scenarios.menubar} />;
@@ -1953,6 +2003,11 @@ export function getUtilityPrimitiveCanvasFooter(
   scenarioId: string,
   scenarios: UtilityPrimitiveScenarios,
 ) {
+  if (scenarioId === "clipboard") {
+    const state = scenarios.clipboard.state;
+    return `Status ${state.status} | ${state.controlled ? "Controlled" : "Uncontrolled"} | ${state.result}`;
+  }
+
   if (scenarioId === "direction") {
     const state = scenarios.direction.state;
     return `Direction ${state.dir} | Nested ${state.nested}`;
@@ -2047,6 +2102,22 @@ export function getUtilityPrimitiveSource(
   scenarioId: string,
   scenarios: UtilityPrimitiveScenarios,
 ) {
+  if (scenarioId === "clipboard") {
+    const state = scenarios.clipboard.state;
+    return `<Clipboard.Root${state.controlled ? ` value={value} onValueChange={setValue}` : ` defaultValue="${state.value}"`}${state.disabled ? " disabled" : ""}>
+  <Clipboard.Label>Install command</Clipboard.Label>
+  <Clipboard.Control>
+    <Clipboard.Input />
+    <Clipboard.Trigger>Copy</Clipboard.Trigger>
+  </Clipboard.Control>
+  <Clipboard.Status>
+    <Clipboard.Indicator when="copying">Copying…</Clipboard.Indicator>
+    <Clipboard.Indicator when="copied">Copied</Clipboard.Indicator>
+    <Clipboard.Indicator when="error">Copy failed</Clipboard.Indicator>
+  </Clipboard.Status>
+</Clipboard.Root>`;
+  }
+
   if (scenarioId === "direction") {
     const state = scenarios.direction.state;
     const nestedDir = state.dir === "ltr" ? "rtl" : "ltr";
@@ -2905,6 +2976,40 @@ function DirectionScenarioCanvas({ scenario }: { scenario: ReturnType<typeof use
           ) : null}
         </div>
       </Direction.Provider>
+    </div>
+  );
+}
+
+function ClipboardScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useClipboardScenario> }) {
+  const rootProps = scenario.state.controlled
+    ? { value: scenario.state.value, onValueChange: scenario.actions.setValue }
+    : { defaultValue: "npm install @flowstack-ui/atom" };
+  return (
+    <div className="utility-primitive-stage">
+      <Clipboard.Root
+        {...rootProps}
+        className="utility-clipboard-demo"
+        data-playground-clipboard-root=""
+        data-playground-inspect=""
+        data-prop-check={scenario.state.propCheck ? "root" : undefined}
+        disabled={scenario.state.disabled}
+        onStatusChange={scenario.actions.onStatusChange}
+        timeout={1500}
+        writeValue={scenario.actions.writeValue}
+      >
+        <Clipboard.Label data-playground-clipboard-label="" data-playground-inspect="">Install command</Clipboard.Label>
+        <Clipboard.Control data-playground-clipboard-control="" data-playground-inspect="">
+          <Clipboard.Input className="utility-visible-input" data-playground-clipboard-input="" data-playground-inspect="" />
+          <Clipboard.Trigger className="utility-visible-button" data-playground-clipboard-trigger="" data-playground-inspect="">Copy command</Clipboard.Trigger>
+        </Clipboard.Control>
+        <p>Current value: <Clipboard.ValueText data-playground-clipboard-value="" data-playground-inspect="" /></p>
+        <Clipboard.Status data-playground-clipboard-status="" data-playground-inspect="">
+          <Clipboard.Indicator when="idle">Ready to copy</Clipboard.Indicator>
+          <Clipboard.Indicator when="copying">Copying…</Clipboard.Indicator>
+          <Clipboard.Indicator when="copied">Copied</Clipboard.Indicator>
+          <Clipboard.Indicator when="error">Copy failed</Clipboard.Indicator>
+        </Clipboard.Status>
+      </Clipboard.Root>
     </div>
   );
 }
@@ -5042,6 +5147,34 @@ function getUtilityPrimitiveSections(
   scenarioId: string,
   scenarios: UtilityPrimitiveScenarios,
 ): AnatomySection[] {
+  if (scenarioId === "clipboard") {
+    const state = scenarios.clipboard.state;
+    const selectors = [
+      ["Root", "[data-playground-clipboard-root]"],
+      ["Label", "[data-playground-clipboard-label]"],
+      ["Control", "[data-playground-clipboard-control]"],
+      ["Input", "[data-playground-clipboard-input]"],
+      ["ValueText", "[data-playground-clipboard-value]"],
+      ["Trigger", "[data-playground-clipboard-trigger]"],
+      ["Status", "[data-playground-clipboard-status]"],
+      ["Indicator", "[data-slot='clipboard-indicator']"],
+    ] as const;
+    return selectors.map(([title, selector]) => {
+      const element = document.querySelector<HTMLElement>(selector);
+      return {
+        title,
+        selector,
+        summary: element?.dataset.state ?? state.status,
+        rows: [
+          { label: "Exists", value: bool(!!element), category: "presence" },
+          { label: "Tag", value: element?.tagName.toLowerCase() ?? "not rendered", category: "identity" },
+          { label: "State", value: element?.dataset.state ?? state.status, category: "state" },
+          { label: "Disabled", value: bool(state.disabled), category: "state" },
+        ],
+      };
+    });
+  }
+
   if (scenarioId === "direction") {
     const region = document.querySelector<HTMLElement>("[data-playground-direction-region]");
     const nested = document.querySelector<HTMLElement>("[data-playground-direction-nested]");
@@ -6012,6 +6145,7 @@ function getUtilityPrimitiveLog(
   scenarioId: string,
   scenarios: UtilityPrimitiveScenarios,
 ) {
+  if (scenarioId === "clipboard") return scenarios.clipboard.state.log;
   if (scenarioId === "direction") return scenarios.direction.state.log;
   if (scenarioId === "modal") return scenarios.modal.state.log;
   if (scenarioId === "drawer") return scenarios.drawer.state.log;
@@ -6036,6 +6170,7 @@ function getUtilityPrimitiveActions(
   scenarioId: string,
   scenarios: UtilityPrimitiveScenarios,
 ) {
+  if (scenarioId === "clipboard") return scenarios.clipboard.actions;
   if (scenarioId === "direction") return scenarios.direction.actions;
   if (scenarioId === "modal") return scenarios.modal.actions;
   if (scenarioId === "drawer") return scenarios.drawer.actions;

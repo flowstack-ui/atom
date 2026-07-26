@@ -24,6 +24,7 @@ Component anatomy uses the main package import. See
 - [Button](./button/README.md)
 - [Checkbox](./checkbox/README.md)
 - [CheckboxGroup](./checkbox-group/README.md)
+- [Clipboard](./clipboard/README.md)
 - [Collapsible](./collapsible/README.md)
 - [Collection](./collection/README.md)
 - [Combobox](./combobox/README.md)

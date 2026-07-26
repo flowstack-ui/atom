@@ -13,6 +13,7 @@ export {
   Button,
   Checkbox,
   CheckboxGroup,
+  Clipboard,
   Collapsible,
   ContextMenu,
   DataGrid,
@@ -210,6 +211,31 @@ export { BadgeRoot } from "./primitives/badge/index.js";
 export type { BadgeRootProps } from "./primitives/badge/index.js";
 export { LinkRoot } from "./primitives/link/index.js";
 export type { LinkRootProps } from "./primitives/link/index.js";
+export {
+  ClipboardControl,
+  ClipboardIndicator,
+  ClipboardInput,
+  ClipboardLabel,
+  ClipboardRoot,
+  ClipboardStatus,
+  ClipboardTrigger,
+  ClipboardValueText,
+  useClipboardContext,
+} from "./primitives/clipboard/index.js";
+export type {
+  ClipboardContextValue,
+  ClipboardControlProps,
+  ClipboardIndicatorProps,
+  ClipboardInputProps,
+  ClipboardLabelProps,
+  ClipboardRootProps,
+  ClipboardStatusDetails,
+  ClipboardStatusProps,
+  ClipboardStatusValue,
+  ClipboardTriggerProps,
+  ClipboardValueTextProps,
+  ClipboardWriteValue,
+} from "./primitives/clipboard/index.js";
 export {
   BreadcrumbEllipsis,
   BreadcrumbItem,
