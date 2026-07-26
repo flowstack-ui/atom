@@ -259,6 +259,8 @@ function MultiSelectListbox(
         role="listbox"
         tabIndex={0}
         aria-multiselectable="true"
+        aria-readonly={ctx.readOnly || undefined}
+        aria-required={ctx.required || undefined}
         aria-labelledby={ctx.fieldLabelId}
         aria-describedby={ctx.fieldDescribedBy}
         aria-activedescendant={ctx.highlightedValue ? ctx.getItemId(ctx.highlightedValue) : undefined}

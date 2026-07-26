@@ -1,5 +1,10 @@
 # Atom Changelog
 
+## 0.10.1
+
+- Moved MultiSelect `aria-required` and `aria-readonly` from its native button
+  trigger to the multiple-selection listbox roles that support those states.
+
 ## 0.10.0
 
 - Added the headless MultiSelect compound primitive with array selection,
