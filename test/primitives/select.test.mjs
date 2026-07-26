@@ -375,20 +375,34 @@ test("Select source avoids dead listbox keyboard handling and portal/scroll foot
     new URL("src/primitives/select/SelectScrollButton.tsx", packageRoot),
     "utf8",
   );
+  const arrowSource = await readFile(
+    new URL("src/primitives/select/SelectArrow.tsx", packageRoot),
+    "utf8",
+  );
 
   assert.match(contextSource, /viewportRef: RefObject<HTMLDivElement \| null>/);
   assert.match(contextSource, /isInsidePortal: boolean/);
   assert.doesNotMatch(listboxSource, /type KeyboardEventHandler/);
   assert.doesNotMatch(listboxSource, /onKeyDown=/);
   assert.match(listboxSource, /useClickAway\(\{/);
+  assert.match(listboxSource, /deferTouch: true/);
   assert.doesNotMatch(listboxSource, /document\.addEventListener\("pointerdown"/);
   assert.match(listboxSource, /disabled=\{disablePortal \|\| ctx\.isInsidePortal\}/);
   assert.match(listboxSource, /ctx\.openHighlightIntent/);
   assert.match(listboxSource, /ctx\.registryVersion/);
   assert.match(listboxSource, /ctx\.clearOpenHighlightIntent\(\)/);
+  assert.match(listboxSource, /floatingArrow\(\{ element: arrowRef, padding: 8 \}\)/);
+  assert.match(listboxSource, /data-side=\{actualSide\}/);
+  assert.match(listboxSource, /data-align=\{actualAlign\}/);
   assert.match(portalSource, /ctx\.setInsidePortal\(true\)/);
   assert.match(portalSource, /\}, \[ctx\.setInsidePortal, disabled\]\)/);
   assert.doesNotMatch(portalSource, /\}, \[ctx, disabled\]\)/);
   assert.match(viewportSource, /composeRefs\(ctx\.viewportRef, ref\)/);
   assert.match(scrollButtonSource, /ctx\.viewportRef\.current \?\? ctx\.listboxRef\.current/);
+  assert.match(contextSource, /SelectContentContextProvider/);
+  assert.match(contextSource, /Select\.Arrow must be used within <Select\.Content>/);
+  assert.match(arrowSource, /composeRefs\(arrowRef, ref\)/);
+  assert.match(arrowSource, /data-side=\{side\}/);
+  assert.match(arrowSource, /data-align=\{align\}/);
+  assert.match(arrowSource, /\[staticSide\]: 0/);
 });

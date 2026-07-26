@@ -1,13 +1,18 @@
 export {
   SelectContextProvider,
+  SelectContentContextProvider,
   SelectGroupContextProvider,
   SelectItemContextProvider,
   useSelectGroupContext,
   useSelectContext,
+  useSelectContentContext,
   useSelectItemContext,
 } from "./context.js";
 export type {
   SelectContextValue,
+  SelectContentAlign,
+  SelectContentContextValue,
+  SelectContentSide,
   SelectGroupContextValue,
   SelectItemContextValue,
   SelectItemEntry,

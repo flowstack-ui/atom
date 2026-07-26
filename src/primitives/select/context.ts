@@ -66,6 +66,28 @@ export function useSelectContext(): SelectContextValue {
   return ctx;
 }
 
+export type SelectContentSide = "top" | "right" | "bottom" | "left";
+export type SelectContentAlign = "start" | "center" | "end";
+
+export interface SelectContentContextValue {
+  arrowRef: RefObject<HTMLSpanElement | null>;
+  side: SelectContentSide;
+  align: SelectContentAlign;
+  arrowX?: number;
+  arrowY?: number;
+}
+
+const SelectContentContext = createContext<SelectContentContextValue | null>(null);
+SelectContentContext.displayName = "SelectContentContext";
+
+export const SelectContentContextProvider = SelectContentContext.Provider;
+
+export function useSelectContentContext(): SelectContentContextValue {
+  const ctx = useContext(SelectContentContext);
+  if (!ctx) throw new Error("Select.Arrow must be used within <Select.Content>");
+  return ctx;
+}
+
 export interface SelectItemContextValue {
   value: string;
   selected: boolean;

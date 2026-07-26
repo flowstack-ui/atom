@@ -10,12 +10,14 @@ import {
   type ReactNode,
 } from "react";
 import {
+  arrow as floatingArrow,
   autoUpdate,
   flip,
   offset,
   shift,
   size as sizeMiddleware,
   useFloating,
+  type Placement,
 } from "@floating-ui/react";
 import { useFocusScopeContainer } from "../../hooks/focus.js";
 import { useClickAway } from "../../hooks/useClickAway.js";
@@ -23,7 +25,13 @@ import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
 import { Portal } from "../../utils/Portal.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { composeRefs } from "../../utils/slot.js";
-import { useSelectContext } from "./context.js";
+import {
+  SelectContentContextProvider,
+  useSelectContext,
+  type SelectContentAlign,
+  type SelectContentContextValue,
+  type SelectContentSide,
+} from "./context.js";
 
 const selectFocusScopeMetadata = {
   focusContainment: "owned",
@@ -31,6 +39,14 @@ const selectFocusScopeMetadata = {
   scrollParticipation: "allowed",
   isolation: "owned",
 } as const;
+
+function sideFromPlacement(placement: Placement): SelectContentSide {
+  return placement.split("-")[0] as SelectContentSide;
+}
+
+function alignFromPlacement(placement: Placement): SelectContentAlign {
+  return (placement.split("-")[1] as SelectContentAlign | undefined) ?? "center";
+}
 
 type SelectListboxNativeProps = NativeDivProps<"children" | "role">;
 
@@ -57,6 +73,7 @@ function SelectListbox(
 ) {
   const ctx = useSelectContext();
   const internalRef = useRef<HTMLDivElement>(null);
+  const arrowRef = useRef<HTMLSpanElement>(null);
   const [isPositioned, setIsPositioned] = useState(false);
   useFocusScopeContainer(
     internalRef,
@@ -91,6 +108,7 @@ function SelectListbox(
     refs: clickAwayRefs,
     onClickAway: ctx.onClose,
     enabled: ctx.isOpen,
+    deferTouch: true,
   });
 
   useEffect(() => {
@@ -126,7 +144,7 @@ function SelectListbox(
     ctx.value,
   ]);
 
-  const { refs, floatingStyles } = useFloating({
+  const { refs, floatingStyles, placement, middlewareData } = useFloating({
     elements: { reference: ctx.triggerRef.current },
     placement: "bottom-start",
     middleware: [
@@ -140,6 +158,7 @@ function SelectListbox(
           });
         },
       }),
+      floatingArrow({ element: arrowRef, padding: 8 }),
     ],
     whileElementsMounted: autoUpdate,
     open: ctx.isOpen,
@@ -148,10 +167,24 @@ function SelectListbox(
     () => composeRefs(refs.setFloating, internalRef, ctx.listboxRef, ref),
     [ctx.listboxRef, ref, refs.setFloating],
   );
+  const actualSide = sideFromPlacement(placement);
+  const actualAlign = alignFromPlacement(placement);
+  const arrowData = middlewareData.arrow;
+  const contentContextValue = useMemo<SelectContentContextValue>(
+    () => ({
+      arrowRef,
+      side: actualSide,
+      align: actualAlign,
+      arrowX: arrowData?.x,
+      arrowY: arrowData?.y,
+    }),
+    [actualAlign, actualSide, arrowData?.x, arrowData?.y],
+  );
 
   if (!ctx.isOpen) return null;
 
   const content = (
+    <SelectContentContextProvider value={contentContextValue}>
       <div
         {...restProps}
         ref={composedRef}
@@ -160,6 +193,8 @@ function SelectListbox(
         tabIndex={-1}
         data-slot={dataSlot}
         data-state="open"
+        data-side={actualSide}
+        data-align={actualAlign}
         {...(isPositioned ? { "data-positioned": "" } : {})}
         className={className}
         style={{
@@ -169,6 +204,7 @@ function SelectListbox(
       >
         {children}
       </div>
+    </SelectContentContextProvider>
   );
   return (
     <Portal container={container} disabled={disablePortal || ctx.isInsidePortal}>

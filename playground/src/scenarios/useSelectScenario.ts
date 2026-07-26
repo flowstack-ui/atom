@@ -131,6 +131,8 @@ export type SelectPartsSnapshot = {
   arrowProps: string;
   arrowSlot: string;
   arrowHidden: string;
+  arrowSide: string;
+  arrowAlign: string;
   listboxExists: string;
   listboxRef: string;
   listboxAlias: string;
@@ -144,6 +146,8 @@ export type SelectPartsSnapshot = {
   listboxRole: string;
   listboxState: string;
   listboxPositioned: string;
+  listboxSide: string;
+  listboxAlign: string;
   listboxLabel: string;
   listboxMinWidthMatch: string;
   viewportExists: string;
@@ -739,6 +743,8 @@ function getSelectPartsSnapshot(
     ]),
     arrowSlot: arrow?.getAttribute("data-slot") ?? "none",
     arrowHidden: arrow?.getAttribute("aria-hidden") ?? "none",
+    arrowSide: arrow?.getAttribute("data-side") ?? "none",
+    arrowAlign: arrow?.getAttribute("data-align") ?? "none",
     listboxExists: listbox ? "yes" : "no",
     listboxRef: listbox?.tagName.toLowerCase() ?? "none",
     listboxAlias: state.useListboxAlias ? "Listbox" : "Content",
@@ -763,6 +769,8 @@ function getSelectPartsSnapshot(
         ? "yes"
         : "no"
       : "none",
+    listboxSide: listbox?.getAttribute("data-side") ?? "none",
+    listboxAlign: listbox?.getAttribute("data-align") ?? "none",
     listboxLabel: listbox?.getAttribute("aria-label") ?? "none",
     listboxMinWidthMatch: triggerRect && listboxRect && listboxRect.width >= triggerRect.width
       ? "yes"
@@ -959,6 +967,8 @@ const emptySelectPartsSnapshot: SelectPartsSnapshot = {
   arrowProps: "not rendered",
   arrowSlot: "none",
   arrowHidden: "none",
+  arrowSide: "none",
+  arrowAlign: "none",
   listboxExists: "no",
   listboxRef: "none",
   listboxAlias: "Content",
@@ -972,6 +982,8 @@ const emptySelectPartsSnapshot: SelectPartsSnapshot = {
   listboxRole: "none",
   listboxState: "none",
   listboxPositioned: "none",
+  listboxSide: "none",
+  listboxAlign: "none",
   listboxLabel: "none",
   listboxMinWidthMatch: "no",
   viewportExists: "no",
