@@ -87,7 +87,7 @@ try {
   await writeFile(
     path.join(consumerRoot, "smoke.mts"),
     [
-      'import { CheckboxGroup, Clipboard, Dialog, Link, Select, Portal, type ClipboardStatusValue, type ValidationBehavior } from "@flowstack-ui/atom";',
+      'import { CheckboxGroup, Clipboard, Dialog, Link, List, Select, Portal, type ClipboardStatusValue, type ValidationBehavior } from "@flowstack-ui/atom";',
       'import { Clipboard as ClipboardSubpath, ClipboardTrigger } from "@flowstack-ui/atom/clipboard";',
       'import { Link as LinkSubpath, LinkRoot } from "@flowstack-ui/atom/link";',
       'import type { ValidationBehavior as FormValidationBehavior } from "@flowstack-ui/atom/form";',
@@ -105,13 +105,14 @@ try {
       "const linkSubpathRoot: typeof Link.Root = LinkSubpath.Root;",
       "const clipboardTrigger: typeof Clipboard.Trigger = ClipboardTrigger;",
       "const clipboardSubpathRoot: typeof Clipboard.Root = ClipboardSubpath.Root;",
+      "void List.Root({ ordered: true, reversed: true, start: 4, children: null });",
       'const clipboardStatus: ClipboardStatusValue = "copied";',
       "void Link.Root({ href: '/guides', children: 'Guides' });",
       "// @ts-expect-error Native Link rendering requires href.",
       "void Link.Root({ children: 'Missing destination' });",
       'const validationBehavior: ValidationBehavior = "inline";',
       "const formValidationBehavior: FormValidationBehavior = validationBehavior;",
-      "void [dialogRoot, dialogContent, selectRoot, selectTrigger, checkboxGroupParent, checkboxGroupItemLabel, checkboxGroupItemDescription, linkRoot, linkSubpathRoot, clipboardTrigger, clipboardSubpathRoot, clipboardStatus, validationBehavior, formValidationBehavior, Portal];",
+      "void [dialogRoot, dialogContent, selectRoot, selectTrigger, checkboxGroupParent, checkboxGroupItemLabel, checkboxGroupItemDescription, linkRoot, linkSubpathRoot, clipboardTrigger, clipboardSubpathRoot, clipboardStatus, validationBehavior, formValidationBehavior, List, Portal];",
       "",
     ].join("\n"),
   );

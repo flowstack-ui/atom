@@ -1,5 +1,10 @@
 # Atom Changelog
 
+## 0.9.1
+
+- Fixed List Root's public TypeScript declarations so documented native
+  ordered-list `start` and `reversed` attributes are accepted.
+
 ## 0.9.0
 
 - Added the generic headless Image primitive with source loading state and

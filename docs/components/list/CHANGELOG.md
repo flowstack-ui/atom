@@ -1,8 +1,9 @@
 # List Changelog
 
-## Unreleased
+## 0.9.1
 
-- No unreleased changes.
+- Fixed `List.Root` declarations to accept the documented native ordered-list
+  `start` and `reversed` attributes when `ordered` renders an `ol`.
 ## 0.1.0
 
 - Initial Atom release.
