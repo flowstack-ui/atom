@@ -1,5 +1,10 @@
 # RadioGroup Changelog
 
+## 0.11.1
+
+- Made Root `dir="rtl"` control horizontal arrow-key navigation directly,
+  without requiring a matching Direction provider.
+
 ## 0.11.0
 
 - Added group-level read-only semantics, state hooks, and interaction locking

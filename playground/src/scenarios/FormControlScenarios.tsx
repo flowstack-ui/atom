@@ -586,6 +586,7 @@ export function RadioGroupScenarioCanvas({ scenario }: { scenario: RadioGroupSce
     "data-playground-radio-group-root": "",
     ...partProps("root", { propCheck: state.propCheck, customSlot: state.customRootSlot }, "radio-group-root-custom"),
     disabled: state.disabled,
+    dir: state.direction,
     readOnly: state.readOnly,
     invalid: state.invalid,
     loop: state.loop,
@@ -607,9 +608,7 @@ export function RadioGroupScenarioCanvas({ scenario }: { scenario: RadioGroupSce
 
   return (
     <div className="form-control-stage">
-      <Direction.Provider dir={state.direction}>
-        {group}
-      </Direction.Provider>
+      {group}
     </div>
   );
 }
@@ -1332,6 +1331,7 @@ export function getRadioGroupSource(state: RadioGroupScenario["state"]) {
     state.required ? "required" : "",
     state.invalid ? "invalid" : "",
     state.orientation !== "vertical" ? `orientation="${state.orientation}"` : "",
+    state.direction !== "ltr" ? `dir="${state.direction}"` : "",
     !state.loop ? "loop={false}" : "",
     `name="notification-channel"`,
     `ariaLabel="Notification channel"`,
@@ -1379,9 +1379,7 @@ ${radio("sms", "SMS", state.disabledItem)}
 ${radio("push", "Push")}
 ${rootClose}`;
 
-  return state.direction === "rtl"
-    ? `<Direction.Provider dir="rtl">\n${source}\n</Direction.Provider>`
-    : source;
+  return source;
 }
 
 export function getToggleGroupSource(state: ToggleGroupScenario["state"]) {

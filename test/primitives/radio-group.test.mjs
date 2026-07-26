@@ -63,6 +63,7 @@ test("RadioGroupRoot renders WAI-ARIA radiogroup attributes", () => {
         required: true,
         invalid: true,
         orientation: "horizontal",
+        dir: "rtl",
         "aria-label": "Contact method",
         "aria-describedby": "contact-help",
         id: "contact",
@@ -82,6 +83,7 @@ test("RadioGroupRoot renders WAI-ARIA radiogroup attributes", () => {
   assert.match(html, /aria-invalid="true"/);
   assert.match(html, /aria-describedby="contact-help"/);
   assert.match(html, /aria-orientation="horizontal"/);
+  assert.match(html, /dir="rtl"/);
   assert.match(html, /id="contact"/);
   assert.match(html, /data-slot="radio-group"/);
   assert.match(html, /data-orientation="horizontal"/);
@@ -308,6 +310,29 @@ test("RadioGroup read-only interaction moves focus without changing or dropping 
     assert.equal(radios[0].getAttribute("aria-checked"), "true");
     assert.deepEqual(changes, []);
     assert.equal(new FormData(document.getElementById("settings")).get("channel"), "email");
+  } finally {
+    await React.act(async () => root.unmount());
+    cleanup();
+  }
+});
+
+test("RadioGroup explicit dir overrides the default Direction context for horizontal keys", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  try {
+    await React.act(async () => root.render(
+      React.createElement(
+        RadioGroupRoot,
+        { defaultValue: "email", dir: "rtl", orientation: "horizontal", "aria-label": "Channel" },
+        React.createElement(RadioRoot, { value: "email" }, "Email"),
+        React.createElement(RadioRoot, { value: "sms" }, "SMS"),
+      ),
+    ));
+    const radios = [...container.querySelectorAll("[role='radio']")];
+    radios[0].focus();
+    await React.act(async () => radios[0].dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true })));
+    assert.equal(document.activeElement, radios[1]);
+    assert.equal(radios[1].getAttribute("aria-checked"), "true");
   } finally {
     await React.act(async () => root.unmount());
     cleanup();

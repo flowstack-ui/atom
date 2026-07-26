@@ -55,6 +55,7 @@ focus behavior for every Radio part inside it.
 | `invalid` | `boolean` | `false` |
 | `validationBehavior` | `"inline" \| "native"` | Fieldset/Form value or `"native"` |
 | `orientation` | `"horizontal" \| "vertical"` | `"vertical"` |
+| `dir` | `"ltr" \| "rtl"` | nearest `Direction.Provider`, then `"ltr"` |
 | `loop` | `boolean` | `true` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
@@ -78,6 +79,9 @@ focus behavior for every Radio part inside it.
 | `[data-disabled]` | Present when disabled |
 | `[data-readonly]` | Present when read-only |
 | `[data-invalid]` | Present when invalid |
+
+An explicit Root `dir` controls both DOM direction and horizontal arrow-key
+mapping. Without it, keyboard behavior uses the nearest `Direction.Provider`.
 
 ### Radio
 
