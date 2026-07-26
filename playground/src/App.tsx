@@ -239,6 +239,12 @@ const scenarios: Scenario[] = [
     checks: ["Arrow keys move", "Value changes", "Disabled options skip"],
   },
   {
+    id: "multi-select",
+    label: "MultiSelect",
+    category: "Selection",
+    checks: ["Toggles several values", "Stays open after selection", "Submits every value"],
+  },
+  {
     id: "context-menu",
     label: "Context Menu",
     category: "Overlays",

@@ -2,6 +2,7 @@ import { CheckboxGroup } from "@flowstack-ui/atom/checkbox-group";
 import { Combobox } from "@flowstack-ui/atom/combobox";
 import { Direction, type DirectionValue } from "@flowstack-ui/atom/direction";
 import { Listbox } from "@flowstack-ui/atom/listbox";
+import { MultiSelect } from "@flowstack-ui/atom/multi-select";
 import { Rating } from "@flowstack-ui/atom/rating";
 import { Slider } from "@flowstack-ui/atom/slider";
 import { useCallback, useRef, useState, type CSSProperties, type Dispatch, type ReactNode, type SetStateAction } from "react";
@@ -33,6 +34,7 @@ export const selectionPrimitiveScenarioIds = new Set([
   "slider",
   "rating",
   "listbox",
+  "multi-select",
   "combobox",
 ]);
 
@@ -80,7 +82,41 @@ export function useSelectionPrimitiveScenarios() {
     slider: useSliderScenario(),
     rating: useRatingScenario(),
     listbox: useListboxScenario(),
+    multiSelect: useMultiSelectScenario(),
     combobox: useComboboxScenario(),
+  };
+}
+
+function useMultiSelectScenario() {
+  const [value, setValue] = useState<string[]>(["design", "engineering"]);
+  const [controlled, setControlled] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [controlledOpen, setControlledOpen] = useState(false);
+  const [disabled, setDisabled] = useState(false);
+  const [readOnly, setReadOnly] = useState(false);
+  const [required, setRequired] = useState(false);
+  const [invalid, setInvalid] = useState(false);
+  const [disableResearch, setDisableResearch] = useState(true);
+  const [disablePortal, setDisablePortal] = useState(false);
+  const [customSummary, setCustomSummary] = useState(false);
+  const [useListboxAlias, setUseListboxAlias] = useState(false);
+  const [propCheck, setPropCheck] = useState(false);
+  const [customTriggerSlot, setCustomTriggerSlot] = useState(false);
+  const [customContentSlot, setCustomContentSlot] = useState(false);
+  const [customItemSlot, setCustomItemSlot] = useState(false);
+  const [submission, setSubmission] = useState("Not submitted");
+  const { log, addLog, clearLog } = useScenarioLog();
+  const handleValueChange = (nextValue: string[]) => {
+    setValue(nextValue);
+    addLog(`value ${nextValue.join(", ") || "none"}`);
+  };
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    addLog(nextOpen ? "opened" : "closed");
+  };
+  return {
+    state: { value, controlled, open, controlledOpen, disabled, readOnly, required, invalid, disableResearch, disablePortal, customSummary, useListboxAlias, propCheck, customTriggerSlot, customContentSlot, customItemSlot, submission, log },
+    actions: { setValue, setControlled, setOpen, setControlledOpen, setDisabled, setReadOnly, setRequired, setInvalid, setDisableResearch, setDisablePortal, setCustomSummary, setUseListboxAlias, setPropCheck, setCustomTriggerSlot, setCustomContentSlot, setCustomItemSlot, setSubmission, handleValueChange, handleOpenChange, clearLog },
   };
 }
 
@@ -499,6 +535,36 @@ export function SelectionPrimitiveScenarioToolbar({ scenarioId, scenarios }: { s
       </ControlToolbar>
     );
   }
+  if (scenarioId === "multi-select") {
+    const s = scenarios.multiSelect;
+    return (
+      <ControlToolbar label="MultiSelect controls">
+        <ToolbarGroup title="State" value="state">
+          <MenuCheckboxControl checked={s.state.controlled} label="Controlled value" value="controlled" onChange={s.actions.setControlled} />
+          <MenuCheckboxControl checked={s.state.controlledOpen} label="Controlled open" value="controlled-open" onChange={s.actions.setControlledOpen} />
+          <MenuCheckboxControl checked={s.state.disabled} label="Disabled" value="disabled" onChange={s.actions.setDisabled} />
+          <MenuCheckboxControl checked={s.state.readOnly} label="Read only" value="read-only" onChange={s.actions.setReadOnly} />
+          <MenuCheckboxControl checked={s.state.required} label="Required" value="required" onChange={s.actions.setRequired} />
+          <MenuCheckboxControl checked={s.state.invalid} label="Invalid" value="invalid" onChange={s.actions.setInvalid} />
+        </ToolbarGroup>
+        <ToolbarGroup title="Content" value="content">
+          <MenuCheckboxControl checked={s.state.disableResearch} label="Disable Research" value="disable-research" onChange={s.actions.setDisableResearch} />
+          <MenuCheckboxControl checked={s.state.disablePortal} label="Disable portal" value="disable-portal" onChange={s.actions.setDisablePortal} />
+          <MenuCheckboxControl checked={s.state.customSummary} label="Custom summary" value="custom-summary" onChange={s.actions.setCustomSummary} />
+          <MenuCheckboxControl checked={s.state.useListboxAlias} label="Listbox alias" value="listbox-alias" onChange={s.actions.setUseListboxAlias} />
+        </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={s.state.propCheck}
+          onPropCheckChange={s.actions.setPropCheck}
+          customSlots={[
+            { checked: s.state.customTriggerSlot, label: "Trigger", value: "trigger-slot", onChange: s.actions.setCustomTriggerSlot },
+            { checked: s.state.customContentSlot, label: "Content", value: "content-slot", onChange: s.actions.setCustomContentSlot },
+            { checked: s.state.customItemSlot, label: "Item", value: "item-slot", onChange: s.actions.setCustomItemSlot },
+          ]}
+        />
+      </ControlToolbar>
+    );
+  }
   if (scenarioId === "listbox") {
     const s = scenarios.listbox;
     return (
@@ -597,8 +663,85 @@ export function SelectionPrimitiveScenarioCanvas({ scenarioId, scenarios }: { sc
   if (scenarioId === "slider") return <SliderCanvas scenario={scenarios.slider} />;
   if (scenarioId === "rating") return <RatingCanvas scenario={scenarios.rating} />;
   if (scenarioId === "listbox") return <ListboxCanvas scenario={scenarios.listbox} />;
+  if (scenarioId === "multi-select") return <MultiSelectCanvas scenario={scenarios.multiSelect} />;
   if (scenarioId === "combobox") return <ComboboxCanvas scenario={scenarios.combobox} />;
   return null;
+}
+
+function MultiSelectCanvas({ scenario }: { scenario: ReturnType<typeof useMultiSelectScenario> }) {
+  const s = scenario.state;
+  const ContentPart = s.useListboxAlias ? MultiSelect.Listbox : MultiSelect.Content;
+  const rootProps = {
+    name: "skills",
+    form: "multi-select-form",
+    disabled: s.disabled || undefined,
+    readOnly: s.readOnly || undefined,
+    required: s.required || undefined,
+    invalid: s.invalid || undefined,
+    onValueChange: scenario.actions.handleValueChange,
+    onOpenChange: scenario.actions.handleOpenChange,
+    ...(s.controlled ? { value: s.value } : { defaultValue: s.value }),
+    ...(s.controlledOpen ? { open: s.open } : {}),
+  };
+  return (
+    <div className="select-demo">
+      <form
+        id="multi-select-form"
+        onSubmit={(event) => {
+          event.preventDefault();
+          const values = new FormData(event.currentTarget).getAll("skills").map(String);
+          scenario.actions.setSubmission(values.length ? values.join(", ") : "No skills");
+        }}
+      >
+        <button type="submit">Submit skills</button>
+        <output aria-live="polite">{s.submission}</output>
+      </form>
+      {s.controlledOpen ? <button type="button" onClick={() => scenario.actions.setOpen(!s.open)}>{s.open ? "Close" : "Open"} controlled</button> : null}
+      <MultiSelect.Root {...rootProps}>
+        <MultiSelect.Trigger
+          className="atom-select-trigger"
+          {...partProps("trigger", { propCheck: s.propCheck, customSlot: s.customTriggerSlot }, "multi-select-trigger-custom")}
+        >
+          <MultiSelect.Value
+            placeholder="Choose skills"
+            renderValue={s.customSummary ? (values) => `${values.length} skills selected` : undefined}
+          />
+          <MultiSelect.Icon aria-hidden="true">⌄</MultiSelect.Icon>
+        </MultiSelect.Trigger>
+        <ContentPart
+          className="atom-select-content playground-select-content"
+          disablePortal={s.disablePortal}
+          {...partProps("content", { propCheck: s.propCheck, customSlot: s.customContentSlot }, "multi-select-content-custom")}
+        >
+          <MultiSelect.Arrow className="playground-select-arrow" />
+          <MultiSelect.Viewport className="atom-select-viewport playground-select-viewport">
+            <MultiSelect.Group>
+              <MultiSelect.Label className="playground-select-label">Skills</MultiSelect.Label>
+              <MultiSelect.Separator className="playground-select-separator" />
+              {[
+                ["design", "Design"],
+                ["engineering", "Engineering"],
+                ["research", "Research"],
+                ["writing", "Writing"],
+              ].map(([value, label]) => (
+                <MultiSelect.Item
+                  className="atom-select-item playground-select-item"
+                  disabled={value === "research" && s.disableResearch}
+                  key={value}
+                  label={label}
+                  value={value}
+                  {...partProps(`item-${value}`, { propCheck: s.propCheck, customSlot: s.customItemSlot }, "multi-select-item-custom")}
+                >
+                  <MultiSelect.ItemText>{label}</MultiSelect.ItemText>
+                  <MultiSelect.ItemIndicator className="playground-select-indicator">✓</MultiSelect.ItemIndicator>
+                </MultiSelect.Item>
+              ))}
+            </MultiSelect.Group>
+          </MultiSelect.Viewport>
+        </ContentPart>
+      </MultiSelect.Root>
+    </div>
+  );
 }
 
 function CheckboxGroupCanvas({ scenario }: { scenario: ReturnType<typeof useCheckboxGroupScenario> }) {
@@ -1068,6 +1211,7 @@ export function getSelectionPrimitiveCanvasFooter(scenarioId: string, scenarios:
   if (scenarioId === "slider") return `Value ${Array.isArray(scenarios.slider.state.value) ? scenarios.slider.state.value.join(", ") : scenarios.slider.state.value}`;
   if (scenarioId === "rating") return `Value ${scenarios.rating.state.value}`;
   if (scenarioId === "listbox") return `Value ${Array.isArray(scenarios.listbox.state.value) ? scenarios.listbox.state.value.join(", ") : scenarios.listbox.state.value ?? "none"}`;
+  if (scenarioId === "multi-select") return `Values ${scenarios.multiSelect.state.value.join(", ") || "none"} | ${scenarios.multiSelect.state.open ? "open" : "closed"}`;
   if (scenarioId === "combobox") return `Value ${scenarios.combobox.state.value ?? "none"} | Input ${scenarios.combobox.state.inputValue || "empty"}`;
   return "";
 }
@@ -1077,11 +1221,36 @@ export function getSelectionPrimitiveSource(scenarioId: string, scenarios?: Sele
   if (scenarioId === "slider" && scenarios) return getSliderSource(scenarios.slider.state);
   if (scenarioId === "rating" && scenarios) return getRatingSource(scenarios.rating.state);
   if (scenarioId === "listbox" && scenarios) return getListboxSource(scenarios.listbox.state);
+  if (scenarioId === "multi-select" && scenarios) return getMultiSelectSource(scenarios.multiSelect.state);
   if (scenarioId === "combobox" && scenarios) return getComboboxSource(scenarios.combobox.state);
   const name = scenarioLabel(scenarioId);
   return `// ${name} playground scenario
 // The live source panel is intentionally compact for this batch.
 // Use Anatomy and Inspector to verify the generated ARIA, data, and native attributes.`;
+}
+
+function getMultiSelectSource(state: ReturnType<typeof useMultiSelectScenario>["state"]) {
+  const valueProp = state.controlled
+    ? `value={${JSON.stringify(state.value)}}`
+    : `defaultValue={${JSON.stringify(state.value)}}`;
+  const contentName = state.useListboxAlias ? "Listbox" : "Content";
+  return `<MultiSelect.Root ${valueProp} name="skills"${state.disabled ? " disabled" : ""}${state.readOnly ? " readOnly" : ""}${state.required ? " required" : ""}${state.invalid ? " invalid" : ""}>
+  <MultiSelect.Trigger>
+    <MultiSelect.Value placeholder="Choose skills" />
+    <MultiSelect.Icon />
+  </MultiSelect.Trigger>
+  <MultiSelect.${contentName}${state.disablePortal ? " disablePortal" : ""}>
+    <MultiSelect.Viewport>
+      <MultiSelect.Group>
+        <MultiSelect.Label>Skills</MultiSelect.Label>
+        <MultiSelect.Item value="design">
+          <MultiSelect.ItemText>Design</MultiSelect.ItemText>
+          <MultiSelect.ItemIndicator>✓</MultiSelect.ItemIndicator>
+        </MultiSelect.Item>
+      </MultiSelect.Group>
+    </MultiSelect.Viewport>
+  </MultiSelect.${contentName}>
+</MultiSelect.Root>`;
 }
 
 function getCheckboxGroupSource(state: ReturnType<typeof useCheckboxGroupScenario>["state"]) {
@@ -1383,8 +1552,36 @@ function getSections(scenarioId: string, scenarios: SelectionPrimitiveScenarios)
   if (scenarioId === "slider") return sliderSections(scenarios.slider.state);
   if (scenarioId === "rating") return ratingSections(scenarios.rating.state);
   if (scenarioId === "listbox") return listboxSections(scenarios.listbox.state);
+  if (scenarioId === "multi-select") return multiSelectSections(scenarios.multiSelect.state);
   if (scenarioId === "combobox") return comboboxSections(scenarios.combobox.state);
   return [];
+}
+
+function multiSelectSections(state: ReturnType<typeof useMultiSelectScenario>["state"]): AnatomySection[] {
+  return [
+    baseSection("Root (state provider)", state.value.join(", ") || "none", undefined, [
+      row("Value mode", state.controlled ? "controlled" : "uncontrolled", "state"),
+      row("Open mode", state.controlledOpen ? "controlled" : "uncontrolled", "state"),
+    ]),
+    baseSection("Trigger", state.open ? "open" : "closed", slotSelector("multi-select-trigger", "multi-select-trigger-custom"), [
+      row("Default tag", "button", "presence"),
+      row("Has popup", "listbox", "aria"),
+      row("Expanded", bool(state.open), "aria"),
+    ]),
+    baseSection("Value", state.value.join(", ") || "placeholder", "[data-slot='multi-select-value']", []),
+    baseSection(state.useListboxAlias ? "Listbox" : "Content", state.open ? "open" : "not rendered", slotSelector("multi-select-content", "multi-select-content-custom"), [
+      row("Role", "listbox", "aria"),
+      row("Multi selectable", "true", "aria"),
+    ]),
+    baseSection("Item", "toggle without close", slotSelector("multi-select-item", "multi-select-item-custom"), [
+      row("Role", "option", "aria"),
+      row("Research", state.disableResearch ? "disabled" : "enabled", "state"),
+    ]),
+    baseSection("Native select", "multiple form control", "select[name='skills']", [
+      row("Multiple", "true", "presence"),
+      row("Form", "multi-select-form", "presence"),
+    ]),
+  ];
 }
 
 function checkboxGroupSections(state: ReturnType<typeof useCheckboxGroupScenario>["state"]): AnatomySection[] {
@@ -1671,6 +1868,7 @@ function getScenario(scenarioId: string, scenarios: SelectionPrimitiveScenarios)
   if (scenarioId === "slider") return scenarios.slider;
   if (scenarioId === "rating") return scenarios.rating;
   if (scenarioId === "listbox") return scenarios.listbox;
+  if (scenarioId === "multi-select") return scenarios.multiSelect;
   if (scenarioId === "combobox") return scenarios.combobox;
   return null;
 }

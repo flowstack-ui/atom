@@ -45,6 +45,7 @@ const publicSubpaths = [
   "menu",
   "menubar",
   "modal",
+  "multi-select",
   "navigation-menu",
   "nav-list",
   "number-input",

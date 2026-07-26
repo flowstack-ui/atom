@@ -47,6 +47,7 @@ Component anatomy uses the main package import. See
 - [Link](./link/README.md)
 - [List](./list/README.md)
 - [Listbox](./listbox/README.md)
+- [MultiSelect](./multi-select/README.md)
 - [Menu](./menu/README.md)
 - [Menubar](./menubar/README.md)
 - [Modal](./modal/README.md)
