@@ -1,5 +1,10 @@
 # Atom Changelog
 
+## Unreleased
+
+- Made tagged publication retry-safe and added automatic GitHub Release
+  creation after successful npm publication.
+
 ## 0.9.1
 
 - Fixed List Root's public TypeScript declarations so documented native
