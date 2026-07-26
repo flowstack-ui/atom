@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useMemo, type CSSProperties } from "react";
+import { forwardRef, useMemo, type CSSProperties, type ReactNode } from "react";
 import type { NativeSpanProps } from "../../utils/dom.js";
 import { composeRefs } from "../../utils/slot.js";
 import { useSelectContentContext } from "./context.js";
@@ -8,6 +8,7 @@ import { useSelectContentContext } from "./context.js";
 type SelectArrowNativeProps = NativeSpanProps<"children">;
 
 export interface SelectArrowProps extends SelectArrowNativeProps {
+  children?: ReactNode;
   className?: string;
   "data-slot"?: string;
 }
