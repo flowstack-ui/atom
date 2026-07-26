@@ -144,7 +144,7 @@ export const RadioRoot = forwardRef<HTMLButtonElement, RadioRootProps>(
     const tabIndex = isChecked || isFirstFocusable ? 0 : -1;
 
     const select: MouseEventHandler<HTMLButtonElement> = () => {
-      if (!isDisabled) {
+      if (!isDisabled && !context.readOnly) {
         context.setActiveValue(value);
       }
     };
@@ -164,6 +164,7 @@ export const RadioRoot = forwardRef<HTMLButtonElement, RadioRootProps>(
       "data-slot": dataSlot,
       "data-value": value,
       ...(isDisabled && { "data-disabled": "" }),
+      ...(context.readOnly && { "data-readonly": "" }),
       ...(isInvalid && { "data-invalid": "" }),
       className,
       onClick: composeEventHandlers(onClick, select),

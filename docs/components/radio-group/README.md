@@ -16,6 +16,7 @@ compact.
 - Supports horizontal and vertical keyboard navigation.
 - Mirrors horizontal arrow-key navigation in RTL when wrapped in `Direction.Provider`.
 - Supports optional looping.
+- Supports a group-level read-only state that preserves focus and submission.
 - Renders hidden native radio inputs for form submission when named.
 - Keeps only the selected or first enabled item in the tab order.
 
@@ -49,6 +50,7 @@ focus behavior for every Radio part inside it.
 | `name` | `string` | - |
 | `form` | `string` | - |
 | `disabled` | `boolean` | `false` |
+| `readOnly` | `boolean` | `false` |
 | `required` | `boolean` | `false` |
 | `invalid` | `boolean` | `false` |
 | `validationBehavior` | `"inline" \| "native"` | Fieldset/Form value or `"native"` |
@@ -64,6 +66,7 @@ focus behavior for every Radio part inside it.
 | `aria-labelledby` | Native value or inherited Fieldset Legend ID |
 | `aria-describedby` | Native value or inherited Fieldset messages |
 | `aria-disabled` | `true` when disabled |
+| `aria-readonly` | `true` when read-only |
 | `aria-required` | `true` when required |
 | `aria-invalid` | `true` when invalid |
 | `aria-orientation` | `"horizontal"` or `"vertical"` |
@@ -73,6 +76,7 @@ focus behavior for every Radio part inside it.
 | `[data-slot]` | `"radio-group"` |
 | `[data-orientation]` | `"horizontal" \| "vertical"` |
 | `[data-disabled]` | Present when disabled |
+| `[data-readonly]` | Present when read-only |
 | `[data-invalid]` | Present when invalid |
 
 ### Radio
@@ -104,6 +108,7 @@ redirects browser validation focus to that Radio.
 | `[data-value]` | Item value |
 | `[data-state]` | `"checked" \| "unchecked"` |
 | `[data-disabled]` | Present when disabled |
+| `[data-readonly]` | Present when the group is read-only |
 | `[data-invalid]` | Present when invalid |
 
 Advanced compound parts can read the group contract with
@@ -140,6 +145,10 @@ keeps the group to one Tab stop. Provide a group name with `aria-labelledby` or
 native `aria-label`/`aria-labelledby`, or a surrounding Fieldset Legend.
 Uncontrolled selection returns to `defaultValue` on form reset. Horizontal
 arrows mirror in RTL through `Direction.Provider`.
+
+Read-only groups keep their selected value focusable and submitted. Pointer,
+Space, and navigation keys cannot change that value; navigation keys may still
+move focus so every option remains discoverable.
 
 | Key | Description |
 | --- | --- |

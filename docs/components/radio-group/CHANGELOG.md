@@ -1,5 +1,10 @@
 # RadioGroup Changelog
 
+## 0.11.0
+
+- Added group-level read-only semantics, state hooks, and interaction locking
+  while preserving focus navigation and native form submission.
+
 ## 0.6.16
 
 - Explicitly scrolled inline validation-directed focus into view.

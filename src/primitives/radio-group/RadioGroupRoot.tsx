@@ -72,6 +72,8 @@ export interface RadioGroupRootProps extends RadioGroupRootNativeProps {
   form?: string;
   /** Disables all radio items. */
   disabled?: boolean;
+  /** Prevents selection changes while preserving focus and form submission. */
+  readOnly?: boolean;
   /** Marks the group as required. */
   required?: boolean;
   /** Marks the group as invalid. */
@@ -103,6 +105,7 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
       name,
       form,
       disabled,
+      readOnly = false,
       required,
       invalid,
       validationBehavior,
@@ -219,14 +222,14 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
         const next = findNextValue(values, currentIndex, 1);
         if (next) {
           getRadioElement(next)?.focus();
-          setActiveValue(next);
+          if (!readOnly) setActiveValue(next);
         }
       } else if (navigationDirection === -1) {
         event.preventDefault();
         const previous = findNextValue(values, currentIndex, -1);
         if (previous) {
           getRadioElement(previous)?.focus();
-          setActiveValue(previous);
+          if (!readOnly) setActiveValue(previous);
         }
       } else if (event.key === "Home") {
         event.preventDefault();
@@ -236,7 +239,7 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
         });
         if (first) {
           getRadioElement(first)?.focus();
-          setActiveValue(first);
+          if (!readOnly) setActiveValue(first);
         }
       } else if (event.key === "End") {
         event.preventDefault();
@@ -246,7 +249,7 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
         });
         if (last) {
           getRadioElement(last)?.focus();
-          setActiveValue(last);
+          if (!readOnly) setActiveValue(last);
         }
       }
     };
@@ -258,6 +261,7 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
         name,
         form,
         disabled: isDisabled,
+        readOnly,
         required: isRequired,
         invalid: isInvalid,
         orientation,
@@ -270,6 +274,7 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
       [
         activeValue,
         isDisabled,
+        readOnly,
         form,
         getRadioElement,
         getRadioValues,
@@ -297,12 +302,14 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
         ? restProps["aria-describedby"]
         : fieldset?.describedBy,
       "aria-disabled": restProps["aria-disabled"] ?? (isDisabled || undefined),
+      "aria-readonly": restProps["aria-readonly"] ?? (readOnly || undefined),
       "aria-required": restProps["aria-required"] ?? (isRequired || undefined),
       "aria-invalid": restProps["aria-invalid"] ?? (isInvalid || undefined),
       "aria-orientation": orientation,
       "data-slot": dataSlot,
       "data-orientation": orientation,
       ...(isDisabled && { "data-disabled": "" }),
+      ...(readOnly && { "data-readonly": "" }),
       ...(isInvalid && { "data-invalid": "" }),
       ...(isRequired && { "data-required": "" }),
       className,

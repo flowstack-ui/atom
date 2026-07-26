@@ -6,6 +6,9 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Expanded Radio Group with group-level read-only controls, inspected state,
+  generated Source, and focus-preserving selection-lock evidence.
+
 - Added a dedicated Image workbench for loaded, broken, and absent sources,
   informative and decorative alternatives, native image attributes, public
   anatomy, composition, inspected state, transition logs, workbook coverage,

@@ -1,5 +1,10 @@
 # Atom Changelog
 
+## 0.11.0
+
+- Added RadioGroup group-level read-only semantics and selection locking while
+  preserving focus navigation and native form submission.
+
 ## 0.10.1
 
 - Moved MultiSelect `aria-required` and `aria-readonly` from its native button
