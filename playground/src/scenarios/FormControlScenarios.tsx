@@ -266,6 +266,7 @@ export function useRadioGroupScenario() {
   const [controlled, setControlled] = useState(false);
   const [value, setValue] = useState("email");
   const [disabled, setDisabled] = useState(false);
+  const [readOnly, setReadOnly] = useState(false);
   const [required, setRequired] = useState(false);
   const [invalid, setInvalid] = useState(false);
   const [loop, setLoop] = useState(true);
@@ -289,6 +290,7 @@ export function useRadioGroupScenario() {
       controlled,
       value,
       disabled,
+      readOnly,
       required,
       invalid,
       loop,
@@ -306,6 +308,7 @@ export function useRadioGroupScenario() {
       setControlled,
       setValue,
       setDisabled,
+      setReadOnly,
       setRequired,
       setInvalid,
       setLoop,
@@ -583,6 +586,7 @@ export function RadioGroupScenarioCanvas({ scenario }: { scenario: RadioGroupSce
     "data-playground-radio-group-root": "",
     ...partProps("root", { propCheck: state.propCheck, customSlot: state.customRootSlot }, "radio-group-root-custom"),
     disabled: state.disabled,
+    readOnly: state.readOnly,
     invalid: state.invalid,
     loop: state.loop,
     name: "notification-channel",
@@ -885,6 +889,7 @@ export function RadioGroupScenarioAnatomy({
         { label: "Mode", value: scenario.state.controlled ? "controlled" : "uncontrolled", category: "state" },
         { label: "Value", value: selectedValue, category: "state" },
         { label: "Disabled", value: bool(scenario.state.disabled), category: "state" },
+        { label: "Read only", value: bool(scenario.state.readOnly), category: "state" },
         { label: "Invalid", value: bool(scenario.state.invalid), category: "state" },
         { label: "Required", value: bool(scenario.state.required), category: "state" },
         { label: "Loop", value: bool(scenario.state.loop), category: "behavior" },
@@ -1082,6 +1087,7 @@ export function RadioGroupScenarioToolbar({ scenario }: { scenario: RadioGroupSc
       <ToolbarGroup title="State" value="state">
         <MenuCheckboxControl checked={scenario.state.controlled} label="Controlled" value="controlled" onChange={scenario.actions.setControlled} />
         <MenuCheckboxControl checked={scenario.state.disabled} label="Disabled" value="disabled" onChange={scenario.actions.setDisabled} />
+        <MenuCheckboxControl checked={scenario.state.readOnly} label="Read only" value="read-only" onChange={scenario.actions.setReadOnly} />
         <MenuCheckboxControl checked={scenario.state.required} label="Required" value="required" onChange={scenario.actions.setRequired} />
         <MenuCheckboxControl checked={scenario.state.invalid} label="Invalid" value="invalid" onChange={scenario.actions.setInvalid} />
         <MenuCheckboxControl checked={scenario.state.loop} label="Loop" value="loop" onChange={scenario.actions.setLoop} />
@@ -1322,6 +1328,7 @@ export function getRadioGroupSource(state: RadioGroupScenario["state"]) {
   const rootProps = [
     state.controlled ? `value="${state.value}"` : `defaultValue="email"`,
     state.disabled ? "disabled" : "",
+    state.readOnly ? "readOnly" : "",
     state.required ? "required" : "",
     state.invalid ? "invalid" : "",
     state.orientation !== "vertical" ? `orientation="${state.orientation}"` : "",

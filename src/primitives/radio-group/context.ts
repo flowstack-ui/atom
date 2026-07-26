@@ -13,6 +13,8 @@ export interface RadioGroupContextValue {
   form: string | undefined;
   /** Group-level disabled state. */
   disabled: boolean;
+  /** Group-level read-only state. */
+  readOnly: boolean;
   /** Group-level required state. */
   required: boolean;
   /** Group-level invalid state. */
