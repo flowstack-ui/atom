@@ -20,6 +20,8 @@ export interface CollapsibleRootProps extends CollapsibleRootNativeProps {
   onOpenChange?: (open: boolean) => void;
   /** Disable interaction. */
   disabled?: boolean;
+  /** Expansion axis exposed to styled layers. */
+  orientation?: "vertical" | "horizontal";
   /** Override the rendered element. */
   render?: RenderProp;
   /** Merge behavior props onto a single child element. */
@@ -39,6 +41,7 @@ export const CollapsibleRoot = forwardRef<HTMLDivElement, CollapsibleRootProps>(
       defaultOpen = false,
       onOpenChange,
       disabled = false,
+      orientation = "vertical",
       render,
       asChild,
       children,
@@ -85,6 +88,7 @@ export const CollapsibleRoot = forwardRef<HTMLDivElement, CollapsibleRootProps>(
       contentId,
       triggerId,
       disabled,
+      orientation,
     };
 
     const behaviorProps: Record<string, unknown> = {
@@ -92,6 +96,7 @@ export const CollapsibleRoot = forwardRef<HTMLDivElement, CollapsibleRootProps>(
       ref,
       "data-slot": dataSlot,
       "data-state": isOpen ? "open" : "closed",
+      "data-orientation": orientation,
       ...(disabled ? { "data-disabled": "" } : {}),
       className,
     };

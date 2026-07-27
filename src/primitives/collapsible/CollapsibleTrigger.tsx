@@ -47,7 +47,7 @@ export const CollapsibleTrigger = forwardRef<HTMLButtonElement, CollapsibleTrigg
     },
     ref,
   ) {
-    const { isOpen, onToggle, contentId, triggerId, disabled } =
+    const { isOpen, onToggle, contentId, triggerId, disabled, orientation } =
       useCollapsibleContext();
     const usesNativeButton = !asChild && (render === undefined || render === "button");
 
@@ -70,6 +70,7 @@ export const CollapsibleTrigger = forwardRef<HTMLButtonElement, CollapsibleTrigg
       id: triggerId,
       "data-slot": dataSlot,
       "data-state": isOpen ? "open" : "closed",
+      "data-orientation": orientation,
       ...(disabled ? { "data-disabled": "" } : {}),
       "aria-expanded": isOpen,
       "aria-controls": contentId,

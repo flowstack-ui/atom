@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, type RefObject } from "react";
 
-/** Keeps the shared disclosure height hook aligned with intrinsic content size. */
+/** Keeps shared disclosure size hooks aligned with intrinsic content size. */
 export function useMeasuredContentHeight(
   contentRef: RefObject<HTMLDivElement | null>,
   enabled: boolean,
@@ -13,6 +13,7 @@ export function useMeasuredContentHeight(
     if (!element || !enabled) return;
 
     element.style.setProperty("--content-height", `${element.scrollHeight}px`);
+    element.style.setProperty("--content-width", `${element.scrollWidth}px`);
   }, [contentRef, enabled]);
 
   useEffect(() => {

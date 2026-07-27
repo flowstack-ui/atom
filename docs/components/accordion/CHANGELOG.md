@@ -2,7 +2,13 @@
 
 ## Unreleased
 
-- No unreleased changes.
+## 0.14.0
+
+- Propagate `orientation` to Item, Header, Trigger, and Content and publish
+  live `--content-width` alongside `--content-height`.
+- Mark the open Trigger in non-collapsible single mode with
+  `aria-disabled="true"` and `data-locked-open` while keeping it focusable.
+- Add `Accordion.Content landmark={false}` to omit optional region landmarks.
 
 ## 0.13.1
 

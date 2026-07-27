@@ -2,7 +2,12 @@
 
 ## Unreleased
 
-- No unreleased changes.
+## 0.14.0
+
+- Added complete vertical/horizontal orientation metadata and live two-axis
+  measurement for Collapsible and Accordion Content.
+- Corrected Accordion non-collapsible open Trigger semantics while keeping it
+  focusable, and added optional Content landmark suppression.
 
 ## 0.13.1
 

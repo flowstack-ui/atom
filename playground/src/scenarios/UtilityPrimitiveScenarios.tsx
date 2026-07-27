@@ -947,6 +947,7 @@ function useSkipLinkScenario() {
 }
 
 function useCollapsibleScenario() {
+  const [orientation, setOrientation] = useState<Orientation>("vertical");
   const [controlled, setControlled] = useState(false);
   const [open, setOpen] = useState(false);
   const [disabled, setDisabled] = useState(false);
@@ -986,6 +987,7 @@ function useCollapsibleScenario() {
   return {
     state: {
       controlled,
+      orientation,
       open,
       disabled,
       keepMounted,
@@ -1004,6 +1006,7 @@ function useCollapsibleScenario() {
     },
     actions: {
       setControlled,
+      setOrientation,
       setOpen,
       setDisabled,
       setKeepMounted,
@@ -2084,7 +2087,7 @@ export function getUtilityPrimitiveCanvasFooter(
 
   if (scenarioId === "collapsible") {
     const state = scenarios.collapsible.state;
-    return `${state.open ? "Open" : "Closed"} | ${state.controlled ? "Controlled" : "Uncontrolled"} | Keep mounted ${state.keepMounted}`;
+    return `${state.open ? "Open" : "Closed"} | ${state.orientation} | ${state.controlled ? "Controlled" : "Uncontrolled"} | Keep mounted ${state.keepMounted}`;
   }
 
   if (scenarioId === "toolbar") {
@@ -2814,6 +2817,7 @@ ${targetSource}`;
     const rootProps = [
       state.controlled ? `open={open}` : `defaultOpen={false}`,
       state.disabled ? `disabled` : "",
+      state.orientation !== "vertical" ? `orientation="${state.orientation}"` : "",
       `onOpenChange={setOpen}`,
       state.customRootSlot ? `data-slot="collapsible-root-custom"` : "",
       state.propCheck ? `data-prop-check="root"` : "",
@@ -5959,6 +5963,7 @@ function getUtilityPrimitiveSections(
           { label: "Ref target", value: scenarios.collapsible.state.rootRef, category: "identity" },
           { label: "Mode", value: scenarios.collapsible.state.controlled ? "controlled" : "uncontrolled", category: "state" },
           { label: "Open", value: bool(scenarios.collapsible.state.open), category: "state" },
+          { label: "Orientation", value: root?.dataset.orientation ?? "not rendered", category: "state" },
           { label: "Disabled", value: bool(scenarios.collapsible.state.disabled), category: "state" },
           { label: "Composition", value: scenarios.collapsible.state.composition, category: "composition" },
         ],

@@ -55,14 +55,18 @@ async function withDom(element, run) {
   }
 }
 
-function setMeasuredHeight(element, getHeight) {
+function setMeasuredSize(element, getHeight, getWidth) {
   Object.defineProperty(element, "scrollHeight", {
     configurable: true,
     get: getHeight,
   });
+  Object.defineProperty(element, "scrollWidth", {
+    configurable: true,
+    get: getWidth,
+  });
 }
 
-test("Collapsible keeps --content-height synchronized with intrinsic resizing", async () => {
+test("Collapsible keeps content size variables synchronized with intrinsic resizing", async () => {
   await withDom(
     React.createElement(
       Collapsible.Root,
@@ -73,21 +77,25 @@ test("Collapsible keeps --content-height synchronized with intrinsic resizing", 
     async (dom, observers) => {
       const content = dom.window.document.querySelector('[data-slot="collapsible-content"]');
       let height = 120;
-      setMeasuredHeight(content, () => height);
+      let width = 280;
+      setMeasuredSize(content, () => height, () => width);
       const observer = observers.find((entry) => entry.targets.has(content));
       assert.ok(observer, "Collapsible Content is observed while mounted");
 
       await React.act(async () => observer.callback([]));
       assert.equal(content.style.getPropertyValue("--content-height"), "120px");
+      assert.equal(content.style.getPropertyValue("--content-width"), "280px");
 
       height = 208;
+      width = 416;
       await React.act(async () => observer.callback([]));
       assert.equal(content.style.getPropertyValue("--content-height"), "208px");
+      assert.equal(content.style.getPropertyValue("--content-width"), "416px");
     },
   );
 });
 
-test("Accordion keeps each --content-height synchronized with intrinsic resizing", async () => {
+test("Accordion keeps each content size variable synchronized with intrinsic resizing", async () => {
   await withDom(
     React.createElement(
       Accordion.Root,
@@ -106,16 +114,20 @@ test("Accordion keeps each --content-height synchronized with intrinsic resizing
     async (dom, observers) => {
       const content = dom.window.document.querySelector('[data-slot="accordion-content"]');
       let height = 96;
-      setMeasuredHeight(content, () => height);
+      let width = 320;
+      setMeasuredSize(content, () => height, () => width);
       const observer = observers.find((entry) => entry.targets.has(content));
       assert.ok(observer, "Accordion Content is observed while mounted");
 
       await React.act(async () => observer.callback([]));
       assert.equal(content.style.getPropertyValue("--content-height"), "96px");
+      assert.equal(content.style.getPropertyValue("--content-width"), "320px");
 
       height = 176;
+      width = 512;
       await React.act(async () => observer.callback([]));
       assert.equal(content.style.getPropertyValue("--content-height"), "176px");
+      assert.equal(content.style.getPropertyValue("--content-width"), "512px");
     },
   );
 });

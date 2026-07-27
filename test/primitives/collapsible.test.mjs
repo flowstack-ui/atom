@@ -22,6 +22,7 @@ test("Collapsible primitives render linked trigger and region", () => {
   );
 
   assert.match(html, /data-slot="collapsible-root"/);
+  assert.match(html, /data-orientation="vertical"/);
   assert.match(html, /data-state="open"/);
   assert.match(html, /class="root-class"/);
   assert.match(html, /data-slot="collapsible-trigger"/);
@@ -34,6 +35,19 @@ test("Collapsible primitives render linked trigger and region", () => {
   assert.match(html, /aria-labelledby="[^"]+-trigger"/);
   assert.match(html, /class="content-class"/);
   assert.match(html, /Content/);
+});
+
+test("Collapsible propagates horizontal orientation to every public part", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      CollapsibleRoot,
+      { defaultOpen: true, orientation: "horizontal" },
+      React.createElement(CollapsibleTrigger, null, "Toggle"),
+      React.createElement(CollapsibleContent, null, "Content"),
+    ),
+  );
+
+  assert.equal(html.match(/data-orientation="horizontal"/g)?.length, 3);
 });
 
 test("Collapsible disabled trigger exposes disabled semantics", () => {

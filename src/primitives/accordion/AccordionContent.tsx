@@ -19,7 +19,7 @@ import {
   type RenderProp,
 } from "../../utils/slot.js";
 import { useMeasuredContentHeight } from "../../utils/useMeasuredContentHeight.js";
-import { useAccordionItemContext } from "./context.js";
+import { useAccordionContext, useAccordionItemContext } from "./context.js";
 
 type AccordionContentNativeProps = NativeDivProps<"children" | "role">;
 
@@ -28,6 +28,8 @@ export interface AccordionContentProps extends AccordionContentNativeProps {
   children?: ReactNode;
   /** Keep content in DOM when closed. */
   keepMounted?: boolean;
+  /** Render Content as a labelled region landmark. */
+  landmark?: boolean;
   /** Override the rendered element. */
   render?: RenderProp;
   /** Merge behavior props onto a single child element. */
@@ -43,6 +45,7 @@ export const AccordionContent = forwardRef<HTMLDivElement, AccordionContentProps
     {
       children,
       keepMounted = false,
+      landmark = true,
       render,
       asChild,
       className,
@@ -54,6 +57,7 @@ export const AccordionContent = forwardRef<HTMLDivElement, AccordionContentProps
     ref,
   ) {
     const { isOpen, contentId, triggerId } = useAccordionItemContext();
+    const { orientation } = useAccordionContext();
     const contentRef = useRef<HTMLDivElement>(null);
     const composedRef = useMemo(
       () => composeRefs(contentRef, ref),
@@ -139,8 +143,9 @@ export const AccordionContent = forwardRef<HTMLDivElement, AccordionContentProps
       id: contentId,
       "data-slot": dataSlot,
       "data-state": dataState,
-      role: "region",
-      "aria-labelledby": triggerId,
+      "data-orientation": orientation,
+      role: landmark ? "region" : undefined,
+      "aria-labelledby": landmark ? triggerId : undefined,
       className,
       hidden: keepMounted && !isOpen && !isAnimating ? true : undefined,
       onAnimationEnd: composeEventHandlers(onAnimationEnd, handleAnimationEnd),
