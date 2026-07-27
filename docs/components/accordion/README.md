@@ -148,6 +148,10 @@ after any closing animation finishes.
 | --- | --- |
 | `--content-height` | Measured content height for consumer-owned animation |
 
+The measured height stays synchronized while Content is mounted when
+responsive reflow, fonts, images, or other intrinsic content changes alter the
+panel height.
+
 ## Examples
 
 ### Single Accordion

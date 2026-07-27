@@ -18,6 +18,7 @@ import {
   renderElement,
   type RenderProp,
 } from "../../utils/slot.js";
+import { useMeasuredContentHeight } from "../../utils/useMeasuredContentHeight.js";
 import { useAccordionItemContext } from "./context.js";
 
 type AccordionContentNativeProps = NativeDivProps<"children" | "role">;
@@ -98,14 +99,7 @@ export const AccordionContent = forwardRef<HTMLDivElement, AccordionContentProps
       if (isOpen || keepMounted) setIsMounted(true);
     }, [isOpen, keepMounted]);
 
-    useEffect(() => {
-      const element = contentRef.current;
-      if (!element) return;
-
-      if (isMounted) {
-        element.style.setProperty("--content-height", `${element.scrollHeight}px`);
-      }
-    }, [children, isMounted, isOpen]);
+    useMeasuredContentHeight(contentRef, isMounted, children);
 
     const handleAnimationEnd = useCallback(() => {
       setIsAnimating(false);
