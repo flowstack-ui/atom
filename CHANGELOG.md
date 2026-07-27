@@ -4,6 +4,12 @@
 
 - No unreleased changes.
 
+## 0.13.1
+
+- Kept Collapsible and Accordion `--content-height` synchronized with live
+  responsive and intrinsic content resizing so styled height animations do not
+  close from stale measurements.
+
 ## 0.13.0
 
 - Expanded BottomNavigation with explicit always/active/hidden label-visibility

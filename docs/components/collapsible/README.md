@@ -98,7 +98,9 @@ available for consumer-owned exit animation.
 | `[data-state]` | `"open" \| "closed"` |
 
 Content also sets `--content-height` to its measured height for optional
-consumer-owned animation.
+consumer-owned animation. The value stays synchronized while mounted when
+responsive reflow, fonts, images, or other intrinsic content changes alter the
+panel height.
 
 ## Examples
 

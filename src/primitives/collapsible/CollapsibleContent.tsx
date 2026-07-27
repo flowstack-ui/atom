@@ -18,6 +18,7 @@ import {
   renderElement,
   type RenderProp,
 } from "../../utils/slot.js";
+import { useMeasuredContentHeight } from "../../utils/useMeasuredContentHeight.js";
 import { useCollapsibleContext } from "./context.js";
 
 type CollapsibleContentNativeProps = NativeDivProps<"children" | "role">;
@@ -100,14 +101,7 @@ export const CollapsibleContent = forwardRef<HTMLDivElement, CollapsibleContentP
       }
     }, [isOpen, keepMounted]);
 
-    useEffect(() => {
-      const element = contentRef.current;
-      if (!element) return;
-
-      if (isMounted) {
-        element.style.setProperty("--content-height", `${element.scrollHeight}px`);
-      }
-    }, [children, isMounted, isOpen]);
+    useMeasuredContentHeight(contentRef, isMounted, children);
 
     const handleAnimationEnd = useCallback(() => {
       setIsAnimating(false);
