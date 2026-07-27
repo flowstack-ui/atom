@@ -1,6 +1,9 @@
+"use client";
+
 import { forwardRef, type ReactNode } from "react";
 import type { NativeHeadingProps } from "../../utils/dom.js";
 import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
+import { useAccordionContext } from "./context.js";
 
 export type AccordionHeaderLevel = "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 
@@ -34,10 +37,12 @@ export const AccordionHeader = forwardRef<HTMLHeadingElement, AccordionHeaderPro
     },
     ref,
   ) {
+    const { orientation } = useAccordionContext();
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref,
       "data-slot": dataSlot,
+      "data-orientation": orientation,
       className,
     };
 

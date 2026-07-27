@@ -67,6 +67,7 @@ export const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
       ref,
       "data-slot": dataSlot,
       "data-state": isOpen ? "open" : "closed",
+      "data-orientation": group.orientation,
       ...(disabled ? { "data-disabled": "" } : {}),
       className,
     };

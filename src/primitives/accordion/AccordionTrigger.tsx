@@ -51,6 +51,7 @@ export const AccordionTrigger = forwardRef<HTMLButtonElement, AccordionTriggerPr
   ) {
     const group = useAccordionContext();
     const item = useAccordionItemContext();
+    const isLockedOpen = !group.multiple && !group.collapsible && item.isOpen;
     const usesNativeButton = !asChild && (render === undefined || render === "button");
     const localRef = useRef<HTMLButtonElement>(null);
     const composedRef = useMemo(
@@ -115,10 +116,12 @@ export const AccordionTrigger = forwardRef<HTMLButtonElement, AccordionTriggerPr
       id: item.triggerId,
       "data-slot": dataSlot,
       "data-state": item.isOpen ? "open" : "closed",
+      "data-orientation": group.orientation,
       ...(item.disabled ? { "data-disabled": "" } : {}),
+      ...(isLockedOpen ? { "data-locked-open": "" } : {}),
       "aria-expanded": item.isOpen,
       "aria-controls": item.contentId,
-      "aria-disabled": item.disabled || undefined,
+      "aria-disabled": item.disabled || isLockedOpen || undefined,
       tabIndex: item.disabled ? undefined : 0,
       disabled: usesNativeButton ? item.disabled || undefined : undefined,
       onClick: composeEventHandlers(onClick, handleClick),

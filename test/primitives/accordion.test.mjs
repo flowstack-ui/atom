@@ -35,6 +35,7 @@ test("Accordion primitives render linked trigger and panel", () => {
   );
 
   assert.match(html, /data-slot="accordion-root"/);
+  assert.equal(html.match(/data-orientation="vertical"/g)?.length, 5);
   assert.match(html, /class="accordion-class"/);
   assert.match(html, /data-slot="accordion-item"/);
   assert.match(html, /data-state="open"/);
@@ -141,11 +142,62 @@ test("AccordionContent keepMounted renders closed content as hidden", () => {
   assert.match(html, /hidden=""/);
 });
 
+test("Accordion non-collapsible open trigger remains focusable and announces locked state", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      AccordionRoot,
+      { defaultValue: "shipping", collapsible: false },
+      React.createElement(
+        AccordionItem,
+        { value: "shipping" },
+        React.createElement(
+          AccordionHeader,
+          null,
+          React.createElement(AccordionTrigger, null, "Shipping"),
+        ),
+        React.createElement(AccordionContent, null, "Shipping content"),
+      ),
+    ),
+  );
+
+  assert.match(html, /data-locked-open=""/);
+  assert.match(html, /aria-disabled="true"/);
+  assert.match(html, /tabindex="0"/);
+  assert.doesNotMatch(html, /<button[^>]*disabled=""/);
+});
+
+test("AccordionContent can omit its optional region landmark", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      AccordionRoot,
+      { defaultValue: "shipping" },
+      React.createElement(
+        AccordionItem,
+        { value: "shipping" },
+        React.createElement(
+          AccordionHeader,
+          null,
+          React.createElement(AccordionTrigger, null, "Shipping"),
+        ),
+        React.createElement(
+          AccordionContent,
+          { landmark: false },
+          "Shipping content",
+        ),
+      ),
+    ),
+  );
+
+  assert.match(html, /data-slot="accordion-content"/);
+  assert.doesNotMatch(html, /role="region"/);
+  assert.doesNotMatch(html, /aria-labelledby=/);
+});
+
 test("AccordionRoot accepts local dir override", () => {
   const html = renderToStaticMarkup(
     React.createElement(
       AccordionRoot,
-      { orientation: "horizontal", dir: "rtl" },
+      { orientation: "horizontal", dir: "rtl", defaultValue: "shipping" },
       React.createElement(
         AccordionItem,
         { value: "shipping" },
@@ -160,6 +212,7 @@ test("AccordionRoot accepts local dir override", () => {
   );
 
   assert.match(html, /data-orientation="horizontal"/);
+  assert.equal(html.match(/data-orientation="horizontal"/g)?.length, 5);
   assert.match(html, /dir="rtl"/);
 });
 

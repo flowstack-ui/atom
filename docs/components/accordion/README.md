@@ -14,6 +14,7 @@ independent section to show or hide.
 - Supports single and multiple expanded items.
 - Supports controlled and uncontrolled state.
 - Supports horizontal and vertical arrow-key navigation.
+- Exposes orientation consistently on every behavioral part.
 - Links each trigger to its content with stable ARIA IDs.
 - Supports mounted and unmounted closed content.
 - Supports RTL-aware horizontal navigation through `dir` and
@@ -82,6 +83,7 @@ Header, Trigger, and Content. It renders a `div` by default.
 | `[data-slot]` | `"accordion-item"` |
 | `[data-state]` | `"open" \| "closed"` |
 | `[data-disabled]` | Present when the item or Root is disabled |
+| `[data-orientation]` | `"vertical" \| "horizontal"` |
 
 ### Header
 
@@ -97,6 +99,7 @@ fits the surrounding page heading structure.
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"accordion-header"` |
+| `[data-orientation]` | `"vertical" \| "horizontal"` |
 
 ### Trigger
 
@@ -114,13 +117,15 @@ to custom renders.
 | `role` | `"button"` for non-native renders |
 | `aria-expanded` | `"true"` when open, otherwise `"false"` |
 | `aria-controls` | ID of the associated Content |
-| `aria-disabled` | `"true"` when the Item or Root is disabled |
+| `aria-disabled` | `"true"` when disabled or open and not collapsible |
 
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"accordion-trigger"` |
 | `[data-state]` | `"open" \| "closed"` |
 | `[data-disabled]` | Present when the Item or Root is disabled |
+| `[data-locked-open]` | Present when an open single Item cannot collapse |
+| `[data-orientation]` | `"vertical" \| "horizontal"` |
 
 ### Content
 
@@ -133,6 +138,7 @@ after any closing animation finishes.
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 | `keepMounted` | `boolean` | `false` |
+| `landmark` | `boolean` | `true` |
 
 | ARIA attribute | Values |
 | --- | --- |
@@ -143,14 +149,17 @@ after any closing animation finishes.
 | --- | --- |
 | `[data-slot]` | `"accordion-content"` |
 | `[data-state]` | `"open" \| "closed"` |
+| `[data-orientation]` | `"vertical" \| "horizontal"` |
 
 | CSS variable | Description |
 | --- | --- |
 | `--content-height` | Measured content height for consumer-owned animation |
+| `--content-width` | Measured content width for consumer-owned animation |
 
-The measured height stays synchronized while Content is mounted when
+The measured height and width stay synchronized while Content is mounted when
 responsive reflow, fonts, images, or other intrinsic content changes alter the
-panel height.
+panel size. Set `landmark={false}` when a large or multiple-open Accordion
+would otherwise create excessive region landmarks.
 
 ## Examples
 
@@ -216,6 +225,10 @@ Accordion follows the
 Triggers are buttons with `aria-expanded` and `aria-controls`. Each Content is
 a labelled region, and each Header should use a heading level that fits the
 page. Keep the Trigger as the only interactive control inside its Header.
+When a single non-collapsible Item is open, its Trigger remains focusable and
+uses `aria-disabled="true"` to announce that it cannot close. Horizontal
+orientation is an Atom extension over the same heading/button/panel semantics;
+the current APG documents the vertically stacked presentation.
 
 | Key | Description |
 | --- | --- |

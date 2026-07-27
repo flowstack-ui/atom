@@ -17,6 +17,8 @@ export interface CollapsibleContextValue {
   triggerId: string;
   /** Whether interaction is disabled. */
   disabled: boolean;
+  /** Axis used by the styled layer for disclosure layout and motion. */
+  orientation: "vertical" | "horizontal";
 }
 
 const CollapsibleContext = createContext<CollapsibleContextValue | null>(null);

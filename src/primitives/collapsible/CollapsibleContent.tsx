@@ -53,7 +53,7 @@ export const CollapsibleContent = forwardRef<HTMLDivElement, CollapsibleContentP
     },
     ref,
   ) {
-    const { isOpen, contentId, triggerId } = useCollapsibleContext();
+    const { isOpen, contentId, triggerId, orientation } = useCollapsibleContext();
     const contentRef = useRef<HTMLDivElement>(null);
     const composedRef = useMemo(
       () => composeRefs(contentRef, ref),
@@ -141,6 +141,7 @@ export const CollapsibleContent = forwardRef<HTMLDivElement, CollapsibleContentP
       id: contentId,
       "data-slot": dataSlot,
       "data-state": dataState,
+      "data-orientation": orientation,
       role: "region",
       "aria-labelledby": triggerId,
       className,
