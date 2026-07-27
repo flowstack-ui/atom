@@ -4,6 +4,13 @@
 
 - No unreleased changes.
 
+## 0.12.0
+
+- Added a cancel-safe 700 ms touch/pen long press with 10 px movement tolerance,
+  native-contextmenu de-duplication, temporary pressed state, and full cleanup.
+- Inherited real item focus, disabled-item navigation, owner-aware Tab exit,
+  modal isolation, shared anatomy, mixed state, composition, and geometry.
+
 ## 0.3.4
 
 - Inherited corrected modal Menu scroll-lock compensation for documents that

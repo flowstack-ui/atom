@@ -6,6 +6,13 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Reconciled Menu, Dropdown Menu, Context Menu, Menubar, and Navigation Menu
+  workbook coverage with the hardened real-focus, complete-owner Tab exit,
+  disabled-item, shared anatomy, mixed-state, long-press, pointer-modality,
+  geometry, vertical-orientation, and reflow contracts. Prior unrelated manual
+  evidence is preserved; 96 affected or new rows are reopened until the
+  updated protocols and named browser/device matrix pass.
+
 - Expanded Radio Group with group-level read-only controls, inspected state,
   generated Source, and focus-preserving selection-lock evidence.
 

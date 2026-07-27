@@ -4,6 +4,15 @@
 
 - No unreleased changes.
 
+## 0.12.0
+
+- Added horizontal/vertical orientation with matching ARIA/data state and
+  orientation-aware top-level roving focus.
+- Added Trigger ref, `asChild`, and `render` composition and made hover
+  switching mouse-only while keeping click/tap universal.
+- Inherited real menu-item focus, complete shared anatomy, mixed state,
+  geometry variables, submenu corrections, and whole-Menubar Tab exit.
+
 ## 0.3.1
 
 - Inherited reliable Menu exit-presence cleanup for closed Menubar and submenu

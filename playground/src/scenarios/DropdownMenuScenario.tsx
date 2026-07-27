@@ -73,6 +73,7 @@ export function DropdownMenuScenarioCanvas({
         >
           Actions
         </DropdownMenuTrigger>
+        <DropdownMenu.Portal>
         <DropdownMenu.Content
           ariaLabel={state.contentAriaLabel ? "Project actions" : undefined}
           className="playground-menu-content"
@@ -86,11 +87,13 @@ export function DropdownMenuScenarioCanvas({
           onKeyDownCapture={actions.handleContentKeyDownCapture}
           ref={(element) => actions.markPartRef("content", element)}
         >
+          <DropdownMenu.Arrow className="playground-menu-arrow" data-playground-menu-arrow="" />
           <DropdownMenu.Group
             className="playground-menu-group"
             data-playground-menu-group=""
             {...partProps("group", { propCheck: state.propCheck, customSlot: state.customGroupSlot }, "dropdown-menu-group-custom")}
           >
+            <DropdownMenu.Label className="playground-menu-label" data-playground-menu-label="">Project commands</DropdownMenu.Label>
             <DropdownMenuActionItem
               mode={state.itemComposition}
               value="new"
@@ -132,7 +135,11 @@ export function DropdownMenuScenarioCanvas({
             onCheckedChange={actions.handleCheckboxChange}
           >
             <span>Show grid</span>
-            <span className="playground-menu-check" aria-hidden="true" />
+            <DropdownMenu.ItemIndicator className="playground-menu-check" data-playground-menu-indicator="" />
+          </DropdownMenu.CheckboxItem>
+          <DropdownMenu.CheckboxItem className="playground-menu-item" value="partial" checked="indeterminate" data-playground-menu-checkbox-mixed="">
+            <span>Partial selection</span>
+            <DropdownMenu.ItemIndicator className="playground-menu-check" />
           </DropdownMenu.CheckboxItem>
           <DropdownMenu.Separator
             className="playground-menu-separator"
@@ -145,6 +152,7 @@ export function DropdownMenuScenarioCanvas({
             {...partProps("radio-group", { propCheck: state.propCheck, customSlot: state.customRadioGroupSlot }, "dropdown-menu-radio-group-custom")}
             onValueChange={actions.handleRadioChange}
           >
+            <DropdownMenu.Label className="playground-menu-label">Density</DropdownMenu.Label>
             <DropdownMenu.RadioItem
               className="playground-menu-item"
               value="compact"
@@ -155,7 +163,7 @@ export function DropdownMenuScenarioCanvas({
               {...partProps("radio-item", { propCheck: state.propCheck, customSlot: state.customRadioItemSlot }, "dropdown-menu-radio-item-custom")}
             >
               <span>Compact</span>
-              <span className="playground-menu-radio" aria-hidden="true" />
+              <DropdownMenu.ItemIndicator className="playground-menu-radio" />
             </DropdownMenu.RadioItem>
             <DropdownMenu.RadioItem
               className="playground-menu-item"
@@ -165,7 +173,7 @@ export function DropdownMenuScenarioCanvas({
               data-playground-menu-radio-item=""
             >
               <span>Comfortable</span>
-              <span className="playground-menu-radio" aria-hidden="true" />
+              <DropdownMenu.ItemIndicator className="playground-menu-radio" />
             </DropdownMenu.RadioItem>
           </DropdownMenu.RadioGroup>
           <DropdownMenu.Separator
@@ -188,7 +196,7 @@ export function DropdownMenuScenarioCanvas({
               {...partProps("radio-item-secondary", { propCheck: state.propCheck, customSlot: state.customRadioItemSlot }, "dropdown-menu-radio-item-custom")}
             >
               <span>Dense compact</span>
-              <span className="playground-menu-radio" aria-hidden="true" />
+              <DropdownMenu.ItemIndicator className="playground-menu-radio" />
             </DropdownMenu.RadioItem>
             <DropdownMenu.RadioItem
               className="playground-menu-item"
@@ -198,7 +206,7 @@ export function DropdownMenuScenarioCanvas({
               data-playground-menu-radio-item-secondary=""
             >
               <span>Dense comfortable</span>
-              <span className="playground-menu-radio" aria-hidden="true" />
+              <DropdownMenu.ItemIndicator className="playground-menu-radio" />
             </DropdownMenu.RadioItem>
           </DropdownMenu.RadioGroup>
           {state.showSubmenu ? (
@@ -319,6 +327,7 @@ export function DropdownMenuScenarioCanvas({
             </>
           ) : null}
         </DropdownMenu.Content>
+        </DropdownMenu.Portal>
       </DropdownMenu.Root>
     </div>
   );
@@ -458,6 +467,9 @@ export function DropdownMenuScenarioAnatomy({
   openGroups: Record<string, boolean>;
   onOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
 }) {
+  const arrow = typeof document === "undefined" ? null : document.querySelector<HTMLElement>("[data-playground-menu-arrow]");
+  const label = typeof document === "undefined" ? null : document.querySelector<HTMLElement>("[data-playground-menu-label]");
+  const indicator = typeof document === "undefined" ? null : document.querySelector<HTMLElement>("[data-playground-menu-indicator]");
   const sections: AnatomySection[] = [
     {
       title: "Root",
@@ -518,6 +530,39 @@ export function DropdownMenuScenarioAnatomy({
         { label: "data-align", value: state.parts.contentAlign, category: "data" },
         { label: "data-positioned", value: state.parts.contentPositioned, category: "data" },
         { label: "data-prop-check", value: state.parts.contentDataPropCheck, category: "data" },
+      ],
+    },
+    {
+      title: "Arrow",
+      selector: "[data-playground-menu-arrow]",
+      inactive: !arrow,
+      summary: arrow?.dataset.side ?? "not rendered",
+      rows: [
+        { label: "Exists", value: arrow ? "yes" : "no", category: "presence" },
+        { label: "data-side", value: arrow?.dataset.side ?? "not rendered", category: "data" },
+        { label: "data-align", value: arrow?.dataset.align ?? "not rendered", category: "data" },
+      ],
+    },
+    {
+      title: "Label",
+      selector: "[data-playground-menu-label]",
+      inactive: !label,
+      summary: label?.id ?? "not rendered",
+      rows: [
+        { label: "Exists", value: label ? "yes" : "no", category: "presence" },
+        { label: "id", value: label?.id ?? "not rendered", category: "identity" },
+        { label: "data-slot", value: label?.dataset.slot ?? "not rendered", category: "data" },
+      ],
+    },
+    {
+      title: "Item Indicator",
+      selector: "[data-playground-menu-indicator]",
+      inactive: !indicator,
+      summary: indicator?.dataset.state ?? "not rendered",
+      rows: [
+        { label: "Exists", value: indicator ? "yes" : "no", category: "presence" },
+        { label: "data-state", value: indicator?.dataset.state ?? "not rendered", category: "data" },
+        { label: "data-slot", value: indicator?.dataset.slot ?? "not rendered", category: "data" },
       ],
     },
     {
@@ -752,7 +797,7 @@ export function DropdownMenuScenarioAnatomy({
 
   return (
     <AnatomyPanel
-      footer="13 groups"
+      footer={`${sections.length} groups`}
       onOpenGroupsChange={onOpenGroupsChange}
       openGroups={openGroups}
       sections={sections}

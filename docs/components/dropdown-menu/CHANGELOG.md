@@ -4,6 +4,14 @@
 
 - No unreleased changes.
 
+## 0.12.0
+
+- Inherited real item focus, disabled-item navigation, owner-aware Tab exit,
+  modal isolation, deferred touch dismissal, and corrected submenu focus.
+- Added Portal, Arrow, Label, ItemIndicator, mixed checkbox state, complete DOM
+  composition, and positioning variables through the shared Menu engine.
+- Click/tap opening now focuses the first item; ArrowUp still opens at the last.
+
 ## 0.3.4
 
 - Inherited corrected modal Menu scroll-lock compensation for documents that

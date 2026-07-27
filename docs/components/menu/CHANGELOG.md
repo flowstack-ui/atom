@@ -1,5 +1,15 @@
 # Menu Changelog
 
+## 0.12.0
+
+- Moved keyboard navigation to real item focus, kept disabled items navigable
+  but non-activatable, and made Tab/Shift+Tab exit the owning composite.
+- Added reason-aware focus restoration, modal isolation, deferred touch/pen
+  outside dismissal, and deterministic submenu focus return.
+- Added Portal, Arrow, Label, and ItemIndicator anatomy; mixed checkbox state;
+  complete retained-part composition; and menu geometry CSS variables.
+- Restricted submenu hover intent to mouse input.
+
 ## 0.6.7
 
 - Modal Menu now inherits root/body overflow locking without fixed-body

@@ -128,20 +128,17 @@ test("Menubar source keeps keyboard open and focus behavior stable", async () =>
     "utf8",
   );
 
-  assert.match(triggerSource, /menuCtx\.onInitialHighlight\("last"\)/);
-  assert.match(triggerSource, /menuCtx\.onInitialHighlight\(null\)/);
+  assert.match(triggerSource, /event\.key === "ArrowUp" \? "last" : "first"/);
+  assert.match(triggerSource, /menuCtx\.onHighlight\(null\)/);
   assert.match(triggerSource, /const useSafeLayoutEffect =/);
-  assert.match(triggerSource, /const \{ registerTrigger, unregisterTrigger \} = barCtx/);
-  assert.match(triggerSource, /useSafeLayoutEffect\(\(\) => \{\s*const el = buttonRef\.current/s);
-  assert.match(triggerSource, /\}, \[disabled, menuValue, registerTrigger, unregisterTrigger\]\)/);
-  assert.doesNotMatch(triggerSource, /barCtx\.registerTrigger\(menuValue, el\)/);
-  assert.doesNotMatch(triggerSource, /barCtx\.unregisterTrigger\(menuValue\)/);
+  assert.match(triggerSource, /barCtx\.registerTrigger\(menuValue, element\)/);
+  assert.match(triggerSource, /barCtx\.unregisterTrigger\(menuValue\)/);
   assert.doesNotMatch(triggerSource, /requestAnimationFrame\(\(\) => \{\s*const values = menuCtx\.getItemValues/s);
-  assert.match(triggerSource, /data-disabled=\{disabled \? "" : undefined\}/);
-  assert.match(triggerSource, /role="menuitem"/);
-  assert.match(triggerSource, /aria-controls=\{menuCtx\.menuId\}/);
+  assert.match(triggerSource, /"data-disabled": disabled \? "" : undefined/);
+  assert.match(triggerSource, /role: "menuitem"/);
+  assert.match(triggerSource, /"aria-controls": menuCtx\.menuId/);
   assert.match(triggerSource, /"data-slot": dataSlot = "menubar-trigger"/);
-  assert.match(triggerSource, /data-slot=\{dataSlot\}/);
+  assert.match(triggerSource, /"data-slot": dataSlot/);
   assert.match(menuSource, /closeOnSelect = true/);
   assert.match(menuSource, /loop = true/);
   assert.match(menuSource, /closeOnEscape = true/);
@@ -158,6 +155,8 @@ test("Menubar source keeps keyboard open and focus behavior stable", async () =>
   assert.match(rootSource, /dir=\{dir\}/);
   assert.match(rootSource, /"data-slot": dataSlot = "menubar"/);
   assert.match(rootSource, /data-slot=\{dataSlot\}/);
+  assert.match(rootSource, /aria-orientation=\{orientation\}/);
+  assert.match(rootSource, /data-orientation=\{orientation\}/);
   assert.doesNotMatch(rootSource, /compareDocumentPosition/);
   assert.match(rootSource, /setFocusedValue\(\(currentValue\) => \(currentValue === value \? null : currentValue\)\)/);
   assert.match(rootSource, /const focusFrameRef = useRef<number \| null>\(null\)/);
@@ -169,8 +168,8 @@ test("Menubar source keeps keyboard open and focus behavior stable", async () =>
   assert.doesNotMatch(rootSource, /getTriggerElement\(nextValue\)\?\.focus\(\)/);
   assert.match(rootSource, /const openAdjacentMenu = useCallback/);
   assert.match(contentSource, /const \{ dir, openAdjacentMenu \} = barCtx/);
-  assert.match(triggerSource, /barCtx\.dir === "rtl" \? "prev" : "next"/);
-  assert.match(triggerSource, /barCtx\.dir === "rtl" \? "next" : "prev"/);
+  assert.match(triggerSource, /const horizontalPrevious = barCtx\.dir === "rtl"/);
+  assert.match(triggerSource, /const horizontalNext = barCtx\.dir === "rtl"/);
   assert.match(contentSource, /const nextKey = dir === "rtl" \? "ArrowLeft" : "ArrowRight"/);
   assert.match(contentSource, /const previousKey = dir === "rtl" \? "ArrowRight" : "ArrowLeft"/);
   assert.match(contentSource, /openAdjacentMenu\(menuValue, "prev"\)/);
@@ -178,7 +177,7 @@ test("Menubar source keeps keyboard open and focus behavior stable", async () =>
   assert.match(contentSource, /openAdjacentMenu\(menuValue, "next"\)/);
   assert.doesNotMatch(contentSource, /\},\s*\[barCtx, menuCtx, menuValue\]/);
   assert.doesNotMatch(contentSource, /barCtx\.onMenuClose\(\);\s*barCtx\.focusAdjacentTrigger/s);
-  assert.match(sharedContentSource, /useFocusRestore\(isOpen, \(\) => triggerRef\.current\)/);
-  assert.match(focusSource, /getRestoreElement\?: \(\) => HTMLElement \| null/);
-  assert.match(focusSource, /const restoreElement =\s*getRestoreElementRef\.current\?\.\(\) \?\? previousElementRef\.current/s);
+  assert.match(sharedContentSource, /getTabbableOutsideBoundary/);
+  assert.match(sharedContentSource, /onClose\("tab"\)/);
+  assert.match(focusSource, /export function getTabbableOutsideBoundary/);
 });

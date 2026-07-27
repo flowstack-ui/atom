@@ -261,8 +261,8 @@ test("source exposes refs and client boundaries on public wrappers", async () =>
   assert.match(menuSubContentSource, /forwardRef<\s*HTMLDivElement,\s*MenuSubContentProps\s*>/);
   assert.match(menuSubContentSource, /composeRefs\(refs\.setFloating, internalRef, presenceRef, ref\)/);
   assert.match(menubarRootSource, /forwardRef<\s*HTMLDivElement,\s*MenubarRootProps\s*>/);
-  assert.match(menubarTriggerSource, /forwardRef<\s*HTMLButtonElement,\s*MenubarTriggerProps\s*>/);
-  assert.match(menubarTriggerSource, /composeRefs\(buttonRef, ref\)/);
+  assert.match(menubarTriggerSource, /forwardRef<\s*HTMLElement,\s*MenubarTriggerProps\s*>/);
+  assert.match(menubarTriggerSource, /composeRefs\(triggerRef, forwardedRef\)/);
   assert.match(menubarContentSource, /forwardRef<\s*HTMLDivElement,\s*MenubarContentProps\s*>/);
   assert.match(menubarContentSource, /<MenuContent\s*\{\.\.\.restProps\}\s*ref=\{ref\}/s);
 });

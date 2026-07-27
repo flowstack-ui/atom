@@ -818,10 +818,14 @@ export type {
 } from "./primitives/modal/index.js";
 export {
   MenuContextProvider,
+  MenuArrow,
   MenuCheckboxItem,
   MenuContent,
   MenuGroup,
   MenuItem,
+  MenuItemIndicator,
+  MenuLabel,
+  MenuPortal,
   MenuRadioGroup,
   MenuRadioGroupContextProvider,
   MenuRadioItem,
@@ -837,11 +841,17 @@ export {
 } from "./primitives/menu/index.js";
 export type {
   MenuContextValue,
+  MenuCloseReason,
   MenuAlign,
+  MenuArrowProps,
   MenuCheckboxItemProps,
   MenuContentProps,
   MenuGroupProps,
   MenuItemProps,
+  MenuItemIndicatorProps,
+  MenuItemCheckedState,
+  MenuLabelProps,
+  MenuPortalProps,
   MenuRadioGroupProps,
   MenuRadioGroupContextValue,
   MenuRadioItemProps,

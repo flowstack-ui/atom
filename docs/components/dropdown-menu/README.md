@@ -13,7 +13,7 @@ NavList are sufficient.
 ## Features
 
 - Supports controlled state, modal behavior, looping, and dismissal options.
-- Opens from pointer or keyboard with the expected initial highlight.
+- Opens from pointer or keyboard with real focus on the expected first/last item.
 - Includes actions, checkbox/radio choices, groups, separators, and submenus.
 - Provides typeahead, focus restoration, collision-aware positioning, and RTL submenus.
 - Registers portalled content with parent modal focus scopes.
@@ -29,10 +29,13 @@ import { DropdownMenu } from "@flowstack-ui/atom";
 ```tsx
 <DropdownMenu.Root>
   <DropdownMenu.Trigger />
+  <DropdownMenu.Portal>
   <DropdownMenu.Content>
+    <DropdownMenu.Arrow />
     <DropdownMenu.Group>
+      <DropdownMenu.Label />
       <DropdownMenu.Item />
-      <DropdownMenu.CheckboxItem />
+      <DropdownMenu.CheckboxItem><DropdownMenu.ItemIndicator /></DropdownMenu.CheckboxItem>
       <DropdownMenu.RadioGroup>
         <DropdownMenu.RadioItem />
       </DropdownMenu.RadioGroup>
@@ -45,6 +48,7 @@ import { DropdownMenu } from "@flowstack-ui/atom";
       </DropdownMenu.SubContent>
     </DropdownMenu.Sub>
   </DropdownMenu.Content>
+  </DropdownMenu.Portal>
 </DropdownMenu.Root>
 ```
 
@@ -66,9 +70,8 @@ Owns shared menu state and renders no wrapper.
 
 ### Trigger
 
-Renders a native button by default. Pointer clicks toggle without an initial
-highlight; Enter, Space, and ArrowDown start at the first item, while ArrowUp
-starts at the last.
+Renders a native button by default. Click/tap, Enter, Space, and ArrowDown open
+with focus on the first item; ArrowUp opens with focus on the last.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -92,8 +95,8 @@ starts at the last.
 
 ### Content
 
-Renders the portalled vertical menu, positions it against Trigger, manages
-highlight/typeahead, and restores focus on close.
+Renders the portalled vertical menu, positions it against Trigger, manages real
+item focus/typeahead, and applies reason-aware final focus.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -103,6 +106,8 @@ highlight/typeahead, and restores focus on close.
 | `loop` | `boolean` | Root `loop` |
 | `ariaLabel` | `string` | - |
 | `onKeyDownCapture` | `KeyboardEventHandler` | - |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
 
 | ARIA attribute | Values |
 | --- | --- |
@@ -166,7 +171,7 @@ Represents an independent menu choice and stays open by default.
 | --- | --- | --- |
 | `value` | `string` | required |
 | `textValue` | `string` | Text child or value |
-| `checked` | `boolean` | `false` |
+| `checked` | `boolean \| "indeterminate"` | `false` |
 | `onCheckedChange` | `(checked: boolean) => void` | - |
 | `disabled` | `boolean` | `false` |
 | `closeOnSelect` | `boolean` | `false` |
@@ -304,6 +309,11 @@ keys in RTL.
 The entry point also exports shared Menu context hooks for advanced custom
 parts. Prefer the namespaced parts for the complete behavior above.
 
+`Portal`, `Arrow`, `Label`, and `ItemIndicator` use the shared Menu contract.
+All retained DOM parts accept refs, native props, `asChild`, and `render`.
+Content and SubContent expose the `--atom-menu-available-*`,
+`--atom-menu-trigger-*`, and `--atom-menu-transform-origin` variables.
+
 ## Examples
 
 ### Project Actions
@@ -353,13 +363,14 @@ export function ViewOptions() {
 
 DropdownMenu follows the
 [WAI-ARIA Menu pattern](https://www.w3.org/WAI/ARIA/apg/patterns/menubar/).
-Trigger provides the menu popup relationship, Content owns focus, and disabled
-entries are skipped. Use visible Trigger text that describes the menu.
+Trigger provides the menu popup relationship. Content moves real focus among
+all entries; disabled entries are announced but cannot activate. Use visible
+Trigger text that describes the menu.
 
 | Key | Description |
 | --- | --- |
-| `Enter` / `Space` / `ArrowDown` | Opens and highlights the first enabled entry. |
-| `ArrowUp` | Opens and highlights the last enabled entry. |
+| `Enter` / `Space` / `ArrowDown` | Opens and focuses the first entry. |
+| `ArrowUp` | Opens and focuses the last entry. |
 | `ArrowDown` / `ArrowUp` | Moves through entries while open. |
 | `Home` / `End` | Moves to the first or last entry. |
 | Printable character | Moves by typeahead label. |
@@ -367,7 +378,7 @@ entries are skipped. Use visible Trigger text that describes the menu.
 | `ArrowLeft` | Closes a submenu in LTR; opens it in RTL. |
 | `Enter` / `Space` | Activates the highlighted entry. |
 | `Escape` | Closes the topmost submenu or menu. |
-| `Tab` | Closes and restores focus to Trigger. |
+| `Tab` / `Shift+Tab` | Closes and moves after/before Trigger in document order. |
 
 ## Changelog
 

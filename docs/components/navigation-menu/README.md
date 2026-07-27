@@ -13,7 +13,7 @@ not a menu-role widget.
 ## Features
 
 - Supports root and nested navigation menu scopes.
-- Supports delayed open, skip delay, pointer open, click open, and keyboard open.
+- Supports mouse-hover delay, click/tap, and keyboard open. Touch/pen never start hover timers.
 - Provides a shared viewport that adapts to the active content size.
 - Provides indicator geometry CSS variables for styling arrows or active markers.
 - Supports active links and `aria-current`.
@@ -314,6 +314,11 @@ default parts.
 ## Accessibility
 
 `Root` renders a `nav` landmark with an accessible name. Triggers expose expanded state and controlled content IDs. Links use native anchor semantics and `aria-current="page"` when active. Text direction can be set with `dir` on `Root` or inherited from `Direction.Provider`.
+
+Pointer hover timing is restricted to mouse input. Touch and pen use the same
+click disclosure path as other directly activated controls. Responsive
+replacement with a Drawer is an application/styled-layer decision; Atom does
+not change this native disclosure navigation into command-menu semantics.
 
 NavigationMenu follows the WAI-ARIA APG
 [disclosure navigation example](https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/examples/disclosure-navigation/)

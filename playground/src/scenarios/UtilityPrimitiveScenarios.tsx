@@ -61,6 +61,7 @@ type MenubarSide = "bottom" | "top" | "right" | "left";
 type MenubarAlign = "start" | "center" | "end";
 type MenubarValueOption = "none" | "file" | "view";
 type MenubarDirectionMode = "provider" | "root";
+type MenubarOrientation = "horizontal" | "vertical";
 
 type LogEntry = {
   id: number;
@@ -381,6 +382,7 @@ function useMenubarScenario() {
   const [density, setDensity] = useState("comfortable");
   const [dir, setDir] = useState<TextDirection>("ltr");
   const [dirMode, setDirMode] = useState<MenubarDirectionMode>("provider");
+  const [orientation, setOrientation] = useState<MenubarOrientation>("horizontal");
   const [side, setSide] = useState<MenubarSide>("bottom");
   const [align, setAlign] = useState<MenubarAlign>("start");
   const [sideOffset, setSideOffset] = useState(4);
@@ -423,6 +425,7 @@ function useMenubarScenario() {
       density,
       dir,
       dirMode,
+      orientation,
       side,
       align,
       sideOffset,
@@ -455,6 +458,7 @@ function useMenubarScenario() {
       setDensity,
       setDir,
       setDirMode,
+      setOrientation,
       setSide,
       setAlign,
       setSideOffset,
@@ -1521,6 +1525,7 @@ export function UtilityPrimitiveScenarioToolbar({
         <ToolbarGroup title="Popup" value="popup">
           <MenuRadioControl label="Direction" options={directionOptions} value={scenario.state.dir} onChange={scenario.actions.setDir} />
           <MenuRadioControl label="Direction mode" options={menubarDirectionModeOptions} value={scenario.state.dirMode} onChange={scenario.actions.setDirMode} />
+          <MenuRadioControl label="Orientation" options={["horizontal", "vertical"]} value={scenario.state.orientation} onChange={(value) => scenario.actions.setOrientation(value as MenubarOrientation)} />
           <MenuSection label="Content">
             <MenuCheckboxControl checked={scenario.state.contentAriaLabel} label="Content ariaLabel" value="content-aria-label" onChange={scenario.actions.setContentAriaLabel} />
           </MenuSection>
@@ -2025,7 +2030,7 @@ export function getUtilityPrimitiveCanvasFooter(
 
   if (scenarioId === "menubar") {
     const state = scenarios.menubar.state;
-    return `Open ${state.value ?? "none"} | Loop ${state.loop} | Density ${state.density}`;
+    return `Open ${state.value ?? "none"} | ${state.orientation} | Loop ${state.loop} | Density ${state.density}`;
   }
 
   if (scenarioId === "navigation-menu") {
@@ -2285,6 +2290,7 @@ ${indent(triggerSource, 2)}
       !state.controlled && state.defaultValue !== "none" ? `defaultValue="${state.defaultValue}"` : null,
       state.loop ? null : "loop={false}",
       state.dirMode === "root" ? `dir="${state.dir}"` : null,
+      state.orientation !== "horizontal" ? `orientation="${state.orientation}"` : null,
       state.customRootSlot ? `data-slot="menubar-root-custom"` : null,
       state.propCheck ? `data-prop-check="root"` : null,
       "onValueChange={handleValueChange}",
@@ -2325,11 +2331,14 @@ ${indent(triggerSource, 2)}
     return `${directionOpen}<Menubar.Root${rootProps}>
   <Menubar.Menu${menuProps}>
     <Menubar.Trigger${triggerProps}>File</Menubar.Trigger>
+    <Menubar.Portal>
     <Menubar.Content${contentProps}>
+      <Menubar.Arrow />
       <Menubar.Group${sourceProps([
         state.customGroupSlot ? `data-slot="menubar-group-custom"` : null,
         state.propCheck ? `data-prop-check="group"` : null,
       ])}>
+        <Menubar.Label>File commands</Menubar.Label>
         <Menubar.Item${sourceProps([
           state.customItemSlot ? `data-slot="menubar-item-custom"` : null,
           state.propCheck ? `data-prop-check="item"` : null,
@@ -2347,6 +2356,7 @@ ${indent(triggerSource, 2)}
         state.propCheck ? `data-prop-check="checkbox-item"` : null,
       ])}>
         Show grid
+        <Menubar.ItemIndicator />
       </Menubar.CheckboxItem>
       <Menubar.Sub>
         <Menubar.SubTrigger${sourceProps([
@@ -2363,25 +2373,31 @@ ${indent(triggerSource, 2)}
         </Menubar.SubContent>
       </Menubar.Sub>
     </Menubar.Content>
+    </Menubar.Portal>
   </Menubar.Menu>
   <Menubar.Menu${viewMenuProps}>
     <Menubar.Trigger>View</Menubar.Trigger>
+    <Menubar.Portal>
     <Menubar.Content${viewContentProps}>
+      <Menubar.Arrow />
       <Menubar.RadioGroup${sourceProps([
         "value={density}",
         state.customRadioGroupSlot ? `data-slot="menubar-radio-group-custom"` : null,
         state.propCheck ? `data-prop-check="radio-group"` : null,
       ])}>
+        <Menubar.Label>Density</Menubar.Label>
         <Menubar.RadioItem${sourceProps([
           `value="compact"`,
           state.customRadioItemSlot ? `data-slot="menubar-radio-item-custom"` : null,
           state.propCheck ? `data-prop-check="radio-item"` : null,
         ])}>
           Compact
+          <Menubar.ItemIndicator />
         </Menubar.RadioItem>
         <Menubar.RadioItem value="comfortable">Comfortable</Menubar.RadioItem>
       </Menubar.RadioGroup>
     </Menubar.Content>
+    </Menubar.Portal>
   </Menubar.Menu>
 </Menubar.Root>${directionClose}`;
   }
@@ -3456,6 +3472,7 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
     ...partProps("root", { customSlot: scenario.state.customRootSlot, propCheck: scenario.state.propCheck }, "menubar-root-custom"),
     loop: scenario.state.loop,
     dir: scenario.state.dirMode === "root" ? scenario.state.dir : undefined,
+    orientation: scenario.state.orientation,
     onValueChange: scenario.actions.handleValueChange,
     ...(scenario.state.controlled
       ? { value: scenario.state.value }
@@ -3483,6 +3500,7 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
         >
           File
         </Menubar.Trigger>
+        <Menubar.Portal>
         <Menubar.Content
           className="playground-menu-content"
           ariaLabel={scenario.state.contentAriaLabel ? "File menu" : undefined}
@@ -3493,11 +3511,13 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
           sideOffset={scenario.state.sideOffset}
           {...partProps("content", { customSlot: scenario.state.customContentSlot, propCheck: scenario.state.propCheck }, "menubar-content-custom")}
         >
+          <Menubar.Arrow className="playground-menu-arrow" data-playground-menubar-arrow="" />
           <Menubar.Group
             className="playground-menu-group"
             data-playground-menubar-group=""
             {...partProps("group", { customSlot: scenario.state.customGroupSlot, propCheck: scenario.state.propCheck }, "menubar-group-custom")}
           >
+            <Menubar.Label className="playground-menu-label" data-playground-menubar-label="">File commands</Menubar.Label>
             <Menubar.Item
               className="playground-menu-item"
               value="new"
@@ -3532,7 +3552,7 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
             onCheckedChange={scenario.actions.setShowGrid}
           >
             <span>Show grid</span>
-            <span className="playground-menu-check" aria-hidden="true" />
+            <Menubar.ItemIndicator className="playground-menu-check" data-playground-menubar-indicator="" />
           </Menubar.CheckboxItem>
           <Menubar.Separator className="playground-menu-separator" data-playground-menubar-sub-separator="" />
           <Menubar.Sub>
@@ -3567,6 +3587,7 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
             </Menubar.SubContent>
           </Menubar.Sub>
         </Menubar.Content>
+        </Menubar.Portal>
       </Menubar.Menu>
       <Menubar.Menu
         value="view"
@@ -3582,6 +3603,7 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
         >
           View
         </Menubar.Trigger>
+        <Menubar.Portal>
         <Menubar.Content
           className="playground-menu-content"
           ariaLabel={scenario.state.contentAriaLabel ? "View menu" : undefined}
@@ -3592,6 +3614,7 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
           sideOffset={scenario.state.sideOffset}
           {...partProps("content-secondary", { customSlot: scenario.state.customContentSlot, propCheck: scenario.state.propCheck }, "menubar-content-custom")}
         >
+          <Menubar.Arrow className="playground-menu-arrow" />
           <Menubar.RadioGroup
             className="playground-menu-radio-group"
             value={scenario.state.density}
@@ -3599,6 +3622,7 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
             {...partProps("radio-group", { customSlot: scenario.state.customRadioGroupSlot, propCheck: scenario.state.propCheck }, "menubar-radio-group-custom")}
             onValueChange={scenario.actions.setDensity}
           >
+            <Menubar.Label className="playground-menu-label">Density</Menubar.Label>
             <Menubar.RadioItem
               className="playground-menu-item"
               value="compact"
@@ -3607,14 +3631,15 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
               {...partProps("radio-item", { customSlot: scenario.state.customRadioItemSlot, propCheck: scenario.state.propCheck }, "menubar-radio-item-custom")}
             >
               <span>Compact</span>
-              <span className="playground-menu-radio" aria-hidden="true" />
+              <Menubar.ItemIndicator className="playground-menu-radio" />
             </Menubar.RadioItem>
             <Menubar.RadioItem className="playground-menu-item" value="comfortable" data-playground-menubar-radio="" data-playground-inspect="">
               <span>Comfortable</span>
-              <span className="playground-menu-radio" aria-hidden="true" />
+              <Menubar.ItemIndicator className="playground-menu-radio" />
             </Menubar.RadioItem>
           </Menubar.RadioGroup>
         </Menubar.Content>
+        </Menubar.Portal>
       </Menubar.Menu>
     </Menubar.Root>
   );
@@ -5410,6 +5435,9 @@ function getUtilityPrimitiveSections(
     const item = document.querySelector<HTMLElement>("[data-playground-menubar-item-new]");
     const checked = document.querySelector<HTMLElement>("[data-playground-menubar-checkbox]");
     const separator = document.querySelector<HTMLElement>("[data-playground-menubar-separator]");
+    const arrow = document.querySelector<HTMLElement>("[data-playground-menubar-arrow]");
+    const label = document.querySelector<HTMLElement>("[data-playground-menubar-label]");
+    const indicator = document.querySelector<HTMLElement>("[data-playground-menubar-indicator]");
     const subTrigger = document.querySelector<HTMLElement>("[data-playground-menubar-sub-trigger]");
     const subContent = document.querySelector<HTMLElement>("[data-playground-menubar-sub-content]");
     const radio = document.querySelector<HTMLElement>("[data-playground-menubar-radio][data-checked]");
@@ -5424,6 +5452,7 @@ function getUtilityPrimitiveSections(
           { label: "Controlled value", value: scenarios.menubar.state.value ?? "none", category: "state" },
           { label: "Default value", value: scenarios.menubar.state.defaultValue, category: "state" },
           { label: "Loop", value: bool(scenarios.menubar.state.loop), category: "behavior" },
+          { label: "Orientation", value: root?.getAttribute("aria-orientation") ?? "not rendered", category: "aria" },
           { label: "Direction", value: scenarios.menubar.state.dir, category: "state" },
           { label: "Direction mode", value: scenarios.menubar.state.dirMode, category: "state" },
           { label: "DOM dir", value: root?.getAttribute("dir") ?? "not rendered", category: "identity" },
@@ -5503,8 +5532,11 @@ function getUtilityPrimitiveSections(
         ],
       },
       { title: "Group", selector: "[data-playground-menubar-group]", inactive: !group, summary: group?.getAttribute("role") ?? "not rendered", rows: [{ label: "Exists", value: bool(!!group), category: "presence" }, { label: "role", value: group?.getAttribute("role") ?? "not rendered", category: "aria" }, { label: "data-slot", value: group?.dataset.slot ?? "not rendered", category: "data" }] },
+      { title: "Arrow", selector: "[data-playground-menubar-arrow]", inactive: !arrow, summary: arrow?.dataset.side ?? "not rendered", rows: [{ label: "Exists", value: bool(!!arrow), category: "presence" }, { label: "data-side", value: arrow?.dataset.side ?? "not rendered", category: "data" }, { label: "data-align", value: arrow?.dataset.align ?? "not rendered", category: "data" }] },
+      { title: "Label", selector: "[data-playground-menubar-label]", inactive: !label, summary: label?.id ?? "not rendered", rows: [{ label: "Exists", value: bool(!!label), category: "presence" }, { label: "id", value: label?.id ?? "not rendered", category: "identity" }, { label: "Group labelled by", value: group?.getAttribute("aria-labelledby") ?? "not rendered", category: "aria" }] },
       { title: "Item", selector: "[data-playground-menubar-item-new]", inactive: !item, summary: item?.dataset.value ?? "not rendered", rows: [{ label: "Exists", value: bool(!!item), category: "presence" }, { label: "role", value: item?.getAttribute("role") ?? "not rendered", category: "aria" }, { label: "data-value", value: item?.dataset.value ?? "not rendered", category: "data" }, { label: "data-slot", value: item?.dataset.slot ?? "not rendered", category: "data" }] },
       { title: "Checkbox Item", selector: "[data-playground-menubar-checkbox]", inactive: !checked, summary: scenarios.menubar.state.showGrid ? "checked" : "unchecked", rows: [{ label: "Exists", value: bool(!!checked), category: "presence" }, { label: "Checked", value: bool(scenarios.menubar.state.showGrid), category: "state" }, { label: "aria-checked", value: checked?.getAttribute("aria-checked") ?? "not rendered", category: "aria" }, { label: "data-slot", value: checked?.dataset.slot ?? "not rendered", category: "data" }] },
+      { title: "Item Indicator", selector: "[data-playground-menubar-indicator]", inactive: !indicator, summary: indicator?.dataset.state ?? "not rendered", rows: [{ label: "Exists", value: bool(!!indicator), category: "presence" }, { label: "data-state", value: indicator?.dataset.state ?? "not rendered", category: "data" }, { label: "data-slot", value: indicator?.dataset.slot ?? "not rendered", category: "data" }] },
       { title: "Radio Group", selector: "[data-playground-menubar-radio-group]", inactive: !radio, summary: scenarios.menubar.state.density, rows: [{ label: "Value", value: scenarios.menubar.state.density, category: "state" }] },
       { title: "Radio Item", selector: "[data-playground-menubar-radio][data-checked]", inactive: !radio, summary: scenarios.menubar.state.density, rows: [{ label: "Exists", value: bool(!!radio), category: "presence" }, { label: "Value", value: scenarios.menubar.state.density, category: "state" }, { label: "aria-checked", value: radio?.getAttribute("aria-checked") ?? "not rendered", category: "aria" }, { label: "data-slot", value: radio?.dataset.slot ?? "not rendered", category: "data" }] },
       { title: "Separator", selector: "[data-playground-menubar-separator]", inactive: !separator, summary: separator?.getAttribute("role") ?? "not rendered", rows: [{ label: "Exists", value: bool(!!separator), category: "presence" }, { label: "role", value: separator?.getAttribute("role") ?? "not rendered", category: "aria" }, { label: "data-slot", value: separator?.dataset.slot ?? "not rendered", category: "data" }] },

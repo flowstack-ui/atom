@@ -4,6 +4,13 @@
 
 - No unreleased changes.
 
+## 0.12.0
+
+- Restricted delayed hover open/close timers to mouse input so touch and pen
+  use only the existing click/tap disclosure path.
+- Requalified native navigation semantics, orientation, RTL, direct links,
+  viewport geometry, indicator geometry, nested scopes, and focus-out close.
+
 ## 0.2.0
 
 - Fixed `NavigationMenu.Indicator` and `NavigationMenu.Sub` `asChild`

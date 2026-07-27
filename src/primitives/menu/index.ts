@@ -1,15 +1,30 @@
 export {
   MenuContextProvider,
+  MenuContentContextProvider,
+  MenuPortalContextProvider,
   MenuRadioGroupContextProvider,
+  MenuGroupContextProvider,
+  MenuItemStateContextProvider,
   MenuSubContextProvider,
   useMenuContext,
+  useMenuContentContext,
+  useMenuPortalContext,
   useMenuRadioGroupContext,
+  useOptionalMenuRadioGroupContext,
+  useMenuGroupContext,
+  useMenuItemStateContext,
   useMenuSubContext,
 } from "./context.js";
 export type {
   MenuContextValue,
+  MenuContentContextValue,
+  MenuPortalContextValue,
+  MenuCloseReason,
   MenuInitialHighlight,
   MenuRadioGroupContextValue,
+  MenuGroupContextValue,
+  MenuItemCheckedState,
+  MenuItemStateContextValue,
   MenuSubContextValue,
 } from "./context.js";
 export { MenuRoot } from "./MenuRoot.js";
@@ -20,6 +35,10 @@ export type {
   MenuContentProps,
   MenuSide,
 } from "./MenuContent.js";
+export { MenuPortal } from "./MenuPortal.js";
+export type { MenuPortalProps } from "./MenuPortal.js";
+export { MenuArrow } from "./MenuArrow.js";
+export type { MenuArrowProps } from "./MenuArrow.js";
 export { MenuItem } from "./MenuItem.js";
 export type { MenuItemProps } from "./MenuItem.js";
 export { MenuCheckboxItem } from "./MenuCheckboxItem.js";
@@ -30,6 +49,10 @@ export { MenuRadioItem } from "./MenuRadioItem.js";
 export type { MenuRadioItemProps } from "./MenuRadioItem.js";
 export { MenuGroup } from "./MenuGroup.js";
 export type { MenuGroupProps } from "./MenuGroup.js";
+export { MenuLabel } from "./MenuLabel.js";
+export type { MenuLabelProps } from "./MenuLabel.js";
+export { MenuItemIndicator } from "./MenuItemIndicator.js";
+export type { MenuItemIndicatorProps } from "./MenuItemIndicator.js";
 export { MenuSeparator } from "./MenuSeparator.js";
 export type { MenuSeparatorProps } from "./MenuSeparator.js";
 export { MenuSubRoot } from "./MenuSubRoot.js";

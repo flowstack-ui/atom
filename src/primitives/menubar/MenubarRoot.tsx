@@ -11,6 +11,7 @@ import {
 } from "react";
 import { useCollection } from "../../collection.js";
 import type { NativeDivProps } from "../../utils/dom.js";
+import { composeRefs } from "../../utils/slot.js";
 import {
   DirectionProvider,
   useDirection,
@@ -30,6 +31,7 @@ export interface MenubarRootProps extends MenubarRootNativeProps {
   onValueChange?: (value: string | null) => void;
   loop?: boolean;
   dir?: DirectionValue;
+  orientation?: "horizontal" | "vertical";
   className?: string;
   "data-slot"?: string;
 }
@@ -43,6 +45,7 @@ function MenubarRoot(
     onValueChange,
     loop = true,
     dir: dirProp,
+    orientation = "horizontal",
     className,
     "data-slot": dataSlot = "menubar",
     ...restProps
@@ -51,6 +54,7 @@ function MenubarRoot(
 ) {
   const contextDir = useDirection();
   const dir = dirProp ?? contextDir;
+  const rootRef = useRef<HTMLDivElement>(null);
   const isControlled = controlledValue !== undefined;
   const [internalValue, setInternalValue] = useState<string | null>(
     defaultValue ?? null,
@@ -222,9 +226,12 @@ function MenubarRoot(
       onFocus,
       loop,
       dir,
+      orientation,
+      rootRef,
     }),
     [
       dir,
+      orientation,
       focusAdjacentTrigger,
       focusedValue,
       getTriggerElement,
@@ -246,11 +253,12 @@ function MenubarRoot(
       <MenubarContextProvider value={contextValue}>
         <div
           {...restProps}
-          ref={ref}
+          ref={composeRefs(rootRef, ref)}
           role="menubar"
-          aria-orientation="horizontal"
+          aria-orientation={orientation}
           dir={dir}
           data-slot={dataSlot}
+          data-orientation={orientation}
           className={className}
         >
           {children}

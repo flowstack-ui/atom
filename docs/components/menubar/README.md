@@ -1,6 +1,6 @@
 # Menubar
 
-Headless horizontal menubar primitives for application-style menu systems.
+Headless horizontal or vertical menubar primitives for application-style menu systems.
 
 ## When to Use
 
@@ -12,6 +12,7 @@ Menubar is usually unnecessary for a small set of buttons.
 ## Features
 
 - Renders a `role="menubar"` root with roving top-level trigger focus.
+- Supports horizontal and vertical orientation.
 - Opens adjacent top-level menus with ArrowLeft and ArrowRight.
 - Mirrors horizontal top-level navigation in RTL through `dir` or `Direction.Provider`.
 - Provides menu items, checkbox items, radio items, groups, separators, and submenus through the `Menubar` namespace.
@@ -32,7 +33,9 @@ import { Menubar } from "@flowstack-ui/atom";
   <Menubar.Menu value="file">
     <Menubar.Trigger />
     <Menubar.Content>
+      <Menubar.Arrow />
       <Menubar.Group>
+        <Menubar.Label />
         <Menubar.Item />
         <Menubar.CheckboxItem />
         <Menubar.RadioGroup>
@@ -75,15 +78,17 @@ Renders a `div` with `role="menubar"` and the resolved `dir` attribute.
 | `onValueChange` | `(value: string \| null) => void` | - |
 | `loop` | `boolean` | `true` |
 | `dir` | `"ltr" \| "rtl"` | `Direction.Provider` |
+| `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` |
 | `className` | `string` | - |
 
 | ARIA attribute | Values |
 | --- | --- |
-| `aria-orientation` | `"horizontal"` |
+| `aria-orientation` | Root orientation |
 
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"menubar"` by default |
+| `[data-orientation]` | `"horizontal" \| "vertical"` |
 
 ### Menu
 
@@ -112,6 +117,8 @@ Opens and closes one top-level menu. `Trigger` renders a native `button` with
 | --- | --- | --- |
 | `children` | `ReactNode` | required |
 | `disabled` | `boolean` | `false` |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
 | `className` | `string` | - |
 
 | ARIA attribute | Values |
@@ -191,7 +198,7 @@ Renders a `menuitemcheckbox` with `tabIndex={-1}`.
 | `children` | `ReactNode` | required |
 | `value` | `string` | required |
 | `textValue` | `string` | children text or `value` |
-| `checked` | `boolean` | `false` |
+| `checked` | `boolean \| "indeterminate"` | `false` |
 | `onCheckedChange` | `(checked: boolean) => void` | - |
 | `disabled` | `boolean` | `false` |
 | `closeOnSelect` | `boolean` | `false` |
@@ -423,6 +430,11 @@ export function ViewMenubar() {
 }
 ```
 
+`Portal`, `Arrow`, `Label`, and `ItemIndicator` use the shared Menu contract.
+CheckboxItem supports mixed state and all retained DOM parts accept refs,
+native props, `asChild`, and `render`. Hover switching is mouse-only; touch and
+pen use click/tap.
+
 ## Accessibility
 
 Follows the [WAI-ARIA menubar pattern](https://www.w3.org/WAI/ARIA/apg/patterns/menubar/).
@@ -436,22 +448,22 @@ mirror in RTL when `dir="rtl"` is set on `Menubar.Root` or inherited from
 focus remains owned by the active trigger so `Enter`, `Space`, and `Escape`
 target the active menu.
 
-Pointer-opened menus do not pre-highlight an item; ArrowDown and ArrowUp seed
-the first and last item highlight for keyboard navigation. Portalled menu
+Pointer/tap-opened menus focus the first item; ArrowDown and ArrowUp seed the
+first and last item for keyboard opening. Portalled menu
 content registers with a parent modal focus scope when opened inside Dialog,
 Drawer, or another modal primitive. Menubar menu content inherits Menu
 typeahead behavior for printable-character searches.
 
 | Key | Description |
 | --- | --- |
-| `ArrowRight` / `ArrowLeft` | Moves between top-level menus, mirrored in RTL |
-| `ArrowDown` | Opens a top-level menu and highlights the first item |
-| `ArrowUp` | Opens a top-level menu and highlights the last item |
+| `ArrowRight` / `ArrowLeft` | Moves horizontal top-level focus, mirrored in RTL |
+| `ArrowDown` / `ArrowUp` | Moves vertical top-level focus; in horizontal mode opens first/last item |
 | `Home` / `End` | Moves to the first or last top-level trigger, or item inside open content |
 | `Enter` / `Space` on trigger | Opens or closes the top-level menu |
-| `Enter` / `Space` on item | Selects the highlighted item |
+| `Enter` / `Space` on item | Selects the focused item unless disabled |
 | `Escape` | Closes the topmost submenu first, then the active top-level menu |
 | Printable character | Typeahead search inside open menu content |
+| `Tab` / `Shift+Tab` | Closes and exits after/before the complete Menubar Root |
 
 ## Changelog
 

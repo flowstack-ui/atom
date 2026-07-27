@@ -1,5 +1,17 @@
 # Atom Changelog
 
+## 0.12.0
+
+- Hardened Menu, DropdownMenu, ContextMenu, and Menubar around real DOM item
+  focus, disabled-item navigation, reason-aware close/final focus, correct
+  composite Tab exit, stacked modality, and touch-safe outside dismissal.
+- Added shared Menu Portal, Arrow, Label, and ItemIndicator parts, mixed
+  checkbox state, complete retained-part composition, and collision-aware
+  geometry variables.
+- Added ContextMenu touch/pen long press and vertical Menubar orientation.
+- Prevented touch/pen from running submenu, Menubar, or NavigationMenu hover
+  timers while preserving click/tap disclosure.
+
 ## 0.11.1
 
 - Made explicit RadioGroup Root `dir` override Direction context for horizontal
