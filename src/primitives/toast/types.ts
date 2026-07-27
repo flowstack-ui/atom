@@ -11,12 +11,19 @@ export type ToastType =
   | "loading";
 
 export type ToastPosition =
+  | "top-start"
+  | "top-end"
+  | "bottom-start"
+  | "bottom-end"
   | "top-left"
   | "top-center"
   | "top-right"
   | "bottom-left"
   | "bottom-center"
   | "bottom-right";
+
+export type ToastSwipeDirection = "left" | "right" | "up" | "down";
+export type ToastSwipeState = "start" | "move" | "cancel" | "end";
 
 export type ToastState = "entering" | "visible" | "exiting";
 
@@ -51,7 +58,7 @@ export interface ToastData {
   icon?: ReactNode;
   action?: ToastAction;
   cancel?: ToastAction;
-  closeButton: boolean;
+  closeButton?: boolean;
   onDismiss?: (id: ToastId) => void;
   onAutoClose?: (id: ToastId) => void;
   className?: string;
@@ -71,3 +78,5 @@ export interface ToastViewportRenderState {
   index: number;
   expanded: boolean;
 }
+
+export type ToastUpdateOptions = Omit<Partial<ToastOptions>, "id">;

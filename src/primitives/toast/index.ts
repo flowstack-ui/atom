@@ -1,11 +1,13 @@
 export {
   ToastProviderContextProvider,
   ToastRootContextProvider,
+  ToastViewportContextProvider,
   toastProviderDefaults,
   useToastProviderContext,
   useToastRootContext,
+  useToastViewportContext,
 } from "./context.js";
-export type { ToastProviderContextValue, ToastRootContextValue } from "./context.js";
+export type { ToastProviderContextValue, ToastRootContextValue, ToastViewportContextValue } from "./context.js";
 export {
   addToast,
   dismissToast,
@@ -13,6 +15,8 @@ export {
   getToastAriaLive,
   getToastRole,
   getToasts,
+  normalizeMaxVisible,
+  normalizeToastDuration,
   pauseToast,
   resumeToast,
   subscribeToasts,
@@ -45,5 +49,8 @@ export type {
   ToastState,
   ToastType,
   ToastViewportRenderState,
+  ToastSwipeDirection,
+  ToastSwipeState,
+  ToastUpdateOptions,
 } from "./types.js";
 export { useToastStore } from "./useToastStore.js";

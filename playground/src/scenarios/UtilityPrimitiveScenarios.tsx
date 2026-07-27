@@ -52,7 +52,8 @@ type DrawerTitleLevel = "h2" | "h3" | "h4";
 type SidebarStateValue = "expanded" | "rail" | "offcanvas";
 type SidebarSideValue = "left" | "right";
 type ToastKind = "default" | "success" | "error" | "warning" | "info" | "loading";
-type ToastPositionValue = "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
+type ToastPositionValue = "top-start" | "top-center" | "top-end" | "bottom-start" | "bottom-center" | "bottom-end";
+type ToastSwipeDirectionValue = "none" | "left" | "right" | "up" | "down";
 type ToastRenderMode = "imperative" | "declarative";
 type ToastViewportPortalMode = "body" | "local" | "disabled";
 type VirtualizerAlignValue = "start" | "center" | "end" | "auto";
@@ -611,7 +612,7 @@ function useToastScenario() {
   const [renderMode, setRenderMode] = useState<ToastRenderMode>("imperative");
   const [declarativeVisible, setDeclarativeVisible] = useState(false);
   const [type, setType] = useState<ToastKind>("default");
-  const [position, setPosition] = useState<ToastPositionValue>("bottom-right");
+  const [position, setPosition] = useState<ToastPositionValue>("bottom-end");
   const [maxVisible, setMaxVisible] = useState("3");
   const [closeButton, setCloseButton] = useState(true);
   const [action, setAction] = useState(true);
@@ -622,6 +623,8 @@ function useToastScenario() {
   const [expandOnHover, setExpandOnHover] = useState(true);
   const [pauseOnHover, setPauseOnHover] = useState(true);
   const [pauseOnFocusLoss, setPauseOnFocusLoss] = useState(true);
+  const [pauseOnFocus, setPauseOnFocus] = useState(true);
+  const [swipeDirection, setSwipeDirection] = useState<ToastSwipeDirectionValue>("none");
   const [portalMode, setPortalMode] = useState<ToastViewportPortalMode>("body");
   const [rootComposition, setRootComposition] = useState<CompositionMode>("default");
   const [titleComposition, setTitleComposition] = useState<CompositionMode>("default");
@@ -725,6 +728,8 @@ function useToastScenario() {
       expandOnHover,
       pauseOnHover,
       pauseOnFocusLoss,
+      pauseOnFocus,
+      swipeDirection,
       portalMode,
       rootComposition,
       titleComposition,
@@ -764,6 +769,8 @@ function useToastScenario() {
       setExpandOnHover,
       setPauseOnHover,
       setPauseOnFocusLoss,
+      setPauseOnFocus,
+      setSwipeDirection,
       setPortalMode,
       setRootComposition,
       setTitleComposition,
@@ -1663,7 +1670,9 @@ export function UtilityPrimitiveScenarioToolbar({
           <MenuCheckboxControl checked={scenario.state.expandOnHover} label="Expand on hover" value="expand-on-hover" onChange={scenario.actions.setExpandOnHover} />
           <MenuCheckboxControl checked={scenario.state.pauseOnHover} label="Pause on hover" value="pause-on-hover" onChange={scenario.actions.setPauseOnHover} />
           <MenuCheckboxControl checked={scenario.state.pauseOnFocusLoss} label="Pause on focus loss" value="pause-on-focus-loss" onChange={scenario.actions.setPauseOnFocusLoss} />
+          <MenuCheckboxControl checked={scenario.state.pauseOnFocus} label="Pause on focus" value="pause-on-focus" onChange={scenario.actions.setPauseOnFocus} />
           <MenuRadioControl label="Max visible" options={toastMaxVisibleOptions} value={scenario.state.maxVisible} onChange={scenario.actions.setMaxVisible} />
+          <MenuRadioControl label="Swipe" options={toastSwipeDirectionOptions} value={scenario.state.swipeDirection} onChange={scenario.actions.setSwipeDirection} />
         </ToolbarGroup>
         <ToolbarGroup title="Message" value="message">
           <MenuRadioControl label="Type" options={toastKindOptions} value={scenario.state.type} onChange={scenario.actions.setType} />
@@ -2577,6 +2586,8 @@ ${rootClose}`;
       !state.expandOnHover ? `expandOnHover={false}` : "",
       !state.pauseOnHover ? `pauseOnHover={false}` : "",
       !state.pauseOnFocusLoss ? `pauseOnFocusLoss={false}` : "",
+      !state.pauseOnFocus ? `pauseOnFocus={false}` : "",
+      state.swipeDirection !== "none" ? `swipeDirection="${state.swipeDirection}"` : "",
     ]);
     const toastOptions = [
       state.duration === "short" ? `duration: 3500` : "",
@@ -2605,7 +2616,7 @@ ${rootClose}`;
     const viewportProps = sourceProps([
       state.customViewportSlot ? `data-slot="toast-viewport-custom"` : "",
       state.propCheck ? `data-prop-check="viewport"` : "",
-      state.position !== "bottom-right" ? `position="${state.position}"` : "",
+      state.position !== "bottom-end" ? `position="${state.position}"` : "",
       state.portalMode === "disabled" ? `portalDisabled` : "",
       state.portalMode === "local" ? `container={localContainer}` : "",
       state.viewportComposition === "asChild" ? `asChild` : "",
@@ -4054,6 +4065,8 @@ function ToastScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useToas
     expandOnHover: scenario.state.expandOnHover,
     maxVisible: Number(scenario.state.maxVisible),
     pauseOnFocusLoss: scenario.state.pauseOnFocusLoss,
+    pauseOnFocus: scenario.state.pauseOnFocus,
+    swipeDirection: scenario.state.swipeDirection === "none" ? undefined : scenario.state.swipeDirection,
     pauseOnHover: scenario.state.pauseOnHover,
   };
   const viewportProps = {
@@ -5744,6 +5757,8 @@ function getUtilityPrimitiveSections(
           { label: "Expand on hover", value: bool(scenarios.toast.state.expandOnHover), category: "state" },
           { label: "Pause on hover", value: bool(scenarios.toast.state.pauseOnHover), category: "state" },
           { label: "Pause on focus loss", value: bool(scenarios.toast.state.pauseOnFocusLoss), category: "state" },
+          { label: "Pause on focus", value: bool(scenarios.toast.state.pauseOnFocus), category: "state" },
+          { label: "Swipe", value: scenarios.toast.state.swipeDirection, category: "state" },
         ],
       },
       {
@@ -5755,6 +5770,8 @@ function getUtilityPrimitiveSections(
           { label: "Exists", value: bool(!!root), category: "presence" },
           { label: "Mode", value: scenarios.toast.state.rootComposition, category: "composition" },
           { label: "Expanded", value: bool(root?.dataset.expanded !== undefined), category: "state" },
+          { label: "Live role", value: root?.getAttribute("role") ?? "none", category: "aria" },
+          { label: "Swipe state", value: root?.dataset.swipe ?? "none", category: "state" },
           { label: "Ref", value: scenarios.toast.state.rootRef, category: "behavior" },
         ],
       },
@@ -5823,6 +5840,9 @@ function getUtilityPrimitiveSections(
           { label: "Mode", value: scenarios.toast.state.viewportComposition, category: "composition" },
           { label: "Portal", value: scenarios.toast.state.portalMode, category: "state" },
           { label: "Expanded", value: bool(viewport?.dataset.expanded !== undefined), category: "state" },
+          { label: "Role", value: viewport?.getAttribute("role") ?? "none", category: "aria" },
+          { label: "Label", value: viewport?.getAttribute("aria-label") ?? "none", category: "aria" },
+          { label: "Tab index", value: viewport?.getAttribute("tabindex") ?? "none", category: "aria" },
           { label: "Ref", value: scenarios.toast.state.viewportRef, category: "behavior" },
         ],
       },
@@ -6764,7 +6784,8 @@ const swipeThresholdOptions = ["0.2", "0.35", "0.6"] as const;
 const swipeFullThresholdOptions = ["0.4", "0.6", "0.8"] as const;
 const toastRenderModeOptions = ["imperative", "declarative"] as const;
 const toastKindOptions = ["default", "success", "error", "warning", "info", "loading"] as const;
-const toastPositionOptions = ["top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right"] as const;
+const toastPositionOptions = ["top-start", "top-center", "top-end", "bottom-start", "bottom-center", "bottom-end"] as const;
+const toastSwipeDirectionOptions = ["none", "left", "right", "up", "down"] as const;
 const toastDurationOptions = ["short", "infinite"] as const;
 const toastMaxVisibleOptions = ["1", "3", "5"] as const;
 const toastPortalModeOptions = ["body", "local", "disabled"] as const;

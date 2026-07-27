@@ -4,7 +4,7 @@ import {
   getDefaultToastDuration,
   updateToast,
 } from "./store.js";
-import type { ToastId, ToastOptions, ToastPromiseOptions } from "./types.js";
+import type { ToastId, ToastOptions, ToastPromiseOptions, ToastUpdateOptions } from "./types.js";
 
 function createToast(message: string | ToastOptions, options?: ToastOptions): ToastId {
   const resolvedOptions =
@@ -75,7 +75,7 @@ createToast.dismiss = (id?: ToastId): void => {
   dismissToast(id);
 };
 
-createToast.update = (id: ToastId, options: Partial<ToastOptions>): void => {
+createToast.update = (id: ToastId, options: ToastUpdateOptions): void => {
   updateToast(id, options);
 };
 

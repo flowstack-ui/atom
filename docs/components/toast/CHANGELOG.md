@@ -2,7 +2,21 @@
 
 ## Unreleased
 
-- No unreleased changes.
+## 0.15.0
+
+### Added
+
+- Added logical start/end viewport positions, labelled `F8` notification-region
+  access, focus-within pause, focused Escape dismissal with restoration, and
+  optional directional swipe state and geometry.
+
+### Changed
+
+- Made persistent Viewport announcers the sole live path so each create or
+  meaningful update is announced exactly once.
+- Normalized maximum-visible, duration, and swipe-threshold inputs; preserved
+  toast IDs across updates; and made omitted per-toast close policy inherit the
+  Provider value.
 
 ## 0.2.0
 

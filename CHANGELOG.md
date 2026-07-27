@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.15.0
+
+- Expanded Toast with exactly-once persistent announcements, logical
+  positioning, notification-region keyboard access, focus pause and Escape
+  restoration, directional swipe behavior, safe option normalization, stable
+  update IDs, and correct Provider close inheritance.
+
 ## 0.14.0
 
 - Added complete vertical/horizontal orientation metadata and live two-axis

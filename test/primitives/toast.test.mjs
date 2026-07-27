@@ -18,10 +18,12 @@ import {
   ToastTitle,
   ToastViewport,
   getToasts,
+  normalizeMaxVisible,
+  normalizeToastDuration,
   toast,
 } from "../../dist/index.js";
 
-test("Toast compound parts render live-region toast anatomy", () => {
+test("Toast compound parts keep visible cards out of the live announcement path", () => {
   const html = renderToStaticMarkup(
     React.createElement(
       Toast.Provider,
@@ -38,8 +40,8 @@ test("Toast compound parts render live-region toast anatomy", () => {
     ),
   );
 
-  assert.match(html, /role="alert"/);
-  assert.match(html, /aria-live="assertive"/);
+  assert.doesNotMatch(html, /role="alert"/);
+  assert.doesNotMatch(html, /aria-live="assertive"/);
   assert.match(html, /data-slot="toast"/);
   assert.match(html, /data-type="error"/);
   assert.match(html, /data-slot="toast-title"/);
@@ -59,6 +61,27 @@ test("Toast compound parts render live-region toast anatomy", () => {
   assert.equal(Toast.Viewport, ToastViewport);
 });
 
+test("Toast viewport owns its labelled keyboard region and persistent announcers", () => {
+  toast.dismiss();
+  toast.error("Failed", { id: "atom-toast-region" });
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Toast.Provider,
+      { hotkey: ["ControlLeft", "F8"], label: "App notifications" },
+      React.createElement(Toast.Viewport, { portalDisabled: true, position: "bottom-start" }),
+    ),
+  );
+  assert.match(html, /role="status"/);
+  assert.match(html, /role="alert"/);
+  assert.match(html, /data-slot="toast-announcer-polite"/);
+  assert.match(html, /data-slot="toast-announcer-assertive"/);
+  assert.match(html, /data-position="bottom-start"/);
+  assert.match(html, /role="region"/);
+  assert.match(html, /tabindex="-1"/);
+  assert.match(html, /aria-label="App notifications \(Control\+F8\)"/);
+  toast.dismiss();
+});
+
 test("Toast imperative store API creates and dismisses toasts", () => {
   toast.dismiss();
 
@@ -72,6 +95,24 @@ test("Toast imperative store API creates and dismisses toasts", () => {
 
   toast.dismiss(id);
   assert.equal(getToasts().length, 0);
+});
+
+test("Toast normalizes durations and limits while preserving IDs and close inheritance", () => {
+  toast.dismiss();
+  assert.equal(normalizeMaxVisible(0), 3);
+  assert.equal(normalizeMaxVisible(-2), 3);
+  assert.equal(normalizeMaxVisible(2.9), 2);
+  assert.equal(normalizeToastDuration(0, "success"), 5000);
+  assert.equal(normalizeToastDuration(Number.NaN, "error"), 8000);
+  assert.equal(normalizeToastDuration(Infinity, "loading"), Infinity);
+
+  const id = toast.success("Saved", { id: "stable-id", duration: -1 });
+  assert.equal(getToasts()[0].duration, 5000);
+  assert.equal(getToasts()[0].closeButton, undefined);
+  toast.update(id, { id: "replacement", title: "Updated" });
+  assert.equal(getToasts()[0].id, "stable-id");
+  assert.equal(getToasts()[0].title, "Updated");
+  toast.dismiss();
 });
 
 test("ToastViewport renders queued bottom stacks nearest the viewport anchor", () => {
@@ -203,6 +244,10 @@ test("Toast source keeps timers and live announcers stable", async () => {
   );
 
   assert.match(rootSource, /autoCloseTimerRef/);
+  assert.doesNotMatch(rootSource, /role: getToastRole/);
+  assert.doesNotMatch(rootSource, /"aria-live": getToastAriaLive/);
+  assert.match(rootSource, /data-swipe-direction/);
+  assert.match(rootSource, /resolvedSwipeThreshold/);
   assert.match(rootSource, /stateRef\.current === "exiting"/);
   assert.doesNotMatch(rootSource, /stateRef\.current = "visible"/);
   assert.doesNotMatch(rootSource, /state === "exiting" && !toast\) return null/);
@@ -213,4 +258,7 @@ test("Toast source keeps timers and live announcers stable", async () => {
   assert.match(viewportSource, /toast-announcer-polite[\s\S]*\{politeAnnouncement\}/);
   assert.match(viewportSource, /toast-announcer-assertive[\s\S]*\{assertiveAnnouncement\}/);
   assert.match(viewportSource, /<Fragment key=\{toast\.id\}>/);
+  assert.match(viewportSource, /document\.addEventListener\("keydown"/);
+  assert.match(viewportSource, /provider\.pauseOnFocus/);
+  assert.match(viewportSource, /restoreFocusAfterDismiss/);
 });
