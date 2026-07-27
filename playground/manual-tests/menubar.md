@@ -363,7 +363,37 @@ Reset
 
 Turn Prop Check and all custom slot toggles off. Menubar closed.
 
-## Step 8: Source / Inspector / Logs
+## Step 8: Root And Content Composition
+
+Setup
+
+Default toolbar state. Menubar closed. Open `Composition`.
+
+Action
+
+Set Root to `As Child`, then `Render`. For each mode, open File with Enter.
+
+Verify
+
+□ Root changes to a `section` without adding a nested duplicate root
+□ Root keeps `role="menubar"`, orientation, direction, custom props, and keyboard behavior
+□ Source shows the selected Root composition and its required wrapper only for `As Child`
+
+Action
+
+Return Root to `Default`. Set Content to `As Child`, then `Render`, reopening File after each change.
+
+Verify
+
+□ File Content changes to a `section` without adding a nested duplicate content element
+□ Content keeps `role="menu"`, focus navigation, placement state, accessible name, and selection behavior
+□ Source shows the selected Content composition and its required wrapper only for `As Child`
+
+Reset
+
+Return Root and Content composition to `Default`. Menubar closed.
+
+## Step 9: Source / Inspector / Logs
 
 Setup
 
@@ -385,7 +415,7 @@ Reset
 
 Return toolbar to default state.
 
-## Step 9: Reflow
+## Step 10: Reflow
 
 Repeat horizontal and vertical keyboard flows at 200% and 400% zoom and on a narrow viewport.
 

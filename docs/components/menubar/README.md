@@ -17,6 +17,8 @@ Menubar is usually unnecessary for a small set of buttons.
 - Mirrors horizontal top-level navigation in RTL through `dir` or `Direction.Provider`.
 - Provides menu items, checkbox items, radio items, groups, separators, and submenus through the `Menubar` namespace.
 - Supports controlled and uncontrolled active top-level menu state.
+- Preserves Root and Content behavior through `asChild` and `render`
+  composition.
 - Supports per-menu `closeOnSelect`, looping, and Escape close behavior.
 - Exposes state and styling data attributes without shipping styles.
 
@@ -73,6 +75,8 @@ Renders a `div` with `role="menubar"` and the resolved `dir` attribute.
 | Prop | Type | Default |
 | --- | --- | --- |
 | `children` | `ReactNode` | required |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
 | `value` | `string \| null` | - |
 | `defaultValue` | `string` | - |
 | `onValueChange` | `(value: string \| null) => void` | - |
@@ -141,6 +145,8 @@ with `role="menu"` and `tabIndex={-1}`.
 | Prop | Type | Default |
 | --- | --- | --- |
 | `children` | `ReactNode` | required |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
 | `side` | `"top" \| "right" \| "bottom" \| "left"` | `"bottom"` |
 | `align` | `"start" \| "center" \| "end"` | `"start"` |
 | `sideOffset` | `number` | `4` |

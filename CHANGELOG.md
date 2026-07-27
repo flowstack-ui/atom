@@ -1,5 +1,14 @@
 # Atom Changelog
 
+## Unreleased
+
+- No unreleased changes.
+
+## 0.12.1
+
+- Fixed Menubar Root and Content composition so styled consumers can change
+  their rendered elements without losing Menubar behavior or native props.
+
 ## 0.12.0
 
 - Hardened Menu, DropdownMenu, ContextMenu, and Menubar around real DOM item

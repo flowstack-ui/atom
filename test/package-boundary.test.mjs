@@ -260,11 +260,15 @@ test("source exposes refs and client boundaries on public wrappers", async () =>
   assert.match(menuContentSource, /composeRefs\(refs\.setFloating, internalRef, contentRef, presenceRef, ref\)/);
   assert.match(menuSubContentSource, /forwardRef<\s*HTMLDivElement,\s*MenuSubContentProps\s*>/);
   assert.match(menuSubContentSource, /composeRefs\(refs\.setFloating, internalRef, presenceRef, ref\)/);
-  assert.match(menubarRootSource, /forwardRef<\s*HTMLDivElement,\s*MenubarRootProps\s*>/);
+  assert.match(menubarRootSource, /forwardRef<\s*HTMLElement,\s*MenubarRootProps\s*>/);
+  assert.match(menubarRootSource, /cloneAndMerge\(children, behaviorProps\)/);
+  assert.match(menubarRootSource, /renderElement\(render, "div"/);
   assert.match(menubarTriggerSource, /forwardRef<\s*HTMLElement,\s*MenubarTriggerProps\s*>/);
   assert.match(menubarTriggerSource, /composeRefs\(triggerRef, forwardedRef\)/);
   assert.match(menubarContentSource, /forwardRef<\s*HTMLDivElement,\s*MenubarContentProps\s*>/);
   assert.match(menubarContentSource, /<MenuContent\s*\{\.\.\.restProps\}\s*ref=\{ref\}/s);
+  assert.match(menubarContentSource, /asChild=\{asChild\}/);
+  assert.match(menubarContentSource, /render=\{render\}/);
 });
 
 test("context sources set display names for debugging", async () => {

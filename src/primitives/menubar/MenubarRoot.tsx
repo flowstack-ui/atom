@@ -11,7 +11,12 @@ import {
 } from "react";
 import { useCollection } from "../../collection.js";
 import type { NativeDivProps } from "../../utils/dom.js";
-import { composeRefs } from "../../utils/slot.js";
+import {
+  cloneAndMerge,
+  composeRefs,
+  renderElement,
+  type RenderProp,
+} from "../../utils/slot.js";
 import {
   DirectionProvider,
   useDirection,
@@ -26,6 +31,8 @@ type MenubarRootNativeProps = NativeDivProps<"children" | "defaultValue" | "dir"
 
 export interface MenubarRootProps extends MenubarRootNativeProps {
   children: ReactNode;
+  asChild?: boolean;
+  render?: RenderProp;
   value?: string | null;
   defaultValue?: string;
   onValueChange?: (value: string | null) => void;
@@ -36,10 +43,12 @@ export interface MenubarRootProps extends MenubarRootNativeProps {
   "data-slot"?: string;
 }
 
-export const MenubarRoot = forwardRef<HTMLDivElement, MenubarRootProps>(
+export const MenubarRoot = forwardRef<HTMLElement, MenubarRootProps>(
 function MenubarRoot(
   {
     children,
+    asChild = false,
+    render,
     value: controlledValue,
     defaultValue,
     onValueChange,
@@ -54,7 +63,7 @@ function MenubarRoot(
 ) {
   const contextDir = useDirection();
   const dir = dirProp ?? contextDir;
-  const rootRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLElement>(null);
   const isControlled = controlledValue !== undefined;
   const [internalValue, setInternalValue] = useState<string | null>(
     defaultValue ?? null,
@@ -248,21 +257,23 @@ function MenubarRoot(
     ],
   );
 
+  const behaviorProps = {
+    ...restProps,
+    ref: composeRefs(rootRef, ref),
+    role: "menubar",
+    "aria-orientation": orientation,
+    dir,
+    "data-slot": dataSlot,
+    "data-orientation": orientation,
+    className,
+  };
+
   return (
     <DirectionProvider dir={dir}>
       <MenubarContextProvider value={contextValue}>
-        <div
-          {...restProps}
-          ref={composeRefs(rootRef, ref)}
-          role="menubar"
-          aria-orientation={orientation}
-          dir={dir}
-          data-slot={dataSlot}
-          data-orientation={orientation}
-          className={className}
-        >
-          {children}
-        </div>
+        {asChild
+          ? cloneAndMerge(children, behaviorProps)
+          : renderElement(render, "div", { ...behaviorProps, children })}
       </MenubarContextProvider>
     </DirectionProvider>
   );

@@ -6,6 +6,9 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Added live Root and Content `asChild`/`render` controls to the Menubar
+  workbench so the corrected composition contract is visible in Canvas,
+  Source, Anatomy, and Inspector evidence.
 - Reconciled Menu, Dropdown Menu, Context Menu, Menubar, and Navigation Menu
   workbook coverage with the hardened real-focus, complete-owner Tab exit,
   disabled-item, shared anatomy, mixed-state, long-press, pointer-modality,
