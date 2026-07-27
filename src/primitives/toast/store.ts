@@ -1,4 +1,4 @@
-import type { ToastData, ToastId, ToastOptions, ToastType } from "./types.js";
+import type { ToastData, ToastId, ToastOptions, ToastType, ToastUpdateOptions } from "./types.js";
 
 let toasts: ToastData[] = [];
 const listeners = new Set<() => void>();
@@ -17,6 +17,19 @@ export function getDefaultToastDuration(type: ToastType): number {
   if (type === "loading") return Infinity;
   if (type === "error") return 8000;
   return 5000;
+}
+
+export function normalizeToastDuration(duration: number | undefined, type: ToastType): number {
+  if (duration === Infinity) return Infinity;
+  return typeof duration === "number" && Number.isFinite(duration) && duration > 0
+    ? duration
+    : getDefaultToastDuration(type);
+}
+
+export function normalizeMaxVisible(maxVisible: number): number {
+  return Number.isFinite(maxVisible) && maxVisible > 0
+    ? Math.max(1, Math.floor(maxVisible))
+    : 3;
 }
 
 export function getToastRole(type: ToastType): "status" | "alert" {
@@ -40,7 +53,7 @@ export function subscribeToasts(listener: () => void): () => void {
 
 export function addToast(options: ToastOptions & { type: ToastType }): ToastId {
   const id = options.id ?? generateId();
-  const duration = options.duration ?? getDefaultToastDuration(options.type);
+  const duration = normalizeToastDuration(options.duration, options.type);
 
   const data: ToastData = {
     id,
@@ -51,7 +64,7 @@ export function addToast(options: ToastOptions & { type: ToastType }): ToastId {
     icon: options.icon,
     action: options.action,
     cancel: options.cancel,
-    closeButton: options.closeButton ?? false,
+    closeButton: options.closeButton,
     dismissible: options.dismissible ?? true,
     onDismiss: options.onDismiss,
     onAutoClose: options.onAutoClose,
@@ -79,17 +92,19 @@ export function dismissToast(id?: ToastId): void {
   notify();
 }
 
-export function updateToast(id: ToastId, updates: Partial<ToastOptions>): void {
+export function updateToast(id: ToastId, updates: ToastUpdateOptions): void {
+  const { id: _ignoredId, ...safeUpdates } = updates as Partial<ToastOptions>;
   toasts = toasts.map((toast) => {
     if (toast.id !== id) return toast;
 
-    const nextType = updates.type ?? toast.type;
-    const nextDuration =
-      updates.duration ?? (updates.type ? getDefaultToastDuration(nextType) : undefined);
+    const nextType = safeUpdates.type ?? toast.type;
+    const nextDuration = safeUpdates.duration !== undefined || safeUpdates.type
+      ? normalizeToastDuration(safeUpdates.duration, nextType)
+      : undefined;
 
     return {
       ...toast,
-      ...updates,
+      ...safeUpdates,
       type: nextType,
       ...(nextDuration !== undefined
         ? {

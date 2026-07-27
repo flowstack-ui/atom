@@ -1185,6 +1185,8 @@ export {
   getToastAriaLive,
   getToastRole,
   getToasts,
+  normalizeMaxVisible,
+  normalizeToastDuration,
   pauseToast,
   resumeToast,
   subscribeToasts,
@@ -1198,11 +1200,13 @@ export {
   ToastProviderContextProvider,
   ToastRoot,
   ToastRootContextProvider,
+  ToastViewportContextProvider,
   ToastTitle,
   ToastViewport,
   updateToast,
   useToastProviderContext,
   useToastRootContext,
+  useToastViewportContext,
   useToastStore,
 } from "./primitives/toast/index.js";
 export type {
@@ -1225,6 +1229,10 @@ export type {
   ToastType,
   ToastViewportProps,
   ToastViewportRenderState,
+  ToastViewportContextValue,
+  ToastSwipeDirection,
+  ToastSwipeState,
+  ToastUpdateOptions,
 } from "./primitives/toast/index.js";
 export {
   getTooltipArrowGeometry,

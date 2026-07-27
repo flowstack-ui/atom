@@ -60,8 +60,9 @@ Switch each `Type` value and click `Show Toast`.
 Verify
 
 □ Already visible toasts keep their original `data-type`  
-□ Default, success, info, and loading roots use `role="status"` and `aria-live="polite"`  
-□ Warning and error roots use `role="alert"` and `aria-live="assertive"`  
+□ Visible roots do not expose `role` or `aria-live`
+□ Default, success, info, and loading messages appear only in the polite announcer
+□ Warning and error messages appear only in the assertive announcer
 □ Root Data includes the matching `data-type`
 
 Action
@@ -138,8 +139,7 @@ Verify
 □ Data includes `data-slot="toast"`  
 □ Data includes `data-state`  
 □ Data includes `data-type="default"`  
-□ ARIA includes `aria-atomic="true"`  
-□ ARIA includes `role="status"` and `aria-live="polite"`  
+□ ARIA does not include `role`, `aria-live`, or `aria-atomic`
 □ Ref row is `div`
 
 Action
@@ -203,6 +203,39 @@ Verify
 Reset
 
 Props off. Root composition `Default`. `Dismissible` on. `Paused` off. `Force mount` off. `Duration: Infinite`. `Rendering: Imperative`. Click `Dismiss All`.
+
+## Step 3A: Keyboard, Focus, and Swipe
+
+Setup
+
+Rendering `Imperative`. Duration `Short`. Close on. Show one toast with an
+action, and focus a control outside the notification region.
+
+Action
+
+Press `F8`, Tab through the action and close control, then press Escape while
+focus is within the toast.
+
+Verify
+
+□ F8 focuses the labelled notification region without Toast appearance stealing focus
+□ Focus within the region pauses the finite timer
+□ Tab and Shift+Tab follow native DOM order without a focus trap
+□ Escape dismisses only the focused dismissible toast
+□ Focus returns to the region when another toast remains
+□ Focus returns to the element saved before F8 when the last toast leaves
+□ Escape outside the notification region does not dismiss a toast
+
+Action
+
+Enable each swipe direction in turn. Drag below the threshold, then beyond it.
+
+Verify
+
+□ Root exposes start, move, and cancel state below the threshold and returns to rest
+□ Root exposes end state and dismisses only after passing the threshold
+□ Action and close controls remain operable without starting a swipe
+□ Close, Escape, timeout, and imperative dismissal remain available
 
 ## Step 4: Title
 

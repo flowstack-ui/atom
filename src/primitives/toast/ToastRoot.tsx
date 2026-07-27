@@ -8,12 +8,15 @@ import {
   useRef,
   useState,
   type ReactNode,
+  type CSSProperties,
+  type KeyboardEventHandler,
+  type PointerEventHandler,
 } from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
-import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
-import { ToastRootContextProvider, useToastProviderContext } from "./context.js";
-import { dismissToast, getDefaultToastDuration, getToastAriaLive, getToastRole } from "./store.js";
-import type { ToastData, ToastState, ToastType } from "./types.js";
+import { cloneAndMerge, composeEventHandlers, renderElement, type RenderProp } from "../../utils/slot.js";
+import { ToastRootContextProvider, useToastProviderContext, useToastViewportContext } from "./context.js";
+import { dismissToast, getDefaultToastDuration } from "./store.js";
+import type { ToastData, ToastState, ToastSwipeDirection, ToastSwipeState, ToastType } from "./types.js";
 
 type ToastRootNativeProps = NativeDivProps<"children" | "role">;
 
@@ -30,6 +33,8 @@ export interface ToastRootProps extends ToastRootNativeProps {
   forceMount?: boolean;
   onAutoClose?: () => void;
   onDismiss?: () => void;
+  swipeDirection?: ToastSwipeDirection;
+  swipeThreshold?: number;
   children?: ReactNode;
   render?: RenderProp;
   asChild?: boolean;
@@ -51,6 +56,8 @@ export const ToastRoot = forwardRef<HTMLDivElement, ToastRootProps>(
       forceMount = false,
       onAutoClose,
       onDismiss,
+      swipeDirection,
+      swipeThreshold,
       children,
       render,
       asChild,
@@ -60,12 +67,19 @@ export const ToastRoot = forwardRef<HTMLDivElement, ToastRootProps>(
     ref,
   ) {
     const provider = useToastProviderContext();
+    const viewport = useToastViewportContext();
     const [state, setState] = useState<ToastState>("entering");
     const [removed, setRemoved] = useState(false);
     const closeButtonEnabled = closeButton ?? toast?.closeButton ?? provider.closeButton;
     const autoCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const removeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const stateRef = useRef<ToastState>(state);
+    const escapeDismissedRef = useRef(false);
+    const pointerRef = useRef<{ id: number; x: number; y: number } | null>(null);
+    const [swipeState, setSwipeState] = useState<ToastSwipeState | null>(null);
+    const [swipeDelta, setSwipeDelta] = useState({ x: 0, y: 0 });
+    const resolvedSwipeDirection = swipeDirection ?? provider.swipeDirection;
+    const resolvedSwipeThreshold = swipeThreshold ?? provider.swipeThreshold;
 
     const runRemove = useCallback(() => {
       onDismiss?.();
@@ -75,7 +89,8 @@ export const ToastRoot = forwardRef<HTMLDivElement, ToastRootProps>(
     const completeRemove = useCallback(() => {
       runRemove();
       if (!toast && !forceMount) setRemoved(true);
-    }, [forceMount, runRemove, toast]);
+      if (escapeDismissedRef.current) viewport?.restoreFocusAfterDismiss();
+    }, [forceMount, runRemove, toast, viewport]);
 
     useEffect(() => {
       stateRef.current = state;
@@ -95,6 +110,60 @@ export const ToastRoot = forwardRef<HTMLDivElement, ToastRootProps>(
     const handleDismiss = useCallback(() => {
       startExit();
     }, [startExit]);
+
+    const handleKeyDown = useCallback<KeyboardEventHandler<HTMLDivElement>>((event) => {
+      if (event.key !== "Escape" || !dismissible) return;
+      event.preventDefault();
+      event.stopPropagation();
+      escapeDismissedRef.current = true;
+      startExit();
+    }, [dismissible, startExit]);
+
+    const handlePointerDown = useCallback<PointerEventHandler<HTMLDivElement>>((event) => {
+      if (!resolvedSwipeDirection || !dismissible || event.button !== 0) return;
+      if ((event.target as Element).closest("button, a, input, select, textarea")) return;
+      pointerRef.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
+      event.currentTarget.setPointerCapture(event.pointerId);
+      setSwipeDelta({ x: 0, y: 0 });
+      setSwipeState("start");
+    }, [dismissible, resolvedSwipeDirection]);
+
+    const handlePointerMove = useCallback<PointerEventHandler<HTMLDivElement>>((event) => {
+      const pointer = pointerRef.current;
+      if (!pointer || pointer.id !== event.pointerId || !resolvedSwipeDirection) return;
+      const rawX = event.clientX - pointer.x;
+      const rawY = event.clientY - pointer.y;
+      const x = resolvedSwipeDirection === "right" ? Math.max(0, rawX) : resolvedSwipeDirection === "left" ? Math.min(0, rawX) : 0;
+      const y = resolvedSwipeDirection === "down" ? Math.max(0, rawY) : resolvedSwipeDirection === "up" ? Math.min(0, rawY) : 0;
+      if (x === 0 && y === 0) return;
+      event.preventDefault();
+      setSwipeDelta({ x, y });
+      setSwipeState("move");
+    }, [resolvedSwipeDirection]);
+
+    const finishSwipe = useCallback<PointerEventHandler<HTMLDivElement>>((event) => {
+      const pointer = pointerRef.current;
+      if (!pointer || pointer.id !== event.pointerId || !resolvedSwipeDirection) return;
+      pointerRef.current = null;
+      const distance = resolvedSwipeDirection === "left" || resolvedSwipeDirection === "right"
+        ? Math.abs(swipeDelta.x)
+        : Math.abs(swipeDelta.y);
+      if (distance >= resolvedSwipeThreshold) {
+        setSwipeState("end");
+        startExit();
+      } else {
+        setSwipeState("cancel");
+        setSwipeDelta({ x: 0, y: 0 });
+      }
+    }, [resolvedSwipeDirection, resolvedSwipeThreshold, startExit, swipeDelta.x, swipeDelta.y]);
+
+    const cancelSwipe = useCallback<PointerEventHandler<HTMLDivElement>>((event) => {
+      const pointer = pointerRef.current;
+      if (!pointer || pointer.id !== event.pointerId) return;
+      pointerRef.current = null;
+      setSwipeState("cancel");
+      setSwipeDelta({ x: 0, y: 0 });
+    }, []);
 
     useEffect(() => {
       const visibleTimer = setTimeout(() => {
@@ -158,14 +227,26 @@ export const ToastRoot = forwardRef<HTMLDivElement, ToastRootProps>(
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref,
-      role: getToastRole(type),
-      "aria-live": getToastAriaLive(type),
-      "aria-atomic": true,
       "data-slot": dataSlot,
       "data-state": state,
       "data-type": type,
       ...(typeof index === "number" && { "data-index": index }),
       ...(expanded && { "data-expanded": "" }),
+      ...(toast?.id && { "data-toast-id": toast.id }),
+      ...(resolvedSwipeDirection && { "data-swipe-direction": resolvedSwipeDirection }),
+      ...(swipeState && { "data-swipe": swipeState }),
+      style: resolvedSwipeDirection
+        ? {
+            ...(restProps.style as CSSProperties | undefined),
+            "--atom-toast-swipe-move-x": `${swipeDelta.x}px`,
+            "--atom-toast-swipe-move-y": `${swipeDelta.y}px`,
+          } as CSSProperties
+        : restProps.style,
+      onKeyDown: composeEventHandlers(restProps.onKeyDown, handleKeyDown),
+      onPointerDown: composeEventHandlers(restProps.onPointerDown, handlePointerDown),
+      onPointerMove: composeEventHandlers(restProps.onPointerMove, handlePointerMove),
+      onPointerUp: composeEventHandlers(restProps.onPointerUp, finishSwipe),
+      onPointerCancel: composeEventHandlers(restProps.onPointerCancel, cancelSwipe),
     };
 
     const element = asChild

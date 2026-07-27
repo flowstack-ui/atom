@@ -14,8 +14,12 @@ Never put essential information only in a toast because it disappears.
 - Supports declarative and imperative toast rendering.
 - Includes a global toast store and `toast.*` helpers.
 - Supports queueing with a maximum visible count.
-- Announces toast titles/descriptions through persistent live regions.
-- Supports hover/focus-loss pause behavior.
+- Announces each create or meaningful content update exactly once through
+  persistent polite and assertive live regions.
+- Supports hover, focus-within, and page-focus-loss pause behavior.
+- Provides a labelled notification region reachable with `F8`, focused Escape
+  dismissal, and focus restoration.
+- Supports logical start/end positions and optional directional swipe dismissal.
 - Supports custom viewport rendering.
 - Supports `asChild` and `render` on visual parts.
 
@@ -52,9 +56,18 @@ imperative toasts. Provider renders only its children.
 | --- | --- | --- |
 | `maxVisible` | `number` | `3` |
 | `expandOnHover` | `boolean` | `true` |
-| `closeButton` | `boolean` | `true` |
+| `closeButton` | `boolean` | `false` |
 | `pauseOnHover` | `boolean` | `true` |
 | `pauseOnFocusLoss` | `boolean` | `true` |
+| `pauseOnFocus` | `boolean` | `true` |
+| `hotkey` | `readonly string[]` | `["F8"]` |
+| `label` | `string` | `"Notifications"` |
+| `swipeDirection` | `"left" \| "right" \| "up" \| "down"` | - |
+| `swipeThreshold` | `number` | `50` |
+
+`maxVisible` is normalized to a positive integer. Invalid values use `3`.
+`swipeThreshold` is normalized to a positive number. An omitted direction
+disables swipe; swipe is never the only dismissal mechanism.
 
 **ARIA:** Provider renders no element and adds no ARIA attributes.
 
@@ -62,8 +75,9 @@ imperative toasts. Provider renders only its children.
 
 ### Root
 
-Owns one toast's lifecycle, timer, pause state, dismissal callbacks, and live
-announcement priority.
+Owns one toast's lifecycle, timer, pause state, dismissal callbacks, focused
+Escape behavior, and optional swipe state. Visible Root is intentionally not a
+live region; Viewport's persistent announcers are the sole announcement path.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -81,12 +95,12 @@ announcement priority.
 | `forceMount` | `boolean` | `false` |
 | `onAutoClose` | `() => void` | - |
 | `onDismiss` | `() => void` | - |
+| `swipeDirection` | `"left" \| "right" \| "up" \| "down"` | Provider value |
+| `swipeThreshold` | `number` | Provider value |
 
-| ARIA attribute | Values |
-| --- | --- |
-| `role` | `"status"` normally; `"alert"` for warning and error |
-| `aria-live` | `"polite"` normally; `"assertive"` for warning and error |
-| `aria-atomic` | Always `true` |
+Root adds no live-region ARIA. Consumers should not add `role="status"`,
+`role="alert"`, or `aria-live` to a store-rendered Root because doing so would
+create a second announcement path.
 
 | Data attribute | Values |
 | --- | --- |
@@ -95,6 +109,12 @@ announcement priority.
 | `[data-type]` | Toast type |
 | `[data-index]` | Visible stack index |
 | `[data-expanded]` | Present when expanded |
+| `[data-toast-id]` | Store toast ID when present |
+| `[data-swipe-direction]` | Configured direction when enabled |
+| `[data-swipe]` | `"start" \| "move" \| "cancel" \| "end"` during a gesture |
+
+Swipe movement is exposed through `--atom-toast-swipe-move-x` and
+`--atom-toast-swipe-move-y` for a styled layer to consume.
 
 ### Title
 
@@ -105,7 +125,8 @@ Provides the concise heading announced as part of the current Root.
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
-**ARIA:** Title adds no role or ARIA attributes; Root's live region announces it.
+**ARIA:** Title adds no role or ARIA attributes; Viewport's persistent live
+region announces its store content.
 
 | Data attribute | Values |
 | --- | --- |
@@ -120,7 +141,8 @@ Provides supporting message text announced with Title inside the current Root.
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
-**ARIA:** Description adds no role or ARIA attributes; Root announces it.
+**ARIA:** Description adds no role or ARIA attributes; Viewport announces its
+store content.
 
 | Data attribute | Values |
 | --- | --- |
@@ -190,13 +212,16 @@ toasts still render inside that child.
 | --- | --- | --- |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
-| `position` | `"top-left" \| "top-center" \| "top-right" \| "bottom-left" \| "bottom-center" \| "bottom-right"` | `"bottom-right"` |
+| `position` | logical `start/end`, center, and retained physical `left/right` positions | `"bottom-right"` |
 | `container` | `HTMLElement \| null` | `document.body` after mount |
 | `portalDisabled` | `boolean` | `false` |
 | `renderToast` | `(state: ToastViewportRenderState) => ReactNode` | - |
 
 | ARIA attribute | Values |
 | --- | --- |
+| `role` | `"region"` on the visible viewport |
+| `aria-label` | Provider label plus formatted hotkey |
+| `tabIndex` | `-1` for programmatic hotkey focus |
 | `aria-live` | Hidden announcers use `"polite"` and `"assertive"` |
 | `aria-atomic` | Hidden announcers use `true` |
 
@@ -209,7 +234,7 @@ toasts still render inside that child.
 | `[data-slot="toast-announcer-assertive"]` | Assertive live region |
 
 The flat API also exports the `toast` helper, store mutation/subscription
-functions, `useToastStore`, role/duration helpers, provider defaults, and the
+functions, `useToastStore`, role/duration/normalization helpers, provider defaults, and the
 Provider/Root context hooks and providers for advanced integrations.
 
 ## Examples
@@ -271,11 +296,17 @@ export default function CustomToastViewport() {
 
 ## Accessibility
 
-Toast uses WAI-ARIA live-region semantics: Root uses `role="status"` with polite
-announcements for ordinary messages
-and `role="alert"`/assertive announcements for warning and error messages. The
-viewport also maintains persistent hidden live regions so newly added toasts are
-announced reliably.
+Toast uses one persistent live-region path. Viewport announces ordinary,
+success, info, and loading messages politely and warning/error messages
+assertively. Visible cards remain ordinary interactive content, so the same
+message is not announced twice. Meaningful title, description, or priority
+updates announce once through the matching region.
+
+Press `F8` while toasts are visible to focus the labelled notification region.
+Focus within the region pauses finite timers. Escape dismisses the focused
+dismissible toast, or the newest dismissible toast when focus is on the region,
+then keeps focus in the region when another toast remains or restores the
+element focused before hotkey entry. Toast appearance never moves focus.
 
 Actions and cancel controls dismiss the toast after their callbacks run. Use
 separate UI when an action must keep a toast open while async work completes.
