@@ -7,8 +7,8 @@ export interface BottomNavigationContextValue {
   value: string | null;
   /** Select a destination value. */
   onChange: (value: string) => void;
-  /** Show all labels or only the active item's label. */
-  showLabels: boolean;
+  /** Which item labels should be visibly presented. */
+  labelVisibility: "always" | "active" | "hidden";
 }
 
 const BottomNavigationContext = createContext<BottomNavigationContextValue | null>(null);

@@ -6,6 +6,11 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Expanded Bottom Navigation with explicit `always`, `active`, and `hidden`
+  label-visibility policies plus `static`, `sticky`, `absolute`, and `fixed`
+  positioning intent across Canvas, Source, Anatomy, Inspector, workbook
+  coverage, and the focused manual protocol.
+
 - Added live Root and Content `asChild`/`render` controls to the Menubar
   workbench so the corrected composition contract is visible in Canvas,
   Source, Anatomy, and Inspector evidence.

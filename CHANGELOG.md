@@ -4,6 +4,12 @@
 
 - No unreleased changes.
 
+## 0.13.0
+
+- Expanded BottomNavigation with explicit always/active/hidden label-visibility
+  policy and static/sticky/absolute/fixed positioning intent while preserving
+  the deprecated `showLabels` compatibility path.
+
 ## 0.12.1
 
 - Fixed Menubar Root and Content composition so styled consumers can change

@@ -57,9 +57,11 @@ export const BottomNavigationItem = forwardRef<HTMLElement, BottomNavigationItem
     },
     ref,
   ) {
-    const { value: activeValue, onChange, showLabels } = useBottomNavigationContext();
+    const { value: activeValue, onChange, labelVisibility } = useBottomNavigationContext();
     const isActive = activeValue === value;
-    const isLabelVisible = showLabels || isActive;
+    const isLabelVisible =
+      labelVisibility === "always" ||
+      (labelVisibility === "active" && isActive);
     const defaultTag = href !== undefined ? "a" : "button";
     const isDefaultButton = !asChild && render === undefined && href === undefined;
 

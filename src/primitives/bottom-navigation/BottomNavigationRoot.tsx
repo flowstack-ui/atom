@@ -13,6 +13,9 @@ type BottomNavigationRootNativeProps = NativeNavProps<
   "children" | "defaultValue" | "onChange" | "aria-label"
 >;
 
+export type BottomNavigationLabelVisibility = "always" | "active" | "hidden";
+export type BottomNavigationPosition = "static" | "sticky" | "absolute" | "fixed";
+
 export interface BottomNavigationRootProps extends BottomNavigationRootNativeProps {
   /** Bottom navigation subtree. */
   children: ReactNode;
@@ -22,8 +25,12 @@ export interface BottomNavigationRootProps extends BottomNavigationRootNativePro
   defaultValue?: string | null;
   /** Called when active destination changes. */
   onChange?: (value: string) => void;
-  /** Show labels on all items. */
+  /** Control which item labels should be visibly presented. */
+  labelVisibility?: BottomNavigationLabelVisibility;
+  /** @deprecated Use `labelVisibility`. False maps to `"active"`. */
   showLabels?: boolean;
+  /** Positioning intent exposed for styled layers. */
+  position?: BottomNavigationPosition;
   /** Accessible label for the navigation landmark. */
   ariaLabel?: string;
   /** Override the rendered element. */
@@ -41,7 +48,9 @@ export const BottomNavigationRoot = forwardRef<HTMLElement, BottomNavigationRoot
       value: controlledValue,
       defaultValue = null,
       onChange: onChangeProp,
-      showLabels = true,
+      labelVisibility: labelVisibilityProp,
+      showLabels,
+      position = "static",
       render,
       asChild,
       "data-slot": dataSlot = "bottom-nav-root",
@@ -50,6 +59,8 @@ export const BottomNavigationRoot = forwardRef<HTMLElement, BottomNavigationRoot
     },
     ref,
   ) {
+    const labelVisibility =
+      labelVisibilityProp ?? (showLabels === false ? "active" : "always");
     const [value, setValue] = useControllableState<string | null>({
       value: controlledValue,
       defaultValue,
@@ -71,15 +82,17 @@ export const BottomNavigationRoot = forwardRef<HTMLElement, BottomNavigationRoot
       () => ({
         value,
         onChange,
-        showLabels,
+        labelVisibility,
       }),
-      [onChange, showLabels, value],
+      [labelVisibility, onChange, value],
     );
 
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref,
       "aria-label": ariaLabel,
+      "data-label-visibility": labelVisibility,
+      "data-position": position,
       "data-slot": dataSlot,
     };
 

@@ -15,8 +15,8 @@ Verify
 □ Scenario title shows `Bottom Navigation`
 □ Anatomy panel renders `Root`, `Item: Home`, `Item: Search`, and `Item: Settings`
 □ Canvas renders Home, Search, and Settings destinations
-□ Canvas toolbar shows `State`, `Value`, `Composition`, and `Props`
-□ Canvas footer shows `Value home | Labels true`
+□ Canvas toolbar shows `State`, `Value`, `Layout`, `Composition`, and `Props`
+□ Canvas footer shows `Value home | Labels always | Position static`
 □ Canvas Source tab opens and shows `BottomNavigation.Root` JSX with `ariaLabel`
 □ Inspector shows `Selected`, `Focused`, and `Logs` tabs
 □ `Collapse All`, `Focus Canvas`, and `Clear` controls respond without errors
@@ -25,7 +25,7 @@ Verify
 
 Setup
 
-Default toolbar state. Props off. Root composition `Default`. Item composition `Default`. Controlled on. Show Labels on. Disabled Item on. Link Item off. Block Search Event off.
+Default toolbar state. Props off. Root composition `Default`. Item composition `Default`. Controlled on. Label Visibility `always`. Position `static`. Disabled Item on. Link Item off. Block Search Event off.
 
 Action
 
@@ -33,7 +33,7 @@ Click `Search`.
 
 Verify
 
-□ Footer changes to `Value search | Labels true`
+□ Footer changes to `Value search | Labels always | Position static`
 □ `Item: Search` Data includes `data-state="active"`
 □ `Item: Search` ARIA includes `aria-current="page"`
 □ Logs include `destination changed to search`
@@ -44,7 +44,7 @@ Use `Value > Controlled Value` to select `Home`.
 
 Verify
 
-□ Footer changes to `Value home | Labels true`
+□ Footer changes to `Value home | Labels always | Position static`
 □ Home becomes active and Search becomes inactive
 □ Logs include `destination changed to home`
 
@@ -60,12 +60,13 @@ Verify
 
 Action
 
-Turn `Show Labels` off.
+Set `Label Visibility` to `active`, select Search, then set it to `hidden`.
 
 Verify
 
-□ Active item Data includes `data-label-visible`
-□ Inactive enabled items do not include `data-label-visible`
+□ With `active`, only Search includes `data-label-visible`
+□ With `hidden`, no item includes `data-label-visible`
+□ Root Data reports the selected `data-label-visibility` value
 
 Action
 
@@ -101,7 +102,7 @@ Verify
 
 Reset
 
-Turn `Controlled` on. Use `Value > Controlled Value` to select `Home`. Turn `Show Labels` on. Turn `Link Item` off. Turn `Block Search Event` off.
+Turn `Controlled` on. Use `Value > Controlled Value` to select `Home`. Set Label Visibility to `always`. Turn `Link Item` off. Turn `Block Search Event` off.
 
 ## Step 2: Root
 
@@ -118,7 +119,17 @@ Verify
 □ Attributes tag is `nav`
 □ ARIA includes `aria-label="Demo bottom navigation"`
 □ Data includes `data-slot="bottom-nav-root"`
-□ Root rows show `Controlled: true`, `Show labels: true`, `Composition: default`, and `Ref target: nav`
+□ Root rows show `Controlled: true`, `Label visibility: always`, `Position: static`, `Composition: default`, and `Ref target: nav`
+
+Action
+
+Select each `Layout > Position` value.
+
+Verify
+
+□ Root Data reports `data-position="static"`, `sticky`, `fixed`, and `absolute` respectively
+□ Footer and Source report the same selected position
+□ Position changes do not change selection, keyboard behavior, or element semantics
 
 Action
 
@@ -229,7 +240,9 @@ Verify
 □ Controlled on shows `value="home"` and `onChange={setValue}`
 □ Root accessible-name prop is shown as `ariaLabel="Demo bottom navigation"`
 □ Controlled off shows `defaultValue="home"` and omits `value`
-□ Show Labels off shows `showLabels={false}`
+□ Non-default Label Visibility values show the matching `labelVisibility` prop
+□ Non-default Position values show the matching `position` prop
+□ Default `always` and `static` values are omitted from Source while their data attributes remain inspectable
 □ Link Item on shows Search with `href="#search"`, `target="_blank"`, and `rel="noreferrer"`
 □ Block Search Event on shows Search with `onClick={(event) => event.preventDefault()}`
 □ Disabled Item on shows Settings with `disabled`
