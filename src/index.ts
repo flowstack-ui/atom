@@ -267,6 +267,8 @@ export {
 export type {
   BottomNavigationContextValue,
   BottomNavigationItemProps,
+  BottomNavigationLabelVisibility,
+  BottomNavigationPosition,
   BottomNavigationRootProps,
 } from "./primitives/bottom-navigation/index.js";
 export { ButtonRoot } from "./primitives/button/index.js";

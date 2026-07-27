@@ -19,6 +19,8 @@ type ActivationMode = "automatic" | "manual";
 type TabsDirectionMode = "default" | "provider-rtl" | "local-ltr" | "local-rtl";
 type AppBarPosition = "static" | "absolute" | "sticky" | "fixed";
 type AppBarDensity = "compact" | "comfortable";
+type BottomNavigationLabelVisibility = "always" | "active" | "hidden";
+type BottomNavigationPosition = "static" | "absolute" | "sticky" | "fixed";
 type TabsSlotPart = "root" | "list" | "trigger" | "content" | "indicator";
 type AppBarSlotPart = "root" | "toolbar" | "start" | "center" | "end";
 type AccordionSlotPart = "root" | "item" | "header" | "trigger" | "content";
@@ -562,7 +564,8 @@ function usePaginationScenario() {
 function useBottomNavigationScenario() {
   const [controlled, setControlled] = useState(true);
   const [value, setValue] = useState("home");
-  const [showLabels, setShowLabels] = useState(true);
+  const [labelVisibility, setLabelVisibility] = useState<BottomNavigationLabelVisibility>("always");
+  const [position, setPosition] = useState<BottomNavigationPosition>("static");
   const [disabledItem, setDisabledItem] = useState(true);
   const [linkItem, setLinkItem] = useState(false);
   const [blockSearchEvent, setBlockSearchEvent] = useState(false);
@@ -594,7 +597,8 @@ function useBottomNavigationScenario() {
     state: {
       controlled,
       value,
-      showLabels,
+      labelVisibility,
+      position,
       disabledItem,
       linkItem,
       blockSearchEvent,
@@ -607,7 +611,8 @@ function useBottomNavigationScenario() {
     },
     actions: {
       setControlled,
-      setShowLabels,
+      setLabelVisibility,
+      setPosition,
       setDisabledItem,
       setLinkItem,
       setBlockSearchEvent,
@@ -1006,7 +1011,7 @@ export function NavigationPrimitiveScenarioToolbar({
       <ControlToolbar label="Bottom Navigation controls">
         <ToolbarGroup title="State" value="state">
           <MenuCheckboxControl checked={scenario.state.controlled} label="Controlled" value="controlled" onChange={scenario.actions.setControlled} />
-          <MenuCheckboxControl checked={scenario.state.showLabels} label="Show Labels" value="show-labels" onChange={scenario.actions.setShowLabels} />
+          <MenuRadioControl label="Label Visibility" options={bottomNavigationLabelVisibilityOptions} value={scenario.state.labelVisibility} onChange={scenario.actions.setLabelVisibility} />
           <MenuCheckboxControl checked={scenario.state.disabledItem} label="Disabled Item" value="disabled-item" onChange={scenario.actions.setDisabledItem} />
           <MenuCheckboxControl checked={scenario.state.linkItem} label="Link Item" value="link-item" onChange={scenario.actions.setLinkItem} />
           <MenuCheckboxControl checked={scenario.state.blockSearchEvent} label="Block Search Event" value="block-search-event" onChange={scenario.actions.setBlockSearchEvent} />
@@ -1016,6 +1021,9 @@ export function NavigationPrimitiveScenarioToolbar({
             <MenuRadioControl label="Controlled Value" options={bottomNavigationValueOptions} value={scenario.state.value} onChange={scenario.actions.setValue} />
           </ToolbarGroup>
         ) : null}
+        <ToolbarGroup title="Layout" value="layout">
+          <MenuRadioControl label="Position" options={bottomNavigationPositionOptions} value={scenario.state.position} onChange={scenario.actions.setPosition} />
+        </ToolbarGroup>
         <ToolbarGroup title="Composition" value="composition">
           <MenuRadioControl label="Root" options={compositionOptions} value={scenario.state.rootComposition} onChange={scenario.actions.setRootComposition} />
           <MenuRadioControl label="Item" options={compositionOptions} value={scenario.state.itemComposition} onChange={scenario.actions.setItemComposition} />
@@ -2074,7 +2082,8 @@ function BottomNavigationCanvas({ scenario }: { scenario: ReturnType<typeof useB
     defaultValue: state.controlled ? undefined : "home",
     onChange: scenario.actions.setValue,
     ref: scenario.actions.markRootRef,
-    showLabels: state.showLabels,
+    labelVisibility: state.labelVisibility,
+    position: state.position,
     value: state.controlled ? state.value : undefined,
     ...partProps("root", { propCheck: state.propCheck, customSlot: state.customSlots.root }, "bottom-nav-root-custom"),
   };
@@ -2705,7 +2714,8 @@ function bottomNavigationSections(state: ReturnType<typeof useBottomNavigationSc
   return [
     baseSection("Root", state.value, bottomNavigationSlotSelector(state, "root"), [
       row("Controlled", bool(state.controlled), "state"),
-      row("Show labels", bool(state.showLabels), "state"),
+      row("Label visibility", state.labelVisibility, "state"),
+      row("Position", state.position, "state"),
       row("Block search event", bool(state.blockSearchEvent), "behavior"),
       row("Composition", state.rootComposition, "composition"),
       row("Ref target", state.refs.root, "identity"),
@@ -2859,7 +2869,7 @@ export function getNavigationPrimitiveCanvasFooter(scenarioId: string, scenarios
   if (scenarioId === "accordion") return `${scenarios.accordion.state.multiple ? "multiple" : "single"} | ${formatAccordionValueLabel(scenarios.accordion.state.value)}`;
   if (scenarioId === "breadcrumb") return `Ellipsis ${scenarios.breadcrumb.state.showEllipsis} | Separator ${scenarios.breadcrumb.state.customSeparator ? "custom" : "default"}`;
   if (scenarioId === "pagination") return `Page ${scenarios.pagination.state.page} | Total ${scenarios.pagination.state.totalPages}`;
-  if (scenarioId === "bottom-navigation") return `Value ${scenarios.bottomNavigation.state.value} | Labels ${scenarios.bottomNavigation.state.showLabels}`;
+  if (scenarioId === "bottom-navigation") return `Value ${scenarios.bottomNavigation.state.value} | Labels ${scenarios.bottomNavigation.state.labelVisibility} | Position ${scenarios.bottomNavigation.state.position}`;
   if (scenarioId === "nav-list") return `${scenarios.navList.state.orientation} | Active ${scenarios.navList.state.active} | Open ${scenarios.navList.state.sectionOpen}`;
   return "";
 }
@@ -3502,7 +3512,8 @@ function getBottomNavigationSource(state: ReturnType<typeof useBottomNavigationS
     `ariaLabel="Demo bottom navigation"`,
     state.controlled ? `value="${state.value}"` : `defaultValue="home"`,
     state.controlled ? "onChange={setValue}" : "",
-    !state.showLabels ? "showLabels={false}" : "",
+    state.labelVisibility !== "always" ? `labelVisibility="${state.labelVisibility}"` : "",
+    state.position !== "static" ? `position="${state.position}"` : "",
     sourcePartProps("root", state.propCheck, state.customSlots.root, "bottom-nav-root-custom"),
   ].filter(Boolean).join(" ");
   const rootOpen = renderBottomNavigationSourcePart("Root", state.rootComposition, rootProps, "nav");
@@ -3833,6 +3844,8 @@ const tabsDirectionOptions: readonly WorkbenchOption<TabsDirectionMode>[] = [
   { label: "Local RTL", value: "local-rtl" },
 ];
 const appBarPositionOptions = ["static", "sticky", "fixed", "absolute"] as const;
+const bottomNavigationLabelVisibilityOptions = ["always", "active", "hidden"] as const;
+const bottomNavigationPositionOptions = ["static", "sticky", "fixed", "absolute"] as const;
 const appBarDensityOptions = ["compact", "comfortable"] as const;
 const pageTotalOptions = ["0", "5", "10", "20"] as const;
 const paginationPageOptions = ["1", "4", "10"] as const;

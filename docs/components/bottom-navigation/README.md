@@ -19,6 +19,9 @@ destination.
 - Marks the active destination with `aria-current="page"`.
 - Exposes active, disabled, value, and label-visibility state through data
   attributes.
+- Supports always-visible, active-only, and fully visually-hidden label intent.
+- Exposes static, sticky, absolute, and fixed positioning intent for styled
+  layers without applying styles.
 - Supports `asChild` and `render` on both parts.
 
 ## Import
@@ -52,7 +55,9 @@ application.
 | `value` | `string \| null` | - |
 | `defaultValue` | `string \| null` | `null` |
 | `onChange` | `(value: string) => void` | - |
-| `showLabels` | `boolean` | `true` |
+| `labelVisibility` | `"always" \| "active" \| "hidden"` | `"always"` |
+| `showLabels` | `boolean` | Deprecated compatibility alias |
+| `position` | `"static" \| "sticky" \| "absolute" \| "fixed"` | `"static"` |
 | `ariaLabel` | `string` | `"Bottom navigation"` |
 
 | ARIA attribute | Values |
@@ -62,6 +67,8 @@ application.
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"bottom-nav-root"` |
+| `[data-label-visibility]` | `"always" \| "active" \| "hidden"` |
+| `[data-position]` | `"static" \| "sticky" \| "absolute" \| "fixed"` |
 
 ### Item
 
@@ -92,6 +99,12 @@ omit `href` and leave the tab order.
 | `[data-active]` | Present when active |
 | `[data-disabled]` | Present when disabled |
 | `[data-label-visible]` | Present when labels should be visibly presented |
+
+`labelVisibility` is authoritative when both it and the deprecated
+`showLabels` prop are supplied. Without `labelVisibility`, `showLabels={false}`
+maps to `"active"`; every other legacy/default case maps to `"always"`.
+Atom does not hide label content itself. Styled layers use Root and Item data
+attributes while retaining the authored text in the accessibility tree.
 
 ## Examples
 
@@ -141,6 +154,31 @@ export function ControlledDestinations() {
 }
 ```
 
+### Icon-only Presentation Intent
+
+```tsx
+import { BottomNavigation } from "@flowstack-ui/atom";
+
+export function CompactDestinations() {
+  return (
+    <BottomNavigation.Root
+      ariaLabel="Primary destinations"
+      defaultValue="home"
+      labelVisibility="hidden"
+      position="fixed"
+    >
+      <BottomNavigation.Item value="home" href="/home">Home</BottomNavigation.Item>
+      <BottomNavigation.Item value="search" href="/search">Search</BottomNavigation.Item>
+    </BottomNavigation.Root>
+  );
+}
+```
+
+The styled layer may visually hide both labels, but it must keep the authored
+text available as each Item's accessible name. `position` is metadata only;
+the styled layer applies positioning and the application coordinates page
+content around an overlay.
+
 ## Accessibility
 
 WAI-ARIA defines no dedicated Bottom Navigation pattern. Root uses a native
@@ -153,6 +191,9 @@ Items with `href` use native link behavior and expose `aria-current="page"`
 when active. Prefer links for real destinations so browser navigation features
 continue to work. Button Items retain native button keyboard behavior for
 application-controlled view changes.
+
+Use `labelVisibility="hidden"` only when every destination remains clear from
+its visual icon and accessible name. Atom never removes the label from the DOM.
 
 ## Changelog
 

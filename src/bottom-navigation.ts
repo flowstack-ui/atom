@@ -14,6 +14,8 @@ export {
 export type {
   BottomNavigationContextValue,
   BottomNavigationItemProps,
+  BottomNavigationLabelVisibility,
+  BottomNavigationPosition,
   BottomNavigationRootProps,
 } from "./primitives/bottom-navigation/index.js";
 
