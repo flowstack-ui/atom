@@ -49,7 +49,8 @@ export const DropdownMenuTrigger = forwardRef<HTMLElement, DropdownMenuTriggerPr
 
     const handleClick: MouseEventHandler<HTMLElement> = useCallback(() => {
       if (disabled) return;
-      ctx.onInitialHighlight(null);
+      ctx.onInitialHighlight("first");
+      ctx.onHighlight(null);
       ctx.onToggle();
     }, [ctx, disabled]);
 

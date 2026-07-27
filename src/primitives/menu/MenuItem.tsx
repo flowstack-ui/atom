@@ -49,6 +49,7 @@ export const MenuItem = forwardRef<HTMLElement, MenuItemProps>(function MenuItem
     onClick,
     onPointerEnter,
     onPointerLeave,
+    onFocus,
     ...restProps
   },
   forwardedRef,
@@ -60,34 +61,29 @@ export const MenuItem = forwardRef<HTMLElement, MenuItemProps>(function MenuItem
 
   useEffect(() => {
     const element = ref.current;
-    if (!element || disabled) return undefined;
+    if (!element) return undefined;
     ctx.registerItem(value, element);
     return () => ctx.unregisterItem(value);
   }, [ctx.registerItem, ctx.unregisterItem, disabled, value]);
 
   useEffect(() => {
-    if (disabled) return;
     ctx.registerLabel(value, textValue ?? (typeof children === "string" ? children : value));
-  }, [children, ctx.registerLabel, disabled, textValue, value]);
+  }, [children, ctx.registerLabel, textValue, value]);
 
   const handleClick: MouseEventHandler<HTMLElement> = useCallback(() => {
     if (disabled) return;
     onSelect?.();
     ctx.onItemSelect(value, { closeOnSelect });
-    if (closeOnSelect) {
-      ctx.triggerRef.current?.focus();
-    }
   }, [closeOnSelect, ctx, disabled, onSelect, value]);
 
-  const handlePointerEnter: PointerEventHandler<HTMLElement> = useCallback(() => {
-    if (disabled) return;
+  const handlePointerEnter: PointerEventHandler<HTMLElement> = useCallback((event) => {
+    if (event.pointerType !== "mouse") return;
     ctx.onHighlight(value);
+    event.currentTarget.focus({ preventScroll: true });
     if (ctx.openSubMenuId) ctx.onSubMenuClose();
   }, [ctx, disabled, value]);
 
-  const handlePointerLeave: PointerEventHandler<HTMLElement> = useCallback(() => {
-    if (ctx.highlightedValue === value) ctx.onHighlight(null);
-  }, [ctx, value]);
+  const handlePointerLeave: PointerEventHandler<HTMLElement> = useCallback(() => {}, []);
 
   const behaviorProps = {
     ...restProps,
@@ -101,6 +97,7 @@ export const MenuItem = forwardRef<HTMLElement, MenuItemProps>(function MenuItem
     "aria-disabled": disabled || undefined,
     className,
     onClick: composeEventHandlers(onClick, handleClick),
+    onFocus: composeEventHandlers(onFocus, () => ctx.onHighlight(value)),
     onPointerEnter: composeEventHandlers(onPointerEnter, handlePointerEnter),
     onPointerLeave: composeEventHandlers(onPointerLeave, handlePointerLeave),
   };

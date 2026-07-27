@@ -12,6 +12,7 @@ when several top-level application menus must sit in one horizontal row.
 ## Features
 
 - Full keyboard navigation for menu items and submenus.
+- Real DOM focus on the active item, including disabled items that remain non-activatable.
 - Supports controlled and uncontrolled open state.
 - Supports checkbox and radio menu items.
 - Supports grouped items, separators, and nested submenus.
@@ -29,10 +30,13 @@ import { Menu } from "@flowstack-ui/atom";
 
 ```tsx
 <Menu.Root>
+  <Menu.Portal>
   <Menu.Content>
+    <Menu.Arrow />
     <Menu.Group>
+      <Menu.Label />
       <Menu.Item />
-      <Menu.CheckboxItem />
+      <Menu.CheckboxItem><Menu.ItemIndicator /></Menu.CheckboxItem>
       <Menu.RadioGroup>
         <Menu.RadioItem />
       </Menu.RadioGroup>
@@ -45,6 +49,7 @@ import { Menu } from "@flowstack-ui/atom";
       </Menu.SubContent>
     </Menu.Sub>
   </Menu.Content>
+  </Menu.Portal>
 </Menu.Root>
 ```
 
@@ -69,8 +74,9 @@ ContextMenu control it, while standalone examples can open it directly.
 
 ### Content
 
-Portals and positions the focus-managed `menu` surface. It restores focus when
-closed and locks document scrolling while a modal menu is open.
+Portals and positions the focus-managed `menu` surface. Focus moves to real
+`menuitem*` elements. Modal mode uses Atom's stacked isolation and scroll lock;
+non-modal outside interaction keeps its destination.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -81,6 +87,8 @@ closed and locks document scrolling while a modal menu is open.
 | `loop` | `boolean` | root value |
 | `ariaLabel` | `string` | - |
 | `anchorPoint` | `{ x: number; y: number }` | - |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
 
 | ARIA attribute | Values |
 | --- | --- |
@@ -95,6 +103,36 @@ closed and locks document scrolling while a modal menu is open.
 | `[data-side]` | Resolved Floating UI side |
 | `[data-align]` | Resolved Floating UI alignment |
 | `[data-positioned]` | Present after positioning completes |
+
+| CSS variable | Description |
+| --- | --- |
+| `--atom-menu-available-width` | Collision-aware available width |
+| `--atom-menu-available-height` | Collision-aware available height |
+| `--atom-menu-trigger-width` | Anchor width; `0px` for a point anchor |
+| `--atom-menu-trigger-height` | Anchor height; `0px` for a point anchor |
+| `--atom-menu-transform-origin` | Resolved animation origin |
+
+### Portal and Arrow
+
+`Portal` accepts `container` and `disabled`. `Arrow` renders geometry attached
+to the resolved Content side and accepts `width`, `height`, `asChild`, and
+`render`. Both are optional.
+
+| Portal prop | Type | Default |
+| --- | --- | --- |
+| `children` | `ReactNode` | required |
+| `container` | `HTMLElement \| null` | document body |
+| `disabled` | `boolean` | `false` |
+
+| Arrow prop | Type | Default |
+| --- | --- | --- |
+| `children` | `ReactNode` | - |
+| `width` | `number` | `10` |
+| `height` | `number` | `5` |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+Arrow exposes `[data-slot="menu-arrow"]`, `[data-side]`, and `[data-align]`.
 
 ### Item
 
@@ -129,16 +167,18 @@ Renders a `menuitemcheckbox`.
 | Prop | Type | Default |
 | --- | --- | --- |
 | `children` | `ReactNode` | required |
-| `checked` | `boolean` | `false` |
+| `checked` | `boolean \| "indeterminate"` | `false` |
 | `onCheckedChange` | `(checked: boolean) => void` | - |
 | `value` | `string` | required |
 | `textValue` | `string` | Text child or `value` |
 | `disabled` | `boolean` | `false` |
 | `closeOnSelect` | `boolean` | `false` |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
 
 | ARIA attribute | Values |
 | --- | --- |
-| `aria-checked` | Current checked state |
+| `aria-checked` | `true`, `false`, or `"mixed"` |
 | `aria-disabled` | Present when disabled |
 
 | Data attribute | Values |
@@ -147,6 +187,8 @@ Renders a `menuitemcheckbox`.
 | `[data-highlighted]` | Present when highlighted |
 | `[data-disabled]` | Present when disabled |
 | `[data-checked]` | Present when checked |
+| `[data-indeterminate]` | Present when indeterminate |
+| `[data-state]` | `"checked" \| "unchecked" \| "indeterminate"` |
 | `[data-value]` | Item value |
 
 ### RadioGroup
@@ -158,6 +200,8 @@ Provides radio selection state for `RadioItem`.
 | `children` | `ReactNode` | required |
 | `value` | `string` | - |
 | `onValueChange` | `(value: string) => void` | - |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
 
 | Data attribute | Values |
 | --- | --- |
@@ -178,6 +222,8 @@ Renders a `menuitemradio`.
 | `textValue` | `string` | Text child or `value` |
 | `disabled` | `boolean` | `false` |
 | `closeOnSelect` | `boolean` | `false` |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
 
 | ARIA attribute | Values |
 | --- | --- |
@@ -190,23 +236,66 @@ Renders a `menuitemradio`.
 | `[data-highlighted]` | Present when highlighted |
 | `[data-disabled]` | Present when disabled |
 | `[data-checked]` | Present when selected |
+| `[data-state]` | `"checked" \| "unchecked"` |
 | `[data-value]` | Public radio value |
 
 ### Group
 
 Groups related menu items with `role="group"`.
 
+A nested `Label` automatically supplies `aria-labelledby`. Explicit
+`aria-label` or `aria-labelledby` remains authoritative. A Group without a
+Label does not receive a generated relationship.
+
 | Prop | Type | Default |
 | --- | --- | --- |
 | `children` | `ReactNode` | required |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
 
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"menu-group"` |
 
+### Label
+
+`Label` renders non-focusable group text. Inside Group or RadioGroup, its
+generated ID supplies the owning group's `aria-labelledby` unless the consumer
+provides an explicit accessible name.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `children` | `ReactNode` | required |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+Label exposes `[data-slot="menu-label"]`.
+
+### ItemIndicator
+
+`ItemIndicator` belongs inside CheckboxItem or RadioItem and renders only for
+checked/mixed state unless `forceMount` is true.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `children` | `ReactNode` | - |
+| `forceMount` | `boolean` | `false` |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+It is hidden from assistive technology and exposes
+`[data-slot="menu-item-indicator"]` plus `[data-state]` as `checked`,
+`unchecked`, or `indeterminate`.
+
 ### Separator
 
 Renders a horizontal separator between groups of related commands.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `children` | `ReactNode` | - |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
 
 | ARIA attribute | Values |
 | --- | --- |
@@ -238,6 +327,8 @@ Renders the parent `menuitem` that opens, closes, and labels its `SubContent`.
 | `value` | `string` | required |
 | `textValue` | `string` | Text child or `value` |
 | `disabled` | `boolean` | `false` |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
 
 | ARIA attribute | Values |
 | --- | --- |
@@ -264,6 +355,8 @@ registry, highlight state, typeahead, and nested submenu support.
 | `sideOffset` | `number` | `4` |
 | `loop` | `boolean` | `true` |
 | `ariaLabel` | `string` | - |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
 
 | ARIA attribute | Values |
 | --- | --- |
@@ -277,6 +370,7 @@ registry, highlight state, typeahead, and nested submenu support.
 | `[data-menu-sub-content]` | Present on nested menu surfaces |
 | `[data-state]` | `"open" \| "closed"` |
 | `[data-side]` | Resolved side, mirrored in RTL |
+| `[data-align]` | Resolved alignment |
 | `[data-positioned]` | Present after positioning completes |
 
 Advanced compound components can use `useMenuContext`,
@@ -343,22 +437,24 @@ export function ActionsMenu() {
 
 Follows the [WAI-ARIA menu pattern](https://www.w3.org/WAI/ARIA/apg/patterns/menubar/).
 `Content` renders `role="menu"`, items render the correct menu item roles,
-disabled items expose disabled semantics, and keyboard focus is managed inside
-the open menu.
+disabled items expose disabled semantics, and keyboard focus moves on the real
+item elements. Disabled items remain in navigation and typeahead but cannot
+activate.
 Portalled Menu content and submenu content register with a parent modal focus
 scope when opened inside Dialog, Drawer, or another modal primitive.
-Printable-character typeahead matches enabled item text; a single-character
+Printable-character typeahead matches item text; a single-character
 search cycles forward from the current matching item, while multi-character
 buffers match exact prefixes.
 
 | Key | Description |
 | --- | --- |
-| `ArrowDown` / `ArrowUp` | Moves highlight between enabled items |
-| `Home` / `End` | Moves highlight to first or last enabled item |
-| `Enter` / `Space` | Selects the highlighted item |
+| `ArrowDown` / `ArrowUp` | Moves focus between items, including disabled items |
+| `Home` / `End` | Moves focus to first or last item |
+| `Enter` / `Space` | Selects the focused item unless disabled |
 | `Escape` | Closes the topmost submenu first, then the root menu when enabled |
 | `ArrowRight` / `ArrowLeft` | Opens or closes submenus based on direction |
 | Printable character | Typeahead search |
+| `Tab` / `Shift+Tab` | Closes all levels and moves after/before the owning composite |
 
 ## Changelog
 

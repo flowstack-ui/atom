@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, type RefObject } from "react";
 import type { DirectionValue } from "../direction/index.js";
 
 export interface MenubarContextValue {
@@ -24,6 +24,8 @@ export interface MenubarContextValue {
   onFocus: (value: string) => void;
   loop: boolean;
   dir: DirectionValue;
+  orientation: "horizontal" | "vertical";
+  rootRef: RefObject<HTMLElement | null>;
 }
 
 const MenubarContext = createContext<MenubarContextValue | null>(null);

@@ -2,9 +2,13 @@
 
 import {
   MenuCheckboxItem,
+  MenuArrow,
   MenuContent,
   MenuGroup,
+  MenuItemIndicator,
   MenuItem,
+  MenuLabel,
+  MenuPortal,
   MenuRadioGroup,
   MenuRadioItem,
   MenuRoot,
@@ -17,9 +21,13 @@ import {
 export {
   MenuContextProvider,
   MenuCheckboxItem,
+  MenuArrow,
   MenuContent,
   MenuGroup,
+  MenuItemIndicator,
   MenuItem,
+  MenuLabel,
+  MenuPortal,
   MenuRadioGroup,
   MenuRadioGroupContextProvider,
   MenuRadioItem,
@@ -35,11 +43,17 @@ export {
 } from "./primitives/menu/index.js";
 export type {
   MenuAlign,
+  MenuCloseReason,
   MenuContextValue,
   MenuCheckboxItemProps,
+  MenuArrowProps,
   MenuContentProps,
   MenuGroupProps,
+  MenuItemIndicatorProps,
+  MenuItemCheckedState,
   MenuItemProps,
+  MenuLabelProps,
+  MenuPortalProps,
   MenuRadioGroupProps,
   MenuRadioGroupContextValue,
   MenuRadioItemProps,
@@ -54,8 +68,12 @@ export type {
 
 export const Menu = {
   Root: MenuRoot,
+  Portal: MenuPortal,
   Content: MenuContent,
+  Arrow: MenuArrow,
+  Label: MenuLabel,
   Item: MenuItem,
+  ItemIndicator: MenuItemIndicator,
   CheckboxItem: MenuCheckboxItem,
   RadioGroup: MenuRadioGroup,
   RadioItem: MenuRadioItem,

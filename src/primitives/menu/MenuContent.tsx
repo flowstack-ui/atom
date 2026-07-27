@@ -9,19 +9,22 @@ import {
   useState,
   type KeyboardEvent,
   type KeyboardEventHandler,
+  type CSSProperties,
   type ReactNode,
 } from "react";
 import {
   autoUpdate,
+  arrow as floatingArrow,
   flip,
   offset,
   shift,
+  size as sizeMiddleware,
   useFloating,
   type Placement,
 } from "@floating-ui/react";
 import {
-  useFocusOnMount,
-  useFocusRestore,
+  getTabbableOutsideBoundary,
+  useFocusTrap,
   useFocusScopeContainer,
 } from "../../hooks/focus.js";
 import { useClickAway } from "../../hooks/useClickAway.js";
@@ -29,10 +32,19 @@ import { usePresence } from "../../hooks/usePresence.js";
 import { useScrollLock } from "../../hooks/useScrollLock.js";
 import { Portal } from "../../utils/Portal.js";
 import type { NativeDivProps } from "../../utils/dom.js";
-import { composeEventHandlers, composeRefs } from "../../utils/slot.js";
+import { cloneAndMerge, composeEventHandlers, composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
 import { getTypeaheadMatch } from "../../utils/typeahead.js";
 import { useDirection } from "../direction/index.js";
-import { getMenuSubmenuOpenKey, useMenuContext } from "./context.js";
+import { setModalLayerContent } from "../modal/layer.js";
+import { useModalIsolation } from "../modal/useModalIsolation.js";
+import {
+  getMenuSubmenuOpenKey,
+  MenuContentContextProvider,
+  MenuPortalContextProvider,
+  useMenuContext,
+  useMenuPortalContext,
+  type MenuContentContextValue,
+} from "./context.js";
 
 const menuFocusScopeMetadata = {
   focusContainment: "owned",
@@ -55,6 +67,8 @@ export interface MenuContentProps extends MenuContentNativeProps {
   className?: string;
   ariaLabel?: string;
   anchorPoint?: { x: number; y: number } | null;
+  asChild?: boolean;
+  render?: RenderProp;
   onKeyDownCapture?: KeyboardEventHandler<HTMLDivElement>;
   "data-slot"?: string;
 }
@@ -85,6 +99,8 @@ function MenuContent(
     className,
     ariaLabel,
     anchorPoint,
+    asChild = false,
+    render,
     onKeyDownCapture,
     style,
     "data-slot": dataSlot = "menu-content",
@@ -93,6 +109,7 @@ function MenuContent(
   ref,
 ) {
   const ctx = useMenuContext();
+  const portalContext = useMenuPortalContext();
   const dir = useDirection();
   const loop = loopProp ?? ctx.loop;
   const {
@@ -105,28 +122,40 @@ function MenuContent(
     isOpen,
     menuId,
     modal,
+    modalLayer,
+    focusScope,
     onClose,
     onHighlight,
     openSubMenuId,
     triggerId,
     triggerRef,
+    ownerBoundaryRef,
+    focusOriginRef,
   } = ctx;
   const internalRef = useRef<HTMLDivElement>(null);
+  const arrowRef = useRef<SVGSVGElement>(null);
   const { isPresent, ref: presenceRef } = usePresence({ present: isOpen });
   const [isPositioned, setIsPositioned] = useState(false);
   const hasAppliedInitialHighlightRef = useRef(false);
   const typeaheadBuffer = useRef("");
   const typeaheadTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  useFocusRestore(isOpen, () => triggerRef.current);
   useFocusScopeContainer(
     internalRef,
     isPresent,
-    undefined,
+    focusScope,
     menuFocusScopeMetadata,
   );
-  useFocusOnMount(internalRef, isPresent);
+  useModalIsolation(modalLayer, focusScope, isOpen && modal);
+  useFocusTrap(internalRef, isOpen && modal, { scope: focusScope });
   useScrollLock(isOpen && modal, internalRef);
+
+  const focusItem = useCallback((value: string) => {
+    onHighlight(value);
+    const item = getItemElement(value);
+    item?.focus({ preventScroll: true });
+    item?.scrollIntoView({ block: "nearest" });
+  }, [getItemElement, onHighlight]);
 
   useEffect(() => {
     if (!isPresent) return undefined;
@@ -154,11 +183,11 @@ function MenuContent(
       const values = getItemValues();
       if (values.length > 0) {
         hasAppliedInitialHighlightRef.current = true;
-        onHighlight(initialHighlight === "last" ? values[values.length - 1] : values[0]);
+        focusItem(initialHighlight === "last" ? values[values.length - 1] : values[0]);
       }
     });
     return () => cancelAnimationFrame(raf);
-  }, [getItemValues, highlightedValue, initialHighlight, isOpen, isPresent, onHighlight]);
+  }, [focusItem, getItemValues, highlightedValue, initialHighlight, isOpen, isPresent]);
 
   useEffect(() => {
     if (!isOpen || !highlightedValue) return;
@@ -172,8 +201,9 @@ function MenuContent(
   );
   useClickAway({
     refs: clickAwayRefs,
-    onClickAway: onClose,
+    onClickAway: () => onClose(modal ? "programmatic" : "interactOutside"),
     enabled: isOpen,
+    deferTouch: true,
     ignore: (target) => openSubMenuId !== null && isMenuSubContent(target),
   });
 
@@ -195,29 +225,29 @@ function MenuContent(
         case "ArrowDown": {
           event.preventDefault();
           if (currentIndex < values.length - 1) {
-            onHighlight(values[currentIndex + 1]);
+            focusItem(values[currentIndex + 1]);
           } else if (loop) {
-            onHighlight(values[0]);
+            focusItem(values[0]);
           }
           break;
         }
         case "ArrowUp": {
           event.preventDefault();
           if (currentIndex > 0) {
-            onHighlight(values[currentIndex - 1]);
+            focusItem(values[currentIndex - 1]);
           } else if (loop) {
-            onHighlight(values[values.length - 1]);
+            focusItem(values[values.length - 1]);
           }
           break;
         }
         case "Home": {
           event.preventDefault();
-          onHighlight(values[0]);
+          focusItem(values[0]);
           break;
         }
         case "End": {
           event.preventDefault();
-          onHighlight(values[values.length - 1]);
+          focusItem(values[values.length - 1]);
           break;
         }
         case getMenuSubmenuOpenKey(dir): {
@@ -241,8 +271,19 @@ function MenuContent(
         }
         case "Tab": {
           event.preventDefault();
-          onClose();
-          triggerRef.current?.focus();
+          const boundary = ownerBoundaryRef.current ?? triggerRef.current ?? focusOriginRef.current;
+          const direction = event.shiftKey ? "before" : "after";
+          onClose("tab");
+          requestAnimationFrame(() => {
+            const destination = boundary
+              ? getTabbableOutsideBoundary(
+                  boundary,
+                  direction,
+                  (element) => Boolean(element.closest("[role='menu']")),
+                )
+              : null;
+            destination?.focus({ preventScroll: true });
+          });
           break;
         }
         default: {
@@ -261,7 +302,7 @@ function MenuContent(
               highlightedValue,
             );
 
-            if (match) onHighlight(match);
+            if (match) focusItem(match);
           }
         }
       }
@@ -272,19 +313,37 @@ function MenuContent(
       getLabel,
       highlightedValue,
       dir,
+      focusItem,
+      focusOriginRef,
       loop,
       onClose,
-      onHighlight,
       onKeyDownCapture,
+      ownerBoundaryRef,
       triggerRef,
     ],
   );
 
   const referenceElement = anchorPoint ? null : triggerRef.current;
-  const { refs, floatingStyles, placement } = useFloating({
+  const { refs, floatingStyles, placement, middlewareData } = useFloating({
     elements: { reference: referenceElement },
     placement: toPlacement(side, align),
-    middleware: [offset(sideOffset), flip({ padding: 8 }), shift({ padding: 8 })],
+    middleware: [
+      offset(sideOffset),
+      flip({ padding: 8 }),
+      shift({ padding: 8 }),
+      sizeMiddleware({
+        padding: 8,
+        apply({ availableHeight, availableWidth, elements, rects }) {
+          Object.assign(elements.floating.style, {
+            "--atom-menu-available-width": `${availableWidth}px`,
+            "--atom-menu-available-height": `${availableHeight}px`,
+            "--atom-menu-trigger-width": `${rects.reference.width}px`,
+            "--atom-menu-trigger-height": `${rects.reference.height}px`,
+          });
+        },
+      }),
+      floatingArrow({ element: arrowRef, padding: 8 }),
+    ],
     whileElementsMounted: autoUpdate,
     open: isOpen,
   });
@@ -297,8 +356,9 @@ function MenuContent(
   const setFloatingRef = useCallback(
     (node: HTMLDivElement | null) => {
       composedRef(node);
+      setModalLayerContent(modalLayer, node);
     },
-    [composedRef],
+    [composedRef, modalLayer],
   );
 
   useEffect(() => {
@@ -317,35 +377,53 @@ function MenuContent(
     });
   }, [anchorPoint, refs]);
 
+  const dataState = isOpen ? "open" : "closed";
+  const actualSide = sideFromPlacement(placement);
+  const actualAlign = alignFromPlacement(placement);
+  const arrowData = middlewareData.arrow;
+  const contentContextValue = useMemo<MenuContentContextValue>(() => ({
+    arrowRef,
+    side: actualSide,
+    align: actualAlign,
+    arrowX: arrowData?.x,
+    arrowY: arrowData?.y,
+  }), [actualAlign, actualSide, arrowData?.x, arrowData?.y]);
+  const transformOrigin = actualSide === "top"
+    ? `${actualAlign} bottom`
+    : actualSide === "bottom"
+      ? `${actualAlign} top`
+      : actualSide === "left"
+        ? `right ${actualAlign}`
+        : `left ${actualAlign}`;
+  const behaviorProps = {
+    ...restProps,
+    ref: setFloatingRef,
+    id: menuId,
+    role: "menu",
+    "aria-orientation": "vertical" as const,
+    "aria-label": ariaLabel,
+    "aria-labelledby": !ariaLabel && triggerRef.current ? triggerId : undefined,
+    tabIndex: -1,
+    "data-slot": dataSlot,
+    "data-state": dataState,
+    "data-side": actualSide,
+    "data-align": actualAlign,
+    ...(isPositioned ? { "data-positioned": "" } : {}),
+    className,
+    style: { ...style, ...floatingStyles, "--atom-menu-transform-origin": transformOrigin } as CSSProperties,
+    onKeyDown: composeEventHandlers(restProps.onKeyDown, handleKeyDown),
+  };
+  const contentElement = asChild
+    ? cloneAndMerge(children, behaviorProps)
+    : renderElement(render, "div", { ...behaviorProps, children });
+
   if (!isPresent) return null;
 
-  const dataState = isOpen ? "open" : "closed";
-
   return (
-    <Portal>
-      <div
-        {...restProps}
-        ref={setFloatingRef}
-        id={menuId}
-        role="menu"
-        aria-orientation="vertical"
-        aria-label={ariaLabel}
-        aria-labelledby={!ariaLabel && triggerRef.current ? triggerId : undefined}
-        tabIndex={-1}
-        data-slot={dataSlot}
-        data-state={dataState}
-        data-side={sideFromPlacement(placement)}
-        data-align={alignFromPlacement(placement)}
-        {...(isPositioned ? { "data-positioned": "" } : {})}
-        className={className}
-        style={{
-          ...style,
-          ...floatingStyles,
-        }}
-        onKeyDown={composeEventHandlers(restProps.onKeyDown, handleKeyDown)}
-      >
-        {children}
-      </div>
+    <Portal container={portalContext?.container} disabled={portalContext !== null}>
+      <MenuContentContextProvider value={contentContextValue}>
+        <MenuPortalContextProvider value={null}>{contentElement}</MenuPortalContextProvider>
+      </MenuContentContextProvider>
     </Portal>
   );
 });

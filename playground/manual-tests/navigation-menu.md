@@ -79,6 +79,16 @@ Verify
 - Opening and closing have no visible delay.
 - Source contains `delayDuration={0}` and `skipDelayDuration={0}`.
 
+Action
+
+- On touch or pen, contact Learn without completing a tap; then cancel or scroll.
+
+Verify
+
+- Touch/pen contact does not start the mouse-hover open or close timers.
+- A completed tap still toggles the disclosure.
+- Direct links remain native links in normal Tab order.
+
 Reset
 
 - Restore Controlled off, Default value Closed, Instant Hover off, and Root closed.
@@ -730,4 +740,6 @@ Reset
 - Corrected provider-direction coverage and public anatomy ownership.
 - Added exact default/custom slot coverage and Default/As Child/Render coverage for every DOM part, including Content registration through Viewport.
 - Added direct-Link top-level navigation, Content DOM-order navigation, independent Root/Content loop inheritance and overrides, Tab handoff, focus-out dismissal, and vertical keyboard coverage.
-- After Steps 0–14 passed, all NavigationMenu rows were marked tested and covered and this reviewed protocol was promoted.
+- The prior Steps 0–14 baseline passed. The touch/pen hover-gating, completed-tap,
+  and direct-link rows added by the Menu-family hardening remain untested until
+  the updated touch and named-device steps pass.

@@ -1,8 +1,10 @@
 "use client";
 
-import { useCallback, useId, type ReactNode } from "react";
+import { forwardRef, useCallback, useId, type ReactNode } from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { MenuRadioGroupContextProvider } from "./context.js";
+import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
+import { hasMenuLabelPart } from "./parts.js";
 
 type MenuRadioGroupNativeProps = NativeDivProps<"children" | "role">;
 
@@ -12,17 +14,25 @@ export interface MenuRadioGroupProps extends MenuRadioGroupNativeProps {
   className?: string;
   children: ReactNode;
   "data-slot"?: string;
+  asChild?: boolean;
+  render?: RenderProp;
 }
 
-export function MenuRadioGroup({
+export const MenuRadioGroup = forwardRef<HTMLElement, MenuRadioGroupProps>(function MenuRadioGroup({
   value,
   onValueChange,
   className,
   children,
+  asChild = false,
+  render,
+  "aria-label": ariaLabel,
+  "aria-labelledby": ariaLabelledBy,
   "data-slot": dataSlot = "menu-radio-group",
   ...restProps
-}: MenuRadioGroupProps) {
+}: MenuRadioGroupProps, ref) {
   const groupId = useId();
+  const labelId = useId();
+  const hasLabel = hasMenuLabelPart(children);
   const handleValueChange = useCallback(
     (newValue: string) => onValueChange?.(newValue),
     [onValueChange],
@@ -30,16 +40,11 @@ export function MenuRadioGroup({
 
   return (
     <MenuRadioGroupContextProvider
-      value={{ groupId, value, onValueChange: handleValueChange }}
+      value={{ groupId, labelId, value, onValueChange: handleValueChange }}
     >
-      <div
-        {...restProps}
-        role="group"
-        data-slot={dataSlot}
-        className={className}
-      >
-        {children}
-      </div>
+      {asChild
+        ? cloneAndMerge(children, { ...restProps, ref, role: "group", "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy ?? (ariaLabel || !hasLabel ? undefined : labelId), "data-slot": dataSlot, className })
+        : renderElement(render, "div", { ...restProps, ref, role: "group", "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy ?? (ariaLabel || !hasLabel ? undefined : labelId), "data-slot": dataSlot, className, children })}
     </MenuRadioGroupContextProvider>
   );
-}
+});

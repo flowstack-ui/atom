@@ -46,6 +46,10 @@ export function useClickAway({
     };
 
     const handlePointerDown = (event: PointerEvent) => {
+      if (pendingPointer) {
+        clearPendingPointer();
+        return;
+      }
       const target = event.target as Node;
       if (!isOutside(target)) return;
 
@@ -62,7 +66,11 @@ export function useClickAway({
     };
 
     const handlePointerMove = (event: PointerEvent) => {
-      if (!pendingPointer || event.pointerId !== pendingPointer.id) return;
+      if (!pendingPointer) return;
+      if (event.pointerId !== pendingPointer.id) {
+        clearPendingPointer();
+        return;
+      }
       if (
         Math.hypot(
           event.clientX - pendingPointer.x,
@@ -74,7 +82,11 @@ export function useClickAway({
     };
 
     const handlePointerUp = (event: PointerEvent) => {
-      if (!pendingPointer || event.pointerId !== pendingPointer.id) return;
+      if (!pendingPointer) return;
+      if (event.pointerId !== pendingPointer.id) {
+        clearPendingPointer();
+        return;
+      }
       clearPendingPointer();
       handlerRef.current(event);
     };

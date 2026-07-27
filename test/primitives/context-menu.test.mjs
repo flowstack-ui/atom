@@ -66,8 +66,10 @@ test("ContextMenu wires anchor point into menu content", async () => {
   assert.match(contentSource, /forwardRef/);
   assert.match(contentSource, /<MenuContent \{\.\.\.props\} anchorPoint=\{anchorPoint\} ref=\{ref\} \/>/);
   assert.match(triggerSource, /firstElementChild \?\? triggerRef\.current/);
-  assert.match(triggerSource, /ctx\.onInitialHighlight\(null\)/);
   assert.match(triggerSource, /ctx\.onInitialHighlight\("first"\)/);
+  assert.match(triggerSource, /const LONG_PRESS_DELAY = 700/);
+  assert.match(triggerSource, /const LONG_PRESS_TOLERANCE = 10/);
+  assert.match(triggerSource, /"data-pressed": pressed \? "" : undefined/);
   assert.match(triggerSource, /ctx\.onHighlight\(null\)/);
   assert.match(triggerSource, /"data-slot": dataSlot = "context-menu-trigger"/);
   assert.match(triggerSource, /"data-slot": dataSlot/);

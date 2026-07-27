@@ -13,6 +13,8 @@ import {
   MenuContent,
   MenuGroup,
   MenuItem,
+  MenuItemIndicator,
+  MenuLabel,
   MenuRadioGroup,
   MenuRadioItem,
   MenuRoot,
@@ -83,6 +85,34 @@ test("Menu primitives render item roles and selection state", () => {
   assert.match(html, /class="separator-class"/);
 });
 
+test("Menu labels and indicators create only valid owned relationships", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      MenuRoot,
+      { defaultOpen: true },
+      React.createElement(
+        MenuGroup,
+        null,
+        React.createElement(MenuLabel, null, "Editing"),
+        React.createElement(MenuItem, { value: "cut" }, "Cut"),
+      ),
+      React.createElement(
+        MenuCheckboxItem,
+        { value: "grid", checked: true },
+        "Grid",
+        React.createElement(MenuItemIndicator, null, "✓"),
+      ),
+      React.createElement(MenuGroup, null, React.createElement(MenuItem, { value: "plain" }, "Plain")),
+    ),
+  );
+  const labelledGroup = html.match(/<div[^>]*role="group"[^>]*aria-labelledby="([^"]+)"[^>]*>/);
+  assert.ok(labelledGroup);
+  assert.match(html, new RegExp(`id="${labelledGroup[1]}"`));
+  assert.equal((html.match(/aria-labelledby=/g) ?? []).length, 1);
+  assert.match(html, /data-slot="menu-item-indicator"/);
+  assert.match(html, /data-state="checked"/);
+});
+
 test("Menu source keeps selection and submenu close behavior stable", async () => {
   const rootSource = await readFile(
     new URL("src/primitives/menu/MenuRoot.tsx", packageRoot),
@@ -125,88 +155,36 @@ test("Menu source keeps selection and submenu close behavior stable", async () =
     "utf8",
   );
 
-  assert.match(rootSource, /const contextValue: MenuContextValue = useMemo/);
-  assert.match(rootSource, /useCollection<string, HTMLElement>\(\)/);
-  assert.match(rootSource, /registerCollectionItem/);
-  assert.doesNotMatch(rootSource, /compareDocumentPosition/);
-  assert.match(rootSource, /enabled: isOpen && closeOnEscape/);
-  assert.match(rootSource, /if \(openSubMenuId !== null\) return/);
-  assert.match(rootSource, /onEscapeKeyDown: \(\) => \{\s*if \(openSubMenuId !== null\) return;\s*onClose\(\);/s);
+  assert.match(rootSource, /const ownFocusScope = useCreateFocusScope\(\)/);
+  assert.match(rootSource, /!modal && parentModal \? parentModal\.focusScope : ownFocusScope/);
+  assert.match(rootSource, /createModalLayer\(parentModal\?\.layer \?\? null\)/);
+  assert.match(rootSource, /onClose\("escape"\)/);
+  assert.match(rootSource, /transaction\.reason !== "interactOutside" && transaction\.reason !== "tab"/);
+  assert.match(rootSource, /\.filter\(\(item\) => item\.element\.isConnected\)/);
+  assert.match(contextSource, /export type MenuCloseReason/);
   assert.match(contextSource, /getMenuSubmenuOpenKey\(dir: DirectionValue\)/);
-  assert.match(contextSource, /return dir === "rtl" \? "ArrowLeft" : "ArrowRight"/);
-  assert.match(contextSource, /getMenuSubmenuCloseKey\(dir: DirectionValue\)/);
-  assert.match(contextSource, /return dir === "rtl" \? "ArrowRight" : "ArrowLeft"/);
-  assert.match(contentSource, /useFocusOnMount\(internalRef, isPresent\)/);
-  assert.match(contentSource, /const dir = useDirection\(\)/);
-  assert.ok(
-    contentSource.indexOf("useFocusScopeContainer(internalRef, isPresent)") <
-      contentSource.indexOf("useFocusOnMount(internalRef, isPresent)"),
-  );
-  assert.match(contentSource, /const hasAppliedInitialHighlightRef = useRef\(false\)/);
-  assert.match(contentSource, /if \(!isOpen \|\| !isPresent\) \{\s*hasAppliedInitialHighlightRef\.current = false/s);
-  assert.match(contentSource, /if \(highlightedValue\) \{\s*hasAppliedInitialHighlightRef\.current = true/s);
-  assert.match(contentSource, /if \(hasAppliedInitialHighlightRef\.current \|\| initialHighlight === null\) return undefined/);
-  assert.match(contentSource, /if \(values\.length > 0\) \{\s*hasAppliedInitialHighlightRef\.current = true;\s*onHighlight/s);
-  assert.doesNotMatch(contentSource, /if \(hasAppliedInitialHighlightRef\.current\) return undefined;\s*hasAppliedInitialHighlightRef\.current = true;\s*const raf/s);
-  assert.match(contentSource, /case getMenuSubmenuOpenKey\(dir\):/);
-  assert.match(contentSource, /getTypeaheadMatch\(/);
-  assert.match(contentSource, /el\?\.dataset\.slot === "menu-sub-trigger"/);
-  assert.match(contentSource, /useClickAway\(\{/);
-  assert.match(contentSource, /ignore: \(target\) => openSubMenuId !== null && isMenuSubContent\(target\)/);
-  assert.match(contentSource, /target\.closest\("\[data-menu-sub-content\]"\) !== null/);
-  assert.match(contentSource, /aria-labelledby=\{!ariaLabel && triggerRef\.current \? triggerId : undefined\}/);
-  assert.doesNotMatch(contentSource, /aria-labelledby=\{!ariaLabel \? triggerId : undefined\}/);
-  assert.doesNotMatch(contentSource, /document\.addEventListener\("pointerdown"/);
-  assert.match(subContentSource, /usePresence\(\{ present: isOpen \}\)/);
-  assert.match(subContentSource, /const dir = useDirection\(\)/);
-  assert.match(subContentSource, /useCollection<string, HTMLElement>\(\)/);
-  assert.match(subContentSource, /registerCollectionItem/);
-  assert.doesNotMatch(subContentSource, /compareDocumentPosition/);
-  assert.match(subContentSource, /case getMenuSubmenuOpenKey\(dir\):/);
-  assert.match(subContentSource, /case getMenuSubmenuCloseKey\(dir\):/);
-  assert.match(subContentSource, /placement: dir === "rtl" \? "left-start" : "right-start"/);
-  assert.match(subContentSource, /getTypeaheadMatch\(/);
-  assert.match(subContentSource, /event\.stopPropagation\(\)/);
-  assert.match(subContentSource, /el\?\.dataset\.slot === "menu-sub-trigger"/);
-  assert.match(subContentSource, /aria-labelledby=\{!ariaLabel \? subTriggerId : undefined\}/);
-  assert.match(subContentSource, /sideOffset = 4/);
-  assert.match(subContentSource, /refs\.setReference\(subTriggerRef\.current\)/);
-  assert.doesNotMatch(subContentSource, /elements: \{ reference: subTriggerRef\.current \}/);
-  assert.ok(
-    subContentSource.indexOf("const subMenuContext: MenuContextValue = useMemo") <
-      subContentSource.indexOf("if (!isPresent) return null"),
-  );
-  assert.match(subContentSource, /useClickAway\(\{/);
-  assert.match(subContentSource, /ignore: \(target\) => nestedOpenSubMenuId !== null && isMenuSubContent\(target\)/);
-  assert.match(subContentSource, /target\.closest\("\[data-menu-sub-content\]"\) !== null/);
-  assert.doesNotMatch(subContentSource, /document\.addEventListener\("pointerdown"/);
-  assert.match(subContentSource, /parentMenuContext\.onItemSelect\(value, \{ closeOnSelect: true \}\)/);
-  assert.doesNotMatch(subContentSource, /parentMenuContext\.onClose\(\);\s*parentMenuContext\.triggerRef\.current\?\.focus\(\)/s);
-  assert.doesNotMatch(subContentSource, /subTriggerRef\.current\?\.focus\(\)/);
-  assert.match(clickAwaySource, /document\.addEventListener\("pointerdown", handlePointerDown, true\)/);
-  assert.match(clickAwaySource, /document\.removeEventListener\("pointerdown", handlePointerDown, true\)/);
-  assert.match(clickAwaySource, /ignoreRef\.current\?\.\(target\)/);
-  assert.doesNotMatch(clickAwaySource, /requestAnimationFrame/);
-  assert.match(subTriggerSource, /id=\{subCtx\.subTriggerId\}/);
-  assert.match(subTriggerSource, /const dir = useDirection\(\)/);
-  assert.match(subTriggerSource, /event\.key === getMenuSubmenuOpenKey\(dir\)/);
+  assert.match(contentSource, /const focusItem = useCallback/);
+  assert.match(contentSource, /item\?\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(contentSource, /getTabbableOutsideBoundary/);
+  assert.match(contentSource, /onClose\("tab"\)/);
+  assert.match(contentSource, /deferTouch: true/);
+  assert.match(contentSource, /useModalIsolation\(modalLayer, focusScope, isOpen && modal\)/);
+  assert.match(contentSource, /--atom-menu-available-width/);
+  assert.match(contentSource, /--atom-menu-transform-origin/);
+  assert.match(subContentSource, /const focusItem = useCallback/);
+  assert.match(subContentSource, /subTriggerRef\.current\?\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(subContentSource, /deferTouch: true/);
+  assert.match(subContentSource, /--atom-menu-available-height/);
+  assert.match(clickAwaySource, /if \(pendingPointer\) \{\s*clearPendingPointer\(\);/s);
+  assert.match(subTriggerSource, /event\.pointerType !== "mouse"/);
+  assert.match(subTriggerSource, /event\.currentTarget\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(itemSource, /if \(!element\) return undefined/);
   assert.match(itemSource, /ctx\.onItemSelect\(value, \{ closeOnSelect \}\)/);
-  assert.match(itemSource, /if \(ctx\.openSubMenuId\) ctx\.onSubMenuClose\(\)/);
-  assert.match(checkboxSource, /closeOnSelect = false/);
-  assert.match(checkboxSource, /ctx\.onItemSelect\(value, \{ closeOnSelect \}\)/);
-  assert.match(checkboxSource, /if \(ctx\.openSubMenuId\) ctx\.onSubMenuClose\(\)/);
-  assert.match(radioSource, /closeOnSelect = false/);
-  assert.match(contextSource, /groupId: string/);
-  assert.match(radioGroupSource, /const groupId = useId\(\)/);
-  assert.match(radioGroupSource, /value=\{\{ groupId, value, onValueChange: handleValueChange \}\}/);
-  assert.match(radioSource, /const itemValue = `\$\{radioCtx\.groupId\}:\$\{value\}`/);
-  assert.match(radioSource, /const isHighlighted = ctx\.highlightedValue === itemValue/);
-  assert.match(radioSource, /ctx\.onItemSelect\(itemValue, \{ closeOnSelect \}\)/);
-  assert.match(radioSource, /ctx\.registerItem\(itemValue, element\)/);
-  assert.match(radioSource, /ctx\.registerLabel\(itemValue,/);
-  assert.match(radioSource, /data-value=\{value\}/);
-  assert.match(radioSource, /if \(ctx\.openSubMenuId\) ctx\.onSubMenuClose\(\)/);
-  assert.doesNotMatch(itemSource, /ctx\.onClose\(\);/);
+  assert.doesNotMatch(itemSource, /ctx\.triggerRef\.current\?\.focus/);
+  assert.match(checkboxSource, /checked\?: MenuItemCheckedState/);
+  assert.match(checkboxSource, /"mixed"/);
+  assert.match(radioSource, /forwardRef<HTMLElement, MenuRadioItemProps>/);
+  assert.match(radioGroupSource, /hasMenuLabelPart\(children\)/);
 });
 
 test("MenuItem supports asChild and render composition", () => {

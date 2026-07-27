@@ -7,8 +7,12 @@ import {
 } from "./primitives/context-menu/index.js";
 import {
   MenuCheckboxItem,
+  MenuArrow,
   MenuGroup,
+  MenuItemIndicator,
   MenuItem,
+  MenuLabel,
+  MenuPortal,
   MenuRadioGroup,
   MenuRadioItem,
   MenuSeparator,
@@ -33,10 +37,14 @@ export type {
 } from "./primitives/context-menu/index.js";
 export {
   MenuItem,
+  MenuArrow,
   MenuCheckboxItem,
+  MenuItemIndicator,
   MenuRadioGroup,
   MenuRadioItem,
   MenuGroup,
+  MenuLabel,
+  MenuPortal,
   MenuSeparator,
   MenuSubRoot,
   MenuSubTrigger,
@@ -44,11 +52,17 @@ export {
 } from "./primitives/menu/index.js";
 export type {
   MenuContentProps,
+  MenuCloseReason,
+  MenuArrowProps,
   MenuItemProps,
+  MenuItemIndicatorProps,
+  MenuItemCheckedState,
   MenuCheckboxItemProps,
   MenuRadioGroupProps,
   MenuRadioItemProps,
   MenuGroupProps,
+  MenuLabelProps,
+  MenuPortalProps,
   MenuSeparatorProps,
   MenuSubRootProps,
   MenuSubTriggerProps,
@@ -58,8 +72,12 @@ export type {
 export const ContextMenu = {
   Root: ContextMenuRoot,
   Trigger: ContextMenuTrigger,
+  Portal: MenuPortal,
   Content: ContextMenuContent,
+  Arrow: MenuArrow,
+  Label: MenuLabel,
   Item: MenuItem,
+  ItemIndicator: MenuItemIndicator,
   CheckboxItem: MenuCheckboxItem,
   RadioGroup: MenuRadioGroup,
   RadioItem: MenuRadioItem,

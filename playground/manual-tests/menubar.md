@@ -14,7 +14,7 @@ Verify
 
 □ Scenario title shows `Menubar`  
 □ Anatomy starts with Menubar-owned parts and representative shared Menu parts  
-□ Canvas renders only a horizontal menubar with `File` and `View` triggers  
+□ Canvas renders a horizontal menubar with `File` and `View` triggers
 □ Canvas toolbar shows `State`, `Popup`, and `Props`  
 □ Source opens and shows `Menubar.Root` JSX  
 □ Inspector shows `Selected`, `Focused`, and `Logs` tabs  
@@ -144,6 +144,16 @@ Verify
 
 Action
 
+On touch or pen, contact a closed Trigger without completing a tap, then cancel or scroll; repeat with a completed tap and with another menu already open.
+
+Verify
+
+□ Touch or pen contact alone does not run mouse-hover switching
+□ Cancellation or scroll does not open or switch a menu
+□ A completed tap opens or closes the selected Trigger
+
+Action
+
 Open File. ArrowRight to View. Press Escape. Repeat from View with ArrowLeft to File.
 
 Verify
@@ -206,6 +216,28 @@ Reset
 
 Direction `ltr`. Menubar closed.
 
+## Step 4A: Vertical Orientation
+
+Setup
+
+Set `Popup > Orientation` to `vertical`. Menubar closed.
+
+Action
+
+Focus File. Press ArrowDown, ArrowUp, Home, and End; then open a menu with the direction-aware key.
+
+Verify
+
+□ Root exposes `aria-orientation="vertical"` and `data-orientation="vertical"`
+□ ArrowDown and ArrowUp move between File and View
+□ Home and End move to the first and last trigger
+□ Opening a menu moves real focus to its requested first/last item
+□ Tab leaves the complete Menubar Root rather than returning to another trigger
+
+Reset
+
+Orientation `horizontal`. Menubar closed.
+
 ## Step 5: Shared Menu Integration Smoke
 
 Setup
@@ -241,6 +273,26 @@ Verify
 □ Sub Content exposes `role="menu"`  
 □ Escape closes the submenu before the parent menu  
 □ Parent menu remains usable after submenu close
+
+Action
+
+Move real focus onto a disabled shared Menu item and try Enter, Space, and pointer activation.
+
+Verify
+
+□ The disabled item receives focus and exposes disabled semantics
+□ No activation callback runs and the active menu remains stable
+
+Action
+
+Inspect Portal, Arrow, Label, and Item Indicator in Anatomy and Source.
+
+Verify
+
+□ Content is emitted through Portal
+□ Arrow reports resolved placement
+□ Group and RadioGroup reference their nested Labels
+□ Checkbox and Radio ItemIndicators match their owning states
 
 Reset
 
@@ -333,8 +385,19 @@ Reset
 
 Return toolbar to default state.
 
+## Step 9: Reflow
+
+Repeat horizontal and vertical keyboard flows at 200% and 400% zoom and on a narrow viewport.
+
+Verify
+
+□ Top-level triggers, real focused menu items, Arrow, and Content remain reachable
+□ The active item is not hidden by playground sticky controls
+
 ## Workbook Cleanup / Rewrite Notes
 
-Workbook cleanup was completed after this protocol passed. Menubar-owned
-behavior is covered deeply, while shared Menu parts remain integration-smoke
-coverage. Every current Menubar row is implemented, tested, and covered.
+The prior Menubar baseline passed. Rows added or changed for real item focus,
+vertical orientation, complete-owner Tab exit, trigger composition, pointer
+modality, shared anatomy, and reflow remain untested until this updated protocol
+and the named browser/device matrix pass. Shared Menu parts remain
+integration-smoke coverage rather than duplicated exhaustive coverage.

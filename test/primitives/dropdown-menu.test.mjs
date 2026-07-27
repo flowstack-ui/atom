@@ -49,7 +49,7 @@ test("DropdownMenuTrigger delegates initial highlight direction to menu content"
     "utf8",
   );
 
-  assert.match(triggerSource, /ctx\.onInitialHighlight\(null\)/);
+  assert.match(triggerSource, /ctx\.onHighlight\(null\)/);
   assert.match(triggerSource, /event\.key === "Enter" \|\| event\.key === " " \|\| event\.key === "ArrowDown"/);
   assert.match(triggerSource, /ctx\.onInitialHighlight\("first"\)/);
   assert.match(triggerSource, /ctx\.onInitialHighlight\("last"\)/);

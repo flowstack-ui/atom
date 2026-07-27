@@ -124,8 +124,8 @@ export const NavigationMenuTrigger = forwardRef<
     return () => cancelAnimationFrame(frame);
   }, [focusContent, isOpen]);
 
-  const handlePointerEnter: PointerEventHandler<HTMLButtonElement> = useCallback(() => {
-    if (disabled) return;
+  const handlePointerEnter: PointerEventHandler<HTMLButtonElement> = useCallback((event) => {
+    if (event.pointerType !== "mouse" || disabled) return;
     cancelCloseTimer();
 
     if (activeValue === value) return;
@@ -152,7 +152,8 @@ export const NavigationMenuTrigger = forwardRef<
     value,
   ]);
 
-  const handlePointerLeave: PointerEventHandler<HTMLButtonElement> = useCallback(() => {
+  const handlePointerLeave: PointerEventHandler<HTMLButtonElement> = useCallback((event) => {
+    if (event.pointerType !== "mouse") return;
     clearTimeout(openTimerRef.current);
     startCloseTimer();
   }, [startCloseTimer]);

@@ -51,8 +51,9 @@ export function ContextMenuScenarioCanvas({
           onKeyDown={actions.handleTriggerKeyDown}
         >
           <span className="context-menu-target-title">Project canvas</span>
-          <span className="context-menu-target-copy">Right-click or press Shift+F10</span>
+          <span className="context-menu-target-copy">Right-click, press Shift+F10, or long-press on touch</span>
         </ContextMenuTrigger>
+        <ContextMenu.Portal>
         <ContextMenu.Content
           ariaLabel={state.contentAriaLabel ? "Project actions" : undefined}
           className="playground-menu-content"
@@ -66,11 +67,13 @@ export function ContextMenuScenarioCanvas({
           onKeyDownCapture={actions.handleContentKeyDownCapture}
           ref={(element) => actions.markPartRef("content", element)}
         >
+          <ContextMenu.Arrow className="playground-menu-arrow" data-playground-menu-arrow="" />
           <ContextMenu.Group
             className="playground-menu-group"
             data-playground-menu-group=""
             {...partProps("group", { propCheck: state.propCheck, customSlot: state.customGroupSlot }, "context-menu-group-custom")}
           >
+            <ContextMenu.Label className="playground-menu-label" data-playground-menu-label="">Canvas commands</ContextMenu.Label>
             <ContextMenuActionItem
               mode={state.itemComposition}
               value="new"
@@ -112,7 +115,11 @@ export function ContextMenuScenarioCanvas({
             onCheckedChange={actions.handleCheckboxChange}
           >
             <span>Show grid</span>
-            <span className="playground-menu-check" aria-hidden="true" />
+            <ContextMenu.ItemIndicator className="playground-menu-check" data-playground-menu-indicator="" />
+          </ContextMenu.CheckboxItem>
+          <ContextMenu.CheckboxItem className="playground-menu-item" value="partial" checked="indeterminate" data-playground-menu-checkbox-mixed="">
+            <span>Partial selection</span>
+            <ContextMenu.ItemIndicator className="playground-menu-check" />
           </ContextMenu.CheckboxItem>
           <ContextMenu.Separator
             className="playground-menu-separator"
@@ -125,6 +132,7 @@ export function ContextMenuScenarioCanvas({
             {...partProps("radio-group", { propCheck: state.propCheck, customSlot: state.customRadioGroupSlot }, "context-menu-radio-group-custom")}
             onValueChange={actions.handleRadioChange}
           >
+            <ContextMenu.Label className="playground-menu-label">Density</ContextMenu.Label>
             <ContextMenu.RadioItem
               className="playground-menu-item"
               value="compact"
@@ -135,7 +143,7 @@ export function ContextMenuScenarioCanvas({
               {...partProps("radio-item", { propCheck: state.propCheck, customSlot: state.customRadioItemSlot }, "context-menu-radio-item-custom")}
             >
               <span>Compact</span>
-              <span className="playground-menu-radio" aria-hidden="true" />
+              <ContextMenu.ItemIndicator className="playground-menu-radio" />
             </ContextMenu.RadioItem>
             <ContextMenu.RadioItem
               className="playground-menu-item"
@@ -145,7 +153,7 @@ export function ContextMenuScenarioCanvas({
               data-playground-menu-radio-item=""
             >
               <span>Comfortable</span>
-              <span className="playground-menu-radio" aria-hidden="true" />
+              <ContextMenu.ItemIndicator className="playground-menu-radio" />
             </ContextMenu.RadioItem>
           </ContextMenu.RadioGroup>
           <ContextMenu.Separator
@@ -168,7 +176,7 @@ export function ContextMenuScenarioCanvas({
               {...partProps("radio-item-secondary", { propCheck: state.propCheck, customSlot: state.customRadioItemSlot }, "context-menu-radio-item-custom")}
             >
               <span>Dense compact</span>
-              <span className="playground-menu-radio" aria-hidden="true" />
+              <ContextMenu.ItemIndicator className="playground-menu-radio" />
             </ContextMenu.RadioItem>
             <ContextMenu.RadioItem
               className="playground-menu-item"
@@ -178,7 +186,7 @@ export function ContextMenuScenarioCanvas({
               data-playground-menu-radio-item-secondary=""
             >
               <span>Dense comfortable</span>
-              <span className="playground-menu-radio" aria-hidden="true" />
+              <ContextMenu.ItemIndicator className="playground-menu-radio" />
             </ContextMenu.RadioItem>
           </ContextMenu.RadioGroup>
           {state.showSubmenu ? (
@@ -299,6 +307,7 @@ export function ContextMenuScenarioCanvas({
             </>
           ) : null}
         </ContextMenu.Content>
+        </ContextMenu.Portal>
       </ContextMenu.Root>
     </div>
   );
@@ -610,6 +619,30 @@ export function ContextMenuScenarioAnatomy({
         { label: "data-align", value: state.parts.contentAlign, category: "data" },
         { label: "data-positioned", value: state.parts.contentPositioned, category: "data" },
         { label: "data-prop-check", value: state.parts.contentDataPropCheck, category: "data" },
+      ],
+    }),
+    partSection({
+      title: "Arrow",
+      selector: "[data-playground-menu-arrow]",
+      rows: [
+        { label: "data-side", value: selectorAttr("[data-playground-menu-arrow]", "data-side"), category: "data" },
+        { label: "data-align", value: selectorAttr("[data-playground-menu-arrow]", "data-align"), category: "data" },
+      ],
+    }),
+    partSection({
+      title: "Label",
+      selector: "[data-playground-menu-label]",
+      rows: [
+        { label: "id", value: selectorAttr("[data-playground-menu-label]", "id"), category: "identity" },
+        { label: "data-slot", value: selectorAttr("[data-playground-menu-label]", "data-slot"), category: "data" },
+      ],
+    }),
+    partSection({
+      title: "Item Indicator",
+      selector: "[data-playground-menu-indicator]",
+      rows: [
+        { label: "data-state", value: selectorAttr("[data-playground-menu-indicator]", "data-state"), category: "data" },
+        { label: "data-slot", value: selectorAttr("[data-playground-menu-indicator]", "data-slot"), category: "data" },
       ],
     }),
     partSection({

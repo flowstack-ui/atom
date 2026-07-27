@@ -4,15 +4,20 @@ import {
   useCallback,
   useId,
   useMemo,
+  useLayoutEffect,
   useRef,
   useState,
   type ReactNode,
 } from "react";
 import { useCollection } from "../../collection.js";
 import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
+import { useCreateFocusScope } from "../../hooks/focus.js";
+import { useOptionalModalContext } from "../modal/context.js";
+import { activateModalLayer, createModalLayer } from "../modal/layer.js";
 import {
   MenuContextProvider,
   type MenuContextValue,
+  type MenuCloseReason,
   type MenuInitialHighlight,
 } from "./context.js";
 
@@ -38,6 +43,7 @@ export function MenuRoot({
   closeOnEscape = true,
 }: MenuRootProps) {
   const isControlled = controlledOpen !== undefined;
+  const parentModal = useOptionalModalContext();
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const isOpen = isControlled ? controlledOpen : internalOpen;
   const [highlightedValue, setHighlightedValue] = useState<string | null>(null);
@@ -53,6 +59,16 @@ export function MenuRoot({
   const idPrefix = useId();
   const triggerRef = useRef<HTMLElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
+  const ownerBoundaryRef = useRef<HTMLElement | null>(null);
+  const focusOriginRef = useRef<HTMLElement | null>(null);
+  const pendingCloseRef = useRef<{ reason: MenuCloseReason; focus: HTMLElement | null } | null>(null);
+  const previousOpenRef = useRef(false);
+  const ownFocusScope = useCreateFocusScope();
+  const focusScope = !modal && parentModal ? parentModal.focusScope : ownFocusScope;
+  const modalLayer = useMemo(
+    () => createModalLayer(parentModal?.layer ?? null),
+    [parentModal?.layer],
+  );
   const isOpenRef = useRef(isOpen);
   isOpenRef.current = isOpen;
 
@@ -65,12 +81,43 @@ export function MenuRoot({
   );
 
   const onOpen = useCallback(() => setOpen(true), [setOpen]);
-  const onClose = useCallback(() => {
+  const onClose = useCallback((
+    reason: MenuCloseReason = "programmatic",
+    finalFocus: HTMLElement | null = null,
+  ) => {
+    pendingCloseRef.current = { reason, focus: finalFocus };
     setOpen(false);
     setHighlightedValue(null);
     setInitialHighlight("first");
     setOpenSubMenuId(null);
   }, [setOpen]);
+
+  useLayoutEffect(() => {
+    if (isOpen && !previousOpenRef.current) {
+      focusOriginRef.current = document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    }
+
+    if (!isOpen && previousOpenRef.current) {
+      const transaction = pendingCloseRef.current ?? {
+        reason: "programmatic" as const,
+        focus: null,
+      };
+      pendingCloseRef.current = null;
+      const shouldRestore = transaction.reason !== "interactOutside" && transaction.reason !== "tab";
+      const destination = transaction.focus ?? triggerRef.current ?? focusOriginRef.current;
+      if (shouldRestore && destination?.isConnected) {
+        requestAnimationFrame(() => destination.focus({ preventScroll: true }));
+      }
+    }
+    previousOpenRef.current = isOpen;
+  }, [isOpen]);
+
+  useLayoutEffect(() => {
+    if (!isOpen || !modal) return undefined;
+    return activateModalLayer(modalLayer, document);
+  }, [isOpen, modal, modalLayer]);
   const onToggle = useCallback(() => {
     if (isOpenRef.current) {
       onClose();
@@ -96,7 +143,7 @@ export function MenuRoot({
 
   const getItemValues = useCallback(() => {
     return getCollectionItems()
-      .filter((item) => item.element.isConnected && !item.element.hasAttribute("data-disabled"))
+      .filter((item) => item.element.isConnected)
       .map((item) => item.value);
   }, [getCollectionItems]);
 
@@ -111,7 +158,7 @@ export function MenuRoot({
 
   const onItemSelect = useCallback(
     (_value: string, options?: { closeOnSelect?: boolean }) => {
-      if (options?.closeOnSelect ?? closeOnSelect) onClose();
+      if (options?.closeOnSelect ?? closeOnSelect) onClose("select");
     },
     [closeOnSelect, onClose],
   );
@@ -120,8 +167,7 @@ export function MenuRoot({
     enabled: isOpen && closeOnEscape,
     onEscapeKeyDown: () => {
       if (openSubMenuId !== null) return;
-      onClose();
-      triggerRef.current?.focus();
+      onClose("escape");
     },
   });
 
@@ -146,6 +192,10 @@ export function MenuRoot({
       triggerId: `${idPrefix}-trigger`,
       triggerRef,
       contentRef,
+      ownerBoundaryRef,
+      focusOriginRef,
+      modalLayer,
+      focusScope,
       modal,
       closeOnSelect,
       loop,

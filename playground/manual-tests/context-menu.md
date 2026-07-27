@@ -127,8 +127,20 @@ Close the menu. Focus the target and press `Shift+F10`, then close and press the
 Verify
 
 □ Both keyboard paths open Content  
-□ Keyboard opens seed the first item highlight  
+□ Keyboard opens move real focus to the first item
 □ Logs identify the keyboard trigger path
+
+Action
+
+On touch or pen, hold the target for at least 700 ms. Repeat while releasing early, moving more than 10 px, scrolling, cancelling the pointer, and adding a second contact.
+
+Verify
+
+□ A completed long press opens exactly once at the contact point
+□ `data-pressed` exists only while the hold is pending
+□ Every abandoned hold remains closed and restores text-selection/callout behavior
+□ A native context-menu event does not create a second open event
+□ The visible controlled `Open Menu` action remains available as the discoverable alternative
 
 Action
 
@@ -166,6 +178,16 @@ Verify
 
 Action
 
+Inspect Anatomy `Arrow`, `Label`, and `Item Indicator` while their owners are mounted.
+
+Verify
+
+□ Arrow reports the resolved `data-side` and `data-align`
+□ Group references the nested Label id through `aria-labelledby`
+□ Item Indicator reports the owning checkbox/radio checked state
+
+Action
+
 Change `Popup > Side`, `Align`, `Large offset`, `Content ariaLabel`, and `Content loop off`.
 
 Verify
@@ -174,6 +196,16 @@ Verify
 □ Side offset row changes from `4` to `16`  
 □ `aria-label="Project actions"` appears when enabled  
 □ Content loop row changes to `off`
+
+Action
+
+Inspect Content and Sub Content style evidence after changing placement and opening the submenu.
+
+Verify
+
+□ Content and Sub Content expose `--atom-menu-available-width` and `--atom-menu-available-height`
+□ Content and Sub Content expose `--atom-menu-trigger-width` and `--atom-menu-trigger-height`
+□ Content and Sub Content expose `--atom-menu-transform-origin`
 
 ## Step 5: Group / Item / Separator
 
@@ -201,7 +233,8 @@ Turn `Items > Show disabled item` on, then use Arrow navigation.
 Verify
 
 □ Disabled item appears with disabled state evidence  
-□ Keyboard highlight skips the disabled item
+□ Keyboard focus moves onto the disabled item
+□ Enter, Space, and click cannot activate the disabled item
 
 Action
 
@@ -252,7 +285,8 @@ Turn `Checkbox disabled` on and navigate with Arrow keys.
 Verify
 
 □ Checkbox item exposes disabled state  
-□ Keyboard highlight skips the disabled checkbox item
+□ Keyboard focus moves onto the disabled checkbox item
+□ Enter, Space, and click cannot toggle the disabled checkbox item
 
 Reset
 
@@ -291,7 +325,7 @@ Turn `Compact radio disabled` on and navigate with Arrow keys.
 
 Verify
 
-□ Disabled compact radio item is skipped
+□ Disabled compact radio item receives focus but cannot change selection
 
 Reset
 
@@ -324,6 +358,16 @@ Verify
 □ Sub Content Data includes `data-slot="menu-sub-content"`  
 □ Sub Content Data includes `data-positioned` and `data-side`  
 □ Sub item exists and can be selected
+
+Action
+
+Touch or use a pen on `More actions` without completing a tap, then cancel or scroll; repeat with a completed tap.
+
+Verify
+
+□ Touch or pen contact alone does not start the mouse-hover submenu timer
+□ Cancellation or scroll leaves Sub Content closed
+□ A completed tap remains able to open the submenu
 
 Action
 
@@ -449,12 +493,39 @@ Verify
 □ `Sub Content: Advanced` portals to `body`  
 □ Escape closes the topmost submenu before the parent menu
 
+Action
+
+With a control immediately before and after the Context Menu owner, reopen and press `Tab`; repeat with `Shift+Tab`.
+
+Verify
+
+□ Tab closes every menu level and moves focus to the next control after the complete owner
+□ Shift+Tab closes every menu level and moves focus to the previous control before the complete owner
+
+Action
+
+Open the menu, start an outside touch or pen gesture, then separately complete release, move, scroll, cancel, and add a second contact.
+
+Verify
+
+□ An uncancelled outside release closes the menu
+□ Movement, scroll, pointer cancellation, and a second contact cancel outside dismissal
+
+Action
+
+Repeat the keyboard flow at 200% and 400% zoom and on a narrow viewport.
+
+Verify
+
+□ Real focused rows, Arrow, and long Content remain reachable and scrollable
+□ Playground sticky controls do not hide the active item
+
 Reset
 
 Turn `Nested submenu` and `Inside Dialog` off.
 
 ## Step 13: Workbook Cleanup / Rewrite Notes
 
-□ `component-coverage.xlsx` has no remaining Context Menu rows that are missing, partial, or untested  
-□ Native mobile long-press is not tracked as a Context Menu coverage row because browser support for firing `contextmenu` from long press is inconsistent  
+□ New Context Menu rows remain untested until the updated desktop, zoom, touch/pen, and named-device steps pass
+□ Context Menu long press is tracked as an explicit Atom fallback contract, separately from inconsistent native browser `contextmenu` delivery
 □ Props pass-through and custom slot override rows are covered by `Props > Prop Check`, slot toggles, Anatomy/Inspector raw Data, and Source

@@ -371,7 +371,7 @@ export function focusFirstDescendant(container: HTMLElement): void {
   focusWithoutScrolling(first ?? container);
 }
 
-function isTabbableCandidate(element: HTMLElement): boolean {
+export function isTabbableCandidate(element: HTMLElement): boolean {
   if (!element.isConnected || element.tabIndex < 0) return false;
   if (element.hidden || element.closest("[hidden], [inert], [aria-hidden='true']")) {
     return false;
@@ -400,10 +400,40 @@ function isTabbableCandidate(element: HTMLElement): boolean {
   return true;
 }
 
-function getTabbableCandidates(container: HTMLElement): HTMLElement[] {
+export function getTabbableCandidates(container: HTMLElement): HTMLElement[] {
   return Array.from(
     container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
   ).filter(isTabbableCandidate);
+}
+
+export function getTabbableOutsideBoundary(
+  boundary: HTMLElement,
+  direction: "before" | "after",
+  exclude?: (element: HTMLElement) => boolean,
+): HTMLElement | null {
+  const ownerDocument = boundary.ownerDocument;
+  const candidates = Array.from(
+    ownerDocument.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+  ).filter((element) => isTabbableCandidate(element) && !exclude?.(element));
+  const ownedIndexes = candidates.flatMap((element, index) =>
+    element === boundary || boundary.contains(element) ? [index] : [],
+  );
+
+  if (ownedIndexes.length === 0) {
+    const boundaryPosition = candidates.findIndex((element) =>
+      Boolean(boundary.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_FOLLOWING),
+    );
+    if (direction === "after") {
+      return candidates[boundaryPosition === -1 ? candidates.length : boundaryPosition] ?? null;
+    }
+    const previousIndex = boundaryPosition === -1 ? candidates.length - 1 : boundaryPosition - 1;
+    return candidates[previousIndex] ?? null;
+  }
+
+  const index = direction === "after"
+    ? ownedIndexes[ownedIndexes.length - 1] + 1
+    : ownedIndexes[0] - 1;
+  return candidates[index] ?? null;
 }
 
 export function useFocusOnMount(

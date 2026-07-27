@@ -9,13 +9,16 @@ import {
   useState,
   type KeyboardEvent,
   type KeyboardEventHandler,
+  type CSSProperties,
   type ReactNode,
 } from "react";
 import {
   autoUpdate,
+  arrow as floatingArrow,
   flip,
   offset,
   shift,
+  size as sizeMiddleware,
   useFloating,
 } from "@floating-ui/react";
 import { useCollection } from "../../collection.js";
@@ -24,15 +27,18 @@ import { useClickAway } from "../../hooks/useClickAway.js";
 import { usePresence } from "../../hooks/usePresence.js";
 import { Portal } from "../../utils/Portal.js";
 import type { NativeDivProps } from "../../utils/dom.js";
-import { composeEventHandlers, composeRefs } from "../../utils/slot.js";
+import { cloneAndMerge, composeEventHandlers, composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
 import { getTypeaheadMatch } from "../../utils/typeahead.js";
 import { useDirection } from "../direction/index.js";
 import {
   getMenuSubmenuCloseKey,
   getMenuSubmenuOpenKey,
+  MenuContentContextProvider,
+  MenuPortalContextProvider,
   MenuContextProvider,
   useMenuSubContext,
   type MenuContextValue,
+  type MenuContentContextValue,
   type MenuInitialHighlight,
 } from "./context.js";
 
@@ -51,6 +57,8 @@ export interface MenuSubContentProps extends MenuSubContentNativeProps {
   loop?: boolean;
   className?: string;
   ariaLabel?: string;
+  asChild?: boolean;
+  render?: RenderProp;
   "data-slot"?: string;
 }
 
@@ -62,6 +70,8 @@ function MenuSubContent(
     loop = true,
     className,
     ariaLabel,
+    asChild = false,
+    render,
     onKeyDown,
     style,
     "data-slot": dataSlot = "menu-sub-content",
@@ -84,6 +94,7 @@ function MenuSubContent(
   } = subCtx;
   const dir = useDirection();
   const internalRef = useRef<HTMLDivElement>(null);
+  const arrowRef = useRef<SVGSVGElement>(null);
   const { isPresent, ref: presenceRef } = usePresence({ present: isOpen });
   const [isPositioned, setIsPositioned] = useState(false);
   const labelRegistryRef = useRef<Map<string, string>>(new Map());
@@ -101,7 +112,7 @@ function MenuSubContent(
   useFocusScopeContainer(
     internalRef,
     isPresent,
-    undefined,
+    parentMenuContext.focusScope,
     menuSubFocusScopeMetadata,
   );
 
@@ -123,7 +134,7 @@ function MenuSubContent(
 
   const getItemValues = useCallback(() => {
     return getCollectionItems()
-      .filter((item) => item.element.isConnected && !item.element.hasAttribute("data-disabled"))
+      .filter((item) => item.element.isConnected)
       .map((item) => item.value);
   }, [getCollectionItems]);
 
@@ -134,6 +145,13 @@ function MenuSubContent(
   const getLabel = useCallback((value: string) => {
     return labelRegistryRef.current.get(value);
   }, []);
+
+  const focusItem = useCallback((value: string) => {
+    setHighlightedValue(value);
+    const element = getItemElement(value);
+    element?.focus({ preventScroll: true });
+    element?.scrollIntoView({ block: "nearest" });
+  }, [getItemElement]);
 
   const onItemSelect = useCallback(
     (value: string, options?: { closeOnSelect?: boolean }) => {
@@ -169,19 +187,11 @@ function MenuSubContent(
     const raf = requestAnimationFrame(() => {
       const values = getItemValues();
       if (values.length > 0) {
-        setHighlightedValue(initialHighlight === "last" ? values[values.length - 1] : values[0]);
+        focusItem(initialHighlight === "last" ? values[values.length - 1] : values[0]);
       }
     });
     return () => cancelAnimationFrame(raf);
-  }, [getItemValues, initialHighlight, isPresent]);
-
-  useEffect(() => {
-    if (!isPresent) return undefined;
-    const raf = requestAnimationFrame(() => {
-      internalRef.current?.focus();
-    });
-    return () => cancelAnimationFrame(raf);
-  }, [isPresent]);
+  }, [focusItem, getItemValues, initialHighlight, isPresent]);
 
   useEffect(() => {
     if (!isOpen || !highlightedValue) return;
@@ -197,6 +207,7 @@ function MenuSubContent(
     refs: clickAwayRefs,
     onClickAway: onClose,
     enabled: isOpen,
+    deferTouch: true,
     ignore: (target) => nestedOpenSubMenuId !== null && isMenuSubContent(target),
   });
 
@@ -212,9 +223,9 @@ function MenuSubContent(
           event.preventDefault();
           event.stopPropagation();
           if (currentIndex < values.length - 1) {
-            setHighlightedValue(values[currentIndex + 1]);
+            focusItem(values[currentIndex + 1]);
           } else if (loop) {
-            setHighlightedValue(values[0]);
+            focusItem(values[0]);
           }
           break;
         }
@@ -222,9 +233,9 @@ function MenuSubContent(
           event.preventDefault();
           event.stopPropagation();
           if (currentIndex > 0) {
-            setHighlightedValue(values[currentIndex - 1]);
+            focusItem(values[currentIndex - 1]);
           } else if (loop) {
-            setHighlightedValue(values[values.length - 1]);
+            focusItem(values[values.length - 1]);
           }
           break;
         }
@@ -232,7 +243,7 @@ function MenuSubContent(
           event.preventDefault();
           event.stopPropagation();
           onClose();
-          parentMenuContext.contentRef.current?.focus();
+          subTriggerRef.current?.focus({ preventScroll: true });
           break;
         }
         case getMenuSubmenuOpenKey(dir): {
@@ -249,13 +260,13 @@ function MenuSubContent(
         case "Home": {
           event.preventDefault();
           event.stopPropagation();
-          setHighlightedValue(values[0]);
+          focusItem(values[0]);
           break;
         }
         case "End": {
           event.preventDefault();
           event.stopPropagation();
-          setHighlightedValue(values[values.length - 1]);
+          focusItem(values[values.length - 1]);
           break;
         }
         case "Enter":
@@ -272,7 +283,7 @@ function MenuSubContent(
           event.preventDefault();
           event.stopPropagation();
           onClose();
-          parentMenuContext.contentRef.current?.focus();
+          subTriggerRef.current?.focus({ preventScroll: true });
           break;
         }
         default: {
@@ -289,7 +300,7 @@ function MenuSubContent(
               typeaheadBuffer.current,
               highlightedValue,
             );
-            if (match) setHighlightedValue(match);
+            if (match) focusItem(match);
           }
         }
       }
@@ -300,15 +311,33 @@ function MenuSubContent(
       getLabel,
       highlightedValue,
       dir,
+      focusItem,
       loop,
       onClose,
       parentMenuContext.contentRef,
+      subTriggerRef,
     ],
   );
 
-  const { refs, floatingStyles, placement } = useFloating({
+  const { refs, floatingStyles, placement, middlewareData } = useFloating({
     placement: dir === "rtl" ? "left-start" : "right-start",
-    middleware: [offset(sideOffset), flip({ padding: 8 }), shift({ padding: 8 })],
+    middleware: [
+      offset(sideOffset),
+      flip({ padding: 8 }),
+      shift({ padding: 8 }),
+      sizeMiddleware({
+        padding: 8,
+        apply({ availableHeight, availableWidth, elements, rects }) {
+          Object.assign(elements.floating.style, {
+            "--atom-menu-available-width": `${availableWidth}px`,
+            "--atom-menu-available-height": `${availableHeight}px`,
+            "--atom-menu-trigger-width": `${rects.reference.width}px`,
+            "--atom-menu-trigger-height": `${rects.reference.height}px`,
+          });
+        },
+      }),
+      floatingArrow({ element: arrowRef, padding: 8 }),
+    ],
     whileElementsMounted: autoUpdate,
     open: isOpen,
   });
@@ -350,6 +379,10 @@ function MenuSubContent(
       triggerId: subTriggerId,
       triggerRef: subTriggerRef,
       contentRef: internalRef,
+      ownerBoundaryRef: parentMenuContext.ownerBoundaryRef,
+      focusOriginRef: parentMenuContext.focusOriginRef,
+      modalLayer: parentMenuContext.modalLayer,
+      focusScope: parentMenuContext.focusScope,
       modal: false,
       closeOnSelect: true,
       loop,
@@ -383,32 +416,52 @@ function MenuSubContent(
 
   if (!isPresent) return null;
 
+  const actualSide = placement.split("-")[0] as "top" | "right" | "bottom" | "left";
+  const actualAlign = (placement.split("-")[1] ?? "center") as "start" | "center" | "end";
+  const arrowData = middlewareData.arrow;
+  const contentContextValue: MenuContentContextValue = {
+    arrowRef,
+    side: actualSide,
+    align: actualAlign,
+    arrowX: arrowData?.x,
+    arrowY: arrowData?.y,
+  };
+  const transformOrigin = actualSide === "top"
+    ? `${actualAlign} bottom`
+    : actualSide === "bottom"
+      ? `${actualAlign} top`
+      : actualSide === "left"
+        ? `right ${actualAlign}`
+        : `left ${actualAlign}`;
+  const behaviorProps = {
+    ...restProps,
+    ref: setFloatingRef,
+    id: subMenuId,
+    role: "menu",
+    "aria-orientation": "vertical" as const,
+    "aria-label": ariaLabel,
+    "aria-labelledby": !ariaLabel ? subTriggerId : undefined,
+    tabIndex: -1,
+    "data-menu-sub-content": "",
+    "data-slot": dataSlot,
+    "data-state": isOpen ? "open" : "closed",
+    "data-side": actualSide,
+    "data-align": actualAlign,
+    ...(isPositioned ? { "data-positioned": "" } : {}),
+    className,
+    style: { ...style, ...floatingStyles, "--atom-menu-transform-origin": transformOrigin } as CSSProperties,
+    onKeyDown: composeEventHandlers(onKeyDown, handleKeyDown),
+  };
+  const contentElement = asChild
+    ? cloneAndMerge(children, behaviorProps)
+    : renderElement(render, "div", { ...behaviorProps, children });
+
   return (
     <MenuContextProvider value={subMenuContext}>
       <Portal>
-        <div
-          {...restProps}
-          ref={setFloatingRef}
-          id={subMenuId}
-          role="menu"
-          aria-orientation="vertical"
-          aria-label={ariaLabel}
-          aria-labelledby={!ariaLabel ? subTriggerId : undefined}
-          tabIndex={-1}
-          data-menu-sub-content=""
-          data-slot={dataSlot}
-          data-state={isOpen ? "open" : "closed"}
-          data-side={placement.split("-")[0]}
-          {...(isPositioned ? { "data-positioned": "" } : {})}
-          className={className}
-          style={{
-            ...style,
-            ...floatingStyles,
-          }}
-          onKeyDown={composeEventHandlers(onKeyDown, handleKeyDown)}
-        >
-          {children}
-        </div>
+        <MenuContentContextProvider value={contentContextValue}>
+          <MenuPortalContextProvider value={null}>{contentElement}</MenuPortalContextProvider>
+        </MenuContentContextProvider>
       </Portal>
     </MenuContextProvider>
   );
