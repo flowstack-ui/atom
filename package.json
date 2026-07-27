@@ -1,6 +1,6 @@
 {
   "name": "@flowstack-ui/atom",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "description": "Headless accessible React primitives for Flowstack Atom.",
   "type": "module",
   "license": "MIT",

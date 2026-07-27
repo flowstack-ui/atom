@@ -4,6 +4,13 @@
 
 - No unreleased changes.
 
+## 0.12.1
+
+- Fixed Root and Content to preserve their behavior, refs, native props, and
+  children through the documented `asChild` and `render` composition paths.
+- Fixed Content composition to preserve consumer `onKeyDownCapture` handlers
+  before Menubar-owned adjacent-menu navigation.
+
 ## 0.12.0
 
 - Added horizontal/vertical orientation with matching ARIA/data state and

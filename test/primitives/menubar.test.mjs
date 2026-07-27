@@ -102,6 +102,45 @@ test("Menubar root and trigger preserve custom data slots", () => {
   assert.doesNotMatch(html, /data-slot="menubar-trigger"/);
 });
 
+test("MenubarRoot preserves behavior through asChild and render composition", () => {
+  const asChildHtml = renderToStaticMarkup(
+    React.createElement(
+      MenubarRoot,
+      { asChild: true, orientation: "vertical", className: "root-class" },
+      React.createElement(
+        "section",
+        { "data-consumer": "as-child" },
+        React.createElement(
+          MenubarMenu,
+          { value: "file" },
+          React.createElement(MenubarTrigger, null, "File"),
+        ),
+      ),
+    ),
+  );
+  const renderHtml = renderToStaticMarkup(
+    React.createElement(
+      MenubarRoot,
+      { render: "nav", "aria-label": "Commands" },
+      React.createElement(
+        MenubarMenu,
+        { value: "view" },
+        React.createElement(MenubarTrigger, null, "View"),
+      ),
+    ),
+  );
+
+  assert.match(asChildHtml, /^<section/);
+  assert.match(asChildHtml, /data-consumer="as-child"/);
+  assert.match(asChildHtml, /role="menubar"/);
+  assert.match(asChildHtml, /aria-orientation="vertical"/);
+  assert.match(asChildHtml, /data-orientation="vertical"/);
+  assert.match(asChildHtml, /class="root-class"/);
+  assert.match(renderHtml, /^<nav/);
+  assert.match(renderHtml, /aria-label="Commands"/);
+  assert.match(renderHtml, /role="menubar"/);
+});
+
 test("Menubar source keeps keyboard open and focus behavior stable", async () => {
   const rootSource = await readFile(
     new URL("src/primitives/menubar/MenubarRoot.tsx", packageRoot),
@@ -152,11 +191,15 @@ test("Menubar source keeps keyboard open and focus behavior stable", async () =>
   assert.match(rootSource, /const contextDir = useDirection\(\)/);
   assert.match(rootSource, /const dir = dirProp \?\? contextDir/);
   assert.match(rootSource, /<DirectionProvider dir=\{dir\}>/);
-  assert.match(rootSource, /dir=\{dir\}/);
+  assert.match(rootSource, /\n    dir,/);
   assert.match(rootSource, /"data-slot": dataSlot = "menubar"/);
-  assert.match(rootSource, /data-slot=\{dataSlot\}/);
-  assert.match(rootSource, /aria-orientation=\{orientation\}/);
-  assert.match(rootSource, /data-orientation=\{orientation\}/);
+  assert.match(rootSource, /"data-slot": dataSlot,/);
+  assert.match(rootSource, /"aria-orientation": orientation/);
+  assert.match(rootSource, /"data-orientation": orientation/);
+  assert.match(rootSource, /asChild\?: boolean/);
+  assert.match(rootSource, /render\?: RenderProp/);
+  assert.match(rootSource, /cloneAndMerge\(children, behaviorProps\)/);
+  assert.match(rootSource, /renderElement\(render, "div"/);
   assert.doesNotMatch(rootSource, /compareDocumentPosition/);
   assert.match(rootSource, /setFocusedValue\(\(currentValue\) => \(currentValue === value \? null : currentValue\)\)/);
   assert.match(rootSource, /const focusFrameRef = useRef<number \| null>\(null\)/);
@@ -175,6 +218,13 @@ test("Menubar source keeps keyboard open and focus behavior stable", async () =>
   assert.match(contentSource, /openAdjacentMenu\(menuValue, "prev"\)/);
   assert.match(contentSource, /highlightedElement\?\.dataset\.slot === "menu-sub-trigger"/);
   assert.match(contentSource, /openAdjacentMenu\(menuValue, "next"\)/);
+  assert.match(contentSource, /asChild\?: boolean/);
+  assert.match(contentSource, /render\?: RenderProp/);
+  assert.match(contentSource, /asChild=\{asChild\}/);
+  assert.match(contentSource, /render=\{render\}/);
+  assert.match(contentSource, /data-slot=\{dataSlot\}/);
+  assert.match(contentSource, /onKeyDownCapture\?\.\(event/);
+  assert.match(contentSource, /if \(event\.defaultPrevented\) return/);
   assert.doesNotMatch(contentSource, /\},\s*\[barCtx, menuCtx, menuValue\]/);
   assert.doesNotMatch(contentSource, /barCtx\.onMenuClose\(\);\s*barCtx\.focusAdjacentTrigger/s);
   assert.match(sharedContentSource, /getTabbableOutsideBoundary/);

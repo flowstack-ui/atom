@@ -387,6 +387,8 @@ function useMenubarScenario() {
   const [align, setAlign] = useState<MenubarAlign>("start");
   const [sideOffset, setSideOffset] = useState(4);
   const [contentAriaLabel, setContentAriaLabel] = useState(true);
+  const [rootComposition, setRootComposition] = useState<CompositionMode>("default");
+  const [contentComposition, setContentComposition] = useState<CompositionMode>("default");
   const [propCheck, setPropCheck] = useState(false);
   const [customRootSlot, setCustomRootSlot] = useState(false);
   const [customTriggerSlot, setCustomTriggerSlot] = useState(false);
@@ -430,6 +432,8 @@ function useMenubarScenario() {
       align,
       sideOffset,
       contentAriaLabel,
+      rootComposition,
+      contentComposition,
       propCheck,
       customRootSlot,
       customTriggerSlot,
@@ -463,6 +467,8 @@ function useMenubarScenario() {
       setAlign,
       setSideOffset,
       setContentAriaLabel,
+      setRootComposition,
+      setContentComposition,
       setPropCheck,
       setCustomRootSlot,
       setCustomTriggerSlot,
@@ -1530,6 +1536,10 @@ export function UtilityPrimitiveScenarioToolbar({
             <MenuCheckboxControl checked={scenario.state.contentAriaLabel} label="Content ariaLabel" value="content-aria-label" onChange={scenario.actions.setContentAriaLabel} />
           </MenuSection>
         </ToolbarGroup>
+        <ToolbarGroup title="Composition" value="composition">
+          <MenuRadioControl label="Root" options={compositionOptions} value={scenario.state.rootComposition} onChange={scenario.actions.setRootComposition} />
+          <MenuRadioControl label="Content" options={compositionOptions} value={scenario.state.contentComposition} onChange={scenario.actions.setContentComposition} />
+        </ToolbarGroup>
         <PropsToolbarGroup
           propCheck={scenario.state.propCheck}
           customSlots={[
@@ -2291,6 +2301,8 @@ ${indent(triggerSource, 2)}
       state.loop ? null : "loop={false}",
       state.dirMode === "root" ? `dir="${state.dir}"` : null,
       state.orientation !== "horizontal" ? `orientation="${state.orientation}"` : null,
+      state.rootComposition === "asChild" ? "asChild" : null,
+      state.rootComposition === "render" ? `render="section"` : null,
       state.customRootSlot ? `data-slot="menubar-root-custom"` : null,
       state.propCheck ? `data-prop-check="root"` : null,
       "onValueChange={handleValueChange}",
@@ -2317,6 +2329,8 @@ ${indent(triggerSource, 2)}
       state.side !== "bottom" ? `side="${state.side}"` : null,
       state.align !== "start" ? `align="${state.align}"` : null,
       state.sideOffset !== 4 ? `sideOffset={${state.sideOffset}}` : null,
+      state.contentComposition === "asChild" ? "asChild" : null,
+      state.contentComposition === "render" ? `render="section"` : null,
       state.customContentSlot ? `data-slot="menubar-content-custom"` : null,
       state.propCheck ? `data-prop-check="content"` : null,
     ]);
@@ -2325,14 +2339,20 @@ ${indent(triggerSource, 2)}
       state.side !== "bottom" ? `side="${state.side}"` : null,
       state.align !== "start" ? `align="${state.align}"` : null,
       state.sideOffset !== 4 ? `sideOffset={${state.sideOffset}}` : null,
+      state.contentComposition === "asChild" ? "asChild" : null,
+      state.contentComposition === "render" ? `render="section"` : null,
     ]);
     const directionOpen = state.dirMode === "provider" && state.dir === "rtl" ? `<Direction.Provider dir="rtl">\n  ` : "";
     const directionClose = state.dirMode === "provider" && state.dir === "rtl" ? "\n</Direction.Provider>" : "";
-    return `${directionOpen}<Menubar.Root${rootProps}>
+    const rootChildOpen = state.rootComposition === "asChild" ? "\n  <section>" : "";
+    const rootChildClose = state.rootComposition === "asChild" ? "\n  </section>" : "";
+    const contentChildOpen = state.contentComposition === "asChild" ? "\n      <section>" : "";
+    const contentChildClose = state.contentComposition === "asChild" ? "\n      </section>" : "";
+    return `${directionOpen}<Menubar.Root${rootProps}>${rootChildOpen}
   <Menubar.Menu${menuProps}>
     <Menubar.Trigger${triggerProps}>File</Menubar.Trigger>
     <Menubar.Portal>
-    <Menubar.Content${contentProps}>
+    <Menubar.Content${contentProps}>${contentChildOpen}
       <Menubar.Arrow />
       <Menubar.Group${sourceProps([
         state.customGroupSlot ? `data-slot="menubar-group-custom"` : null,
@@ -2372,13 +2392,13 @@ ${indent(triggerSource, 2)}
           <Menubar.Item>Copy link</Menubar.Item>
         </Menubar.SubContent>
       </Menubar.Sub>
-    </Menubar.Content>
+    ${contentChildClose}</Menubar.Content>
     </Menubar.Portal>
   </Menubar.Menu>
   <Menubar.Menu${viewMenuProps}>
     <Menubar.Trigger>View</Menubar.Trigger>
     <Menubar.Portal>
-    <Menubar.Content${viewContentProps}>
+    <Menubar.Content${viewContentProps}>${contentChildOpen}
       <Menubar.Arrow />
       <Menubar.RadioGroup${sourceProps([
         "value={density}",
@@ -2396,10 +2416,10 @@ ${indent(triggerSource, 2)}
         </Menubar.RadioItem>
         <Menubar.RadioItem value="comfortable">Comfortable</Menubar.RadioItem>
       </Menubar.RadioGroup>
-    </Menubar.Content>
+    ${contentChildClose}</Menubar.Content>
     </Menubar.Portal>
   </Menubar.Menu>
-</Menubar.Root>${directionClose}`;
+${rootChildClose}</Menubar.Root>${directionClose}`;
   }
 
   if (scenarioId === "navigation-menu") {
@@ -3484,7 +3504,7 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
     ? "controlled"
     : `uncontrolled-${scenario.state.defaultValue}`;
   const menubar = (
-    <Menubar.Root key={rootKey} {...rootProps}>
+    <MenubarRootDemo key={rootKey} {...rootProps} composition={scenario.state.rootComposition}>
       <Menubar.Menu
         value="file"
         closeOnSelect={scenario.state.closeOnSelect}
@@ -3501,7 +3521,8 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
           File
         </Menubar.Trigger>
         <Menubar.Portal>
-        <Menubar.Content
+        <MenubarContentDemo
+          composition={scenario.state.contentComposition}
           className="playground-menu-content"
           ariaLabel={scenario.state.contentAriaLabel ? "File menu" : undefined}
           data-playground-menubar-content-file=""
@@ -3586,7 +3607,7 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
               </Menubar.Item>
             </Menubar.SubContent>
           </Menubar.Sub>
-        </Menubar.Content>
+        </MenubarContentDemo>
         </Menubar.Portal>
       </Menubar.Menu>
       <Menubar.Menu
@@ -3604,7 +3625,8 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
           View
         </Menubar.Trigger>
         <Menubar.Portal>
-        <Menubar.Content
+        <MenubarContentDemo
+          composition={scenario.state.contentComposition}
           className="playground-menu-content"
           ariaLabel={scenario.state.contentAriaLabel ? "View menu" : undefined}
           data-playground-menubar-content-view=""
@@ -3638,10 +3660,10 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
               <Menubar.ItemIndicator className="playground-menu-radio" />
             </Menubar.RadioItem>
           </Menubar.RadioGroup>
-        </Menubar.Content>
+        </MenubarContentDemo>
         </Menubar.Portal>
       </Menubar.Menu>
-    </Menubar.Root>
+    </MenubarRootDemo>
   );
 
   return (
@@ -3653,6 +3675,46 @@ function MenubarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useMe
       ) : menubar}
     </div>
   );
+}
+
+function MenubarRootDemo({
+  composition,
+  children,
+  ...props
+}: ComponentPropsWithRef<typeof Menubar.Root> & { composition: CompositionMode }) {
+  if (composition === "asChild") {
+    return (
+      <Menubar.Root {...props} asChild>
+        <section>{children}</section>
+      </Menubar.Root>
+    );
+  }
+
+  if (composition === "render") {
+    return <Menubar.Root {...props} render="section">{children}</Menubar.Root>;
+  }
+
+  return <Menubar.Root {...props}>{children}</Menubar.Root>;
+}
+
+function MenubarContentDemo({
+  composition,
+  children,
+  ...props
+}: ComponentPropsWithRef<typeof Menubar.Content> & { composition: CompositionMode }) {
+  if (composition === "asChild") {
+    return (
+      <Menubar.Content {...props} asChild>
+        <section>{children}</section>
+      </Menubar.Content>
+    );
+  }
+
+  if (composition === "render") {
+    return <Menubar.Content {...props} render="section">{children}</Menubar.Content>;
+  }
+
+  return <Menubar.Content {...props}>{children}</Menubar.Content>;
 }
 
 function SidebarScenarioCanvas({ scenario }: { scenario: ReturnType<typeof useSidebarScenario> }) {
