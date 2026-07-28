@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.18.1
+
 - Made touch and pen outside dismissal wait for a completed tap and cancel on
   movement, scrolling, or pointer cancellation.
 
