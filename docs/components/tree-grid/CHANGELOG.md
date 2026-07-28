@@ -1,8 +1,11 @@
 # TreeGrid Changelog
 
-## Unreleased
+## 0.18.0
 
-- No unreleased changes.
+- Added `ColumnHeader.onAction` with equivalent enabled pointer and active-cell
+  Enter activation.
+- Relocate active state to a collapsed ancestor's tree-column cell when a
+  controlled or uncontrolled collapse hides the active descendant.
 
 ## 0.2.0
 

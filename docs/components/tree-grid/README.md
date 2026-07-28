@@ -17,6 +17,9 @@ than parent and child nodes.
 - Supports optional row selection with selectable parent rows.
 - Hides descendant rows when parent rows are collapsed.
 - Supports RTL-aware cell navigation and tree expand/collapse keys through `dir` and `Direction.Provider`.
+- Moves an active descendant cell to its collapsed ancestor's tree-column cell
+  when controlled or uncontrolled expansion hides that descendant.
+- Gives actionable column headers equivalent pointer and Enter activation.
 - Keeps sorting, filtering, resizing, editing, and virtualization outside the primitive.
 
 ## Import
@@ -184,6 +187,7 @@ coordinate used by Root navigation.
 | `index` | `number` | - |
 | `disabled` | `boolean` | `false` |
 | `sortDirection` | `"ascending" \| "descending" \| "none" \| "other"` | - |
+| `onAction` | `() => void` | - |
 | `scope` | native `scope` | `"col"` |
 | `render` | `RenderProp` | - |
 | `asChild` | `boolean` | `false` |
@@ -204,6 +208,7 @@ coordinate used by Root navigation.
 | `[data-column-index]` | Normalized positive column index |
 | `[data-selected]` | Present when row is selected |
 | `[data-sort]` | `"ascending" \| "descending" \| "none" \| "other"` |
+| `[data-actionable]` | Present when an enabled indexed header has `onAction` |
 
 ### Body
 
@@ -351,7 +356,8 @@ Caption, `aria-label`, or `aria-labelledby`.
 | `ArrowDown` / `ArrowUp` | Moves between visible rows |
 | `Home` / `End` | Moves within a row |
 | `Ctrl+Home` / `Ctrl+End` | Moves to first or last visible cell |
-| `Enter` / `Space` | Selects the active row when selection is enabled |
+| `Enter` | Calls `onAction` for an actionable active ColumnHeader; otherwise toggles an expandable tree-column row or selects the active row. |
+| `Space` | Selects the active row when selection is enabled. |
 
 ## Changelog
 

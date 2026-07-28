@@ -231,6 +231,36 @@ test("TreeGrid exposes row-level selection availability", () => {
   assert.match(html, /<tr[^>]*aria-selected="true"[^>]*data-selectable=""[^>]*data-selected=""[^>]*data-value="api"/);
 });
 
+test("TreeGrid ColumnHeader exposes the actionable contract", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      TreeGrid.Root,
+      { "aria-label": "Sortable projects" },
+      React.createElement(
+        TreeGrid.Header,
+        null,
+        React.createElement(
+          TreeGrid.Row,
+          { rowIndex: 1, value: "headers", selectable: false },
+          React.createElement(
+            TreeGrid.ColumnHeader,
+            { columnIndex: 1, sortDirection: "ascending", onAction: () => {} },
+            "Name",
+          ),
+          React.createElement(
+            TreeGrid.ColumnHeader,
+            { columnIndex: 2, disabled: true, onAction: () => {} },
+            "Status",
+          ),
+        ),
+      ),
+    ),
+  );
+
+  assert.match(html, /<th[^>]*aria-sort="ascending"[^>]*data-actionable=""/);
+  assert.doesNotMatch(html, /<th[^>]*aria-colindex="2"[^>]*data-actionable=""/);
+});
+
 test("TreeGrid source combines tree expansion with grid keyboard navigation", async () => {
   const rootSource = await readFile(
     new URL("src/primitives/tree-grid/TreeGridRoot.tsx", packageRoot),
@@ -238,6 +268,10 @@ test("TreeGrid source combines tree expansion with grid keyboard navigation", as
   );
   const rowSource = await readFile(
     new URL("src/primitives/tree-grid/TreeGridRow.tsx", packageRoot),
+    "utf8",
+  );
+  const columnHeaderSource = await readFile(
+    new URL("src/primitives/tree-grid/TreeGridColumnHeader.tsx", packageRoot),
     "utf8",
   );
 
@@ -254,9 +288,15 @@ test("TreeGrid source combines tree expansion with grid keyboard navigation", as
   assert.match(rootSource, /!row\.data\.selectable/);
   assert.match(rootSource, /if \(!rowValue \|\| disabled\) return;/);
   assert.match(rootSource, /expandedValues/);
+  assert.match(rootSource, /activeItem\.data\.onAction\(\)/);
+  assert.match(rootSource, /isRowVisible\(activeRowValue\)/);
+  assert.match(rootSource, /setResolvedActiveCell\(\{ rowIndex: parentRow\.data\.rowIndex, columnIndex: 1 \}\)/);
   assert.match(rootSource, /aria-activedescendant/);
   assert.match(rowSource, /aria-expanded/);
   assert.match(rowSource, /aria-level/);
   assert.match(rowSource, /updateRow\(value, rowData, isDisabled\)/);
   assert.doesNotMatch(rootSource, /className/);
+  assert.match(columnHeaderSource, /onAction\?: \(\) => void/);
+  assert.match(columnHeaderSource, /focusCell\(resolvedRowIndex, resolvedColumnIndex\);\s+onAction\?\.\(\)/);
+  assert.match(columnHeaderSource, /data-actionable/);
 });

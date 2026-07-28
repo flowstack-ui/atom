@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.18.0
+
+- Added TreeGrid actionable sortable headers and corrected collapsed-branch
+  active-descendant relocation.
+
 ## 0.17.1
 
 - Corrected Tree initial focus to honor visible selection and changed its

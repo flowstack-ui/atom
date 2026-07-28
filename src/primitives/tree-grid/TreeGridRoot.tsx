@@ -345,6 +345,26 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
       [disabled, getRow, readOnly, selectionMode, setSelectedValue],
     );
 
+    useEffect(() => {
+      if (!activeCell) return;
+      const activeItem = getCell(getTreeGridCellValue(activeCell.rowIndex, activeCell.columnIndex));
+      const activeRowValue = activeItem?.data.rowValue;
+      if (!activeRowValue || isRowVisible(activeRowValue)) return;
+
+      let parentValue = getRow(activeRowValue)?.data.parentValue ?? null;
+      const seenValues = new Set<string>();
+      while (parentValue && !seenValues.has(parentValue)) {
+        seenValues.add(parentValue);
+        const parentRow = getRow(parentValue);
+        if (!parentRow) return;
+        if (isRowVisible(parentValue) && !expandedValues.includes(parentValue)) {
+          setResolvedActiveCell({ rowIndex: parentRow.data.rowIndex, columnIndex: 1 });
+          return;
+        }
+        parentValue = parentRow.data.parentValue;
+      }
+    }, [activeCell, expandedValues, getCell, getRow, isRowVisible, setResolvedActiveCell]);
+
     const expandRow = useCallback(
       (rowValue: string | undefined) => {
         if (!rowValue || disabled) return;
@@ -500,6 +520,11 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
             moveActiveCell(event.ctrlKey || event.metaKey ? "grid-end" : "row-end");
             return;
           case "Enter":
+            if (activeItem?.data.onAction) {
+              event.preventDefault();
+              activeItem.data.onAction();
+              return;
+            }
             if (!activeRow) return;
             event.preventDefault();
             if (activeRowCanExpand) {
