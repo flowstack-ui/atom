@@ -16,6 +16,7 @@ export interface DataGridCellData extends Record<string, unknown> {
   rowIndex: number;
   columnIndex: number;
   rowValue?: string;
+  onAction?: () => void;
 }
 
 export interface DataGridRowData extends Record<string, unknown> {

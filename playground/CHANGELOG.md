@@ -6,6 +6,9 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Updated the Data Grid workbench and manual protocol with live sortable-header
+  pointer/Enter action evidence and generated Source.
+
 - Updated Pagination Canvas, Source, Anatomy evidence, and its manual protocol
   for generated `Items` and Root-level accessible-label localization.
 

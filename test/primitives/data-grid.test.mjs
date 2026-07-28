@@ -261,6 +261,36 @@ test("DataGrid exposes row-level selection availability", () => {
   assert.match(html, /<tr[^>]*aria-selected="true"[^>]*data-selectable=""[^>]*data-value="order-2"[^>]*data-selected=""/);
 });
 
+test("DataGrid ColumnHeader exposes the actionable contract", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      DataGrid.Root,
+      { "aria-label": "Sortable orders" },
+      React.createElement(
+        DataGrid.Header,
+        null,
+        React.createElement(
+          DataGrid.Row,
+          { rowIndex: 1, selectable: false },
+          React.createElement(
+            DataGrid.ColumnHeader,
+            { columnIndex: 1, sortDirection: "ascending", onAction: () => {} },
+            "Order",
+          ),
+          React.createElement(
+            DataGrid.ColumnHeader,
+            { columnIndex: 2, disabled: true, onAction: () => {} },
+            "Status",
+          ),
+        ),
+      ),
+    ),
+  );
+
+  assert.match(html, /<th[^>]*aria-sort="ascending"[^>]*data-actionable=""/);
+  assert.doesNotMatch(html, /<th[^>]*aria-colindex="2"[^>]*data-actionable=""/);
+});
+
 test("DataGrid source uses Collection and keeps keyboard navigation in Root", async () => {
   const rootSource = await readFile(
     new URL("src/primitives/data-grid/DataGridRoot.tsx", packageRoot),
@@ -272,6 +302,10 @@ test("DataGrid source uses Collection and keeps keyboard navigation in Root", as
   );
   const cellSource = await readFile(
     new URL("src/primitives/data-grid/DataGridCell.tsx", packageRoot),
+    "utf8",
+  );
+  const columnHeaderSource = await readFile(
+    new URL("src/primitives/data-grid/DataGridColumnHeader.tsx", packageRoot),
     "utf8",
   );
 
@@ -290,6 +324,8 @@ test("DataGrid source uses Collection and keeps keyboard navigation in Root", as
   assert.match(rootSource, /cell\.data\.columnIndex === current\.columnIndex/);
   assert.match(rootSource, /if \(row && !row\.data\.selectable\) return;/);
   assert.match(rootSource, /selectRow\(item\.data\.rowValue\)/);
+  assert.match(rootSource, /event\.key === "Enter" && item\?\.data\.onAction/);
+  assert.match(rootSource, /item\.data\.onAction\(\)/);
   assert.match(rowSource, /selectable = true/);
   assert.match(rowSource, /registerRow\(value, element, rowData, isDisabled\)/);
   assert.match(rowSource, /data-selection-disabled/);
@@ -297,4 +333,7 @@ test("DataGrid source uses Collection and keeps keyboard navigation in Root", as
   assert.match(cellSource, /registerCell\(cellValue, element, cellData, isDisabled\)/);
   assert.match(cellSource, /updateCell\(cellValue, cellData, isDisabled\)/);
   assert.match(cellSource, /focusCell\(resolvedRowIndex, resolvedColumnIndex\)/);
+  assert.match(columnHeaderSource, /onAction\?: \(\) => void/);
+  assert.match(columnHeaderSource, /focusCell\(resolvedRowIndex, resolvedColumnIndex\);\s+onAction\?\.\(\)/);
+  assert.match(columnHeaderSource, /data-actionable/);
 });

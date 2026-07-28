@@ -42,6 +42,7 @@ export interface DataGridColumnHeaderProps extends DataGridColumnHeaderNativePro
   index?: number;
   disabled?: boolean;
   sortDirection?: DataGridSortDirection;
+  onAction?: () => void;
   render?: RenderProp;
   asChild?: boolean;
   "data-slot"?: string;
@@ -55,6 +56,7 @@ export const DataGridColumnHeader = forwardRef<HTMLTableCellElement, DataGridCol
       index,
       disabled = false,
       sortDirection,
+      onAction,
       scope = "col",
       render,
       asChild,
@@ -98,8 +100,9 @@ export const DataGridColumnHeader = forwardRef<HTMLTableCellElement, DataGridCol
         rowIndex: resolvedRowIndex ?? 0,
         columnIndex: resolvedColumnIndex ?? 0,
         rowValue: rowCtx?.value,
+        onAction,
       }),
-      [cellId, resolvedColumnIndex, resolvedRowIndex, rowCtx?.value],
+      [cellId, onAction, resolvedColumnIndex, resolvedRowIndex, rowCtx?.value],
     );
 
     useEffect(() => {
@@ -117,7 +120,8 @@ export const DataGridColumnHeader = forwardRef<HTMLTableCellElement, DataGridCol
     const handleClick = useCallback<MouseEventHandler<HTMLTableCellElement>>(() => {
       if (!resolvedRowIndex || !resolvedColumnIndex || isDisabled) return;
       focusCell(resolvedRowIndex, resolvedColumnIndex);
-    }, [focusCell, isDisabled, resolvedColumnIndex, resolvedRowIndex]);
+      onAction?.();
+    }, [focusCell, isDisabled, onAction, resolvedColumnIndex, resolvedRowIndex]);
 
     const active = focused &&
       activeCell?.rowIndex === resolvedRowIndex &&
@@ -136,6 +140,7 @@ export const DataGridColumnHeader = forwardRef<HTMLTableCellElement, DataGridCol
       "data-slot": dataSlot,
       ...(resolvedColumnIndex !== undefined && { "data-column-index": resolvedColumnIndex }),
       ...(sortDirection !== undefined && { "data-sort": sortDirection }),
+      ...(onAction && isNavigable && !actuallyDisabled && { "data-actionable": "" }),
       ...(active && { "data-active": "" }),
       ...(selected && { "data-selected": "" }),
       ...(actuallyDisabled && { "data-disabled": "" }),
