@@ -446,6 +446,11 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
           case " ": {
             if (!activeCell) return;
             const item = getItem(getDataGridCellValue(activeCell.rowIndex, activeCell.columnIndex));
+            if (event.key === "Enter" && item?.data.onAction) {
+              event.preventDefault();
+              item.data.onAction();
+              return;
+            }
             if (!item?.data.rowValue) return;
             event.preventDefault();
             selectRow(item.data.rowValue);

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.17.0
+
+- Added DataGrid `ColumnHeader.onAction` so sortable headers receive equivalent
+  pointer and active-header Enter activation without moving sorting logic into
+  Atom.
+
 ## 0.16.0
 
 - Added Pagination `Items` range composition and Root-level localization for

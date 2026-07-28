@@ -276,7 +276,7 @@ Verify
 - Default Data is `data-slot="data-grid-column-header"` with `data-column-index="1"`; Ref is `th`.
 - Data shows `data-prop-check="columnHeader"` and then `data-slot="data-grid-columnHeader-custom"`.
 
-### Status — index and sort delta
+### Status — index, sort, and action delta
 
 Setup
 
@@ -284,13 +284,27 @@ Setup
 
 Action
 
-- Set Status sort to Ascending and inspect Status.
+- Set Status sort to Ascending and inspect Status, then click Status.
 
 Verify
 
 - ARIA shows `aria-colindex="2"` and `aria-sort="ascending"`.
-- Data shows `data-column-index="2"` and `data-sort="ascending"`.
-- The body row order remains Alpha, Bravo, Blocked because sorting is application-owned.
+- Data shows `data-column-index="2"`, `data-sort="ascending"`, and
+  `data-actionable`.
+- Click makes Status active, advances sort to Descending, and adds exactly one
+  `status sort action descending` log entry.
+- The body row order remains Alpha, Bravo, Blocked because sorting is
+  application-owned.
+
+Action
+
+- With Status active, press Enter twice.
+
+Verify
+
+- The first Enter clears sort to Unset and the second advances it to Ascending.
+- Each Enter adds exactly one matching status-sort action log entry.
+- Space does not invoke the header action.
 
 Reset
 
@@ -459,6 +473,15 @@ Action
 Verify
 
 - Each key selects the active row and produces one value-change log entry.
+
+Action
+
+- Navigate to the Status column header and press Enter.
+
+Verify
+
+- Enter invokes the Status action once and advances its controlled sort state.
+- The non-selectable heading row does not become selected.
 
 Reset
 

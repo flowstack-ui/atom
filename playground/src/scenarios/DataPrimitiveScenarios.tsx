@@ -220,6 +220,17 @@ function useDataGridScenario() {
     const nextRef = formatRef(element);
     setRefs((current) => current[part] === nextRef ? current : { ...current, [part]: nextRef });
   }, []);
+  const cycleStatusSort = useCallback(() => {
+    setSortDirection((current) => {
+      const next = current === "ascending"
+        ? "descending"
+        : current === "descending"
+          ? "unset"
+          : "ascending";
+      addLog(`status sort action ${next}`);
+      return next;
+    });
+  }, [addLog]);
 
   return {
     state: { stateMode, selectionMode, selectedValue, activeCell, defaultSelected, defaultActive, disabled, readOnly, loop, wrapRows, selectOnRowClick, disableRow, disableCell, counts, sortDirection, directionMode, composition, propCheck, customSlots, refs, log },
@@ -241,6 +252,7 @@ function useDataGridScenario() {
       setDisableCell,
       setCounts,
       setSortDirection,
+      cycleStatusSort,
       setDirectionMode,
       setPartComposition,
       setPropCheck,
@@ -1797,7 +1809,7 @@ function renderDataGridContent(scenario: ReturnType<typeof useDataGridScenario>)
   const headingCells = (
     <>
       {renderDataGridElement(DataGrid.ColumnHeader, "columnHeader", "th", { columnIndex: 1, className: "playground-data-grid-column-header-name" }, "Name", scenario)}
-      {renderDataGridElement(DataGrid.ColumnHeader, "columnHeader", "th", { index: 1, sortDirection: scenario.state.sortDirection === "unset" ? undefined : scenario.state.sortDirection, className: "playground-data-grid-column-header-status" }, "Status", scenario)}
+      {renderDataGridElement(DataGrid.ColumnHeader, "columnHeader", "th", { index: 1, sortDirection: scenario.state.sortDirection === "unset" ? undefined : scenario.state.sortDirection, onAction: scenario.actions.cycleStatusSort, className: "playground-data-grid-column-header-status" }, "Status", scenario)}
     </>
   );
   const headingRow = renderDataGridElement(DataGrid.Row, "row", "tr", { rowIndex: 1, selectable: false, className: "playground-data-grid-row-heading" }, headingCells, scenario);
@@ -3051,7 +3063,7 @@ function getDataGridSource(state?: ReturnType<typeof useDataGridScenario>["state
     sourceDataGridElement("Row", "row", resolved.composition.row, sourcePartProps("row", extra), children, indent);
   const headerRow = gridRow(["rowIndex={1}", "selectable={false}"], `
       ${cell("ColumnHeader", "columnHeader", ["columnIndex={1}"], "Name", 6)}
-      ${cell("ColumnHeader", "columnHeader", ["index={1}", state?.sortDirection && state.sortDirection !== "unset" ? `sortDirection="${state.sortDirection}"` : ""], "Status", 6)}
+      ${cell("ColumnHeader", "columnHeader", ["index={1}", "onAction={cycleStatusSort}", state?.sortDirection && state.sortDirection !== "unset" ? `sortDirection="${state.sortDirection}"` : ""], "Status", 6)}
     `, 4);
   const alphaRow = gridRow(["index={1}", 'value="alpha"'], `
       ${cell("Cell", "cell", ["index={0}"], "Alpha", 6)}

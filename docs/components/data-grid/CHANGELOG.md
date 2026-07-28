@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.17.0
+
+- Added `ColumnHeader.onAction` with `data-actionable` and equivalent pointer
+  and active-header Enter dispatch for application-controlled sorting.
+
 ## 0.2.0
 
 - Fixed vertical keyboard navigation to preserve the active column while
