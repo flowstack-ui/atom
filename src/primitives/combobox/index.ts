@@ -1,4 +1,12 @@
 export {
+  ComboboxControl,
+  type ComboboxControlProps,
+} from "./ComboboxControl.js";
+export {
+  ComboboxTrigger,
+  type ComboboxTriggerProps,
+} from "./ComboboxTrigger.js";
+export {
   ComboboxClear,
   type ComboboxClearProps,
 } from "./ComboboxClear.js";

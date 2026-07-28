@@ -28,6 +28,7 @@ import {
 import { AspectRatioRoot } from "./primitives/aspect-ratio/index.js";
 import {
   ComboboxClear,
+  ComboboxControl,
   ComboboxContent,
   ComboboxEmpty,
   ComboboxGroup,
@@ -38,6 +39,7 @@ import {
   ComboboxLoading,
   ComboboxPortal,
   ComboboxRoot,
+  ComboboxTrigger,
 } from "./primitives/combobox/index.js";
 import {
   AvatarFallback,
@@ -437,8 +439,10 @@ export const AspectRatio = {
 
 export const Combobox = {
   Root: ComboboxRoot,
+  Control: ComboboxControl,
   Input: ComboboxInput,
   Clear: ComboboxClear,
+  Trigger: ComboboxTrigger,
   Portal: ComboboxPortal,
   Content: ComboboxContent,
   Listbox: ComboboxListbox,

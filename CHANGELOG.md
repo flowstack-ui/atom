@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 0.18.2
+
+- Added Combobox Control and Trigger parts so the complete visible control owns
+  popup geometry and the disclosure affordance has native button behavior.
+- Made authored Combobox Items follow the Root filter automatically and derive
+  initial display text from an uncontrolled default selection.
+- Mirrored open, disabled, read-only, required, and invalid state onto the
+  Combobox Control for standalone and Field-composed styling.
+
 ## 0.18.1
 
 - Made Combobox touch and pen outside dismissal wait for a completed tap and

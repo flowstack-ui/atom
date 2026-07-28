@@ -94,6 +94,7 @@ export const ComboboxContent = forwardRef<HTMLDivElement, ComboboxContentProps>(
     const [isPositioned, setIsPositioned] = useState(false);
     const {
       contentRef,
+      controlRef,
       filteredOptions,
       getItemElement,
       highlightedValue,
@@ -134,8 +135,8 @@ export const ComboboxContent = forwardRef<HTMLDivElement, ComboboxContentProps>(
     }, [isOpen]);
 
     const clickAwayRefs = useMemo(
-      () => [contentRef, inputRef],
-      [contentRef, inputRef],
+      () => [contentRef, controlRef, inputRef],
+      [contentRef, controlRef, inputRef],
     );
     useClickAway({
       refs: clickAwayRefs,
@@ -170,7 +171,7 @@ export const ComboboxContent = forwardRef<HTMLDivElement, ComboboxContentProps>(
     );
 
     const { refs, floatingStyles } = useFloating({
-      elements: { reference: inputRef.current },
+      elements: { reference: controlRef.current ?? inputRef.current },
       placement: "bottom-start",
       middleware,
       whileElementsMounted: autoUpdate,

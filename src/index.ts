@@ -145,6 +145,7 @@ export { AspectRatioRoot } from "./primitives/aspect-ratio/index.js";
 export type { AspectRatioRootProps } from "./primitives/aspect-ratio/index.js";
 export {
   ComboboxClear,
+  ComboboxControl,
   ComboboxContent,
   ComboboxContextProvider,
   ComboboxEmpty,
@@ -156,6 +157,7 @@ export {
   ComboboxLoading,
   ComboboxPortal,
   ComboboxRoot,
+  ComboboxTrigger,
   filterComboboxOptions,
   getComboboxOptionLabel,
   getNextComboboxValue,
@@ -164,6 +166,7 @@ export {
 } from "./primitives/combobox/index.js";
 export type {
   ComboboxClearProps,
+  ComboboxControlProps,
   ComboboxContentProps,
   ComboboxContextValue,
   ComboboxEmptyProps,
@@ -179,6 +182,7 @@ export type {
   ComboboxOptionGroup,
   ComboboxPortalProps,
   ComboboxRootProps,
+  ComboboxTriggerProps,
 } from "./primitives/combobox/index.js";
 export type {
   AccordionContentProps,
