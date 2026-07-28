@@ -17,6 +17,7 @@ valid.
 - Filters, groups, highlights, and selects options.
 - Supports free-form values, loading, empty state, clearing, and disabled items.
 - Positions Content with Floating UI and portals on request.
+- Defers touch and pen outside dismissal until a completed, uncancelled tap.
 - Provides generated combobox/listbox ARIA relationships.
 - Submits the selected value through a hidden named input.
 - Exposes reusable option filtering, labeling, grouping, and navigation helpers.

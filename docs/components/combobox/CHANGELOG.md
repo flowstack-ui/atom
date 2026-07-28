@@ -1,5 +1,10 @@
 # Combobox Changelog
 
+## Unreleased
+
+- Made touch and pen outside dismissal wait for a completed tap and cancel on
+  movement, scrolling, or pointer cancellation.
+
 ## 0.6.16
 
 - Explicitly scrolled inline validation-directed focus into view.
