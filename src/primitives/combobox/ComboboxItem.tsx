@@ -48,6 +48,7 @@ export const ComboboxItem = forwardRef<HTMLDivElement, ComboboxItemProps>(
     const generatedId = useId();
     const itemId = `${ctx.comboboxId}-option-${generatedId}`;
     const isSelected = ctx.value === value;
+    const isVisible = ctx.filteredOptions.some(option => option.value === value);
     const isHighlighted = ctx.highlightedValue === value;
     const { suppressNextInputFocusOpen } = ctx;
 
@@ -63,7 +64,7 @@ export const ComboboxItem = forwardRef<HTMLDivElement, ComboboxItemProps>(
         disabled,
       });
       return () => ctx.unregisterItem(value);
-    }, [ctx.registerItem, ctx.unregisterItem, disabled, itemId, value]);
+    }, [ctx.registerItem, ctx.unregisterItem, disabled, isVisible, itemId, value]);
 
     const handleClick: MouseEventHandler<HTMLDivElement> = useCallback(() => {
       if (disabled) return;
@@ -83,6 +84,8 @@ export const ComboboxItem = forwardRef<HTMLDivElement, ComboboxItemProps>(
     const handlePointerLeave: PointerEventHandler<HTMLDivElement> = useCallback(() => {
       if (ctx.highlightedValue === value) ctx.onHighlight(null);
     }, [ctx.highlightedValue, ctx.onHighlight, value]);
+
+    if (!isVisible) return null;
 
     return (
       <div

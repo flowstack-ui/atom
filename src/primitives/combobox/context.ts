@@ -31,6 +31,7 @@ export interface ComboboxContextValue {
   inputId: string;
   listboxId: string;
   inputRef: RefObject<HTMLInputElement | null>;
+  controlRef: RefObject<HTMLDivElement | null>;
   fieldLabelId: string | undefined;
   fieldDescribedBy: string | undefined;
   form: string | undefined;

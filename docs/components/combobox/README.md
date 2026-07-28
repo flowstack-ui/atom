@@ -15,6 +15,7 @@ valid.
 
 - Controls selection, input text, and open state independently.
 - Filters, groups, highlights, and selects options.
+- Provides a native disclosure Trigger and sizes Content from the full Control.
 - Supports free-form values, loading, empty state, clearing, and disabled items.
 - Positions Content with Floating UI and portals on request.
 - Defers touch and pen outside dismissal until a completed, uncancelled tap.
@@ -33,8 +34,11 @@ import { Combobox } from "@flowstack-ui/atom";
 ```tsx
 <Combobox.Root>
   <Combobox.Label />
-  <Combobox.Input />
-  <Combobox.Clear />
+  <Combobox.Control>
+    <Combobox.Input />
+    <Combobox.Clear />
+    <Combobox.Trigger />
+  </Combobox.Control>
   <Combobox.Portal>
     <Combobox.Content>
       <Combobox.Listbox>
@@ -70,7 +74,7 @@ adds an accessibility-hidden input containing the selected value.
 | `defaultValue` | `string \| null` | `null` |
 | `onValueChange` | `(value: string \| null) => void` | - |
 | `inputValue` | `string` | - |
-| `defaultInputValue` | `string` | `""` |
+| `defaultInputValue` | `string` | Selected option label or `""` |
 | `onInputValueChange` | `(value: string) => void` | - |
 | `open` | `boolean` | - |
 | `defaultOpen` | `boolean` | `false` |
@@ -98,6 +102,12 @@ satisfy required validity until a value is committed. The visible Input
 receives Field state, the generated control ID, Field label and description
 relationships, and external form association. Uncontrolled value,
 input text, and open state return to their defaults on native form reset.
+
+When composed inside `Field.Root`, Combobox inherits disabled, read-only,
+required, invalid, validation behavior, label, description, and error
+relationships. It also works standalone through the equivalent Root props.
+`Fieldset.Root` and `Form.Root` aggregate native/inline validity through the
+shared Field and form validation contracts.
 
 ### Label
 
@@ -143,6 +153,20 @@ all combobox keyboard interaction.
 | `[data-readonly]` | Present when read only |
 | `[data-invalid]` | Present when invalid |
 
+### Control
+
+Wraps Input, Clear, and Trigger as the complete visible control. Content uses
+this element as its positioning reference and minimum inline size.
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"combobox-control"` |
+| `[data-state]` | `"open" \| "closed"` |
+| `[data-disabled]` | Present when disabled |
+| `[data-readonly]` | Present when read only |
+| `[data-required]` | Present when required |
+| `[data-invalid]` | Present when invalid |
+
 ### Clear
 
 Clears the selected value and input, then returns focus to Input. It renders a
@@ -164,6 +188,23 @@ disabled/read-only.
 | `[data-slot]` | `"combobox-clear"` |
 | `[data-hidden]` | Present while hidden |
 
+### Trigger
+
+Renders the button that toggles Content without taking focus away from Input.
+It inherits disabled/read-only behavior from Root or Field.
+
+| ARIA attribute | Values |
+| --- | --- |
+| `aria-expanded` | Current open state |
+| `aria-haspopup` | `"listbox"` |
+| `aria-controls` | Generated Listbox ID |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"combobox-trigger"` |
+| `[data-state]` | `"open" \| "closed"` |
+| `[data-invalid]` | Present when invalid |
+
 ### Portal
 
 Moves its children to `document.body` by default without a wrapper.
@@ -175,7 +216,7 @@ Moves its children to `document.body` by default without a wrapper.
 
 ### Content
 
-Renders and positions the open popup below Input with flip and viewport-shift
+Renders and positions the open popup below Control with flip and viewport-shift
 collision handling. It owns no listbox role; place Listbox inside it.
 
 | Prop | Type | Default |
@@ -218,7 +259,8 @@ native `aria-label` or `aria-labelledby` overrides that relationship.
 
 ### Item
 
-Represents one selectable option and registers its value in list order.
+Represents one selectable option, registers its value in list order, and hides
+itself when its matching Root option is excluded by the active filter.
 
 | Prop | Type | Default |
 | --- | --- | --- |

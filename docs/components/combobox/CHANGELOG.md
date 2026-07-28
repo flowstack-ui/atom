@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.18.2
+
+- Added Control and Trigger parts, anchored Content to the full Control, and
+  exposed inherited form state on the Control styling surface.
+- Made authored Items filter themselves from Root options and initialized
+  display text from `defaultValue` when `defaultInputValue` is omitted.
+
 ## 0.18.1
 
 - Made touch and pen outside dismissal wait for a completed tap and cancel on

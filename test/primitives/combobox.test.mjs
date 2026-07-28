@@ -10,6 +10,7 @@ import {
 import {
   Combobox,
   ComboboxClear,
+  ComboboxControl,
   ComboboxContent,
   ComboboxEmpty,
   ComboboxGroup,
@@ -20,6 +21,7 @@ import {
   ComboboxLoading,
   ComboboxPortal,
   ComboboxRoot,
+  ComboboxTrigger,
   Input,
   Label,
   Listbox,
@@ -39,14 +41,19 @@ test("Combobox compound parts render combobox/listbox anatomy", () => {
       {
         options,
         defaultValue: "apple",
-        defaultInputValue: "ap",
+        defaultInputValue: "",
         defaultOpen: true,
         name: "fruit",
         required: true,
         invalid: true,
       },
-      React.createElement(Combobox.Input, { "aria-label": "Fruit" }),
-      React.createElement(Combobox.Clear, null, "Clear"),
+      React.createElement(
+        Combobox.Control,
+        null,
+        React.createElement(Combobox.Input, { "aria-label": "Fruit" }),
+        React.createElement(Combobox.Clear, null, "Clear"),
+        React.createElement(Combobox.Trigger, null, "Toggle"),
+      ),
       React.createElement(
         Combobox.Content,
         null,
@@ -84,6 +91,8 @@ test("Combobox compound parts render combobox/listbox anatomy", () => {
   assert.match(html, /aria-invalid="true"/);
   assert.match(html, /aria-required="true"/);
   assert.match(html, /data-slot="combobox-input"/);
+  assert.match(html, /data-slot="combobox-control"/);
+  assert.match(html, /data-slot="combobox-trigger"/);
   assert.match(html, /data-slot="combobox-content"/);
   assert.match(html, /aria-label="Fruit options"[^>]+role="listbox"/);
   assert.match(html, /role="group"[^>]+aria-labelledby="[^"]+-label"/);
@@ -95,6 +104,8 @@ test("Combobox compound parts render combobox/listbox anatomy", () => {
   assert.equal(Combobox.Root, ComboboxRoot);
   assert.equal(Combobox.Input, ComboboxInput);
   assert.equal(Combobox.Clear, ComboboxClear);
+  assert.equal(Combobox.Control, ComboboxControl);
+  assert.equal(Combobox.Trigger, ComboboxTrigger);
   assert.equal(Combobox.Portal, ComboboxPortal);
   assert.equal(Combobox.Content, ComboboxContent);
   assert.equal(Combobox.Listbox, ComboboxListbox);
@@ -103,6 +114,32 @@ test("Combobox compound parts render combobox/listbox anatomy", () => {
   assert.equal(Combobox.Item, ComboboxItem);
   assert.equal(Combobox.Empty, ComboboxEmpty);
   assert.equal(Combobox.Loading, ComboboxLoading);
+});
+
+test("Combobox owns visible filtering, full-control positioning, and trigger toggling", async () => {
+  const rootSource = await readFile(
+    new URL("src/primitives/combobox/ComboboxRoot.tsx", packageRoot),
+    "utf8",
+  );
+  const itemSource = await readFile(
+    new URL("src/primitives/combobox/ComboboxItem.tsx", packageRoot),
+    "utf8",
+  );
+  const contentSource = await readFile(
+    new URL("src/primitives/combobox/ComboboxContent.tsx", packageRoot),
+    "utf8",
+  );
+  const triggerSource = await readFile(
+    new URL("src/primitives/combobox/ComboboxTrigger.tsx", packageRoot),
+    "utf8",
+  );
+
+  assert.match(rootSource, /defaultInputValue \?\? getComboboxOptionLabel/);
+  assert.match(itemSource, /filteredOptions\.some/);
+  assert.match(itemSource, /if \(!isVisible\) return null/);
+  assert.match(contentSource, /controlRef\.current \?\? inputRef\.current/);
+  assert.match(triggerSource, /onToggle\(\)/);
+  assert.match(triggerSource, /inputRef\.current\?\.focus\(\{ preventScroll: true \}\)/);
 });
 
 test("ComboboxLabel renders a native input label outside option groups", () => {

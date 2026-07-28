@@ -65,7 +65,7 @@ export function ComboboxRoot({
   defaultValue = null,
   onValueChange,
   inputValue: controlledInputValue,
-  defaultInputValue = "",
+  defaultInputValue,
   onInputValueChange,
   open: controlledOpen,
   defaultOpen = false,
@@ -100,9 +100,10 @@ export function ComboboxRoot({
     defaultValue,
     onChange: onValueChange,
   });
+  const initialInputValue = defaultInputValue ?? getComboboxOptionLabel(options.find(option => option.value === defaultValue) ?? { value: "", label: "" });
   const [inputValue, setInputValueState] = useControllableState<string>({
     value: controlledInputValue,
-    defaultValue: defaultInputValue,
+    defaultValue: initialInputValue,
     onChange: onInputValueChange,
   });
 
@@ -115,6 +116,7 @@ export function ComboboxRoot({
   const listboxId = `combobox-listbox-${idPrefix}`;
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const controlRef = useRef<HTMLDivElement>(null);
   const validationInputRef = useRef<HTMLInputElement>(null);
   useFormControlProxy(validationInputRef, inputRef);
   const validation = useFormValidation({
@@ -132,14 +134,14 @@ export function ComboboxRoot({
   const suppressInputFocusOpenRef = useRef(false);
   const reset = useCallback(() => {
     if (controlledValue === undefined) setValue(defaultValue);
-    if (controlledInputValue === undefined) setInputValueState(defaultInputValue);
+    if (controlledInputValue === undefined) setInputValueState(initialInputValue);
     if (controlledOpen === undefined) setOpen(defaultOpen);
     setHighlightedValue(null);
   }, [
     controlledInputValue,
     controlledOpen,
     controlledValue,
-    defaultInputValue,
+    initialInputValue,
     defaultOpen,
     defaultValue,
     setInputValueState,
@@ -274,6 +276,7 @@ export function ComboboxRoot({
       inputId,
       listboxId,
       inputRef,
+      controlRef,
       fieldLabelId: field?.labelId,
       fieldDescribedBy: field?.describedBy,
       form,
