@@ -2,7 +2,12 @@
 
 ## Unreleased
 
-- No unreleased changes.
+## 0.16.0
+
+- Added the hostless `Items` part to render Root's calculated page and ellipsis
+  range without consumer-owned mapping.
+- Added Root-level Previous, Next, and generated Item label localization while
+  preserving direct native `aria-label` precedence.
 
 ## 0.2.0
 

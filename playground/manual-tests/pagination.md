@@ -25,7 +25,7 @@ Verify
 
 □ Scenario renders a pagination nav in the Canvas.
 □ Anatomy lists Root, List, Previous, Item: Current, Ellipsis, and Next in that order.
-□ Source shows `Pagination.Root`, `Pagination.List`, `Pagination.Previous`, `Pagination.Item`, `Pagination.Ellipsis`, and `Pagination.Next`.
+□ Source shows `Pagination.Root`, `Pagination.List`, `Pagination.Previous`, `Pagination.Items`, `Pagination.Item`, `Pagination.Ellipsis`, and `Pagination.Next`.
 □ Inspector tabs switch between Selected, Focused, and Logs.
 □ Canvas footer reads `Page 1 | Total 10`.
 
@@ -78,6 +78,8 @@ Identity
 ARIA
 
 □ Default `aria-label="Pagination"`.
+□ Enabling localized labels changes the Root, Previous, Next, generated page,
+  and generated current-page accessible names without rebuilding the range.
 □ Localized Labels changes the Root label to `Paginacion demo`.
 
 Composition

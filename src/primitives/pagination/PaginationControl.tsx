@@ -30,13 +30,19 @@ export const PaginationPrevious = forwardRef<HTMLButtonElement, PaginationContro
       render,
       asChild,
       "data-slot": dataSlot = "pagination-previous",
-      "aria-label": ariaLabel = "Previous page",
+      "aria-label": ariaLabel,
       onClick,
       ...restProps
     },
     ref,
   ) {
-    const { currentPage, disabled, isFirstPage, setPage } = usePaginationContext();
+    const {
+      currentPage,
+      disabled,
+      isFirstPage,
+      previousAriaLabel,
+      setPage,
+    } = usePaginationContext();
     const isDisabled = disabled || isFirstPage;
 
     const handleClick: MouseEventHandler<HTMLButtonElement> = useCallback(
@@ -51,7 +57,7 @@ export const PaginationPrevious = forwardRef<HTMLButtonElement, PaginationContro
       ref,
       type: "button",
       disabled: isDisabled || undefined,
-      "aria-label": ariaLabel,
+      "aria-label": ariaLabel ?? previousAriaLabel,
       "data-slot": dataSlot,
       "data-direction": "previous",
       ...(isDisabled ? { "data-disabled": "" } : {}),
@@ -80,13 +86,14 @@ export const PaginationNext = forwardRef<HTMLButtonElement, PaginationControlPro
       render,
       asChild,
       "data-slot": dataSlot = "pagination-next",
-      "aria-label": ariaLabel = "Next page",
+      "aria-label": ariaLabel,
       onClick,
       ...restProps
     },
     ref,
   ) {
-    const { currentPage, disabled, isLastPage, setPage } = usePaginationContext();
+    const { currentPage, disabled, isLastPage, nextAriaLabel, setPage } =
+      usePaginationContext();
     const isDisabled = disabled || isLastPage;
 
     const handleClick: MouseEventHandler<HTMLButtonElement> = useCallback(
@@ -101,7 +108,7 @@ export const PaginationNext = forwardRef<HTMLButtonElement, PaginationControlPro
       ref,
       type: "button",
       disabled: isDisabled || undefined,
-      "aria-label": ariaLabel,
+      "aria-label": ariaLabel ?? nextAriaLabel,
       "data-slot": dataSlot,
       "data-direction": "next",
       ...(isDisabled ? { "data-disabled": "" } : {}),

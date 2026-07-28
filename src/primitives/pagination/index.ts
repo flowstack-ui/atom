@@ -2,6 +2,8 @@ export {
   PaginationContextProvider,
   usePaginationContext,
   type PaginationContextValue,
+  type PaginationItemLabel,
+  type PaginationItemLabelDetails,
 } from "./context.js";
 export {
   PaginationEllipsis,
@@ -11,6 +13,10 @@ export {
   PaginationItem,
   type PaginationItemProps,
 } from "./PaginationItem.js";
+export {
+  PaginationItems,
+  type PaginationItemsProps,
+} from "./PaginationItems.js";
 export {
   PaginationList,
   type PaginationListProps,

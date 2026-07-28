@@ -163,6 +163,7 @@ import {
   Pagination,
   PaginationEllipsis,
   PaginationItem,
+  PaginationItems,
   PaginationList,
   PaginationNext,
   PaginationPrevious,
@@ -328,6 +329,7 @@ test("package subpath exports can be imported through package self-reference", a
       assert.equal(mod.Pagination.Root, mod.PaginationRoot);
       assert.equal(mod.Pagination.List, mod.PaginationList);
       assert.equal(mod.Pagination.Previous, mod.PaginationPrevious);
+      assert.equal(mod.Pagination.Items, mod.PaginationItems);
       assert.equal(mod.Pagination.Item, mod.PaginationItem);
       assert.equal(mod.Pagination.Ellipsis, mod.PaginationEllipsis);
       assert.equal(mod.Pagination.Next, mod.PaginationNext);

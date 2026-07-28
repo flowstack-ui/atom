@@ -6,6 +6,7 @@ import type { NativeNavProps } from "../../utils/dom.js";
 import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
 import {
   PaginationContextProvider,
+  type PaginationItemLabel,
   type PaginationContextValue,
 } from "./context.js";
 import { clampPaginationPage, getPaginationRange } from "./utils.js";
@@ -31,6 +32,12 @@ export interface PaginationRootProps extends PaginationRootNativeProps {
   boundaryCount?: number;
   /** Disables all pagination controls. */
   disabled?: boolean;
+  /** Accessible label used by Previous when it has no direct aria-label. */
+  previousAriaLabel?: string;
+  /** Accessible label used by Next when it has no direct aria-label. */
+  nextAriaLabel?: string;
+  /** Returns the accessible label for a page Item. */
+  getItemAriaLabel?: PaginationItemLabel;
   /** Override the rendered element. */
   render?: RenderProp;
   /** Merge behavior props onto a single child element. */
@@ -50,6 +57,9 @@ export const PaginationRoot = forwardRef<HTMLElement, PaginationRootProps>(
       siblingCount = 1,
       boundaryCount = 1,
       disabled = false,
+      previousAriaLabel = "Previous page",
+      nextAriaLabel = "Next page",
+      getItemAriaLabel = defaultGetItemAriaLabel,
       render,
       asChild,
       "data-slot": dataSlot = "pagination-root",
@@ -96,9 +106,21 @@ export const PaginationRoot = forwardRef<HTMLElement, PaginationRootProps>(
         disabled,
         isFirstPage: resolvedCurrentPage <= 1,
         isLastPage: resolvedCurrentPage >= normalizedTotalPages,
+        previousAriaLabel,
+        nextAriaLabel,
+        getItemAriaLabel,
         setPage,
       }),
-      [disabled, items, normalizedTotalPages, resolvedCurrentPage, setPage],
+      [
+        disabled,
+        getItemAriaLabel,
+        items,
+        nextAriaLabel,
+        normalizedTotalPages,
+        previousAriaLabel,
+        resolvedCurrentPage,
+        setPage,
+      ],
     );
 
     if (normalizedTotalPages <= 0) return null;
@@ -125,3 +147,6 @@ export const PaginationRoot = forwardRef<HTMLElement, PaginationRootProps>(
     );
   },
 );
+
+const defaultGetItemAriaLabel: PaginationItemLabel = ({ page, isCurrent }) =>
+  isCurrent ? `Page ${page}, current page` : `Go to page ${page}`;
