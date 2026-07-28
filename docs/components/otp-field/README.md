@@ -58,6 +58,7 @@ Field state, completion behavior, and optional hidden form input.
 | `name` | `string` | - |
 | `form` | `string` | - |
 | `inputId` | `string` | Generated or inherited from Field |
+| `getInputLabel` | `(index, length, type) => string` | Generated English position label |
 | `autoFocus` | `boolean` | `false` |
 | `autoSubmit` | `boolean` | `false` |
 | `disabled` | `boolean` | `false` |
@@ -188,6 +189,9 @@ label through native `aria-label`/`aria-labelledby` or Field. The first visible
 cell owns required validity and anchors native browser feedback. The combined
 hidden native input is submission-only;
 uncontrolled content resets to `defaultValue`.
+
+Use `getInputLabel` to localize every generated cell position label. A direct
+`aria-label` on an Input still overrides the generated label for that cell.
 
 | Key | Description |
 | --- | --- |

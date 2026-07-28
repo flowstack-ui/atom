@@ -659,14 +659,24 @@ export type {
   SkipLinkTargetProps,
 } from "./primitives/skip-link/index.js";
 export {
+  NumberInputContextProvider,
+  NumberInputDecrement,
+  NumberInputIncrement,
+  NumberInputInput,
   NumberInputRoot,
   clampNumberValue,
   formatNumber,
   parseNumber,
   roundToPrecision,
   stepNumberValue,
+  useNumberInputContext,
 } from "./primitives/number-input/index.js";
 export type {
+  NumberInputContextValue,
+  NumberInputDecrementProps,
+  NumberInputIncrementProps,
+  NumberInputInputProps,
+  NumberInputStepButtonProps,
   NumberInputRenderState,
   NumberInputRootProps,
 } from "./primitives/number-input/index.js";

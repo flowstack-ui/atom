@@ -20,6 +20,9 @@ state or description/error wiring is needed.
 - Supports custom parts through public context hooks.
 - Preserves server relationships when Root composes one wrapper with
   `asChild`.
+- Bridges a containing Fieldset's disabled, required, invalid, and validation
+  state to its control and reports aggregate Field validity back through that
+  Fieldset before Form.
 
 ## Import
 
@@ -51,11 +54,11 @@ state. It does not render the actual form control.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `disabled` | `boolean` | `false` |
-| `required` | `boolean` | `false` |
+| `disabled` | `boolean` | Fieldset state or `false` |
+| `required` | `boolean` | Fieldset state or `false` |
 | `readOnly` | `boolean` | `false` |
-| `invalid` | `boolean` | `false` |
-| `validationBehavior` | `"inline" \| "native"` | Form value, then automatic |
+| `invalid` | `boolean` | Fieldset state or `false` |
+| `validationBehavior` | `"inline" \| "native"` | Fieldset/Form value, then automatic |
 | `orientation` | `"vertical" \| "horizontal"` | `"vertical"` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |

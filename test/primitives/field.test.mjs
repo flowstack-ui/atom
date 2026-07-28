@@ -12,10 +12,37 @@ import {
   FieldLabel,
   FieldRequiredIndicator,
   FieldRoot,
+  Fieldset,
+  Form,
   Label,
   Input,
   markFieldPart,
 } from "../../dist/index.js";
+
+test("Field bridges Fieldset state and validation behavior to controls", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Form.Root,
+      { validationBehavior: "inline" },
+      React.createElement(
+        Fieldset.Root,
+        { disabled: true, required: true, invalid: true },
+        React.createElement(
+          Field.Root,
+          { id: "nested-value" },
+          React.createElement(Field.Label, null, "Nested value"),
+          React.createElement(Input.Root, { name: "nested" }),
+          React.createElement(Field.Error, null, "Nested value is required."),
+        ),
+      ),
+    ),
+  );
+
+  assert.match(html, /data-slot="fieldset"[^>]*data-invalid=""[^>]*data-disabled=""[^>]*data-required=""/);
+  assert.match(html, /data-slot="field"[^>]*data-atom-validation-behavior="inline"[^>]*data-invalid=""[^>]*data-disabled=""[^>]*data-required=""/);
+  assert.match(html, /<input(?=[^>]*data-slot="input")(?=[^>]*disabled="")(?=[^>]*required="")(?=[^>]*aria-invalid="true")[^>]*>/);
+  assert.match(html, /aria-describedby="nested-value-error"/);
+});
 
 test("Field parts render generated IDs and state data attributes", () => {
   const html = renderToStaticMarkup(

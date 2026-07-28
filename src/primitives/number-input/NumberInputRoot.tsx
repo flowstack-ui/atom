@@ -4,6 +4,7 @@ import {
   forwardRef,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ChangeEvent,
@@ -16,6 +17,8 @@ import { useFormReset } from "../../hooks/useFormReset.js";
 import { useFormValidation } from "../../hooks/useFormValidation.js";
 import { useFieldContext } from "../field/context.js";
 import type { ValidationBehavior } from "../form/validation.js";
+import { NumberInputContextProvider, type NumberInputContextValue } from "./context.js";
+import { NumberInputInput } from "./NumberInputInput.js";
 import {
   clampNumberValue,
   formatNumber,
@@ -338,70 +341,104 @@ export const NumberInputRoot = forwardRef<HTMLDivElement, NumberInputRootProps>(
       handleStep,
       inputRef,
     };
+    const contextValue = useMemo<NumberInputContextValue>(
+      () => ({
+        numericValue,
+        displayValue,
+        min,
+        max,
+        disabled: isDisabled,
+        readOnly: isReadOnly,
+        required: isRequired,
+        invalid: isInvalid,
+        inputId: id ?? field?.controlId,
+        inputRef,
+        inputMode: "decimal",
+        placeholder,
+        form,
+        inputClassName,
+        ariaLabel,
+        ariaValueText: resolvedAriaValueText,
+        ariaDescribedBy: Object.prototype.hasOwnProperty.call(props, "aria-describedby")
+          ? ariaDescribedBy
+          : field?.describedBy,
+        validationBehavior: validation.validationBehavior,
+        isAtMin,
+        isAtMax,
+        handleStep,
+        handleChange: (event) => {
+          handleChange(event);
+          validation.validationProps.onChange();
+        },
+        handleInput: validation.validationProps.onInput,
+        handleInvalid: validation.validationProps.onInvalid,
+        handleKeyDown,
+        handleFocus,
+        handleBlur,
+      }),
+      [
+        ariaDescribedBy,
+        ariaLabel,
+        displayValue,
+        field?.controlId,
+        field?.describedBy,
+        form,
+        handleBlur,
+        handleChange,
+        handleFocus,
+        handleKeyDown,
+        handleStep,
+        id,
+        inputClassName,
+        isAtMax,
+        isAtMin,
+        isDisabled,
+        isInvalid,
+        isReadOnly,
+        isRequired,
+        max,
+        min,
+        numericValue,
+        placeholder,
+        props,
+        resolvedAriaValueText,
+        validation.validationBehavior,
+        validation.validationProps.onChange,
+        validation.validationProps.onInput,
+        validation.validationProps.onInvalid,
+      ],
+    );
+    const usesCompoundInput = children !== undefined && typeof children !== "function";
 
     return (
-      <div
-        {...restProps}
-        ref={ref}
-        data-slot={dataSlot}
-        className={className}
-        {...(isDisabled && { "data-disabled": "" })}
-        {...(isReadOnly && { "data-readonly": "" })}
-        {...(isInvalid && { "data-invalid": "" })}
-        {...(isRequired && { "data-required": "" })}
-      >
-        <input
-          ref={inputRef}
-          type="text"
-          inputMode="decimal"
-          role="spinbutton"
-          id={id ?? field?.controlId}
-          value={displayValue}
-          placeholder={placeholder}
-          disabled={isDisabled}
-          readOnly={isReadOnly}
-          required={isRequired}
-          form={form}
-          className={inputClassName}
-          onChange={(event) => {
-            handleChange(event);
-            validation.validationProps.onChange();
-          }}
-          onInput={validation.validationProps.onInput}
-          onInvalid={validation.validationProps.onInvalid}
-          onKeyDown={handleKeyDown}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          aria-label={ariaLabel}
-          aria-valuenow={numericValue ?? undefined}
-          aria-valuemin={min}
-          aria-valuemax={max}
-          aria-valuetext={resolvedAriaValueText}
-          aria-invalid={isInvalid || undefined}
-          aria-required={isRequired || undefined}
-          aria-readonly={isReadOnly || undefined}
-          aria-describedby={Object.prototype.hasOwnProperty.call(props, "aria-describedby")
-            ? ariaDescribedBy
-            : field?.describedBy}
-          autoComplete="off"
-          data-atom-validation-owner=""
-          data-atom-validation-behavior={validation.validationBehavior}
-        />
+      <NumberInputContextProvider value={contextValue}>
+        <div
+          {...restProps}
+          ref={ref}
+          data-slot={dataSlot}
+          className={className}
+          {...(isDisabled && { "data-disabled": "" })}
+          {...(isReadOnly && { "data-readonly": "" })}
+          {...(isInvalid && { "data-invalid": "" })}
+          {...(isRequired && { "data-required": "" })}
+        >
+          {!usesCompoundInput ? <NumberInputInput /> : null}
 
-        {name ? (
-          <input
-            type="hidden"
-            name={name}
-            form={form}
-            value={numericValue ?? ""}
-            disabled={isDisabled}
-          />
-        ) : null}
+          {name ? (
+            <input
+              type="hidden"
+              name={name}
+              form={form}
+              value={numericValue ?? ""}
+              disabled={isDisabled}
+            />
+          ) : null}
 
-        {typeof children === "function"
-          ? children(renderState)
-          : children}
-      </div>
+          {typeof children === "function"
+            ? children(renderState)
+            : children}
+        </div>
+      </NumberInputContextProvider>
     );
   },
 );

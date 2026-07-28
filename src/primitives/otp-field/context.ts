@@ -22,6 +22,7 @@ export interface OTPFieldContextValue {
   getInputIndex: (inputKey: string, providedIndex?: number) => number;
   getInputId: (index: number, providedId?: string) => string;
   getDisplayChar: (char: string) => string;
+  getInputLabel: (index: number) => string;
   registerInput: (inputKey: string) => void;
   unregisterInput: (inputKey: string) => void;
   setInputRef: (index: number, element: HTMLInputElement | null) => void;

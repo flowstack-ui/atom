@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 0.19.0
+
+- Made Field inherit containing Fieldset state and validation behavior and
+  report its aggregate validity through Fieldset before Form.
+- Added compound NumberInput Input, Increment, and Decrement parts with owned
+  spinbutton relationships, limit state, and pointer-focus preservation.
+- Added localizable generated OTP cell labels and state-aware PasswordToggleField
+  show/hide action labels.
+- Restored password input type before native submission and reset uncontrolled
+  password visibility with its form.
+
 ## 0.18.2
 
 - Added Combobox Control and Trigger parts so the complete visible control owns

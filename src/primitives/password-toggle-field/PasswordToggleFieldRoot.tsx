@@ -20,6 +20,10 @@ export interface PasswordToggleFieldRootProps {
   invalid?: boolean;
   required?: boolean;
   validationBehavior?: ValidationBehavior;
+  /** Accessible action label while the password is hidden. */
+  showLabel?: string;
+  /** Accessible action label while the password is visible. */
+  hideLabel?: string;
 }
 
 export function PasswordToggleFieldRoot({
@@ -32,6 +36,8 @@ export function PasswordToggleFieldRoot({
   invalid,
   required,
   validationBehavior,
+  showLabel = "Show password",
+  hideLabel = "Hide password",
 }: PasswordToggleFieldRootProps) {
   const field = useFieldContext();
   const formContext = useOptionalFormContext();
@@ -51,6 +57,9 @@ export function PasswordToggleFieldRoot({
     defaultValue: defaultVisible,
     onChange: onVisibleChange,
   });
+  const resetVisibility = useCallback(() => {
+    if (controlledVisible === undefined) setResolvedVisible(defaultVisible);
+  }, [controlledVisible, defaultVisible, setResolvedVisible]);
 
   const setVisible = useCallback(
     (next: boolean) => {
@@ -92,18 +101,24 @@ export function PasswordToggleFieldRoot({
       readOnly: isReadOnly,
       invalid: isInvalid,
       required: isRequired,
+      showLabel,
+      hideLabel,
       validationBehavior: resolvedValidationBehavior,
       reportControlValidity,
+      resetVisibility,
     }),
     [
       isDisabled,
       isInvalid,
       isReadOnly,
       isRequired,
+      hideLabel,
       onToggle,
       reportControlValidity,
+      resetVisibility,
       resolvedValidationBehavior,
       setVisible,
+      showLabel,
       visible,
     ],
   );

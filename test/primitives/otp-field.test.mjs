@@ -97,6 +97,24 @@ test("OTPField alphanumeric inputs use character labels", () => {
   assert.doesNotMatch(html, /aria-label="Digit 1 of 2"/);
 });
 
+test("OTPField localizes generated cell labels", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      OTPField.Root,
+      {
+        length: 2,
+        "aria-label": "Código",
+        getInputLabel: (index, length) => `Dígito ${index + 1} de ${length}`,
+      },
+      React.createElement(OTPField.Input),
+      React.createElement(OTPField.Input),
+    ),
+  );
+
+  assert.match(html, /aria-label="Dígito 1 de 2"/);
+  assert.match(html, /aria-label="Dígito 2 de 2"/);
+});
+
 test("OTPField Input index remains available as an override", () => {
   const html = renderToStaticMarkup(
     React.createElement(

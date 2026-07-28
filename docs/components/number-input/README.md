@@ -17,6 +17,7 @@ or phone number, because those values should not be incremented or clamped.
 - Supports keyboard stepping with arrows, Page Up/Down, Home, and End.
 - Supports custom parser and formatter functions.
 - Renders a hidden input for native form submission when named.
+- Provides Input, Increment, and Decrement parts for compound control layouts.
 
 ## Import
 
@@ -27,7 +28,11 @@ import { NumberInput } from "@flowstack-ui/atom";
 ## Anatomy
 
 ```tsx
-<NumberInput.Root />
+<NumberInput.Root>
+  <NumberInput.Decrement />
+  <NumberInput.Input />
+  <NumberInput.Increment />
+</NumberInput.Root>
 ```
 
 ## API Reference
@@ -87,8 +92,26 @@ input.
 
 When `children` is a function, it receives `numericValue`, `displayValue`,
 `isAtMin`, `isAtMax`, `disabled`, `readOnly`, `handleStep`, and `inputRef`.
-This supports consumer-owned increment and decrement controls without adding
-new styled parts to Atom.
+This preserves the legacy render-callback path for custom controls.
+
+When Root has no children or uses the legacy render callback, it renders its
+Input automatically. Static children opt into compound anatomy and should
+include exactly one Input.
+
+### Input
+
+Renders the editable spinbutton. Native input props, `render`, `asChild`, and a
+native input ref are supported. Root owns value, limits, form state, and the
+generated Field relationships.
+
+### Increment and Decrement
+
+Render native buttons that call Root's step behavior, preserve input focus on
+pointer activation, reference the Input with `aria-controls`, and expose
+`aria-disabled` plus `[data-boundary]` at a known limit. They default to
+`tabIndex={-1}` while remaining available to pointer, touch, and voice access.
+Provide localized action labels when the English `Increment` and `Decrement`
+defaults are not appropriate.
 
 ## Examples
 

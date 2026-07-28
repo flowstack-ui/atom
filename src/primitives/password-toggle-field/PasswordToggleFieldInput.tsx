@@ -1,6 +1,7 @@
 "use client";
 
-import { forwardRef, useMemo, useRef, type ReactNode } from "react";
+import { forwardRef, useEffect, useMemo, useRef, type ReactNode } from "react";
+import { useFormReset } from "../../hooks/useFormReset.js";
 import { useFormValidation } from "../../hooks/useFormValidation.js";
 import type { NativeInputProps } from "../../utils/dom.js";
 import {
@@ -46,6 +47,19 @@ export const PasswordToggleFieldInput = forwardRef<
   const ctx = usePasswordToggleFieldContext();
   const inputRef = useRef<HTMLInputElement>(null);
   const composedRef = useMemo(() => composeRefs(inputRef, ref), [ref]);
+  useFormReset(inputRef, restProps.form, false, ctx.resetVisibility);
+  useEffect(() => {
+    const input = inputRef.current;
+    const form = restProps.form
+      ? input?.ownerDocument.getElementById(restProps.form)
+      : input?.form;
+    if (!form || form.tagName !== "FORM") return undefined;
+    const restorePasswordType = () => {
+      if (input) input.type = "password";
+    };
+    form.addEventListener("submit", restorePasswordType);
+    return () => form.removeEventListener("submit", restorePasswordType);
+  }, [restProps.form]);
   const validation = useFormValidation({
     validityRef: inputRef,
     ownerRef: inputRef,
