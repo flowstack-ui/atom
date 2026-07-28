@@ -128,6 +128,21 @@ function getTreeTypeaheadMatch(
   );
 }
 
+export function getTreeInitialActiveValue(
+  visibleItems: TreeItemEntry[],
+  selectedValues: string[],
+): string | null {
+  const selectedSet = new Set(selectedValues);
+  const selectedItem = visibleItems.find(
+    (item) => !item.disabled && selectedSet.has(item.value),
+  );
+  if (selectedItem) return selectedItem.value;
+
+  return visibleItems.find((item) => !item.disabled)?.value
+    ?? visibleItems[0]?.value
+    ?? null;
+}
+
 export type TreeNavigationAction =
   | "next"
   | "previous"
@@ -174,7 +189,7 @@ export const TreeRoot = forwardRef<HTMLElement, TreeRootProps>(
       invalid,
       orientation = "vertical",
       dir: dirProp,
-      loop = true,
+      loop = false,
       name,
       form,
       render,
@@ -571,9 +586,9 @@ export const TreeRoot = forwardRef<HTMLElement, TreeRootProps>(
         focusValue(lastActiveItem.value);
         return;
       }
-      const firstItem = getEnabledVisibleItems()[0] ?? getVisibleItems()[0] ?? null;
-      if (firstItem) focusValue(firstItem.value);
-    }, [activeValue, focusValue, getEnabledVisibleItems, getVisibleItems]);
+      const initialValue = getTreeInitialActiveValue(visibleItems, selectedValues);
+      if (initialValue) focusValue(initialValue);
+    }, [activeValue, focusValue, getVisibleItems, selectedValues]);
 
     const handleBlur = useCallback<FocusEventHandler<HTMLElement>>((event) => {
       const nextTarget = event.relatedTarget;

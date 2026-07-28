@@ -6,6 +6,9 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Updated Tree defaults and its manual protocol for selected-item initial
+  focus and bounded arrow navigation, with wrapping retained as an opt-in.
+
 - Updated the Data Grid workbench and manual protocol with live sortable-header
   pointer/Enter action evidence and generated Source.
 
