@@ -43,7 +43,12 @@ export const PaginationItem = forwardRef<HTMLButtonElement, PaginationItemProps>
   ) {
     const ctx = usePaginationContext();
     const isActive = ctx.currentPage === page;
-    const defaultAriaLabel = isActive ? `Page ${page}, current page` : `Go to page ${page}`;
+    const defaultAriaLabel = ctx.getItemAriaLabel({
+      page,
+      currentPage: ctx.currentPage,
+      totalPages: ctx.totalPages,
+      isCurrent: isActive,
+    });
 
     const handleClick: MouseEventHandler<HTMLButtonElement> = useCallback(
       () => {

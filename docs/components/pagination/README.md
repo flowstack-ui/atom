@@ -15,8 +15,10 @@ does not fetch, sort, or filter the data for you.
 - Supports controlled and uncontrolled current page.
 - Generates stable-length page ranges to reduce layout shift.
 - Supports sibling and boundary page counts.
+- Renders the calculated range through an optional `Items` shortcut.
 - Supports previous, next, page item, and decorative ellipsis parts.
-- Allows localized page labels through native `aria-label`.
+- Localizes generated page and direction labels from Root while preserving
+  direct native `aria-label` overrides.
 
 ## Import
 
@@ -30,6 +32,7 @@ import { Pagination } from "@flowstack-ui/atom";
 <Pagination.Root>
   <Pagination.List>
     <Pagination.Previous />
+    <Pagination.Items />
     <Pagination.Item />
     <Pagination.Ellipsis />
     <Pagination.Next />
@@ -54,6 +57,9 @@ or negative, `Root` returns `null` and no pagination DOM is rendered.
 | `siblingCount` | `number` | `1` |
 | `boundaryCount` | `number` | `1` |
 | `disabled` | `boolean` | `false` |
+| `previousAriaLabel` | `string` | `"Previous page"` |
+| `nextAriaLabel` | `string` | `"Next page"` |
+| `getItemAriaLabel` | `(details: PaginationItemLabelDetails) => string` | generated English label |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -68,6 +74,11 @@ or negative, `Root` returns `null` and no pagination DOM is rendered.
 
 When disabled, all pagination page changes are ignored and descendant controls
 receive disabled state.
+
+`getItemAriaLabel` receives `page`, `currentPage`, `totalPages`, and
+`isCurrent`. It supplies labels to explicit and generated Items unless an Item
+has its own native `aria-label`. `previousAriaLabel` and `nextAriaLabel` follow
+the same precedence rule for their controls.
 
 ### List
 
@@ -107,6 +118,20 @@ the inner control.
 
 `Previous` is disabled when `Root disabled` is true or the current page is the
 first page.
+
+### Items
+
+Renders the complete page and ellipsis range calculated by Root. It has no host
+element. Each emitted Item or Ellipsis retains its own structural `li`.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `itemProps` | shared Item props except `page`, `children`, and `aria-label` | - |
+| `ellipsisProps` | shared Ellipsis props | - |
+
+Use `itemProps` and `ellipsisProps` for shared native attributes, composition,
+slots, or classes. Root owns generated accessible labels so one shared Item
+label cannot accidentally name every page identically.
 
 ### Item
 
@@ -208,23 +233,41 @@ export function BasicPagination() {
 
 ```tsx
 import { useState } from "react";
-import { Pagination, getPaginationRange } from "@flowstack-ui/atom";
+import { Pagination } from "@flowstack-ui/atom";
 
 export function ResultsPagination() {
   const [page, setPage] = useState(10);
-  const range = getPaginationRange({ totalPages: 20, currentPage: page });
 
   return (
     <Pagination.Root totalPages={20} page={page} onPageChange={setPage}>
       <Pagination.List>
         <Pagination.Previous />
-        {range.map((item, index) =>
-          item === "ellipsis" ? (
-            <Pagination.Ellipsis key={`ellipsis-${index}`} />
-          ) : (
-            <Pagination.Item key={item} page={item} />
-          ),
-        )}
+        <Pagination.Items />
+        <Pagination.Next />
+      </Pagination.List>
+    </Pagination.Root>
+  );
+}
+```
+
+### Localize Generated Labels
+
+```tsx
+import { Pagination } from "@flowstack-ui/atom";
+
+export function LocalizedPagination() {
+  return (
+    <Pagination.Root
+      totalPages={8}
+      previousAriaLabel="Página anterior"
+      nextAriaLabel="Página siguiente"
+      getItemAriaLabel={({ page, isCurrent }) =>
+        isCurrent ? `Página ${page}, página actual` : `Ir a la página ${page}`
+      }
+    >
+      <Pagination.List>
+        <Pagination.Previous />
+        <Pagination.Items />
         <Pagination.Next />
       </Pagination.List>
     </Pagination.Root>
@@ -238,10 +281,10 @@ Pagination uses a named navigation landmark and native buttons. List renders
 an ordered list. Previous, Next, Item, and Ellipsis each render their own list
 item wrapper. The active item receives `aria-current="page"`.
 
-Use `getPaginationRange` or `usePaginationRange` to produce page and ellipsis
-items from the same range algorithm used by the primitive. Advanced compound
-parts can use `usePaginationContext`; its provider and context value type are
-also public exports.
+Use `Items` for the standard generated range. Use `getPaginationRange` or
+`usePaginationRange` for advanced rendering from the same algorithm. Advanced
+compound parts can use `usePaginationContext`; its provider and context value
+type are also public exports.
 
 | Key | Description |
 | --- | --- |

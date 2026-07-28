@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.16.0
+
+- Added Pagination `Items` range composition and Root-level localization for
+  generated page, Previous, and Next accessible labels.
+
 ## 0.15.0
 
 - Expanded Toast with exactly-once persistent announcements, logical

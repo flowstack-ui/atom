@@ -6,6 +6,9 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Updated Pagination Canvas, Source, Anatomy evidence, and its manual protocol
+  for generated `Items` and Root-level accessible-label localization.
+
 - Expanded Bottom Navigation with explicit `always`, `active`, and `hidden`
   label-visibility policies plus `static`, `sticky`, `absolute`, and `fixed`
   positioning intent across Canvas, Source, Anatomy, Inspector, workbook

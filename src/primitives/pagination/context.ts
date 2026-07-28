@@ -3,6 +3,15 @@
 import { createContext, useContext } from "react";
 import type { PaginationRangeItem } from "./utils.js";
 
+export interface PaginationItemLabelDetails {
+  page: number;
+  currentPage: number;
+  totalPages: number;
+  isCurrent: boolean;
+}
+
+export type PaginationItemLabel = (details: PaginationItemLabelDetails) => string;
+
 export interface PaginationContextValue {
   totalPages: number;
   currentPage: number;
@@ -10,6 +19,9 @@ export interface PaginationContextValue {
   disabled: boolean;
   isFirstPage: boolean;
   isLastPage: boolean;
+  previousAriaLabel: string;
+  nextAriaLabel: string;
+  getItemAriaLabel: PaginationItemLabel;
   setPage: (page: number) => void;
 }
 

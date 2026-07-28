@@ -241,6 +241,7 @@ import {
 import {
   PaginationEllipsis,
   PaginationItem,
+  PaginationItems,
   PaginationList,
   PaginationNext,
   PaginationPrevious,
@@ -749,6 +750,7 @@ export const Pagination = {
   Root: PaginationRoot,
   List: PaginationList,
   Previous: PaginationPrevious,
+  Items: PaginationItems,
   Item: PaginationItem,
   Ellipsis: PaginationEllipsis,
   Next: PaginationNext,

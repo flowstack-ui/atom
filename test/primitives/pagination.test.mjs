@@ -12,6 +12,7 @@ import {
   Pagination,
   PaginationEllipsis,
   PaginationItem,
+  PaginationItems,
   PaginationList,
   PaginationNext,
   PaginationPrevious,
@@ -63,9 +64,76 @@ test("Pagination compound parts render nav, current page, controls, and ellipsis
   assert.equal(Pagination.Root, PaginationRoot);
   assert.equal(Pagination.List, PaginationList);
   assert.equal(Pagination.Previous, PaginationPrevious);
+  assert.equal(Pagination.Items, PaginationItems);
   assert.equal(Pagination.Item, PaginationItem);
   assert.equal(Pagination.Ellipsis, PaginationEllipsis);
   assert.equal(Pagination.Next, PaginationNext);
+});
+
+test("Pagination.Items renders the context range with shared part props", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Pagination.Root,
+      { totalPages: 20, defaultPage: 10 },
+      React.createElement(
+        Pagination.List,
+        null,
+        React.createElement(Pagination.Items, {
+          itemProps: { className: "page-control" },
+          ellipsisProps: { className: "page-gap" },
+        }),
+      ),
+    ),
+  );
+
+  assert.match(html, /data-page="1"/);
+  assert.match(html, /data-page="9"/);
+  assert.match(html, /data-page="10"/);
+  assert.match(html, /data-page="11"/);
+  assert.match(html, /data-page="20"/);
+  assert.equal((html.match(/class="page-control"/g) ?? []).length, 5);
+  assert.equal((html.match(/class="page-gap"/g) ?? []).length, 2);
+  assert.equal((html.match(/data-slot="pagination-list-item"/g) ?? []).length, 7);
+});
+
+test("Pagination Root localizes generated labels and direct labels take precedence", () => {
+  const labelDetails = [];
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Pagination.Root,
+      {
+        totalPages: 3,
+        defaultPage: 2,
+        previousAriaLabel: "Página anterior",
+        nextAriaLabel: "Página siguiente",
+        getItemAriaLabel: (details) => {
+          labelDetails.push(details);
+          return details.isCurrent
+            ? `Página ${details.page}, página actual`
+            : `Ir a la página ${details.page}`;
+        },
+      },
+      React.createElement(
+        Pagination.List,
+        null,
+        React.createElement(Pagination.Previous),
+        React.createElement(Pagination.Items),
+        React.createElement(Pagination.Next, { "aria-label": "Avanzar" }),
+      ),
+    ),
+  );
+
+  assert.match(html, /aria-label="Página anterior"/);
+  assert.match(html, /aria-label="Ir a la página 1"/);
+  assert.match(html, /aria-label="Página 2, página actual"/);
+  assert.match(html, /aria-label="Ir a la página 3"/);
+  assert.match(html, /aria-label="Avanzar"/);
+  assert.doesNotMatch(html, /Página siguiente/);
+  assert.deepEqual(labelDetails, [
+    { page: 1, currentPage: 2, totalPages: 3, isCurrent: false },
+    { page: 2, currentPage: 2, totalPages: 3, isCurrent: true },
+    { page: 3, currentPage: 2, totalPages: 3, isCurrent: false },
+  ]);
 });
 
 test("Pagination parts own list item structure while asChild and render target the inner element", () => {
@@ -167,7 +235,11 @@ test("PaginationItem supports localized aria labels", () => {
   const html = renderToStaticMarkup(
     React.createElement(
       Pagination.Root,
-      { totalPages: 10, defaultPage: 5 },
+      {
+        totalPages: 10,
+        defaultPage: 5,
+        getItemAriaLabel: () => "Root generated label",
+      },
       React.createElement(Pagination.Item, {
         page: 5,
         "aria-label": "Pagina 5",
@@ -177,6 +249,7 @@ test("PaginationItem supports localized aria labels", () => {
 
   assert.match(html, /aria-label="Pagina 5"/);
   assert.doesNotMatch(html, /Page 5, current page/);
+  assert.doesNotMatch(html, /Root generated label/);
   assert.match(html, /aria-current="page"/);
 });
 

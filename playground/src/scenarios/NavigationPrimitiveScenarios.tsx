@@ -1859,6 +1859,12 @@ function PaginationCanvas({ scenario }: { scenario: ReturnType<typeof usePaginat
   const rootKey = state.controlled ? "controlled" : `uncontrolled-${state.defaultPage}`;
   const props = {
     "aria-label": state.localizedLabels ? "Paginacion demo" : undefined,
+    previousAriaLabel: state.localizedLabels ? "Pagina anterior" : undefined,
+    nextAriaLabel: state.localizedLabels ? "Pagina siguiente" : undefined,
+    getItemAriaLabel: state.localizedLabels
+      ? ({ page: itemPage, isCurrent }: { page: number; isCurrent: boolean }) =>
+          isCurrent ? `Pagina ${itemPage}, pagina actual` : `Ir a pagina ${itemPage}`
+      : undefined,
     className: "playground-pagination",
     ...partProps("root", { propCheck: state.propCheck, customSlot: state.customSlots.root }, "pagination-root-custom"),
     ref: (element: HTMLElement | null) => scenario.actions.markPartRef("root", element),
@@ -1931,7 +1937,6 @@ function PaginationPreviousControl({ scenario }: { scenario: ReturnType<typeof u
     className: "playground-pagination-button",
     ...partProps("previous", { propCheck: state.propCheck, customSlot: state.customSlots.previous }, "pagination-previous-custom"),
     ref: (element: HTMLButtonElement | null) => scenario.actions.markPartRef("previous", element),
-    "aria-label": state.localizedLabels ? "Pagina anterior" : undefined,
   };
 
   if (state.previousComposition === "asChild") {
@@ -1959,7 +1964,6 @@ function PaginationNextControl({ scenario }: { scenario: ReturnType<typeof usePa
     className: "playground-pagination-button",
     ...partProps("next", { propCheck: state.propCheck, customSlot: state.customSlots.next }, "pagination-next-custom"),
     ref: (element: HTMLButtonElement | null) => scenario.actions.markPartRef("next", element),
-    "aria-label": state.localizedLabels ? "Pagina siguiente" : undefined,
   };
 
   if (state.nextComposition === "asChild") {
@@ -1982,7 +1986,31 @@ function PaginationNextControl({ scenario }: { scenario: ReturnType<typeof usePa
 }
 
 function PaginationRangeItems({ scenario }: { scenario: ReturnType<typeof usePaginationScenario> }) {
+  const state = scenario.state;
   const ctx = usePaginationContext();
+
+  if (
+    state.itemComposition === "default" &&
+    state.ellipsisComposition === "default" &&
+    !state.propCheck &&
+    !state.customSlots.item &&
+    !state.customSlots.ellipsis
+  ) {
+    return (
+      <Pagination.Items
+        itemProps={{
+          className: "playground-pagination-button",
+          ...partProps("item", { propCheck: state.propCheck, customSlot: state.customSlots.item }, "pagination-item-custom"),
+          ref: (element: HTMLButtonElement | null) => scenario.actions.markPartRef("item", element),
+        }}
+        ellipsisProps={{
+          className: "playground-pagination-ellipsis",
+          ...partProps("ellipsis", { propCheck: state.propCheck, customSlot: state.customSlots.ellipsis }, "pagination-ellipsis-custom"),
+          ref: (element: HTMLSpanElement | null) => scenario.actions.markPartRef("ellipsis", element),
+        }}
+      />
+    );
+  }
 
   return (
     <>
@@ -2012,7 +2040,6 @@ function PaginationItemControl({
     ...partProps("item", { propCheck: state.propCheck, customSlot: state.customSlots.item }, "pagination-item-custom"),
     ref: current ? (element: HTMLButtonElement | null) => scenario.actions.markPartRef("item", element) : undefined,
     page,
-    "aria-label": state.localizedLabels ? `Pagina ${page}` : undefined,
   };
 
   if (state.itemComposition === "asChild") {
@@ -3289,6 +3316,11 @@ function sourcePartPropList(part: string, propCheck: boolean, customSlot: boolea
 function getPaginationSource(state: ReturnType<typeof usePaginationScenario>["state"]) {
   const rootProps = [
     state.localizedLabels ? `aria-label="Paginacion demo"` : "",
+    state.localizedLabels ? `previousAriaLabel="Pagina anterior"` : "",
+    state.localizedLabels ? `nextAriaLabel="Pagina siguiente"` : "",
+    state.localizedLabels
+      ? `getItemAriaLabel={({ page, isCurrent }) => isCurrent ? \`Pagina \${page}, pagina actual\` : \`Ir a pagina \${page}\`}`
+      : "",
     `totalPages={${state.totalPages}}`,
     state.controlled ? `page={page}` : "",
     !state.controlled && state.defaultPage === "4" ? `defaultPage={4}` : "",
@@ -3304,12 +3336,22 @@ function getPaginationSource(state: ReturnType<typeof usePaginationScenario>["st
 
 function getPaginationListSource(state: ReturnType<typeof usePaginationScenario>["state"]) {
   const listProps = sourcePartPropList("list", state.propCheck, state.customSlots.list, "pagination-list-custom");
+  const usesGeneratedItems =
+    state.itemComposition === "default" &&
+    state.ellipsisComposition === "default" &&
+    !state.propCheck &&
+    !state.customSlots.item &&
+    !state.customSlots.ellipsis;
   const children = [
     getPaginationControlSource("Previous", "previous", state.previousComposition, "Prev", state),
-    getPaginationItemSource(1, state),
-    getPaginationItemSource(4, state),
-    getPaginationEllipsisSource(state),
-    getPaginationItemSource(Number(state.totalPages), state),
+    ...(usesGeneratedItems
+      ? ["<Pagination.Items />"]
+      : [
+          getPaginationItemSource(1, state),
+          getPaginationItemSource(4, state),
+          getPaginationEllipsisSource(state),
+          getPaginationItemSource(Number(state.totalPages), state),
+        ]),
     getPaginationControlSource("Next", "next", state.nextComposition, "Next", state),
   ].map((child) => indent(child, 2)).join("\n");
 
@@ -3323,9 +3365,7 @@ function getPaginationControlSource(
   children: string,
   state: ReturnType<typeof usePaginationScenario>["state"],
 ) {
-  const localizedLabel = part === "previous" ? "Pagina anterior" : "Pagina siguiente";
   const props = [
-    state.localizedLabels ? `aria-label="${localizedLabel}"` : "",
     ...sourcePartPropList(part, state.propCheck, state.customSlots[part], `pagination-${part}-custom`),
   ].filter(Boolean);
 
@@ -3335,7 +3375,6 @@ function getPaginationControlSource(
 function getPaginationItemSource(page: number, state: ReturnType<typeof usePaginationScenario>["state"]) {
   const props = [
     `page={${page}}`,
-    state.localizedLabels ? `aria-label="Pagina ${page}"` : "",
     ...sourcePartPropList("item", state.propCheck, state.customSlots.item, "pagination-item-custom"),
   ].filter(Boolean);
 
