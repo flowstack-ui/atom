@@ -27,6 +27,7 @@ export interface TreeGridCellData extends Record<string, unknown> {
   rowIndex: number;
   columnIndex: number;
   rowValue?: string;
+  onAction?: () => void;
 }
 
 export type TreeGridRowEntry = CollectionItem<string, HTMLElement, TreeGridRowData>;

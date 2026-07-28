@@ -42,6 +42,7 @@ export interface TreeGridColumnHeaderProps extends TreeGridColumnHeaderNativePro
   index?: number;
   disabled?: boolean;
   sortDirection?: TreeGridSortDirection;
+  onAction?: () => void;
   render?: RenderProp;
   asChild?: boolean;
   "data-slot"?: string;
@@ -55,6 +56,7 @@ export const TreeGridColumnHeader = forwardRef<HTMLTableCellElement, TreeGridCol
       index,
       disabled = false,
       sortDirection,
+      onAction,
       scope = "col",
       render,
       asChild,
@@ -101,8 +103,9 @@ export const TreeGridColumnHeader = forwardRef<HTMLTableCellElement, TreeGridCol
         rowIndex: resolvedRowIndex ?? 0,
         columnIndex: resolvedColumnIndex ?? 0,
         rowValue: rowCtx?.value,
+        onAction,
       }),
-      [cellId, resolvedColumnIndex, resolvedRowIndex, rowCtx?.value],
+      [cellId, onAction, resolvedColumnIndex, resolvedRowIndex, rowCtx?.value],
     );
 
     useEffect(() => {
@@ -120,7 +123,8 @@ export const TreeGridColumnHeader = forwardRef<HTMLTableCellElement, TreeGridCol
     const handleClick = useCallback<MouseEventHandler<HTMLTableCellElement>>(() => {
       if (!resolvedRowIndex || !resolvedColumnIndex || isDisabled) return;
       focusCell(resolvedRowIndex, resolvedColumnIndex);
-    }, [focusCell, isDisabled, resolvedColumnIndex, resolvedRowIndex]);
+      onAction?.();
+    }, [focusCell, isDisabled, onAction, resolvedColumnIndex, resolvedRowIndex]);
 
     const active = focused &&
       activeCell?.rowIndex === resolvedRowIndex &&
@@ -142,6 +146,7 @@ export const TreeGridColumnHeader = forwardRef<HTMLTableCellElement, TreeGridCol
       ...(resolvedColumnIndex !== undefined && { "data-column-index": resolvedColumnIndex }),
       ...(selected && { "data-selected": "" }),
       ...(sortDirection !== undefined && { "data-sort": sortDirection }),
+      ...(onAction && isNavigable && !actuallyDisabled && { "data-actionable": "" }),
       onClick: composeEventHandlers(onClick, handleClick),
     };
 

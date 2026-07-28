@@ -443,6 +443,17 @@ function useTreeGridScenario() {
     const nextRef = formatRef(element);
     setRefs((current) => current[part] === nextRef ? current : { ...current, [part]: nextRef });
   }, []);
+  const cycleOwnerSort = useCallback(() => {
+    setSortDirection((current) => {
+      const next = current === "ascending"
+        ? "descending"
+        : current === "descending"
+          ? "unset"
+          : "ascending";
+      addLog(`owner sort action ${next}`);
+      return next;
+    });
+  }, [addLog]);
 
   return {
     state: { stateMode, selectionMode, selectedValue, expandedValue, activeCell, disabled, readOnly, loop, selectOnRowClick, disableChild, counts, sortDirection, directionMode, composition, propCheck, customSlots, refs, log },
@@ -465,6 +476,7 @@ function useTreeGridScenario() {
       setPropCheck,
       setCustomSlot,
       markPartRef,
+      cycleOwnerSort,
       clearLog,
       addLog,
     },
@@ -2096,7 +2108,7 @@ function renderTreeGridContent(scenario: ReturnType<typeof useTreeGridScenario>)
   const headingCells = (
     <>
       {renderTreeGridElement(TreeGrid.ColumnHeader, "columnHeader", "th", { columnIndex: 1, className: "playground-tree-grid-column-header-task" }, "Task", scenario)}
-      {renderTreeGridElement(TreeGrid.ColumnHeader, "columnHeader", "th", { columnIndex: 2, sortDirection: scenario.state.sortDirection === "unset" ? undefined : scenario.state.sortDirection, className: "playground-tree-grid-column-header-owner" }, "Owner", scenario)}
+      {renderTreeGridElement(TreeGrid.ColumnHeader, "columnHeader", "th", { columnIndex: 2, sortDirection: scenario.state.sortDirection === "unset" ? undefined : scenario.state.sortDirection, onAction: scenario.actions.cycleOwnerSort, className: "playground-tree-grid-column-header-owner" }, "Owner", scenario)}
     </>
   );
   const headingRow = renderTreeGridElement(TreeGrid.Row, "row", "tr", { rowIndex: 1, value: "heading", selectable: false, className: "playground-tree-grid-row-heading" }, headingCells, scenario);
@@ -3136,7 +3148,7 @@ function getTreeGridSource(state?: ReturnType<typeof useTreeGridScenario>["state
     sourceTreeGridElement("Row", "row", resolved.composition.row, partProps("row", extra), children, indent);
   const headerRow = row(["rowIndex={1}", 'value="heading"', "selectable={false}"], `
       ${cell("ColumnHeader", "columnHeader", ["columnIndex={1}"], "Task", 6)}
-      ${cell("ColumnHeader", "columnHeader", ["columnIndex={2}", state?.sortDirection && state.sortDirection !== "unset" ? `sortDirection="${state.sortDirection}"` : ""], "Owner", 6)}
+      ${cell("ColumnHeader", "columnHeader", ["columnIndex={2}", "onAction={cycleOwnerSort}", state?.sortDirection && state.sortDirection !== "unset" ? `sortDirection="${state.sortDirection}"` : ""], "Owner", 6)}
     `, 4);
   const parentRow = row(["rowIndex={2}", 'value="project"', "expandable"], `
       ${cell("RowHeader", "rowHeader", ["columnIndex={1}"], "Project", 6)}
