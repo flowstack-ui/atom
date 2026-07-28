@@ -57,6 +57,24 @@ Expected result:
 - Docs starts selected and expanded.
 - Controlled value props are absent.
 
+Action: move focus away from the tree, then press `Shift+Tab` or `Tab` to enter
+the tree again.
+
+Expected result:
+
+- Docs is the active item because it is the first enabled visible selected
+  item.
+- Root `aria-activedescendant` references the Docs item id.
+
+Action: turn `Default Selected` off, re-enter the tree, press `ArrowUp` on the
+first item, then move to the last visible item and press `ArrowDown`.
+
+Expected result:
+
+- Initial focus falls back to the first enabled visible item.
+- Arrow navigation stops at the first and last visible items by default.
+- Turning `Tree > Loop` on restores wrapping as an explicit opt-in.
+
 Action: turn `Tree > Form Name` on.
 
 Expected result:

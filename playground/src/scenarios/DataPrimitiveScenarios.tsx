@@ -276,7 +276,7 @@ function useTreeScenario() {
   const [required, setRequired] = useState(false);
   const [invalid, setInvalid] = useState(false);
   const [orientation, setOrientation] = useState<TreeOrientation>("vertical");
-  const [loop, setLoop] = useState(true);
+  const [loop, setLoop] = useState(false);
   const [directionMode, setDirectionMode] = useState<TreeDirectionMode>("default");
   const [forceMount, setForceMount] = useState(false);
   const [disableItem, setDisableItem] = useState(false);

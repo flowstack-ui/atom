@@ -17,8 +17,24 @@ import {
 } from "../../dist/index.js";
 
 import {
+  getTreeInitialActiveValue,
   getTreeNavigationAction,
 } from "../../dist/_internal/primitives/tree/TreeRoot.js";
+
+function treeEntry(value, { disabled = false } = {}) {
+  return {
+    value,
+    disabled,
+    element: null,
+    data: {
+      id: `tree-item-${value}`,
+      textValue: value,
+      parentValue: null,
+      level: 1,
+      expandable: false,
+    },
+  };
+}
 
 test("Tree compound parts render hierarchical tree anatomy", () => {
   const html = renderToStaticMarkup(
@@ -147,6 +163,25 @@ test("Tree arrow navigation mirrors in RTL", () => {
   assert.equal(getTreeNavigationAction("vertical", "Home", "rtl"), null);
 });
 
+test("Tree initial focus prefers the first enabled visible selected item", () => {
+  const visibleItems = [
+    treeEntry("disabled-selected", { disabled: true }),
+    treeEntry("first"),
+    treeEntry("selected"),
+    treeEntry("selected-later"),
+  ];
+
+  assert.equal(
+    getTreeInitialActiveValue(visibleItems, ["selected-later", "selected"]),
+    "selected",
+  );
+  assert.equal(
+    getTreeInitialActiveValue(visibleItems, ["disabled-selected"]),
+    "first",
+  );
+  assert.equal(getTreeInitialActiveValue([], ["selected"]), null);
+});
+
 test("Tree supports multiple selection, collapsed groups, and render escapes", () => {
   const html = renderToStaticMarkup(
     React.createElement(
@@ -214,6 +249,8 @@ test("Tree source uses Collection and keeps APG tree keyboard behavior in Root",
   assert.match(rootSource, /case "Home"/);
   assert.match(rootSource, /case "End"/);
   assert.match(rootSource, /lastActiveValueRef/);
+  assert.match(rootSource, /getTreeInitialActiveValue\(visibleItems, selectedValues\)/);
+  assert.match(rootSource, /loop = false/);
   assert.match(rootSource, /expandedValuesRef/);
   assert.match(rootSource, /toggleExpandedValue\(activeValue\)/);
   assert.match(rootSource, /direction === "next" \? 0 : enabledItems\.length - 1/);

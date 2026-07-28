@@ -2,7 +2,12 @@
 
 ## Unreleased
 
-- No unreleased changes.
+## 0.17.1
+
+- Corrected initial focus so the first enabled visible selected Item becomes
+  active before falling back to the first enabled visible Item.
+- Changed the default `loop` value to `false` so arrow navigation stops at the
+  first and last visible Item; wrapping remains available with `loop`.
 
 ## 0.2.0
 

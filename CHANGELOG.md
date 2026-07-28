@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.17.1
+
+- Corrected Tree initial focus to honor visible selection and changed its
+  default arrow navigation to stop at collection boundaries.
+
 ## 0.17.0
 
 - Added DataGrid `ColumnHeader.onAction` so sortable headers receive equivalent
