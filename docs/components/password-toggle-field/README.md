@@ -53,6 +53,8 @@ DOM element.
 | `required` | `boolean` | `false` |
 | `invalid` | `boolean` | `false` |
 | `validationBehavior` | `"inline" \| "native"` | Field/Form value or `"native"` |
+| `showLabel` | `string` | `"Show password"` |
+| `hideLabel` | `string` | `"Hide password"` |
 
 ### Input
 
@@ -173,6 +175,12 @@ Root coordinates its invalid state across Input and Toggle. Inline behavior
 suppresses the browser bubble while keeping constraint validation active.
 
 The toggle remains keyboard reachable. Its accessible label changes between “Show password” and “Hide password”; `aria-pressed` is intentionally not used because the label already communicates the action.
+
+Root's `showLabel` and `hideLabel` localize those state-aware actions. Native
+form reset restores uncontrolled visibility to `defaultVisible`. Native form
+submission restores the input element to `type="password"` before submission.
+The changing action label communicates the state change; Atom does not add a
+separate live-region announcement.
 
 | Key | Description |
 | --- | --- |

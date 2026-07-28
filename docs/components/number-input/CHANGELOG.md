@@ -1,5 +1,10 @@
 # NumberInput Changelog
 
+## 0.19.0
+
+- Added compound Input, Increment, and Decrement parts while preserving the
+  no-children and render-callback Root APIs.
+
 ## 0.6.16
 
 - Explicitly scrolled inline validation-directed focus into view.

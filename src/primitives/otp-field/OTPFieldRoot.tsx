@@ -53,6 +53,8 @@ export interface OTPFieldRootProps extends OTPFieldRootNativeProps {
   name?: string;
   form?: string;
   inputId?: string;
+  /** Returns the accessible label for a zero-based input cell. */
+  getInputLabel?: (index: number, length: number, type: OTPFieldType) => string;
   validationBehavior?: ValidationBehavior;
   render?: RenderProp;
   asChild?: boolean;
@@ -80,6 +82,7 @@ export const OTPFieldRoot = forwardRef<HTMLDivElement, OTPFieldRootProps>(
       name,
       form,
       inputId,
+      getInputLabel: getInputLabelProp,
       validationBehavior,
       render,
       asChild,
@@ -310,6 +313,12 @@ export const OTPFieldRoot = forwardRef<HTMLDivElement, OTPFieldRootProps>(
       (char: string) => getOTPFieldDisplayChar(char, mask),
       [mask],
     );
+    const getInputLabel = useCallback(
+      (index: number) =>
+        getInputLabelProp?.(index, normalizedLength, type) ??
+        `${type === "numeric" ? "Digit" : "Character"} ${index + 1} of ${normalizedLength}`,
+      [getInputLabelProp, normalizedLength, type],
+    );
 
     useEffect(() => {
       if (autoFocus && !isDisabled && !didAutoFocusRef.current) {
@@ -343,6 +352,7 @@ export const OTPFieldRoot = forwardRef<HTMLDivElement, OTPFieldRootProps>(
         getInputIndex,
         getInputId,
         getDisplayChar,
+        getInputLabel,
         registerInput,
         unregisterInput,
         setInputRef,
@@ -364,6 +374,7 @@ export const OTPFieldRoot = forwardRef<HTMLDivElement, OTPFieldRootProps>(
         focusCell,
         form,
         getDisplayChar,
+        getInputLabel,
         getInputIndex,
         getInputId,
         inputRegistryVersion,

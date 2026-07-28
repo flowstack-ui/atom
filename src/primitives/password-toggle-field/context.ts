@@ -11,8 +11,11 @@ export interface PasswordToggleFieldContextValue {
   readOnly: boolean;
   invalid: boolean;
   required: boolean;
+  showLabel: string;
+  hideLabel: string;
   validationBehavior: ValidationBehavior | undefined;
   reportControlValidity: (id: string, invalid: boolean) => void;
+  resetVisibility: () => void;
 }
 
 const PasswordToggleFieldContext =

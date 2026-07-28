@@ -8,8 +8,32 @@ import {
 } from "../test-utils.mjs";
 
 import {
+  NumberInput,
+  NumberInputDecrement,
+  NumberInputIncrement,
+  NumberInputInput,
   NumberInputRoot,
 } from "../../dist/index.js";
+
+test("NumberInput compound parts own input and stepper semantics", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      NumberInput.Root,
+      { id: "quantity", value: 10, min: 0, max: 10, "aria-label": "Quantity" },
+      React.createElement(NumberInput.Decrement, { "aria-label": "Remove item" }),
+      React.createElement(NumberInput.Input),
+      React.createElement(NumberInput.Increment, { "aria-label": "Add item" }),
+    ),
+  );
+
+  assert.equal(html.match(/role="spinbutton"/g)?.length, 1);
+  assert.match(html, /data-slot="number-input-input"/);
+  assert.match(html, /<button(?=[^>]*data-slot="number-input-decrement")(?=[^>]*aria-controls="quantity")(?=[^>]*aria-label="Remove item")[^>]*>/);
+  assert.match(html, /<button(?=[^>]*data-slot="number-input-increment")(?=[^>]*aria-disabled="true")(?=[^>]*aria-controls="quantity")(?=[^>]*aria-label="Add item")[^>]*>/);
+  assert.equal(NumberInput.Input, NumberInputInput);
+  assert.equal(NumberInput.Increment, NumberInputIncrement);
+  assert.equal(NumberInput.Decrement, NumberInputDecrement);
+});
 
 test("NumberInputRoot renders WAI-ARIA spinbutton attributes", () => {
   const html = renderToStaticMarkup(

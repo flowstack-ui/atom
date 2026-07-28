@@ -1,5 +1,10 @@
 # Field Changelog
 
+## 0.19.0
+
+- Inherited containing Fieldset state and validation behavior and routed Field
+  validity through Fieldset before Form.
+
 ## 0.6.13
 
 - Added validation behavior inheritance, native-invalid aggregation, automatic

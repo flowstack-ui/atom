@@ -1,5 +1,10 @@
 # PasswordToggleField Changelog
 
+## 0.19.0
+
+- Added state-aware `showLabel` and `hideLabel` localization, form-reset
+  visibility restoration, and password-type restoration before submission.
+
 ## 0.6.16
 
 - Explicitly scrolled inline validation-directed focus into view.

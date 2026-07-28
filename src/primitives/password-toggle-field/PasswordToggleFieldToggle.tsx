@@ -54,7 +54,7 @@ export const PasswordToggleFieldToggle = forwardRef<
     type: "button",
     disabled: ctx.disabled || undefined,
     "aria-label":
-      restProps["aria-label"] ?? (ctx.visible ? "Hide password" : "Show password"),
+      restProps["aria-label"] ?? (ctx.visible ? ctx.hideLabel : ctx.showLabel),
     "data-slot": dataSlot,
     "data-state": ctx.visible ? "visible" : "hidden",
     "data-disabled": ctx.disabled ? "" : undefined,

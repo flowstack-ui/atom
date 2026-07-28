@@ -22,6 +22,7 @@ import {
 } from "./context.js";
 import { getFieldPartPresence, type FieldPartKind } from "./parts.js";
 import { useOptionalFormContext } from "../form/context.js";
+import { useFieldsetContext } from "../fieldset/context.js";
 import {
   isNativeValidityElement,
   runValidationCapture,
@@ -47,9 +48,9 @@ export const FieldRoot = forwardRef<HTMLDivElement, FieldRootProps>(
   function FieldRoot(
     {
       children,
-      invalid = false,
-      disabled = false,
-      required = false,
+      invalid,
+      disabled,
+      required,
       readOnly = false,
       validationBehavior,
       orientation = "vertical",
@@ -62,7 +63,12 @@ export const FieldRoot = forwardRef<HTMLDivElement, FieldRootProps>(
     ref,
   ) {
     const formContext = useOptionalFormContext();
-    const formReportValidity = formContext?.reportControlValidity;
+    const fieldsetContext = useFieldsetContext();
+    const parentReportValidity =
+      fieldsetContext?.reportControlValidity ?? formContext?.reportControlValidity;
+    const isDisabled = Boolean(disabled || fieldsetContext?.disabled);
+    const isRequired = required ?? fieldsetContext?.required ?? false;
+    const inheritedInvalid = fieldsetContext?.invalid ?? false;
     const validationId = useId();
     const rootRef = useRef<HTMLDivElement>(null);
     const autoId = useId();
@@ -78,6 +84,7 @@ export const FieldRoot = forwardRef<HTMLDivElement, FieldRootProps>(
     const presenterParts = getFieldPartPresence(relationshipChildren, false);
     const resolvedValidationBehavior =
       validationBehavior ??
+      fieldsetContext?.validationBehavior ??
       formContext?.validationBehavior ??
       (presenterParts.errorPresenter ? "inline" : undefined);
     const [invalidControlIds, setInvalidControlIds] = useState<Set<string>>(
@@ -87,7 +94,7 @@ export const FieldRoot = forwardRef<HTMLDivElement, FieldRootProps>(
       () => new Set(),
     );
     const effectiveInvalid =
-      invalid || invalidControlIds.size > 0 || invalidNativeElements.size > 0;
+      Boolean(invalid) || inheritedInvalid || invalidControlIds.size > 0 || invalidNativeElements.size > 0;
     const visibleParts = getFieldPartPresence(relationshipChildren, effectiveInvalid);
     const [partCounts, setPartCounts] = useState({ description: 0, error: 0 });
     const [partRegistryReady, setPartRegistryReady] = useState(false);
@@ -121,9 +128,9 @@ export const FieldRoot = forwardRef<HTMLDivElement, FieldRootProps>(
       });
     }, []);
     useEffect(() => {
-      formReportValidity?.(validationId, effectiveInvalid);
-      return () => formReportValidity?.(validationId, false);
-    }, [effectiveInvalid, formReportValidity, validationId]);
+      parentReportValidity?.(validationId, effectiveInvalid);
+      return () => parentReportValidity?.(validationId, false);
+    }, [effectiveInvalid, parentReportValidity, validationId]);
 
     useEffect(() => {
       const form = rootRef.current?.closest("form");
@@ -144,8 +151,8 @@ export const FieldRoot = forwardRef<HTMLDivElement, FieldRootProps>(
     const contextValue = useMemo<FieldContextValue>(
       () => ({
         invalid: effectiveInvalid,
-        disabled,
-        required,
+        disabled: isDisabled,
+        required: isRequired,
         readOnly,
         controlId,
         labelId,
@@ -162,14 +169,14 @@ export const FieldRoot = forwardRef<HTMLDivElement, FieldRootProps>(
         controlId,
         describedBy,
         descriptionId,
-        disabled,
+        isDisabled,
         errorId,
         hasDescription,
         hasError,
         effectiveInvalid,
         labelId,
         readOnly,
-        required,
+        isRequired,
         registerPart,
         reportControlValidity,
         resolvedValidationBehavior,
@@ -211,8 +218,8 @@ export const FieldRoot = forwardRef<HTMLDivElement, FieldRootProps>(
       "data-atom-validation-behavior": resolvedValidationBehavior ?? "native",
       "data-orientation": orientation,
       ...(effectiveInvalid && { "data-invalid": "" }),
-      ...(disabled && { "data-disabled": "" }),
-      ...(required && { "data-required": "" }),
+      ...(isDisabled && { "data-disabled": "" }),
+      ...(isRequired && { "data-required": "" }),
       ...(readOnly && { "data-readonly": "" }),
       onInvalidCapture: handleInvalidCapture,
       onInputCapture: handleInputCapture,

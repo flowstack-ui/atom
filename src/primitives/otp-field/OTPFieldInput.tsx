@@ -168,7 +168,6 @@ export const OTPFieldInput = forwardRef<HTMLInputElement, OTPFieldInputProps>(
       [context, resolvedIndex],
     );
 
-    const cellNoun = context.type === "numeric" ? "Digit" : "Character";
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref: setRef,
@@ -183,7 +182,7 @@ export const OTPFieldInput = forwardRef<HTMLInputElement, OTPFieldInputProps>(
       readOnly: context.readOnly || undefined,
       required: context.required && resolvedIndex === 0 ? true : undefined,
       form: context.form,
-      "aria-label": ariaLabel ?? `${cellNoun} ${resolvedIndex + 1} of ${context.length}`,
+      "aria-label": ariaLabel ?? context.getInputLabel(resolvedIndex),
       "aria-invalid": context.invalid || undefined,
       "aria-required": context.required || undefined,
       "data-slot": dataSlot,

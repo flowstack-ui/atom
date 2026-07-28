@@ -228,7 +228,7 @@ import {
   NavListSectionLabel,
   NavListSectionTrigger,
 } from "./primitives/nav-list/index.js";
-import { NumberInputRoot } from "./primitives/number-input/index.js";
+import { NumberInputDecrement, NumberInputIncrement, NumberInputInput, NumberInputRoot } from "./primitives/number-input/index.js";
 import {
   OTPFieldInput,
   OTPFieldRoot,
@@ -735,6 +735,9 @@ export const NavList = {
 
 export const NumberInput = {
   Root: NumberInputRoot,
+  Input: NumberInputInput,
+  Increment: NumberInputIncrement,
+  Decrement: NumberInputDecrement,
 } as const;
 
 export const OTPField = {

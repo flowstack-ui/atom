@@ -1,5 +1,9 @@
 # OTPField Changelog
 
+## 0.19.0
+
+- Added `getInputLabel` for localizing generated cell position labels.
+
 ## 0.6.16
 
 - Explicitly scrolled inline validation-directed focus into view.

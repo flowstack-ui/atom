@@ -86,6 +86,28 @@ test("PasswordToggleField Toggle preserves asChild content and disabled behavior
   assert.doesNotMatch(primitiveIndexSource, /^"use client";/);
 });
 
+test("PasswordToggleField localizes state-aware toggle labels", () => {
+  const hidden = renderToStaticMarkup(
+    React.createElement(
+      PasswordToggleField.Root,
+      { showLabel: "Mostrar contraseña", hideLabel: "Ocultar contraseña" },
+      React.createElement(PasswordToggleField.Input, { "aria-label": "Contraseña" }),
+      React.createElement(PasswordToggleField.Toggle),
+    ),
+  );
+  const visible = renderToStaticMarkup(
+    React.createElement(
+      PasswordToggleField.Root,
+      { visible: true, showLabel: "Mostrar contraseña", hideLabel: "Ocultar contraseña" },
+      React.createElement(PasswordToggleField.Input, { "aria-label": "Contraseña" }),
+      React.createElement(PasswordToggleField.Toggle),
+    ),
+  );
+
+  assert.match(hidden, /aria-label="Mostrar contraseña"/);
+  assert.match(visible, /aria-label="Ocultar contraseña"/);
+});
+
 test("PasswordToggleField source keeps functional toggle and validation state wiring", async () => {
   const rootSource = await readFile(
     new URL("src/primitives/password-toggle-field/PasswordToggleFieldRoot.tsx", packageRoot),
@@ -108,6 +130,8 @@ test("PasswordToggleField source keeps functional toggle and validation state wi
   assert.match(rootSource, /setResolvedVisible\(\(currentVisible\) => !currentVisible\)/);
   assert.match(inputSource, /"aria-invalid": validation\.invalid \|\| undefined/);
   assert.match(inputSource, /useFormValidation\(/);
+  assert.match(inputSource, /useFormReset\(/);
+  assert.match(inputSource, /form\.addEventListener\("submit", restorePasswordType\)/);
   assert.match(inputSource, /"aria-required": ctx\.required \|\| undefined/);
   assert.match(toggleSource, /const \{ onToggle \} = ctx/);
   assert.match(toggleSource, /"data-readonly": ctx\.readOnly \? "" : undefined/);
