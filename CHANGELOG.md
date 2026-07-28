@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.18.1
+
+- Made Combobox touch and pen outside dismissal wait for a completed tap and
+  cancel when the pointer moves, scrolls, or is cancelled.
+
 ## 0.18.0
 
 - Added TreeGrid actionable sortable headers and corrected collapsed-branch

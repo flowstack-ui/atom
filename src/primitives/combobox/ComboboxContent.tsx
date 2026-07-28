@@ -141,6 +141,7 @@ export const ComboboxContent = forwardRef<HTMLDivElement, ComboboxContentProps>(
       refs: clickAwayRefs,
       onClickAway: onClose,
       enabled: isOpen,
+      deferTouch: true,
     });
 
     useEffect(() => {
