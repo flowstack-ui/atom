@@ -1,6 +1,6 @@
 # Atom Changelog
 
-## Unreleased
+## 0.19.4
 
 - Fixed Slider clicks and drags that could jump back when browsers released
   pointer capture during an otherwise valid interaction. True pointer
