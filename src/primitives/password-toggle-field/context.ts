@@ -11,6 +11,9 @@ export interface PasswordToggleFieldContextValue {
   readOnly: boolean;
   invalid: boolean;
   required: boolean;
+  inputId: string | undefined;
+  ariaLabelledBy: string | undefined;
+  ariaDescribedBy: string | undefined;
   showLabel: string;
   hideLabel: string;
   validationBehavior: ValidationBehavior | undefined;

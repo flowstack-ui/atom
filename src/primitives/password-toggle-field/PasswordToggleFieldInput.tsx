@@ -74,6 +74,9 @@ export const PasswordToggleFieldInput = forwardRef<
   const inputProps = {
     ...restProps,
     ref: composedRef,
+    id: restProps.id ?? ctx.inputId,
+    "aria-labelledby": restProps["aria-labelledby"] ?? ctx.ariaLabelledBy,
+    "aria-describedby": restProps["aria-describedby"] ?? ctx.ariaDescribedBy,
     type: ctx.visible ? "text" : "password",
     disabled: ctx.disabled || undefined,
     readOnly: ctx.readOnly || undefined,

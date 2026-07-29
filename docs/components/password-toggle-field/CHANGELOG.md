@@ -1,5 +1,10 @@
 # PasswordToggleField Changelog
 
+## 0.19.1
+
+- Fixed `Input` to inherit the containing Field's generated control ID,
+  accessible label, description, and error relationships.
+
 ## 0.19.0
 
 - Added state-aware `showLabel` and `hideLabel` localization, form-reset

@@ -9,6 +9,7 @@ import {
 
 import {
   Input,
+  Field,
   PasswordToggleField,
   PasswordToggleFieldIcon,
   PasswordToggleFieldInput,
@@ -53,6 +54,31 @@ test("PasswordToggleField switches input type and icon state", () => {
   assert.equal(PasswordToggleField.Input, PasswordToggleFieldInput);
   assert.equal(PasswordToggleField.Toggle, PasswordToggleFieldToggle);
   assert.equal(PasswordToggleField.Icon, PasswordToggleFieldIcon);
+});
+
+test("PasswordToggleField inherits Field relationships", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Field.Root,
+      { id: "account-password", invalid: true, required: true },
+      React.createElement(Field.Label, null, "Password"),
+      React.createElement(
+        PasswordToggleField.Root,
+        null,
+        React.createElement(PasswordToggleField.Input),
+        React.createElement(PasswordToggleField.Toggle),
+      ),
+      React.createElement(Field.Description, null, "Use at least twelve characters."),
+      React.createElement(Field.Error, null, "Password is required."),
+    ),
+  );
+
+  assert.match(html, /id="account-password-control"/);
+  assert.match(html, /aria-labelledby="account-password-label"/);
+  assert.match(
+    html,
+    /aria-describedby="account-password-description account-password-error"/,
+  );
 });
 
 test("PasswordToggleField Toggle preserves asChild content and disabled behavior", async () => {

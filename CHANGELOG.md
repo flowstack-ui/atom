@@ -1,6 +1,9 @@
 # Atom Changelog
 
-## Unreleased
+## 0.19.1
+
+- Fixed Password Toggle Field to inherit Field-generated label, description,
+  error, and control-ID relationships.
 
 ## 0.19.0
 
