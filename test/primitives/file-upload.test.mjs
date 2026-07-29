@@ -95,6 +95,11 @@ test("FileUpload renders native file input, Field state, and file item parts", (
   assert.match(html, /aria-describedby="avatar-help avatar-error"/);
   assert.match(html, /data-slot="file-upload-hidden-input"/);
   assert.match(html, /data-slot="file-upload-trigger"/);
+  assert.match(html, /data-slot="file-upload-trigger"[^>]*aria-labelledby="avatar-label [^"]+-trigger"/);
+  assert.match(html, /data-slot="file-upload-trigger"[^>]*aria-describedby="avatar-help avatar-error"/);
+  assert.match(html, /data-slot="file-upload-trigger"[^>]*aria-invalid="true"/);
+  assert.match(html, /data-slot="file-upload-trigger"[^>]*data-required=""/);
+  assert.match(html, /data-slot="file-upload-trigger"[^>]*data-invalid=""/);
   assert.match(html, /data-slot="file-upload-dropzone"/);
   assert.match(html, /data-slot="file-upload-item-group"/);
   assert.match(html, /data-count="1"/);
@@ -234,6 +239,33 @@ test("FileUploadTrigger asChild adds button semantics to custom elements", () =>
   assert.match(html, />Choose file<\/span>/);
 });
 
+test("FileUploadTrigger preserves explicit accessible naming over Field defaults", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Field.Root,
+      { id: "documents" },
+      React.createElement(
+        FileUpload.Root,
+        null,
+        React.createElement(
+          FileUpload.Trigger,
+          {
+            "aria-label": "Browse supporting documents",
+            "aria-labelledby": "custom-upload-label",
+            "aria-describedby": "custom-upload-help",
+          },
+          "Choose files",
+        ),
+      ),
+    ),
+  );
+
+  assert.match(html, /aria-label="Browse supporting documents"/);
+  assert.match(html, /aria-labelledby="custom-upload-label"/);
+  assert.match(html, /aria-describedby="custom-upload-help"/);
+  assert.doesNotMatch(html, /aria-labelledby="documents-label/);
+});
+
 test("FileUploadItemGroup rejects asChild with function children", () => {
   const avatar = new File(["hello"], "avatar.png", { type: "image/png" });
 
@@ -280,6 +312,13 @@ test("FileUpload source wires controlled state, clear refocus, and keyboard trig
   assert.match(rootSource, /shouldAppendFiles \? \[\.\.\.resolvedFiles, \.\.\.incomingFiles\] : incomingFiles/);
   assert.match(rootSource, /fieldCtx\?\.controlId/);
   assert.match(rootSource, /fieldCtx\?\.describedBy/);
+  assert.match(rootSource, /fieldCtx\?\.labelId/);
+  assert.match(rootSource, /preventDocumentDrop = true/);
+  assert.match(rootSource, /ownerDocument\.addEventListener\("dragover", preventFileDrop\)/);
+  assert.match(rootSource, /ownerDocument\.addEventListener\("drop", preventFileDrop\)/);
+  assert.match(rootSource, /ownerDocument\.removeEventListener\("dragover", preventFileDrop\)/);
+  assert.match(rootSource, /ownerDocument\.removeEventListener\("drop", preventFileDrop\)/);
+  assert.match(rootSource, /const getDragState = useCallback/);
   assert.match(rootSource, /validateFileUploadFiles/);
   assert.match(rootSource, /const resetNativeInput = useCallback/);
   assert.match(rootSource, /inputRef\.current\.value = ""/);
@@ -294,11 +333,18 @@ test("FileUpload source wires controlled state, clear refocus, and keyboard trig
   assert.match(triggerSource, /onClick\?\.\(event\);\s*if \(event\.defaultPrevented\) return;\s*openFilePicker\(\);/);
   assert.match(triggerSource, /event\.key !== " " && event\.key !== "Enter"/);
   assert.match(triggerSource, /openFilePicker\(\)/);
+  assert.match(triggerSource, /ctx\.labelId \? `\$\{ctx\.labelId\} \$\{triggerId\}`/);
+  assert.match(triggerSource, /"aria-describedby": restProps\["aria-describedby"\] \?\? ctx\.describedBy/);
+  assert.match(triggerSource, /"aria-invalid": ctx\.invalid \|\| undefined/);
   assert.doesNotMatch(deleteTriggerSource, /composeEventHandlers\(onClick, handleClick\)/);
   assert.match(deleteTriggerSource, /if \(isInactive\) \{\s*event\.preventDefault\(\);/);
   assert.match(deleteTriggerSource, /onClick\?\.\(event\);\s*if \(event\.defaultPrevented\) return;\s*removeFile\(file\);/);
   assert.match(deleteTriggerSource, /removeFile\(file\)/);
   assert.match(dropzoneSource, /const handleDragLeave = useCallback/);
+  assert.match(dropzoneSource, /function getDraggedFiles/);
+  assert.match(dropzoneSource, /function hasDraggedFiles/);
+  assert.match(dropzoneSource, /getDragState\(files\)/);
+  assert.match(dropzoneSource, /dropEffect = nextDragState === "accept" \? "copy" : "none"/);
   assert.match(dropzoneSource, /if \(isInactive\) return;\s*if \(event\.currentTarget\.contains/);
   assert.match(dropzoneSource, /\[isInactive, setDragState\]/);
 });

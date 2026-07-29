@@ -1,5 +1,11 @@
 # Atom Changelog
 
+## 0.19.7
+
+- Fixed FileUpload Field relationships on its visible Trigger, made pre-drop
+  accept/reject state reflect configured constraints, and prevented accidental
+  file drops on the surrounding document by default.
+
 ## 0.19.6
 
 - Fixed Rating drags so a pointer captured by the starting item can continue

@@ -60,6 +60,10 @@ export const FileUploadTrigger = forwardRef<HTMLElement, FileUploadTriggerProps>
       (asChild ? childHasNativeButtonSemantics(children) : renderHasNativeButtonSemantics(render));
     const isNativeButton = isDefaultButton ||
       (asChild ? childIsNativeButton(children) : renderIsNativeButton(render));
+    const triggerId = restProps.id ?? ctx.triggerId;
+    const ariaLabel = restProps["aria-label"];
+    const ariaLabelledBy = restProps["aria-labelledby"] ??
+      (ariaLabel ? undefined : ctx.labelId ? `${ctx.labelId} ${triggerId}` : undefined);
 
     const handleClick = useCallback<MouseEventHandler<HTMLElement>>(
       (event) => {
@@ -102,12 +106,18 @@ export const FileUploadTrigger = forwardRef<HTMLElement, FileUploadTriggerProps>
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref: composeRefs(ctx.triggerRef, ref),
+      id: triggerId,
       ...(isNativeButton
         ? { type: "button", disabled: isInactive || undefined }
         : { role: "button", tabIndex: 0, "aria-disabled": isInactive || undefined }),
       "data-slot": dataSlot,
+      "aria-labelledby": ariaLabelledBy,
+      "aria-describedby": restProps["aria-describedby"] ?? ctx.describedBy,
+      "aria-invalid": ctx.invalid || undefined,
       ...(disabled && { "data-disabled": "" }),
       ...(readOnly && { "data-readonly": "" }),
+      ...(ctx.required && { "data-required": "" }),
+      ...(ctx.invalid && { "data-invalid": "" }),
       onClick: handleClick,
       onKeyDown: handleKeyDown,
     };
