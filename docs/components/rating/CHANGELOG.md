@@ -1,5 +1,12 @@
 # Rating Changelog
 
+## Unreleased
+
+- Kept repeated activation on the selected value stable by default and added
+  opt-in `allowClear` behavior, including fractional values.
+- Finalized the live Rating value when pointer capture is lost; true
+  `pointercancel` still restores the pointer-down value.
+
 ## 0.19.3
 
 - Preserved vertical page scrolling, limited Rating to one active pointer, and

@@ -1,5 +1,11 @@
 # Atom Changelog
 
+## Unreleased
+
+- Stabilized Rating pointer selection: repeated activation no longer clears by
+  default, `allowClear` opts into clearing, and capture loss finalizes the live
+  value while true cancellation still rolls back.
+
 ## 0.19.4
 
 - Fixed Slider clicks and drags that could jump back when browsers released

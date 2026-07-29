@@ -14,8 +14,9 @@ rather than simply being more or less.
 - Implements rating as a WAI-ARIA slider.
 - Supports controlled and uncontrolled values.
 - Supports fractional values with configurable `step`.
-- Supports pointer selection, drag updates, keyboard control, and click-to-clear.
-- Preserves vertical page scrolling and reverts cancelled pointer changes.
+- Supports pointer selection, drag updates, keyboard control, and opt-in clear.
+- Preserves vertical page scrolling, reverts true pointer cancellation, and
+  finalizes the live value if pointer capture is lost.
 - Mirrors horizontal pointer and keyboard behavior in RTL direction.
 - Supports disabled, read-only, invalid, and required states.
 - Renders an optional hidden input for form submission.
@@ -50,6 +51,7 @@ focusable control; Item parts only provide pointer targets and visual state.
 | `value` | `number` | - |
 | `defaultValue` | `number` | `min` |
 | `onValueChange` | `(value: number) => void` | - |
+| `allowClear` | `boolean` | `false` |
 | `min` | `number` | `0` |
 | `max` | `number` | `5` |
 | `step` | `number` | `1` |
@@ -206,8 +208,11 @@ Uncontrolled value returns to `defaultValue` on native form reset.
 When required, a transparent native proxy aligned with Root treats the minimum
 value as empty and redirects browser validation focus to the visible slider.
 The optional named hidden input remains submission-only.
-Pointer cancellation or lost pointer capture restores the value present at
-pointer down. Only one pointer session can control a Rating at a time.
+True pointer cancellation restores the value present at pointer down. Lost
+pointer capture finalizes the current value because browsers can release
+capture during a valid interaction. Activating the selected segment remains
+stable unless `allowClear` is enabled. Only one pointer session can control a
+Rating at a time.
 
 | Key | Description |
 | --- | --- |

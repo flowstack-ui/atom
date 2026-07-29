@@ -19,6 +19,7 @@ export interface RatingContextValue {
   beginPointerInteraction: (pointerId: number, pointerValue: number) => boolean;
   movePointerInteraction: (pointerId: number, pointerValue: number) => void;
   endPointerInteraction: (pointerId: number, itemValue: number) => void;
+  finishPointerInteraction: (pointerId: number) => void;
   cancelPointerInteraction: (pointerId: number) => void;
 }
 

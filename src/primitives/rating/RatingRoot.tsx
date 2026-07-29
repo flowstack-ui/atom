@@ -62,6 +62,8 @@ export interface RatingRootProps extends RatingRootNativeProps {
   defaultValue?: number;
   /** Called when the rating value changes. */
   onValueChange?: (value: number) => void;
+  /** Allow activating the selected value again to clear to the minimum. */
+  allowClear?: boolean;
   /** Minimum rating value. */
   min?: number;
   /** Maximum rating value. */
@@ -112,6 +114,7 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
       value,
       defaultValue,
       onValueChange,
+      allowClear = false,
       min: minProp = 0,
       max: maxProp = 5,
       step: stepProp = 1,
@@ -227,20 +230,29 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
     );
 
     const endPointerInteraction = useCallback(
-      (pointerId: number, itemValue: number) => {
+      (pointerId: number, _itemValue: number) => {
         const session = pointerSessionRef.current;
         if (!session || session.pointerId !== pointerId) return;
         pointerSessionRef.current = null;
         if (
+          allowClear &&
           !session.moved &&
           session.currentValue === session.initialValue &&
-          session.initialValue > range.min &&
-          itemValue === session.initialValue
+          session.initialValue > range.min
         ) {
           setValue(range.min);
         }
       },
-      [range.min, setValue],
+      [allowClear, range.min, setValue],
+    );
+
+    const finishPointerInteraction = useCallback(
+      (pointerId: number) => {
+        const session = pointerSessionRef.current;
+        if (!session || session.pointerId !== pointerId) return;
+        pointerSessionRef.current = null;
+      },
+      [],
     );
 
     const cancelPointerInteraction = useCallback(
@@ -322,6 +334,7 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
         beginPointerInteraction,
         movePointerInteraction,
         endPointerInteraction,
+        finishPointerInteraction,
         cancelPointerInteraction,
       }),
       [
@@ -339,6 +352,7 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
         beginPointerInteraction,
         movePointerInteraction,
         endPointerInteraction,
+        finishPointerInteraction,
         cancelPointerInteraction,
       ],
     );
