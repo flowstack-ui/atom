@@ -14,7 +14,8 @@ price range. Use `NumberInput` when the exact typed number matters, and use
 - Supports controlled and uncontrolled values.
 - Supports horizontal and vertical orientation.
 - Supports pointer dragging, keyboard changes, and commit callbacks.
-- Preserves page scrolling on the non-slider axis and reverts cancelled drags.
+- Preserves page scrolling on the non-slider axis, reverts true pointer
+  cancellation, and commits the latest value when capture is lost.
 - Supports hidden form inputs.
 - Supports `Direction.Provider` for horizontal right-to-left pointer and
   keyboard behavior.
@@ -189,9 +190,10 @@ Each Thumb is a focusable slider with its own value. Provide native
 `aria-label`, or use Field for the label and messages. `ariaValueText` can
 describe non-obvious values. Field state reaches every Thumb, read-only blocks
 editing, and uncontrolled values reset to `defaultValue`.
-Pointer cancellation or lost pointer capture restores the value present at
-pointer down and does not call `onValueCommit`. Only one pointer session can
-control a Slider at a time.
+Pointer cancellation restores the value present at pointer down and does not
+call `onValueCommit`. Lost pointer capture finalizes the latest value so normal
+browser capture release cannot make a completed click or drag jump backward.
+Only one pointer session can control a Slider at a time.
 
 | Key | Description |
 | --- | --- |

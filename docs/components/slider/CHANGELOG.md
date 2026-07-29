@@ -1,5 +1,10 @@
 # Slider Changelog
 
+## Unreleased
+
+- Finalize the latest pointer value when capture is lost instead of restoring
+  the pointer-down value; true `pointercancel` still rolls back without commit.
+
 ## 0.19.3
 
 - Exposed effective adjacent-thumb bounds through each Thumb's ARIA range.
