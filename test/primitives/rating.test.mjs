@@ -122,6 +122,9 @@ test("Rating source keeps pointer capture and opt-in clear behavior stable", asy
   assert.match(rootSource, /useDirection/);
   assert.match(rootSource, /dir === "rtl" \? -step : step/);
   assert.match(itemSource, /snapRatingPointerValue/);
+  assert.match(itemSource, /resolvePointerItem/);
+  assert.match(itemSource, /querySelectorAll<HTMLElement>/);
+  assert.match(itemSource, /pointerItem\.dataset\.value/);
   assert.match(itemSource, /const pointerValue = getPointerValue\(event\)/);
   assert.match(itemSource, /beginPointerInteraction\(event\.pointerId, pointerValue\)/);
   assert.match(rootSource, /allowClear &&/);

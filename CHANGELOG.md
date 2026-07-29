@@ -1,5 +1,10 @@
 # Atom Changelog
 
+## Unreleased
+
+- Fixed Rating drags so a pointer captured by the starting item can continue
+  selecting across every item in the scale.
+
 ## 0.19.5
 
 - Stabilized Rating pointer selection: repeated activation no longer clears by
