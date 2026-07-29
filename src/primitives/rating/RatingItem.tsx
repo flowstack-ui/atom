@@ -72,6 +72,7 @@ export const RatingItem = forwardRef<HTMLSpanElement, RatingItemProps>(
       cancelPointerInteraction,
       dir,
       endPointerInteraction,
+      finishPointerInteraction,
       getItemState,
       invalid,
       min,
@@ -153,7 +154,7 @@ export const RatingItem = forwardRef<HTMLSpanElement, RatingItemProps>(
       onPointerCancel: composeEventHandlers(onPointerCancel, handlePointerCancel),
       onLostPointerCapture: composeEventHandlers(
         onLostPointerCapture,
-        handlePointerCancel,
+        (event) => finishPointerInteraction(event.pointerId),
       ),
     };
 

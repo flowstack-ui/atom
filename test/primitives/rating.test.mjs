@@ -99,7 +99,7 @@ test("RatingRoot exposes disabled readonly invalid and required state", () => {
   assert.match(html, /value="2"/);
 });
 
-test("Rating source keeps pointer capture and clear behavior stable", async () => {
+test("Rating source keeps pointer capture and opt-in clear behavior stable", async () => {
   const itemSource = await readFile(
     new URL("src/primitives/rating/RatingItem.tsx", packageRoot),
     "utf8",
@@ -124,10 +124,10 @@ test("Rating source keeps pointer capture and clear behavior stable", async () =
   assert.match(itemSource, /snapRatingPointerValue/);
   assert.match(itemSource, /const pointerValue = getPointerValue\(event\)/);
   assert.match(itemSource, /beginPointerInteraction\(event\.pointerId, pointerValue\)/);
+  assert.match(rootSource, /allowClear &&/);
   assert.match(rootSource, /session\.currentValue === session\.initialValue/);
   assert.match(itemSource, /rect\.right - event\.clientX/);
   assert.match(rootSource, /session\.initialValue > range\.min/);
-  assert.match(rootSource, /itemValue === session\.initialValue/);
   assert.match(rootSource, /setValue\(range\.min\)/);
   assert.match(rootSource, /if \(isDisabled \|\| isReadOnly \|\| pointerSessionRef\.current\) return false/);
   assert.match(rootSource, /setValue\(session\.initialValue\)/);
@@ -135,6 +135,7 @@ test("Rating source keeps pointer capture and clear behavior stable", async () =
   assert.doesNotMatch(itemSource, /\[context, /);
   assert.match(itemSource, /onPointerCancel: composeEventHandlers/);
   assert.match(itemSource, /onLostPointerCapture: composeEventHandlers/);
+  assert.match(itemSource, /finishPointerInteraction\(event\.pointerId\)/);
   assert.doesNotMatch(indexSource, /^"use client";/);
 });
 
