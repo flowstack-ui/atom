@@ -38,7 +38,8 @@ export interface SliderContextValue {
   getRangeState: () => SliderRangeState;
   handleTrackPointerDown: (event: PointerEvent) => void;
   handlePointerMove: (event: PointerEvent) => void;
-  handlePointerUp: () => void;
+  handlePointerUp: (event: PointerEvent) => void;
+  handlePointerCancel: (event: PointerEvent) => void;
 }
 
 const SliderContext = createContext<SliderContextValue | null>(null);

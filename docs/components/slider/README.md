@@ -14,6 +14,7 @@ price range. Use `NumberInput` when the exact typed number matters, and use
 - Supports controlled and uncontrolled values.
 - Supports horizontal and vertical orientation.
 - Supports pointer dragging, keyboard changes, and commit callbacks.
+- Preserves page scrolling on the non-slider axis and reverts cancelled drags.
 - Supports hidden form inputs.
 - Supports `Direction.Provider` for horizontal right-to-left pointer and
   keyboard behavior.
@@ -77,7 +78,8 @@ are applied to each Thumb.
 ### Track
 
 Registers the pointer interaction surface used to choose and drag the nearest
-Thumb. It renders a `div` by default.
+Thumb. It renders a `div` by default. Horizontal Tracks preserve vertical page
+scrolling; vertical Tracks preserve horizontal scrolling.
 
 **ARIA:** Track adds no role or ARIA attributes.
 
@@ -128,8 +130,8 @@ value in Root. Range sliders need one Thumb for each value.
 | ARIA attribute | Values |
 | --- | --- |
 | `role` | `"slider"` |
-| `aria-valuemin` | Root minimum |
-| `aria-valuemax` | Root maximum |
+| `aria-valuemin` | Effective minimum after the preceding thumb and required gap |
+| `aria-valuemax` | Effective maximum before the following thumb and required gap |
 | `aria-valuenow` | Current thumb value |
 | `aria-valuetext` | Result from `ariaValueText` when provided |
 | `aria-orientation` | Root orientation |
@@ -187,6 +189,9 @@ Each Thumb is a focusable slider with its own value. Provide native
 `aria-label`, or use Field for the label and messages. `ariaValueText` can
 describe non-obvious values. Field state reaches every Thumb, read-only blocks
 editing, and uncontrolled values reset to `defaultValue`.
+Pointer cancellation or lost pointer capture restores the value present at
+pointer down and does not call `onValueCommit`. Only one pointer session can
+control a Slider at a time.
 
 | Key | Description |
 | --- | --- |

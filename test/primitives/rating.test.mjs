@@ -123,14 +123,18 @@ test("Rating source keeps pointer capture and clear behavior stable", async () =
   assert.match(rootSource, /dir === "rtl" \? -step : step/);
   assert.match(itemSource, /snapRatingPointerValue/);
   assert.match(itemSource, /const pointerValue = getPointerValue\(event\)/);
-  assert.match(itemSource, /setValue\(pointerValue\)/);
-  assert.match(itemSource, /interaction\.pointerValue === interaction\.initialValue/);
+  assert.match(itemSource, /beginPointerInteraction\(event\.pointerId, pointerValue\)/);
+  assert.match(rootSource, /session\.currentValue === session\.initialValue/);
   assert.match(itemSource, /rect\.right - event\.clientX/);
-  assert.match(itemSource, /interaction\.initialValue > min/);
-  assert.match(itemSource, /value === interaction\.initialValue/);
-  assert.match(itemSource, /setValue\(min\)/);
+  assert.match(rootSource, /session\.initialValue > range\.min/);
+  assert.match(rootSource, /itemValue === session\.initialValue/);
+  assert.match(rootSource, /setValue\(range\.min\)/);
+  assert.match(rootSource, /if \(isDisabled \|\| isReadOnly \|\| pointerSessionRef\.current\) return false/);
+  assert.match(rootSource, /setValue\(session\.initialValue\)/);
+  assert.match(itemSource, /touchAction: "pan-y"/);
   assert.doesNotMatch(itemSource, /\[context, /);
   assert.match(itemSource, /onPointerCancel: composeEventHandlers/);
+  assert.match(itemSource, /onLostPointerCapture: composeEventHandlers/);
   assert.doesNotMatch(indexSource, /^"use client";/);
 });
 

@@ -1,5 +1,11 @@
 # Rating Changelog
 
+## 0.19.3
+
+- Preserved vertical page scrolling, limited Rating to one active pointer, and
+  restored the pointer-down value when interaction is cancelled or capture is
+  lost.
+
 ## 0.6.16
 
 - Explicitly scrolled inline validation-directed focus into view.

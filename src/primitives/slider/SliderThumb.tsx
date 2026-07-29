@@ -39,6 +39,7 @@ export const SliderThumb = forwardRef<HTMLSpanElement, SliderThumbProps>(
       onPointerMove,
       onPointerUp,
       onPointerCancel,
+      onLostPointerCapture,
       "data-slot": dataSlot = "slider-thumb",
       ...restProps
     },
@@ -78,6 +79,10 @@ export const SliderThumb = forwardRef<HTMLSpanElement, SliderThumbProps>(
       onPointerCancel: composeEventHandlers(
         onPointerCancel,
         thumbProps.onPointerCancel,
+      ),
+      onLostPointerCapture: composeEventHandlers(
+        onLostPointerCapture,
+        thumbProps.onLostPointerCapture,
       ),
     };
 
