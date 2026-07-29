@@ -1,6 +1,6 @@
 # Rating Changelog
 
-## Unreleased
+## 0.19.5
 
 - Kept repeated activation on the selected value stable by default and added
   opt-in `allowClear` behavior, including fractional values.

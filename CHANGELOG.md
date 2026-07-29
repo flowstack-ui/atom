@@ -1,6 +1,6 @@
 # Atom Changelog
 
-## Unreleased
+## 0.19.5
 
 - Stabilized Rating pointer selection: repeated activation no longer clears by
   default, `allowClear` opts into clearing, and capture loss finalizes the live
