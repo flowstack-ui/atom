@@ -1,5 +1,11 @@
 # Slider Changelog
 
+## 0.19.3
+
+- Exposed effective adjacent-thumb bounds through each Thumb's ARIA range.
+- Preserved non-slider-axis page scrolling and restored the pointer-down value
+  without committing when a drag is cancelled or capture is lost.
+
 ## 0.5.0
 
 - Added Field disabled/read-only/invalid/required, generated naming and

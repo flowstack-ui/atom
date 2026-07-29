@@ -1,8 +1,10 @@
 import {
   assert,
+  readFile,
   test,
   React,
   renderToStaticMarkup,
+  packageRoot,
 } from "../test-utils.mjs";
 
 import {
@@ -109,6 +111,46 @@ test("Slider percent geometry is normalized for data attributes", () => {
   assert.match(html, /inset-inline-start:55%/);
   assert.doesNotMatch(html, /55\.00000000000001%/);
   assert.doesNotMatch(html, /data-percent="55\.00000000000001"/);
+});
+
+test("Slider range thumbs expose their effective dependent bounds", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      SliderRoot,
+      {
+        value: [25, 75],
+        min: 0,
+        max: 100,
+        step: 1,
+        minStepsBetweenThumbs: 5,
+        "aria-label": "Price",
+      },
+      React.createElement(SliderThumb, { index: 0 }),
+      React.createElement(SliderThumb, { index: 1 }),
+    ),
+  );
+
+  assert.match(html, /aria-valuenow="25" aria-valuemin="0" aria-valuemax="70"/);
+  assert.match(html, /aria-valuenow="75" aria-valuemin="30" aria-valuemax="100"/);
+});
+
+test("Slider source preserves scroll and reverts cancelled pointer sessions", async () => {
+  const rootSource = await readFile(
+    new URL("src/primitives/slider/SliderRoot.tsx", packageRoot),
+    "utf8",
+  );
+  const trackSource = await readFile(
+    new URL("src/primitives/slider/SliderTrack.tsx", packageRoot),
+    "utf8",
+  );
+
+  assert.match(rootSource, /if \(disabled \|\| readOnly \|\| pointerSessionRef\.current\) return/);
+  assert.match(rootSource, /currentValues: newValues/);
+  assert.match(rootSource, /commitValues\(session\.currentValues\)/);
+  assert.match(rootSource, /updateValues\(session\.initialValues\)/);
+  assert.match(trackSource, /touchAction: context\.orientation === "horizontal" \? "pan-y" : "pan-x"/);
+  assert.match(trackSource, /onLostPointerCapture: composeEventHandlers/);
+  assert.doesNotMatch(rootSource, /onPointerCancel: handlePointerUp/);
 });
 
 test("Slider consumes Direction.Provider for horizontal RTL behavior", () => {

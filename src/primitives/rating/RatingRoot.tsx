@@ -48,6 +48,13 @@ type RatingRootNativeProps = NativeDivProps<
   | "onKeyDown"
 >;
 
+interface RatingPointerSession {
+  pointerId: number;
+  initialValue: number;
+  currentValue: number;
+  moved: boolean;
+}
+
 export interface RatingRootProps extends RatingRootNativeProps {
   /** Controlled rating value. */
   value?: number;
@@ -135,6 +142,7 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
     const isReadOnly = readOnly ?? field?.readOnly ?? false;
     const isRequired = required ?? field?.required ?? false;
     const rootRef = useRef<HTMLDivElement>(null);
+    const pointerSessionRef = useRef<RatingPointerSession | null>(null);
     const validationInputRef = useRef<HTMLInputElement>(null);
     useFormControlProxy(validationInputRef, rootRef);
     const validation = useFormValidation({
@@ -190,6 +198,59 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
     const getItemState = useCallback(
       (itemValue: number) => getRatingItemState(clampedValue, itemValue, range.min),
       [clampedValue, range.min],
+    );
+
+    const beginPointerInteraction = useCallback(
+      (pointerId: number, pointerValue: number) => {
+        if (isDisabled || isReadOnly || pointerSessionRef.current) return false;
+        pointerSessionRef.current = {
+          pointerId,
+          initialValue: clampedValue,
+          currentValue: pointerValue,
+          moved: false,
+        };
+        setValue(pointerValue);
+        return true;
+      },
+      [clampedValue, isDisabled, isReadOnly, setValue],
+    );
+
+    const movePointerInteraction = useCallback(
+      (pointerId: number, pointerValue: number) => {
+        const session = pointerSessionRef.current;
+        if (!session || session.pointerId !== pointerId) return;
+        session.currentValue = pointerValue;
+        session.moved = true;
+        setValue(pointerValue);
+      },
+      [setValue],
+    );
+
+    const endPointerInteraction = useCallback(
+      (pointerId: number, itemValue: number) => {
+        const session = pointerSessionRef.current;
+        if (!session || session.pointerId !== pointerId) return;
+        pointerSessionRef.current = null;
+        if (
+          !session.moved &&
+          session.currentValue === session.initialValue &&
+          session.initialValue > range.min &&
+          itemValue === session.initialValue
+        ) {
+          setValue(range.min);
+        }
+      },
+      [range.min, setValue],
+    );
+
+    const cancelPointerInteraction = useCallback(
+      (pointerId: number) => {
+        const session = pointerSessionRef.current;
+        if (!session || session.pointerId !== pointerId) return;
+        pointerSessionRef.current = null;
+        setValue(session.initialValue);
+      },
+      [setValue],
     );
 
     const handleKeyDown = useCallback<KeyboardEventHandler<HTMLDivElement>>(
@@ -258,6 +319,10 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
         dir,
         setValue,
         getItemState,
+        beginPointerInteraction,
+        movePointerInteraction,
+        endPointerInteraction,
+        cancelPointerInteraction,
       }),
       [
         clampedValue,
@@ -271,6 +336,10 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
         dir,
         setValue,
         step,
+        beginPointerInteraction,
+        movePointerInteraction,
+        endPointerInteraction,
+        cancelPointerInteraction,
       ],
     );
 

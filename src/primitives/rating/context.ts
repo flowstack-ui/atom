@@ -16,6 +16,10 @@ export interface RatingContextValue {
   dir: DirectionValue;
   setValue: (value: number) => void;
   getItemState: (itemValue: number) => RatingItemState;
+  beginPointerInteraction: (pointerId: number, pointerValue: number) => boolean;
+  movePointerInteraction: (pointerId: number, pointerValue: number) => void;
+  endPointerInteraction: (pointerId: number, itemValue: number) => void;
+  cancelPointerInteraction: (pointerId: number) => void;
 }
 
 const RatingContext = createContext<RatingContextValue | null>(null);

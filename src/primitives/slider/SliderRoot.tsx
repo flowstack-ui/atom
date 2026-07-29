@@ -95,8 +95,16 @@ export interface SliderThumbBehaviorProps {
   onKeyDown: (event: KeyboardEvent) => void;
   onPointerDown: (event: PointerEvent) => void;
   onPointerMove: (event: PointerEvent) => void;
-  onPointerUp: () => void;
-  onPointerCancel: () => void;
+  onPointerUp: (event: PointerEvent) => void;
+  onPointerCancel: (event: PointerEvent) => void;
+  onLostPointerCapture: (event: PointerEvent) => void;
+}
+
+interface SliderPointerSession {
+  pointerId: number;
+  thumbIndex: number;
+  initialValues: number[];
+  currentValues: number[];
 }
 
 function normalizeValues(value: SliderValue | undefined, min: number): number[] {
@@ -157,7 +165,7 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
     const isRange = values.length > 1;
     const trackRef = useRef<HTMLDivElement>(null);
     const rootRef = useRef<HTMLDivElement>(null);
-    const draggingRef = useRef<number | null>(null);
+    const pointerSessionRef = useRef<SliderPointerSession | null>(null);
     const reset = useCallback(() => {
       if (!isControlled) setInternalValues(normalizeValues(defaultValue, min));
     }, [defaultValue, isControlled, min]);
@@ -221,7 +229,7 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
     }, [dir, isHorizontal, max, min, step]);
 
     const handleTrackPointerDown = useCallback((event: PointerEvent) => {
-      if (disabled || readOnly) return;
+      if (disabled || readOnly || pointerSessionRef.current) return;
       event.preventDefault();
 
       const clickValue = pointerToValue(event.clientX, event.clientY);
@@ -230,8 +238,13 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
       newValues[thumbIndex] = constrainValue(clickValue, thumbIndex, values);
       updateValues(newValues);
 
-      draggingRef.current = thumbIndex;
-      (event.target as HTMLElement).setPointerCapture?.(event.pointerId);
+      pointerSessionRef.current = {
+        pointerId: event.pointerId,
+        thumbIndex,
+        initialValues: [...values],
+        currentValues: newValues,
+      };
+      event.currentTarget.setPointerCapture?.(event.pointerId);
     }, [
       constrainValue,
       disabled,
@@ -243,24 +256,33 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
     ]);
 
     const handlePointerMove = useCallback((event: PointerEvent) => {
-      if (draggingRef.current === null || disabled || readOnly) return;
+      const session = pointerSessionRef.current;
+      if (!session || session.pointerId !== event.pointerId || disabled || readOnly) return;
 
-      const thumbIndex = draggingRef.current;
-      const newValues = [...values];
+      const thumbIndex = session.thumbIndex;
+      const newValues = [...session.currentValues];
       newValues[thumbIndex] = constrainValue(
         pointerToValue(event.clientX, event.clientY),
         thumbIndex,
-        values,
+        session.currentValues,
       );
+      session.currentValues = newValues;
       updateValues(newValues);
-    }, [constrainValue, disabled, pointerToValue, readOnly, updateValues, values]);
+    }, [constrainValue, disabled, pointerToValue, readOnly, updateValues]);
 
-    const handlePointerUp = useCallback(() => {
-      if (draggingRef.current !== null) {
-        draggingRef.current = null;
-        commitValues(values);
-      }
-    }, [commitValues, values]);
+    const handlePointerUp = useCallback((event: PointerEvent) => {
+      const session = pointerSessionRef.current;
+      if (!session || session.pointerId !== event.pointerId) return;
+      pointerSessionRef.current = null;
+      commitValues(session.currentValues);
+    }, [commitValues]);
+
+    const handlePointerCancel = useCallback((event: PointerEvent) => {
+      const session = pointerSessionRef.current;
+      if (!session || session.pointerId !== event.pointerId) return;
+      pointerSessionRef.current = null;
+      updateValues(session.initialValues);
+    }, [updateValues]);
 
     const handleThumbKeyDown = useCallback((event: KeyboardEvent, thumbIndex: number) => {
       if (disabled || readOnly) return;
@@ -321,12 +343,19 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
 
     const getThumbProps = useCallback((thumbIndex: number): SliderThumbBehaviorProps => {
       const thumbValue = values[thumbIndex] ?? min;
+      const minGap = minStepsBetween * step;
+      const effectiveMin = thumbIndex > 0
+        ? Math.min(max, (values[thumbIndex - 1] ?? min) + minGap)
+        : min;
+      const effectiveMax = thumbIndex < values.length - 1
+        ? Math.max(min, (values[thumbIndex + 1] ?? max) - minGap)
+        : max;
       return {
         role: "slider",
         tabIndex: disabled ? -1 : 0,
         "aria-valuenow": thumbValue,
-        "aria-valuemin": min,
-        "aria-valuemax": max,
+        "aria-valuemin": effectiveMin,
+        "aria-valuemax": effectiveMax,
         "aria-orientation": orientation,
         "aria-label": ariaLabel
           ? isRange
@@ -343,14 +372,20 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
         "data-slot": "slider-thumb",
         onKeyDown: (event) => handleThumbKeyDown(event, thumbIndex),
         onPointerDown: (event) => {
-          if (disabled || readOnly) return;
+          if (disabled || readOnly || pointerSessionRef.current) return;
           event.stopPropagation();
-          draggingRef.current = thumbIndex;
+          pointerSessionRef.current = {
+            pointerId: event.pointerId,
+            thumbIndex,
+            initialValues: [...values],
+            currentValues: [...values],
+          };
           (event.target as HTMLElement).setPointerCapture(event.pointerId);
         },
         onPointerMove: handlePointerMove,
         onPointerUp: handlePointerUp,
-        onPointerCancel: handlePointerUp,
+        onPointerCancel: handlePointerCancel,
+        onLostPointerCapture: handlePointerCancel,
       };
     }, [
       ariaLabel,
@@ -358,6 +393,7 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
       disabled,
       field?.describedBy,
       field?.labelId,
+      handlePointerCancel,
       handlePointerMove,
       handlePointerUp,
       handleThumbKeyDown,
@@ -365,9 +401,11 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
       invalid,
       max,
       min,
+      minStepsBetween,
       orientation,
       readOnly,
       required,
+      step,
       values,
     ]);
 
@@ -420,6 +458,7 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
         handleTrackPointerDown,
         handlePointerMove,
         handlePointerUp,
+        handlePointerCancel,
       }),
       [
         values,
@@ -437,6 +476,7 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
         handleTrackPointerDown,
         handlePointerMove,
         handlePointerUp,
+        handlePointerCancel,
         trackRef,
       ],
     );

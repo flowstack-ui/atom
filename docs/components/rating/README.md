@@ -15,6 +15,7 @@ rather than simply being more or less.
 - Supports controlled and uncontrolled values.
 - Supports fractional values with configurable `step`.
 - Supports pointer selection, drag updates, keyboard control, and click-to-clear.
+- Preserves vertical page scrolling and reverts cancelled pointer changes.
 - Mirrors horizontal pointer and keyboard behavior in RTL direction.
 - Supports disabled, read-only, invalid, and required states.
 - Renders an optional hidden input for form submission.
@@ -97,7 +98,8 @@ focusable control; Item parts only provide pointer targets and visual state.
 
 Represents one point on the rating scale. It reports empty, partial, or full
 fill state and forwards pointer interaction to Root while remaining decorative
-to assistive technology.
+to assistive technology. Item permits vertical page scrolling while reserving
+horizontal movement for rating selection.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -106,6 +108,7 @@ to assistive technology.
 | `onPointerMove` | `PointerEventHandler<HTMLSpanElement>` | - |
 | `onPointerUp` | `PointerEventHandler<HTMLSpanElement>` | - |
 | `onPointerCancel` | `PointerEventHandler<HTMLSpanElement>` | - |
+| `onLostPointerCapture` | `PointerEventHandler<HTMLSpanElement>` | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -203,6 +206,8 @@ Uncontrolled value returns to `defaultValue` on native form reset.
 When required, a transparent native proxy aligned with Root treats the minimum
 value as empty and redirects browser validation focus to the visible slider.
 The optional named hidden input remains submission-only.
+Pointer cancellation or lost pointer capture restores the value present at
+pointer down. Only one pointer session can control a Rating at a time.
 
 | Key | Description |
 | --- | --- |

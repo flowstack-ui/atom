@@ -35,6 +35,8 @@ export const SliderTrack = forwardRef<HTMLDivElement, SliderTrackProps>(
       onPointerMove,
       onPointerUp,
       onPointerCancel,
+      onLostPointerCapture,
+      style,
       "data-slot": dataSlot = "slider-track",
       ...restProps
     },
@@ -53,6 +55,10 @@ export const SliderTrack = forwardRef<HTMLDivElement, SliderTrackProps>(
       "data-orientation": context.orientation,
       ...(context.disabled && { "data-disabled": "" }),
       className,
+      style: {
+        ...style,
+        touchAction: context.orientation === "horizontal" ? "pan-y" : "pan-x",
+      },
       onPointerDown: composeEventHandlers(
         onPointerDown,
         context.handleTrackPointerDown,
@@ -64,7 +70,11 @@ export const SliderTrack = forwardRef<HTMLDivElement, SliderTrackProps>(
       onPointerUp: composeEventHandlers(onPointerUp, context.handlePointerUp),
       onPointerCancel: composeEventHandlers(
         onPointerCancel,
-        context.handlePointerUp,
+        context.handlePointerCancel,
+      ),
+      onLostPointerCapture: composeEventHandlers(
+        onLostPointerCapture,
+        context.handlePointerCancel,
       ),
     };
 

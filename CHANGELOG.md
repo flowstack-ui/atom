@@ -1,5 +1,12 @@
 # Atom Changelog
 
+## 0.19.3
+
+- Corrected range Slider thumb ARIA bounds to reflect adjacent-thumb and
+  minimum-gap constraints.
+- Made Slider and Rating pointer sessions single-owner, axis-scroll-safe, and
+  reversible when pointer interaction is cancelled or capture is lost.
+
 ## 0.19.2
 
 - Removed unsupported `aria-required` from the OTP Field group while
