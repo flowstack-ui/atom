@@ -75,7 +75,6 @@ Field state, completion behavior, and optional hidden form input.
 | `aria-labelledby` | Inherited Field label ID when no direct label is provided |
 | `aria-describedby` | Native value or Field descriptions |
 | `aria-invalid` | Present when invalid |
-| `aria-required` | Present when required |
 
 | Data attribute | Values |
 | --- | --- |
@@ -178,13 +177,14 @@ export function GroupedCode() {
 
 ## Accessibility
 
-The first visible cell owns required validity for the logical OTP value; the
+The first visible cell owns required validity and `aria-required` for the logical OTP value; the
 combined named input remains submission-only. A validation attempt is mirrored
 across Root and every cell. Inline behavior suppresses the browser bubble.
 
 The root uses `role="group"` and the visible inputs use roving `tabIndex`, so
 Tab enters the OTP field once. Each input receives a generated position label,
-and the separator is hidden from assistive technology. Give the group a clear
+and the separator is hidden from assistive technology. The group does not carry
+`aria-required`, because that attribute is unsupported on `role="group"`. Give the group a clear
 label through native `aria-label`/`aria-labelledby` or Field. The first visible
 cell owns required validity and anchors native browser feedback. The combined
 hidden native input is submission-only;

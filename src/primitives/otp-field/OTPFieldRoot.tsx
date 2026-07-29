@@ -406,7 +406,6 @@ export const OTPFieldRoot = forwardRef<HTMLDivElement, OTPFieldRootProps>(
       "aria-labelledby": resolvedAriaLabelledBy,
       "aria-describedby": resolvedAriaDescribedBy,
       "aria-invalid": isInvalid || undefined,
-      "aria-required": isRequired || undefined,
       "data-slot": dataSlot,
       ...(isDisabled && { "data-disabled": "" }),
       ...(isReadOnly && { "data-readonly": "" }),

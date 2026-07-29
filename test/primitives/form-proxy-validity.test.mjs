@@ -95,11 +95,13 @@ test("OTPField anchors required validity to its first visible cell", () => {
     ),
   );
   const cells = document.querySelectorAll('[data-slot="otp-field-input"]');
+  const group = document.querySelector('[data-slot="otp-field"]');
   const combined = document.querySelector('input[type="hidden"][name="code"]');
 
   assert.equal(cells[0].required, true);
   assert.equal(cells[0].willValidate, true);
   assert.equal(cells[1].required, false);
+  assert.equal(group?.hasAttribute("aria-required"), false);
   assert.ok(combined);
   assert.equal(combined.willValidate, false);
   dom.window.close();

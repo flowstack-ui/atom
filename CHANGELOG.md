@@ -1,5 +1,10 @@
 # Atom Changelog
 
+## 0.19.2
+
+- Removed unsupported `aria-required` from the OTP Field group while
+  preserving required semantics and native validity on its visible cells.
+
 ## 0.19.1
 
 - Fixed Password Toggle Field to inherit Field-generated label, description,

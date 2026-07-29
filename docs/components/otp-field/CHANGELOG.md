@@ -1,5 +1,10 @@
 # OTPField Changelog
 
+## 0.19.2
+
+- Removed unsupported `aria-required` from the `role="group"` root while
+  preserving required semantics and native validity on the visible cells.
+
 ## 0.19.0
 
 - Added `getInputLabel` for localizing generated cell position labels.
