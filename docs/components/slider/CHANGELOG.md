@@ -1,6 +1,6 @@
 # Slider Changelog
 
-## Unreleased
+## 0.19.4
 
 - Finalize the latest pointer value when capture is lost instead of restoring
   the pointer-down value; true `pointercancel` still rolls back without commit.
