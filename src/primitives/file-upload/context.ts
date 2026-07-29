@@ -24,9 +24,12 @@ export interface FileUploadContextValue {
   name: string | undefined;
   form: string | undefined;
   controlId: string | undefined;
+  triggerId: string;
+  labelId: string | undefined;
   describedBy: string | undefined;
   dragState: FileUploadDragState;
   setDragState: (state: FileUploadDragState) => void;
+  getDragState: (files: File[]) => Exclude<FileUploadDragState, "idle">;
   validationBehavior: ValidationBehavior | undefined;
   reportControlValidity: (id: string, invalid: boolean) => void;
 }

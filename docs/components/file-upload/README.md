@@ -69,6 +69,7 @@ rejections and drag state, and resets the native file picker.
 | `maxFiles` | `number` | `1` when single; otherwise - |
 | `maxSize` | `number` | - |
 | `validateFile` | `(file) => string \| null \| undefined \| false` | - |
+| `preventDocumentDrop` | `boolean` | `true` |
 | `name` | `string` | - |
 | `form` | `string` | - |
 | `disabled` | `boolean` | Field state or `false` |
@@ -118,7 +119,10 @@ native input when the browser permits `FileList` assignment.
 ### Trigger
 
 Opens HiddenInput's native file picker. It renders a button by default and adds
-button semantics to non-native custom elements.
+button semantics to non-native custom elements. Inside Field, its accessible
+name combines the Field label with its authored action text, and it receives
+the Field description/error and invalid state. Explicit native ARIA naming and
+description props override those defaults.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -129,17 +133,26 @@ button semantics to non-native custom elements.
 | --- | --- |
 | `role` | `"button"` for non-native custom elements |
 | `aria-disabled` | `"true"` when a custom trigger is disabled or read-only |
+| `aria-labelledby` | Field label plus Trigger text when no explicit accessible name is supplied |
+| `aria-describedby` | Explicit value or Field description/error IDs |
+| `aria-invalid` | `"true"` when Root or Field is invalid |
 
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"file-upload-trigger"` |
 | `[data-disabled]` | Present when Root is disabled |
 | `[data-readonly]` | Present when Root is read-only |
+| `[data-required]` | Present when Root or Field is required |
+| `[data-invalid]` | Present when Root or Field is invalid |
 
 ### Dropzone
 
 Renders a `div` that accepts dropped files. It owns drag events but adds no
 button role or tab stop; include Trigger when keyboard picker access is needed.
+Drag state is validated against the same type, count, size, and custom rules as
+the eventual drop. Root prevents file drops on the surrounding document by
+default so an accidental outside drop does not replace the current page;
+`preventDocumentDrop={false}` opts out without affecting non-file drag/drop.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -317,6 +330,9 @@ export function ImageUpload() {
 HiddenInput remains an aligned native file control and owns its constraints.
 A validation attempt is mirrored to Root, Trigger, and Field. Inline behavior
 suppresses the browser bubble; native behavior keeps it at Trigger's bounds.
+The visible Trigger carries the Field label, description/error, and invalid
+relationships while preserving its own action wording. Drag/drop is optional;
+always include a Trigger for keyboard, touch, and single-pointer selection.
 
 HiddenInput supplies native file-input semantics and must be present for
 Trigger to open a picker. Give the upload a visible Field.Label or another

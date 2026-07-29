@@ -53,8 +53,8 @@ function installDom() {
 
   return {
     container: dom.window.document.getElementById("root"),
-    async cleanup(root) {
-      await React.act(async () => root.unmount());
+    async cleanup(root, alreadyUnmounted = false) {
+      if (!alreadyUnmounted) await React.act(async () => root.unmount());
       for (const [key, value] of Object.entries(previous)) {
         if (value === undefined) delete globalThis[key];
         else globalThis[key] = value;
@@ -93,6 +93,150 @@ async function focus(element) {
     await Promise.resolve();
   });
 }
+
+function createFileDataTransfer(files, { fileDrag = true } = {}) {
+  const items = fileDrag
+    ? files.map((file) => ({ kind: "file", type: file.type, getAsFile: () => file }))
+    : [{ kind: "string", type: "text/plain", getAsFile: () => null }];
+  return {
+    files,
+    items,
+    types: fileDrag ? ["Files"] : ["text/plain"],
+    dropEffect: "move",
+  };
+}
+
+function dispatchFileDrag(target, type, dataTransfer) {
+  const event = new window.Event(type, { bubbles: true, cancelable: true });
+  Object.defineProperty(event, "dataTransfer", { value: dataTransfer });
+  target.dispatchEvent(event);
+  return event;
+}
+
+test("FileUpload validates pre-drop files with the same accept rules", async () => {
+  const environment = await render(
+    React.createElement(
+      FileUpload.Root,
+      { accept: "image/*", multiple: true },
+      React.createElement(FileUpload.HiddenInput),
+      React.createElement(
+        FileUpload.Dropzone,
+        null,
+        React.createElement(FileUpload.Trigger, null, "Choose files"),
+      ),
+    ),
+  );
+
+  try {
+    const dropzone = environment.container.querySelector('[data-slot="file-upload-dropzone"]');
+    const textTransfer = createFileDataTransfer([
+      new window.File(["notes"], "notes.txt", { type: "text/plain" }),
+    ]);
+    await React.act(async () => dispatchFileDrag(dropzone, "dragover", textTransfer));
+    assert.equal(dropzone.dataset.drag, "reject");
+    assert.equal(dropzone.hasAttribute("data-rejected"), true);
+    assert.equal(textTransfer.dropEffect, "none");
+
+    const imageTransfer = createFileDataTransfer([
+      new window.File(["image"], "photo.png", { type: "image/png" }),
+    ]);
+    await React.act(async () => dispatchFileDrag(dropzone, "dragover", imageTransfer));
+    assert.equal(dropzone.dataset.drag, "accept");
+    assert.equal(dropzone.hasAttribute("data-accepted"), true);
+    assert.equal(imageTransfer.dropEffect, "copy");
+
+    const textOnlyTransfer = createFileDataTransfer([], { fileDrag: false });
+    let textOnlyEvent;
+    await React.act(async () => {
+      textOnlyEvent = dispatchFileDrag(dropzone, "dragover", textOnlyTransfer);
+    });
+    assert.equal(textOnlyEvent.defaultPrevented, false);
+  } finally {
+    await environment.cleanup(environment.root);
+  }
+});
+
+test("FileUpload prevents only file drops on the document and cleans up on unmount", async () => {
+  const environment = await render(
+    React.createElement(
+      FileUpload.Root,
+      null,
+      React.createElement(FileUpload.HiddenInput),
+      React.createElement(FileUpload.Trigger, null, "Choose files"),
+    ),
+  );
+  const fileTransfer = createFileDataTransfer([
+    new window.File(["notes"], "notes.txt", { type: "text/plain" }),
+  ]);
+  const textTransfer = createFileDataTransfer([], { fileDrag: false });
+
+  const fileEvent = dispatchFileDrag(document, "drop", fileTransfer);
+  const textEvent = dispatchFileDrag(document, "drop", textTransfer);
+  assert.equal(fileEvent.defaultPrevented, true);
+  assert.equal(textEvent.defaultPrevented, false);
+
+  await React.act(async () => environment.root.unmount());
+  const afterUnmountEvent = dispatchFileDrag(document, "drop", fileTransfer);
+  assert.equal(afterUnmountEvent.defaultPrevented, false);
+  await environment.cleanup(environment.root, true);
+});
+
+test("FileUpload can opt out of document file-drop protection", async () => {
+  const environment = await render(
+    React.createElement(
+      FileUpload.Root,
+      { preventDocumentDrop: false },
+      React.createElement(FileUpload.HiddenInput),
+      React.createElement(FileUpload.Trigger, null, "Choose files"),
+    ),
+  );
+
+  try {
+    const event = dispatchFileDrag(document, "drop", createFileDataTransfer([
+      new window.File(["notes"], "notes.txt", { type: "text/plain" }),
+    ]));
+    assert.equal(event.defaultPrevented, false);
+  } finally {
+    await environment.cleanup(environment.root);
+  }
+});
+
+test("FileUpload visible Trigger owns dynamic Field error relationships", async () => {
+  const environment = await render(
+    React.createElement(
+      Field.Root,
+      { id: "attachments", required: true },
+      React.createElement(Field.Label, null, "Attachments"),
+      React.createElement(
+        FileUpload.Root,
+        { validationBehavior: "inline" },
+        React.createElement(FileUpload.HiddenInput),
+        React.createElement(FileUpload.Trigger, null, "Choose files"),
+      ),
+      React.createElement(Field.Error, null, "Choose at least one attachment."),
+    ),
+  );
+
+  try {
+    const input = environment.container.querySelector('input[type="file"]');
+    const trigger = environment.container.querySelector('[data-slot="file-upload-trigger"]');
+    trigger.scrollIntoView = () => undefined;
+    assert.match(trigger.getAttribute("aria-labelledby"), /^attachments-label .+-trigger$/);
+    assert.equal(trigger.hasAttribute("aria-invalid"), false);
+
+    await React.act(async () => {
+      input.checkValidity();
+      await Promise.resolve();
+    });
+
+    assert.equal(trigger.getAttribute("aria-invalid"), "true");
+    assert.equal(trigger.getAttribute("aria-describedby"), "attachments-error");
+    assert.equal(trigger.hasAttribute("data-invalid"), true);
+    assert.equal(document.activeElement, trigger);
+  } finally {
+    await environment.cleanup(environment.root);
+  }
+});
 
 test("Field Error selects inline behavior and mirrors a native Checkbox failure", async () => {
   const { container, root, cleanup } = await render(

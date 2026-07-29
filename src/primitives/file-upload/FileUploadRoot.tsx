@@ -13,7 +13,7 @@ import {
 import { useControllableState } from "../../hooks/useControllableState.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
 import type { NativeDivProps } from "../../utils/dom.js";
-import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
+import { cloneAndMerge, composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
 import { useFieldContext } from "../field/context.js";
 import { useOptionalFormContext } from "../form/context.js";
 import type { ValidationBehavior } from "../form/validation.js";
@@ -41,6 +41,7 @@ export interface FileUploadRootProps extends FileUploadRootNativeProps {
   maxFiles?: number;
   maxSize?: number;
   validateFile?: (file: File) => string | null | undefined | false;
+  preventDocumentDrop?: boolean;
   name?: string;
   form?: string;
   disabled?: boolean;
@@ -67,6 +68,7 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
       maxFiles,
       maxSize,
       validateFile,
+      preventDocumentDrop = true,
       name,
       form,
       disabled,
@@ -89,6 +91,7 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
     const autoId = useId();
     const inputRef = useRef<HTMLInputElement | null>(null);
     const triggerRef = useRef<HTMLElement | null>(null);
+    const rootRef = useRef<HTMLDivElement | null>(null);
     const [rejectedFiles, setRejectedFiles] = useState<FileUploadRejectedFile[]>([]);
     const [dragState, setDragState] = useState<FileUploadDragState>("idle");
     const [resolvedFiles, setResolvedFiles] = useControllableState<File[]>({
@@ -109,7 +112,29 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
       fieldCtx?.validationBehavior ??
       formContext?.validationBehavior;
     const controlId = fieldCtx?.controlId ?? (providedId ? `${providedId}-input` : `${autoId}-control`);
+    const triggerId = providedId ? `${providedId}-trigger` : `${autoId}-trigger`;
+    const labelId = fieldCtx?.labelId;
     const describedBy = ariaDescribedBy ?? fieldCtx?.describedBy;
+
+    useEffect(() => {
+      if (!preventDocumentDrop) return undefined;
+      const ownerDocument = rootRef.current?.ownerDocument;
+      if (!ownerDocument) return undefined;
+
+      const preventFileDrop = (event: DragEvent) => {
+        const items = Array.from(event.dataTransfer?.items ?? []);
+        const hasFiles = items.some((item) => item.kind === "file") ||
+          Array.from(event.dataTransfer?.types ?? []).includes("Files");
+        if (hasFiles) event.preventDefault();
+      };
+
+      ownerDocument.addEventListener("dragover", preventFileDrop);
+      ownerDocument.addEventListener("drop", preventFileDrop);
+      return () => {
+        ownerDocument.removeEventListener("dragover", preventFileDrop);
+        ownerDocument.removeEventListener("drop", preventFileDrop);
+      };
+    }, [preventDocumentDrop]);
 
     const setRejected = useCallback(
       (nextRejectedFiles: FileUploadRejectedFile[]) => {
@@ -196,6 +221,23 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
       ],
     );
 
+    const getDragState = useCallback(
+      (incomingFiles: File[]): Exclude<FileUploadDragState, "idle"> => {
+        const shouldAppendFiles = multiple && (appendFiles ?? true);
+        const candidates = multiple
+          ? (shouldAppendFiles ? [...resolvedFiles, ...incomingFiles] : incomingFiles)
+          : incomingFiles.slice(0, 1);
+        const validation = validateFileUploadFiles(candidates, {
+          accept,
+          maxFiles: multiple ? maxFiles : 1,
+          maxSize,
+          validateFile,
+        });
+        return validation.rejectedFiles.length > 0 ? "reject" : "accept";
+      },
+      [accept, appendFiles, maxFiles, maxSize, multiple, resolvedFiles, validateFile],
+    );
+
     const removeFile = useCallback(
       (file: File) => {
         if (isDisabled || isReadOnly) return;
@@ -236,9 +278,12 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
         name,
         form,
         controlId,
+        triggerId,
+        labelId,
         describedBy,
         dragState,
         setDragState,
+        getDragState,
         validationBehavior: resolvedValidationBehavior,
         reportControlValidity,
       }),
@@ -249,17 +294,20 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
         describedBy,
         dragState,
         form,
+        getDragState,
         isDisabled,
         isInvalid,
         isReadOnly,
         isRequired,
         multiple,
         name,
+        labelId,
         openFilePicker,
         rejectedFiles,
         removeFile,
         resolvedFiles,
         setFilesFromList,
+        triggerId,
         reportControlValidity,
         resolvedValidationBehavior,
       ],
@@ -267,7 +315,7 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
 
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
-      ref,
+      ref: composeRefs(rootRef, ref),
       id: providedId,
       "data-slot": dataSlot,
       "data-state": resolvedFiles.length > 0 ? "filled" : "empty",

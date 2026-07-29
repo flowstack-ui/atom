@@ -15,6 +15,20 @@ import {
 } from "../../utils/slot.js";
 import { useFileUploadContext } from "./context.js";
 
+function getDraggedFiles(dataTransfer: DataTransfer): File[] {
+  const files = Array.from(dataTransfer.files ?? []);
+  if (files.length > 0) return files;
+  return Array.from(dataTransfer.items ?? [])
+    .filter((item) => item.kind === "file")
+    .map((item) => item.getAsFile())
+    .filter((file): file is File => file !== null);
+}
+
+function hasDraggedFiles(dataTransfer: DataTransfer): boolean {
+  return Array.from(dataTransfer.items ?? []).some((item) => item.kind === "file") ||
+    Array.from(dataTransfer.types ?? []).includes("Files");
+}
+
 type FileUploadDropzoneNativeProps = NativeDivProps<"children">;
 
 export interface FileUploadDropzoneProps extends FileUploadDropzoneNativeProps {
@@ -43,6 +57,7 @@ export const FileUploadDropzone = forwardRef<HTMLDivElement, FileUploadDropzoneP
     const {
       disabled,
       dragState,
+      getDragState,
       readOnly,
       setDragState,
       setFilesFromList,
@@ -52,20 +67,25 @@ export const FileUploadDropzone = forwardRef<HTMLDivElement, FileUploadDropzoneP
     const handleDragEnter = useCallback<DragEventHandler<HTMLDivElement>>(
       (event) => {
         if (isInactive) return;
+        if (!hasDraggedFiles(event.dataTransfer)) return;
         event.preventDefault();
-        setDragState("accept");
+        const files = getDraggedFiles(event.dataTransfer);
+        setDragState(files.length > 0 ? getDragState(files) : "accept");
       },
-      [isInactive, setDragState],
+      [getDragState, isInactive, setDragState],
     );
 
     const handleDragOver = useCallback<DragEventHandler<HTMLDivElement>>(
       (event) => {
         if (isInactive) return;
+        if (!hasDraggedFiles(event.dataTransfer)) return;
         event.preventDefault();
-        event.dataTransfer.dropEffect = "copy";
-        setDragState("accept");
+        const files = getDraggedFiles(event.dataTransfer);
+        const nextDragState = files.length > 0 ? getDragState(files) : "accept";
+        event.dataTransfer.dropEffect = nextDragState === "accept" ? "copy" : "none";
+        setDragState(nextDragState);
       },
-      [isInactive, setDragState],
+      [getDragState, isInactive, setDragState],
     );
 
     const handleDragLeave = useCallback<DragEventHandler<HTMLDivElement>>(
@@ -80,6 +100,7 @@ export const FileUploadDropzone = forwardRef<HTMLDivElement, FileUploadDropzoneP
     const handleDrop = useCallback<DragEventHandler<HTMLDivElement>>(
       (event) => {
         if (isInactive) return;
+        if (!hasDraggedFiles(event.dataTransfer)) return;
         event.preventDefault();
         setDragState("idle");
         setFilesFromList(event.dataTransfer.files);

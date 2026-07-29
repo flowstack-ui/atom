@@ -1,5 +1,12 @@
 # FileUpload Changelog
 
+## 0.19.7
+
+- Related the visible Trigger to its Field label, description/error, required,
+  and invalid state while preserving authored action wording.
+- Made Dropzone accept/reject state follow the configured file constraints
+  before drop and added default file-only document-drop protection.
+
 ## 0.6.16
 
 - Explicitly scrolled inline validation-directed focus into view.
