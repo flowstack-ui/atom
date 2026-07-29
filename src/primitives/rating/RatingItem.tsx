@@ -48,6 +48,32 @@ export interface RatingItemProps extends RatingItemNativeProps {
   "data-slot"?: string;
 }
 
+function resolvePointerItem(currentItem: HTMLElement, clientX: number) {
+  const root = currentItem.closest<HTMLElement>('[role="slider"]');
+  if (!root) return currentItem;
+
+  const items = Array.from(
+    root.querySelectorAll<HTMLElement>('[aria-hidden="true"][data-value]'),
+  );
+  if (items.length === 0) return currentItem;
+
+  return items.reduce((closest, item) => {
+    const itemRect = item.getBoundingClientRect();
+    const closestRect = closest.getBoundingClientRect();
+    const itemDistance = clientX < itemRect.left
+      ? itemRect.left - clientX
+      : clientX > itemRect.right
+        ? clientX - itemRect.right
+        : 0;
+    const closestDistance = clientX < closestRect.left
+      ? closestRect.left - clientX
+      : clientX > closestRect.right
+        ? clientX - closestRect.right
+        : 0;
+    return itemDistance < closestDistance ? item : closest;
+  }, currentItem);
+}
+
 export const RatingItem = forwardRef<HTMLSpanElement, RatingItemProps>(
   function RatingItem(
     {
@@ -84,15 +110,18 @@ export const RatingItem = forwardRef<HTMLSpanElement, RatingItemProps>(
 
     const getPointerValue = useCallback(
       (event: { currentTarget: EventTarget & HTMLElement; clientX: number }) => {
-        const rect = event.currentTarget.getBoundingClientRect();
-        const lowerBound = Math.max(min, value - 1);
+        const pointerItem = resolvePointerItem(event.currentTarget, event.clientX);
+        const pointerItemValue = Number(pointerItem.dataset.value);
+        const resolvedValue = Number.isFinite(pointerItemValue) ? pointerItemValue : value;
+        const rect = pointerItem.getBoundingClientRect();
+        const lowerBound = Math.max(min, resolvedValue - 1);
         const percent =
           rect.width > 0
             ? dir === "rtl"
               ? (rect.right - event.clientX) / rect.width
               : (event.clientX - rect.left) / rect.width
             : 1;
-        const rawValue = lowerBound + Math.min(Math.max(percent, 0), 1) * (value - lowerBound);
+        const rawValue = lowerBound + Math.min(Math.max(percent, 0), 1) * (resolvedValue - lowerBound);
         return snapRatingPointerValue(rawValue, step, min);
       },
       [dir, min, step, value],
