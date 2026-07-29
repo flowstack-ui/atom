@@ -1,5 +1,11 @@
 # Atom Changelog
 
+## Unreleased
+
+- Fixed Slider clicks and drags that could jump back when browsers released
+  pointer capture during an otherwise valid interaction. True pointer
+  cancellation still restores the initial value.
+
 ## 0.19.3
 
 - Corrected range Slider thumb ARIA bounds to reflect adjacent-thumb and

@@ -134,7 +134,7 @@ test("Slider range thumbs expose their effective dependent bounds", () => {
   assert.match(html, /aria-valuenow="75" aria-valuemin="30" aria-valuemax="100"/);
 });
 
-test("Slider source preserves scroll and reverts cancelled pointer sessions", async () => {
+test("Slider preserves scroll, reverts cancellation, and commits capture loss", async () => {
   const rootSource = await readFile(
     new URL("src/primitives/slider/SliderRoot.tsx", packageRoot),
     "utf8",
@@ -150,6 +150,9 @@ test("Slider source preserves scroll and reverts cancelled pointer sessions", as
   assert.match(rootSource, /updateValues\(session\.initialValues\)/);
   assert.match(trackSource, /touchAction: context\.orientation === "horizontal" \? "pan-y" : "pan-x"/);
   assert.match(trackSource, /onLostPointerCapture: composeEventHandlers/);
+  assert.match(trackSource, /onLostPointerCapture,[\s\S]*context\.handlePointerUp/);
+  assert.match(rootSource, /onLostPointerCapture: handlePointerUp/);
+  assert.doesNotMatch(rootSource, /onLostPointerCapture: handlePointerCancel/);
   assert.doesNotMatch(rootSource, /onPointerCancel: handlePointerUp/);
 });
 

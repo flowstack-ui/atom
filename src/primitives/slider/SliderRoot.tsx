@@ -385,7 +385,7 @@ export const SliderRoot = forwardRef<HTMLDivElement, SliderRootProps>(
         onPointerMove: handlePointerMove,
         onPointerUp: handlePointerUp,
         onPointerCancel: handlePointerCancel,
-        onLostPointerCapture: handlePointerCancel,
+        onLostPointerCapture: handlePointerUp,
       };
     }, [
       ariaLabel,

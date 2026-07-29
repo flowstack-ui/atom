@@ -74,7 +74,7 @@ export const SliderTrack = forwardRef<HTMLDivElement, SliderTrackProps>(
       ),
       onLostPointerCapture: composeEventHandlers(
         onLostPointerCapture,
-        context.handlePointerCancel,
+        context.handlePointerUp,
       ),
     };
 
