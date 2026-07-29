@@ -42,7 +42,10 @@ test("OTPField compound parts render grouped one-time-code inputs", () => {
   assert.match(html, /role="group"/);
   assert.match(html, /aria-label="Verification code"/);
   assert.match(html, /aria-invalid="true"/);
-  assert.match(html, /aria-required="true"/);
+  assert.doesNotMatch(
+    html.match(/^<div[^>]*>/)?.[0] ?? "",
+    /aria-required=/,
+  );
   assert.match(html, /data-slot="otp-field"/);
   assert.match(html, /id="otp-input-1"/);
   assert.match(html, /tabindex="0"[^>]*data-index="0"/);
