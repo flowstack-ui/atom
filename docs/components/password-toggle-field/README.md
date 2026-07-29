@@ -170,6 +170,10 @@ export function ControlledPasswordField() {
 
 ## Accessibility
 
+When nested in `Field.Root`, `Input` inherits the generated control ID plus the
+label, description, and error relationships. Explicit input relationship props
+continue to take precedence.
+
 The visible password input owns native validity. After a validation attempt,
 Root coordinates its invalid state across Input and Toggle. Inline behavior
 suppresses the browser bubble while keeping constraint validation active.
