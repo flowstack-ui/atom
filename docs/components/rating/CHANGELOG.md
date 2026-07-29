@@ -1,6 +1,6 @@
 # Rating Changelog
 
-## Unreleased
+## 0.19.6
 
 - Resolved drag coordinates against the nearest Rating Item so a captured
   pointer can move continuously across the complete scale, including gaps and

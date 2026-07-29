@@ -1,6 +1,6 @@
 # Atom Changelog
 
-## Unreleased
+## 0.19.6
 
 - Fixed Rating drags so a pointer captured by the starting item can continue
   selecting across every item in the scale.
