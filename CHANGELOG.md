@@ -1,6 +1,6 @@
 # Atom Changelog
 
-## Unreleased
+## 0.19.8
 
 - Made Feed keyboard navigation reveal the focused article or outside-feed
   target with nearest scrolling while preserving consumer cancellation.
