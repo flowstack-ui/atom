@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
 ## 0.16.0
 
 - Added the hostless `Items` part to render Root's calculated page and ellipsis

@@ -81,20 +81,35 @@ async function click(element) {
   });
 }
 
-test("Clipboard writes the current value and resets copied state", async () => {
+test("Clipboard writes the current value and exposes copied state", async () => {
   const { container, cleanup } = installDom();
   const root = createRoot(container);
   const writes = [];
   try {
     await React.act(async () => root.render(React.createElement(Fixture, {
       value: "edited command",
-      timeout: 5,
+      timeout: 60_000,
       writeValue: async (value) => writes.push(value),
     })));
     await click(container.querySelector("button"));
     assert.deepEqual(writes, ["edited command"]);
     assert.equal(container.querySelector("[data-slot='clipboard']").dataset.state, "copied");
     assert.equal(container.querySelector("[role='status']").textContent, "Copied");
+  } finally {
+    await React.act(async () => root.unmount());
+    cleanup();
+  }
+});
+
+test("Clipboard resets copied state after its timeout", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  try {
+    await React.act(async () => root.render(React.createElement(Fixture, {
+      timeout: 5,
+      writeValue: async () => {},
+    })));
+    await click(container.querySelector("button"));
     await React.act(async () => new Promise((resolve) => setTimeout(resolve, 10)));
     assert.equal(container.querySelector("[data-slot='clipboard']").dataset.state, "idle");
   } finally {
