@@ -93,6 +93,8 @@ test("SwipeableItem source handles pointer capture and keyboard close", async ()
   assert.match(rootSource, /onFullSwipe/);
   assert.match(rootSource, /fullSwipeThreshold = 0\.6/);
   assert.match(contentSource, /setPointerCapture\(event\.pointerId\)/);
+  assert.match(contentSource, /style: \{ touchAction: "pan-y", \.\.\.style \}/);
+  assert.match(contentSource, /event\.target !== event\.currentTarget/);
   assert.match(contentSource, /hasPointerCapture\?\.\(event\.pointerId\)/);
   assert.match(contentSource, /releasePointerCapture\(event\.pointerId\)/);
   assert.match(contentSource, /contentWidth \* fullSwipeThreshold/);

@@ -78,6 +78,7 @@ export const SwipeableItemContent = forwardRef<HTMLElement, SwipeableItemContent
       render,
       asChild,
       children,
+      style,
       tabIndex,
       "data-slot": dataSlot = "swipeable-item-content",
       ...restProps
@@ -174,6 +175,7 @@ export const SwipeableItemContent = forwardRef<HTMLElement, SwipeableItemContent
 
       const side = getSwipeableItemSideFromKey(event.key, dir);
       if (!side) return;
+      if (event.target !== event.currentTarget) return;
 
       const size = getSwipeableItemSizeForSide(side, startSize, endSize);
       if (size <= 0) return;
@@ -295,6 +297,7 @@ export const SwipeableItemContent = forwardRef<HTMLElement, SwipeableItemContent
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref,
+      style: { touchAction: "pan-y", ...style },
       tabIndex: tabIndex ?? 0,
       "data-slot": dataSlot,
       "data-state": state,

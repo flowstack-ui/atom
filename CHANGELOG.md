@@ -1,5 +1,10 @@
 # Atom Changelog
 
+## 0.19.9
+
+- Made SwipeableItem preserve native vertical panning and stopped nested
+  controls' Arrow keys from being interpreted as item-reveal commands.
+
 ## 0.19.8
 
 - Made Feed keyboard navigation reveal the focused article or outside-feed

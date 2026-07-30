@@ -1,8 +1,12 @@
 # SwipeableItem Changelog
 
-## Unreleased
+## 0.2.1
 
-- No unreleased changes.
+- Preserved native vertical panning with an axis-compatible Content touch
+  policy and stopped bubbled Arrow keys from nested controls from revealing
+  action panels.
+- Added real-browser and numbered manual evidence for gesture settlement,
+  cancellation, keyboard isolation, logical direction, and scrolling.
 
 ## 0.2.0
 
