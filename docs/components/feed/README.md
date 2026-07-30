@@ -16,7 +16,8 @@ large collections require windowing; Feed itself does not fetch or virtualize.
 - Supports known totals and unknown/infinite size announcements.
 - Normalizes zero-based indexes to one-based positions.
 - Exposes loading or mutation state with `aria-busy`.
-- Implements article and outside-feed keyboard movement.
+- Implements article and outside-feed keyboard movement and reveals the target
+  with nearest scrolling.
 - Preserves native props and supports custom composition.
 
 ## Import
@@ -148,6 +149,10 @@ positions for paged or virtualized slices.
 | `PageUp` | Moves to the previous Item. |
 | `Ctrl+Home` / `Cmd+Home` | Moves to the last focusable element before Root. |
 | `Ctrl+End` / `Cmd+End` | Moves to the first focusable element after Root. |
+
+Keyboard movement scrolls the focused target into the nearest visible position.
+An authored `onKeyDown` handler can call `preventDefault()` to cancel both the
+focus move and scrolling.
 
 ## Changelog
 

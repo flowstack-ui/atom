@@ -12,6 +12,61 @@ import {
   FeedItem,
   FeedRoot,
 } from "../../dist/index.js";
+import { JSDOM } from "jsdom";
+import { createRoot } from "react-dom/client";
+
+function installDom() {
+  const dom = new JSDOM(
+    "<!doctype html><html><body><div id='root'></div></body></html>",
+    { pretendToBeVisual: true, url: "https://example.test/" },
+  );
+  const keys = [
+    "window", "document", "HTMLElement", "Element", "Node", "Event",
+    "KeyboardEvent", "IS_REACT_ACT_ENVIRONMENT",
+  ];
+  const previous = Object.fromEntries(keys.map((key) => [key, globalThis[key]]));
+  Object.assign(globalThis, {
+    window: dom.window,
+    document: dom.window.document,
+    HTMLElement: dom.window.HTMLElement,
+    Element: dom.window.Element,
+    Node: dom.window.Node,
+    Event: dom.window.Event,
+    KeyboardEvent: dom.window.KeyboardEvent,
+    IS_REACT_ACT_ENVIRONMENT: true,
+  });
+
+  const scrollCalls = [];
+  dom.window.HTMLElement.prototype.scrollIntoView = function scrollIntoView(options) {
+    scrollCalls.push({ element: this, options });
+  };
+
+  return {
+    container: dom.window.document.getElementById("root"),
+    scrollCalls,
+    cleanup() {
+      for (const [key, value] of Object.entries(previous)) {
+        if (value === undefined) delete globalThis[key];
+        else globalThis[key] = value;
+      }
+      dom.window.close();
+    },
+  };
+}
+
+async function press(target, key, options = {}) {
+  let event;
+  await React.act(async () => {
+    event = new window.KeyboardEvent("keydown", {
+      key,
+      bubbles: true,
+      cancelable: true,
+      ...options,
+    });
+    target.dispatchEvent(event);
+  });
+  return event;
+}
 
 test("Feed compound parts render WAI-ARIA feed anatomy", () => {
   const html = renderToStaticMarkup(
@@ -99,6 +154,88 @@ test("Feed source keeps WAI-ARIA keyboard navigation in Root", async () => {
   assert.match(source, /getAttribute\("role"\) === "article"/);
   assert.match(source, /focusOutsideFeed\("before"\)/);
   assert.match(source, /focusOutsideFeed\("after"\)/);
+  assert.match(source, /scrollIntoView\(\{ block: "nearest", inline: "nearest" \}\)/);
+});
+
+test("Feed keyboard navigation focuses and reveals articles and outside targets", async () => {
+  const { container, scrollCalls, cleanup } = installDom();
+  const root = createRoot(container);
+
+  try {
+    await React.act(async () => root.render(
+      React.createElement(React.Fragment, null,
+        React.createElement("button", { id: "before" }, "Before feed"),
+        React.createElement(Feed.Root, { "aria-label": "Updates" },
+          React.createElement(Feed.Item, { id: "first" },
+            React.createElement("button", { id: "first-action" }, "Open first"),
+          ),
+          React.createElement(Feed.Item, { id: "second" }, "Second"),
+          React.createElement(Feed.Item, { id: "third" }, "Third"),
+        ),
+        React.createElement("button", { id: "after" }, "After feed"),
+      ),
+    ));
+
+    const firstAction = container.querySelector("#first-action");
+    const first = container.querySelector("#first");
+    const second = container.querySelector("#second");
+    const third = container.querySelector("#third");
+    const before = container.querySelector("#before");
+    const after = container.querySelector("#after");
+
+    firstAction.focus();
+    assert.equal((await press(firstAction, "PageDown")).defaultPrevented, true);
+    assert.equal(document.activeElement, second);
+    assert.deepEqual(scrollCalls.at(-1), {
+      element: second,
+      options: { block: "nearest", inline: "nearest" },
+    });
+
+    await press(second, "PageUp");
+    assert.equal(document.activeElement, first);
+    await press(first, "PageUp");
+    assert.equal(document.activeElement, first);
+    await press(first, "PageDown");
+    await press(second, "PageDown");
+    await press(third, "PageDown");
+    assert.equal(document.activeElement, third);
+
+    await press(third, "Home", { ctrlKey: true });
+    assert.equal(document.activeElement, before);
+    assert.equal(scrollCalls.at(-1).element, before);
+
+    first.focus();
+    await press(first, "End", { metaKey: true });
+    assert.equal(document.activeElement, after);
+    assert.equal(scrollCalls.at(-1).element, after);
+  } finally {
+    await React.act(async () => root.unmount());
+    cleanup();
+  }
+});
+
+test("Feed consumer key handler can cancel built-in focus and scrolling", async () => {
+  const { container, scrollCalls, cleanup } = installDom();
+  const root = createRoot(container);
+
+  try {
+    await React.act(async () => root.render(
+      React.createElement(Feed.Root, {
+        onKeyDown: (event) => event.preventDefault(),
+      },
+      React.createElement(Feed.Item, { id: "first" }, "First"),
+      React.createElement(Feed.Item, { id: "second" }, "Second"),
+      ),
+    ));
+    const first = container.querySelector("#first");
+    first.focus();
+    await press(first, "PageDown");
+    assert.equal(document.activeElement, first);
+    assert.deepEqual(scrollCalls, []);
+  } finally {
+    await React.act(async () => root.unmount());
+    cleanup();
+  }
 });
 
 test("Feed entrypoints keep client boundaries only where needed", async () => {
