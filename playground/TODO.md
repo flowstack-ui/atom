@@ -9,27 +9,27 @@ in `CURRENT.md` and `docs/`.
   remains recorded as `not run` until a named device is available; do not treat
   the unavailable platform as a pass.
 
-## 1. Add Browser Smoke Tests
+## 1. Expand Browser Smoke Tests
 
-- Add the playground's browser-test setup, scripts, and initial smoke-test
-  helpers after the inspection consolidation is stable.
+- The shared Playwright preview, scenario helper, desktop Chromium/WebKit
+  projects, Android-Chromium/iPhone-WebKit touch profiles, and initial
+  Dialog/Select mobile smoke journeys are complete.
 - Automate the highest-risk manual flows in this order:
-  1. Dialog
-  2. Select
-  3. Menu
-  4. Combobox
-  5. File Upload
-  6. Slider
-  7. Rating
-  8. Swipeable Item
-- Create and review automation-ready protocols for these targets before
-  implementing their smoke tests; none currently has a reviewed protocol.
+  1. Menu
+  2. Combobox
+  3. File Upload
+  4. Slider
+  5. Rating
+  6. Swipeable Item mobile profile
+- Create or update automation-ready protocol sections for these targets before
+  implementing their expanded smoke tests.
 - Use each reviewed protocol as the source for test steps and expected browser
   behavior once it exists.
 
 ## 2. Refactor Oversized Scenario Modules
 
-- Begin only after the browser-test setup from item 1 exists and passes.
+- The browser-test setup gate is satisfied; begin only after the mobile
+  readiness expansion for the affected scenario has a stable regression.
 - Reassess module size and responsibilities when this work begins. Current
   likely candidates include `UtilityPrimitiveScenarios.tsx`,
   `NavigationPrimitiveScenarios.tsx`, `DataPrimitiveScenarios.tsx`, and

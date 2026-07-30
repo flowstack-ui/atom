@@ -6,6 +6,10 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Added a shared Playwright scenario helper, desktop Chromium/WebKit projects,
+  Android-Chromium and iPhone-WebKit touch profiles, and initial mobile Dialog
+  and Select smoke journeys. CI and publishing now install both browser engines.
+
 - Updated the locked PostCSS toolchain to a patched compatible release so the
   playground dependency audit is clean.
 

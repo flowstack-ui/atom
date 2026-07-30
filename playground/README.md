@@ -36,8 +36,8 @@ npm run build
 
 Local development uses `http://127.0.0.1:3000`. The network command binds the
 same port to the LAN for real-phone and tablet review. Vite prints the current
-Network URL when it starts. Port `4000` is reserved for a future automated
-browser-test preview.
+Network URL when it starts. Port `4000` is reserved for the automated Playwright
+preview used by `npm run test:browser` from the package root.
 
 ## Source Rule
 

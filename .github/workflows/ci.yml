@@ -78,10 +78,10 @@ jobs:
       - name: Build playground
         run: npm run ci:playground
 
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Install browser engines
+        run: npx playwright install --with-deps chromium webkit
 
-      - name: Test playground in Chromium
+      - name: Test playground in desktop and mobile browser profiles
         run: npm run test:browser
 
   pack:

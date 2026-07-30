@@ -10,7 +10,9 @@ The primary workflow is `.github/workflows/ci.yml` and contains these jobs:
 
 - `package (node-22)` builds Atom and runs the package test suite on Node 22.
 - `package (node-24)` repeats the package checks on Node 24.
-- `playground` type-checks and builds the browser workbench on Node 24.
+- `playground` type-checks and builds the browser workbench on Node 24, then
+  runs desktop Chromium/WebKit regressions and touch-specific Android-Chromium
+  and iPhone-WebKit profiles.
 - `packed package` creates the real npm archive, verifies its paths, and checks
   every JavaScript and declaration export target.
 - `consumer (react-18)` installs that archive in a clean React 18 project.
@@ -35,6 +37,8 @@ Run the playground check:
 npm ci
 npm ci --prefix playground
 npm run ci:playground
+npx playwright install chromium webkit
+npm run test:browser
 ```
 
 Create and inspect a real archive:
