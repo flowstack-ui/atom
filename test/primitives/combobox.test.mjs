@@ -139,7 +139,8 @@ test("Combobox owns visible filtering, full-control positioning, and trigger tog
   assert.match(itemSource, /if \(!isVisible\) return null/);
   assert.match(contentSource, /controlRef\.current \?\? inputRef\.current/);
   assert.match(triggerSource, /onToggle\(\)/);
-  assert.match(triggerSource, /inputRef\.current\?\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(triggerSource, /inputRef\.current\?\.focus\(\)/);
+  assert.doesNotMatch(triggerSource, /focus\(\{ preventScroll: true \}\)/);
 });
 
 test("ComboboxLabel renders a native input label outside option groups", () => {

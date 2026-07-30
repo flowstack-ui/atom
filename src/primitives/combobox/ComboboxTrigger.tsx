@@ -35,7 +35,7 @@ export const ComboboxTrigger = forwardRef<HTMLButtonElement, ComboboxTriggerProp
     );
     const handleClick: MouseEventHandler<HTMLButtonElement> = useCallback(() => {
       onToggle();
-      inputRef.current?.focus({ preventScroll: true });
+      inputRef.current?.focus();
     }, [inputRef, onToggle]);
 
     return (
