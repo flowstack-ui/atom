@@ -1,10 +1,8 @@
 import { expect, test } from "@playwright/test";
+import { openScenario } from "./helpers/playground";
 
 async function openSwipeableItem(page: import("@playwright/test").Page) {
-  await page.goto("/");
-  await page.getByRole("menuitem", { name: "Controls", exact: true }).click();
-  await page.getByRole("menuitem", { name: "Swipeable Item", exact: true }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Swipeable Item" })).toBeVisible();
+  await openScenario(page, "Controls", "Swipeable Item");
   return {
     root: page.locator("[data-playground-swipeable-root]"),
     content: page.locator("[data-playground-swipeable-content]"),

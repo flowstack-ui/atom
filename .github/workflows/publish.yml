@@ -71,11 +71,11 @@ jobs:
         if: steps.release-state.outputs.already-published != 'true'
         run: npm test
 
-      - name: Install Chromium
+      - name: Install browser engines
         if: steps.release-state.outputs.already-published != 'true'
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium webkit
 
-      - name: Test playground in Chromium
+      - name: Test playground in desktop and mobile browser profiles
         if: steps.release-state.outputs.already-published != 'true'
         run: npm run test:browser
 

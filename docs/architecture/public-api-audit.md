@@ -58,7 +58,8 @@ Status: pass
 - `Portal` is public through the root export and `@flowstack-ui/atom/portal`.
 - Slot and DOM helper utilities remain internal implementation details.
 - The readiness-cleanup suite contains 512 passing tests. The complete local
-  matrix also passes the playground build and Chromium suite, archive
+  matrix also passes the playground build and Chromium/WebKit desktop and
+  touch-profile suite, archive
   verification, and clean React 18 and React 19 consumers.
 
 ## Client And Server Boundaries

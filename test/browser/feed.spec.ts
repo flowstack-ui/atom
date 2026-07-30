@@ -1,11 +1,8 @@
 import { expect, test } from "@playwright/test";
+import { openScenario } from "./helpers/playground";
 
 test("Feed keyboard navigation focuses targets and keeps them visible", async ({ page }) => {
-  await page.goto("/");
-  await page.getByRole("menuitem", { name: "Data", exact: true }).click();
-  await page.getByRole("menuitem", { name: "Feed", exact: true }).click();
-
-  await expect(page.getByRole("heading", { level: 1, name: "Feed" })).toBeVisible();
+  await openScenario(page, "Data", "Feed");
 
   const viewport = page.getByLabel("Feed preview");
   const articles = viewport.getByRole("article");
