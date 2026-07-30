@@ -5,6 +5,25 @@ Last release audit: 2026-07-30
 The current release outcome is recorded first. Earlier published-release
 audits remain below as historical baselines.
 
+## 0.20.3 Sticky Modal Scroll Lock Candidate - 2026-07-30
+
+Status: release-qualified. Registry publication and downstream Brick adoption
+are pending and are not represented as passed.
+
+This compatible patch locks document overflow without also hiding body
+overflow. Background wheel and touch scrolling remain blocked, owned modal
+regions remain scrollable, and sticky application chrome stays anchored when a
+modal opens at a nonzero page scroll position.
+
+The candidate passes 516 package tests and all 50 browser tests across desktop
+Chromium, desktop WebKit, Android-Chromium touch emulation, and iPhone-WebKit
+touch emulation. The playground production build, all 71 JavaScript and
+declaration export targets, the verified 2,199-file archive, and clean packed
+consumers with React and React DOM 18.3.1 and 19.2.7 also pass. The exact
+candidate archive is 542,264 compressed bytes with npm SHA-1
+`c297fac72a2d219b9bd71946ec48c270afd95bb4`; registry integrity is recorded
+after trusted publication completes.
+
 ## 0.20.2 Combobox Mobile Focus Release Outcome - 2026-07-30
 
 Status: published and registry-verified. The trusted-publishing workflow,

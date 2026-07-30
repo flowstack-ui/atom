@@ -1,5 +1,10 @@
 # Popover Changelog
 
+## 0.20.3
+
+- Modal Content now inherits document-only overflow locking so sticky
+  application chrome remains anchored at nonzero page scroll positions.
+
 ## 0.20.1
 
 - Made modal Content participate in Atom's stacked background-isolation system

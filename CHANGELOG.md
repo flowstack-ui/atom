@@ -4,6 +4,12 @@
 
 - No unreleased changes.
 
+## 0.20.3
+
+- Kept sticky application chrome anchored at its existing viewport position
+  while Dialog, Drawer, AlertDialog, modal Popover, and modal Menu-family
+  layers lock background scrolling.
+
 ## 0.20.2
 
 - Allowed native focus scrolling when Combobox Trigger returns focus to Input,
