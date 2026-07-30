@@ -323,6 +323,9 @@
     "dev:test": "node scripts/dev-test.mjs",
     "typecheck": "tsc -p tsconfig.build.json --noEmit",
     "test": "npm run build && node --test test/*.test.mjs test/primitives/*.test.mjs",
+    "test:component": "node scripts/test-component.mjs all",
+    "test:component:unit": "node scripts/test-component.mjs unit",
+    "test:component:browser": "node scripts/test-component.mjs browser",
     "test:browser": "npm run playground:build && playwright test",
     "pack:check": "npm_config_cache=/tmp/atom-ui-npm-cache npm pack --dry-run",
     "verify:pack": "node scripts/verify-packed-package.mjs",
@@ -333,7 +336,10 @@
     "playground:build": "npm --prefix playground run build",
     "playground:preview": "npm --prefix playground run preview",
     "test:all": "node scripts/test-all.mjs",
-    "release:check": "npm run test && npm run test:browser && npm run pack:check",
+    "check:focused": "npm run test:component",
+    "check:repository": "npm run test",
+    "check:release": "npm run test:all",
+    "release:check": "npm run check:release",
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {

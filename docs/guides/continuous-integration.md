@@ -24,6 +24,23 @@ the source tree used to create it.
 
 ## Local Commands
 
+Choose the narrowest verification tier that owns the current risk:
+
+- focused iteration: `npm run test:component:unit -- <subpath>` and, where a
+  reviewed browser mapping exists,
+  `npm run test:component:browser -- <subpath>`;
+- repository candidate: `npm run check:repository`;
+- release candidate: `npm run check:release`.
+
+The legacy `npm run release:check` spelling is retained as an alias of the
+same complete release candidate; it no longer names a weaker parallel path.
+
+`npm run test:component -- <subpath>` runs the component-owned primitive tests
+and its mapped browser integration when one exists. Browser mappings are
+explicit because Atom browser evidence often belongs to shared interaction
+seams rather than one file per primitive. An unmapped component never invents
+a browser pass; use the complete browser tier when shared evidence is required.
+
 Run the package checks:
 
 ```bash
