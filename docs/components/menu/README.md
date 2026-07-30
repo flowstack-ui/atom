@@ -9,6 +9,12 @@ Archive, or Show grid. Use Select or Listbox when the main job is choosing a
 form value, NavigationMenu for links that move around a website, and Menubar
 when several top-level application menus must sit in one horizontal row.
 
+Nested SubContent is an explicit cascading-menu model. It remains operable by
+tap/click and keyboard, but Atom does not switch it to drill-in navigation from
+viewport size or pointer media queries. For a mobile-first drill-in flow,
+compose a separate panel, Dialog, Drawer, or grouped list with explicit depth
+and back controls at the application layer.
+
 ## Features
 
 - Full keyboard navigation for menu items and submenus.
@@ -79,6 +85,13 @@ ContextMenu control it, while standalone examples can open it directly.
 Portals and positions the focus-managed `menu` surface. Focus moves to real
 `menuitem*` elements. Modal mode uses Atom's stacked isolation and scroll lock;
 non-modal outside interaction keeps its destination.
+
+Content is an allowed scroll region while its modal lock is active. Atom does
+not impose dimensions or scrolling styles: consumers constrain Content, apply
+`overflow: auto`, and choose any desired `overscroll-behavior`. Portalled
+submenus are owned by the same focus and modal systems. For a third-party
+portalled child, target a container rendered inside Content so it remains on
+the modal's owned DOM path.
 
 | Prop | Type | Default |
 | --- | --- | --- |

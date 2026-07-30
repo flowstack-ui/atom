@@ -6,6 +6,27 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Added a consolidated physical iOS/Android and VoiceOver/TalkBack candidate
+  protocol while preserving every unrun device record as `not run`.
+- Added desktop/mobile positioned-overlay regressions for Combobox and Dropdown
+  Menu, including the documented Menu available-height overflow recipe and
+  portrait-to-landscape resize.
+- Added Android/iPhone browser regressions for actionable Toast placement with
+  consumer safe-area/application offsets and focused-input preservation.
+- Consolidated mobile Tooltip, Context Menu, Slider, Rating, and Swipeable Item
+  gesture/cancellation regressions across Chromium and WebKit touch profiles.
+- Reconciled all 78 Mobile Readiness workbook records with the final protocol,
+  linked applicable automated evidence, and corrected validation so an
+  unavailable unrun device is structurally ready without being marked passed.
+
+- Clarified the Toast mobile-readiness contract with a public safe-area and
+  application-offset recipe; automatic virtual-keyboard avoidance remains a
+  named-device experiment rather than a package claim.
+
+- Added desktop and mobile browser regressions for modal Dropdown Menu and
+  Popover background isolation, internal wheel/touch scrolling, scroll-boundary
+  containment, and cleanup.
+
 - Added desktop Chromium/WebKit and Android/iPhone touch regressions for
   release-based Combobox and Dropdown Menu outside dismissal.
 

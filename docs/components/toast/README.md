@@ -237,6 +237,39 @@ The flat API also exports the `toast` helper, store mutation/subscription
 functions, `useToastStore`, role/duration/normalization helpers, provider defaults, and the
 Provider/Root context hooks and providers for advanced integrations.
 
+### Safe areas and application chrome
+
+Atom exposes the viewport element and its logical position but does not fix it,
+choose an inset, or move it around application navigation. Apply placement in
+the styled layer and combine the platform safe-area inset with an
+application-owned offset:
+
+```css
+[data-slot="toast-viewport"] {
+  --app-toast-inline-offset: 1rem;
+  --app-toast-bottom-offset: 0px;
+
+  position: fixed;
+  inset-inline: var(--app-toast-inline-offset);
+  bottom: calc(
+    env(safe-area-inset-bottom, 0px) +
+    var(--app-toast-bottom-offset) +
+    1rem
+  );
+  z-index: 50;
+}
+```
+
+For a persistent bottom bar, set `--app-toast-bottom-offset` to that bar's
+occupied height. A custom portal container can instead establish local
+coordinates for an embedded surface.
+
+This recipe handles declared safe areas and application chrome; it does not
+promise automatic software-keyboard or focused-control avoidance. Mobile
+browsers expose keyboard geometry differently, and moving an announced stack
+automatically can cause layout jumps. Compose a keyboard-aware offset in the
+application only when its named-device behavior is verified.
+
 ## Examples
 
 ### Imperative toast

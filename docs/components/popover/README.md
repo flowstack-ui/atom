@@ -22,7 +22,7 @@ page inside a floating box.
 - Floating UI positioning that tries alternate alignments on the requested
   side, repeats them on the opposite side, and uses perpendicular sides only as
   final fallbacks; collision shift and Arrow coordinates follow the result.
-- Modal mode with focus trap and scroll lock.
+- Modal mode with focus trap, background isolation, and scroll lock.
 - Non-modal focus guards and layer-aware completed-activation outside
   dismissal with a preventable consumer event.
 - Stack-aware Escape dismissal for nested overlays.
@@ -132,8 +132,11 @@ ancestors. It renders no wrapper.
 ### Content
 
 Renders the positioned dialog, manages outside dismissal, and manages focus.
-Modal Content traps focus and locks scrolling; non-modal Content closes when
-focus leaves its trigger/content scope.
+Modal Content traps focus, makes background subtrees inert through Atom's
+stacked modal-layer system, and locks document scrolling; non-modal Content
+does none of those things and closes when focus leaves its trigger/content
+scope. Closing or unmounting modal Content restores author-provided background
+state.
 Non-Arrow children render inside `[data-slot="popover-viewport"]`; a direct
 Arrow remains its sibling so styled layers can scroll the viewport without
 clipping the pointer. Content exposes measured
@@ -177,6 +180,13 @@ Explicitly passing
 relationship. `initialFocus` and `finalFocus` accept an element ref, a callback
 receiving interaction/reason details, or `false` to suppress that automatic
 operation.
+
+Atom identifies Content as the allowed modal scroll region, but remains
+headless: consumers set its maximum size and scrolling styles. For long
+content, constrain `[data-slot="popover-viewport"]`, apply `overflow: auto`,
+and choose any desired `overscroll-behavior`. If another library portals an
+interactive child, target a container rendered inside Content so it remains on
+the modal's owned DOM path.
 
 ### Title
 

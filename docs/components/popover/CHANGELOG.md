@@ -1,5 +1,12 @@
 # Popover Changelog
 
+## 0.20.1
+
+- Made modal Content participate in Atom's stacked background-isolation system
+  and restore background inert state on close or unmount.
+- Clarified consumer ownership of scroll dimensions, overscroll styling, and
+  third-party portal containers.
+
 ## 0.20.0
 
 - Added preventable `Content.onInteractOutside` and moved outside dismissal to

@@ -139,6 +139,12 @@ function MenuContent(
   const arrowRef = useRef<SVGSVGElement>(null);
   const { isPresent, ref: presenceRef } = usePresence({ present: isOpen });
   const [isPositioned, setIsPositioned] = useState(false);
+  const [floatingSize, setFloatingSize] = useState({
+    availableHeight: 0,
+    availableWidth: 0,
+    triggerHeight: 0,
+    triggerWidth: 0,
+  });
   const hasAppliedInitialHighlightRef = useRef(false);
   const typeaheadBuffer = useRef("");
   const typeaheadTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -341,9 +347,23 @@ function MenuContent(
       sizeMiddleware({
         padding: 8,
         apply({ availableHeight, availableWidth, elements, rects }) {
+          const nextSize = {
+            availableHeight: Math.max(0, availableHeight),
+            availableWidth: Math.max(0, availableWidth),
+            triggerHeight: rects.reference.height,
+            triggerWidth: rects.reference.width,
+          };
+          setFloatingSize((current) => (
+            current.availableHeight === nextSize.availableHeight
+            && current.availableWidth === nextSize.availableWidth
+            && current.triggerHeight === nextSize.triggerHeight
+            && current.triggerWidth === nextSize.triggerWidth
+              ? current
+              : nextSize
+          ));
           Object.assign(elements.floating.style, {
-            "--atom-menu-available-width": `${availableWidth}px`,
-            "--atom-menu-available-height": `${availableHeight}px`,
+            "--atom-menu-available-width": `${nextSize.availableWidth}px`,
+            "--atom-menu-available-height": `${nextSize.availableHeight}px`,
             "--atom-menu-trigger-width": `${rects.reference.width}px`,
             "--atom-menu-trigger-height": `${rects.reference.height}px`,
           });
@@ -417,7 +437,15 @@ function MenuContent(
     "data-align": actualAlign,
     ...(isPositioned ? { "data-positioned": "" } : {}),
     className,
-    style: { ...style, ...floatingStyles, "--atom-menu-transform-origin": transformOrigin } as CSSProperties,
+    style: {
+      ...style,
+      ...floatingStyles,
+      "--atom-menu-available-height": `${floatingSize.availableHeight}px`,
+      "--atom-menu-available-width": `${floatingSize.availableWidth}px`,
+      "--atom-menu-trigger-height": `${floatingSize.triggerHeight}px`,
+      "--atom-menu-trigger-width": `${floatingSize.triggerWidth}px`,
+      "--atom-menu-transform-origin": transformOrigin,
+    } as CSSProperties,
     onKeyDown: composeEventHandlers(restProps.onKeyDown, handleKeyDown),
   };
   const contentElement = asChild

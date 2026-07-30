@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, type RefObject } from "react";
+import type { ModalLayer } from "../modal/layer.js";
 import type { PopoverSide } from "./PopoverContent.js";
 import type { PopoverPartKind } from "./parts.js";
 
@@ -62,6 +63,7 @@ export interface PopoverContextValue {
   registerPart: (kind: PopoverPartKind) => () => void;
   triggerRef: RefObject<HTMLElement | null>;
   anchorRef: RefObject<HTMLElement | null>;
+  modalLayer: ModalLayer;
   disabled: boolean;
   modal: boolean;
   closeOnInteractOutside: boolean;

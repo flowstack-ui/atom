@@ -8,19 +8,18 @@ in `CURRENT.md` and `docs/`.
 - Tooltip `0.3.5` physical iPhone Safari evidence is complete. Android Chrome
   remains recorded as `not run` until a named device is available; do not treat
   the unavailable platform as a pass.
+- Run the consolidated `manual-tests/mobile-readiness.md` candidate protocol on
+  named iPhone/Android devices with VoiceOver/TalkBack. Automated desktop/mobile
+  emulation is complete and does not replace this physical lane.
 
 ## 1. Expand Browser Smoke Tests
 
 - The shared Playwright preview, scenario helper, desktop Chromium/WebKit
   projects, Android-Chromium/iPhone-WebKit touch profiles, and initial
   Dialog/Select mobile smoke journeys are complete.
-- Automate the highest-risk manual flows in this order:
-  1. Menu
-  2. Combobox
-  3. File Upload
-  4. Slider
-  5. Rating
-  6. Swipeable Item mobile profile
+- Menu/Combobox positioning plus Slider, Rating, Tooltip, Context Menu, and
+  Swipeable Item mobile cancellation coverage are complete. File Upload remains
+  the next highest-risk browser-smoke expansion.
 - Create or update automation-ready protocol sections for these targets before
   implementing their expanded smoke tests.
 - Use each reviewed protocol as the source for test steps and expected browser

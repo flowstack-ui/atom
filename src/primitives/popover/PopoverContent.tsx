@@ -34,6 +34,8 @@ import {
 } from "../../hooks/focus.js";
 import { usePresence } from "../../hooks/usePresence.js";
 import { useScrollLock } from "../../hooks/useScrollLock.js";
+import { setModalLayerContent } from "../modal/layer.js";
+import { useModalIsolation } from "../modal/useModalIsolation.js";
 import { useDirection } from "../direction/index.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import {
@@ -235,6 +237,7 @@ function PopoverContent(props, ref) {
     popoverId,
     triggerRef,
     anchorRef,
+    modalLayer,
     modal,
     closeOnInteractOutside,
     triggerMode,
@@ -314,6 +317,7 @@ function PopoverContent(props, ref) {
   );
   useFocusTrap(contentRef, isOpen && modal, { scope: focusScope });
   useFocusScopeContainer(contentRef, isOpen && modal, focusScope);
+  useModalIsolation(modalLayer, focusScope, isOpen && modal);
   useScrollLock(isOpen && modal, contentRef);
 
   useLayoutEffect(() => {
@@ -562,8 +566,9 @@ function PopoverContent(props, ref) {
   const setFloatingRef = useCallback(
     (node: HTMLDivElement | null) => {
       composedRef(node);
+      setModalLayerContent(modalLayer, node);
     },
-    [composedRef],
+    [composedRef, modalLayer],
   );
 
   const actualSide = sideFromPlacement(placement);
