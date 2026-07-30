@@ -1533,19 +1533,24 @@ test("scroll lock compensates only for viewport width released by locking", asyn
   }
 });
 
-test("modal Popover locks root overflow without fixing or repositioning the body", async () => {
+test("modal Popover isolates background and locks overflow without repositioning the body", async () => {
   let setOpen;
   function Fixture() {
     const [open, updateOpen] = useState(false);
     setOpen = updateOpen;
     return React.createElement(
-      Popover.Root,
-      { modal: true, open, onOpenChange: updateOpen },
-      React.createElement(Popover.Trigger, null, "Open"),
+      Fragment,
+      null,
+      React.createElement("button", { "data-testid": "popover-background" }, "Background"),
       React.createElement(
-        Popover.Content,
-        { "aria-label": "Modal settings", initialFocus: false },
-        "Settings",
+        Popover.Root,
+        { modal: true, open, onOpenChange: updateOpen },
+        React.createElement(Popover.Trigger, null, "Open"),
+        React.createElement(
+          Popover.Content,
+          { "aria-label": "Modal settings", initialFocus: false },
+          "Settings",
+        ),
       ),
     );
   }
@@ -1569,6 +1574,14 @@ test("modal Popover locks root overflow without fixing or repositioning the body
     assert.equal(body.style.top, "5px");
     assert.equal(dom.window.scrollX, 8);
     assert.equal(dom.window.scrollY, 144);
+    assert.equal(
+      isEffectivelyInert(dom.window.document.querySelector("[data-testid=popover-background]")),
+      true,
+    );
+    assert.equal(
+      isEffectivelyInert(dom.window.document.querySelector("[data-slot=popover-content]")),
+      false,
+    );
 
     await act(async () => {
       setOpen(false);
@@ -1579,6 +1592,10 @@ test("modal Popover locks root overflow without fixing or repositioning the body
     assert.equal(body.style.position, "relative");
     assert.equal(body.style.top, "5px");
     assert.deepEqual(restores, []);
+    assert.equal(
+      isEffectivelyInert(dom.window.document.querySelector("[data-testid=popover-background]")),
+      false,
+    );
   });
 });
 

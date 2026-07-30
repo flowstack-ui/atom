@@ -11,6 +11,8 @@ import {
   type ReactNode,
 } from "react";
 import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
+import { useOptionalModalContext } from "../modal/context.js";
+import { activateModalLayer, createModalLayer } from "../modal/layer.js";
 import {
   PopoverContextProvider,
   type PopoverContextValue,
@@ -50,6 +52,7 @@ export function PopoverRoot({
   closeOnInteractOutside = true,
   disabled = false,
 }: PopoverRootProps) {
+  const parentModal = useOptionalModalContext();
   const isControlled = controlledOpen !== undefined;
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const isOpen = isControlled ? controlledOpen : internalOpen;
@@ -82,6 +85,10 @@ export function PopoverRoot({
     target: EventTarget | null;
     expiresAt: number;
   } | null>(null);
+  const modalLayer = useMemo(
+    () => createModalLayer(parentModal?.layer ?? null),
+    [parentModal?.layer],
+  );
 
   if (previousOpenRef.current !== isOpen) {
     if (isOpen) {
@@ -232,6 +239,10 @@ export function PopoverRoot({
     enabled: isOpen && closeOnEscape,
     onEscapeKeyDown: () => onClose("escapeKeyDown", "keyboard"),
   });
+  useLayoutEffect(() => {
+    if (!isOpen || !modal) return undefined;
+    return activateModalLayer(modalLayer, document);
+  }, [isOpen, modal, modalLayer]);
   useEffect(() => () => clearTimers(), [clearTimers]);
   useLayoutEffect(() => {
     if (!disabled) return;
@@ -259,6 +270,7 @@ export function PopoverRoot({
       registerPart,
       triggerRef,
       anchorRef,
+      modalLayer,
       disabled,
       modal,
       closeOnInteractOutside,
@@ -269,6 +281,7 @@ export function PopoverRoot({
       disabled,
       isOpen,
       modal,
+      modalLayer,
       onClose,
       onOpen,
       onToggle,

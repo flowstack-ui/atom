@@ -1,5 +1,14 @@
 # Atom Changelog
 
+## Unreleased
+
+- Made modal Popover use Atom's stacked background-isolation system so its
+  `aria-modal` semantics now match its focus and scroll containment; non-modal
+  Popover behavior is unchanged.
+- Documented consumer-owned modal scrolling, mobile menu presentation, and
+  Toast safe-area/application offsets without adding styling or automatic
+  virtual-keyboard behavior to the headless package.
+
 ## 0.20.0
 
 - Added the public `useOutsideInteraction` hook and preventable

@@ -10,6 +10,11 @@ when one value is chosen for a form, and Menubar for persistent application
 commands. Do not use a menu as ordinary site navigation when native links in a
 NavList are sufficient.
 
+Submenus use an explicit cascade that is operable by tap/click and keyboard.
+Atom does not infer a drill-in presentation from screen size or pointer type.
+Applications that need a mobile drill-in flow should compose a separate panel,
+Dialog, Drawer, or grouped list with explicit depth and back controls.
+
 ## Features
 
 - Supports controlled state, modal behavior, looping, and dismissal options.

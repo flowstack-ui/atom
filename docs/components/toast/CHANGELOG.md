@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-- No unreleased changes.
+- Documented a consumer-owned safe-area and application-chrome offset recipe,
+  while explicitly avoiding an unverified automatic software-keyboard
+  guarantee.
 
 ## 0.15.0
 

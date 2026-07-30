@@ -6,6 +6,16 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Clarified the Toast mobile-readiness contract with a public safe-area and
+  application-offset recipe; automatic virtual-keyboard avoidance remains a
+  named-device experiment rather than a package claim.
+
+- Added desktop and mobile browser regressions for modal Dropdown Menu and
+  Popover background isolation, internal wheel/touch scrolling, scroll-boundary
+  containment, and cleanup. The cases are committed for execution; the current
+  terminal could not bind the browser test port, so they are not yet recorded
+  as passing evidence.
+
 - Added desktop Chromium/WebKit and Android/iPhone touch regressions for
   release-based Combobox and Dropdown Menu outside dismissal.
 
