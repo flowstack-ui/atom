@@ -1,14 +1,18 @@
 # Release Readiness Audit
 
-Last candidate audit: 2026-07-30
+Last release audit: 2026-07-30
 
 The current release outcome is recorded first. Earlier published-release
 audits remain below as historical baselines.
 
-## 0.20.1 Mobile Readiness Candidate - 2026-07-30
+## 0.20.1 Mobile Readiness Release Outcome - 2026-07-30
 
-Status: pass for release. Physical-device and assistive-technology evidence
-remains an explicit owner lane and is not represented as an automated pass.
+Status: published and registry-verified. The trusted-publishing workflow,
+matching GitHub release, npm provenance, and `latest` distribution tag resolve
+to Atom `0.20.1` at release commit
+`ab7a93838822bdfa1c1dcfa41c18d33f5601b938`. Physical-device and
+assistive-technology evidence remains an explicit owner lane and is not
+represented as an automated pass.
 
 This compatible patch makes Menu and submenu available-size and trigger-size
 CSS variables stable across positioning rerenders and viewport changes. It also
@@ -25,6 +29,10 @@ gesture lane. The playground production build, all 71 JavaScript and
 declaration export targets, the verified 2,199-file archive at 542,220
 compressed bytes, and clean packed consumers with React and React DOM 18.3.1
 and 19.2.7 also pass.
+
+The published archive has npm SHA-1
+`7aff661763975758f32db64b599daa0c2dd43571` and integrity
+`sha512-xMq6OH6hZbKN7YSegBdR9p0tH4yGLARM7G/jz0fULOobaepTykG+kZ/a2OKJ6jcS5iaCgAGUwPx2LltPd4oIjg==`.
 
 The coverage workbook preserves all 78 Mobile Readiness records: existing
 physical passes remain intact, unavailable device work remains `not run`, and
