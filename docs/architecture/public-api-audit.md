@@ -84,7 +84,7 @@ documentation-only change.
 
 Component changelogs identify the Atom package releases in which that
 component's public contract changed; they are not independently versioned npm
-packages. Current component changelogs use package versions through `0.20.1`;
+packages. Current component changelogs use package versions through `0.20.2`;
 an `Unreleased` section either contains real pending changes or the explicit
 `No unreleased changes` marker required by the documentation guide.
 
@@ -94,7 +94,7 @@ last-change release.
 
 ## Release Version
 
-The audited public package is `0.20.1`, published from the audited release
+The audited public package is `0.20.2`, published from the audited release
 commit with npm provenance and a matching GitHub release. Post-release
 documentation and test-harness cleanup does not change the runtime package or
 require another npm version.
