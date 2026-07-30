@@ -6,6 +6,10 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Added permanent Swipeable Item browser and manual evidence for horizontal
+  reveal, cancellation, vertical-scroll preservation, descendant keyboard
+  isolation, logical direction, and action closing.
+
 - Updated Tree defaults and its manual protocol for selected-item initial
   focus and bounded arrow navigation, with wrapping retained as an opt-in.
 

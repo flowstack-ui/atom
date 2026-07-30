@@ -13,6 +13,7 @@ when there are many actions or when a hidden swipe gesture would be surprising.
 
 - Supports start and end action panels.
 - Supports pointer dragging and keyboard opening.
+- Preserves native vertical panning with an axis-compatible touch policy.
 - Supports controlled and uncontrolled open side state.
 - Supports left-to-right and right-to-left direction.
 - Supports optional full-swipe actions.
@@ -77,6 +78,10 @@ widths shared by Content and Actions.
 
 Renders the focusable row surface that interprets horizontal pointer movement
 and keyboard commands. It mirrors Root state and remains focusable when read-only.
+Atom applies `touch-action: pan-y` so vertical document or scroll-container
+panning remains native. An authored `style.touchAction` can override that
+default deliberately. Arrow-key reveal runs only while Content itself is the
+keyboard target; interactive descendants retain their own Arrow behavior.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -173,6 +178,10 @@ special WAI-ARIA widget role. Content is keyboard focusable. Arrow keys open, cl
 full-swipe action panels when `onFullSwipe` is provided. `Escape` closes the
 item. Hidden action panels are removed from the accessibility tree and made
 inert until open.
+
+Swipe must remain an enhancement. Provide an obvious tap/click path to every
+command, such as a visible overflow-menu trigger or persistent action. Keyboard
+support alone is not the required single-pointer alternative to dragging.
 
 | Key | Description |
 | --- | --- |
