@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.20.2
+
+- Allowed native focus scrolling when Trigger returns focus to Input, so mobile
+  browsers can reveal the control above the virtual keyboard.
+
 ## 0.20.0
 
 - Added preventable `Content.onInteractOutside` and moved outside dismissal to

@@ -95,7 +95,7 @@ Last verified: 2026-07-30
 
 The latest browser-harness pass verifies 48 browser tests across desktop
 Chromium, desktop WebKit, Android-Chromium touch emulation, and iPhone-WebKit
-touch emulation. The latest complete release pass also verifies 515 package
+touch emulation. The latest complete release pass also verifies 516 package
 tests, 71 export targets, a 2,199-file archive, and clean React 18 and React 19
 consumers.
 

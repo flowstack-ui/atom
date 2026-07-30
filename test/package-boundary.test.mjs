@@ -42,6 +42,22 @@ test("package boundary keeps only approved headless runtime dependencies", async
   );
 });
 
+test("release verification tiers do not recurse", async () => {
+  const packageJson = JSON.parse(
+    await readFile(new URL("package.json", packageRoot), "utf8"),
+  );
+  const releaseScript = await readFile(
+    new URL("scripts/test-all.mjs", packageRoot),
+    "utf8",
+  );
+
+  assert.equal(packageJson.scripts["check:release"], "npm run test:all");
+  assert.match(releaseScript, /\["run", "check:repository"\]/);
+  assert.match(releaseScript, /\["run", "test:browser"\]/);
+  assert.match(releaseScript, /\["run", "pack:check"\]/);
+  assert.doesNotMatch(releaseScript, /\["run", "(?:check:release|release:check|test:all)"\]/);
+});
+
 test("compiled package keeps implementation files under private internal chunks", async () => {
   const distRoot = new URL("dist/", packageRoot);
   const publicDistEntries = await readdir(distRoot);

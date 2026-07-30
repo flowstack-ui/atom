@@ -21,7 +21,9 @@ function run(command, args) {
 }
 
 try {
-  run(npmCommand, ["run", "release:check"]);
+  run(npmCommand, ["run", "check:repository"]);
+  run(npmCommand, ["run", "test:browser"]);
+  run(npmCommand, ["run", "pack:check"]);
   run(npmCommand, ["run", "playground:build"]);
   run(npmCommand, ["pack", "--pack-destination", archiveDirectory]);
   run(npmCommand, ["run", "verify:pack", "--", archiveDirectory]);
