@@ -32,7 +32,8 @@ test("consumer safe-area and application offsets keep an actionable Toast reacha
     });
     document.body.append(field);
   });
-  await input.focus();
+  await input.tap();
+  await expect(input).toBeFocused();
 
   await page.locator("[data-playground-toast-show]").evaluate((element) => {
     (element as HTMLButtonElement).click();
