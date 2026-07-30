@@ -5,10 +5,13 @@ Last release audit: 2026-07-30
 The current release outcome is recorded first. Earlier published-release
 audits remain below as historical baselines.
 
-## 0.20.2 Combobox Mobile Focus Candidate - 2026-07-30
+## 0.20.2 Combobox Mobile Focus Release Outcome - 2026-07-30
 
-Status: release-qualified. Registry publication and physical-device retest are
-pending and are not represented as passed.
+Status: published and registry-verified. The trusted-publishing workflow,
+matching GitHub release, npm provenance, and `latest` distribution tag resolve
+to Atom `0.20.2` at release commit
+`aa219441075dacaf4f01bf16cbea24c1179ed771`. Physical-device retesting remains
+pending and is not represented as passed.
 
 This compatible patch lets native focus scrolling reveal Combobox Input when
 its disclosure Trigger opens the virtual keyboard. It also corrects the release
@@ -20,9 +23,9 @@ Chromium, desktop WebKit, Android-Chromium touch emulation, and iPhone-WebKit
 touch emulation. The playground production build, all 71 JavaScript and
 declaration export targets, the verified 2,199-file archive at 542,279
 compressed bytes, and clean packed consumers with React and React DOM 18.3.1
-and 19.2.7 also pass. The exact candidate archive reports npm SHA-1
-`c0cc5b52c9eed553b46fdf8c28d529d47b6cd523`; registry integrity remains pending
-until trusted publication completes.
+and 19.2.7 also pass. The published archive reports npm SHA-1
+`c0cc5b52c9eed553b46fdf8c28d529d47b6cd523` and integrity
+`sha512-28wfgk69zKEomhVeFciBuLKoHDqOgYKTcKBuNTzwyuJCtUqrAoJW94ySwg+L876lpzUxfhJmc3P+o+TIWgGvAQ==`.
 
 ## 0.20.1 Mobile Readiness Release Outcome - 2026-07-30
 
