@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
 ## 0.17.1
 
 - Corrected initial focus so the first enabled visible selected Item becomes

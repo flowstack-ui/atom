@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
 ## 0.15.0
 
 ### Added

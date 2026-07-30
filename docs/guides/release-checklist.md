@@ -81,7 +81,7 @@ versions for new public APIs or materially expanded component capability.
 
 ## Last Dry Run
 
-Last verified: 2026-07-14
+Last verified: 2026-07-30
 
 - `npm run test`
 - `npm run build`
@@ -91,6 +91,10 @@ Last verified: 2026-07-14
 - `npm run verify:pack -- <archive-or-directory>`
 - `npm run verify:consumer -- <archive-or-directory> 18`
 - `npm run verify:consumer -- <archive-or-directory> 19`
+- `npm run test:browser`
+
+The latest pass verifies 512 package tests, four Chromium browser tests, 71
+export targets, a 2,191-file archive, and clean React 18 and React 19 consumers.
 
 The detailed result is recorded in
 [`../architecture/release-readiness-audit.md`](../architecture/release-readiness-audit.md).

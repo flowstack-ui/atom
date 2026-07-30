@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
 ## 0.18.2
 
 - Added Control and Trigger parts, anchored Content to the full Control, and

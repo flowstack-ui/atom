@@ -6,6 +6,9 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Updated the locked PostCSS toolchain to a patched compatible release so the
+  playground dependency audit is clean.
+
 - Added permanent Swipeable Item browser and manual evidence for horizontal
   reveal, cancellation, vertical-scroll preservation, descendant keyboard
   isolation, logical direction, and action closing.

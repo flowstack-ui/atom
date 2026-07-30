@@ -1,10 +1,31 @@
 # Release Readiness Audit
 
-Last candidate audit: 2026-07-20
+Last candidate audit: 2026-07-30
 
-The original `0.2.0` published-release audit remains below as a historical
-baseline. The current release outcome records the Tooltip patch published in
-`0.3.5`.
+The current release outcome is recorded first. Earlier published-release
+audits remain below as historical baselines.
+
+## 0.19.9 Release Outcome - 2026-07-30
+
+Status: published and registry-verified. The trusted-publishing workflow,
+matching GitHub release, npm provenance, and `latest` distribution tag all
+resolve to Atom `0.19.9` at release commit
+`2e439450d60c182c58bcb65664c196c6b1987d06`.
+
+The post-release readiness cleanup passes 512 package tests, four Chromium
+browser tests, the playground production build, all 71 JavaScript and
+declaration export targets, the verified 2,191-file archive, and clean packed
+consumers with React and React DOM 18.3.1 and 19.2.7. Package and playground
+dependency audits report zero vulnerabilities after the compatible PostCSS
+lockfile update.
+
+The published archive is 536,807 compressed bytes with npm SHA-1
+`2aec039d6f3f2bf97ab7aea785be84c613d1d87b` and integrity
+`sha512-f0QPCACTY976mg4xhjoSzClfR92OwzWHxI1EQy+/yqb3vHJKGES6Zi9D4dXHLz5yuPLOono/VAsUUdor49CteA==`.
+
+The Menu-family browser/device matrix and the physical-device and assistive-
+technology protocols for Slider, Rating, and Swipeable Item remain honestly
+open. They are not represented as automated passes.
 
 ## 0.6.0 CheckboxGroup Release Outcome - 2026-07-20
 

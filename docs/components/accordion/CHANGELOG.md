@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
 ## 0.14.0
 
 - Propagate `orientation` to Item, Header, Trigger, and Content and publish

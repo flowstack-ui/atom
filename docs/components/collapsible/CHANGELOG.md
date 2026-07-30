@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
 ## 0.14.0
 
 - Add `orientation="vertical" | "horizontal"` with vertical default and

@@ -1,6 +1,6 @@
 # SwipeableItem Changelog
 
-## 0.2.1
+## 0.19.9
 
 - Preserved native vertical panning with an axis-compatible Content touch
   policy and stopped bubbled Arrow keys from nested controls from revealing
