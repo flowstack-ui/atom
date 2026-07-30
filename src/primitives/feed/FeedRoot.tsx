@@ -76,7 +76,10 @@ export const FeedRoot = forwardRef<HTMLElement, FeedRootProps>(
     }, []);
 
     const focusArticle = useCallback((article: HTMLElement | undefined) => {
-      article?.focus({ preventScroll: true });
+      if (!article) return;
+
+      article.focus({ preventScroll: true });
+      article.scrollIntoView({ block: "nearest", inline: "nearest" });
     }, []);
 
     const focusOutsideFeed = useCallback((direction: "before" | "after") => {
@@ -92,15 +95,15 @@ export const FeedRoot = forwardRef<HTMLElement, FeedRootProps>(
           Boolean(element.compareDocumentPosition(feed) & Node.DOCUMENT_POSITION_FOLLOWING),
         );
         const previousElement = previousElements[previousElements.length - 1];
-        previousElement?.focus({ preventScroll: true });
+        focusArticle(previousElement);
         return;
       }
 
       const nextElement = focusableElements.find((element) =>
         Boolean(feed.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_FOLLOWING),
       );
-      nextElement?.focus({ preventScroll: true });
-    }, []);
+      focusArticle(nextElement);
+    }, [focusArticle]);
 
     const handleKeyDown = useCallback<KeyboardEventHandler<HTMLElement>>(
       (event) => {

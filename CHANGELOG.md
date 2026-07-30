@@ -1,5 +1,10 @@
 # Atom Changelog
 
+## Unreleased
+
+- Made Feed keyboard navigation reveal the focused article or outside-feed
+  target with nearest scrolling while preserving consumer cancellation.
+
 ## 0.19.7
 
 - Fixed FileUpload Field relationships on its visible Trigger, made pre-drop

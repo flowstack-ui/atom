@@ -63,9 +63,21 @@ jobs:
         if: steps.release-state.outputs.already-published != 'true'
         run: npm ci
 
+      - name: Install playground dependencies
+        if: steps.release-state.outputs.already-published != 'true'
+        run: npm ci --prefix playground
+
       - name: Build and test package
         if: steps.release-state.outputs.already-published != 'true'
         run: npm test
+
+      - name: Install Chromium
+        if: steps.release-state.outputs.already-published != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Test playground in Chromium
+        if: steps.release-state.outputs.already-published != 'true'
+        run: npm run test:browser
 
       - name: Create verified package archive
         if: steps.release-state.outputs.already-published != 'true'
