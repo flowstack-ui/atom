@@ -190,7 +190,6 @@ function lockDocument(ownerDocument: Document, state: ScrollLockState): void {
   const currentPadding =
     Number.parseFloat(view.getComputedStyle(body).paddingRight) || 0;
   documentElement.style.overflow = "hidden";
-  body.style.overflow = "hidden";
   const lockedClientWidth = documentElement.clientWidth;
   const releasedScrollbarWidth = unlockedClientWidth > 0
     ? Math.max(0, lockedClientWidth - unlockedClientWidth)

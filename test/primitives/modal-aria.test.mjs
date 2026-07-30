@@ -380,8 +380,8 @@ test("modal ownership and isolation are established before a later layout effect
       observations.push({
         ariaModal: content?.getAttribute("aria-modal"),
         backgroundInert: isEffectivelyInert(background),
-        bodyLocked: document.body.style.overflow === "hidden"
-          && document.documentElement.style.overflow === "hidden",
+        documentLocked: document.documentElement.style.overflow === "hidden"
+          && document.body.style.overflow === "",
       });
     }, []);
     return null;
@@ -409,7 +409,7 @@ test("modal ownership and isolation are established before a later layout effect
     assert.deepEqual(observations[0], {
       ariaModal: "true",
       backgroundInert: true,
-      bodyLocked: true,
+      documentLocked: true,
     });
   });
 });
@@ -977,7 +977,8 @@ test("the shared modal layer stack gives nested portalled dialogs exclusive cont
       isEffectivelyInert(dom.window.document.querySelector("[aria-label='Child dialog']")),
       false,
     );
-    assert.equal(dom.window.document.body.style.overflow, "hidden");
+    assert.equal(dom.window.document.body.style.overflow, "");
+    assert.equal(dom.window.document.documentElement.style.overflow, "hidden");
 
     await act(async () => {
       dom.window.document.querySelector("[data-testid=parent-overlay]").click();
@@ -1003,7 +1004,8 @@ test("the shared modal layer stack gives nested portalled dialogs exclusive cont
       isEffectivelyInert(dom.window.document.querySelector("[aria-label='Parent dialog']")),
       false,
     );
-    assert.equal(dom.window.document.body.style.overflow, "hidden");
+    assert.equal(dom.window.document.body.style.overflow, "");
+    assert.equal(dom.window.document.documentElement.style.overflow, "hidden");
 
     await act(async () => {
       dom.window.document.dispatchEvent(new dom.window.KeyboardEvent(
@@ -1394,7 +1396,7 @@ test("scroll containment allows owned regions, blocks boundaries and touch backg
       await new Promise((resolve) => setTimeout(resolve, 10));
     });
     assert.equal(documentElement.style.overflow, "hidden");
-    assert.equal(body.style.overflow, "hidden");
+    assert.equal(body.style.overflow, "clip");
     assert.equal(body.style.position, "relative");
     assert.equal(body.style.top, "3px");
     assert.equal(body.style.left, "4px");
@@ -1511,7 +1513,9 @@ test("scroll lock compensates only for viewport width released by locking", asyn
       Object.defineProperty(documentElement, "clientWidth", {
         configurable: true,
         get: () =>
-          body.style.overflow === "hidden" ? scenario.lockedClientWidth : 1185,
+          documentElement.style.overflow === "hidden"
+            ? scenario.lockedClientWidth
+            : 1185,
       });
 
       await act(async () => {
@@ -1569,7 +1573,7 @@ test("modal Popover isolates background and locks overflow without repositioning
       await new Promise((resolve) => setTimeout(resolve, 10));
     });
     assert.equal(documentElement.style.overflow, "hidden");
-    assert.equal(body.style.overflow, "hidden");
+    assert.equal(body.style.overflow, "");
     assert.equal(body.style.position, "relative");
     assert.equal(body.style.top, "5px");
     assert.equal(dom.window.scrollX, 8);
@@ -2033,7 +2037,7 @@ test("nested modal scroll-lock handoff never unlocks or restores scroll between 
     const restores = [];
     dom.window.scrollTo = (...coordinates) => restores.push(coordinates);
     const lockedStyle = dom.window.document.body.style.cssText;
-    assert.equal(dom.window.document.body.style.overflow, "hidden");
+    assert.equal(dom.window.document.body.style.overflow, "");
     assert.equal(dom.window.document.documentElement.style.overflow, "hidden");
 
     await act(async () => setChildOpen(true));

@@ -1,8 +1,9 @@
 # ContextMenu Changelog
 
-## Unreleased
+## 0.20.3
 
-- No unreleased changes.
+- Inherited document-only overflow locking so sticky application chrome
+  remains anchored while a modal ContextMenu is open.
 
 ## 0.12.0
 

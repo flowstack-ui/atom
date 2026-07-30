@@ -1,5 +1,10 @@
 # Modal Changelog
 
+## 0.20.3
+
+- Locked document overflow without also hiding body overflow, preserving
+  sticky descendant geometry while modal background scrolling remains blocked.
+
 ## 0.6.7
 
 - Replaced fixed-body scroll locking with root/body overflow locking while

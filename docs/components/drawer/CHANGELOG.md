@@ -1,5 +1,10 @@
 # Drawer Changelog
 
+## 0.20.3
+
+- Inherited document-only overflow locking so sticky application chrome
+  remains anchored while Drawer is open at a nonzero page scroll position.
+
 ## 0.6.7
 
 - Inherited root/body overflow locking without fixed-body repositioning or
