@@ -17,6 +17,12 @@ export type { FocusScope } from "./hooks/focus.js";
 export { useEscapeKey } from "./hooks/useEscapeKey.js";
 export { useClickAway } from "./hooks/useClickAway.js";
 export type { UseClickAwayOptions } from "./hooks/useClickAway.js";
+export { useOutsideInteraction } from "./hooks/useOutsideInteraction.js";
+export type { UseOutsideInteractionOptions } from "./hooks/useOutsideInteraction.js";
+export type {
+  OutsideInteractionEvent,
+  OutsideInteractionPointerType,
+} from "./utils/interactions.js";
 export { usePresence } from "./hooks/usePresence.js";
 export type {
   UsePresenceOptions,

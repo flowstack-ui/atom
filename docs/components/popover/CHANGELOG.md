@@ -1,5 +1,10 @@
 # Popover Changelog
 
+## 0.20.0
+
+- Added preventable `Content.onInteractOutside` and moved outside dismissal to
+  the shared layer-aware completed-activation contract.
+
 ## 0.6.10
 
 - Distinguished outside touch and pen taps from scroll gestures so scrolling

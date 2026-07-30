@@ -146,6 +146,22 @@ test("dismissable layer hook routes Escape to the topmost registered layer", asy
   assert.match(source, /document\.removeEventListener\("keydown", handleDocumentKeyDown, true\)/);
 });
 
+test("outside interaction hook commits click semantics through the topmost layer", async () => {
+  const source = await readFile(
+    new URL("src/hooks/useOutsideInteraction.ts", packageRoot),
+    "utf8",
+  );
+
+  assert.match(source, /^"use client";/);
+  assert.match(source, /const layers: OutsideInteractionLayer\[\] = \[\]/);
+  assert.match(source, /return layers\[layers\.length - 1\]/);
+  assert.match(source, /document\.addEventListener\("click", handleClick, true\)/);
+  assert.match(source, /activePointer\.startedOutside/);
+  assert.match(source, /!activePointer\.moved/);
+  assert.match(source, /event\.detail === 0 \? "virtual" : "mouse"/);
+  assert.match(source, /layer\.onInteractOutsideRef\.current\(interactionEvent\)/);
+});
+
 test("overlay primitives use dismissable layer stack for Escape handling", async () => {
   const files = [
     "src/primitives/modal/useModalContent.ts",

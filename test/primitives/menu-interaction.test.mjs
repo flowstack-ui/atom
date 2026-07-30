@@ -1,7 +1,7 @@
 import { JSDOM } from "jsdom";
 import { createRoot } from "react-dom/client";
 import { assert, test, React } from "../test-utils.mjs";
-import { Menu, DropdownMenu, ContextMenu, Menubar } from "../../dist/index.js";
+import { Combobox, Menu, DropdownMenu, ContextMenu, Menubar } from "../../dist/index.js";
 
 function installDom() {
   const dom = new JSDOM("<!doctype html><html><body><div id='root'></div></body></html>", {
@@ -55,6 +55,36 @@ async function dispatch(target, event) {
 
 function key(target, value, shiftKey = false) {
   return dispatch(target, new window.KeyboardEvent("keydown", { key: value, shiftKey, bubbles: true, cancelable: true }));
+}
+
+function pointerEvent(target, type, {
+  clientX = 0,
+  clientY = 0,
+  pointerId = 1,
+  pointerType = "mouse",
+} = {}) {
+  const event = new window.MouseEvent(type, {
+    bubbles: true,
+    button: 0,
+    clientX,
+    clientY,
+  });
+  Object.defineProperties(event, {
+    isPrimary: { value: true },
+    pointerId: { value: pointerId },
+    pointerType: { value: pointerType },
+  });
+  return dispatch(target, event);
+}
+
+async function pointerActivation(target, options) {
+  await pointerEvent(target, "pointerdown", options);
+  await pointerEvent(target, "pointerup", options);
+  await dispatch(target, new window.MouseEvent("click", {
+    bubbles: true,
+    button: 0,
+    detail: 1,
+  }));
 }
 
 test("Dropdown Menu moves real focus through disabled items and exits its owner with Tab", async () => {
@@ -116,6 +146,161 @@ test("Dropdown Menu moves real focus through disabled items and exits its owner 
   }
 });
 
+test("Dropdown Menu commits only a completed outside activation and keeps it preventable", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  const interactions = [];
+  let preventOutside = false;
+  let outsideClicks = 0;
+
+  function Example() {
+    return React.createElement(React.Fragment, null,
+      React.createElement(DropdownMenu.Root, null,
+        React.createElement(DropdownMenu.Trigger, { id: "outside-trigger" }, "Actions"),
+        React.createElement(DropdownMenu.Content, {
+          onInteractOutside: (event) => {
+            interactions.push(event.pointerType);
+            if (preventOutside) event.preventDefault();
+          },
+        },
+        React.createElement(DropdownMenu.Item, { value: "one" }, "One"),
+        ),
+      ),
+      React.createElement("button", {
+        id: "outside-target",
+        onClick: () => { outsideClicks += 1; },
+      }, "Outside"),
+    );
+  }
+
+  try {
+    await React.act(async () => root.render(React.createElement(Example)));
+    const trigger = container.querySelector("[data-slot=dropdown-menu-trigger]");
+    const outside = container.querySelector("#outside-target");
+    await dispatch(trigger, new window.MouseEvent("click", { bubbles: true }));
+    await wait();
+
+    await pointerEvent(outside, "pointerdown");
+    assert.ok(document.querySelector("[role=menu]"));
+    await pointerEvent(outside, "pointerup");
+    assert.ok(document.querySelector("[role=menu]"));
+    await dispatch(outside, new window.MouseEvent("click", { bubbles: true, detail: 1 }));
+    await wait();
+    assert.equal(document.querySelector("[role=menu]"), null);
+    assert.deepEqual(interactions, ["mouse"]);
+    assert.equal(outsideClicks, 1);
+
+    await dispatch(trigger, new window.MouseEvent("click", { bubbles: true }));
+    await wait();
+    preventOutside = true;
+    await pointerActivation(outside, { pointerType: "touch", pointerId: 4 });
+    await wait();
+    assert.ok(document.querySelector("[role=menu]"));
+    assert.deepEqual(interactions, ["mouse", "touch"]);
+    assert.equal(outsideClicks, 2);
+
+    preventOutside = false;
+    await pointerEvent(outside, "pointerdown", { clientX: 0, clientY: 0, pointerId: 5 });
+    await pointerEvent(outside, "pointermove", { clientX: 20, clientY: 0, pointerId: 5 });
+    await pointerEvent(outside, "pointerup", { clientX: 20, clientY: 0, pointerId: 5 });
+    await dispatch(outside, new window.MouseEvent("click", { bubbles: true, detail: 1 }));
+    await wait();
+    assert.ok(document.querySelector("[role=menu]"));
+    assert.deepEqual(interactions, ["mouse", "touch"]);
+    assert.equal(outsideClicks, 3);
+
+    const menu = document.querySelector("[role=menu]");
+    await pointerEvent(menu, "pointerdown", { pointerId: 6 });
+    await pointerEvent(outside, "pointerup", { pointerId: 6 });
+    await dispatch(outside, new window.MouseEvent("click", { bubbles: true, detail: 1 }));
+    await wait();
+    assert.ok(document.querySelector("[role=menu]"));
+    assert.deepEqual(interactions, ["mouse", "touch"]);
+    assert.equal(outsideClicks, 4);
+
+    await pointerEvent(outside, "pointerdown", { pointerId: 8, pointerType: "touch" });
+    await pointerEvent(outside, "pointerdown", { pointerId: 9, pointerType: "touch" });
+    await pointerEvent(outside, "pointerup", { pointerId: 8, pointerType: "touch" });
+    await dispatch(outside, new window.MouseEvent("click", { bubbles: true, detail: 1 }));
+    await wait();
+    assert.ok(document.querySelector("[role=menu]"));
+    assert.deepEqual(interactions, ["mouse", "touch"]);
+    assert.equal(outsideClicks, 5);
+
+    await dispatch(outside, new window.MouseEvent("click", { bubbles: true, detail: 0 }));
+    await wait();
+    assert.equal(document.querySelector("[role=menu]"), null);
+    assert.deepEqual(interactions, ["mouse", "touch", "virtual"]);
+    assert.equal(outsideClicks, 6);
+  } finally {
+    await React.act(async () => root.unmount());
+    cleanup();
+  }
+});
+
+test("Combobox supports preventable virtual and touch outside activation", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  const interactions = [];
+  let preventOutside = true;
+  let outsideClicks = 0;
+
+  function Example() {
+    return React.createElement(React.Fragment, null,
+      React.createElement(Combobox.Root, {
+        defaultOpen: true,
+        options: [{ value: "one", label: "One" }],
+      },
+      React.createElement(Combobox.Input, { "aria-label": "Choice" }),
+      React.createElement(Combobox.Content, {
+        onInteractOutside: (event) => {
+          interactions.push(event.pointerType);
+          if (preventOutside) event.preventDefault();
+        },
+      },
+      React.createElement(Combobox.Listbox, null,
+        React.createElement(Combobox.Item, {
+          label: "One",
+          value: "one",
+        }, "One"),
+      ),
+      ),
+      ),
+      React.createElement("button", {
+        id: "combobox-outside",
+        onClick: () => { outsideClicks += 1; },
+      }, "Outside"),
+    );
+  }
+
+  try {
+    await React.act(async () => root.render(React.createElement(Example)));
+    await wait();
+    const outside = container.querySelector("#combobox-outside");
+    assert.ok(document.querySelector("[role=listbox]"));
+
+    await dispatch(outside, new window.MouseEvent("click", {
+      bubbles: true,
+      button: 0,
+      detail: 0,
+    }));
+    await wait();
+    assert.ok(document.querySelector("[role=listbox]"));
+    assert.deepEqual(interactions, ["virtual"]);
+    assert.equal(outsideClicks, 1);
+
+    preventOutside = false;
+    await pointerActivation(outside, { pointerType: "touch", pointerId: 7 });
+    await wait();
+    assert.equal(document.querySelector("[role=listbox]"), null);
+    assert.deepEqual(interactions, ["virtual", "touch"]);
+    assert.equal(outsideClicks, 2);
+  } finally {
+    await React.act(async () => root.unmount());
+    cleanup();
+  }
+});
+
 test("standalone Menu exits from its focus origin in either Tab direction", async () => {
   const { container, cleanup } = installDom();
   const root = createRoot(container);
@@ -158,14 +343,22 @@ test("standalone Menu exits from its focus origin in either Tab direction", asyn
 test("Dropdown Menu submenu focus drills in and Escape restores each owner", async () => {
   const { container, cleanup } = installDom();
   const root = createRoot(container);
+  const parentOutside = [];
+  const submenuOutside = [];
   try {
     await React.act(async () => root.render(
       React.createElement(DropdownMenu.Root, null,
         React.createElement(DropdownMenu.Trigger, null, "Actions"),
-        React.createElement(DropdownMenu.Content, null,
+        React.createElement(DropdownMenu.Content, {
+          onInteractOutside: (event) => parentOutside.push(event.pointerType),
+        },
+          React.createElement(DropdownMenu.Label, null, "Project commands"),
           React.createElement(DropdownMenu.Sub, null,
             React.createElement(DropdownMenu.SubTrigger, { value: "share" }, "Share"),
-            React.createElement(DropdownMenu.SubContent, { ariaLabel: "Share actions" },
+            React.createElement(DropdownMenu.SubContent, {
+              ariaLabel: "Share actions",
+              onInteractOutside: (event) => submenuOutside.push(event.pointerType),
+            },
               React.createElement(DropdownMenu.Item, { value: "copy" }, "Copy link"),
             ),
           ),
@@ -177,6 +370,19 @@ test("Dropdown Menu submenu focus drills in and Escape restores each owner", asy
     await wait();
     assert.equal(document.activeElement?.textContent, "Share");
     await key(document.activeElement, "ArrowRight");
+    await wait();
+    assert.equal(document.activeElement?.textContent, "Copy link");
+    assert.equal(document.querySelectorAll("[role=menu]").length, 2);
+
+    await pointerActivation(document.querySelector("[data-slot=menu-label]"), { pointerId: 20 });
+    await wait();
+    assert.equal(document.querySelectorAll("[role=menu]").length, 1);
+    assert.deepEqual(submenuOutside, ["mouse"]);
+    assert.deepEqual(parentOutside, []);
+
+    const subTrigger = document.querySelector("[data-slot=menu-sub-trigger]");
+    await React.act(async () => subTrigger.focus());
+    await key(subTrigger, "ArrowRight");
     await wait();
     assert.equal(document.activeElement?.textContent, "Copy link");
     await key(document.activeElement, "Escape");

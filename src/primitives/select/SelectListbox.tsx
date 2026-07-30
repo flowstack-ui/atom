@@ -20,8 +20,9 @@ import {
   type Placement,
 } from "@floating-ui/react";
 import { useFocusScopeContainer } from "../../hooks/focus.js";
-import { useClickAway } from "../../hooks/useClickAway.js";
+import { useOutsideInteraction } from "../../hooks/useOutsideInteraction.js";
 import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
+import type { OutsideInteractionEvent } from "../../utils/interactions.js";
 import { Portal } from "../../utils/Portal.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { composeRefs } from "../../utils/slot.js";
@@ -55,6 +56,7 @@ export interface SelectListboxProps extends SelectListboxNativeProps {
   className?: string;
   container?: HTMLElement | null;
   disablePortal?: boolean;
+  onInteractOutside?: (event: OutsideInteractionEvent) => void;
   "data-slot"?: string;
 }
 
@@ -65,6 +67,7 @@ function SelectListbox(
     className,
     container,
     disablePortal = false,
+    onInteractOutside,
     style,
     "data-slot": dataSlot = "select-listbox",
     ...restProps
@@ -104,11 +107,13 @@ function SelectListbox(
     () => [internalRef, ctx.triggerRef],
     [ctx.triggerRef],
   );
-  useClickAway({
+  useOutsideInteraction({
     refs: clickAwayRefs,
-    onClickAway: ctx.onClose,
+    onInteractOutside: (event) => {
+      onInteractOutside?.(event);
+      if (!event.defaultPrevented) ctx.onClose();
+    },
     enabled: ctx.isOpen,
-    deferTouch: true,
   });
 
   useEffect(() => {

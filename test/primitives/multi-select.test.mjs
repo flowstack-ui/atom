@@ -137,6 +137,7 @@ test("MultiSelect namespace and source preserve toggling, focus, dismissal, and 
   assert.match(trigger, /onOpen\("current"\)/);
   assert.match(listbox, /aria-multiselectable="true"/);
   assert.match(listbox, /internalRef\.current\?\.focus/);
-  assert.match(listbox, /deferTouch: true/);
+  assert.match(listbox, /useOutsideInteraction\(\{/);
+  assert.match(listbox, /if \(!event\.defaultPrevented\) ctx\.onClose\(\)/);
   assert.match(listbox, /ctx\.triggerRef\.current\?\.focus/);
 });

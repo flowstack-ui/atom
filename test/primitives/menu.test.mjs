@@ -150,8 +150,8 @@ test("Menu source keeps selection and submenu close behavior stable", async () =
     new URL("src/primitives/menu/MenuSubContent.tsx", packageRoot),
     "utf8",
   );
-  const clickAwaySource = await readFile(
-    new URL("src/hooks/useClickAway.ts", packageRoot),
+  const outsideInteractionSource = await readFile(
+    new URL("src/hooks/useOutsideInteraction.ts", packageRoot),
     "utf8",
   );
 
@@ -167,15 +167,18 @@ test("Menu source keeps selection and submenu close behavior stable", async () =
   assert.match(contentSource, /item\?\.focus\(\{ preventScroll: true \}\)/);
   assert.match(contentSource, /getTabbableOutsideBoundary/);
   assert.match(contentSource, /onClose\("tab"\)/);
-  assert.match(contentSource, /deferTouch: true/);
+  assert.match(contentSource, /useOutsideInteraction\(\{/);
+  assert.match(contentSource, /onInteractOutside\?\.\(event\)/);
   assert.match(contentSource, /useModalIsolation\(modalLayer, focusScope, isOpen && modal\)/);
   assert.match(contentSource, /--atom-menu-available-width/);
   assert.match(contentSource, /--atom-menu-transform-origin/);
   assert.match(subContentSource, /const focusItem = useCallback/);
   assert.match(subContentSource, /subTriggerRef\.current\?\.focus\(\{ preventScroll: true \}\)/);
-  assert.match(subContentSource, /deferTouch: true/);
+  assert.match(subContentSource, /useOutsideInteraction\(\{/);
   assert.match(subContentSource, /--atom-menu-available-height/);
-  assert.match(clickAwaySource, /if \(pendingPointer\) \{\s*clearPendingPointer\(\);/s);
+  assert.match(outsideInteractionSource, /const layers: OutsideInteractionLayer\[\] = \[\]/);
+  assert.match(outsideInteractionSource, /document\.addEventListener\("click", handleClick, true\)/);
+  assert.match(outsideInteractionSource, /POINTER_MOVEMENT_THRESHOLD = 8/);
   assert.match(subTriggerSource, /event\.pointerType !== "mouse"/);
   assert.match(subTriggerSource, /event\.currentTarget\.focus\(\{ preventScroll: true \}\)/);
   assert.match(itemSource, /if \(!element\) return undefined/);

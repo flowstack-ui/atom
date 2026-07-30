@@ -104,6 +104,7 @@ function dispatchPointerEvent(
   );
   Object.defineProperty(event, "pointerType", { value: pointerType });
   Object.defineProperty(event, "pointerId", { value: pointerId });
+  Object.defineProperty(event, "isPrimary", { value: true });
   element.dispatchEvent(event);
 }
 
@@ -195,7 +196,7 @@ test("Popover hover opening never steals focus", async () => {
   );
 });
 
-test("Popover Close restores focus while outside pointer dismissal preserves its target", async () => {
+test("Popover Close restores focus while outside activation preserves its target", async () => {
   await withHydratedDom(
     React.createElement(FocusFixture),
     async (dom) => {
@@ -219,6 +220,11 @@ test("Popover Close restores focus while outside pointer dismissal preserves its
       await act(async () => {
         dispatchPointerDown(outside);
         outside.focus();
+        dispatchPointerEvent(outside, "pointerup");
+        outside.dispatchEvent(new dom.window.MouseEvent("click", {
+          bubbles: true,
+          button: 0,
+        }));
         await new Promise((resolve) => setTimeout(resolve, 20));
       });
       assert.equal(dom.window.document.activeElement, outside);
@@ -285,6 +291,10 @@ test("Popover distinguishes an outside touch tap from a scroll gesture", async (
           clientX: 22,
           clientY: 22,
         });
+        outside.dispatchEvent(new dom.window.MouseEvent("click", {
+          bubbles: true,
+          button: 0,
+        }));
         await new Promise((resolve) => setTimeout(resolve, 20));
       });
       assert.equal(dom.window.document.querySelector("[data-slot=popover-content]"), null);

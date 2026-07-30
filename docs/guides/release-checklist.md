@@ -93,10 +93,10 @@ Last verified: 2026-07-30
 - `npm run verify:consumer -- <archive-or-directory> 19`
 - `npm run test:browser`
 
-The latest browser-harness pass verifies twelve browser tests across desktop
+The latest browser-harness pass verifies twenty browser tests across desktop
 Chromium, desktop WebKit, Android-Chromium touch emulation, and iPhone-WebKit
-touch emulation. The latest complete release pass also verifies 512 package
-tests, 71 export targets, a 2,191-file archive, and clean React 18 and React 19
+touch emulation. The latest complete release pass also verifies 515 package
+tests, 71 export targets, a 2,199-file archive, and clean React 18 and React 19
 consumers.
 
 The detailed result is recorded in

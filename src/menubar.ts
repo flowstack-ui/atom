@@ -73,6 +73,11 @@ export type {
   MenuSubTriggerProps,
 } from "./primitives/menu/index.js";
 
+export type {
+  OutsideInteractionEvent,
+  OutsideInteractionPointerType,
+} from "./utils/interactions.js";
+
 export const Menubar = {
   Root: MenubarRoot,
   Menu: MenubarMenu,
