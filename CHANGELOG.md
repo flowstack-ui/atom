@@ -1,5 +1,10 @@
 # Atom Changelog
 
+## Unreleased
+
+- Added focused public-subpath test commands and explicit focused, repository,
+  and release verification tiers without changing package runtime behavior.
+
 ## 0.20.1
 
 - Kept Menu and submenu available-size and trigger-size CSS variables stable
