@@ -99,9 +99,16 @@ import { Switch } from "@flowstack-ui/atom/switch";
 Hooks and Portal have dedicated subpaths:
 
 ```ts
-import { useControllableState } from "@flowstack-ui/atom/hooks";
+import {
+  useControllableState,
+  useOutsideInteraction,
+} from "@flowstack-ui/atom/hooks";
 import { Portal } from "@flowstack-ui/atom/portal";
 ```
+
+`useOutsideInteraction` provides topmost-layer, completed-activation outside
+handling and a custom preventable event that does not cancel the destination's
+native click. The older `useClickAway` hook remains available but is deprecated.
 
 Direct part exports are available from component subpaths for advanced
 composition and migration. Prefer namespaces for new code. Shared primitives

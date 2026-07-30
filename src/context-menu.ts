@@ -69,6 +69,11 @@ export type {
   MenuSubContentProps,
 } from "./primitives/menu/index.js";
 
+export type {
+  OutsideInteractionEvent,
+  OutsideInteractionPointerType,
+} from "./utils/interactions.js";
+
 export const ContextMenu = {
   Root: ContextMenuRoot,
   Trigger: ContextMenuTrigger,

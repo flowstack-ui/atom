@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.20.0
+
+- Added preventable `Content`/`Listbox.onInteractOutside` and moved outside
+  dismissal to the shared layer-aware completed-activation contract.
+
 ## 0.9.3
 
 - Fixed Arrow's public TypeScript props to accept replaceable decorative

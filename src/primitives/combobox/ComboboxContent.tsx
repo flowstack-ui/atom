@@ -18,7 +18,8 @@ import {
   size as sizeMiddleware,
   useFloating,
 } from "@floating-ui/react";
-import { useClickAway } from "../../hooks/useClickAway.js";
+import { useOutsideInteraction } from "../../hooks/useOutsideInteraction.js";
+import type { OutsideInteractionEvent } from "../../utils/interactions.js";
 import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { composeRefs } from "../../utils/slot.js";
@@ -31,6 +32,7 @@ export interface ComboboxContentProps extends ComboboxContentNativeProps {
   children?: ReactNode;
   sideOffset?: number;
   className?: string;
+  onInteractOutside?: (event: OutsideInteractionEvent) => void;
   "data-slot"?: string;
 }
 
@@ -84,6 +86,7 @@ export const ComboboxContent = forwardRef<HTMLDivElement, ComboboxContentProps>(
       children,
       sideOffset = 4,
       className,
+      onInteractOutside,
       style,
       "data-slot": dataSlot = "combobox-content",
       ...restProps
@@ -138,11 +141,13 @@ export const ComboboxContent = forwardRef<HTMLDivElement, ComboboxContentProps>(
       () => [contentRef, controlRef, inputRef],
       [contentRef, controlRef, inputRef],
     );
-    useClickAway({
+    useOutsideInteraction({
       refs: clickAwayRefs,
-      onClickAway: onClose,
+      onInteractOutside: (event) => {
+        onInteractOutside?.(event);
+        if (!event.defaultPrevented) onClose();
+      },
       enabled: isOpen,
-      deferTouch: true,
     });
 
     useEffect(() => {

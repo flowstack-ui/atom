@@ -53,6 +53,11 @@ export type {
   PopoverTitleProps,
 } from "./primitives/popover/index.js";
 
+export type {
+  OutsideInteractionEvent,
+  OutsideInteractionPointerType,
+} from "./utils/interactions.js";
+
 export const Popover = {
   Root: PopoverRoot,
   Anchor: PopoverAnchor,

@@ -57,7 +57,7 @@ Status: pass
 - `hooks` are documented at the package level.
 - `Portal` is public through the root export and `@flowstack-ui/atom/portal`.
 - Slot and DOM helper utilities remain internal implementation details.
-- The readiness-cleanup suite contains 512 passing tests. The complete local
+- The readiness-cleanup suite contains 515 passing tests. The complete local
   matrix also passes the playground build and Chromium/WebKit desktop and
   touch-profile suite, archive
   verification, and clean React 18 and React 19 consumers.

@@ -18,6 +18,8 @@ when several top-level application menus must sit in one horizontal row.
 - Supports grouped items, separators, and nested submenus.
 - Supports configurable `closeOnSelect`, looping, escape close, side, align, and offsets.
 - Stack-aware Escape dismissal when nested inside parent overlays.
+- Layer-aware completed-activation outside dismissal with a preventable
+  consumer event.
 - Exposes state data attributes for styling without shipping styles.
 
 ## Import
@@ -89,6 +91,13 @@ non-modal outside interaction keeps its destination.
 | `anchorPoint` | `{ x: number; y: number }` | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
+| `onInteractOutside` | `(event: OutsideInteractionEvent) => void` | - |
+
+Outside dismissal is committed on click/activation rather than pointer start.
+Only the topmost Menu or SubContent layer receives the event. Calling
+`event.preventDefault()` keeps that layer open without cancelling the original
+destination click. Dragged, cancelled, secondary-button, and multi-pointer
+sessions do not dismiss.
 
 | ARIA attribute | Values |
 | --- | --- |
@@ -357,6 +366,7 @@ registry, highlight state, typeahead, and nested submenu support.
 | `ariaLabel` | `string` | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
+| `onInteractOutside` | `(event: OutsideInteractionEvent) => void` | - |
 
 | ARIA attribute | Values |
 | --- | --- |

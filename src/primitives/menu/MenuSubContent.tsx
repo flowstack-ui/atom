@@ -23,8 +23,9 @@ import {
 } from "@floating-ui/react";
 import { useCollection } from "../../collection.js";
 import { useFocusScopeContainer } from "../../hooks/focus.js";
-import { useClickAway } from "../../hooks/useClickAway.js";
+import { useOutsideInteraction } from "../../hooks/useOutsideInteraction.js";
 import { usePresence } from "../../hooks/usePresence.js";
+import type { OutsideInteractionEvent } from "../../utils/interactions.js";
 import { Portal } from "../../utils/Portal.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { cloneAndMerge, composeEventHandlers, composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
@@ -59,6 +60,7 @@ export interface MenuSubContentProps extends MenuSubContentNativeProps {
   ariaLabel?: string;
   asChild?: boolean;
   render?: RenderProp;
+  onInteractOutside?: (event: OutsideInteractionEvent) => void;
   "data-slot"?: string;
 }
 
@@ -72,6 +74,7 @@ function MenuSubContent(
     ariaLabel,
     asChild = false,
     render,
+    onInteractOutside,
     onKeyDown,
     style,
     "data-slot": dataSlot = "menu-sub-content",
@@ -203,11 +206,13 @@ function MenuSubContent(
     () => [internalRef, subTriggerRef],
     [subTriggerRef],
   );
-  useClickAway({
+  useOutsideInteraction({
     refs: clickAwayRefs,
-    onClickAway: onClose,
+    onInteractOutside: (event) => {
+      onInteractOutside?.(event);
+      if (!event.defaultPrevented) onClose();
+    },
     enabled: isOpen,
-    deferTouch: true,
     ignore: (target) => nestedOpenSubMenuId !== null && isMenuSubContent(target),
   });
 

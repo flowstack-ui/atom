@@ -27,7 +27,8 @@ import {
   useFocusTrap,
   useFocusScopeContainer,
 } from "../../hooks/focus.js";
-import { useClickAway } from "../../hooks/useClickAway.js";
+import { useOutsideInteraction } from "../../hooks/useOutsideInteraction.js";
+import type { OutsideInteractionEvent } from "../../utils/interactions.js";
 import { usePresence } from "../../hooks/usePresence.js";
 import { useScrollLock } from "../../hooks/useScrollLock.js";
 import { Portal } from "../../utils/Portal.js";
@@ -69,6 +70,7 @@ export interface MenuContentProps extends MenuContentNativeProps {
   anchorPoint?: { x: number; y: number } | null;
   asChild?: boolean;
   render?: RenderProp;
+  onInteractOutside?: (event: OutsideInteractionEvent) => void;
   onKeyDownCapture?: KeyboardEventHandler<HTMLDivElement>;
   "data-slot"?: string;
 }
@@ -101,6 +103,7 @@ function MenuContent(
     anchorPoint,
     asChild = false,
     render,
+    onInteractOutside,
     onKeyDownCapture,
     style,
     "data-slot": dataSlot = "menu-content",
@@ -199,11 +202,15 @@ function MenuContent(
     () => [internalRef, triggerRef],
     [triggerRef],
   );
-  useClickAway({
+  useOutsideInteraction({
     refs: clickAwayRefs,
-    onClickAway: () => onClose(modal ? "programmatic" : "interactOutside"),
+    onInteractOutside: (event) => {
+      onInteractOutside?.(event);
+      if (!event.defaultPrevented) {
+        onClose(modal ? "programmatic" : "interactOutside");
+      }
+    },
     enabled: isOpen,
-    deferTouch: true,
     ignore: (target) => openSubMenuId !== null && isMenuSubContent(target),
   });
 

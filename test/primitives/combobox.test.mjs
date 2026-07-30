@@ -276,7 +276,8 @@ test("ComboboxContent keeps highlighted item scrolling inside the combobox", asy
   assert.match(contentSource, /function scrollComboboxItemIntoView/);
   assert.match(contentSource, /scrollParent\.scrollTop \+= itemTop/);
   assert.match(contentSource, /scrollParent\.scrollTop \+= itemBottom - scrollParent\.clientHeight/);
-  assert.match(contentSource, /useClickAway\(\{/);
-  assert.match(contentSource, /deferTouch: true/);
+  assert.match(contentSource, /useOutsideInteraction\(\{/);
+  assert.match(contentSource, /onInteractOutside\?\.\(event\)/);
+  assert.match(contentSource, /if \(!event\.defaultPrevented\) onClose\(\)/);
   assert.doesNotMatch(contentSource, /document\.addEventListener\("pointerdown"/);
 });

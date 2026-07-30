@@ -1,5 +1,16 @@
 # Atom Changelog
 
+## 0.20.0
+
+- Added the public `useOutsideInteraction` hook and preventable
+  `onInteractOutside` contract for Combobox, Select, MultiSelect, Menu-family,
+  and Popover content.
+- Changed those primitives to commit outside dismissal on completed
+  click/activation semantics through a topmost-layer stack, rejecting drags,
+  boundary crossings, cancellation, secondary buttons, and multi-pointer
+  sessions while preserving the destination activation.
+- Deprecated `useClickAway`; it remains available for compatibility.
+
 ## 0.19.9
 
 - Made SwipeableItem preserve native vertical panning and stopped nested

@@ -22,7 +22,8 @@ import {
   useFloating,
   type Placement,
 } from "@floating-ui/react";
-import { useClickAway } from "../../hooks/useClickAway.js";
+import { useOutsideInteraction } from "../../hooks/useOutsideInteraction.js";
+import type { OutsideInteractionEvent } from "../../utils/interactions.js";
 import {
   FOCUSABLE_SELECTOR,
   FocusScopeProvider,
@@ -83,6 +84,7 @@ export interface PopoverContentProps extends PopoverContentNativeProps {
   className?: string;
   initialFocus?: PopoverFocusTarget<PopoverInitialFocusDetails>;
   finalFocus?: PopoverFocusTarget<PopoverFinalFocusDetails>;
+  onInteractOutside?: (event: OutsideInteractionEvent) => void;
   "data-slot"?: string;
 }
 
@@ -215,6 +217,7 @@ function PopoverContent(props, ref) {
     className,
     initialFocus,
     finalFocus,
+    onInteractOutside,
     "aria-label": nativeAriaLabel,
     "aria-labelledby": nativeAriaLabelledBy,
     "aria-describedby": nativeAriaDescribedBy,
@@ -413,15 +416,19 @@ function PopoverContent(props, ref) {
     [triggerRef, anchorRef],
   );
 
-  useClickAway({
+  useOutsideInteraction({
     refs: clickAwayRefs,
-    onClickAway: (event) => onClose(
-      "interactOutside",
-      getPopoverPointerInteractionType(event.pointerType),
-    ),
+    onInteractOutside: (event) => {
+      onInteractOutside?.(event);
+      if (!event.defaultPrevented) {
+        onClose(
+          "interactOutside",
+          getPopoverPointerInteractionType(event.pointerType),
+        );
+      }
+    },
     enabled: isOpen && closeOnInteractOutside,
     ignore: (target) => isInsideNestedPopoverLayer(target, contentRef.current),
-    deferTouch: true,
   });
 
   useEffect(() => {

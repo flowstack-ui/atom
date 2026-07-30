@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.20.0
+
+- Added preventable `Content.onInteractOutside` and moved outside dismissal to
+  the shared layer-aware completed-activation contract.
+
 ## 0.18.2
 
 - Added Control and Trigger parts, anchored Content to the full Control, and

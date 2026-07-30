@@ -1,5 +1,11 @@
 # Menu Changelog
 
+## 0.20.0
+
+- Added preventable `Content` and `SubContent.onInteractOutside`, committed
+  dismissal on completed activation, and routed outside interaction only to the
+  topmost Menu layer.
+
 ## 0.12.0
 
 - Moved keyboard navigation to real item focus, kept disabled items navigable

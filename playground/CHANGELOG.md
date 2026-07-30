@@ -6,6 +6,9 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Added desktop Chromium/WebKit and Android/iPhone touch regressions for
+  release-based Combobox and Dropdown Menu outside dismissal.
+
 - Added a shared Playwright scenario helper, desktop Chromium/WebKit projects,
   Android-Chromium and iPhone-WebKit touch profiles, and initial mobile Dialog
   and Select smoke journeys. CI and publishing now install both browser engines.

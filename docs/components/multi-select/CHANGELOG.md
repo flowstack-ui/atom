@@ -1,5 +1,10 @@
 # MultiSelect Changelog
 
+## 0.20.0
+
+- Added preventable `Content`/`Listbox.onInteractOutside` and moved outside
+  dismissal to the shared layer-aware completed-activation contract.
+
 ## 0.10.1
 
 - Move required and read-only ARIA states from the native button trigger to

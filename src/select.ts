@@ -68,6 +68,11 @@ export type {
   SelectViewportProps,
 } from "./primitives/select/index.js";
 
+export type {
+  OutsideInteractionEvent,
+  OutsideInteractionPointerType,
+} from "./utils/interactions.js";
+
 export const Select = {
   Root: SelectRoot,
   Trigger: SelectTrigger,

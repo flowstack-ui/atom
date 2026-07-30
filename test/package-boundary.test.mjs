@@ -47,6 +47,10 @@ test("compiled package keeps implementation files under private internal chunks"
   const publicDistEntries = await readdir(distRoot);
   const buttonEntry = await readFile(new URL("dist/button.js", packageRoot), "utf8");
   const hooksEntry = await readFile(new URL("dist/hooks.js", packageRoot), "utf8");
+  const hooksDeclaration = await readFile(
+    new URL("dist/hooks.d.ts", packageRoot),
+    "utf8",
+  );
 
   assert.ok(publicDistEntries.includes("_internal"));
   assert.equal(publicDistEntries.includes("primitives"), false);
@@ -56,14 +60,17 @@ test("compiled package keeps implementation files under private internal chunks"
   await assert.rejects(access(new URL("dist/primitives/", packageRoot)));
   await assert.rejects(access(new URL("dist/utils/", packageRoot)));
   await assert.rejects(access(new URL("dist/hooks/", packageRoot)));
+  await assert.rejects(access(new URL("dist/interactions.d.ts", packageRoot)));
   await access(new URL("dist/_internal/primitives/", packageRoot));
   await access(new URL("dist/_internal/utils/", packageRoot));
   await access(new URL("dist/_internal/hooks/", packageRoot));
+  await access(new URL("dist/_internal/utils/interactions.d.ts", packageRoot));
 
   assert.match(buttonEntry, /"\.\/_internal\/primitives\/button/);
   assert.doesNotMatch(buttonEntry, /"_internal\/primitives\/dialog/);
   assert.doesNotMatch(buttonEntry, /"_internal\/primitives\/select/);
   assert.match(hooksEntry, /"\.\/_internal\/hooks\/useControllableState/);
+  assert.match(hooksDeclaration, /"\.\/_internal\/utils\/interactions\.js"/);
 });
 
 test("README documents namespace API, subpaths, and package boundaries", async () => {

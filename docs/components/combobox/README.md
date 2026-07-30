@@ -18,7 +18,8 @@ valid.
 - Provides a native disclosure Trigger and sizes Content from the full Control.
 - Supports free-form values, loading, empty state, clearing, and disabled items.
 - Positions Content with Floating UI and portals on request.
-- Defers touch and pen outside dismissal until a completed, uncancelled tap.
+- Commits outside dismissal on a completed activation, rejects cancelled or
+  dragged pointer sessions, and supports consumer cancellation.
 - Provides generated combobox/listbox ARIA relationships.
 - Submits the selected value through a hidden named input.
 - Exposes reusable option filtering, labeling, grouping, and navigation helpers.
@@ -222,6 +223,12 @@ collision handling. It owns no listbox role; place Listbox inside it.
 | Prop | Type | Default |
 | --- | --- | --- |
 | `sideOffset` | `number` | `4` |
+| `onInteractOutside` | `(event: OutsideInteractionEvent) => void` | - |
+
+`onInteractOutside` runs before dismissal. Calling its `preventDefault()`
+method keeps Content open without cancelling the original destination click.
+The event reports `pointerType` as `"mouse"`, `"touch"`, `"pen"`, or
+`"virtual"`.
 
 | Data attribute | Values |
 | --- | --- |

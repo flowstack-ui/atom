@@ -23,7 +23,8 @@ page inside a floating box.
   side, repeats them on the opposite side, and uses perpendicular sides only as
   final fallbacks; collision shift and Arrow coordinates follow the result.
 - Modal mode with focus trap and scroll lock.
-- Non-modal focus guards and outside interaction dismissal.
+- Non-modal focus guards and layer-aware completed-activation outside
+  dismissal with a preventable consumer event.
 - Stack-aware Escape dismissal for nested overlays.
 - Close button part and portal support.
 
@@ -148,6 +149,12 @@ from the mounted Anchor/Trigger and then `Direction.Provider`.
 | `sideOffset` | `number` | `8` |
 | `initialFocus` | `PopoverFocusTarget<PopoverInitialFocusDetails>` | safe interaction-aware target |
 | `finalFocus` | `PopoverFocusTarget<PopoverFinalFocusDetails>` | prior valid target, then Trigger |
+| `onInteractOutside` | `(event: OutsideInteractionEvent) => void` | - |
+
+`onInteractOutside` runs before dismissal. Calling its `preventDefault()`
+method keeps Content open without cancelling the original destination click.
+Only the topmost registered layer receives an outside activation; dragged,
+cancelled, secondary-button, and multi-pointer sessions do not dismiss.
 
 | ARIA attribute | Values |
 | --- | --- |

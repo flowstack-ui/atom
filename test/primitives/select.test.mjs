@@ -384,8 +384,9 @@ test("Select source avoids dead listbox keyboard handling and portal/scroll foot
   assert.match(contextSource, /isInsidePortal: boolean/);
   assert.doesNotMatch(listboxSource, /type KeyboardEventHandler/);
   assert.doesNotMatch(listboxSource, /onKeyDown=/);
-  assert.match(listboxSource, /useClickAway\(\{/);
-  assert.match(listboxSource, /deferTouch: true/);
+  assert.match(listboxSource, /useOutsideInteraction\(\{/);
+  assert.match(listboxSource, /onInteractOutside\?\.\(event\)/);
+  assert.match(listboxSource, /if \(!event\.defaultPrevented\) ctx\.onClose\(\)/);
   assert.doesNotMatch(listboxSource, /document\.addEventListener\("pointerdown"/);
   assert.match(listboxSource, /disabled=\{disablePortal \|\| ctx\.isInsidePortal\}/);
   assert.match(listboxSource, /ctx\.openHighlightIntent/);

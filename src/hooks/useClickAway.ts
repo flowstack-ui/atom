@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, type RefObject } from "react";
 
+/** @deprecated Prefer useOutsideInteraction for release-based, preventable dismissal. */
 export interface UseClickAwayOptions {
   refs: RefObject<HTMLElement | null>[];
   onClickAway: (event: PointerEvent) => void;
@@ -13,6 +14,7 @@ export interface UseClickAwayOptions {
 
 const TAP_MOVEMENT_THRESHOLD = 8;
 
+/** @deprecated Prefer useOutsideInteraction for release-based, preventable dismissal. */
 export function useClickAway({
   refs,
   onClickAway,

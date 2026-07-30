@@ -21,8 +21,9 @@ import {
   type Placement,
 } from "@floating-ui/react";
 import { useFocusScopeContainer } from "../../hooks/focus.js";
-import { useClickAway } from "../../hooks/useClickAway.js";
+import { useOutsideInteraction } from "../../hooks/useOutsideInteraction.js";
 import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
+import type { OutsideInteractionEvent } from "../../utils/interactions.js";
 import { Portal } from "../../utils/Portal.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { composeEventHandlers, composeRefs } from "../../utils/slot.js";
@@ -60,6 +61,7 @@ export interface MultiSelectListboxProps extends MultiSelectListboxNativeProps {
   className?: string;
   container?: HTMLElement | null;
   disablePortal?: boolean;
+  onInteractOutside?: (event: OutsideInteractionEvent) => void;
   "data-slot"?: string;
 }
 
@@ -70,6 +72,7 @@ function MultiSelectListbox(
     className,
     container,
     disablePortal = false,
+    onInteractOutside,
     onKeyDown,
     style,
     "data-slot": dataSlot = "multi-select-listbox",
@@ -123,11 +126,13 @@ function MultiSelectListbox(
     () => [internalRef, ctx.triggerRef],
     [ctx.triggerRef],
   );
-  useClickAway({
+  useOutsideInteraction({
     refs: clickAwayRefs,
-    onClickAway: ctx.onClose,
+    onInteractOutside: (event) => {
+      onInteractOutside?.(event);
+      if (!event.defaultPrevented) ctx.onClose();
+    },
     enabled: ctx.isOpen,
-    deferTouch: true,
   });
 
   useEffect(() => {

@@ -58,6 +58,11 @@ export type {
   ComboboxTriggerProps,
 } from "./primitives/combobox/index.js";
 
+export type {
+  OutsideInteractionEvent,
+  OutsideInteractionPointerType,
+} from "./utils/interactions.js";
+
 export const Combobox = {
   Root: ComboboxRoot,
   Control: ComboboxControl,

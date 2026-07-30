@@ -186,6 +186,12 @@ It owns dismissal, initial highlighting, and focus-scope registration.
 | --- | --- | --- |
 | `disablePortal` | `boolean` | `false` |
 | `container` | `HTMLElement \| null` | `document.body` after mount |
+| `onInteractOutside` | `(event: OutsideInteractionEvent) => void` | - |
+
+Outside dismissal commits on completed click/activation semantics. Calling
+`event.preventDefault()` keeps Content open without cancelling the original
+destination click; dragged, cancelled, secondary-button, and multi-pointer
+sessions do not dismiss.
 
 | ARIA attribute | Values |
 | --- | --- |
