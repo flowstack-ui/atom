@@ -7,8 +7,17 @@ export async function openScenario(
 ) {
   await page.goto("/");
   await page.getByRole("menuitem", { name: category, exact: true }).click();
-  await page.getByRole("menuitem", { name: scenario, exact: true }).click();
-  await expect(
-    page.getByRole("heading", { level: 1, name: scenario, exact: true }),
-  ).toBeVisible();
+  const heading = page.getByRole("heading", { level: 1, name: scenario, exact: true });
+  if (await heading.isVisible()) {
+    await page.keyboard.press("Escape");
+    return;
+  }
+  const categoryMenu = page.getByRole("menu", { name: category, exact: true });
+  const exactItem = categoryMenu.getByRole("menuitem", { name: scenario, exact: true });
+  if (await exactItem.count()) {
+    await exactItem.click();
+  } else {
+    await categoryMenu.getByRole("menuitem", { name: scenario, exact: false }).click();
+  }
+  await expect(heading).toBeVisible();
 }

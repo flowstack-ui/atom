@@ -1,5 +1,10 @@
 # Menu Changelog
 
+## 0.20.1
+
+- Kept the public available-size and trigger-size CSS variables on Content and
+  SubContent stable across positioning rerenders, including viewport resize.
+
 ## 0.20.0
 
 - Added preventable `Content` and `SubContent.onInteractOutside`, committed

@@ -1,6 +1,6 @@
 # Popover Changelog
 
-## Unreleased
+## 0.20.1
 
 - Made modal Content participate in Atom's stacked background-isolation system
   and restore background inert state on close or unmount.

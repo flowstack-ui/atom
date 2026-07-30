@@ -16,26 +16,26 @@ async function prepareScrollable(content: Locator) {
 
 async function dispatchTouchMove(target: Locator, startY: number, moveY: number) {
   return target.evaluate((element, points) => {
-    const createTouch = (clientY: number) => new Touch({
+    const createTouch = (clientY: number) => ({
       identifier: 1,
       target: element,
       clientX: 20,
       clientY,
     });
-    const startTouch = createTouch(points.startY);
-    element.dispatchEvent(new TouchEvent("touchstart", {
-      bubbles: true,
-      cancelable: true,
-      touches: [startTouch],
-      changedTouches: [startTouch],
-    }));
-    const moveTouch = createTouch(points.moveY);
-    const move = new TouchEvent("touchmove", {
-      bubbles: true,
-      cancelable: true,
-      touches: [moveTouch],
-      changedTouches: [moveTouch],
-    });
+    const createTouchEvent = (type: string, clientY: number) => {
+      const touch = createTouch(clientY);
+      const touches = Object.assign([touch], {
+        item: (index: number) => index === 0 ? touch : null,
+      });
+      const event = new Event(type, { bubbles: true, cancelable: true });
+      Object.defineProperties(event, {
+        changedTouches: { value: touches },
+        touches: { value: touches },
+      });
+      return event;
+    };
+    element.dispatchEvent(createTouchEvent("touchstart", points.startY));
+    const move = createTouchEvent("touchmove", points.moveY);
     element.dispatchEvent(move);
     return move.defaultPrevented;
   }, { startY, moveY });
@@ -64,6 +64,7 @@ test("mobile modal Popover isolates background and allows owned touch scrolling"
   await openScenario(page, "Overlays", "Popover");
   await page.getByRole("menuitem", { name: "State", exact: true }).tap();
   await page.getByRole("menuitemcheckbox", { name: "Modal", exact: true }).tap();
+  await page.keyboard.press("Escape");
   const background = page.getByRole("heading", { level: 1, name: "Popover" });
   await page.locator("[data-playground-popover-trigger]").tap();
   const content = page.locator("[data-playground-popover-content]");

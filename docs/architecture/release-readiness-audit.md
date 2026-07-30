@@ -5,6 +5,33 @@ Last candidate audit: 2026-07-30
 The current release outcome is recorded first. Earlier published-release
 audits remain below as historical baselines.
 
+## 0.20.1 Mobile Readiness Candidate - 2026-07-30
+
+Status: pass for release. Physical-device and assistive-technology evidence
+remains an explicit owner lane and is not represented as an automated pass.
+
+This compatible patch makes Menu and submenu available-size and trigger-size
+CSS variables stable across positioning rerenders and viewport changes. It also
+brings modal Popover into Atom's stacked background-isolation system so its
+modal semantics, focus containment, scroll containment, and background
+isolation agree.
+
+The candidate passes 515 package tests and all 48 browser tests across desktop
+Chromium, desktop WebKit, Android-Chromium touch emulation, and iPhone-WebKit
+touch emulation. The browser matrix covers modal containment, outside
+interaction, positioned overlay reachability, actionable Toast placement, and
+the consolidated Tooltip, Context Menu, Slider, Rating, and Swipeable Item
+gesture lane. The playground production build, all 71 JavaScript and
+declaration export targets, the verified 2,199-file archive at 542,220
+compressed bytes, and clean packed consumers with React and React DOM 18.3.1
+and 19.2.7 also pass.
+
+The coverage workbook preserves all 78 Mobile Readiness records: existing
+physical passes remain intact, unavailable device work remains `not run`, and
+applicable rows link the automated evidence without converting emulation into
+physical evidence. The final consolidated protocol names the remaining
+iPhone/Safari/VoiceOver and Android/Chrome/TalkBack journeys.
+
 ## 0.19.9 Release Outcome - 2026-07-30
 
 Status: published and registry-verified. The trusted-publishing workflow,
