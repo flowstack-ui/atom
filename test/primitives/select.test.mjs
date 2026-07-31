@@ -392,6 +392,9 @@ test("Select source avoids dead listbox keyboard handling and portal/scroll foot
   assert.match(listboxSource, /ctx\.openHighlightIntent/);
   assert.match(listboxSource, /ctx\.registryVersion/);
   assert.match(listboxSource, /ctx\.clearOpenHighlightIntent\(\)/);
+  assert.match(listboxSource, /const contextDir = useDirection\(\)/);
+  assert.match(listboxSource, /resolveFloatingDirection\(\s*dirProp,\s*ctx\.triggerRef\.current,\s*contextDir,\s*\)/s);
+  assert.match(listboxSource, /dir=\{resolvedDir\}/);
   assert.match(listboxSource, /floatingArrow\(\{ element: arrowRef, padding: 8 \}\)/);
   assert.match(listboxSource, /data-side=\{actualSide\}/);
   assert.match(listboxSource, /data-align=\{actualAlign\}/);

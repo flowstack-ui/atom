@@ -1,8 +1,10 @@
 # Select Changelog
 
-## Unreleased
+## 0.20.4
 
-- No unreleased changes.
+- Content/Listbox now resolves direction from its explicit `dir`, Trigger, or
+  Direction provider and applies it across the portal boundary, preserving
+  logical placement and option layout in RTL.
 
 ## 0.20.0
 

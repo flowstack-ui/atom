@@ -186,6 +186,7 @@ It owns dismissal, initial highlighting, and focus-scope registration.
 | --- | --- | --- |
 | `disablePortal` | `boolean` | `false` |
 | `container` | `HTMLElement \| null` | `document.body` after mount |
+| `dir` | `\"ltr\" \| \"rtl\"` | Computed Trigger direction, then Direction provider |
 | `onInteractOutside` | `(event: OutsideInteractionEvent) => void` | - |
 
 Outside dismissal commits on completed click/activation semantics. Calling
@@ -481,6 +482,9 @@ without a submission name, and redirects browser validation focus to Trigger.
 `aria-labelledby`.
 Portalled Select content registers with a parent modal focus scope when opened
 inside Dialog, Drawer, or another modal primitive.
+Content preserves an explicit `dir` or resolves the Trigger/Direction-provider
+direction across its portal boundary, so logical alignment and option content
+remain correct in RTL.
 Printable-character typeahead matches enabled option text; a single-character
 search cycles forward from the current matching option, while multi-character
 buffers match exact prefixes.

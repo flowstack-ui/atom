@@ -62,3 +62,27 @@ test("mobile touch opens Select and commits an option", async ({ page }) => {
   await expect(listbox).toBeHidden();
   await expect(trigger).toHaveAttribute("aria-expanded", "false");
 });
+
+test("mobile Select preserves inherited RTL across its portal", async ({ page }) => {
+  await openScenario(page, "Selection", "Select");
+
+  const trigger = page.locator("[data-playground-select-trigger]");
+  await trigger.evaluate((element) =>
+    element.closest(".select-field")?.setAttribute("dir", "rtl"),
+  );
+  await expect(trigger).toHaveCSS("direction", "rtl");
+  await trigger.tap();
+
+  const listbox = page.getByRole("listbox");
+  await expect(listbox).toHaveCSS("direction", "rtl");
+  const [triggerBox, listboxBox] = await Promise.all([
+    trigger.boundingBox(),
+    listbox.boundingBox(),
+  ]);
+  expect(triggerBox).not.toBeNull();
+  expect(listboxBox).not.toBeNull();
+  expect(Math.abs(
+    (triggerBox!.x + triggerBox!.width) -
+    (listboxBox!.x + listboxBox!.width),
+  )).toBeLessThanOrEqual(2);
+});

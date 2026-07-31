@@ -33,6 +33,8 @@ import {
   type SelectContentContextValue,
   type SelectContentSide,
 } from "./context.js";
+import { useDirection } from "../direction/index.js";
+import { resolveFloatingDirection } from "../../utils/floatingPlacement.js";
 
 const selectFocusScopeMetadata = {
   focusContainment: "owned",
@@ -67,6 +69,7 @@ function SelectListbox(
     className,
     container,
     disablePortal = false,
+    dir: dirProp,
     onInteractOutside,
     style,
     "data-slot": dataSlot = "select-listbox",
@@ -75,6 +78,12 @@ function SelectListbox(
   ref,
 ) {
   const ctx = useSelectContext();
+  const contextDir = useDirection();
+  const resolvedDir = resolveFloatingDirection(
+    dirProp,
+    ctx.triggerRef.current,
+    contextDir,
+  );
   const internalRef = useRef<HTMLDivElement>(null);
   const arrowRef = useRef<HTMLSpanElement>(null);
   const [isPositioned, setIsPositioned] = useState(false);
@@ -195,6 +204,7 @@ function SelectListbox(
         ref={composedRef}
         id={ctx.listboxId}
         role="listbox"
+        dir={resolvedDir}
         tabIndex={-1}
         data-slot={dataSlot}
         data-state="open"
