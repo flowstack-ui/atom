@@ -270,3 +270,20 @@ test("AccordionRoot source uses Collection for trigger keyboard navigation", asy
   assert.doesNotMatch(rootSource, /disabledItems/);
   assert.doesNotMatch(itemSource, /registerDisabledItem/);
 });
+
+test("AccordionContent measures an entering panel before its first painted frame", async () => {
+  const contentSource = await readFile(
+    new URL("src/primitives/accordion/AccordionContent.tsx", packageRoot),
+    "utf8",
+  );
+  const measurementSource = await readFile(
+    new URL("src/utils/useMeasuredContentHeight.ts", packageRoot),
+    "utf8",
+  );
+
+  assert.match(
+    contentSource,
+    /useMeasuredContentHeight\(contentRef, isMounted \|\| isOpen, children\)/,
+  );
+  assert.match(measurementSource, /useSafeLayoutEffect\(\(\) => \{\s*measure\(\)/);
+});

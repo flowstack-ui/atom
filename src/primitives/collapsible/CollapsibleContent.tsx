@@ -101,7 +101,7 @@ export const CollapsibleContent = forwardRef<HTMLDivElement, CollapsibleContentP
       }
     }, [isOpen, keepMounted]);
 
-    useMeasuredContentHeight(contentRef, isMounted, children);
+    useMeasuredContentHeight(contentRef, isMounted || isOpen, children);
 
     const handleAnimationEnd = useCallback(() => {
       setIsAnimating(false);

@@ -5,6 +5,28 @@ Last release audit: 2026-07-31
 The current release outcome is recorded first. Earlier published-release
 audits remain below as historical baselines.
 
+## 0.20.8 Disclosure First-Frame Measurement Release Candidate - 2026-07-31
+
+Status: qualified locally for trusted publication. GitHub CI, the protected npm
+deployment, registry provenance, and the matching GitHub release remain pending
+until the candidate is merged and tagged.
+
+This compatible patch measures newly opened Accordion and Collapsible Content
+in a browser-safe layout effect while the entering panel is already eligible
+for measurement. Styled height and width transitions therefore begin their
+first painted frame with stable intrinsic dimensions instead of acquiring the
+measurement after entry has started.
+
+The candidate passes 520 package tests and all 62 browser tests across desktop
+Chromium, desktop WebKit, Android-Chromium touch emulation, and iPhone-WebKit
+touch emulation. The browser matrix includes focused Accordion and Collapsible
+first-frame measurement regressions. The playground production build, all 71
+JavaScript and declaration export targets, the verified 2,203-file archive,
+and clean packed consumers with React and React DOM 18.3.1 and 19.2.7 also
+pass. The exact candidate archive is 545,755 compressed bytes with npm SHA-1
+`4ce8271287769c0a2ed0b7aa5ba9aff6f4ba75f9` and SHA-512 integrity
+`sha512-RZtDx1OfXffocCGZtVHQhchNVpK0tPsQ7HhRw6sNVnQ4V3PJDua9F6plKwhT6D1CuXOftwMn6lUHELBgB7M5MA==`.
+
 ## 0.20.7 Context Menu Re-invocation Release Candidate - 2026-07-31
 
 Status: qualified locally for trusted publication. GitHub CI, the protected npm

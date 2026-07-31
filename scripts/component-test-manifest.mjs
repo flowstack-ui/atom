@@ -24,6 +24,7 @@ const additionalUnitTests = {
 };
 
 const browserTests = {
+  accordion: ["disclosure-presence.spec.ts"],
   "alert-dialog": ["modal-containment.spec.ts", "modal-containment.mobile.spec.ts"],
   combobox: [
     "outside-interaction.spec.ts",
@@ -31,6 +32,7 @@ const browserTests = {
     "positioned-overlays.spec.ts",
     "positioned-overlays.mobile.spec.ts",
   ],
+  collapsible: ["disclosure-presence.spec.ts"],
   "context-menu": [
     "context-menu-reinvocation.spec.ts",
     "outside-interaction.spec.ts",

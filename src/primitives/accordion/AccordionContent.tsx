@@ -103,7 +103,7 @@ export const AccordionContent = forwardRef<HTMLDivElement, AccordionContentProps
       if (isOpen || keepMounted) setIsMounted(true);
     }, [isOpen, keepMounted]);
 
-    useMeasuredContentHeight(contentRef, isMounted, children);
+    useMeasuredContentHeight(contentRef, isMounted || isOpen, children);
 
     const handleAnimationEnd = useCallback(() => {
       setIsAnimating(false);

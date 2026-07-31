@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.20.8
+
+- Measure newly opened Content before its first painted animation frame so
+  height and width transitions begin with stable intrinsic dimensions.
+
 ## 0.14.0
 
 - Add `orientation="vertical" | "horizontal"` with vertical default and

@@ -1,6 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, type RefObject } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  type RefObject,
+} from "react";
+
+const useSafeLayoutEffect =
+  typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 /** Keeps shared disclosure size hooks aligned with intrinsic content size. */
 export function useMeasuredContentHeight(
@@ -16,7 +24,7 @@ export function useMeasuredContentHeight(
     element.style.setProperty("--content-width", `${element.scrollWidth}px`);
   }, [contentRef, enabled]);
 
-  useEffect(() => {
+  useSafeLayoutEffect(() => {
     measure();
   }, [content, measure]);
 
