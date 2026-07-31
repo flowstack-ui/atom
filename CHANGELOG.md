@@ -1,8 +1,9 @@
 # Atom Changelog
 
-## Unreleased
+## 0.20.4
 
-- No unreleased changes.
+- Preserved Select's resolved LTR/RTL direction across its portal boundary so
+  logical `start` alignment and option content follow the trigger direction.
 
 ## 0.20.3
 
