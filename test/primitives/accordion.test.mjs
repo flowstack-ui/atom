@@ -51,6 +51,7 @@ test("Accordion primitives render linked trigger and panel", () => {
   assert.match(html, /tabindex="0"/);
   assert.match(html, /class="trigger-class"/);
   assert.match(html, /data-slot="accordion-content"/);
+  assert.match(html, /data-slot="accordion-content"[^>]*data-initial-open=""/);
   assert.match(html, /role="region"/);
   assert.match(html, /aria-labelledby="[^"]+-trigger"/);
   assert.match(html, /class="content-class"/);

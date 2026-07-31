@@ -1,5 +1,11 @@
 # Atom Changelog
 
+## 0.20.9
+
+- Exposed initially open Accordion and Collapsible Content with
+  `data-initial-open` until its first state transition so styled layers can
+  suppress page-load entrance motion without disabling interactive motion.
+
 ## 0.20.8
 
 - Measured newly opened Accordion and Collapsible content before its first

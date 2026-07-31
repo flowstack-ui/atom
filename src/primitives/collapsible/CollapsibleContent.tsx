@@ -141,6 +141,7 @@ export const CollapsibleContent = forwardRef<HTMLDivElement, CollapsibleContentP
       id: contentId,
       "data-slot": dataSlot,
       "data-state": dataState,
+      ...(suppressAnimation ? { "data-initial-open": "" } : {}),
       "data-orientation": orientation,
       role: "region",
       "aria-labelledby": triggerId,

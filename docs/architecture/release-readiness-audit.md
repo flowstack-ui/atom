@@ -5,6 +5,27 @@ Last release audit: 2026-07-31
 The current release outcome is recorded first. Earlier published-release
 audits remain below as historical baselines.
 
+## 0.20.9 Disclosure Initial-Open Presence Release Candidate - 2026-07-31
+
+Status: qualified locally for trusted publication. GitHub CI, the protected npm
+deployment, registry provenance, and the matching GitHub release remain pending
+until the candidate is merged and tagged.
+
+This compatible patch exposes initially open Accordion and Collapsible Content
+with `data-initial-open` until its first state transition. Styled layers can
+therefore suppress page-load entrance motion without disabling motion caused by
+later user interaction.
+
+The candidate passes 520 package tests and all 62 browser tests across desktop
+Chromium, desktop WebKit, Android-Chromium touch emulation, and iPhone-WebKit
+touch emulation. The browser matrix includes focused initial-open lifecycle and
+first-frame measurement regressions. The playground production build, all 71
+JavaScript and declaration export targets, the verified 2,203-file archive,
+and clean packed consumers with React and React DOM 18.3.1 and 19.2.7 also
+pass. The exact candidate archive is 545,819 compressed bytes with npm SHA-1
+`12d2efb6eaa6038bcd256d6d2beff23939c6178b` and SHA-512 integrity
+`sha512-DO2tiSK3I3gqdj0KzwsI5dEj+1yWxziHavLm5AyLaywQxG6w9i6oX6KI//tALCdbLSYUgvf9qcD35bSzISnp9A==`.
+
 ## 0.20.8 Disclosure First-Frame Measurement Release Candidate - 2026-07-31
 
 Status: qualified locally for trusted publication. GitHub CI, the protected npm

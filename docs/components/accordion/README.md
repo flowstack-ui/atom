@@ -149,6 +149,7 @@ after any closing animation finishes.
 | --- | --- |
 | `[data-slot]` | `"accordion-content"` |
 | `[data-state]` | `"open" \| "closed"` |
+| `[data-initial-open]` | Present while initially open Content has not transitioned |
 | `[data-orientation]` | `"vertical" \| "horizontal"` |
 
 | CSS variable | Description |

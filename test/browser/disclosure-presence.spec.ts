@@ -4,6 +4,9 @@ import { openScenario } from "./helpers/playground.js";
 test("Accordion measures entering content before its first animation frame", async ({ page }) => {
   await openScenario(page, "Navigation", "Accordion");
 
+  const initiallyOpenContent = page.locator("[data-slot='accordion-content'][data-state='open']");
+  await expect(initiallyOpenContent).toHaveAttribute("data-initial-open", "");
+
   const result = await page.getByRole("button", { name: /How does state behave/ }).evaluate(async (trigger) => {
     trigger.click();
     const frameHeights: number[] = [];
@@ -28,6 +31,10 @@ test("Accordion measures entering content before its first animation frame", asy
   });
 
   expect(result.firstFrameHeight).toMatch(/^\d+(?:\.\d+)?px$/);
+  await expect(page.getByRole("button", { name: /How does state behave/ })
+    .locator("xpath=ancestor::*[@data-slot='accordion-item']")
+    .locator("[data-slot='accordion-content']"))
+    .not.toHaveAttribute("data-initial-open", "");
   expect(result.frameHeights.at(-1)).toBeGreaterThan(0);
   for (let index = 1; index < result.frameHeights.length; index += 1) {
     expect(result.frameHeights[index] + 1).toBeGreaterThanOrEqual(result.frameHeights[index - 1]);
@@ -45,4 +52,6 @@ test("Collapsible measures entering content during the opening commit", async ({
   });
 
   expect(firstFrameHeight).toMatch(/^\d+(?:\.\d+)?px$/);
+  await expect(page.locator("[data-slot='collapsible-content']"))
+    .not.toHaveAttribute("data-initial-open", "");
 });
