@@ -200,6 +200,7 @@ export function MenuRoot({
       closeOnSelect,
       loop,
       openSubMenuId,
+      onCloseTree: onClose,
       onSubMenuOpen: setOpenSubMenuId,
       onSubMenuClose,
     }),

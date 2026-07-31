@@ -1,5 +1,14 @@
 # Atom Changelog
 
+## 0.20.7
+
+- Kept an open ContextMenu custom on repeated or cross-target secondary clicks,
+  repositioned it from the latest invocation coordinate, and prevented the
+  browser menu from replacing it.
+- Made an activation outside a complete Menu subtree dismiss the root and its
+  open submenu in one step while preserving submenu-only dismissal inside the
+  parent surface.
+
 ## 0.20.6
 
 - Required actual mouse movement before hover-opening a Menu submenu so a

@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useEffect,
+  useLayoutEffect,
   useState,
   type KeyboardEventHandler,
   type MouseEventHandler,
@@ -22,6 +23,11 @@ import {
 } from "../../utils/slot.js";
 import { useMenuContext } from "../menu/index.js";
 import { useContextMenuContext } from "./context.js";
+import {
+  activateContextMenuTrigger,
+  registerContextMenuTrigger,
+  type ContextMenuTriggerRegistration,
+} from "./registry.js";
 
 type ContextMenuTriggerNativeProps = NativeSpanProps<"children">;
 const LONG_PRESS_DELAY = 700;
@@ -69,6 +75,7 @@ export const ContextMenuTrigger = forwardRef<
     previousCallout: string;
   } | null>(null);
   const syntheticOpenAtRef = useRef(0);
+  const registrationRef = useRef<ContextMenuTriggerRegistration | null>(null);
   const composedRef = useMemo(
     () => composeRefs(triggerRef, ctx.triggerRef, ref),
     [ctx.triggerRef, ref],
@@ -99,6 +106,28 @@ export const ContextMenuTrigger = forwardRef<
   useEffect(() => {
     if (disabled) clearLongPress();
   }, [clearLongPress, disabled]);
+
+  useLayoutEffect(() => {
+    const element = triggerRef.current;
+    if (!element) return undefined;
+    const registration: ContextMenuTriggerRegistration = {
+      close: ctx.onClose,
+      disabled,
+      element,
+    };
+    registrationRef.current = registration;
+    const unregister = registerContextMenuTrigger(registration);
+    return () => {
+      unregister();
+      if (registrationRef.current === registration) registrationRef.current = null;
+    };
+  }, [ctx.onClose, disabled]);
+
+  useLayoutEffect(() => {
+    const registration = registrationRef.current;
+    if (!ctx.isOpen || !registration) return undefined;
+    return activateContextMenuTrigger(registration);
+  }, [ctx.isOpen, ctx.onClose, disabled]);
 
   const handleContextMenu: MouseEventHandler<HTMLElement> = useCallback(
     (event) => {
