@@ -143,6 +143,7 @@ export const AccordionContent = forwardRef<HTMLDivElement, AccordionContentProps
       id: contentId,
       "data-slot": dataSlot,
       "data-state": dataState,
+      ...(suppressAnimation ? { "data-initial-open": "" } : {}),
       "data-orientation": orientation,
       role: landmark ? "region" : undefined,
       "aria-labelledby": landmark ? triggerId : undefined,

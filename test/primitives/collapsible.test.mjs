@@ -33,6 +33,7 @@ test("Collapsible primitives render linked trigger and region", () => {
   assert.match(html, /tabindex="0"/);
   assert.match(html, /class="trigger-class"/);
   assert.match(html, /data-slot="collapsible-content"/);
+  assert.match(html, /data-slot="collapsible-content"[^>]*data-initial-open=""/);
   assert.match(html, /role="region"/);
   assert.match(html, /aria-labelledby="[^"]+-trigger"/);
   assert.match(html, /class="content-class"/);

@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.20.9
+
+- Expose initially open Content with `data-initial-open` until its first state
+  transition so styled layers can suppress page-load entrance motion.
+
 ## 0.20.8
 
 - Measure newly opened Content before its first painted animation frame so

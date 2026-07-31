@@ -100,6 +100,7 @@ available for consumer-owned exit animation.
 | --- | --- |
 | `[data-slot]` | `"collapsible-content"` |
 | `[data-state]` | `"open" \| "closed"` |
+| `[data-initial-open]` | Present while initially open Content has not transitioned |
 | `[data-orientation]` | `"vertical" \| "horizontal"` |
 
 Content sets `--content-height` and `--content-width` to its measured natural
