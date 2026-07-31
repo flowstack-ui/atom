@@ -5,10 +5,13 @@ Last release audit: 2026-07-30
 The current release outcome is recorded first. Earlier published-release
 audits remain below as historical baselines.
 
-## 0.20.3 Sticky Modal Scroll Lock Candidate - 2026-07-30
+## 0.20.3 Sticky Modal Scroll Lock Release Outcome - 2026-07-30
 
-Status: release-qualified. Registry publication and downstream Brick adoption
-are pending and are not represented as passed.
+Status: published and registry-verified. The trusted-publishing workflow,
+matching GitHub release, npm provenance, and `latest` distribution tag resolve
+to Atom `0.20.3` at release commit
+`3a26dd0aa4505c7dd8539120da5e8b4fc60fabc5`. Downstream Brick adoption remains
+pending and is not represented as passed.
 
 This compatible patch locks document overflow without also hiding body
 overflow. Background wheel and touch scrolling remain blocked, owned modal
@@ -21,8 +24,9 @@ touch emulation. The playground production build, all 71 JavaScript and
 declaration export targets, the verified 2,199-file archive, and clean packed
 consumers with React and React DOM 18.3.1 and 19.2.7 also pass. The exact
 candidate archive is 542,264 compressed bytes with npm SHA-1
-`c297fac72a2d219b9bd71946ec48c270afd95bb4`; registry integrity is recorded
-after trusted publication completes.
+`c297fac72a2d219b9bd71946ec48c270afd95bb4`. The npm registry reports the same
+SHA-1 and SHA-512 integrity
+`sha512-W0tboiw8qlJHYr2miEthRB4FQtEsOcQCEwjghEHdulgahCyTF46r360d9g7XYaD+32ynTLnSsS2pH3FaTEGRtA==`.
 
 ## 0.20.2 Combobox Mobile Focus Release Outcome - 2026-07-30
 
