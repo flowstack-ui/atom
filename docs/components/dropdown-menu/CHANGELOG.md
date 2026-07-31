@@ -1,5 +1,12 @@
 # DropdownMenu Changelog
 
+## 0.20.5
+
+- Inherited resolved direction on portalled Content and SubContent so logical
+  row anatomy and submenu chevrons mirror with the trigger.
+- Inherited block-axis submenu collision fallbacks and narrow-viewport
+  containment when neither inline side fits.
+
 ## 0.20.3
 
 - Inherited document-only overflow locking so sticky application chrome

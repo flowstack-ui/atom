@@ -1,5 +1,13 @@
 # Menu Changelog
 
+## 0.20.5
+
+- Content and SubContent now carry their resolved explicit, trigger, or
+  provider direction across portals and provide that value to nested menu
+  behavior.
+- SubContent now tries block-axis placements after both inline sides and uses
+  a final cross-axis shift to remain inside narrow visual viewports.
+
 ## 0.20.3
 
 - Modal Content now inherits document-only overflow locking so sticky

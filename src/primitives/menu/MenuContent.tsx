@@ -35,7 +35,8 @@ import { Portal } from "../../utils/Portal.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { cloneAndMerge, composeEventHandlers, composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
 import { getTypeaheadMatch } from "../../utils/typeahead.js";
-import { useDirection } from "../direction/index.js";
+import { resolveFloatingDirection } from "../../utils/floatingPlacement.js";
+import { DirectionProvider, useDirection } from "../direction/index.js";
 import { setModalLayerContent } from "../modal/layer.js";
 import { useModalIsolation } from "../modal/useModalIsolation.js";
 import {
@@ -106,6 +107,7 @@ function MenuContent(
     onInteractOutside,
     onKeyDownCapture,
     style,
+    dir: dirProp,
     "data-slot": dataSlot = "menu-content",
     ...restProps
   },
@@ -113,7 +115,7 @@ function MenuContent(
 ) {
   const ctx = useMenuContext();
   const portalContext = useMenuPortalContext();
-  const dir = useDirection();
+  const contextDir = useDirection();
   const loop = loopProp ?? ctx.loop;
   const {
     contentRef,
@@ -135,6 +137,11 @@ function MenuContent(
     ownerBoundaryRef,
     focusOriginRef,
   } = ctx;
+  const dir = resolveFloatingDirection(
+    dirProp,
+    triggerRef.current,
+    contextDir,
+  );
   const internalRef = useRef<HTMLDivElement>(null);
   const arrowRef = useRef<SVGSVGElement>(null);
   const { isPresent, ref: presenceRef } = usePresence({ present: isOpen });
@@ -430,6 +437,7 @@ function MenuContent(
     "aria-orientation": "vertical" as const,
     "aria-label": ariaLabel,
     "aria-labelledby": !ariaLabel && triggerRef.current ? triggerId : undefined,
+    dir,
     tabIndex: -1,
     "data-slot": dataSlot,
     "data-state": dataState,
@@ -456,9 +464,11 @@ function MenuContent(
 
   return (
     <Portal container={portalContext?.container} disabled={portalContext !== null}>
-      <MenuContentContextProvider value={contentContextValue}>
-        <MenuPortalContextProvider value={null}>{contentElement}</MenuPortalContextProvider>
-      </MenuContentContextProvider>
+      <DirectionProvider dir={dir}>
+        <MenuContentContextProvider value={contentContextValue}>
+          <MenuPortalContextProvider value={null}>{contentElement}</MenuPortalContextProvider>
+        </MenuContentContextProvider>
+      </DirectionProvider>
     </Portal>
   );
 });

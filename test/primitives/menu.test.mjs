@@ -170,11 +170,17 @@ test("Menu source keeps selection and submenu close behavior stable", async () =
   assert.match(contentSource, /useOutsideInteraction\(\{/);
   assert.match(contentSource, /onInteractOutside\?\.\(event\)/);
   assert.match(contentSource, /useModalIsolation\(modalLayer, focusScope, isOpen && modal\)/);
+  assert.match(contentSource, /resolveFloatingDirection\(\s*dirProp,\s*triggerRef\.current,\s*contextDir,\s*\)/);
+  assert.match(contentSource, /<DirectionProvider dir=\{dir\}>/);
   assert.match(contentSource, /--atom-menu-available-width/);
   assert.match(contentSource, /--atom-menu-transform-origin/);
   assert.match(subContentSource, /const focusItem = useCallback/);
   assert.match(subContentSource, /subTriggerRef\.current\?\.focus\(\{ preventScroll: true \}\)/);
   assert.match(subContentSource, /useOutsideInteraction\(\{/);
+  assert.match(subContentSource, /resolveFloatingDirection\(\s*dirProp,\s*subTriggerRef\.current,\s*contextDir,\s*\)/);
+  assert.match(subContentSource, /<DirectionProvider dir=\{dir\}>/);
+  assert.match(subContentSource, /getFloatingFallbackPlacements\(preferredSide, "start"\)/);
+  assert.match(subContentSource, /shift\(\{ padding: 8, crossAxis: true \}\)/);
   assert.match(subContentSource, /--atom-menu-available-height/);
   assert.match(outsideInteractionSource, /const layers: OutsideInteractionLayer\[\] = \[\]/);
   assert.match(outsideInteractionSource, /document\.addEventListener\("click", handleClick, true\)/);

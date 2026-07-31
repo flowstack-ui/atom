@@ -86,6 +86,14 @@ Portals and positions the focus-managed `menu` surface. Focus moves to real
 `menuitem*` elements. Modal mode uses Atom's stacked isolation and scroll lock;
 non-modal outside interaction keeps its destination.
 
+Content resolves text direction from its explicit native `dir`, its trigger's
+computed direction, or `Direction.Provider`, then applies that direction to
+the portalled surface. SubContent repeats the same resolution from its
+SubTrigger so logical layout and submenu keys remain aligned across portals.
+SubContent prefers the logical inline side, tries the opposite inline side,
+then uses block-axis placements when neither side fits. Its final shift keeps
+the surface inside the visual viewport.
+
 Content is an allowed scroll region while its modal lock is active. Atom does
 not impose dimensions or scrolling styles: consumers constrain Content, apply
 `overflow: auto`, and choose any desired `overscroll-behavior`. Portalled
