@@ -115,10 +115,12 @@ the modal's owned DOM path.
 | `onInteractOutside` | `(event: OutsideInteractionEvent) => void` | - |
 
 Outside dismissal is committed on click/activation rather than pointer start.
-Only the topmost Menu or SubContent layer receives the event. Calling
-`event.preventDefault()` keeps that layer open without cancelling the original
-destination click. Dragged, cancelled, secondary-button, and multi-pointer
-sessions do not dismiss.
+Only the topmost Menu or SubContent layer receives `onInteractOutside`. With a
+submenu open, an activation inside an ancestor menu closes only that submenu;
+an activation outside every menu surface closes the complete menu tree. Calling
+`event.preventDefault()` keeps the affected layer or tree open without
+cancelling the original destination click. Dragged, cancelled,
+secondary-button, and multi-pointer sessions do not dismiss.
 
 | ARIA attribute | Values |
 | --- | --- |

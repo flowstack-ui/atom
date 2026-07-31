@@ -340,34 +340,38 @@ test("standalone Menu exits from its focus origin in either Tab direction", asyn
   }
 });
 
-test("Dropdown Menu submenu focus drills in and Escape restores each owner", async () => {
+test("Dropdown Menu submenu focus drills in and dismisses at the correct tree boundary", async () => {
   const { container, cleanup } = installDom();
   const root = createRoot(container);
-  const parentOutside = [];
-  const submenuOutside = [];
-  try {
-    await React.act(async () => root.render(
-      React.createElement(DropdownMenu.Root, null,
-        React.createElement(DropdownMenu.Trigger, null, "Actions"),
-        React.createElement(DropdownMenu.Content, {
-          onInteractOutside: (event) => parentOutside.push(event.pointerType),
-        },
-          React.createElement(DropdownMenu.Label, null, "Project commands"),
-          React.createElement(DropdownMenu.Sub, null,
-            React.createElement(DropdownMenu.SubTrigger, { value: "share" }, "Share"),
-            React.createElement(DropdownMenu.SubContent, {
-              ariaLabel: "Share actions",
-              onInteractOutside: (event) => submenuOutside.push(event.pointerType),
+    const parentOutside = [];
+    const submenuOutside = [];
+    try {
+      await React.act(async () => root.render(
+        React.createElement(React.Fragment, null,
+          React.createElement(DropdownMenu.Root, null,
+            React.createElement(DropdownMenu.Trigger, null, "Actions"),
+            React.createElement(DropdownMenu.Content, {
+              onInteractOutside: (event) => parentOutside.push(event.pointerType),
             },
-              React.createElement(DropdownMenu.Item, { value: "copy" }, "Copy link"),
+              React.createElement(DropdownMenu.Label, null, "Project commands"),
+              React.createElement(DropdownMenu.Sub, null,
+                React.createElement(DropdownMenu.SubTrigger, { value: "share" }, "Share"),
+                React.createElement(DropdownMenu.SubContent, {
+                  ariaLabel: "Share actions",
+                  onInteractOutside: (event) => submenuOutside.push(event.pointerType),
+                },
+                  React.createElement(DropdownMenu.Item, { value: "copy" }, "Copy link"),
+                ),
+              ),
             ),
           ),
+          React.createElement("button", { id: "submenu-outside" }, "Outside menus"),
         ),
-      ),
     ));
     const trigger = container.querySelector("[data-slot=dropdown-menu-trigger]");
     await dispatch(trigger, new window.MouseEvent("click", { bubbles: true }));
     await wait();
+    const subTrigger = document.querySelector("[data-slot=menu-sub-trigger]");
     assert.equal(document.activeElement?.textContent, "Share");
     await key(document.activeElement, "ArrowRight");
     await wait();
@@ -380,9 +384,22 @@ test("Dropdown Menu submenu focus drills in and Escape restores each owner", asy
     assert.deepEqual(submenuOutside, ["mouse"]);
     assert.deepEqual(parentOutside, []);
 
-    const subTrigger = document.querySelector("[data-slot=menu-sub-trigger]");
     await React.act(async () => subTrigger.focus());
     await key(subTrigger, "ArrowRight");
+    await wait();
+    assert.equal(document.querySelectorAll("[role=menu][data-state=open]").length, 2);
+    await pointerActivation(container.querySelector("#submenu-outside"), { pointerId: 21 });
+    await wait();
+    assert.equal(document.querySelectorAll("[role=menu][data-state=open]").length, 0);
+    assert.deepEqual(submenuOutside, ["mouse", "mouse"]);
+    assert.deepEqual(parentOutside, []);
+
+    await dispatch(trigger, new window.MouseEvent("click", { bubbles: true }));
+    await wait();
+
+    const reopenedSubTrigger = document.querySelector("[data-slot=menu-sub-trigger]");
+    await React.act(async () => reopenedSubTrigger.focus());
+    await key(reopenedSubTrigger, "ArrowRight");
     await wait();
     assert.equal(document.activeElement?.textContent, "Copy link");
     await key(document.activeElement, "Escape");
@@ -392,6 +409,98 @@ test("Dropdown Menu submenu focus drills in and Escape restores each owner", asy
     await key(document.activeElement, "Escape");
     await wait();
     assert.equal(document.activeElement, trigger);
+  } finally {
+    await React.act(async () => root.unmount());
+    cleanup();
+  }
+});
+
+test("Context Menu re-invokes through modal isolation and replaces the active target", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  const firstChanges = [];
+  const secondChanges = [];
+  const consumerInvocations = [];
+  let preventFirstInvocation = false;
+  try {
+    await React.act(async () => root.render(
+      React.createElement(React.Fragment, null,
+        React.createElement(ContextMenu.Root, { onOpenChange: (open) => firstChanges.push(open) },
+          React.createElement(ContextMenu.Trigger, {
+            asChild: true,
+            onContextMenu: (event) => {
+              consumerInvocations.push("first");
+              if (preventFirstInvocation) event.preventDefault();
+            },
+          }, React.createElement("button", { "data-test-context": "first" }, "First target")),
+          React.createElement(ContextMenu.Content, { ariaLabel: "First actions" },
+            React.createElement(ContextMenu.Item, { value: "first" }, "First command"),
+          ),
+        ),
+        React.createElement(ContextMenu.Root, { onOpenChange: (open) => secondChanges.push(open) },
+          React.createElement(ContextMenu.Trigger, {
+            asChild: true,
+            onContextMenu: () => consumerInvocations.push("second"),
+          }, React.createElement("button", { "data-test-context": "second" }, "Second target")),
+          React.createElement(ContextMenu.Content, { ariaLabel: "Second actions" },
+            React.createElement(ContextMenu.Item, { value: "second" }, "Second command"),
+          ),
+        ),
+      ),
+    ));
+    const first = container.querySelector("[data-test-context=first]");
+    const second = container.querySelector("[data-test-context=second]");
+    first.getBoundingClientRect = () => ({ x: 10, y: 10, left: 10, top: 10, right: 110, bottom: 60, width: 100, height: 50, toJSON() {} });
+    second.getBoundingClientRect = () => ({ x: 120, y: 10, left: 120, top: 10, right: 220, bottom: 60, width: 100, height: 50, toJSON() {} });
+
+    await dispatch(first, new window.MouseEvent("contextmenu", {
+      bubbles: true,
+      cancelable: true,
+      clientX: 20,
+      clientY: 20,
+    }));
+    await wait();
+    assert.equal(first.getAttribute("data-state"), "open");
+
+    preventFirstInvocation = true;
+    const cancelledRepeat = new window.MouseEvent("contextmenu", {
+      bubbles: true,
+      cancelable: true,
+      clientX: 30,
+      clientY: 30,
+    });
+    await dispatch(document.body, cancelledRepeat);
+    await wait();
+    assert.equal(cancelledRepeat.defaultPrevented, true);
+    assert.equal(first.getAttribute("data-state"), "open");
+    assert.deepEqual(firstChanges, [true]);
+
+    preventFirstInvocation = false;
+    const repeated = new window.MouseEvent("contextmenu", {
+      bubbles: true,
+      cancelable: true,
+      clientX: 40,
+      clientY: 40,
+    });
+    await dispatch(document.body, repeated);
+    await wait();
+    assert.equal(repeated.defaultPrevented, true);
+    assert.equal(first.getAttribute("data-state"), "open");
+
+    const switched = new window.MouseEvent("contextmenu", {
+      bubbles: true,
+      cancelable: true,
+      clientX: 130,
+      clientY: 20,
+    });
+    await dispatch(document.body, switched);
+    await wait();
+    assert.equal(switched.defaultPrevented, true);
+    assert.equal(first.getAttribute("data-state"), "closed");
+    assert.equal(second.getAttribute("data-state"), "open");
+    assert.deepEqual(consumerInvocations, ["first", "first", "first", "second"]);
+    assert.deepEqual(firstChanges, [true, true, false]);
+    assert.deepEqual(secondChanges, [true]);
   } finally {
     await React.act(async () => root.unmount());
     cleanup();

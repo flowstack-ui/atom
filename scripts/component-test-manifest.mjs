@@ -12,6 +12,7 @@ export const componentIds = Object.keys(packageJson.exports)
   .sort();
 
 const additionalUnitTests = {
+  "context-menu": ["menu-interaction"],
   form: ["form-integration", "form-proxy-validity", "form-validation-behavior"],
   "hover-card": ["hover-card-interaction"],
   image: ["image-interaction"],
@@ -31,6 +32,7 @@ const browserTests = {
     "positioned-overlays.mobile.spec.ts",
   ],
   "context-menu": [
+    "context-menu-reinvocation.spec.ts",
     "outside-interaction.spec.ts",
     "outside-interaction.mobile.spec.ts",
     "mobile-gesture-consolidation.mobile.spec.ts",
@@ -45,6 +47,7 @@ const browserTests = {
   drawer: ["modal-containment.spec.ts", "modal-containment.mobile.spec.ts"],
   feed: ["feed.spec.ts"],
   menu: [
+    "context-menu-reinvocation.spec.ts",
     "outside-interaction.spec.ts",
     "outside-interaction.mobile.spec.ts",
     "modal-containment.spec.ts",

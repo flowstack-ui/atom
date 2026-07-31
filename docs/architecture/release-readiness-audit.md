@@ -5,6 +5,27 @@ Last release audit: 2026-07-31
 The current release outcome is recorded first. Earlier published-release
 audits remain below as historical baselines.
 
+## 0.20.7 Context Menu Re-invocation Release Candidate - 2026-07-31
+
+Status: qualified locally for trusted publication. GitHub CI, the protected npm
+deployment, registry provenance, and the matching GitHub release remain pending
+until the candidate is merged and tagged.
+
+This compatible patch keeps repeated and cross-target Context Menu secondary
+clicks inside the custom menu system, repositions Content at the latest
+invocation coordinate, and dismisses a complete root/submenu tree with one
+activation outside every menu surface. Activating an ancestor menu surface
+still closes only its submenu.
+
+The candidate passes 518 package tests and all 58 browser tests across desktop
+Chromium, desktop WebKit, Android-Chromium touch emulation, and iPhone-WebKit
+touch emulation. The playground production build, all 71 JavaScript and
+declaration export targets, the verified 2,203-file archive, and clean packed
+consumers with React and React DOM 18.3.1 and 19.2.7 also pass. The exact
+candidate archive is 545,681 compressed bytes with npm SHA-1
+`ce5074241c022f56563ddfd41476e89c25cb1ef8` and SHA-512 integrity
+`sha512-NZx3GpqLLStZZL+360S7oZKXsLXLf+utMXYJY5O5j6rxHx0r2DJQNjdXRZr+fLnLEM3/Kwl7Vk7gLirKVTaoCw==`.
+
 ## 0.20.6 Menu Submenu Hover Intent Release Candidate - 2026-07-31
 
 Status: qualified locally for trusted publication. GitHub CI, the protected npm

@@ -14,6 +14,8 @@ persistent application command bar.
 ## Features
 
 - Opens at right-click coordinates or the keyboard trigger location.
+- Re-invokes at the latest right-click point and transfers an open menu directly
+  between registered ContextMenu targets without exposing the browser menu.
 - Opens from a cancel-safe 700 ms touch/pen long press with a 10 px tolerance.
 - Supports controlled state, modal behavior, looping, and dismissal settings.
 - Includes actions, checkbox choices, radio choices, groups, separators, and nested menus.
@@ -81,6 +83,12 @@ Touch and pen track one primary long press. Movement beyond 10 px, scrolling,
 early release, cancellation, a second pointer, disabled state, unmount, or a
 native `contextmenu` event cancels the fallback.
 
+While a ContextMenu is open, another secondary click inside its Trigger updates
+the point anchor and keeps the custom menu active. A secondary click on another
+ContextMenu Trigger closes the previous root and opens the new one. Consumer
+`onContextMenu` handlers still run for the new invocation and may prevent Atom's
+open or reposition behavior.
+
 | Prop | Type | Default |
 | --- | --- | --- |
 | `disabled` | `boolean` | `false` |
@@ -100,6 +108,10 @@ Renders the portalled menu at Trigger's pointer or keyboard anchor, manages
 focus and highlight, locks scrolling when modal, and closes on outside click.
 The resolved explicit, Trigger, or provider direction is preserved on the
 portalled Content and nested SubContent DOM.
+
+With a submenu open, an activation inside an ancestor menu but outside that
+submenu closes only the submenu. An activation outside every menu surface
+closes the complete ContextMenu tree in one activation.
 
 | Prop | Type | Default |
 | --- | --- | --- |

@@ -1,5 +1,14 @@
 # ContextMenu Changelog
 
+## 0.20.7
+
+- Kept the custom menu active on repeated secondary clicks, repositioned it at
+  the latest invocation point, and transferred it directly between registered
+  ContextMenu targets instead of exposing the browser menu.
+- Corrected point-anchor wiring so Content positions from its pointer or
+  keyboard coordinate rather than falling back to the viewport corner.
+- Inherited whole-tree outside dismissal when a submenu is open.
+
 ## 0.20.6
 
 - Inherited movement-gated submenu hover intent so opening a parent ContextMenu

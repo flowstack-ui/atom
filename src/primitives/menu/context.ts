@@ -1,6 +1,10 @@
 "use client";
 
-import { createContext, useContext, type RefObject } from "react";
+import {
+  createContext,
+  useContext,
+  type RefObject,
+} from "react";
 import type { DirectionValue } from "../direction/index.js";
 import type { FocusScope } from "../../hooks/focus.js";
 import type { ModalLayer } from "../modal/layer.js";
@@ -77,6 +81,7 @@ export interface MenuContextValue {
   closeOnSelect: boolean;
   loop: boolean;
   openSubMenuId: string | null;
+  onCloseTree: (reason?: MenuCloseReason, finalFocus?: HTMLElement | null) => void;
   onSubMenuOpen: (subMenuId: string) => void;
   onSubMenuClose: () => void;
 }

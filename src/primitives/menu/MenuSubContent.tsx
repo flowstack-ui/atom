@@ -226,7 +226,11 @@ function MenuSubContent(
     refs: clickAwayRefs,
     onInteractOutside: (event) => {
       onInteractOutside?.(event);
-      if (!event.defaultPrevented) onClose();
+      if (event.defaultPrevented) return;
+      const isInsideMenuTree = event.target instanceof Element
+        && event.target.closest("[role='menu']") !== null;
+      if (isInsideMenuTree) onClose();
+      else parentMenuContext.onCloseTree("interactOutside");
     },
     enabled: isOpen,
     ignore: (target) => nestedOpenSubMenuId !== null && isMenuSubContent(target),
@@ -426,6 +430,7 @@ function MenuSubContent(
       closeOnSelect: true,
       loop,
       openSubMenuId: nestedOpenSubMenuId,
+      onCloseTree: parentMenuContext.onCloseTree,
       onSubMenuOpen: onNestedSubMenuOpen,
       onSubMenuClose: onNestedSubMenuClose,
     }),

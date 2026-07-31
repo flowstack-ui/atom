@@ -1,5 +1,14 @@
 # Menu Changelog
 
+## 0.20.7
+
+- Made one completed activation outside every open menu surface dismiss the
+  complete root/submenu tree, while an activation inside an ancestor menu still
+  closes only its submenu and only the topmost layer receives
+  `onInteractOutside`.
+- Corrected virtual point references so ContextMenu-backed Content positions
+  and repositions from its invocation coordinate.
+
 ## 0.20.6
 
 - SubTrigger now requires actual mouse movement before its hover delay starts,

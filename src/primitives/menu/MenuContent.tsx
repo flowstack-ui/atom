@@ -343,7 +343,7 @@ function MenuContent(
     ],
   );
 
-  const referenceElement = anchorPoint ? null : triggerRef.current;
+  const referenceElement = triggerRef.current;
   const { refs, floatingStyles, placement, middlewareData } = useFloating({
     elements: { reference: referenceElement },
     placement: toPlacement(side, align),
@@ -396,8 +396,7 @@ function MenuContent(
   );
 
   useEffect(() => {
-    if (!anchorPoint) return;
-    refs.setReference({
+    refs.setPositionReference(anchorPoint ? {
       getBoundingClientRect: () => ({
         x: anchorPoint.x,
         y: anchorPoint.y,
@@ -408,7 +407,7 @@ function MenuContent(
         bottom: anchorPoint.y,
         left: anchorPoint.x,
       }),
-    });
+    } : null);
   }, [anchorPoint, refs]);
 
   const dataState = isOpen ? "open" : "closed";
