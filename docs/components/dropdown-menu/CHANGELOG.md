@@ -1,5 +1,11 @@
 # DropdownMenu Changelog
 
+## 0.20.6
+
+- Inherited movement-gated submenu hover intent so opening a parent
+  DropdownMenu cannot also open a submenu that appears beneath a stationary
+  pointer.
+
 ## 0.20.5
 
 - Inherited resolved direction on portalled Content and SubContent so logical

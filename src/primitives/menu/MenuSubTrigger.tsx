@@ -19,7 +19,7 @@ export interface MenuSubTriggerProps extends MenuSubTriggerNativeProps {
 }
 
 export const MenuSubTrigger = forwardRef<HTMLElement, MenuSubTriggerProps>(function MenuSubTrigger(
-  { value, textValue, disabled = false, children, asChild = false, render, onClick, onPointerEnter, onPointerLeave, onKeyDown, onFocus, "data-slot": dataSlot = "menu-sub-trigger", ...restProps },
+  { value, textValue, disabled = false, children, asChild = false, render, onClick, onPointerEnter, onPointerMove, onPointerLeave, onKeyDown, onFocus, "data-slot": dataSlot = "menu-sub-trigger", ...restProps },
   forwardedRef,
 ) {
   const ctx = useMenuContext();
@@ -27,6 +27,7 @@ export const MenuSubTrigger = forwardRef<HTMLElement, MenuSubTriggerProps>(funct
   const dir = useDirection();
   const ref = useRef<HTMLElement>(null);
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const pointerEntryRef = useRef<{ x: number; y: number } | null>(null);
   if (!subCtx) throw new Error("MenuSubTrigger must be used within <MenuSubRoot>");
   const isHighlighted = ctx.highlightedValue === value;
   useEffect(() => {
@@ -41,14 +42,25 @@ export const MenuSubTrigger = forwardRef<HTMLElement, MenuSubTriggerProps>(funct
   }, [children, ctx.registerLabel, textValue, value]);
   useEffect(() => () => clearTimeout(hoverTimeoutRef.current), []);
   const handlePointerEnter: PointerEventHandler<HTMLElement> = useCallback((event) => {
-    if (event.pointerType !== "mouse") return;
+    if (disabled || event.pointerType !== "mouse") return;
+    pointerEntryRef.current = { x: event.clientX, y: event.clientY };
     ctx.onHighlight(value);
     event.currentTarget.focus({ preventScroll: true });
-    clearTimeout(hoverTimeoutRef.current);
-    hoverTimeoutRef.current = setTimeout(subCtx.onOpen, HOVER_DELAY);
-  }, [ctx, subCtx.onOpen, value]);
+  }, [ctx, disabled, value]);
+  const handlePointerMove: PointerEventHandler<HTMLElement> = useCallback((event) => {
+    if (disabled || event.pointerType !== "mouse" || hoverTimeoutRef.current !== undefined) return;
+    const entry = pointerEntryRef.current;
+    if (entry && event.clientX === entry.x && event.clientY === entry.y) return;
+    hoverTimeoutRef.current = setTimeout(() => {
+      hoverTimeoutRef.current = undefined;
+      subCtx.onOpen();
+    }, HOVER_DELAY);
+  }, [disabled, subCtx.onOpen]);
   const handlePointerLeave: PointerEventHandler<HTMLElement> = useCallback((event) => {
-    if (event.pointerType === "mouse") clearTimeout(hoverTimeoutRef.current);
+    if (event.pointerType !== "mouse") return;
+    pointerEntryRef.current = null;
+    clearTimeout(hoverTimeoutRef.current);
+    hoverTimeoutRef.current = undefined;
   }, []);
   const handleKeyDown: KeyboardEventHandler<HTMLElement> = useCallback((event) => {
     if (disabled || event.key !== getMenuSubmenuOpenKey(dir)) return;
@@ -75,6 +87,7 @@ export const MenuSubTrigger = forwardRef<HTMLElement, MenuSubTriggerProps>(funct
     "data-value": value,
     onClick: composeEventHandlers(onClick, handleClick),
     onPointerEnter: composeEventHandlers(onPointerEnter, handlePointerEnter),
+    onPointerMove: composeEventHandlers(onPointerMove, handlePointerMove),
     onPointerLeave: composeEventHandlers(onPointerLeave, handlePointerLeave),
     onKeyDown: composeEventHandlers(onKeyDown, handleKeyDown),
     onFocus: composeEventHandlers(onFocus, () => ctx.onHighlight(value)),
