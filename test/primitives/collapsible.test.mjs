@@ -1,8 +1,10 @@
 import {
   assert,
+  readFile,
   test,
   React,
   renderToStaticMarkup,
+  packageRoot,
 } from "../test-utils.mjs";
 
 import {
@@ -99,4 +101,16 @@ test("CollapsibleContent keepMounted renders closed content as hidden", () => {
 
   assert.match(html, /data-slot="collapsible-content"/);
   assert.match(html, /hidden=""/);
+});
+
+test("CollapsibleContent measures an entering panel before its first painted frame", async () => {
+  const contentSource = await readFile(
+    new URL("src/primitives/collapsible/CollapsibleContent.tsx", packageRoot),
+    "utf8",
+  );
+
+  assert.match(
+    contentSource,
+    /useMeasuredContentHeight\(contentRef, isMounted \|\| isOpen, children\)/,
+  );
 });

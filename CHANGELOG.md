@@ -1,5 +1,11 @@
 # Atom Changelog
 
+## 0.20.8
+
+- Measured newly opened Accordion and Collapsible content before its first
+  painted animation frame so styled height transitions begin from a stable,
+  available intrinsic size.
+
 ## 0.20.7
 
 - Kept an open ContextMenu custom on repeated or cross-target secondary clicks,
