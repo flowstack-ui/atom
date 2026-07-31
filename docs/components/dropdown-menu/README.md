@@ -102,6 +102,8 @@ with focus on the first item; ArrowUp opens with focus on the last.
 
 Renders the portalled vertical menu, positions it against Trigger, manages real
 item focus/typeahead, and applies reason-aware final focus.
+The resolved explicit, Trigger, or provider direction is preserved on the
+portalled Content and nested SubContent DOM.
 
 | Prop | Type | Default |
 | --- | --- | --- |

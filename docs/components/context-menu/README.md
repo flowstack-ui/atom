@@ -98,6 +98,8 @@ native `contextmenu` event cancels the fallback.
 
 Renders the portalled menu at Trigger's pointer or keyboard anchor, manages
 focus and highlight, locks scrolling when modal, and closes on outside click.
+The resolved explicit, Trigger, or provider direction is preserved on the
+portalled Content and nested SubContent DOM.
 
 | Prop | Type | Default |
 | --- | --- | --- |

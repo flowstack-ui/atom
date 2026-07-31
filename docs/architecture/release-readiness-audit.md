@@ -5,6 +5,27 @@ Last release audit: 2026-07-30
 The current release outcome is recorded first. Earlier published-release
 audits remain below as historical baselines.
 
+## 0.20.5 Menu Portal Direction And Collision Release Candidate - 2026-07-30
+
+Status: qualified locally for trusted publication. GitHub CI, the protected npm
+deployment, registry provenance, and the matching GitHub release remain pending
+until the candidate is merged and tagged.
+
+This compatible patch preserves resolved LTR or RTL direction through portalled
+Menu content and nested submenus. Submenus still prefer the logical inline side,
+then try the opposite inline side, then use the available block axis when both
+sides are too narrow, with final shifting that keeps the surface inside the
+visual viewport.
+
+The candidate passes 516 package tests and all 54 browser tests across desktop
+Chromium, desktop WebKit, Android-Chromium touch emulation, and iPhone-WebKit
+touch emulation. The browser matrix includes inherited RTL portal direction and
+a forced no-side-space submenu collision on both mobile engines. The playground
+production build, all 71 JavaScript and declaration export targets, the verified
+2,199-file archive, and clean packed consumers with React and React DOM 18.3.1
+and 19.2.7 also pass. The exact candidate archive is 542,657 compressed bytes
+with npm SHA-1 `0c283f7eb783ee08c30348d12bc6082471caaa3b`.
+
 ## 0.20.3 Sticky Modal Scroll Lock Release Outcome - 2026-07-30
 
 Status: published and registry-verified. The trusted-publishing workflow,

@@ -30,7 +30,11 @@ import { Portal } from "../../utils/Portal.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { cloneAndMerge, composeEventHandlers, composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
 import { getTypeaheadMatch } from "../../utils/typeahead.js";
-import { useDirection } from "../direction/index.js";
+import {
+  getFloatingFallbackPlacements,
+  resolveFloatingDirection,
+} from "../../utils/floatingPlacement.js";
+import { DirectionProvider, useDirection } from "../direction/index.js";
 import {
   getMenuSubmenuCloseKey,
   getMenuSubmenuOpenKey,
@@ -77,6 +81,7 @@ function MenuSubContent(
     onInteractOutside,
     onKeyDown,
     style,
+    dir: dirProp,
     "data-slot": dataSlot = "menu-sub-content",
     ...restProps
   },
@@ -95,7 +100,12 @@ function MenuSubContent(
     subTriggerRef,
     parentMenuContext,
   } = subCtx;
-  const dir = useDirection();
+  const contextDir = useDirection();
+  const dir = resolveFloatingDirection(
+    dirProp,
+    subTriggerRef.current,
+    contextDir,
+  );
   const internalRef = useRef<HTMLDivElement>(null);
   const arrowRef = useRef<SVGSVGElement>(null);
   const { isPresent, ref: presenceRef } = usePresence({ present: isOpen });
@@ -330,12 +340,16 @@ function MenuSubContent(
     ],
   );
 
+  const preferredSide = dir === "rtl" ? "left" : "right";
   const { refs, floatingStyles, placement, middlewareData } = useFloating({
-    placement: dir === "rtl" ? "left-start" : "right-start",
+    placement: `${preferredSide}-start`,
     middleware: [
       offset(sideOffset),
-      flip({ padding: 8 }),
-      shift({ padding: 8 }),
+      flip({
+        fallbackPlacements: getFloatingFallbackPlacements(preferredSide, "start"),
+        padding: 8,
+      }),
+      shift({ padding: 8, crossAxis: true }),
       sizeMiddleware({
         padding: 8,
         apply({ availableHeight, availableWidth, elements, rects }) {
@@ -466,6 +480,7 @@ function MenuSubContent(
     "aria-orientation": "vertical" as const,
     "aria-label": ariaLabel,
     "aria-labelledby": !ariaLabel ? subTriggerId : undefined,
+    dir,
     tabIndex: -1,
     "data-menu-sub-content": "",
     "data-slot": dataSlot,
@@ -492,9 +507,11 @@ function MenuSubContent(
   return (
     <MenuContextProvider value={subMenuContext}>
       <Portal>
-        <MenuContentContextProvider value={contentContextValue}>
-          <MenuPortalContextProvider value={null}>{contentElement}</MenuPortalContextProvider>
-        </MenuContentContextProvider>
+        <DirectionProvider dir={dir}>
+          <MenuContentContextProvider value={contentContextValue}>
+            <MenuPortalContextProvider value={null}>{contentElement}</MenuPortalContextProvider>
+          </MenuContentContextProvider>
+        </DirectionProvider>
       </Portal>
     </MenuContextProvider>
   );

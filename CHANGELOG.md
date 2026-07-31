@@ -1,5 +1,14 @@
 # Atom Changelog
 
+## 0.20.5
+
+- Preserved Menu and submenu direction across portal boundaries so
+  DropdownMenu and ContextMenu logical layout agrees with their trigger,
+  explicit `dir`, or Direction provider.
+- Allowed nested menus to use block-axis collision fallbacks and final
+  cross-axis shifting instead of overflowing narrow viewports when neither
+  inline side fits.
+
 ## 0.20.4
 
 - Preserved Select's resolved LTR/RTL direction across its portal boundary so
