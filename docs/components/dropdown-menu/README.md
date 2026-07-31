@@ -264,8 +264,9 @@ Owns controlled or uncontrolled state for one nested menu and renders no DOM.
 
 ### SubTrigger
 
-Renders a menu item that opens SubContent by hover delay, click, or the
-direction-aware submenu key.
+Renders a menu item that opens SubContent after intentional mouse movement and
+a hover delay, by click, or with the direction-aware submenu key. Merely
+positioning a menu beneath a stationary pointer does not open the submenu.
 
 | Prop | Type | Default |
 | --- | --- | --- |

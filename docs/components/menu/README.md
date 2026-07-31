@@ -350,6 +350,8 @@ not render a DOM element.
 ### SubTrigger
 
 Renders the parent `menuitem` that opens, closes, and labels its `SubContent`.
+Mouse hover opening starts only after the pointer actually moves over the item,
+so newly positioned content beneath a stationary pointer does not open it.
 
 | Prop | Type | Default |
 | --- | --- | --- |

@@ -398,6 +398,44 @@ test("Dropdown Menu submenu focus drills in and Escape restores each owner", asy
   }
 });
 
+test("Dropdown Menu requires mouse movement before hover-opening a newly mounted submenu trigger", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  try {
+    await React.act(async () => root.render(
+      React.createElement(DropdownMenu.Root, { defaultOpen: true },
+        React.createElement(DropdownMenu.Trigger, null, "Actions"),
+        React.createElement(DropdownMenu.Content, null,
+          React.createElement(DropdownMenu.Item, { value: "rename" }, "Rename"),
+          React.createElement(DropdownMenu.Sub, null,
+            React.createElement(DropdownMenu.SubTrigger, { value: "move" }, "Move"),
+            React.createElement(DropdownMenu.SubContent, null,
+              React.createElement(DropdownMenu.Item, { value: "archive" }, "Archive"),
+            ),
+          ),
+        ),
+      ),
+    ));
+    await wait();
+    const subTrigger = document.querySelector("[data-slot=menu-sub-trigger]");
+
+    await pointerEvent(subTrigger, "pointerover", { clientX: 40, clientY: 50 });
+    await wait(140);
+    assert.equal(document.querySelectorAll("[role=menu]").length, 1);
+
+    await pointerEvent(subTrigger, "pointermove", { clientX: 40, clientY: 50 });
+    await wait(140);
+    assert.equal(document.querySelectorAll("[role=menu]").length, 1);
+
+    await pointerEvent(subTrigger, "pointermove", { clientX: 42, clientY: 50 });
+    await wait(140);
+    assert.equal(document.querySelectorAll("[role=menu]").length, 2);
+  } finally {
+    await React.act(async () => root.unmount());
+    cleanup();
+  }
+});
+
 test("Menu checkbox mixed state and indicators expose stable semantics", async () => {
   const html = await import("react-dom/server").then(({ renderToStaticMarkup }) => renderToStaticMarkup(
     React.createElement(DropdownMenu.Root, { defaultOpen: true },

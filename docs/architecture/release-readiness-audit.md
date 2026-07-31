@@ -1,9 +1,28 @@
 # Release Readiness Audit
 
-Last release audit: 2026-07-30
+Last release audit: 2026-07-31
 
 The current release outcome is recorded first. Earlier published-release
 audits remain below as historical baselines.
+
+## 0.20.6 Menu Submenu Hover Intent Release Candidate - 2026-07-31
+
+Status: qualified locally for trusted publication. GitHub CI, the protected npm
+deployment, registry provenance, and the matching GitHub release remain pending
+until the candidate is merged and tagged.
+
+This compatible patch requires actual mouse movement before a submenu hover
+delay begins. A newly positioned parent Menu can no longer open a submenu that
+appears beneath a stationary pointer, while intentional mouse hover, click,
+touch, and direction-aware keyboard behavior remain available.
+
+The candidate passes 517 package tests and all 54 browser tests across desktop
+Chromium, desktop WebKit, Android-Chromium touch emulation, and iPhone-WebKit
+touch emulation. The playground production build, all 71 JavaScript and
+declaration export targets, the verified 2,199-file archive, and clean packed
+consumers with React and React DOM 18.3.1 and 19.2.7 also pass. The exact
+candidate archive is 542,876 compressed bytes with npm SHA-1
+`58fa293f493aa015cb22a6d3c98ee4bd1680a4da`.
 
 ## 0.20.5 Menu Portal Direction And Collision Release Candidate - 2026-07-30
 

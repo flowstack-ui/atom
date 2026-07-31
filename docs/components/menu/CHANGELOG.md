@@ -1,5 +1,11 @@
 # Menu Changelog
 
+## 0.20.6
+
+- SubTrigger now requires actual mouse movement before its hover delay starts,
+  preventing newly positioned menu content from opening a submenu beneath a
+  stationary pointer.
+
 ## 0.20.5
 
 - Content and SubContent now carry their resolved explicit, trigger, or

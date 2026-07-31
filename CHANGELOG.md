@@ -1,5 +1,11 @@
 # Atom Changelog
 
+## 0.20.6
+
+- Required actual mouse movement before hover-opening a Menu submenu so a
+  newly positioned parent menu cannot open a submenu beneath a stationary
+  pointer.
+
 ## 0.20.5
 
 - Preserved Menu and submenu direction across portal boundaries so

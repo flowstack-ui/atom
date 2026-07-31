@@ -1,8 +1,9 @@
 # Menubar Changelog
 
-## Unreleased
+## 0.20.6
 
-- No unreleased changes.
+- Inherited movement-gated submenu hover intent so opening a top-level menu
+  cannot also open a submenu that appears beneath a stationary pointer.
 
 ## 0.12.1
 
