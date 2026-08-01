@@ -5,11 +5,12 @@ Last release audit: 2026-08-01
 The current release outcome is recorded first. Earlier published-release
 audits remain below as historical baselines.
 
-## 0.20.10 Navigation Menu Root-Relative Geometry Release Candidate - 2026-08-01
+## 0.20.10 Navigation Menu Root-Relative Geometry Release Outcome - 2026-08-01
 
-Status: qualified locally for trusted publication. GitHub CI, the protected npm
-deployment, registry provenance, and the matching GitHub release remain pending
-until the candidate is merged and tagged.
+Status: published and registry-verified. The trusted-publishing workflow,
+matching GitHub release, npm provenance, and `latest` distribution tag resolve
+to Atom `0.20.10` at release commit
+`2bb4d9044aede4319d669d8a34be743006c92ade`.
 
 This compatible patch exposes active-trigger geometry variables directly on
 `NavigationMenu.Viewport`. Measurements remain relative to
