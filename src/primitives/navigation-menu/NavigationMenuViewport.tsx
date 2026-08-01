@@ -113,8 +113,7 @@ export const NavigationMenuViewport = forwardRef<
 
   const measure = useCallback(() => {
     const activeContent = activeContentRef.current;
-    const viewport = internalRef.current;
-    const root = viewport?.parentElement ?? rootRef.current;
+    const root = rootRef.current;
     const trigger = value ? getTriggerElement(value) : null;
 
     if (!value || !activeContent || !root || !trigger) {
@@ -255,8 +254,7 @@ export const NavigationMenuViewport = forwardRef<
     if (!value) return undefined;
 
     const activeContent = activeContentRef.current;
-    const viewport = internalRef.current;
-    const root = viewport?.parentElement ?? rootRef.current;
+    const root = rootRef.current;
     const trigger = getTriggerElement(value);
     const resizeObserver =
       typeof ResizeObserver === "undefined"

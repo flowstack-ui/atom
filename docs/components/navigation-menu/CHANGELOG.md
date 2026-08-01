@@ -2,9 +2,15 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.20.10
+
 - Exposed the active trigger's measured geometry variables directly on
   `NavigationMenu.Viewport`, allowing styled vertical menus to keep a shared
   Viewport aligned with later triggers without repeating Atom measurement.
+  Geometry remains Root-relative when consumers place Viewport inside an
+  authored positioning wrapper.
 
 ## 0.12.0
 
