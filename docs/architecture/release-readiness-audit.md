@@ -1,9 +1,31 @@
 # Release Readiness Audit
 
-Last release audit: 2026-07-31
+Last release audit: 2026-08-01
 
 The current release outcome is recorded first. Earlier published-release
 audits remain below as historical baselines.
+
+## 0.20.10 Navigation Menu Root-Relative Geometry Release Candidate - 2026-08-01
+
+Status: qualified locally for trusted publication. GitHub CI, the protected npm
+deployment, registry provenance, and the matching GitHub release remain pending
+until the candidate is merged and tagged.
+
+This compatible patch exposes active-trigger geometry variables directly on
+`NavigationMenu.Viewport`. Measurements remain relative to
+`NavigationMenu.Root` when a styled consumer places Viewport inside an authored
+positioning wrapper, allowing horizontal and vertical layouts to align the
+shared surface without repeating Atom measurement.
+
+The candidate passes 520 package tests and all 64 browser tests across desktop
+Chromium, desktop WebKit, Android-Chromium touch emulation, and iPhone-WebKit
+touch emulation. The browser matrix includes a focused Root-relative Viewport
+geometry regression in both desktop engines. The playground production build,
+all 71 JavaScript and declaration export targets, the verified 2,203-file
+archive, and clean packed consumers with React and React DOM 18.3.1 and 19.2.7
+also pass. The exact candidate archive is 546,055 compressed bytes with npm
+SHA-1 `d1345bb4a3575b509a481f21abc4a3861de507d6` and SHA-512 integrity
+`sha512-Nu/PpBrKPEL1jaCs1clOB+ICzh6vj6zEM316+P2FMSB+JJSWTXIMGXI7HYocQiw4/ACYtVltv7e5KiUONAkFAw==`.
 
 ## 0.20.9 Disclosure Initial-Open Presence Release Candidate - 2026-07-31
 

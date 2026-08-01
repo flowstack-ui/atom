@@ -582,6 +582,13 @@ test("NavigationMenu source keeps context and registration stable", async () => 
   assert.match(contentSource, /render,/);
   assert.match(contentSource, /asChild,/);
   assert.match(viewportSource, /activeEntry\.asChild/);
+  assert.match(viewportSource, /getNavigationMenuGeometryStyle\(/);
+  assert.match(viewportSource, /const root = rootRef\.current/);
+  assert.doesNotMatch(viewportSource, /parentElement \?\? rootRef\.current/);
+  assert.match(viewportSource, /rootRect: root\.getBoundingClientRect\(\)/);
+  assert.match(viewportSource, /triggerRect: trigger\.getBoundingClientRect\(\)/);
+  assert.match(viewportSource, /if \(root\) resizeObserver\?\.observe\(root\)/);
+  assert.match(viewportSource, /if \(trigger\) resizeObserver\?\.observe\(trigger\)/);
   assert.match(viewportSource, /const contentLoop = activeEntry\?\.loop \?\? loop/);
   assert.match(viewportSource, /renderElement\(activeEntry\.render, "div"/);
   assert.match(viewportSource, /const handleContentKeyDown = useCallback/);

@@ -232,6 +232,12 @@ Renders the active content panel.
 | --- | --- |
 | `--atom-navigation-menu-viewport-width` | Active content width |
 | `--atom-navigation-menu-viewport-height` | Active content height |
+| `--atom-navigation-menu-trigger-left` | Active trigger left offset |
+| `--atom-navigation-menu-trigger-top` | Active trigger top offset |
+| `--atom-navigation-menu-trigger-width` | Active trigger width |
+| `--atom-navigation-menu-trigger-height` | Active trigger height |
+| `--atom-navigation-menu-trigger-center-x` | Active trigger horizontal center |
+| `--atom-navigation-menu-trigger-center-y` | Active trigger vertical center |
 
 ### Sub
 
