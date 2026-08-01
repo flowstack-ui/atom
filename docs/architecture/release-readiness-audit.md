@@ -5,11 +5,12 @@ Last release audit: 2026-08-01
 The current release outcome is recorded first. Earlier published-release
 audits remain below as historical baselines.
 
-## 0.20.11 Navigation Menu Hover-Click Release Candidate - 2026-08-01
+## 0.20.11 Navigation Menu Hover-Click Release Outcome - 2026-08-01
 
-Status: qualified locally for trusted publication. GitHub CI, the protected npm
-deployment, registry provenance, and the matching GitHub release remain pending
-until the candidate is merged and tagged.
+Status: published and registry-verified. The trusted-publishing workflow,
+matching GitHub release, npm provenance, and `latest` distribution tag resolve
+to Atom `0.20.11` at release commit
+`614173341942bd4c5444a211bd35133a1c185c3a`.
 
 This compatible patch keeps a Navigation Menu Trigger open when mouse movement
 hover-opens it immediately before the same pointer activation clicks it. Direct
@@ -22,7 +23,9 @@ touch emulation. The browser matrix includes real-click trigger switching and
 Root-relative Viewport geometry in both desktop engines. The playground
 production build, all 71 JavaScript and declaration export targets, the verified
 2,203-file archive, and clean packed consumers with React and React DOM 18.3.1
-and 19.2.7 also pass. The exact candidate archive is 546,150 compressed bytes
+and 19.2.7 also pass. The protected publication run recorded one desktop WebKit
+geometry attempt as flaky before its retry passed. The exact published archive
+is 546,150 compressed bytes
 with npm SHA-1 `64c981e6cad88da8191d772220a90c5a2ea1da23` and SHA-512 integrity
 `sha512-8cSzq3pVF9MDMAZ195VwlOakzNVUmJ3bGEvWwo9wxjzFar23ev3QtbM9xoEm1qeDQneJtC9MZa7f5WaPvlpUFw==`.
 
