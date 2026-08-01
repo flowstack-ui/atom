@@ -25,6 +25,8 @@ import {
 } from "../../utils/slot.js";
 import { useNavigationMenuContext } from "./context.js";
 import {
+  getNavigationMenuGeometry,
+  getNavigationMenuGeometryStyle,
   getNavigationMenuViewportSizeStyle,
   type NavigationMenuGeometryStyle,
 } from "./geometry.js";
@@ -89,6 +91,7 @@ export const NavigationMenuViewport = forwardRef<
     onValueChange,
     orientation,
     previousValue,
+    rootRef,
     startCloseTimer,
     value,
   } = ctx;
@@ -110,20 +113,29 @@ export const NavigationMenuViewport = forwardRef<
 
   const measure = useCallback(() => {
     const activeContent = activeContentRef.current;
+    const viewport = internalRef.current;
+    const root = viewport?.parentElement ?? rootRef.current;
+    const trigger = value ? getTriggerElement(value) : null;
 
-    if (!value || !activeContent) {
+    if (!value || !activeContent || !root || !trigger) {
       setViewportSizeStyle(null);
       return;
     }
 
     const contentRect = activeContent.getBoundingClientRect();
-    setViewportSizeStyle(
-      getNavigationMenuViewportSizeStyle(
+    setViewportSizeStyle({
+      ...getNavigationMenuViewportSizeStyle(
         activeContent.scrollWidth || contentRect.width,
         activeContent.scrollHeight || contentRect.height,
       ),
-    );
-  }, [value]);
+      ...getNavigationMenuGeometryStyle(
+        getNavigationMenuGeometry({
+          rootRect: root.getBoundingClientRect(),
+          triggerRect: trigger.getBoundingClientRect(),
+        }),
+      ),
+    });
+  }, [getTriggerElement, rootRef, value]);
 
   const activeEntry = value ? getContentNode(value) : null;
   const contentLoop = activeEntry?.loop ?? loop;
@@ -243,12 +255,17 @@ export const NavigationMenuViewport = forwardRef<
     if (!value) return undefined;
 
     const activeContent = activeContentRef.current;
+    const viewport = internalRef.current;
+    const root = viewport?.parentElement ?? rootRef.current;
+    const trigger = getTriggerElement(value);
     const resizeObserver =
       typeof ResizeObserver === "undefined"
         ? null
         : new ResizeObserver(measure);
 
     if (activeContent) resizeObserver?.observe(activeContent);
+    if (root) resizeObserver?.observe(root);
+    if (trigger) resizeObserver?.observe(trigger);
 
     window.addEventListener("resize", measure);
 
@@ -256,7 +273,7 @@ export const NavigationMenuViewport = forwardRef<
       resizeObserver?.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, [measure, value]);
+  }, [getTriggerElement, measure, rootRef, value]);
 
   if (!forceMount && (!isOpen || !activeEntry)) return null;
 

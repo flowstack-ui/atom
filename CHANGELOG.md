@@ -1,5 +1,10 @@
 # Atom Changelog
 
+## Unreleased
+
+- Exposed Navigation Menu active-trigger geometry variables on Viewport as
+  well as Indicator so styled vertical menus can keep both surfaces aligned.
+
 ## 0.20.9
 
 - Exposed initially open Accordion and Collapsible Content with
