@@ -40,4 +40,10 @@ test("Navigation Menu Viewport exposes Root-relative active-trigger geometry", a
   await learn.click();
   await expect(viewport).toHaveAttribute("data-state", "open");
   await expectRootRelativeGeometry(root, learn, viewport);
+
+  const overview = root.getByRole("button", { name: "Overview" });
+  await overview.click();
+  await expect(overview).toHaveAttribute("aria-expanded", "true");
+  await expect(viewport).toHaveAttribute("data-state", "open");
+  await expectRootRelativeGeometry(root, overview, viewport);
 });
