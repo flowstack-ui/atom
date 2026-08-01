@@ -79,6 +79,7 @@ export const NavigationMenuTrigger = forwardRef<
 
   const internalRef = useRef<HTMLButtonElement>(null);
   const openTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const pointerOpenedRef = useRef(false);
   const pendingContentFocusRef = useRef<"first" | "last" | null>(null);
 
   const isOpen = activeValue === value;
@@ -136,9 +137,11 @@ export const NavigationMenuTrigger = forwardRef<
 
     clearTimeout(openTimerRef.current);
     if (delay === 0) {
+      pointerOpenedRef.current = true;
       onValueChange(value);
     } else {
       openTimerRef.current = setTimeout(() => {
+        pointerOpenedRef.current = true;
         onValueChange(value);
       }, delay);
     }
@@ -155,6 +158,7 @@ export const NavigationMenuTrigger = forwardRef<
   const handlePointerLeave: PointerEventHandler<HTMLButtonElement> = useCallback((event) => {
     if (event.pointerType !== "mouse") return;
     clearTimeout(openTimerRef.current);
+    pointerOpenedRef.current = false;
     startCloseTimer();
   }, [startCloseTimer]);
 
@@ -162,6 +166,11 @@ export const NavigationMenuTrigger = forwardRef<
     if (disabled) return;
     clearTimeout(openTimerRef.current);
     cancelCloseTimer();
+    if (isOpen && pointerOpenedRef.current) {
+      pointerOpenedRef.current = false;
+      return;
+    }
+    pointerOpenedRef.current = false;
     onValueChange(isOpen ? null : value);
   }, [cancelCloseTimer, disabled, isOpen, onValueChange, value]);
 

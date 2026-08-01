@@ -552,6 +552,8 @@ test("NavigationMenu source keeps context and registration stable", async () => 
   assert.match(triggerSource, /registerTrigger,/);
   assert.match(triggerSource, /unregisterTrigger,/);
   assert.match(triggerSource, /value: activeValue,/);
+  assert.match(triggerSource, /pointerOpenedRef\.current = true/);
+  assert.match(triggerSource, /isOpen && pointerOpenedRef\.current/);
   assert.match(triggerSource, /\}, \[disabled, registerTrigger, unregisterTrigger, value\]\)/);
   assert.match(triggerSource, /const focusTrigger = useCallback/);
   assert.match(triggerSource, /control\.focus\(\{ preventScroll: true \}\)/);
