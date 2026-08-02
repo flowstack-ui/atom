@@ -44,6 +44,7 @@ function runBrowser({ required }) {
   }
 
   run("npm", ["run", "playground:build"]);
+  run("npm", ["run", "test:processes"]);
   run("npm", ["exec", "--", "playwright", "test", ...paths.browser]);
 }
 

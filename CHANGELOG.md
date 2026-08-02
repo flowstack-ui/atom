@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-- No unreleased changes.
+- Added repository-owned verification metadata, stale test-port diagnostics,
+  non-reusing Playwright previews, parallel browser CI, nightly release
+  qualification, and exact-archive distributed publication checks.
 
 ## 0.20.11
 

@@ -14,29 +14,20 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  publish:
-    name: verify and publish
+  validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    environment: npm
-
+    timeout-minutes: 5
+    outputs:
+      already-published: ${{ steps.release-state.outputs.already-published }}
     steps:
-      - name: Check out tagged source
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
-
-      - name: Set up Node.js 24
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
-          registry-url: https://registry.npmjs.org
           package-manager-cache: false
-
-      - name: Install trusted-publishing npm CLI
-        run: npm install --global npm@11.18.0
-
       - name: Validate release tag and repository
         id: release-state
         shell: bash
@@ -44,76 +35,170 @@ jobs:
           set -euo pipefail
           package_version="$(node --input-type=module -e 'import pkg from "./package.json" with { type: "json" }; process.stdout.write(pkg.version)')"
           repository_url="$(node --input-type=module -e 'import pkg from "./package.json" with { type: "json" }; process.stdout.write(pkg.repository.url)')"
-          tag_version="${GITHUB_REF_NAME#v}"
-
           test "$GITHUB_REF_NAME" = "v$package_version"
-          test "$tag_version" = "$package_version"
           test "$repository_url" = "git+https://github.com/flowstack-ui/atom.git"
           git fetch --no-tags origin main
           git merge-base --is-ancestor "$GITHUB_SHA" origin/main
-
           if npm view "@flowstack-ui/atom@$package_version" version >/dev/null 2>&1; then
-            echo "@flowstack-ui/atom@$package_version is already published; npm publication will be skipped"
             echo "already-published=true" >> "$GITHUB_OUTPUT"
           else
             echo "already-published=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Install dependencies
-        if: steps.release-state.outputs.already-published != 'true'
-        run: npm ci
+  repository:
+    needs: validate
+    if: needs.validate.outputs.already-published != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run check:repository
 
-      - name: Install playground dependencies
-        if: steps.release-state.outputs.already-published != 'true'
-        run: npm ci --prefix playground
+  playground:
+    needs: validate
+    if: needs.validate.outputs.already-published != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            playground/package-lock.json
+      - run: npm ci
+      - run: npm ci --prefix playground
+      - run: npm run playground:build
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: atom-release-playground
+          path: playground/dist/
+          if-no-files-found: error
+          retention-days: 3
 
-      - name: Build and test package
-        if: steps.release-state.outputs.already-published != 'true'
-        run: npm test
-
-      - name: Install browser engines
-        if: steps.release-state.outputs.already-published != 'true'
-        run: npx playwright install --with-deps chromium webkit
-
-      - name: Test playground in desktop and mobile browser profiles
-        if: steps.release-state.outputs.already-published != 'true'
-        run: npm run test:browser
-
-      - name: Create verified package archive
-        if: steps.release-state.outputs.already-published != 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
+  archive:
+    needs: repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: |
           mkdir -p "$RUNNER_TEMP/atom-package"
           npm pack --pack-destination "$RUNNER_TEMP/atom-package"
           npm run verify:pack -- "$RUNNER_TEMP/atom-package"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: atom-release-package
+          path: ${{ runner.temp }}/atom-package/*.tgz
+          if-no-files-found: error
+          retention-days: 3
 
-      - name: Smoke test React 18 consumer
-        if: steps.release-state.outputs.already-published != 'true'
-        run: npm run verify:consumer -- "$RUNNER_TEMP/atom-package" 18
+  browser:
+    needs: playground
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - project: desktop-chromium
+            engine: chromium
+          - project: desktop-webkit
+            engine: webkit
+          - project: mobile-android-chromium
+            engine: chromium
+          - project: mobile-ios-webkit
+            engine: webkit
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            playground/package-lock.json
+      - run: npm ci
+      - run: npm ci --prefix playground
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: atom-release-playground
+          path: playground/dist
+      - run: npx playwright install --with-deps ${{ matrix.engine }}
+      - run: npm run test:browser:project:built -- --project=${{ matrix.project }}
 
-      - name: Smoke test React 19 consumer
-        if: steps.release-state.outputs.already-published != 'true'
-        run: npm run verify:consumer -- "$RUNNER_TEMP/atom-package" 19
+  consumer:
+    needs: archive
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        react: [18, 19]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: atom-release-package
+          path: ${{ runner.temp }}/atom-package
+      - run: npm run verify:consumer -- "$RUNNER_TEMP/atom-package" ${{ matrix.react }}
 
-      - name: Publish verified archive to npm
-        if: steps.release-state.outputs.already-published != 'true'
-        shell: bash
-        run: npm publish "$RUNNER_TEMP"/atom-package/*.tgz --access public
+  publish:
+    needs: [validate, repository, archive, playground, browser, consumer]
+    if: needs.validate.outputs.already-published != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: npm
+    steps:
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - run: npm install --global npm@11.18.0
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: atom-release-package
+          path: ${{ runner.temp }}/atom-package
+      - run: npm publish "$RUNNER_TEMP"/atom-package/*.tgz --access public --provenance
 
-      - name: Create GitHub release
-        env:
+  release:
+    needs: [validate, publish]
+    if: always() && (needs.validate.outputs.already-published == 'true' || needs.publish.result == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
           GH_TOKEN: ${{ github.token }}
-        shell: bash
         run: |
-          set -euo pipefail
-
-          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            echo "GitHub release $GITHUB_REF_NAME already exists"
-          else
-            gh release create "$GITHUB_REF_NAME" \
-              --repo "$GITHUB_REPOSITORY" \
-              --verify-tag \
-              --title "$GITHUB_REF_NAME" \
-              --generate-notes
+          if ! gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag --title "$GITHUB_REF_NAME" --generate-notes
           fi

@@ -13,6 +13,8 @@ maintainer documentation lives in `../../docs/`.
   direct part exports.
 - [Continuous Integration](guides/continuous-integration.md) - automated
   package, playground, archive, and React peer checks.
+- [Testing](guides/testing.md) - verification tiers, focused ownership, and
+  automated test-server lifecycle.
 
 ## Architecture
 
