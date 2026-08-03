@@ -27,8 +27,8 @@ import { Image } from "@flowstack-ui/atom/image";
 import { useControllableState } from "@flowstack-ui/atom/hooks";
 ```
 
-Every subpath must be listed in `package.json` and emit JavaScript plus
-declaration files.
+Every supported subpath is declared by the package and provides JavaScript plus
+TypeScript declarations.
 
 ## Direct Part Exports
 
@@ -55,7 +55,8 @@ The following are not public package API:
 - tests
 - internal helper functions that are not exported from a public subpath
 
-Changing non-API files can still be a behavior change if public output changes.
+These implementation files may change between releases even when the public
+entrypoints remain compatible.
 
 ## Composition
 

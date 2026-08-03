@@ -53,6 +53,11 @@ const allowedRootEntries = new Set([
   "package/README.md",
   "package/package.json",
 ]);
+const expectedConsumerDocs = new Set([
+  "package/docs/guides/getting-started.md",
+  "package/docs/guides/imports.md",
+  "package/docs/guides/public-api.md",
+]);
 
 for (const entry of entries) {
   if (!entry.startsWith("package/")) fail(`path is outside package/: ${entry}`);
@@ -66,9 +71,17 @@ for (const entry of entries) {
     fail(`conflict-copy path: ${entry}`);
   }
 
-  if (!allowedRootEntries.has(entry) && !entry.startsWith("package/dist/")) {
+  if (
+    !allowedRootEntries.has(entry)
+    && !expectedConsumerDocs.has(entry)
+    && !entry.startsWith("package/dist/")
+  ) {
     fail(`unexpected published path: ${entry}`);
   }
+}
+
+for (const consumerDoc of expectedConsumerDocs) {
+  if (!entrySet.has(consumerDoc)) fail(`missing consumer documentation: ${consumerDoc}`);
 }
 
 const packedPackage = JSON.parse(
@@ -86,8 +99,31 @@ if (packedPackage.version !== localPackage.version) {
   fail(`package version is ${packedPackage.version}; expected ${localPackage.version}`);
 }
 
-if (JSON.stringify(packedPackage.files) !== JSON.stringify(["dist"])) {
-  fail(`published files must be exactly ["dist"]`);
+const expectedPublishedFiles = [
+  "dist",
+  "docs/guides/getting-started.md",
+  "docs/guides/imports.md",
+  "docs/guides/public-api.md",
+];
+
+if (JSON.stringify(packedPackage.files) !== JSON.stringify(expectedPublishedFiles)) {
+  fail(`published files do not match the consumer package boundary`);
+}
+
+const packedReadme = runTar(["-xOf", archive, "package/README.md"]);
+if (!packedReadme.includes("npm install @flowstack-ui/atom")) {
+  fail("README is missing the consumer installation command");
+}
+
+for (const repositoryOnlyReference of [
+  "AGENTS.md",
+  "playground/",
+  "npm run test",
+  "npm run build",
+]) {
+  if (packedReadme.includes(repositoryOnlyReference)) {
+    fail(`README contains repository-only guidance: ${repositoryOnlyReference}`);
+  }
 }
 
 for (const [subpath, target] of Object.entries(packedPackage.exports)) {

@@ -10,9 +10,10 @@ The primary workflow is `.github/workflows/ci.yml` and contains these jobs:
 
 - `package (node-22)` builds Atom and runs the package test suite on Node 22.
 - `package (node-24)` repeats the package checks on Node 24.
-- `playground` type-checks and builds the browser workbench on Node 24, then
-  runs desktop Chromium/WebKit regressions and touch-specific Android-Chromium
-  and iPhone-WebKit profiles.
+- `playground build` type-checks and builds the browser workbench once on Node
+  24 and uploads the immutable static output.
+- four `browser` matrix jobs download that output and independently run desktop
+  Chromium, desktop WebKit, Android-Chromium, and iPhone-WebKit profiles.
 - `packed package` creates the real npm archive, verifies its paths, and checks
   every JavaScript and declaration export target.
 - `consumer (react-18)` installs that archive in a clean React 18 project.
@@ -84,16 +85,20 @@ manually. It audits the package and playground lockfiles for high-severity
 vulnerabilities. It is intentionally separate from required pull-request CI so
 a registry or advisory-service outage does not block an unrelated change.
 
+`.github/workflows/nightly.yml` runs the complete release qualification on a
+clean remote runner. This catches cross-profile and archive drift without
+requiring local browser processes to remain active.
+
 Dependabot checks the pinned GitHub Action revisions weekly. npm dependency
 updates remain a deliberate maintainer task.
 
 ## Trusted Publishing
 
 `.github/workflows/publish.yml` runs only when a semantic version tag such as
-`v0.6.3` is pushed. It repeats the package, archive, and React consumer checks,
-then publishes the verified archive through npm trusted publishing and GitHub
-OIDC. It has no manual-dispatch or branch-push trigger and stores no npm write
-token.
+`v0.6.3` is pushed. It distributes repository, browser, and React consumer
+checks across clean jobs, creates one package archive, and publishes that exact
+verified file through npm trusted publishing and GitHub OIDC. It has no
+manual-dispatch or branch-push trigger and stores no npm write token.
 
 The job rejects mismatched tag/package versions, tagged commits outside
 `main`, incorrect repository metadata, and versions already present on npm.

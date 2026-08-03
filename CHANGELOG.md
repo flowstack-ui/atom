@@ -2,7 +2,11 @@
 
 ## Unreleased
 
-- No unreleased changes.
+- Added repository-owned verification metadata, stale test-port diagnostics,
+  non-reusing Playwright previews, parallel browser CI, nightly release
+  qualification, and exact-archive distributed publication checks.
+- Added a consumer-first npm README and packaged getting-started, import, and
+  public-API guides while keeping repository-only guidance out of the archive.
 
 ## 0.20.11
 

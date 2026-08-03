@@ -1,18 +1,20 @@
 # Atom Package Documentation
 
-Public package documentation for `@flowstack-ui/atom` lives here. Root project
-maintainer documentation lives in `../../docs/`.
+Public package documentation for `@flowstack-ui/atom` lives here. Repository
+contribution guidance lives in [`CONTRIBUTING.md`](../CONTRIBUTING.md).
 
 ## Start Here
 
-- [Package README](../README.md) - package overview, boundary, API examples,
-  and development commands.
+- [Package README](../README.md) - package overview, installation, boundary,
+  and API examples.
 - [Getting Started](guides/getting-started.md) - install and basic usage.
 - [Imports](guides/imports.md) - root namespace imports and subpath imports.
 - [Public API](guides/public-api.md) - namespace exports, subpath exports, and
   direct part exports.
 - [Continuous Integration](guides/continuous-integration.md) - automated
   package, playground, archive, and React peer checks.
+- [Testing](guides/testing.md) - verification tiers, focused ownership, and
+  automated test-server lifecycle.
 
 ## Architecture
 

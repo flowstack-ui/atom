@@ -1,4 +1,4 @@
-# Atom UI React
+# @flowstack-ui/atom
 
 [![CI](https://github.com/flowstack-ui/atom/actions/workflows/ci.yml/badge.svg)](https://github.com/flowstack-ui/atom/actions/workflows/ci.yml)
 
@@ -9,14 +9,17 @@ interaction, focus management, controlled/uncontrolled state, compound context,
 and portals. It does not ship CSS, visual themes, icons, app templates, routing
 integrations, or product-specific data models.
 
-## Developer Quick Start
+## Installation
 
-For maintainer work inside this package, read these first:
+Install Atom in an existing React application:
 
-1. `../AGENTS.md`
-2. `../docs/README.md`
-3. `AGENTS.md`
-4. `docs/README.md`
+```bash
+npm install @flowstack-ui/atom
+```
+
+React and React DOM 18 or newer are peer dependencies and must be provided by
+the consuming application. Atom installs its Floating UI runtime dependency
+automatically.
 
 ## Boundary
 
@@ -251,18 +254,7 @@ intentionally outside Atom.
 
 ## Documentation
 
-- Public package docs live in `docs/`.
-- Component docs live in `docs/components/`.
-- Architecture docs live in `docs/architecture/`.
-- Release checks live in `docs/guides/release-checklist.md`.
-- The repo-only playground has an independent
-  [changelog](playground/CHANGELOG.md) and
-  [versioning policy](playground/docs/versioning.md).
-
-## Development
-
-```bash
-npm run test
-npm run build
-NPM_CONFIG_CACHE=/tmp/atom-ui-npm-cache npm pack --dry-run
-```
+- [Getting started](docs/guides/getting-started.md)
+- [Imports](docs/guides/imports.md)
+- [Public API](docs/guides/public-api.md)
+- [Component documentation](https://atom-ui.com)

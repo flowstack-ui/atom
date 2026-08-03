@@ -313,7 +313,10 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "docs/guides/getting-started.md",
+    "docs/guides/imports.md",
+    "docs/guides/public-api.md"
   ],
   "scripts": {
     "build": "node scripts/clean-dist.mjs && tsc -p tsconfig.build.json && node scripts/prepare-dist.mjs",
@@ -326,7 +329,10 @@
     "test:component": "node scripts/test-component.mjs all",
     "test:component:unit": "node scripts/test-component.mjs unit",
     "test:component:browser": "node scripts/test-component.mjs browser",
-    "test:browser": "npm run playground:build && playwright test",
+    "test:browser": "npm run playground:build && npm run test:browser:built",
+    "test:browser:built": "npm run test:processes && playwright test",
+    "test:browser:project:built": "npm run test:processes && playwright test",
+    "test:processes": "node scripts/check-test-ports.mjs",
     "pack:check": "npm_config_cache=/tmp/atom-ui-npm-cache npm pack --dry-run",
     "verify:pack": "node scripts/verify-packed-package.mjs",
     "verify:consumer": "node scripts/smoke-packed-consumer.mjs",
@@ -337,7 +343,8 @@
     "playground:preview": "npm --prefix playground run preview",
     "test:all": "node scripts/test-all.mjs",
     "check:focused": "npm run test:component",
-    "check:repository": "npm run test",
+    "verify:repository-contract": "node scripts/verify-repository-contract.mjs",
+    "check:repository": "npm run verify:repository-contract && npm run test",
     "check:release": "npm run test:all",
     "release:check": "npm run check:release",
     "prepublishOnly": "npm run build"
