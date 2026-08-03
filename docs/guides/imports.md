@@ -1,6 +1,6 @@
 # Imports
 
-Atom docs use the main namespace import in component anatomy and examples:
+Use the main namespace import for convenient access to several primitives:
 
 ```tsx
 import { Input, Dialog, MultiSelect } from "@flowstack-ui/atom";

@@ -313,7 +313,10 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "docs/guides/getting-started.md",
+    "docs/guides/imports.md",
+    "docs/guides/public-api.md"
   ],
   "scripts": {
     "build": "node scripts/clean-dist.mjs && tsc -p tsconfig.build.json && node scripts/prepare-dist.mjs",

@@ -3,15 +3,15 @@
 Atom UI is a headless React primitive package. It provides accessible behavior
 and semantic structure without visual styling.
 
+Install Atom in an existing React application:
+
 ```bash
 npm install @flowstack-ui/atom
 ```
 
-React and React DOM are peer dependencies:
-
-```bash
-npm install react react-dom
-```
+React and React DOM 18 or newer are peer dependencies and must be provided by
+the consuming application. Atom installs its Floating UI runtime dependency
+automatically.
 
 ## Usage
 
