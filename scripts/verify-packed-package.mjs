@@ -57,6 +57,7 @@ const expectedConsumerDocs = new Set([
   "package/docs/guides/getting-started.md",
   "package/docs/guides/imports.md",
   "package/docs/guides/public-api.md",
+  "package/docs/guides/agent-knowledge.md",
 ]);
 
 for (const entry of entries) {
@@ -83,6 +84,9 @@ for (const entry of entries) {
 for (const consumerDoc of expectedConsumerDocs) {
   if (!entrySet.has(consumerDoc)) fail(`missing consumer documentation: ${consumerDoc}`);
 }
+if (!entrySet.has("package/dist/agents/manifest.json")) {
+  fail("missing Agent Knowledge manifest");
+}
 
 const packedPackage = JSON.parse(
   runTar(["-xOf", archive, "package/package.json"]),
@@ -90,6 +94,18 @@ const packedPackage = JSON.parse(
 const localPackage = JSON.parse(
   await readFile(new URL("../package.json", import.meta.url), "utf8"),
 );
+const agentManifest = JSON.parse(
+  runTar(["-xOf", archive, "package/dist/agents/manifest.json"]),
+);
+if (agentManifest.package !== packedPackage.name || agentManifest.components.length === 0) {
+  fail("Agent Knowledge manifest has the wrong package or no components");
+}
+for (const component of agentManifest.components) {
+  for (const extension of ["json", "md"]) {
+    const artifact = `package/dist/agents/${component.id}.${extension}`;
+    if (!entrySet.has(artifact)) fail(`missing Agent Knowledge artifact: ${artifact}`);
+  }
+}
 
 if (packedPackage.name !== localPackage.name) {
   fail(`package name is ${packedPackage.name}; expected ${localPackage.name}`);
@@ -104,6 +120,7 @@ const expectedPublishedFiles = [
   "docs/guides/getting-started.md",
   "docs/guides/imports.md",
   "docs/guides/public-api.md",
+  "docs/guides/agent-knowledge.md",
 ];
 
 if (JSON.stringify(packedPackage.files) !== JSON.stringify(expectedPublishedFiles)) {
@@ -127,6 +144,13 @@ for (const repositoryOnlyReference of [
 }
 
 for (const [subpath, target] of Object.entries(packedPackage.exports)) {
+  if (typeof target === "string") {
+    if (!target.startsWith("./dist/")) fail(`${subpath} has an invalid export`);
+    if (target.includes("*")) continue;
+    const packedTarget = `package/${target.slice(2)}`;
+    if (!entrySet.has(packedTarget)) fail(`${subpath} is missing target ${packedTarget}`);
+    continue;
+  }
   for (const field of ["default", "types"]) {
     const relativeTarget = target[field];
     if (typeof relativeTarget !== "string" || !relativeTarget.startsWith("./dist/")) {

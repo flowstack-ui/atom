@@ -31,6 +31,9 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./agents/manifest.json": "./dist/agents/manifest.json",
+    "./agents/*.json": "./dist/agents/*.json",
+    "./agents/*.md": "./dist/agents/*.md",
     "./accordion": {
       "types": "./dist/accordion.d.ts",
       "default": "./dist/accordion.js"
@@ -316,10 +319,13 @@
     "dist",
     "docs/guides/getting-started.md",
     "docs/guides/imports.md",
-    "docs/guides/public-api.md"
+    "docs/guides/public-api.md",
+    "docs/guides/agent-knowledge.md"
   ],
   "scripts": {
-    "build": "node scripts/clean-dist.mjs && tsc -p tsconfig.build.json && node scripts/prepare-dist.mjs",
+    "build": "node scripts/clean-dist.mjs && tsc -p tsconfig.build.json && node scripts/prepare-dist.mjs && npm run agents:build",
+    "agents:build": "node scripts/build-agent-knowledge.mjs",
+    "agents:check": "node scripts/build-agent-knowledge.mjs --check",
     "dev": "tsc -p tsconfig.build.json --watch",
     "dev:playground": "npm run playground:dev",
     "dev:playground:network": "npm --prefix playground run dev:network",
@@ -344,7 +350,7 @@
     "test:all": "node scripts/test-all.mjs",
     "check:focused": "npm run test:component",
     "verify:repository-contract": "node scripts/verify-repository-contract.mjs",
-    "check:repository": "npm run verify:repository-contract && npm run test",
+    "check:repository": "npm run verify:repository-contract && npm run agents:check && npm run test",
     "check:release": "npm run test:all",
     "release:check": "npm run check:release",
     "prepublishOnly": "npm run build"
