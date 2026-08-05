@@ -38,7 +38,13 @@ test("package boundary keeps only approved headless runtime dependencies", async
   });
   assert.deepEqual(
     Object.keys(packageJson.exports).sort(),
-    [".", ...publicSubpaths.map((subpath) => `./${subpath}`)].sort(),
+    [
+      ".",
+      "./agents/manifest.json",
+      "./agents/*.json",
+      "./agents/*.md",
+      ...publicSubpaths.map((subpath) => `./${subpath}`),
+    ].sort(),
   );
 });
 
