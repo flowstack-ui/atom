@@ -15,5 +15,5 @@
   ],
   "commonMistakes": [{ "mistake": "Using a click handler on a non-link element for navigation.", "correction": "Render Link or a router anchor through the public composition API." }],
   "validation": ["Inspect the rendered href.", "Confirm Enter activates navigation and the link appears in the accessibility tree."],
-  "related": ["button", "pressable"]
+  "related": ["button", "pressable", "breadcrumb", "nav-list", "navigation-menu"]
 }

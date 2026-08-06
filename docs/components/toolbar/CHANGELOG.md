@@ -1,5 +1,10 @@
 # Toolbar Changelog
 
+## Unreleased
+
+- Added public Agent Knowledge for component selection, required composition,
+  recurring mistakes, and validation.
+
 ## 0.7.0
 
 - Removed live native and composed destination attributes from disabled

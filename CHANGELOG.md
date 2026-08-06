@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.20.12
+
+- Added package-level layer-selection and behavior-composition Agent Knowledge,
+  plus navigation and structural guidance for AppBar, Breadcrumb, Bottom
+  Navigation, Divider, Drawer, Image, Navigation Menu, Nav List, Pagination,
+  Scroll Area, Sidebar, Skip Link, Tabs, and Toolbar.
+- Extended the agent manifest with a backward-compatible `guides` collection
+  and validated `flowstack.agent-guide.v1` artifacts.
 - Added repository-owned verification metadata, stale test-port diagnostics,
   non-reusing Playwright previews, parallel browser CI, nightly release
   qualification, and exact-archive distributed publication checks.

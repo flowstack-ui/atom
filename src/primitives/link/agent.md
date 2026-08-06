@@ -34,3 +34,6 @@ Provide native destination navigation with composition support for router-owned 
 
 - `button`
 - `pressable`
+- `breadcrumb`
+- `nav-list`
+- `navigation-menu`
