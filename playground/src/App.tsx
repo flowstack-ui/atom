@@ -419,6 +419,12 @@ const scenarios: Scenario[] = [
     checks: ["Current page marks", "Separators render", "Ellipsis toggles"],
   },
   {
+    id: "carousel",
+    label: "Carousel",
+    category: "Navigation",
+    checks: ["Slides select", "Rotation stops", "Picker is optional"],
+  },
+  {
     id: "link",
     label: "Link",
     category: "Navigation",

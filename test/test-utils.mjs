@@ -17,6 +17,7 @@ const publicSubpaths = [
   "breadcrumb",
   "bottom-navigation",
   "button",
+  "carousel",
   "checkbox",
   "checkbox-group",
   "clipboard",

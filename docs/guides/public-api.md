@@ -23,6 +23,7 @@ Subpaths are stable focused entrypoints.
 import { Select } from "@flowstack-ui/atom/select";
 import { Link } from "@flowstack-ui/atom/link";
 import { Clipboard } from "@flowstack-ui/atom/clipboard";
+import { Carousel } from "@flowstack-ui/atom/carousel";
 import { Image } from "@flowstack-ui/atom/image";
 import { useControllableState } from "@flowstack-ui/atom/hooks";
 ```

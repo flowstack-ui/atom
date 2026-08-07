@@ -7,6 +7,80 @@
   text-rendering: optimizeLegibility;
 }
 
+.playground-carousel {
+  display: grid;
+  gap: 0.9rem;
+  inline-size: min(100%, 46rem);
+}
+
+.playground-carousel-viewport {
+  overflow-x: auto;
+  border: 1px solid #bfc7d1;
+  border-radius: 0.85rem;
+  scroll-behavior: smooth;
+  scroll-snap-type: inline mandatory;
+}
+
+.playground-carousel-track {
+  display: flex;
+}
+
+.playground-carousel-slide {
+  box-sizing: border-box;
+  display: grid;
+  flex: 0 0 100%;
+  gap: 0.45rem;
+  min-block-size: 12rem;
+  padding: 2rem;
+  place-content: center;
+  scroll-snap-align: start;
+  text-align: center;
+}
+
+.playground-carousel-slide span {
+  color: #5d6875;
+}
+
+.playground-carousel-navigation,
+.playground-carousel-picker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+}
+
+.playground-carousel-navigation button {
+  min-block-size: 2.25rem;
+  padding-inline: 0.8rem;
+}
+
+.playground-carousel-picker button {
+  display: grid;
+  inline-size: 2rem;
+  block-size: 2rem;
+  border: 0;
+  background: transparent;
+  place-items: center;
+}
+
+.playground-carousel-picker button span {
+  inline-size: 0.55rem;
+  block-size: 0.55rem;
+  border-radius: 999px;
+  background: #8e98a5;
+}
+
+.playground-carousel-picker button[data-state="active"] span {
+  inline-size: 1.25rem;
+  background: #295cc5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .playground-carousel-viewport {
+    scroll-behavior: auto;
+  }
+}
+
 * {
   box-sizing: border-box;
 }
