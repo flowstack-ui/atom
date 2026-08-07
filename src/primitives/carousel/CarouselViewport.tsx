@@ -88,6 +88,7 @@ export const CarouselViewport = forwardRef<HTMLDivElement, CarouselViewportProps
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref: composedRef,
+      tabIndex: restProps.tabIndex ?? 0,
       "aria-atomic": "false",
       "aria-live": context.autoPlay ? "off" : "polite",
       "data-slot": dataSlot,
