@@ -10,6 +10,18 @@ CheckboxGroup for a short visible choice set, Listbox when the collection
 should remain visible, Select for one value, and Combobox when editable
 filtering is required.
 
+## Features
+
+- Coordinates controlled and uncontrolled multi-value selection while keeping
+  the popup open as options are toggled.
+- Provides listbox semantics, roving option focus, typeahead, keyboard
+  selection, focus restoration, and completed outside-interaction dismissal.
+- Supports Field and Form relationships, native multiple-select
+  participation, required validation, reset behavior, and disabled, readonly,
+  and invalid states.
+- Includes positioned popup, portal, viewport, group, label, separator,
+  indicator, scroll-button, and arrow anatomy.
+
 ## Import
 
 ```tsx
