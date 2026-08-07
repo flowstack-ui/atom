@@ -22,6 +22,7 @@ Component anatomy uses the main package import. See
 - [BottomNavigation](./bottom-navigation/README.md)
 - [Breadcrumb](./breadcrumb/README.md)
 - [Button](./button/README.md)
+- [Carousel](./carousel/README.md)
 - [Checkbox](./checkbox/README.md)
 - [CheckboxGroup](./checkbox-group/README.md)
 - [Clipboard](./clipboard/README.md)

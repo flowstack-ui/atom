@@ -13,6 +13,7 @@ import { Input } from "@flowstack-ui/atom/input";
 import { Dialog } from "@flowstack-ui/atom/dialog";
 import { Link } from "@flowstack-ui/atom/link";
 import { Clipboard } from "@flowstack-ui/atom/clipboard";
+import { Carousel } from "@flowstack-ui/atom/carousel";
 import { MultiSelect } from "@flowstack-ui/atom/multi-select";
 ```
 

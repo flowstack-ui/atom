@@ -63,6 +63,17 @@ import {
   BottomNavigationRoot,
 } from "./primitives/bottom-navigation/index.js";
 import { ButtonRoot } from "./primitives/button/index.js";
+import {
+  CarouselNext,
+  CarouselPicker,
+  CarouselPickerItem,
+  CarouselPrevious,
+  CarouselRoot,
+  CarouselRotationControl,
+  CarouselSlide,
+  CarouselTrack,
+  CarouselViewport,
+} from "./primitives/carousel/index.js";
 import { LinkRoot } from "./primitives/link/index.js";
 import {
   ClipboardControl,
@@ -481,6 +492,18 @@ export const BottomNavigation = {
 
 export const Button = {
   Root: ButtonRoot,
+} as const;
+
+export const Carousel = {
+  Root: CarouselRoot,
+  Viewport: CarouselViewport,
+  Track: CarouselTrack,
+  Slide: CarouselSlide,
+  Previous: CarouselPrevious,
+  Next: CarouselNext,
+  Picker: CarouselPicker,
+  PickerItem: CarouselPickerItem,
+  RotationControl: CarouselRotationControl,
 } as const;
 
 export const Link = {

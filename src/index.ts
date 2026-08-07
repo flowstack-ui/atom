@@ -11,6 +11,7 @@ export {
   Breadcrumb,
   BottomNavigation,
   Button,
+  Carousel,
   Checkbox,
   CheckboxGroup,
   Clipboard,
@@ -219,6 +220,38 @@ export { BadgeRoot } from "./primitives/badge/index.js";
 export type { BadgeRootProps } from "./primitives/badge/index.js";
 export { LinkRoot } from "./primitives/link/index.js";
 export type { LinkRootProps } from "./primitives/link/index.js";
+export {
+  CarouselContextProvider,
+  CarouselNext,
+  CarouselPicker,
+  CarouselPickerItem,
+  CarouselPrevious,
+  CarouselRoot,
+  CarouselRotationControl,
+  CarouselSlide,
+  CarouselTrack,
+  CarouselViewport,
+  getCarouselAdjacentValue,
+  getCarouselSlideId,
+  getClosestCarouselValue,
+  minimumCarouselInterval,
+  normalizeCarouselInterval,
+  useCarouselContext,
+} from "./primitives/carousel/index.js";
+export type {
+  CarouselChangeReason,
+  CarouselContextValue,
+  CarouselNextProps,
+  CarouselPickerItemProps,
+  CarouselPickerProps,
+  CarouselPreviousProps,
+  CarouselRootProps,
+  CarouselRotationControlProps,
+  CarouselSlideData,
+  CarouselSlideProps,
+  CarouselTrackProps,
+  CarouselViewportProps,
+} from "./primitives/carousel/index.js";
 export {
   ClipboardControl,
   ClipboardIndicator,

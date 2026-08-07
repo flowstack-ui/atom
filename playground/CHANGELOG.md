@@ -6,6 +6,11 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Added a Carousel workbench with optional navigation and picker controls,
+  controlled state, loop and direction variants, automatic-rotation evidence,
+  native scroll selection, public anatomy, Source, logs, and desktop/mobile
+  browser regressions.
+
 - Added a consolidated physical iOS/Android and VoiceOver/TalkBack candidate
   protocol while preserving every unrun device record as `not run`.
 - Added desktop/mobile positioned-overlay regressions for Combobox and Dropdown

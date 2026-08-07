@@ -3,6 +3,7 @@ import { AppBar } from "@flowstack-ui/atom/app-bar";
 import { BottomNavigation } from "@flowstack-ui/atom/bottom-navigation";
 import { Breadcrumb } from "@flowstack-ui/atom/breadcrumb";
 import { Button } from "@flowstack-ui/atom/button";
+import { Carousel } from "@flowstack-ui/atom/carousel";
 import { Direction } from "@flowstack-ui/atom/direction";
 import { Link } from "@flowstack-ui/atom/link";
 import { NavList } from "@flowstack-ui/atom/nav-list";
@@ -51,6 +52,7 @@ export const navigationPrimitiveScenarioIds = new Set([
   "pagination",
   "bottom-navigation",
   "nav-list",
+  "carousel",
 ]);
 
 function nowTime() {
@@ -88,6 +90,39 @@ export function useNavigationPrimitiveScenarios() {
     pagination: usePaginationScenario(),
     bottomNavigation: useBottomNavigationScenario(),
     navList: useNavListScenario(),
+    carousel: useCarouselScenario(),
+  };
+}
+
+function useCarouselScenario() {
+  const [controlled, setControlled] = useState(false);
+  const [value, setValue] = useState("company");
+  const [autoPlay, setAutoPlay] = useState(false);
+  const [loop, setLoop] = useState(true);
+  const [showControls, setShowControls] = useState(true);
+  const [showPicker, setShowPicker] = useState(true);
+  const [dir, setDir] = useState<DirectionMode>("ltr");
+  const { log, addLog, clearLog } = useScenarioLog();
+
+  return {
+    state: { controlled, value, autoPlay, loop, showControls, showPicker, dir, log },
+    actions: {
+      setControlled,
+      setValue,
+      setLoop,
+      setShowControls,
+      setShowPicker,
+      setDir,
+      setAutoPlay: (next: boolean) => {
+        setAutoPlay(next);
+        addLog(`rotation ${next ? "started" : "stopped"}`);
+      },
+      handleValueChange: (next: string, reason: string) => {
+        setValue(next);
+        addLog(`selected ${next} by ${reason}`);
+      },
+      clearLog,
+    },
   };
 }
 
@@ -777,6 +812,25 @@ export function NavigationPrimitiveScenarioToolbar({
   scenarioId: string;
   scenarios: NavigationPrimitiveScenarios;
 }) {
+  if (scenarioId === "carousel") {
+    const scenario = scenarios.carousel;
+    return (
+      <ControlToolbar label="Carousel controls">
+        <ToolbarGroup title="State" value="state">
+          <MenuCheckboxControl checked={scenario.state.controlled} label="Controlled" value="controlled" onChange={scenario.actions.setControlled} />
+          <MenuCheckboxControl checked={scenario.state.autoPlay} label="Automatic Rotation" value="autoplay" onChange={scenario.actions.setAutoPlay} />
+          <MenuCheckboxControl checked={scenario.state.loop} label="Loop" value="loop" onChange={scenario.actions.setLoop} />
+          <MenuCheckboxControl checked={scenario.state.showControls} label="Previous / Next" value="controls" onChange={scenario.actions.setShowControls} />
+          <MenuCheckboxControl checked={scenario.state.showPicker} label="Picker Dots" value="picker" onChange={scenario.actions.setShowPicker} />
+          <MenuRadioControl label="Active Slide" options={carouselValueOptions} value={scenario.state.value} onChange={scenario.actions.setValue} />
+        </ToolbarGroup>
+        <ToolbarGroup title="Direction" value="direction">
+          <MenuRadioControl label="Direction" options={directionOptions} value={scenario.state.dir} onChange={scenario.actions.setDir} />
+        </ToolbarGroup>
+      </ControlToolbar>
+    );
+  }
+
   if (scenarioId === "link") {
     const scenario = scenarios.link;
     return (
@@ -1102,6 +1156,7 @@ export function NavigationPrimitiveScenarioCanvas({
   scenarioId: string;
   scenarios: NavigationPrimitiveScenarios;
 }) {
+  if (scenarioId === "carousel") return <CarouselCanvas scenario={scenarios.carousel} />;
   if (scenarioId === "link") return <LinkCanvas scenario={scenarios.link} />;
   if (scenarioId === "app-bar") return <AppBarCanvas scenario={scenarios.appBar} />;
   if (scenarioId === "tabs") return <TabsCanvas scenario={scenarios.tabs} />;
@@ -1111,6 +1166,51 @@ export function NavigationPrimitiveScenarioCanvas({
   if (scenarioId === "bottom-navigation") return <BottomNavigationCanvas scenario={scenarios.bottomNavigation} />;
   if (scenarioId === "nav-list") return <NavListCanvas scenario={scenarios.navList} />;
   return null;
+}
+
+function CarouselCanvas({ scenario }: { scenario: ReturnType<typeof useCarouselScenario> }) {
+  const state = scenario.state;
+  return (
+    <Carousel.Root
+      className="playground-carousel"
+      aria-label="Company highlights"
+      autoPlay={state.autoPlay}
+      dir={state.dir}
+      interval={4000}
+      loop={state.loop}
+      defaultValue={state.controlled ? undefined : "company"}
+      value={state.controlled ? state.value : undefined}
+      onAutoPlayChange={scenario.actions.setAutoPlay}
+      onValueChange={scenario.actions.handleValueChange}
+    >
+      <Carousel.Viewport className="playground-carousel-viewport" data-playground-canvas-focus tabIndex={0}>
+        <Carousel.Track className="playground-carousel-track">
+          {carouselSlides.map((slide) => (
+            <Carousel.Slide className="playground-carousel-slide" key={slide.value} label={slide.label} value={slide.value}>
+              <strong>{slide.title}</strong>
+              <span>{slide.description}</span>
+            </Carousel.Slide>
+          ))}
+        </Carousel.Track>
+      </Carousel.Viewport>
+      {state.showControls ? (
+        <div className="playground-carousel-navigation">
+          <Carousel.Previous>Previous</Carousel.Previous>
+          <Carousel.RotationControl>{state.autoPlay ? "Pause" : "Play"}</Carousel.RotationControl>
+          <Carousel.Next>Next</Carousel.Next>
+        </div>
+      ) : null}
+      {state.showPicker ? (
+        <Carousel.Picker className="playground-carousel-picker">
+          {carouselSlides.map((slide) => (
+            <Carousel.PickerItem key={slide.value} value={slide.value}>
+              <span aria-hidden="true" />
+            </Carousel.PickerItem>
+          ))}
+        </Carousel.Picker>
+      ) : null}
+    </Carousel.Root>
+  );
 }
 
 function PlaygroundRouterLink({ to, ...props }: React.ComponentPropsWithoutRef<"a"> & { to: string }) {
@@ -2458,6 +2558,29 @@ export function NavigationPrimitiveScenarioAnatomy({
 }
 
 function getNavigationSections(scenarioId: string, scenarios: NavigationPrimitiveScenarios): AnatomySection[] {
+  if (scenarioId === "carousel") {
+    const state = scenarios.carousel.state;
+    const stateLabel = state.autoPlay ? "playing" : "stopped";
+    return [
+      baseSection("Root", `${state.value} · ${stateLabel}`, "[data-slot='carousel-root']", [
+        row("Active value", state.value, "state"),
+        row("Automatic rotation", state.autoPlay ? "true" : "false", "state"),
+        row("Direction", state.dir, "data"),
+      ]),
+      baseSection("Viewport", stateLabel, "[data-slot='carousel-viewport']", [
+        row("Live mode", state.autoPlay ? "off" : "polite", "aria"),
+      ]),
+      baseSection("Track", state.dir, "[data-slot='carousel-track']"),
+      baseSection("Slide: Active", state.value, "[data-slot='carousel-slide'][data-state='active']", [
+        row("Accessible", "visible", "aria"),
+      ]),
+      baseSection("Previous", state.showControls ? "visible" : "omitted", "[data-slot='carousel-previous']", undefined, !state.showControls),
+      baseSection("Next", state.showControls ? "visible" : "omitted", "[data-slot='carousel-next']", undefined, !state.showControls),
+      baseSection("Rotation Control", state.showControls ? stateLabel : "omitted", "[data-slot='carousel-rotation-control']", undefined, !state.showControls),
+      baseSection("Picker", state.showPicker ? "visible" : "omitted", "[data-slot='carousel-picker']", undefined, !state.showPicker),
+      baseSection("Picker Item: Active", state.showPicker ? state.value : "omitted", "[data-slot='carousel-picker-item'][data-state='active']", undefined, !state.showPicker),
+    ];
+  }
   if (scenarioId === "link") {
     const state = scenarios.link.state;
     const selector = `[data-slot='${state.customSlot ? "link-custom" : "link"}'].playground-link`;
@@ -2863,6 +2986,7 @@ export function NavigationPrimitiveScenarioLog({ scenarioId, scenarios }: { scen
 }
 
 function getNavigationLog(scenarioId: string, scenarios: NavigationPrimitiveScenarios) {
+  if (scenarioId === "carousel") return scenarios.carousel.state.log;
   if (scenarioId === "link") return scenarios.link.state.log;
   if (scenarioId === "app-bar") return scenarios.appBar.state.log;
   if (scenarioId === "tabs") return scenarios.tabs.state.log;
@@ -2879,6 +3003,7 @@ export function getNavigationPrimitiveEventCount(scenarioId: string, scenarios: 
 }
 
 export function clearNavigationPrimitiveLog(scenarioId: string, scenarios: NavigationPrimitiveScenarios) {
+  if (scenarioId === "carousel") scenarios.carousel.actions.clearLog();
   if (scenarioId === "link") scenarios.link.actions.clearLog();
   if (scenarioId === "app-bar") scenarios.appBar.actions.clearLog();
   if (scenarioId === "tabs") scenarios.tabs.actions.clearLog();
@@ -2890,6 +3015,7 @@ export function clearNavigationPrimitiveLog(scenarioId: string, scenarios: Navig
 }
 
 export function getNavigationPrimitiveCanvasFooter(scenarioId: string, scenarios: NavigationPrimitiveScenarios) {
+  if (scenarioId === "carousel") return `${scenarios.carousel.state.value} | ${scenarios.carousel.state.autoPlay ? "playing" : "stopped"} | ${scenarios.carousel.state.dir}`;
   if (scenarioId === "link") return `${scenarios.link.state.composition} | ${scenarios.link.state.current ? "current page" : "ordinary link"}`;
   if (scenarioId === "app-bar") return `${scenarios.appBar.state.position} | ${scenarios.appBar.state.density}`;
   if (scenarioId === "tabs") return `${scenarios.tabs.state.controlled ? "Controlled" : "Uncontrolled"} ${scenarios.tabs.state.value} | ${scenarios.tabs.state.activationMode} | ${scenarios.tabs.state.orientation}`;
@@ -2902,6 +3028,33 @@ export function getNavigationPrimitiveCanvasFooter(scenarioId: string, scenarios
 }
 
 export function getNavigationPrimitiveSource(scenarioId: string, scenarios?: NavigationPrimitiveScenarios) {
+  if (scenarioId === "carousel") {
+    const state = scenarios?.carousel.state;
+    const rootProps = [
+      state?.controlled ? `value="${state.value}"` : `defaultValue="company"`,
+      state?.autoPlay ? "autoPlay" : "",
+      state?.loop === false ? "loop={false}" : "",
+      state?.dir === "rtl" ? `dir="rtl"` : "",
+      `aria-label="Company highlights"`,
+    ].filter(Boolean).join(" ");
+    return `<Carousel.Root ${rootProps}>
+  <Carousel.Viewport>
+    <Carousel.Track>
+      <Carousel.Slide value="company" label="Company services">Company services</Carousel.Slide>
+      <Carousel.Slide value="hosting" label="Managed hosting">Managed hosting</Carousel.Slide>
+      <Carousel.Slide value="products" label="Swifty products">Swifty products</Carousel.Slide>
+    </Carousel.Track>
+  </Carousel.Viewport>
+  <Carousel.Previous>Previous</Carousel.Previous>
+  <Carousel.RotationControl>Play or pause</Carousel.RotationControl>
+  <Carousel.Next>Next</Carousel.Next>
+  <Carousel.Picker>
+    <Carousel.PickerItem value="company" />
+    <Carousel.PickerItem value="hosting" />
+    <Carousel.PickerItem value="products" />
+  </Carousel.Picker>
+</Carousel.Root>`;
+  }
   if (scenarioId === "link") {
     if (!scenarios) return `<Link.Root href="/guides">Read the guides</Link.Root>`;
     const state = scenarios.link.state;
@@ -3869,6 +4022,12 @@ const bottomNavigationValueOptions = [
   { label: "Home", value: "home" },
   { label: "Search", value: "search" },
   { label: "Settings", value: "settings" },
+] as const;
+const carouselValueOptions = ["company", "hosting", "products"] as const;
+const carouselSlides = [
+  { value: "company", label: "Company services", title: "One accountable team", description: "Strategy, design, development, and care in one place." },
+  { value: "hosting", label: "Managed hosting", title: "Launch without infrastructure stress", description: "A managed home for the website after it goes live." },
+  { value: "products", label: "Swifty products", title: "Tools built from real client work", description: "Focused software that solves practical business problems." },
 ] as const;
 const compositionOptions = ["default", "asChild", "render"] as const;
 const tabsValueOptions = ["overview", "settings", "billing"] as const;

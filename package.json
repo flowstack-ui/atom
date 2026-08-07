@@ -1,6 +1,6 @@
 {
   "name": "@flowstack-ui/atom",
-  "version": "0.21.0",
+  "version": "0.22.0",
   "description": "Headless accessible React primitives for Flowstack Atom.",
   "type": "module",
   "license": "MIT",
@@ -73,6 +73,10 @@
     "./button": {
       "types": "./dist/button.d.ts",
       "default": "./dist/button.js"
+    },
+    "./carousel": {
+      "types": "./dist/carousel.d.ts",
+      "default": "./dist/carousel.js"
     },
     "./checkbox": {
       "types": "./dist/checkbox.d.ts",

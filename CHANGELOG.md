@@ -1,5 +1,13 @@
 # Atom Changelog
 
+## 0.22.0
+
+- Added the headless one-active-slide Carousel family with controlled and
+  uncontrolled selection and automatic rotation, optional Previous, Next,
+  grouped picker and rotation controls, native touch-scroll selection,
+  focus/hover/visibility pause policy, LTR/RTL support, public behavior state,
+  documentation, and Agent Knowledge.
+
 ## 0.21.0
 
 - Centered Navigation Menu's horizontal Viewport on its active trigger and
