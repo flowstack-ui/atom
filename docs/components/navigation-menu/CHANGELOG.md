@@ -1,6 +1,13 @@
 # NavigationMenu Changelog
 
-## Unreleased
+## 0.21.0
+
+- Added collision-aware, active-trigger-centered horizontal Viewport geometry.
+  Viewport now exposes its resolved Root-relative inline position and available
+  visible width, follows visual-viewport resize and zoom movement, and accepts
+  `collisionPadding` without requiring a styled layer to remeasure the panel.
+
+## 0.20.12
 
 - Added public Agent Knowledge for component selection, required composition,
   recurring mistakes, and validation.

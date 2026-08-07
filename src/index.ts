@@ -755,6 +755,8 @@ export {
   NavigationMenuViewport,
   getNavigationMenuGeometry,
   getNavigationMenuGeometryStyle,
+  getNavigationMenuViewportPosition,
+  getNavigationMenuViewportPositionStyle,
   getNavigationMenuViewportSizeStyle,
   useNavigationMenuContext,
   useNavigationMenuItemContext,
@@ -776,6 +778,8 @@ export type {
   NavigationMenuSubProps,
   NavigationMenuTriggerProps,
   NavigationMenuViewportProps,
+  NavigationMenuViewportPosition,
+  NavigationMenuViewportPositionOptions,
 } from "./primitives/navigation-menu/index.js";
 export {
   NavListContextProvider,

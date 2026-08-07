@@ -1,6 +1,10 @@
 # Atom Changelog
 
-## Unreleased
+## 0.21.0
+
+- Centered Navigation Menu's horizontal Viewport on its active trigger and
+  added collision-aware visual-viewport geometry, configurable padding, and
+  public resolved-position variables for styled connector alignment.
 
 ## 0.20.12
 

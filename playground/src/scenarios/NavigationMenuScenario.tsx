@@ -620,7 +620,7 @@ export function NavigationMenuScenarioCanvas({ scenario }: { scenario: Navigatio
   const rootChildren = (
     <>
       {primaryList}
-      <div className="utility-navigation-viewport-position"><ViewportPart scenario={scenario} /></div>
+      <ViewportPart scenario={scenario} />
     </>
   );
   const menu = state.rootComposition === "asChild"

@@ -88,6 +88,8 @@ Verify
 - Touch/pen contact does not start the mouse-hover open or close timers.
 - A completed tap still toggles the disclosure.
 - Direct links remain native links in normal Tab order.
+- A narrow panel centers on its active trigger; first and last trigger panels
+  shift within the visible viewport without detaching styled connector geometry.
 
 Reset
 

@@ -12,6 +12,8 @@ export type {
 export {
   getNavigationMenuGeometry,
   getNavigationMenuGeometryStyle,
+  getNavigationMenuViewportPosition,
+  getNavigationMenuViewportPositionStyle,
   getNavigationMenuViewportSizeStyle,
 } from "./geometry.js";
 export type {
@@ -19,6 +21,8 @@ export type {
   NavigationMenuGeometryOptions,
   NavigationMenuGeometryStyle,
   NavigationMenuRect,
+  NavigationMenuViewportPosition,
+  NavigationMenuViewportPositionOptions,
 } from "./geometry.js";
 export { NavigationMenuRoot } from "./NavigationMenuRoot.js";
 export type { NavigationMenuRootProps } from "./NavigationMenuRoot.js";
