@@ -302,7 +302,11 @@ export const CarouselRoot = forwardRef<HTMLDivElement, CarouselRootProps>(
     ]);
 
     const handleFocusCapture: FocusEventHandler<HTMLDivElement> = () => {
-      if (activeAutoPlay) stopAutoPlay();
+      // Pointer activation focuses a button before its click fires. Deferring
+      // the focus stop lets RotationControl observe the pre-focus playing
+      // state and complete the user's intended stop action. Keyboard focus
+      // still stops rotation before a later activation can occur.
+      if (activeAutoPlay) window.setTimeout(stopAutoPlay, 0);
     };
     const handleMouseEnter: MouseEventHandler<HTMLDivElement> = () => setIsHovered(true);
     const handleMouseLeave: MouseEventHandler<HTMLDivElement> = () => setIsHovered(false);

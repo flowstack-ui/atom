@@ -1,5 +1,10 @@
 # Atom Changelog
 
+## 0.22.1
+
+- Fixed the Carousel rotation control so pointer focus and the following click
+  complete one stop action instead of immediately restarting rotation.
+
 ## 0.22.0
 
 - Added the headless one-active-slide Carousel family with controlled and

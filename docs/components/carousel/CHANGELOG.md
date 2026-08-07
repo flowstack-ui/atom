@@ -1,5 +1,11 @@
 # Carousel Changelog
 
+## 0.22.1
+
+- Fixed the focus-before-click race on RotationControl so activating a playing
+  carousel reliably stops it while ordinary focus entry retains the required
+  stop behavior.
+
 ## 0.22.0
 
 - Added the one-active-slide Carousel family with controlled/uncontrolled

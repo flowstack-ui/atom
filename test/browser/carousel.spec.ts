@@ -39,6 +39,14 @@ test("Carousel automatic rotation stops when focus enters", async ({ page }) => 
   await page.mouse.move(0, 0);
   await expect(root).toHaveAttribute("data-state", "playing");
 
+  await rotation.click();
+  await expect(root).toHaveAttribute("data-state", "stopped");
+  await expect(rotation).toHaveAttribute("aria-label", "Start slide rotation");
+
+  await rotation.click();
+  await page.mouse.move(0, 0);
+  await expect(root).toHaveAttribute("data-state", "playing");
+
   await page.locator("[data-slot='carousel-viewport']").focus();
   await expect(root).toHaveAttribute("data-state", "stopped");
   await expect(rotation).toHaveAttribute("aria-label", "Start slide rotation");
