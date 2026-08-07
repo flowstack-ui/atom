@@ -9,6 +9,17 @@ Use `Clipboard` when a user needs to copy a known text value, such as a command,
 URL, token, or code sample. Applications provide all styling, icons, and status
 wording. Clipboard does not read, paste, cut, or copy binary data.
 
+## Features
+
+- Coordinates controlled and uncontrolled text values across Label, Input,
+  ValueText, and Trigger parts.
+- Reports truthful `idle`, `copying`, `copied`, and `error` states for
+  asynchronous clipboard writes.
+- Keeps the newest copy attempt authoritative when earlier writes resolve or
+  reject later.
+- Supports disabled state, configurable status reset timing, an explicit write
+  adapter, authored live feedback, and public composition APIs.
+
 ## Import
 
 ```tsx
