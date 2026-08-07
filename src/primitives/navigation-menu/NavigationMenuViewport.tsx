@@ -27,6 +27,8 @@ import { useNavigationMenuContext } from "./context.js";
 import {
   getNavigationMenuGeometry,
   getNavigationMenuGeometryStyle,
+  getNavigationMenuViewportPosition,
+  getNavigationMenuViewportPositionStyle,
   getNavigationMenuViewportSizeStyle,
   type NavigationMenuGeometryStyle,
 } from "./geometry.js";
@@ -41,6 +43,8 @@ export interface NavigationMenuViewportProps extends NavigationMenuViewportNativ
   asChild?: boolean;
   render?: RenderProp;
   forceMount?: boolean;
+  /** Minimum distance, in pixels, between the resolved viewport and the visible browser viewport. @default 8 */
+  collisionPadding?: number;
   className?: string;
   "data-slot"?: string;
 }
@@ -69,6 +73,7 @@ export const NavigationMenuViewport = forwardRef<
     asChild,
     render,
     forceMount = false,
+    collisionPadding = 8,
     className,
     style,
     onPointerEnter,
@@ -122,19 +127,38 @@ export const NavigationMenuViewport = forwardRef<
     }
 
     const contentRect = activeContent.getBoundingClientRect();
+    const rootRect = root.getBoundingClientRect();
+    const triggerRect = trigger.getBoundingClientRect();
+    const visualViewport = window.visualViewport;
+    const boundaryRect = {
+      left: visualViewport?.offsetLeft ?? 0,
+      top: visualViewport?.offsetTop ?? 0,
+      width: visualViewport?.width ?? document.documentElement.clientWidth,
+      height: visualViewport?.height ?? document.documentElement.clientHeight,
+    };
+    const viewportWidth = activeContent.scrollWidth || contentRect.width;
     setViewportSizeStyle({
       ...getNavigationMenuViewportSizeStyle(
-        activeContent.scrollWidth || contentRect.width,
+        viewportWidth,
         activeContent.scrollHeight || contentRect.height,
       ),
       ...getNavigationMenuGeometryStyle(
         getNavigationMenuGeometry({
-          rootRect: root.getBoundingClientRect(),
-          triggerRect: trigger.getBoundingClientRect(),
+          rootRect,
+          triggerRect,
+        }),
+      ),
+      ...getNavigationMenuViewportPositionStyle(
+        getNavigationMenuViewportPosition({
+          rootRect,
+          triggerRect,
+          viewportWidth,
+          boundaryRect,
+          collisionPadding,
         }),
       ),
     });
-  }, [getTriggerElement, rootRef, value]);
+  }, [collisionPadding, getTriggerElement, rootRef, value]);
 
   const activeEntry = value ? getContentNode(value) : null;
   const contentLoop = activeEntry?.loop ?? loop;
@@ -266,10 +290,14 @@ export const NavigationMenuViewport = forwardRef<
     if (trigger) resizeObserver?.observe(trigger);
 
     window.addEventListener("resize", measure);
+    window.visualViewport?.addEventListener("resize", measure);
+    window.visualViewport?.addEventListener("scroll", measure);
 
     return () => {
       resizeObserver?.disconnect();
       window.removeEventListener("resize", measure);
+      window.visualViewport?.removeEventListener("resize", measure);
+      window.visualViewport?.removeEventListener("scroll", measure);
     };
   }, [getTriggerElement, measure, rootRef, value]);
 

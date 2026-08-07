@@ -20,6 +20,7 @@ Provide disclosure navigation with coordinated triggers, links, content, viewpor
 
 - **MUST:** Use NavigationMenu for destinations, not commands, selections, or arbitrary popover content.
 - **MUST:** Use the primitive's trigger, content, viewport, arrow, offset, focus, and dismissal contracts instead of manually positioning a competing overlay.
+- **MUST:** Let Viewport's active-trigger and collision geometry position a horizontal panel; customize collisionPadding only when the surrounding layout needs a different visible-edge inset.
 
 ## Common mistakes
 
@@ -27,7 +28,7 @@ Provide disclosure navigation with coordinated triggers, links, content, viewpor
 
 ## Validation checklist
 
-- Test pointer hover, click, keyboard opening, arrow navigation, focus transfer, outside dismissal, Escape, and RTL geometry.
+- Test pointer hover, click, keyboard opening, arrow navigation, focus transfer, outside dismissal, Escape, RTL geometry, narrow panels, and first/last-trigger viewport collisions.
 - Confirm links navigate normally and action-menu roles are absent.
 
 ## Related guidance

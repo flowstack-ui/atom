@@ -20,6 +20,8 @@ import {
   NavigationMenuViewport,
   getNavigationMenuGeometry,
   getNavigationMenuGeometryStyle,
+  getNavigationMenuViewportPosition,
+  getNavigationMenuViewportPositionStyle,
   getNavigationMenuViewportSizeStyle,
 } from "../../dist/index.js";
 
@@ -391,6 +393,54 @@ test("NavigationMenu exposes trigger geometry helpers for indicator and viewport
     "--atom-navigation-menu-viewport-width": "320px",
     "--atom-navigation-menu-viewport-height": "180px",
   });
+
+  const centeredPosition = getNavigationMenuViewportPosition({
+    rootRect: { left: 100, top: 50, width: 600, height: 80 },
+    triggerRect: { left: 220, top: 70, width: 90, height: 32 },
+    viewportWidth: 320,
+    boundaryRect: { left: 0, width: 1000 },
+  });
+
+  assert.deepEqual(centeredPosition, {
+    left: 5,
+    availableWidth: 984,
+  });
+  assert.deepEqual(getNavigationMenuViewportPositionStyle(centeredPosition), {
+    "--atom-navigation-menu-viewport-left": "5px",
+    "--atom-navigation-menu-viewport-available-width": "984px",
+  });
+});
+
+test("NavigationMenu viewport positioning clamps narrow and oversized panels to the visible boundary", () => {
+  assert.deepEqual(
+    getNavigationMenuViewportPosition({
+      rootRect: { left: 0, top: 0, width: 360, height: 48 },
+      triggerRect: { left: 0, top: 0, width: 80, height: 48 },
+      viewportWidth: 320,
+      boundaryRect: { left: 0, width: 390 },
+    }),
+    { left: 8, availableWidth: 374 },
+  );
+
+  assert.deepEqual(
+    getNavigationMenuViewportPosition({
+      rootRect: { left: 200, top: 0, width: 500, height: 48 },
+      triggerRect: { left: 650, top: 0, width: 50, height: 48 },
+      viewportWidth: 320,
+      boundaryRect: { left: 0, width: 700 },
+    }),
+    { left: 172, availableWidth: 684 },
+  );
+
+  assert.deepEqual(
+    getNavigationMenuViewportPosition({
+      rootRect: { left: 40, top: 0, width: 310, height: 48 },
+      triggerRect: { left: 160, top: 0, width: 70, height: 48 },
+      viewportWidth: 800,
+      boundaryRect: { left: 0, width: 390 },
+    }),
+    { left: -32, availableWidth: 374 },
+  );
 });
 
 test("NavigationMenuSub creates a nested navigation menu scope", () => {
@@ -585,10 +635,14 @@ test("NavigationMenu source keeps context and registration stable", async () => 
   assert.match(contentSource, /asChild,/);
   assert.match(viewportSource, /activeEntry\.asChild/);
   assert.match(viewportSource, /getNavigationMenuGeometryStyle\(/);
+  assert.match(viewportSource, /getNavigationMenuViewportPositionStyle\(/);
+  assert.match(viewportSource, /collisionPadding = 8/);
+  assert.match(viewportSource, /window\.visualViewport\?\.addEventListener\("resize", measure\)/);
+  assert.match(viewportSource, /window\.visualViewport\?\.addEventListener\("scroll", measure\)/);
   assert.match(viewportSource, /const root = rootRef\.current/);
   assert.doesNotMatch(viewportSource, /parentElement \?\? rootRef\.current/);
-  assert.match(viewportSource, /rootRect: root\.getBoundingClientRect\(\)/);
-  assert.match(viewportSource, /triggerRect: trigger\.getBoundingClientRect\(\)/);
+  assert.match(viewportSource, /const rootRect = root\.getBoundingClientRect\(\)/);
+  assert.match(viewportSource, /const triggerRect = trigger\.getBoundingClientRect\(\)/);
   assert.match(viewportSource, /if \(root\) resizeObserver\?\.observe\(root\)/);
   assert.match(viewportSource, /if \(trigger\) resizeObserver\?\.observe\(trigger\)/);
   assert.match(viewportSource, /const contentLoop = activeEntry\?\.loop \?\? loop/);

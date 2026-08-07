@@ -21,6 +21,19 @@ export interface NavigationMenuGeometry {
   centerY: number;
 }
 
+export interface NavigationMenuViewportPositionOptions {
+  triggerRect: NavigationMenuRect;
+  rootRect: NavigationMenuRect;
+  viewportWidth: number;
+  boundaryRect: Pick<NavigationMenuRect, "left" | "width">;
+  collisionPadding?: number;
+}
+
+export interface NavigationMenuViewportPosition {
+  left: number;
+  availableWidth: number;
+}
+
 export type NavigationMenuGeometryStyle = CSSProperties & {
   [key: `--${string}`]: string;
 };
@@ -62,5 +75,40 @@ export function getNavigationMenuViewportSizeStyle(
   return {
     "--atom-navigation-menu-viewport-width": `${width}px`,
     "--atom-navigation-menu-viewport-height": `${height}px`,
+  };
+}
+
+export function getNavigationMenuViewportPosition({
+  triggerRect,
+  rootRect,
+  viewportWidth,
+  boundaryRect,
+  collisionPadding = 8,
+}: NavigationMenuViewportPositionOptions): NavigationMenuViewportPosition {
+  const padding = Math.max(0, collisionPadding);
+  const boundaryStart = boundaryRect.left + padding;
+  const boundaryEnd = boundaryRect.left + boundaryRect.width - padding;
+  const availableWidth = Math.max(0, boundaryEnd - boundaryStart);
+  const resolvedWidth = Math.min(Math.max(0, viewportWidth), availableWidth);
+  const triggerCenter = triggerRect.left + triggerRect.width / 2;
+  const preferredLeft = triggerCenter - resolvedWidth / 2;
+  const maximumLeft = Math.max(boundaryStart, boundaryEnd - resolvedWidth);
+  const absoluteLeft = Math.min(
+    Math.max(preferredLeft, boundaryStart),
+    maximumLeft,
+  );
+
+  return {
+    left: absoluteLeft - rootRect.left,
+    availableWidth,
+  };
+}
+
+export function getNavigationMenuViewportPositionStyle(
+  position: NavigationMenuViewportPosition,
+): NavigationMenuGeometryStyle {
+  return {
+    "--atom-navigation-menu-viewport-left": `${position.left}px`,
+    "--atom-navigation-menu-viewport-available-width": `${position.availableWidth}px`,
   };
 }

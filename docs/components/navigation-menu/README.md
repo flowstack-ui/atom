@@ -15,6 +15,8 @@ not a menu-role widget.
 - Supports root and nested navigation menu scopes.
 - Supports mouse-hover delay, click/tap, and keyboard open. Touch/pen never start hover timers.
 - Provides a shared viewport that adapts to the active content size.
+- Centers horizontal viewport content on the active trigger and shifts it back
+  inside the visible browser viewport when it would collide with an edge.
 - Provides indicator geometry CSS variables for styling arrows or active markers.
 - Supports active links and `aria-current`.
 - Supports horizontal and vertical orientation.
@@ -189,6 +191,7 @@ Renders an optional active trigger indicator.
 | --- | --- | --- |
 | `children` | `ReactNode` | - |
 | `forceMount` | `boolean` | `false` |
+| `collisionPadding` | `number` | `8` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -232,6 +235,8 @@ Renders the active content panel.
 | --- | --- |
 | `--atom-navigation-menu-viewport-width` | Active content width |
 | `--atom-navigation-menu-viewport-height` | Active content height |
+| `--atom-navigation-menu-viewport-left` | Collision-resolved Root-relative left offset |
+| `--atom-navigation-menu-viewport-available-width` | Width available inside the visible viewport and collision padding |
 | `--atom-navigation-menu-trigger-left` | Active trigger left offset |
 | `--atom-navigation-menu-trigger-top` | Active trigger top offset |
 | `--atom-navigation-menu-trigger-width` | Active trigger width |
