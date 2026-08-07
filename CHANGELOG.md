@@ -1,5 +1,11 @@
 # Atom Changelog
 
+## 0.22.2
+
+- Made the Carousel viewport keyboard-focusable by default so its native
+  horizontal scroll region remains operable in Safari and satisfies the
+  scrollable-region accessibility contract.
+
 ## 0.22.1
 
 - Fixed the Carousel rotation control so pointer focus and the following click

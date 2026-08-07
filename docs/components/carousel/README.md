@@ -102,7 +102,7 @@ collection geometry for styled layers.
 
 ### Viewport
 
-Viewport renders a `div`, observes native scrolling, selects the nearest Slide,
+Viewport renders a keyboard-focusable `div`, observes native scrolling, selects the nearest Slide,
 and stops automatic rotation on pointer or wheel interaction. A styled layer
 must make it the overflow viewport.
 
@@ -357,4 +357,3 @@ Users must be able to stop rotation and reach every Slide without waiting.
 ## Changelog
 
 See [CHANGELOG.md](./CHANGELOG.md).
-

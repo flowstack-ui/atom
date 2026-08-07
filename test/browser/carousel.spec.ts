@@ -7,6 +7,7 @@ test("Carousel controls and native scrolling select one accessible slide", async
   const root = page.locator("[data-slot='carousel-root']");
   const viewport = page.locator("[data-slot='carousel-viewport']");
   const slides = page.locator("[data-slot='carousel-slide']");
+  await expect(viewport).toHaveAttribute("tabindex", "0");
   await expect(root).toHaveAttribute("data-value", "company");
   await expect(slides.nth(0)).not.toHaveAttribute("aria-hidden", "true");
   await expect(slides.nth(1)).toHaveAttribute("aria-hidden", "true");

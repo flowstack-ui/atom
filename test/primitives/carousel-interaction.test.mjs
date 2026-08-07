@@ -99,9 +99,11 @@ test("Carousel controls select slides and remove inactive content from focus", a
 
     const carousel = container.querySelector("[data-slot='carousel-root']");
     const slides = [...container.querySelectorAll("[data-slot='carousel-slide']")];
+    const viewport = container.querySelector("[data-slot='carousel-viewport']");
     const previous = container.querySelector("[data-slot='carousel-previous']");
     const next = container.querySelector("[data-slot='carousel-next']");
     assert.equal(carousel.dataset.value, "one");
+    assert.equal(viewport.tabIndex, 0);
     assert.equal(previous.disabled, true);
     assert.equal(slides[1].getAttribute("aria-hidden"), "true");
     assert.equal(slides[1].hasAttribute("inert"), true);
@@ -137,7 +139,10 @@ test("Carousel focus stops requested automatic rotation until explicitly restart
     assert.equal(container.querySelector("[data-slot='carousel-viewport']").getAttribute("aria-live"), "off");
     assert.equal(rotation.getAttribute("aria-label"), "Stop slide rotation");
 
-    await React.act(async () => link.focus());
+    await React.act(async () => {
+      link.focus();
+      await new Promise((resolve) => window.setTimeout(resolve, 0));
+    });
     assert.equal(carousel.dataset.state, "stopped");
     assert.equal(rotation.getAttribute("aria-label"), "Start slide rotation");
     assert.equal(container.querySelector("[data-slot='carousel-viewport']").getAttribute("aria-live"), "polite");
