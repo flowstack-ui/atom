@@ -28,7 +28,7 @@ test("Carousel controls and native scrolling select one accessible slide", async
   await expect(root).toHaveAttribute("data-value", "company");
 });
 
-test("Carousel automatic rotation stops when focus enters", async ({ page }) => {
+test("Carousel pointer activation toggles once and keyboard focus stops rotation", async ({ page }) => {
   await openScenario(page, "Navigation", "Carousel");
   const root = page.locator("[data-slot='carousel-root']");
   const rotation = page.locator("[data-slot='carousel-rotation-control']");
