@@ -1,5 +1,10 @@
 # Atom Changelog
 
+## 0.22.5 - 2026-08-08
+
+- Kept Carousel's initial active slide aligned after hydration by scrolling
+  only its own viewport instead of delegating to `scrollIntoView()`.
+
 ## 0.22.4 - 2026-08-08
 
 - Made Carousel looping continue in the requested direction from last to first

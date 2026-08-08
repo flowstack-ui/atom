@@ -1,5 +1,11 @@
 # Carousel Changelog
 
+## 0.22.5
+
+- Scoped programmatic alignment to the Carousel viewport so hydration and
+  late layout settlement cannot shift a full-width active slide partially out
+  of view or scroll an unrelated ancestor.
+
 ## 0.22.4
 
 - Preserved the requested motion direction across loop boundaries by placing

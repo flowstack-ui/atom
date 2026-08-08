@@ -96,11 +96,14 @@ the carousel warrants a landmark in the page information architecture.
 | `[data-slot]` | `"carousel-root"` |
 | `[data-state]` | `"playing"`, `"paused"`, or `"stopped"` |
 | `[data-direction]` | `"ltr"` or `"rtl"` |
+| `[data-initialized]` | present after the initial active Slide is aligned |
 | `[data-loop-transition]` | `"next"` or `"previous"` while crossing a loop boundary |
 | `[data-value]` | active slide value |
 
 Root exposes `--atom-carousel-count` and `--atom-carousel-index` as headless
 collection geometry for styled layers.
+Styled layers should keep scroll motion instant until `[data-initialized]` is
+present, then enable their ordinary motion recipe.
 
 ### Viewport
 
