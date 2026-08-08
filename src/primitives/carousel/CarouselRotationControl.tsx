@@ -47,6 +47,7 @@ export const CarouselRotationControl = forwardRef<
     ref,
     type: "button",
     "aria-label": ariaLabel ?? actionLabel,
+    "data-atom-carousel-rotation-control": "",
     "data-slot": dataSlot,
     "data-state": context.autoPlay ? "playing" : "stopped",
     className,
@@ -59,4 +60,3 @@ export const CarouselRotationControl = forwardRef<
     children: children ?? actionLabel,
   });
 });
-

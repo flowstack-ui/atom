@@ -1,5 +1,11 @@
 # Atom Changelog
 
+## 0.22.3
+
+- Made Carousel rotation-control activation independent of browser-specific
+  focus/click timing so pointer users reliably stop or start rotation in
+  Chromium, Firefox, and WebKit while keyboard focus still stops rotation.
+
 ## 0.22.2
 
 - Made the Carousel viewport keyboard-focusable by default so its native

@@ -11,6 +11,7 @@ import {
   type CSSProperties,
   type FocusEventHandler,
   type MouseEventHandler,
+  type PointerEventHandler,
   type ReactNode,
 } from "react";
 import { useCollection } from "../../collection.js";
@@ -108,6 +109,9 @@ export const CarouselRoot = forwardRef<HTMLDivElement, CarouselRootProps>(
       onFocusCapture,
       onMouseEnter,
       onMouseLeave,
+      onPointerDownCapture,
+      onPointerUpCapture,
+      onPointerCancelCapture,
       ...restProps
     },
     ref,
@@ -129,6 +133,7 @@ export const CarouselRoot = forwardRef<HTMLDivElement, CarouselRootProps>(
     const [isDocumentVisible, setIsDocumentVisible] = useState(true);
     const [viewportElement, setViewportElement] = useState<HTMLElement | null>(null);
     const changeReasonRef = useRef<CarouselChangeReason>("scroll");
+    const pointerRotationControlRef = useRef(false);
     const idPrefix = useId();
     const {
       version: collectionVersion,
@@ -301,15 +306,35 @@ export const CarouselRoot = forwardRef<HTMLDivElement, CarouselRootProps>(
       unregisterItem,
     ]);
 
-    const handleFocusCapture: FocusEventHandler<HTMLDivElement> = () => {
-      // Pointer activation focuses a button before its click fires. Deferring
-      // the focus stop lets RotationControl observe the pre-focus playing
-      // state and complete the user's intended stop action. Keyboard focus
-      // still stops rotation before a later activation can occur.
-      if (activeAutoPlay) window.setTimeout(stopAutoPlay, 0);
+    const handleFocusCapture: FocusEventHandler<HTMLDivElement> = (event) => {
+      const target = event.target as Element | null;
+      const isPointerRotationFocus = pointerRotationControlRef.current &&
+        Boolean(target?.closest("[data-atom-carousel-rotation-control]"));
+      pointerRotationControlRef.current = false;
+
+      // Pointer activation must reach RotationControl while it still reflects
+      // the pre-click state. Keyboard focus and focus entering any other part
+      // stop rotation immediately.
+      if (activeAutoPlay && !isPointerRotationFocus) stopAutoPlay();
     };
     const handleMouseEnter: MouseEventHandler<HTMLDivElement> = () => setIsHovered(true);
     const handleMouseLeave: MouseEventHandler<HTMLDivElement> = () => setIsHovered(false);
+    const handlePointerDownCapture: PointerEventHandler<HTMLDivElement> = (event) => {
+      const target = event.target as Element | null;
+      pointerRotationControlRef.current = Boolean(
+        target?.closest("[data-atom-carousel-rotation-control]"),
+      );
+    };
+    const handlePointerUpCapture: PointerEventHandler<HTMLDivElement> = () => {
+      // Retain the marker through the browser's focus/click sequence. This
+      // timeout only clears provenance; it never mutates carousel state.
+      window.setTimeout(() => {
+        pointerRotationControlRef.current = false;
+      }, 0);
+    };
+    const handlePointerCancelCapture: PointerEventHandler<HTMLDivElement> = () => {
+      pointerRotationControlRef.current = false;
+    };
     const rootStyle: CarouselRootStyle = {
       ...style,
       "--atom-carousel-count": slideValues.length,
@@ -334,6 +359,9 @@ export const CarouselRoot = forwardRef<HTMLDivElement, CarouselRootProps>(
       onFocusCapture: composeEventHandlers(onFocusCapture, handleFocusCapture),
       onMouseEnter: composeEventHandlers(onMouseEnter, handleMouseEnter),
       onMouseLeave: composeEventHandlers(onMouseLeave, handleMouseLeave),
+      onPointerDownCapture: composeEventHandlers(onPointerDownCapture, handlePointerDownCapture),
+      onPointerUpCapture: composeEventHandlers(onPointerUpCapture, handlePointerUpCapture),
+      onPointerCancelCapture: composeEventHandlers(onPointerCancelCapture, handlePointerCancelCapture),
     };
 
     const element = asChild

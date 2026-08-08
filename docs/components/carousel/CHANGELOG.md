@@ -1,5 +1,11 @@
 # Carousel Changelog
 
+## 0.22.3
+
+- Replaced the focus/click timing workaround with explicit pointer-activation
+  provenance so RotationControl toggles exactly once across browser engines
+  while keyboard focus retains the required stop behavior.
+
 ## 0.22.1
 
 - Fixed the focus-before-click race on RotationControl so activating a playing
