@@ -40,6 +40,11 @@
       "statement": "Supply viewport overflow, one-slide track geometry, and scroll snap in the styled layer; do not replace Atom selection, pause, or inactive semantics."
     },
     {
+      "id": "carousel-directional-loop-layout",
+      "level": "must",
+      "statement": "Style carousel-loop-boundary spacers and data-loop-position Slides as one-viewport boundary positions so Next and Previous preserve their requested direction; never clone authored slide content."
+    },
+    {
       "id": "carousel-content-access",
       "level": "must",
       "statement": "Do not place essential content only in a slide that users cannot reach without waiting for automatic rotation."
@@ -52,7 +57,7 @@
     }
   ],
   "validation": [
-    "Verify controlled and uncontrolled selection, Previous/Next boundaries, loop, picker selection, native touch scrolling, LTR and RTL, and external value changes.",
+    "Verify controlled and uncontrolled selection, Previous/Next boundaries, last-to-first forward motion, first-to-last backward motion, picker selection, native touch scrolling, LTR and RTL, and external value changes.",
     "Verify autoplay timing, focus stop without automatic restart, temporary hover and document-visibility pause, visible rotation control, live-region mode, inactive inert state, labels, and reduced-motion handling in the styled layer."
   ],
   "related": [
@@ -62,4 +67,3 @@
     "scroll-area"
   ]
 }
-

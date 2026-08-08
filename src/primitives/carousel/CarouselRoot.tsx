@@ -5,6 +5,7 @@ import {
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -28,6 +29,8 @@ import {
   CarouselContextProvider,
   type CarouselChangeReason,
   type CarouselContextValue,
+  type CarouselLoopTransition,
+  type CarouselSelectionOptions,
   type CarouselSlideData,
 } from "./context.js";
 import {
@@ -80,6 +83,8 @@ type CarouselRootStyle = CSSProperties & {
   "--atom-carousel-count"?: number;
   "--atom-carousel-index"?: number;
 };
+
+const useSafeLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 export const CarouselRoot = forwardRef<HTMLDivElement, CarouselRootProps>(
   function CarouselRoot(
@@ -134,6 +139,10 @@ export const CarouselRoot = forwardRef<HTMLDivElement, CarouselRootProps>(
     const [viewportElement, setViewportElement] = useState<HTMLElement | null>(null);
     const changeReasonRef = useRef<CarouselChangeReason>("scroll");
     const pointerRotationControlRef = useRef(false);
+    const alignedValueRef = useRef("");
+    const scrollTargetValueRef = useRef("");
+    const pendingLoopRebaseRef = useRef("");
+    const [loopTransition, setLoopTransition] = useState<CarouselLoopTransition>(null);
     const idPrefix = useId();
     const {
       version: collectionVersion,
@@ -164,24 +173,77 @@ export const CarouselRoot = forwardRef<HTMLDivElement, CarouselRootProps>(
       setRequestedAutoPlay(false);
     }, [setRequestedAutoPlay]);
 
-    const scrollToValue = useCallback((nextValue: string) => {
+    const scrollToValue = useCallback((nextValue: string, immediate = false) => {
       const element = getItem(nextValue)?.element;
       if (!element || !viewportElement) return;
-      element.scrollIntoView({ block: "nearest", inline: "nearest" });
+
+      if (!immediate) {
+        element.scrollIntoView({ block: "nearest", inline: "nearest" });
+        return;
+      }
+
+      const previousScrollBehavior = viewportElement.style.scrollBehavior;
+      viewportElement.style.scrollBehavior = "auto";
+      element.scrollIntoView({ behavior: "auto", block: "nearest", inline: "nearest" });
+      scrollTargetValueRef.current = "";
+      const restoreScrollBehavior = () => {
+        viewportElement.style.scrollBehavior = previousScrollBehavior;
+      };
+      if (typeof window.requestAnimationFrame === "function") {
+        window.requestAnimationFrame(restoreScrollBehavior);
+      } else {
+        window.setTimeout(restoreScrollBehavior, 0);
+      }
     }, [getItem, viewportElement]);
+
+    const shouldDeferScrollSelection = useCallback((candidateValue: string) => {
+      const targetValue = scrollTargetValueRef.current;
+      if (!targetValue) return false;
+      if (candidateValue !== targetValue) return true;
+      scrollTargetValueRef.current = "";
+      return false;
+    }, []);
+    const clearPendingScrollSelection = useCallback(() => {
+      scrollTargetValueRef.current = "";
+    }, []);
 
     const selectValue = useCallback((
       nextValue: string,
       reason: CarouselChangeReason,
+      options: CarouselSelectionOptions = {},
     ) => {
       if (!getItem(nextValue)) return;
       if (reason !== "autoplay" && reason !== "scroll") {
         stopAutoPlay();
       }
+      const values = getValues();
+      const currentIndex = values.indexOf(activeValue);
+      const nextIndex = values.indexOf(nextValue);
+      const wrapsNext = loop && options.direction === "next" &&
+        currentIndex === values.length - 1 && nextIndex === 0;
+      const wrapsPrevious = loop && options.direction === "previous" &&
+        currentIndex === 0 && nextIndex === values.length - 1;
+
+      if (options.rebase) {
+        pendingLoopRebaseRef.current = nextValue;
+        setLoopTransition(null);
+      } else if (wrapsNext) {
+        setLoopTransition("next");
+      } else if (wrapsPrevious) {
+        setLoopTransition("previous");
+      } else {
+        setLoopTransition(null);
+      }
+
       changeReasonRef.current = reason;
+      if (options.scroll === false) {
+        alignedValueRef.current = nextValue;
+      } else {
+        alignedValueRef.current = "";
+        scrollTargetValueRef.current = nextValue;
+      }
       setActiveValue(nextValue);
-      scrollToValue(nextValue);
-    }, [getItem, scrollToValue, setActiveValue, stopAutoPlay]);
+    }, [activeValue, getItem, getValues, loop, setActiveValue, stopAutoPlay]);
 
     const go = useCallback((
       direction: "next" | "previous",
@@ -193,7 +255,7 @@ export const CarouselRoot = forwardRef<HTMLDivElement, CarouselRootProps>(
         direction,
         loop,
       );
-      if (nextValue) selectValue(nextValue, reason);
+      if (nextValue) selectValue(nextValue, reason, { direction });
     }, [activeValue, getValues, loop, selectValue]);
 
     const goPrevious = useCallback(
@@ -237,10 +299,29 @@ export const CarouselRoot = forwardRef<HTMLDivElement, CarouselRootProps>(
       return () => window.clearTimeout(timeout);
     }, [activeValue, effectiveAutoPlay, goNext, interval]);
 
-    useEffect(() => {
+    useSafeLayoutEffect(() => {
       if (!activeValue || collectionVersion < 1) return;
-      scrollToValue(activeValue);
-    }, [activeValue, collectionVersion, scrollToValue]);
+
+      if (pendingLoopRebaseRef.current) {
+        const rebaseValue = pendingLoopRebaseRef.current;
+        pendingLoopRebaseRef.current = "";
+        alignedValueRef.current = rebaseValue;
+        scrollTargetValueRef.current = rebaseValue;
+        scrollToValue(rebaseValue, true);
+        return;
+      }
+
+      if (alignedValueRef.current === activeValue) return;
+      const requestedScrollValue = scrollTargetValueRef.current;
+      if (requestedScrollValue && requestedScrollValue !== activeValue) return;
+      alignedValueRef.current = activeValue;
+      if (requestedScrollValue === activeValue) {
+        scrollToValue(activeValue);
+      } else {
+        scrollTargetValueRef.current = activeValue;
+        scrollToValue(activeValue, true);
+      }
+    }, [activeValue, collectionVersion, loopTransition, scrollToValue]);
 
     const registerSlide = useCallback((
       slideValue: string,
@@ -263,6 +344,7 @@ export const CarouselRoot = forwardRef<HTMLDivElement, CarouselRootProps>(
       isPlaying: effectiveAutoPlay,
       dir,
       loop,
+      loopTransition,
       previousAriaLabel,
       nextAriaLabel,
       startAriaLabel,
@@ -280,12 +362,15 @@ export const CarouselRoot = forwardRef<HTMLDivElement, CarouselRootProps>(
       canGoNext,
       stopAutoPlay,
       toggleAutoPlay,
+      shouldDeferScrollSelection,
+      clearPendingScrollSelection,
       setViewportElement,
     }), [
       activeValue,
       activeAutoPlay,
       canGoNext,
       canGoPrevious,
+      clearPendingScrollSelection,
       dir,
       effectiveAutoPlay,
       getSlideData,
@@ -295,10 +380,12 @@ export const CarouselRoot = forwardRef<HTMLDivElement, CarouselRootProps>(
       goPrevious,
       idPrefix,
       loop,
+      loopTransition,
       nextAriaLabel,
       previousAriaLabel,
       registerSlide,
       selectValue,
+      shouldDeferScrollSelection,
       startAriaLabel,
       stopAriaLabel,
       stopAutoPlay,
@@ -353,6 +440,7 @@ export const CarouselRoot = forwardRef<HTMLDivElement, CarouselRootProps>(
         ? "playing"
         : activeAutoPlay ? "paused" : "stopped",
       "data-direction": dir,
+      "data-loop-transition": loopTransition ?? undefined,
       "data-value": activeValue || undefined,
       className,
       style: rootStyle,

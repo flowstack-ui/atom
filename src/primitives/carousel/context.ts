@@ -10,6 +10,15 @@ export type CarouselChangeReason =
   | "previous"
   | "scroll";
 
+export type CarouselLoopPosition = "before" | "after";
+export type CarouselLoopTransition = "next" | "previous" | null;
+
+export interface CarouselSelectionOptions {
+  direction?: "next" | "previous";
+  rebase?: boolean;
+  scroll?: boolean;
+}
+
 export interface CarouselSlideData extends Record<string, unknown> {
   label?: string;
 }
@@ -20,6 +29,7 @@ export interface CarouselContextValue {
   isPlaying: boolean;
   dir: DirectionValue;
   loop: boolean;
+  loopTransition: CarouselLoopTransition;
   previousAriaLabel: string;
   nextAriaLabel: string;
   startAriaLabel: string;
@@ -30,13 +40,19 @@ export interface CarouselContextValue {
   getSlideValues: () => string[];
   getSlideElement: (value: string) => HTMLElement | null;
   getSlideData: (value: string) => CarouselSlideData | null;
-  selectValue: (value: string, reason: CarouselChangeReason) => void;
+  selectValue: (
+    value: string,
+    reason: CarouselChangeReason,
+    options?: CarouselSelectionOptions,
+  ) => void;
   goPrevious: (reason?: CarouselChangeReason) => void;
   goNext: (reason?: CarouselChangeReason) => void;
   canGoPrevious: boolean;
   canGoNext: boolean;
   stopAutoPlay: () => void;
   toggleAutoPlay: () => void;
+  shouldDeferScrollSelection: (value: string) => boolean;
+  clearPendingScrollSelection: () => void;
   setViewportElement: (element: HTMLElement | null) => void;
 }
 

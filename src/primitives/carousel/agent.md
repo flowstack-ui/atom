@@ -22,6 +22,7 @@ Coordinate one-active-slide content rotation, optional automatic playback, direc
 - **MUST:** When automatic rotation is enabled, include visible RotationControl, Previous, and Next controls; Picker controls remain optional.
 - **SHOULD:** Keep grouped PickerItem controls to a small set because each native picker button is a tab stop.
 - **MUST:** Supply viewport overflow, one-slide track geometry, and scroll snap in the styled layer; do not replace Atom selection, pause, or inactive semantics.
+- **MUST:** Style carousel-loop-boundary spacers and data-loop-position Slides as one-viewport boundary positions so Next and Previous preserve their requested direction; never clone authored slide content.
 - **MUST:** Do not place essential content only in a slide that users cannot reach without waiting for automatic rotation.
 
 ## Common mistakes
@@ -30,7 +31,7 @@ Coordinate one-active-slide content rotation, optional automatic playback, direc
 
 ## Validation checklist
 
-- Verify controlled and uncontrolled selection, Previous/Next boundaries, loop, picker selection, native touch scrolling, LTR and RTL, and external value changes.
+- Verify controlled and uncontrolled selection, Previous/Next boundaries, last-to-first forward motion, first-to-last backward motion, picker selection, native touch scrolling, LTR and RTL, and external value changes.
 - Verify autoplay timing, focus stop without automatic restart, temporary hover and document-visibility pause, visible rotation control, live-region mode, inactive inert state, labels, and reduced-motion handling in the styled layer.
 
 ## Related guidance

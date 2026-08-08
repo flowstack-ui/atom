@@ -13,6 +13,7 @@ export async function openScenario(
     return;
   }
   const categoryMenu = page.getByRole("menu", { name: category, exact: true });
+  await expect(categoryMenu).toBeVisible();
   const exactItem = categoryMenu.getByRole("menuitem", { name: scenario, exact: true });
   if (await exactItem.count()) {
     await exactItem.click();

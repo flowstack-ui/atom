@@ -25,6 +25,10 @@
   display: flex;
 }
 
+.playground-carousel-track > [data-slot="carousel-loop-boundary"] {
+  flex: 0 0 100%;
+}
+
 .playground-carousel-slide {
   box-sizing: border-box;
   display: grid;
@@ -35,6 +39,22 @@
   place-content: center;
   scroll-snap-align: start;
   text-align: center;
+}
+
+.playground-carousel-slide[data-loop-position="before"] {
+  transform: translateX(calc(-1 * var(--atom-carousel-count) * 100%));
+}
+
+.playground-carousel-slide[data-loop-position="after"] {
+  transform: translateX(calc(var(--atom-carousel-count) * 100%));
+}
+
+[dir="rtl"] .playground-carousel-slide[data-loop-position="before"] {
+  transform: translateX(calc(var(--atom-carousel-count) * 100%));
+}
+
+[dir="rtl"] .playground-carousel-slide[data-loop-position="after"] {
+  transform: translateX(calc(-1 * var(--atom-carousel-count) * 100%));
 }
 
 .playground-carousel-slide span {

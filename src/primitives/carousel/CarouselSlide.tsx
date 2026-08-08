@@ -49,6 +49,21 @@ export const CarouselSlide = forwardRef<HTMLDivElement, CarouselSlideProps>(
     const internalRef = useRef<HTMLDivElement>(null);
     const composedRef = useMemo(() => composeRefs(internalRef, ref), [ref]);
     const isActive = context.activeValue === value;
+    const slideValues = context.getSlideValues();
+    const slideIndex = slideValues.indexOf(value);
+    const activeIndex = slideValues.indexOf(context.activeValue);
+    const lastIndex = slideValues.length - 1;
+    const loopPosition = context.loop && slideValues.length > 1
+      ? context.loopTransition === "next" && slideIndex === 0
+        ? "after"
+        : context.loopTransition === "previous" && slideIndex === lastIndex
+          ? "before"
+          : context.loopTransition === null && activeIndex === lastIndex && slideIndex === 0
+            ? "after"
+            : context.loopTransition === null && activeIndex === 0 && slideIndex === lastIndex
+              ? "before"
+              : undefined
+      : undefined;
     const { idPrefix, registerSlide, unregisterSlide } = context;
 
     useEffect(() => {
@@ -70,6 +85,7 @@ export const CarouselSlide = forwardRef<HTMLDivElement, CarouselSlideProps>(
       "data-slot": dataSlot,
       "data-state": isActive ? "active" : "inactive",
       "data-value": value,
+      "data-loop-position": loopPosition,
       className,
     };
 

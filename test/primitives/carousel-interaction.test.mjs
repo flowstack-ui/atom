@@ -127,6 +127,26 @@ test("Carousel controls select slides and remove inactive content from focus", a
   }
 });
 
+test("Carousel exposes directional loop positioning without duplicating authored slides", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  try {
+    await React.act(async () => root.render(React.createElement(Fixture)));
+    const carousel = container.querySelector("[data-slot='carousel-root']");
+    const slides = [...container.querySelectorAll("[data-slot='carousel-slide']")];
+    assert.equal(slides.length, 3);
+    assert.equal(slides[2].dataset.loopPosition, "before");
+
+    await React.act(async () => container.querySelector("[data-slot='carousel-previous']").click());
+    assert.equal(carousel.dataset.value, "three");
+    assert.equal(carousel.dataset.loopTransition, "previous");
+    assert.equal(slides[2].dataset.loopPosition, "before");
+  } finally {
+    await React.act(async () => root.unmount());
+    cleanup();
+  }
+});
+
 test("Carousel focus stops requested automatic rotation until explicitly restarted", async () => {
   const { container, cleanup } = installDom();
   const root = createRoot(container);
