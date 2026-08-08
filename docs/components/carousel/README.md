@@ -20,7 +20,8 @@ layout or scrolling when all items should remain visible together.
 - Previous, Next, direct picker, native touch, trackpad, and external
   selection paths.
 - Focus, hover, interaction, and document-visibility rotation policies.
-- Looping or bounded collection navigation.
+- Direction-preserving looping or bounded collection navigation without cloned
+  slide content.
 - LTR and RTL nearest-slide resolution.
 - Group/carousel and group/slide semantics with localizable labels.
 - Live-region policy plus inert, accessibility-hidden inactive slides.
@@ -95,6 +96,7 @@ the carousel warrants a landmark in the page information architecture.
 | `[data-slot]` | `"carousel-root"` |
 | `[data-state]` | `"playing"`, `"paused"`, or `"stopped"` |
 | `[data-direction]` | `"ltr"` or `"rtl"` |
+| `[data-loop-transition]` | `"next"` or `"previous"` while crossing a loop boundary |
 | `[data-value]` | active slide value |
 
 Root exposes `--atom-carousel-count` and `--atom-carousel-index` as headless
@@ -125,7 +127,10 @@ must make it the overflow viewport.
 ### Track
 
 Track renders a `div` around Slides. It exposes direction but adds no layout;
-the styled layer supplies its one-row track geometry.
+the styled layer supplies its one-row track geometry. When `loop` has more
+than one Slide, Track adds two empty, `aria-hidden` boundary spacers with
+`data-slot="carousel-loop-boundary"`. The spacers create scroll positions but
+never clone authored slide content, IDs, controls, or form fields.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -161,9 +166,16 @@ short content label through `label` or `aria-label`; the fallback is `value`.
 | `[data-slot]` | `"carousel-slide"` |
 | `[data-state]` | `"active"` or `"inactive"` |
 | `[data-value]` | slide value |
+| `[data-loop-position]` | `"before"` or `"after"` when the styled layer must visually place the authored boundary Slide for a directional loop transition |
 
 Inactive Slides are also inert so their descendants cannot remain in the focus
 order while visually outside the viewport.
+
+The styled layer must size each loop-boundary spacer to one viewport and move
+the Slide carrying `data-loop-position` to that boundary. After native scroll
+settles, Atom silently rebases the viewport to the authored Slide's ordinary
+position. Next therefore continues forward from last to first and Previous
+continues backward from first to last in both LTR and RTL.
 
 ### Previous
 

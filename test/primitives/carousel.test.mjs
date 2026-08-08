@@ -58,6 +58,7 @@ test("Carousel renders the accessible one-active-slide contract", () => {
   assert.match(html, /data-value="company"/);
   assert.match(html, /aria-live="polite"/);
   assert.match(html, /data-slot="carousel-track"/);
+  assert.equal((html.match(/data-slot="carousel-loop-boundary"/g) ?? []).length, 2);
   assert.match(html, /aria-label="Company services"/);
   assert.match(html, /data-state="active"/);
   assert.match(html, /aria-label="Managed hosting"/);
@@ -67,6 +68,32 @@ test("Carousel renders the accessible one-active-slide contract", () => {
   assert.match(html, /aria-label="Previous slide"/);
   assert.match(html, /aria-label="Next slide"/);
   assert.match(html, /role="group" aria-label="Choose slide to display"/);
+});
+
+test("Carousel loop boundaries remain available through Track asChild", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      CarouselRoot,
+      { defaultValue: "one" },
+      React.createElement(
+        CarouselViewport,
+        null,
+        React.createElement(
+          CarouselTrack,
+          { asChild: true },
+          React.createElement(
+            "section",
+            null,
+            React.createElement(CarouselSlide, { value: "one" }, "One"),
+            React.createElement(CarouselSlide, { value: "two" }, "Two"),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  assert.match(html, /<section[^>]*data-slot="carousel-track"/);
+  assert.equal((html.match(/data-slot="carousel-loop-boundary"/g) ?? []).length, 2);
 });
 
 test("Carousel namespace and direct exports expose every public part", () => {

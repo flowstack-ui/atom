@@ -1,5 +1,12 @@
 # Carousel Changelog
 
+## 0.22.4
+
+- Preserved the requested motion direction across loop boundaries by placing
+  the actual authored boundary Slide, settling native scrolling, and silently
+  rebasing without cloned content or duplicate interactive descendants; the
+  rebase also remains safe in DOM-like runtimes without `requestAnimationFrame`.
+
 ## 0.22.3
 
 - Replaced the focus/click timing workaround with explicit pointer-activation

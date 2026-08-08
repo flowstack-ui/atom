@@ -66,8 +66,18 @@ export const CarouselViewport = forwardRef<HTMLDivElement, CarouselViewportProps
         return element ? [{ value, element }] : [];
       });
       const closestValue = getClosestCarouselValue(viewport, slides, context.dir);
-      if (closestValue && closestValue !== context.activeValue) {
-        context.selectValue(closestValue, "scroll");
+      if (!closestValue) return;
+      if (context.shouldDeferScrollSelection(closestValue)) return;
+      const closestElement = context.getSlideElement(closestValue);
+      const loopPosition = closestElement?.getAttribute("data-loop-position");
+      const requiresRebase = loopPosition === "before" || loopPosition === "after";
+
+      if (closestValue !== context.activeValue || requiresRebase) {
+        context.selectValue(closestValue, "scroll", {
+          direction: loopPosition === "before" ? "previous" : loopPosition === "after" ? "next" : undefined,
+          rebase: requiresRebase,
+          scroll: false,
+        });
       }
     }, [context]);
 
@@ -79,9 +89,11 @@ export const CarouselViewport = forwardRef<HTMLDivElement, CarouselViewportProps
       }, 120);
     };
     const handlePointerDown: PointerEventHandler<HTMLDivElement> = () => {
+      context.clearPendingScrollSelection();
       context.stopAutoPlay();
     };
     const handleWheel: WheelEventHandler<HTMLDivElement> = () => {
+      context.clearPendingScrollSelection();
       context.stopAutoPlay();
     };
 

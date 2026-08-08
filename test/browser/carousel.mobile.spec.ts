@@ -15,7 +15,8 @@ test("Carousel mobile viewport scroll selects the nearest full-width slide", asy
   expect(geometry.scrollWidth).toBeGreaterThan(geometry.clientWidth * 2);
 
   await viewport.evaluate((element) => {
-    element.scrollTo({ left: element.clientWidth, behavior: "instant" });
+    element.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, pointerType: "touch" }));
+    element.scrollTo({ left: element.clientWidth * 2, behavior: "instant" });
     element.dispatchEvent(new Event("scroll"));
   });
   await expect(root).toHaveAttribute("data-value", "hosting");

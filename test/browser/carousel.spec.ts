@@ -22,10 +22,37 @@ test("Carousel controls and native scrolling select one accessible slide", async
   await expect(page.getByRole("button", { name: "Swifty products" })).toHaveAttribute("aria-disabled", "true");
 
   await viewport.evaluate((element) => {
-    element.scrollTo({ left: 0, behavior: "instant" });
+    element.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, pointerType: "touch" }));
+    element.scrollTo({ left: element.clientWidth * 2, behavior: "instant" });
     element.dispatchEvent(new Event("scroll"));
   });
+  await expect(root).toHaveAttribute("data-value", "hosting");
+});
+
+test("Carousel loop keeps Next moving forward across the last boundary", async ({ page }) => {
+  await openScenario(page, "Navigation", "Carousel");
+
+  const root = page.locator("[data-slot='carousel-root']");
+  const viewport = page.locator("[data-slot='carousel-viewport']");
+  await page.getByRole("button", { name: "Swifty products" }).click();
+  await expect(root).toHaveAttribute("data-value", "products");
+  await expect.poll(() => viewport.evaluate((element) => Math.abs(element.scrollLeft - element.clientWidth * 3))).toBeLessThan(2);
+  await viewport.evaluate((element) => {
+    const target = element as HTMLElement & { __carouselScrollPositions?: number[] };
+    target.__carouselScrollPositions = [];
+    target.addEventListener("scroll", () => {
+      target.__carouselScrollPositions?.push(target.scrollLeft);
+    }, { passive: true });
+  });
+  const before = await viewport.evaluate((element) => element.scrollLeft);
+
+  await page.getByRole("button", { name: "Next slide" }).click();
   await expect(root).toHaveAttribute("data-value", "company");
+  await expect.poll(() => viewport.evaluate((element) => {
+    const target = element as HTMLElement & { __carouselScrollPositions?: number[] };
+    return Math.max(target.scrollLeft, ...(target.__carouselScrollPositions ?? []));
+  })).toBeGreaterThan(before);
+  await expect.poll(() => viewport.evaluate((element) => Math.abs(element.scrollLeft - element.clientWidth))).toBeLessThan(2);
 });
 
 test("Carousel pointer activation toggles once and keyboard focus stops rotation", async ({ page }) => {

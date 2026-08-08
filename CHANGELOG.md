@@ -1,5 +1,11 @@
 # Atom Changelog
 
+## 0.22.4 - 2026-08-08
+
+- Made Carousel looping continue in the requested direction from last to first
+  and first to last without cloning authored slide content, IDs, controls, or
+  form fields, including DOM-like environments without `requestAnimationFrame`.
+
 ## 0.22.3
 
 - Made Carousel rotation-control activation independent of browser-specific
