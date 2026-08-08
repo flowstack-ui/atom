@@ -55,6 +55,18 @@ test("Carousel loop keeps Next moving forward across the last boundary", async (
   await expect.poll(() => viewport.evaluate((element) => Math.abs(element.scrollLeft - element.clientWidth))).toBeLessThan(2);
 });
 
+test("Carousel initial alignment remains stable after layout settles", async ({ page }) => {
+  await openScenario(page, "Navigation", "Carousel");
+
+  const viewport = page.locator("[data-slot='carousel-viewport']");
+  await expect(page.locator("[data-slot='carousel-root']")).toHaveAttribute("data-initialized", "");
+  await expect.poll(() => viewport.evaluate((element) =>
+    Math.abs(element.scrollLeft - element.clientWidth))).toBeLessThan(2);
+  await page.waitForTimeout(250);
+  await expect.poll(() => viewport.evaluate((element) =>
+    Math.abs(element.scrollLeft - element.clientWidth))).toBeLessThan(2);
+});
+
 test("Carousel pointer activation toggles once and keyboard focus stops rotation", async ({ page }) => {
   await openScenario(page, "Navigation", "Carousel");
   const root = page.locator("[data-slot='carousel-root']");

@@ -40,6 +40,11 @@
       "statement": "Supply viewport overflow, one-slide track geometry, and scroll snap in the styled layer; do not replace Atom selection, pause, or inactive semantics."
     },
     {
+      "id": "carousel-initial-motion-gate",
+      "level": "must",
+      "statement": "Keep styled viewport motion instant until Root exposes data-initialized, then enable the ordinary motion recipe so SSR hydration cannot start a competing native snap animation."
+    },
+    {
       "id": "carousel-directional-loop-layout",
       "level": "must",
       "statement": "Style carousel-loop-boundary spacers and data-loop-position Slides as one-viewport boundary positions so Next and Previous preserve their requested direction; never clone authored slide content."
