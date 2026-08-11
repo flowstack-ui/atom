@@ -1,5 +1,12 @@
 # Atom Changelog
 
+## 0.22.6 - 2026-08-10
+
+- Kept the pure-render Divider primitive and explicit subpath server-safe for
+  React Server Component consumers.
+- Added public Agent Knowledge for Accordion and List and routed both from the
+  package-level selection and behavior-composition guides.
+
 ## 0.22.5 - 2026-08-08
 
 - Kept Carousel's initial active slide aligned after hydration by scrolling

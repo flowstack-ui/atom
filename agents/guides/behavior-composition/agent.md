@@ -16,6 +16,8 @@ Compose Atom primitives without duplicating their owned semantics, state, access
 
 - **one behavior owner:** use one public Atom primitive. Do not combine primitives that compete for the same focus or state contract.
 - **compound anatomy:** use the documented Root and named parts. Keep required parts inside their owning context.
+- **several related disclosure sections:** use Accordion. Preserve Item, Header, Trigger, and Content relationships and choose heading levels from the host document.
+- **static item or sequence semantics:** use List. Keep ordered or unordered native meaning and do not invent an interaction model.
 - **custom element integration:** use asChild or render. Merge props and refs instead of replacing Atom handlers.
 - **controlled application state:** use the primitive's controlled props. Keep business effects outside the primitive.
 
@@ -49,3 +51,5 @@ Compose Atom primitives without duplicating their owned semantics, state, access
 - `drawer`
 - `tabs`
 - `toolbar`
+- `accordion`
+- `list`

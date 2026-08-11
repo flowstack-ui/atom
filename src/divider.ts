@@ -1,5 +1,3 @@
-"use client";
-
 import { DividerRoot } from "./primitives/divider/index.js";
 
 export { DividerRoot } from "./primitives/divider/index.js";

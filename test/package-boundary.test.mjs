@@ -150,7 +150,7 @@ test("public component docs and changelogs cover component-style subpaths", asyn
 test("public client entrypoints preserve Next.js client boundaries", async () => {
   const indexSource = await readFile(new URL("src/index.ts", packageRoot), "utf8");
   const namespaceSource = await readFile(new URL("src/namespaces.ts", packageRoot), "utf8");
-  const serverSafeSubpaths = new Set(["app-bar", "badge", "label", "link", "list", "table"]);
+  const serverSafeSubpaths = new Set(["app-bar", "badge", "divider", "label", "link", "list", "table"]);
 
   assert.match(indexSource, /^"use client";/);
   assert.match(namespaceSource, /^"use client";/);

@@ -20,6 +20,8 @@ Decide whether reusable headless behavior belongs in Atom, an existing native el
 - **temporary modal side panel:** use Drawer. Do not recreate dialog focus, dismissal, portal, or labeling behavior.
 - **scrollable viewport with owned scrollbar behavior:** use ScrollArea. Keep ordinary document scrolling native.
 - **resilient media loading:** use Image. Use a native img when loading state and fallback composition are unnecessary.
+- **grouped disclosure sections:** use Accordion. Choose Collapsible for one independent disclosure and Tabs for one shared switching panel.
+- **static ordered or unordered content:** use List. Choose NavList or an interactive collection primitive when items navigate, select, or activate.
 
 ## Rules
 
@@ -50,3 +52,5 @@ Decide whether reusable headless behavior belongs in Atom, an existing native el
 - `app-bar`
 - `navigation-menu`
 - `drawer`
+- `accordion`
+- `list`

@@ -19,7 +19,9 @@
     { "intent": "site or application navigation", "use": "NavList, NavigationMenu, Breadcrumb, BottomNavigation, Tabs, or Pagination", "note": "Select by the navigation relationship, not by visual resemblance." },
     { "intent": "temporary modal side panel", "use": "Drawer", "note": "Do not recreate dialog focus, dismissal, portal, or labeling behavior." },
     { "intent": "scrollable viewport with owned scrollbar behavior", "use": "ScrollArea", "note": "Keep ordinary document scrolling native." },
-    { "intent": "resilient media loading", "use": "Image", "note": "Use a native img when loading state and fallback composition are unnecessary." }
+    { "intent": "resilient media loading", "use": "Image", "note": "Use a native img when loading state and fallback composition are unnecessary." },
+    { "intent": "grouped disclosure sections", "use": "Accordion", "note": "Choose Collapsible for one independent disclosure and Tabs for one shared switching panel." },
+    { "intent": "static ordered or unordered content", "use": "List", "note": "Choose NavList or an interactive collection primitive when items navigate, select, or activate." }
   ],
   "rules": [
     { "id": "atom-behavior-only", "level": "must", "statement": "Keep Atom guidance and compositions headless; do not add visual recipes, color, theme, product copy, or application layout policy." },
@@ -38,5 +40,5 @@
     "Confirm the rendered elements, accessible names, state, focus, keyboard, pointer, touch, and RTL behavior that apply.",
     "Record any native fallback and the Atom capability searched first."
   ],
-  "related": ["behavior-composition", "button", "link", "pressable", "app-bar", "navigation-menu", "drawer"]
+  "related": ["behavior-composition", "button", "link", "pressable", "app-bar", "navigation-menu", "drawer", "accordion", "list"]
 }
