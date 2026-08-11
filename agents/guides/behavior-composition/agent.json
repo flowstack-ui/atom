@@ -16,6 +16,8 @@
   "selection": [
     { "intent": "one behavior owner", "use": "one public Atom primitive", "note": "Do not combine primitives that compete for the same focus or state contract." },
     { "intent": "compound anatomy", "use": "the documented Root and named parts", "note": "Keep required parts inside their owning context." },
+    { "intent": "several related disclosure sections", "use": "Accordion", "note": "Preserve Item, Header, Trigger, and Content relationships and choose heading levels from the host document." },
+    { "intent": "static item or sequence semantics", "use": "List", "note": "Keep ordered or unordered native meaning and do not invent an interaction model." },
     { "intent": "custom element integration", "use": "asChild or render", "note": "Merge props and refs instead of replacing Atom handlers." },
     { "intent": "controlled application state", "use": "the primitive's controlled props", "note": "Keep business effects outside the primitive." }
   ],
@@ -36,5 +38,5 @@
     "Run automated accessibility checks and perform the component's manual protocol for material interaction changes.",
     "Confirm application effects do not replace or fight the primitive's state owner."
   ],
-  "related": ["layer-selection", "form", "field", "fieldset", "navigation-menu", "drawer", "tabs", "toolbar"]
+  "related": ["layer-selection", "form", "field", "fieldset", "navigation-menu", "drawer", "tabs", "toolbar", "accordion", "list"]
 }

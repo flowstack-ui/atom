@@ -8,6 +8,9 @@ import {
 import {
   DividerRoot,
 } from "../../dist/index.js";
+import { readFile } from "node:fs/promises";
+
+const packageRoot = new URL("../../", import.meta.url);
 
 test("DividerRoot resolves decorative and semantic separator attributes", () => {
   const decorative = renderToStaticMarkup(
@@ -56,4 +59,14 @@ test("DividerRoot supports asChild element merging", () => {
   assert.match(html, /data-slot="divider"/);
   assert.match(html, /class="child-class divider-class"/);
   assert.match(html, />or<\/div>$/);
+});
+
+test("Divider public subpath and primitive stay server-safe", async () => {
+  const [entrypoint, primitive] = await Promise.all([
+    readFile(new URL("src/divider.ts", packageRoot), "utf8"),
+    readFile(new URL("src/primitives/divider/DividerRoot.tsx", packageRoot), "utf8"),
+  ]);
+
+  assert.doesNotMatch(entrypoint, /^"use client";/);
+  assert.doesNotMatch(primitive, /^"use client";/);
 });

@@ -175,10 +175,13 @@ try {
     path.join(consumerRoot, "rsc.mjs"),
     [
       'import { Badge, BadgeRoot } from "@flowstack-ui/atom/badge";',
+      'import { Divider, DividerRoot } from "@flowstack-ui/atom/divider";',
       'import { Link, LinkRoot } from "@flowstack-ui/atom/link";',
       "if (Badge.Root !== BadgeRoot) throw new Error('Badge server export mismatch');",
+      "if (Divider.Root !== DividerRoot) throw new Error('Divider server export mismatch');",
       "if (Link.Root !== LinkRoot) throw new Error('Link server export mismatch');",
       "if (typeof BadgeRoot !== 'object' && typeof BadgeRoot !== 'function') throw new Error('Badge server export missing');",
+      "if (typeof DividerRoot !== 'object' && typeof DividerRoot !== 'function') throw new Error('Divider server export missing');",
       "",
     ].join("\n"),
   );

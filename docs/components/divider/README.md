@@ -17,12 +17,17 @@ Divider does not provide.
 - Uses `hr` by default when it has no children.
 - Uses `div` by default when it contains a label or other children.
 - Preserves native props and supports custom rendering.
+- Keeps the explicit `@flowstack-ui/atom/divider` subpath server-safe for
+  React Server Component composition.
 
 ## Import
 
 ```tsx
-import { Divider } from "@flowstack-ui/atom";
+import { Divider } from "@flowstack-ui/atom/divider";
 ```
+
+The explicit subpath is server-safe. The package root remains a client
+entrypoint because it also exports interactive primitives.
 
 ## Anatomy
 

@@ -69,16 +69,17 @@ interactive primitive surface. The current server-safe public subpaths are:
 
 - `@flowstack-ui/atom/app-bar`
 - `@flowstack-ui/atom/badge`
+- `@flowstack-ui/atom/divider`
 - `@flowstack-ui/atom/label`
 - `@flowstack-ui/atom/link`
 - `@flowstack-ui/atom/list`
 - `@flowstack-ui/atom/table`
 
 Other public subpaths intentionally retain their current client boundaries for
-this audit. Badge joined the server-safe set after a focused React Server
-Component compatibility review confirmed that its structural wrapper has no
-client behavior. Further expansion requires the same review rather than a
-documentation-only change.
+this audit. Badge and Divider joined the server-safe set after focused React
+Server Component compatibility reviews confirmed that their structural
+wrappers have no client behavior. Further expansion requires the same review
+rather than a documentation-only change.
 
 ## Changelog Classification
 

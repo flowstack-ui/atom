@@ -1,8 +1,9 @@
 # Accordion Changelog
 
-## Unreleased
+## 0.22.6 - 2026-08-10
 
-- No unreleased changes.
+- Added public Agent Knowledge for grouped disclosure selection, complete
+  anatomy, heading and landmark policy, state ownership, and validation.
 
 ## 0.20.9
 
