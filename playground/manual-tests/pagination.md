@@ -1,5 +1,21 @@
 # Pagination Manual Test Protocol
 
+## URL-backed qualification
+
+Use a specimen with controlled `page` derived from `location.search` and Root
+`getPageHref` returning a distinct URL for every page.
+
+□ Item, Previous, and Next render as native anchors with real `href` values.
+□ Reload and a copied URL restore the same current page.
+□ Back and Forward restore the prior and next page.
+□ Cmd/Ctrl-click opens a page without changing the current document.
+□ Previous on page 1 and Next on the last page have no `href`, expose
+  `aria-disabled="true"`, and are not in sequential focus order.
+□ Root disabled removes every destination and sequential focus target.
+□ A router-enhanced ordinary click preserves all modified-click behavior.
+
+The remaining steps qualify the default button-controlled mode.
+
 ## Step 0: Playground Smoke Check
 
 Setup

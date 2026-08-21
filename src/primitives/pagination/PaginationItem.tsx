@@ -1,6 +1,12 @@
 "use client";
 
-import { forwardRef, useCallback, type MouseEventHandler, type ReactNode } from "react";
+import {
+  forwardRef,
+  useCallback,
+  type AnchorHTMLAttributes,
+  type MouseEventHandler,
+  type ReactNode,
+} from "react";
 import type { NativeButtonProps } from "../../utils/dom.js";
 import {
   cloneAndMerge,
@@ -11,7 +17,7 @@ import {
 import { usePaginationContext } from "./context.js";
 
 type PaginationItemNativeProps = NativeButtonProps<
-  "children" | "disabled" | "type" | "value"
+  "children" | "disabled" | "onClick" | "type" | "value"
 >;
 
 export interface PaginationItemProps extends PaginationItemNativeProps {
@@ -19,6 +25,12 @@ export interface PaginationItemProps extends PaginationItemNativeProps {
   page: number;
   /** Visual content. Defaults to the page number. */
   children?: ReactNode;
+  /** Handles activation for either the default button or link mode. */
+  onClick?: MouseEventHandler<HTMLElement>;
+  /** Native target used when Root provides getPageHref. */
+  target?: AnchorHTMLAttributes<HTMLAnchorElement>["target"];
+  /** Native relationship used when Root provides getPageHref. */
+  rel?: AnchorHTMLAttributes<HTMLAnchorElement>["rel"];
   /** Override the rendered element. */
   render?: RenderProp;
   /** Merge behavior props onto a single child element. */
@@ -27,11 +39,13 @@ export interface PaginationItemProps extends PaginationItemNativeProps {
   "data-slot"?: string;
 }
 
-export const PaginationItem = forwardRef<HTMLButtonElement, PaginationItemProps>(
+export const PaginationItem = forwardRef<HTMLElement, PaginationItemProps>(
   function PaginationItem(
     {
       page,
       children,
+      target,
+      rel,
       render,
       asChild,
       "data-slot": dataSlot = "pagination-item",
@@ -49,8 +63,15 @@ export const PaginationItem = forwardRef<HTMLButtonElement, PaginationItemProps>
       totalPages: ctx.totalPages,
       isCurrent: isActive,
     });
+    const href = ctx.getPageHref?.({
+      page,
+      currentPage: ctx.currentPage,
+      totalPages: ctx.totalPages,
+      isCurrent: isActive,
+    });
+    const isLink = ctx.getPageHref !== undefined;
 
-    const handleClick: MouseEventHandler<HTMLButtonElement> = useCallback(
+    const handleButtonClick: MouseEventHandler<HTMLElement> = useCallback(
       () => {
         ctx.setPage(page);
       },
@@ -60,15 +81,29 @@ export const PaginationItem = forwardRef<HTMLButtonElement, PaginationItemProps>
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref,
-      type: "button",
-      disabled: ctx.disabled || undefined,
+      ...(isLink
+        ? ctx.disabled
+          ? {
+              href: null,
+              target: null,
+              rel: null,
+              role: "link",
+              tabIndex: -1,
+              "aria-disabled": true,
+            }
+          : { href, target, rel }
+        : { type: "button", disabled: ctx.disabled || undefined }),
       "aria-current": isActive ? "page" : undefined,
       "aria-label": ariaLabel ?? defaultAriaLabel,
       "data-state": isActive ? "active" : "inactive",
       "data-slot": dataSlot,
       "data-page": page,
       ...(ctx.disabled ? { "data-disabled": "" } : {}),
-      onClick: composeEventHandlers(onClick, handleClick),
+      onClick: isLink
+        ? composeEventHandlers(onClick, (event) => {
+            if (ctx.disabled) event.preventDefault();
+          })
+        : composeEventHandlers(onClick, handleButtonClick),
     };
 
     if (asChild) {
@@ -77,7 +112,7 @@ export const PaginationItem = forwardRef<HTMLButtonElement, PaginationItemProps>
 
     return (
       <li data-slot="pagination-list-item">
-        {renderElement(render, "button", {
+        {renderElement(render, isLink ? "a" : "button", {
           ...behaviorProps,
           children: children ?? page,
         })}

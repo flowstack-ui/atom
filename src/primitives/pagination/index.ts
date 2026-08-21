@@ -4,6 +4,8 @@ export {
   type PaginationContextValue,
   type PaginationItemLabel,
   type PaginationItemLabelDetails,
+  type PaginationPageHref,
+  type PaginationPageHrefDetails,
 } from "./context.js";
 export {
   PaginationEllipsis,

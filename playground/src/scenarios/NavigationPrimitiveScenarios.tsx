@@ -2036,7 +2036,7 @@ function PaginationPreviousControl({ scenario }: { scenario: ReturnType<typeof u
   const props = {
     className: "playground-pagination-button",
     ...partProps("previous", { propCheck: state.propCheck, customSlot: state.customSlots.previous }, "pagination-previous-custom"),
-    ref: (element: HTMLButtonElement | null) => scenario.actions.markPartRef("previous", element),
+    ref: (element: HTMLElement | null) => scenario.actions.markPartRef("previous", element),
   };
 
   if (state.previousComposition === "asChild") {
@@ -2063,7 +2063,7 @@ function PaginationNextControl({ scenario }: { scenario: ReturnType<typeof usePa
   const props = {
     className: "playground-pagination-button",
     ...partProps("next", { propCheck: state.propCheck, customSlot: state.customSlots.next }, "pagination-next-custom"),
-    ref: (element: HTMLButtonElement | null) => scenario.actions.markPartRef("next", element),
+    ref: (element: HTMLElement | null) => scenario.actions.markPartRef("next", element),
   };
 
   if (state.nextComposition === "asChild") {
@@ -2101,7 +2101,7 @@ function PaginationRangeItems({ scenario }: { scenario: ReturnType<typeof usePag
         itemProps={{
           className: "playground-pagination-button",
           ...partProps("item", { propCheck: state.propCheck, customSlot: state.customSlots.item }, "pagination-item-custom"),
-          ref: (element: HTMLButtonElement | null) => scenario.actions.markPartRef("item", element),
+          ref: (element: HTMLElement | null) => scenario.actions.markPartRef("item", element),
         }}
         ellipsisProps={{
           className: "playground-pagination-ellipsis",
@@ -2138,7 +2138,7 @@ function PaginationItemControl({
   const props = {
     className: "playground-pagination-button",
     ...partProps("item", { propCheck: state.propCheck, customSlot: state.customSlots.item }, "pagination-item-custom"),
-    ref: current ? (element: HTMLButtonElement | null) => scenario.actions.markPartRef("item", element) : undefined,
+    ref: current ? (element: HTMLElement | null) => scenario.actions.markPartRef("item", element) : undefined,
     page,
   };
 

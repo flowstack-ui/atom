@@ -1,5 +1,21 @@
 # Atom Changelog
 
+## Unreleased
+
+- No unreleased changes.
+
+## 0.23.0 - 2026-08-21
+
+- Added headless `DragDrop` behavior for labelled same-document sources and
+  targets, mouse/pen/touch and keyboard movement, invalid-release
+  cancellation, RTL-aware targeting, and localizable announcements.
+- Added the controlled `Reorder` ordered-collection preset with stable item
+  identities, before/after movement, focus continuity, and visible
+  Move-before/after/start/end alternatives that do not require dragging.
+- Added native URL-backed Pagination through `Root.getPageHref`, rendering
+  Item, Previous, and Next as real anchors while preserving button mode,
+  current-page semantics, browser navigation, and inert boundary controls.
+
 ## 0.22.6 - 2026-08-10
 
 - Kept the pure-render Divider primitive and explicit subpath server-safe for
