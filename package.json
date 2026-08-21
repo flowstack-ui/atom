@@ -1,6 +1,6 @@
 {
   "name": "@flowstack-ui/atom",
-  "version": "0.22.6",
+  "version": "0.23.0",
   "description": "Headless accessible React primitives for Flowstack Atom.",
   "type": "module",
   "license": "MIT",
@@ -122,6 +122,10 @@
       "types": "./dist/drawer.d.ts",
       "default": "./dist/drawer.js"
     },
+    "./drag-drop": {
+      "types": "./dist/drag-drop.d.ts",
+      "default": "./dist/drag-drop.js"
+    },
     "./dropdown-menu": {
       "types": "./dist/dropdown-menu.d.ts",
       "default": "./dist/dropdown-menu.js"
@@ -237,6 +241,10 @@
     "./rating": {
       "types": "./dist/rating.d.ts",
       "default": "./dist/rating.js"
+    },
+    "./reorder": {
+      "types": "./dist/reorder.d.ts",
+      "default": "./dist/reorder.js"
     },
     "./scroll-area": {
       "types": "./dist/scroll-area.d.ts",

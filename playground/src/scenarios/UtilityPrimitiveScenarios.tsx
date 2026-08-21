@@ -39,6 +39,14 @@ import {
   getNavigationMenuSource,
   useNavigationMenuScenario,
 } from "./NavigationMenuScenario";
+import {
+  ReorderScenarioCanvas,
+  ReorderScenarioToolbar,
+  getReorderFooter,
+  getReorderSections,
+  getReorderSource,
+  useReorderScenario,
+} from "./ReorderScenario";
 
 type CompositionMode = "default" | "asChild" | "render";
 type ProgressMode = "determinate" | "complete" | "indeterminate" | "invalid";
@@ -82,6 +90,7 @@ export const utilityPrimitiveScenarioIds = new Set([
   "toast",
   "progress",
   "pressable",
+  "reorder",
   "visually-hidden",
   "skip-link",
   "collapsible",
@@ -125,6 +134,7 @@ export function useUtilityPrimitiveScenarios() {
     toast: useToastScenario(),
     progress: useProgressScenario(),
     pressable: usePressableScenario(),
+    reorder: useReorderScenario(),
     visuallyHidden: useVisuallyHiddenScenario(),
     skipLink: useSkipLinkScenario(),
     collapsible: useCollapsibleScenario(),
@@ -1323,6 +1333,10 @@ export function UtilityPrimitiveScenarioToolbar({
   scenarioId: string;
   scenarios: UtilityPrimitiveScenarios;
 }) {
+  if (scenarioId === "reorder") {
+    return <ReorderScenarioToolbar scenario={scenarios.reorder} />;
+  }
+
   if (scenarioId === "clipboard") {
     const scenario = scenarios.clipboard;
     return (
@@ -1969,6 +1983,7 @@ export function UtilityPrimitiveScenarioCanvas({
   if (scenarioId === "toast") return <ToastScenarioCanvas scenario={scenarios.toast} />;
   if (scenarioId === "progress") return <ProgressScenarioCanvas scenario={scenarios.progress} />;
   if (scenarioId === "pressable") return <PressableScenarioCanvas scenario={scenarios.pressable} />;
+  if (scenarioId === "reorder") return <ReorderScenarioCanvas scenario={scenarios.reorder} />;
   if (scenarioId === "visually-hidden") return <VisuallyHiddenScenarioCanvas scenario={scenarios.visuallyHidden} />;
   if (scenarioId === "skip-link") return <SkipLinkScenarioCanvas scenario={scenarios.skipLink} />;
   if (scenarioId === "collapsible") return <CollapsibleScenarioCanvas scenario={scenarios.collapsible} />;
@@ -2084,6 +2099,8 @@ export function getUtilityPrimitiveCanvasFooter(
     return `Pressed ${state.pressCount} | Disabled ${state.disabled} | ${state.composition}`;
   }
 
+  if (scenarioId === "reorder") return getReorderFooter(scenarios.reorder);
+
   if (scenarioId === "visually-hidden") {
     const state = scenarios.visuallyHidden.state;
     return `Hidden text | Custom style ${state.customStyle} | ${state.composition}`;
@@ -2129,6 +2146,8 @@ export function getUtilityPrimitiveSource(
   scenarioId: string,
   scenarios: UtilityPrimitiveScenarios,
 ) {
+  if (scenarioId === "reorder") return getReorderSource(scenarios.reorder);
+
   if (scenarioId === "clipboard") {
     const state = scenarios.clipboard.state;
     return `<Clipboard.Root${state.controlled ? ` value={value} onValueChange={setValue}` : ` defaultValue="${state.value}"`}${state.disabled ? " disabled" : ""}>
@@ -5251,6 +5270,8 @@ function getUtilityPrimitiveSections(
   scenarioId: string,
   scenarios: UtilityPrimitiveScenarios,
 ): AnatomySection[] {
+  if (scenarioId === "reorder") return getReorderSections(scenarios.reorder);
+
   if (scenarioId === "clipboard") {
     const state = scenarios.clipboard.state;
     const selectors = [
@@ -6275,6 +6296,7 @@ function getUtilityPrimitiveLog(
   if (scenarioId === "toast") return scenarios.toast.state.log;
   if (scenarioId === "progress") return scenarios.progress.state.log;
   if (scenarioId === "pressable") return scenarios.pressable.state.log;
+  if (scenarioId === "reorder") return scenarios.reorder.state.log;
   if (scenarioId === "visually-hidden") return scenarios.visuallyHidden.state.log;
   if (scenarioId === "skip-link") return scenarios.skipLink.state.log;
   if (scenarioId === "collapsible") return scenarios.collapsible.state.log;
@@ -6300,6 +6322,7 @@ function getUtilityPrimitiveActions(
   if (scenarioId === "toast") return scenarios.toast.actions;
   if (scenarioId === "progress") return scenarios.progress.actions;
   if (scenarioId === "pressable") return scenarios.pressable.actions;
+  if (scenarioId === "reorder") return scenarios.reorder.actions;
   if (scenarioId === "visually-hidden") return scenarios.visuallyHidden.actions;
   if (scenarioId === "skip-link") return scenarios.skipLink.actions;
   if (scenarioId === "collapsible") return scenarios.collapsible.actions;

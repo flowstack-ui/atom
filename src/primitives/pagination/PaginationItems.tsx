@@ -11,7 +11,7 @@ import { PaginationItem, type PaginationItemProps } from "./PaginationItem.js";
 export interface PaginationItemsProps {
   /** Props shared by every generated page Item. */
   itemProps?: Omit<PaginationItemProps, "page" | "children" | "aria-label"> &
-    RefAttributes<HTMLButtonElement>;
+    RefAttributes<HTMLElement>;
   /** Props shared by every generated Ellipsis. */
   ellipsisProps?: PaginationEllipsisProps & RefAttributes<HTMLSpanElement>;
 }

@@ -7,6 +7,7 @@ import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.
 import {
   PaginationContextProvider,
   type PaginationItemLabel,
+  type PaginationPageHref,
   type PaginationContextValue,
 } from "./context.js";
 import { clampPaginationPage, getPaginationRange } from "./utils.js";
@@ -38,6 +39,8 @@ export interface PaginationRootProps extends PaginationRootNativeProps {
   nextAriaLabel?: string;
   /** Returns the accessible label for a page Item. */
   getItemAriaLabel?: PaginationItemLabel;
+  /** Returns a native destination for every page and switches controls to link mode. */
+  getPageHref?: PaginationPageHref;
   /** Override the rendered element. */
   render?: RenderProp;
   /** Merge behavior props onto a single child element. */
@@ -60,6 +63,7 @@ export const PaginationRoot = forwardRef<HTMLElement, PaginationRootProps>(
       previousAriaLabel = "Previous page",
       nextAriaLabel = "Next page",
       getItemAriaLabel = defaultGetItemAriaLabel,
+      getPageHref,
       render,
       asChild,
       "data-slot": dataSlot = "pagination-root",
@@ -109,11 +113,13 @@ export const PaginationRoot = forwardRef<HTMLElement, PaginationRootProps>(
         previousAriaLabel,
         nextAriaLabel,
         getItemAriaLabel,
+        getPageHref,
         setPage,
       }),
       [
         disabled,
         getItemAriaLabel,
+        getPageHref,
         items,
         nextAriaLabel,
         normalizedTotalPages,

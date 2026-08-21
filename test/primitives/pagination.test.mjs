@@ -96,6 +96,67 @@ test("Pagination.Items renders the context range with shared part props", () => 
   assert.equal((html.match(/data-slot="pagination-list-item"/g) ?? []).length, 7);
 });
 
+test("Pagination link mode renders native destinations and preserves current-page semantics", () => {
+  const hrefDetails = [];
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Pagination.Root,
+      {
+        totalPages: 3,
+        page: 2,
+        getPageHref: (details) => {
+          hrefDetails.push(details);
+          return `/incidents?page=${details.page}`;
+        },
+      },
+      React.createElement(
+        Pagination.List,
+        null,
+        React.createElement(Pagination.Previous, null, "Previous"),
+        React.createElement(Pagination.Items),
+        React.createElement(Pagination.Next, { target: "_blank", rel: "noreferrer" }, "Next"),
+      ),
+    ),
+  );
+
+  assert.match(html, /<a href="\/incidents\?page=1"[^>]+data-slot="pagination-previous"/);
+  assert.match(html, /<a href="\/incidents\?page=2"[^>]+aria-current="page"/);
+  assert.match(html, /<a href="\/incidents\?page=3" target="_blank" rel="noreferrer"/);
+  assert.doesNotMatch(html, /<button/);
+  assert.ok(hrefDetails.some((details) => details.page === 2 && details.isCurrent));
+});
+
+test("Pagination link mode removes destinations from disabled boundary controls", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Pagination.Root,
+      {
+        totalPages: 3,
+        page: 1,
+        getPageHref: ({ page }) => `/incidents?page=${page}`,
+      },
+      React.createElement(
+        Pagination.List,
+        null,
+        React.createElement(
+          Pagination.Previous,
+          { asChild: true },
+          React.createElement("a", { href: "/must-not-survive" }, "Previous"),
+        ),
+        React.createElement(Pagination.Items),
+        React.createElement(Pagination.Next, null, "Next"),
+      ),
+    ),
+  );
+
+  assert.match(
+    html,
+    /<a role="link" tabindex="-1" aria-disabled="true"[^>]+data-slot="pagination-previous"/,
+  );
+  assert.doesNotMatch(html, /must-not-survive/);
+  assert.match(html, /href="\/incidents\?page=2"[^>]+data-slot="pagination-next"/);
+});
+
 test("Pagination Root localizes generated labels and direct labels take precedence", () => {
   const labelDetails = [];
   const html = renderToStaticMarkup(
@@ -147,11 +208,11 @@ test("Pagination parts own list item structure while asChild and render target t
         React.createElement(
           Pagination.Previous,
           { asChild: true },
-          React.createElement("a", { href: "/page/1" }, "Prev"),
+          React.createElement("button", { className: "custom-previous" }, "Prev"),
         ),
         React.createElement(Pagination.Item, {
           page: 2,
-          render: (props) => React.createElement("a", { ...props, href: "/page/2" }),
+          render: (props) => React.createElement("button", { ...props, className: "custom-page" }),
         }),
         React.createElement(
           Pagination.Ellipsis,
@@ -164,11 +225,11 @@ test("Pagination parts own list item structure while asChild and render target t
 
   assert.match(
     html,
-    /<li data-slot="pagination-list-item"><a href="\/page\/1" type="button" aria-label="Previous page" data-slot="pagination-previous"/,
+    /<li data-slot="pagination-list-item"><button class="custom-previous" type="button" aria-label="Previous page" data-slot="pagination-previous"/,
   );
   assert.match(
     html,
-    /<li data-slot="pagination-list-item"><a[^>]+aria-current="page"[^>]+data-slot="pagination-item"[^>]+href="\/page\/2"/,
+    /<li data-slot="pagination-list-item"><button[^>]+aria-current="page"[^>]+data-slot="pagination-item"[^>]+class="custom-page"/,
   );
   assert.match(
     html,

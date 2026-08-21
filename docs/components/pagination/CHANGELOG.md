@@ -2,9 +2,15 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.23.0
+
 - Added public Agent Knowledge for component selection, required composition,
   recurring mistakes, and validation.
-
+- Added native URL-backed Item, Previous, and Next destinations through
+  `Root.getPageHref` while preserving controlled button mode, current-page
+  semantics, modified clicks, and inert boundary controls.
 
 ## 0.16.0
 

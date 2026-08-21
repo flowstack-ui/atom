@@ -22,6 +22,7 @@ export {
   Divider,
   Direction,
   Drawer,
+  DragDrop,
   DropdownMenu,
   Field,
   Fieldset,
@@ -50,6 +51,7 @@ export {
   Progress,
   RadioGroup,
   Rating,
+  Reorder,
   ScrollArea,
   Select,
   Sidebar,
@@ -69,6 +71,9 @@ export {
   Tooltip,
   VisuallyHidden,
 } from "./namespaces.js";
+
+export * from "./primitives/drag-drop/index.js";
+export * from "./primitives/reorder/index.js";
 
 export {
   AccordionContent,

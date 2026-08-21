@@ -395,6 +395,12 @@ const scenarios: Scenario[] = [
     checks: ["Pointer presses", "Keyboard presses", "Disabled blocks"],
   },
   {
+    id: "reorder",
+    label: "Reorder",
+    category: "Controls",
+    checks: ["Drag changes order", "Keyboard moves and cancels", "Direct controls move"],
+  },
+  {
     id: "swipeable-item",
     label: "Swipeable Item",
     category: "Controls",

@@ -1,9 +1,27 @@
 # Release Readiness Audit
 
-Last release audit: 2026-08-01
+Last release audit: 2026-08-21
 
 The current release outcome is recorded first. Earlier published-release
 audits remain below as historical baselines.
+
+## 0.23.0 Pagination And Drag-Reorder Release Candidate - 2026-08-21
+
+Status: qualified locally for trusted publication. GitHub CI, the protected npm
+deployment, registry provenance, and the matching GitHub release remain pending
+until the candidate is merged and tagged.
+
+This backward-compatible minor release adds native URL-backed Pagination and
+the new headless DragDrop foundation plus its controlled one-dimensional
+Reorder preset. Reorder keeps manual item order distinct from data sorting and
+provides keyboard, mouse, pen, delayed-touch, cancellation, RTL, human
+announcements, and visible non-drag movement operations.
+
+The candidate passes 542 package tests and all 86 browser tests across desktop
+Chromium, desktop WebKit, Android-Chromium touch emulation, and iPhone-WebKit
+touch emulation. The production playground, all 77 JavaScript and declaration
+export targets, the verified 2,388-file archive, and clean packed consumers
+with React and React DOM 18.3.1 and 19.2.7 also pass.
 
 ## 0.20.11 Navigation Menu Hover-Click Release Outcome - 2026-08-01
 

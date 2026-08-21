@@ -41,6 +41,7 @@ const browserTests = {
     "mobile-gesture-consolidation.mobile.spec.ts",
   ],
   dialog: ["modal-containment.spec.ts", "modal-containment.mobile.spec.ts"],
+  "drag-drop": ["reorder.spec.ts", "reorder.mobile.spec.ts"],
   "dropdown-menu": [
     "outside-interaction.spec.ts",
     "outside-interaction.mobile.spec.ts",
@@ -68,6 +69,7 @@ const browserTests = {
     "positioned-overlays.mobile.spec.ts",
   ],
   rating: ["mobile-gesture-consolidation.mobile.spec.ts"],
+  reorder: ["reorder.spec.ts", "reorder.mobile.spec.ts"],
   select: [
     "outside-interaction.spec.ts",
     "outside-interaction.mobile.spec.ts",

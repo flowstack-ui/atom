@@ -282,6 +282,22 @@ import {
   RatingRoot,
 } from "./primitives/rating/index.js";
 import {
+  DragDropDraggable,
+  DragDropDropTarget,
+  DragDropHandle,
+  DragDropRoot,
+} from "./primitives/drag-drop/index.js";
+import {
+  ReorderDropIndicator,
+  ReorderHandle,
+  ReorderItem,
+  ReorderMoveAfter,
+  ReorderMoveBefore,
+  ReorderMoveToEnd,
+  ReorderMoveToStart,
+  ReorderRoot,
+} from "./primitives/reorder/index.js";
+import {
   ScrollAreaRoot,
   ScrollAreaViewport,
 } from "./primitives/scroll-area/index.js";
@@ -826,6 +842,24 @@ export const RadioGroup = {
 export const Rating = {
   Root: RatingRoot,
   Item: RatingItem,
+} as const;
+
+export const DragDrop = {
+  Root: DragDropRoot,
+  Draggable: DragDropDraggable,
+  DropTarget: DragDropDropTarget,
+  Handle: DragDropHandle,
+} as const;
+
+export const Reorder = {
+  Root: ReorderRoot,
+  Item: ReorderItem,
+  Handle: ReorderHandle,
+  MoveBefore: ReorderMoveBefore,
+  MoveAfter: ReorderMoveAfter,
+  MoveToStart: ReorderMoveToStart,
+  MoveToEnd: ReorderMoveToEnd,
+  DropIndicator: ReorderDropIndicator,
 } as const;
 
 export const ScrollArea = {

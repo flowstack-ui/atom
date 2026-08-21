@@ -17,6 +17,8 @@ does not fetch, sort, or filter the data for you.
 - Supports sibling and boundary page counts.
 - Renders the calculated range through an optional `Items` shortcut.
 - Supports previous, next, page item, and decorative ellipsis parts.
+- Supports native URL-backed pagination through `getPageHref` without losing
+  reload, sharing, Back/Forward, or modified-click behavior.
 - Localizes generated page and direction labels from Root while preserving
   direct native `aria-label` overrides.
 
@@ -60,6 +62,7 @@ or negative, `Root` returns `null` and no pagination DOM is rendered.
 | `previousAriaLabel` | `string` | `"Previous page"` |
 | `nextAriaLabel` | `string` | `"Next page"` |
 | `getItemAriaLabel` | `(details: PaginationItemLabelDetails) => string` | generated English label |
+| `getPageHref` | `(details: PaginationPageHrefDetails) => string` | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -80,6 +83,13 @@ receive disabled state.
 has its own native `aria-label`. `previousAriaLabel` and `nextAriaLabel` follow
 the same precedence rule for their controls.
 
+When `getPageHref` is present, Item, Previous, and Next render native anchors
+instead of buttons. The callback receives the same page details as
+`getItemAriaLabel`. Control `page` from the current route in this mode. Anchor
+activation does not call `onPageChange`; the browser or router owns the route.
+An application may progressively enhance ordinary clicks through each part's
+`onClick`, but it must preserve modified clicks and the generated `href`.
+
 ### List
 
 Renders the ordered page list. Renders an `ol` by default.
@@ -97,12 +107,14 @@ Renders the ordered page list. Renders an `ol` by default.
 ### Previous
 
 Moves to the previous page. Renders an outer `li` and an inner `button` with
-`type="button"` by default. `asChild`, `render`, native props, and refs target
-the inner control.
+`type="button"` by default, or an anchor when Root provides `getPageHref`.
+`asChild`, `render`, native props, and refs target the inner control.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `children` | `ReactNode` | - |
+| `target` | native anchor target | - |
+| `rel` | native anchor relationship | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -117,7 +129,8 @@ the inner control.
 | `[data-disabled]` | Present when disabled or on first page |
 
 `Previous` is disabled when `Root disabled` is true or the current page is the
-first page.
+first page. In link mode, a disabled Previous has no `href`, is removed from
+sequential focus, and exposes `aria-disabled="true"`.
 
 ### Items
 
@@ -136,13 +149,15 @@ label cannot accidentally name every page identically.
 ### Item
 
 Renders a page item. Renders an outer `li` and an inner `button` with
-`type="button"` by default. `asChild`, `render`, native props, and refs target
-the inner control.
+`type="button"` by default, or an anchor when Root provides `getPageHref`.
+`asChild`, `render`, native props, and refs target the inner control.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `page` | `number` | required |
 | `children` | `ReactNode` | page number |
+| `target` | native anchor target | - |
+| `rel` | native anchor relationship | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -158,8 +173,9 @@ the inner control.
 | `[data-page]` | Page number |
 | `[data-disabled]` | Present when disabled |
 
-Items are disabled when `Root disabled` is true. Page changes are clamped to
-the valid range before state updates.
+Items are disabled when `Root disabled` is true. In button mode, page changes
+are clamped before state updates. In link mode, disabled Items have no `href`
+and are removed from sequential focus.
 
 ### Ellipsis
 
@@ -184,12 +200,14 @@ Renders a decorative collapsed-page marker. Renders an outer `li` and an inner
 ### Next
 
 Moves to the next page. Renders an outer `li` and an inner `button` with
-`type="button"` by default. `asChild`, `render`, native props, and refs target
-the inner control.
+`type="button"` by default, or an anchor when Root provides `getPageHref`.
+`asChild`, `render`, native props, and refs target the inner control.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `children` | `ReactNode` | - |
+| `target` | native anchor target | - |
+| `rel` | native anchor relationship | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -204,7 +222,7 @@ the inner control.
 | `[data-disabled]` | Present when disabled or on last page |
 
 `Next` is disabled when `Root disabled` is true or the current page is the last
-page.
+page. Link-mode boundary behavior matches Previous.
 
 ## Examples
 
@@ -249,6 +267,34 @@ export function ResultsPagination() {
   );
 }
 ```
+
+### URL-Backed Results
+
+```tsx
+import { Pagination } from "@flowstack-ui/atom";
+
+export function SearchPagination({ page, totalPages }) {
+  return (
+    <Pagination.Root
+      page={page}
+      totalPages={totalPages}
+      getPageHref={({ page: destination }) =>
+        `/search?q=payments&page=${destination}`
+      }
+    >
+      <Pagination.List>
+        <Pagination.Previous>Previous</Pagination.Previous>
+        <Pagination.Items />
+        <Pagination.Next>Next</Pagination.Next>
+      </Pagination.List>
+    </Pagination.Root>
+  );
+}
+```
+
+This mode renders real anchors. Do not compose anchors through `asChild` while
+Root remains in button mode; that leaves button behavior on an anchor instead
+of selecting the URL-backed contract.
 
 ### Localize Generated Labels
 

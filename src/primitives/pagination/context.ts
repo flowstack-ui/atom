@@ -11,6 +11,8 @@ export interface PaginationItemLabelDetails {
 }
 
 export type PaginationItemLabel = (details: PaginationItemLabelDetails) => string;
+export type PaginationPageHrefDetails = PaginationItemLabelDetails;
+export type PaginationPageHref = (details: PaginationPageHrefDetails) => string;
 
 export interface PaginationContextValue {
   totalPages: number;
@@ -22,6 +24,7 @@ export interface PaginationContextValue {
   previousAriaLabel: string;
   nextAriaLabel: string;
   getItemAriaLabel: PaginationItemLabel;
+  getPageHref?: PaginationPageHref;
   setPage: (page: number) => void;
 }
 
