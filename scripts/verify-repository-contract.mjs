@@ -5,6 +5,7 @@ import configuration from "../verification.config.mjs";
 const repositoryRoot = resolve(import.meta.dirname, "..");
 const packageJson = JSON.parse(await readFile(resolve(repositoryRoot, "package.json"), "utf8"));
 const errors = [];
+const browserConfigSources = [];
 
 async function requirePath(path) {
   try {
@@ -41,8 +42,17 @@ for (const server of configuration.servers) {
 for (const path of configuration.browserConfigs) {
   await requirePath(path);
   try {
-    if (!(await readFile(resolve(repositoryRoot, path), "utf8")).includes("reuseExistingServer: false")) errors.push(`${path} may reuse a stale server`);
+    const source = await readFile(resolve(repositoryRoot, path), "utf8");
+    browserConfigSources.push(source);
+    if (!source.includes("reuseExistingServer: false")) errors.push(`${path} may reuse a stale server`);
   } catch { /* missing path is already reported */ }
+}
+if (packageJson.browserslist?.length !== 1 || packageJson.browserslist[0] !== configuration.browserSupport.query) {
+  errors.push(`package.json must declare ${configuration.browserSupport.query}`);
+}
+const browserConfiguration = browserConfigSources.join("\n");
+for (const engine of configuration.browserSupport.portableEngines) {
+  if (!browserConfiguration.includes(engine)) errors.push(`browser evidence is missing ${engine}`);
 }
 await requirePath(configuration.impact.manifest);
 

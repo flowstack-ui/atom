@@ -17,6 +17,11 @@ export default defineConfig({
       testIgnore: /.*\.mobile\.spec\.ts/,
     },
     {
+      name: "desktop-firefox",
+      use: { ...devices["Desktop Firefox"] },
+      testIgnore: /.*\.mobile\.spec\.ts/,
+    },
+    {
       name: "desktop-webkit",
       use: { ...devices["Desktop Safari"] },
       testIgnore: /.*\.mobile\.spec\.ts/,
