@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- No unreleased changes.
+- Embedded original TypeScript sources in published JavaScript maps so package
+  consumers can inspect and bundle Atom without missing-source warnings.
 
 ## 0.23.0 - 2026-08-21
 
