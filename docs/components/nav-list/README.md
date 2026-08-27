@@ -16,6 +16,8 @@ and Listbox when the rows select values instead of navigating.
 - Supports active/current link state with configurable `aria-current` tokens.
 - Supports disabled links and disabled section interaction.
 - Supports collapsible sections with controlled and uncontrolled open state.
+- Keeps closing section content mounted through exit motion and exposes measured
+  content-size hooks for styled disclosure animation.
 - Supports `asChild` and `render` composition across every rendered part.
 - Keeps route behavior in consumer links while Atom owns ARIA and data attributes.
 
@@ -235,9 +237,11 @@ Contains section links. Renders a `div` by default.
 | `[data-orientation]` | `"vertical" \| "horizontal"` |
 | `[data-state]` | `"open" \| "closed"` |
 | `[data-collapsible]` | Present when the section is collapsible |
+| `[data-initial-open]` | Present while an initially open section has not transitioned |
 
-When closed, content unmounts unless `forceMount` is true. Forced closed content
-renders `hidden`.
+During a transition, SectionContent exposes `--content-height` and
+`--content-width` and remains mounted until a styled exit animation completes.
+When `forceMount` is true, closed content becomes `hidden` after that animation.
 
 Advanced compound components can use `useNavListContext` and
 `useNavListSectionContext`; the matching providers and context value types are

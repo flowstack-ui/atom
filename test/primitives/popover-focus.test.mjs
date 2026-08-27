@@ -7,9 +7,9 @@ import ReactDOMClient from "react-dom/client";
 import ReactDOMServer from "react-dom/server";
 import jsdom from "jsdom";
 
-import { Popover } from "../../dist/index.js";
+import { DropdownMenu, Popover } from "../../dist/index.js";
 
-const { act, useRef } = React;
+const { act, useRef, useState } = React;
 const { hydrateRoot } = ReactDOMClient;
 const { renderToString } = ReactDOMServer;
 const { JSDOM } = jsdom;
@@ -141,6 +141,48 @@ function FocusFixture({
   );
 }
 
+function NestedMenuFixture() {
+  const [portalContainer, setPortalContainer] = useState(null);
+
+  return React.createElement(
+    "div",
+    { ref: setPortalContainer },
+    React.createElement(
+      Popover.Root,
+      null,
+      React.createElement(Popover.Trigger, null, "Open notifications"),
+      React.createElement(
+        Popover.Portal,
+        { container: portalContainer },
+        React.createElement(
+          Popover.Content,
+          null,
+          React.createElement(Popover.Title, null, "Notifications"),
+          React.createElement(
+            DropdownMenu.Root,
+            null,
+            React.createElement(DropdownMenu.Trigger, null, "Filter notifications"),
+            React.createElement(
+              DropdownMenu.Portal,
+              { container: portalContainer },
+              React.createElement(
+                DropdownMenu.Content,
+                null,
+                React.createElement(
+                  DropdownMenu.RadioGroup,
+                  { value: "all" },
+                  React.createElement(DropdownMenu.RadioItem, { value: "all" }, "All"),
+                  React.createElement(DropdownMenu.RadioItem, { value: "unread" }, "Unread"),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
 test("Popover mouse and touch opening use interaction-aware initial focus", async () => {
   for (const [pointerType, expectedSelector] of [
     ["mouse", "[data-testid=first-input]"],
@@ -192,6 +234,47 @@ test("Popover hover opening never steals focus", async () => {
       assert.ok(dom.window.document.querySelector("[data-slot=popover-content]"));
       assert.equal(dom.window.document.activeElement, trigger);
       assert.deepEqual(details, []);
+    },
+  );
+});
+
+test("Popover remains open while focus moves into a portalled descendant menu", async () => {
+  await withHydratedDom(
+    React.createElement(NestedMenuFixture),
+    async (dom) => {
+      const popoverTrigger = dom.window.document.querySelector(
+        "[data-slot=popover-trigger]",
+      );
+      await act(async () => {
+        dispatchPointerActivation(popoverTrigger, "mouse");
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      });
+
+      const menuTrigger = dom.window.document.querySelector(
+        "[data-slot=dropdown-menu-trigger]",
+      );
+      await act(async () => {
+        dispatchPointerActivation(menuTrigger, "mouse");
+        menuTrigger.blur();
+        await new Promise((resolve) => setTimeout(resolve, 45));
+      });
+
+      assert.ok(dom.window.document.querySelector("[data-slot=popover-content]"));
+      const menuContent = dom.window.document.querySelector("[data-slot=menu-content]");
+      const menuItem = dom.window.document.querySelector("[data-slot=menu-radio-item]");
+      assert.ok(menuContent);
+      assert.ok(menuItem);
+
+      await act(async () => {
+        menuItem.focus();
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      });
+
+      assert.equal(
+        menuContent.contains(dom.window.document.activeElement),
+        true,
+      );
+      assert.ok(dom.window.document.querySelector("[data-slot=popover-content]"));
     },
   );
 });

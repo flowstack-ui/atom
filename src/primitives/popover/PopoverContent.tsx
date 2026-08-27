@@ -16,9 +16,7 @@ import {
 import {
   arrow as floatingArrow,
   autoUpdate,
-  flip,
   offset,
-  shift,
   useFloating,
   type Placement,
 } from "@floating-ui/react";
@@ -40,7 +38,7 @@ import { useDirection } from "../direction/index.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import {
   getFloatingAvailableSizeMiddleware,
-  getFloatingFallbackPlacements,
+  getFloatingVisibilityMiddleware,
   resolveFloatingDirection,
 } from "../../utils/floatingPlacement.js";
 import { composeEventHandlers, composeRefs } from "../../utils/slot.js";
@@ -177,7 +175,7 @@ function getElementFromNode(target: Node): Element | null {
   return target instanceof Element ? target : target.parentElement;
 }
 
-function getPopoverController(layer: HTMLElement): HTMLElement | null {
+function getControlledLayerController(layer: HTMLElement): HTMLElement | null {
   if (!layer.id) return null;
 
   const controllers = Array.from(
@@ -189,24 +187,59 @@ function getPopoverController(layer: HTMLElement): HTMLElement | null {
   )) ?? null;
 }
 
-function isInsideNestedPopoverLayer(
+function getControlledLayerFromNode(target: Node): HTMLElement | null {
+  let element = getElementFromNode(target);
+
+  while (element) {
+    if (
+      element instanceof HTMLElement &&
+      getControlledLayerController(element)
+    ) {
+      return element;
+    }
+
+    element = element.parentElement;
+  }
+
+  return null;
+}
+
+function isInsideNestedControlledLayer(
   target: Node,
   ownerContent: HTMLElement | null,
 ): boolean {
   if (!ownerContent) return false;
 
-  let layer = getElementFromNode(target)?.closest<HTMLElement>("[role='dialog'][id]");
+  let layer = getControlledLayerFromNode(target);
+  const visited = new Set<HTMLElement>();
 
-  while (layer && layer !== ownerContent) {
-    const controller = getPopoverController(layer);
+  while (layer && layer !== ownerContent && !visited.has(layer)) {
+    visited.add(layer);
+    const controller = getControlledLayerController(layer);
 
     if (!controller) return false;
     if (ownerContent.contains(controller)) return true;
 
-    layer = controller.closest<HTMLElement>("[role='dialog'][id]");
+    layer = getControlledLayerFromNode(controller);
   }
 
   return false;
+}
+
+function hasOpenNestedControlledLayer(ownerContent: HTMLElement): boolean {
+  const controllers = Array.from(
+    ownerContent.querySelectorAll<HTMLElement>(
+      "[aria-controls][aria-expanded='true']",
+    ),
+  );
+
+  return controllers.some((controller) => {
+    const controlledId = controller.getAttribute("aria-controls");
+    if (!controlledId) return false;
+
+    const controlledLayer = document.getElementById(controlledId);
+    return Boolean(controlledLayer && !ownerContent.contains(controlledLayer));
+  });
 }
 
 export const PopoverContent = forwardRef<HTMLDivElement, PopoverContentProps>(
@@ -432,11 +465,43 @@ function PopoverContent(props, ref) {
       }
     },
     enabled: isOpen && closeOnInteractOutside,
-    ignore: (target) => isInsideNestedPopoverLayer(target, contentRef.current),
+    ignore: (target) => isInsideNestedControlledLayer(target, contentRef.current),
   });
 
   useEffect(() => {
     if (!isOpen || modal) return undefined;
+
+    let focusOutFrame = 0;
+    let focusSettleFrame = 0;
+
+    const closeAfterFocusSettles = (
+      content: HTMLElement,
+      trigger: HTMLElement,
+      beforeGuard: HTMLElement | null,
+      afterGuard: HTMLElement | null,
+    ) => {
+      cancelAnimationFrame(focusOutFrame);
+      cancelAnimationFrame(focusSettleFrame);
+      focusOutFrame = requestAnimationFrame(() => {
+        focusSettleFrame = requestAnimationFrame(() => {
+          const activeElement = document.activeElement;
+          if (
+            activeElement instanceof Node &&
+            (content.contains(activeElement) ||
+              trigger.contains(activeElement) ||
+              isInsideNestedControlledLayer(activeElement, content) ||
+              activeElement === beforeGuard ||
+              activeElement === afterGuard)
+          ) {
+            return;
+          }
+
+          if (hasOpenNestedControlledLayer(content)) return;
+
+          onClose("focusOutside", "programmatic");
+        });
+      });
+    };
 
     const handleFocusOut = (event: FocusEvent) => {
       const content = contentRef.current;
@@ -446,13 +511,27 @@ function PopoverContent(props, ref) {
       const relatedTarget = event.relatedTarget as Node | null;
 
       if (!content || !trigger) return;
+      if (hasOpenNestedControlledLayer(content)) return;
       if (
         !relatedTarget ||
-        (!content.contains(relatedTarget) &&
-          !trigger.contains(relatedTarget) &&
-          !isInsideNestedPopoverLayer(relatedTarget, content) &&
-          relatedTarget !== beforeGuard &&
-          relatedTarget !== afterGuard)
+        relatedTarget === document.body ||
+        relatedTarget === document.documentElement
+      ) {
+        closeAfterFocusSettles(
+          content,
+          trigger,
+          beforeGuard,
+          afterGuard,
+        );
+        return;
+      }
+
+      if (
+        !content.contains(relatedTarget) &&
+        !trigger.contains(relatedTarget) &&
+        !isInsideNestedControlledLayer(relatedTarget, content) &&
+        relatedTarget !== beforeGuard &&
+        relatedTarget !== afterGuard
       ) {
         onClose("focusOutside", "programmatic");
       }
@@ -462,6 +541,8 @@ function PopoverContent(props, ref) {
     content?.addEventListener("focusout", handleFocusOut);
 
     return () => {
+      cancelAnimationFrame(focusOutFrame);
+      cancelAnimationFrame(focusSettleFrame);
       content?.removeEventListener("focusout", handleFocusOut);
     };
   }, [isOpen, modal, onClose, triggerRef]);
@@ -532,11 +613,7 @@ function PopoverContent(props, ref) {
   const middleware = useMemo(
     () => [
       offset(sideOffset),
-      flip({
-        fallbackPlacements: getFloatingFallbackPlacements(side, align),
-        fallbackStrategy: "bestFit",
-      }),
-      shift({ padding: 8 }),
+      ...getFloatingVisibilityMiddleware(side, align),
       getFloatingAvailableSizeMiddleware(),
       floatingArrow({ element: arrowRef, padding: 8 }),
     ],

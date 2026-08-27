@@ -19,12 +19,15 @@ page inside a floating box.
 - Configurable interaction-aware initial and final focus, including a
   touch-safe Content default and outside-dismissal focus preservation.
 - Optional anchor separate from the trigger.
-- Floating UI positioning that tries alternate alignments on the requested
-  side, repeats them on the opposite side, and uses perpendicular sides only as
-  final fallbacks; collision shift and Arrow coordinates follow the result.
+- Floating UI positioning that preserves centered alignment by shifting within
+  the viewport first. Edge-aligned content resolves alternate alignments before
+  shifting, and both modes retain opposite- and perpendicular-side fallbacks;
+  Arrow coordinates follow the resolved result.
 - Modal mode with focus trap, background isolation, and scroll lock.
 - Non-modal focus guards and layer-aware completed-activation outside
   dismissal with a preventable consumer event.
+- Portalled Atom controls opened by content, including Dropdown Menu, remain
+  inside the Popover interaction and focus boundary.
 - Stack-aware Escape dismissal for nested overlays.
 - Close button part and portal support.
 
@@ -158,6 +161,15 @@ from the mounted Anchor/Trigger and then `Direction.Provider`.
 method keeps Content open without cancelling the original destination click.
 Only the topmost registered layer receives an outside activation; dragged,
 cancelled, secondary-button, and multi-pointer sessions do not dismiss.
+Portalled Atom layers whose trigger is inside Content remain part of the same
+interaction boundary, so opening a Dropdown Menu or another controlled layer
+does not dismiss the Popover. When a browser temporarily moves focus to the
+document while activating a nested modal layer, Popover waits for that focus
+transaction to settle and preserves the parent boundary while its controlled
+portalled child remains open. This includes transient focus reported on the
+document body or root element by browsers while background isolation changes.
+While that child is open, it owns the active focus transaction; the parent
+Popover resumes ordinary focus-out dismissal after the child closes.
 
 | ARIA attribute | Values |
 | --- | --- |

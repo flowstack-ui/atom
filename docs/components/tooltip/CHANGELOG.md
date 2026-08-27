@@ -1,5 +1,10 @@
 # Tooltip Changelog
 
+## Unreleased
+
+- Preserved centered Content alignment near viewport edges by shifting it into
+  view before considering alternate placements.
+
 ## 0.6.9
 
 - Preserved resolved Trigger or provider direction on portalled Content while

@@ -1,4 +1,10 @@
-import { size, type Middleware, type Placement } from "@floating-ui/react";
+import {
+  flip,
+  shift,
+  size,
+  type Middleware,
+  type Placement,
+} from "@floating-ui/react";
 import type { DirectionValue } from "../primitives/direction/index.js";
 
 export type FloatingSide = "top" | "right" | "bottom" | "left";
@@ -50,6 +56,15 @@ export function getFloatingFallbackPlacements(
   side: FloatingSide,
   align: FloatingAlign,
 ): Placement[] {
+  if (align === "center") {
+    return [
+      toPlacement(oppositeSide[side], "center"),
+      ...perpendicularSides[side].map((candidate) =>
+        toPlacement(candidate, "center"),
+      ),
+    ];
+  }
+
   const sameSideAlternates = fallbackAlignments(align).map((candidate) =>
     toPlacement(side, candidate),
   );
@@ -59,6 +74,25 @@ export function getFloatingFallbackPlacements(
   );
 
   return [...sameSideAlternates, ...opposite, ...perpendicular];
+}
+
+export function getFloatingVisibilityMiddleware(
+  side: FloatingSide,
+  align: FloatingAlign,
+  padding = 8,
+): Middleware[] {
+  const flipMiddleware = flip({
+    fallbackPlacements: getFloatingFallbackPlacements(side, align),
+    fallbackStrategy: "bestFit",
+  });
+  const shiftMiddleware = shift({ padding });
+
+  // Centered placements should preserve their authored alignment and shift
+  // within the viewport before considering another placement. Edge-aligned
+  // placements should resolve alignment collisions before shifting.
+  return align === "center"
+    ? [shiftMiddleware, flipMiddleware]
+    : [flipMiddleware, shiftMiddleware];
 }
 
 export function getFloatingAvailableSizeMiddleware(): Middleware {

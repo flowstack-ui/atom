@@ -4,6 +4,12 @@
 
 - Embedded original TypeScript sources in published JavaScript maps so package
   consumers can inspect and bundle Atom without missing-source warnings.
+- Kept collapsible NavList section content mounted through styled exit motion,
+  exposed measured content-size hooks, and suppressed entrance animation for
+  initially open sections.
+- Kept Popover open while focus or pointer interaction moves into portalled
+  Atom controlled layers opened from its Content, including Dropdown Menu,
+  including browser focus transitions through the document during modal setup.
 
 ## 0.23.0 - 2026-08-21
 
