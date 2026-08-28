@@ -1,5 +1,12 @@
 # AlertDialog Changelog
 
+## Unreleased
+
+## 0.23.1
+
+- Added public Agent Knowledge for component selection, required composition,
+  recurring mistakes, and validation.
+
 ## 0.20.3
 
 - Inherited document-only overflow locking so sticky application chrome

@@ -1,5 +1,12 @@
 # NumberInput Changelog
 
+## Unreleased
+
+## 0.23.1
+
+- Added public Agent Knowledge for component selection, required composition,
+  recurring mistakes, and validation.
+
 ## 0.19.0
 
 - Added compound Input, Increment, and Decrement parts while preserving the

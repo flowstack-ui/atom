@@ -2,7 +2,11 @@
 
 ## Unreleased
 
-- No unreleased changes.
+## 0.23.1
+
+- Added source-led Agent Knowledge for passive contextual labels and counts,
+  owning-control context, noninteraction, and deliberate live announcement
+  boundaries.
 
 ## 0.3.3
 

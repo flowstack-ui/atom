@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.23.1
+
+- Added public Agent Knowledge for component selection, required composition,
+  recurring mistakes, and validation.
 - Preserved centered Content alignment near viewport edges by shifting it into
   view before considering alternate placements.
 - Kept Popover open when focus or pointer interaction moves into any portalled

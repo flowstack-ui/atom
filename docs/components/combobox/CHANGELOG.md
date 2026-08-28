@@ -2,7 +2,10 @@
 
 ## Unreleased
 
-- No unreleased changes.
+## 0.23.1
+
+- Added public Agent Knowledge for component selection, required composition,
+  recurring mistakes, and validation.
 
 ## 0.20.2
 

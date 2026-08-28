@@ -40,7 +40,8 @@ function runTar(args) {
   });
 }
 
-const archive = await resolveArchive(process.argv[2]);
+const [archiveInput] = process.argv.slice(2);
+const archive = await resolveArchive(archiveInput);
 const entries = runTar(["-tzf", archive]).trim().split("\n").filter(Boolean);
 const entrySet = new Set(entries);
 
@@ -87,6 +88,9 @@ for (const consumerDoc of expectedConsumerDocs) {
 if (!entrySet.has("package/dist/agents/manifest.json")) {
   fail("missing Agent Knowledge manifest");
 }
+if (!entrySet.has("package/dist/agents/coverage.json")) {
+  fail("missing Agent Knowledge coverage report");
+}
 
 const packedPackage = JSON.parse(
   runTar(["-xOf", archive, "package/package.json"]),
@@ -97,13 +101,67 @@ const localPackage = JSON.parse(
 const agentManifest = JSON.parse(
   runTar(["-xOf", archive, "package/dist/agents/manifest.json"]),
 );
-if (agentManifest.package !== packedPackage.name || agentManifest.components.length === 0) {
+const agentCoverage = JSON.parse(
+  runTar(["-xOf", archive, "package/dist/agents/coverage.json"]),
+);
+if (agentManifest.package !== packedPackage.name || agentManifest.packageVersion !== packedPackage.version || agentManifest.components.length === 0) {
   fail("Agent Knowledge manifest has the wrong package or no components");
 }
-for (const component of agentManifest.components) {
+if (
+  agentCoverage.schema !== "flowstack.agent-coverage.v1"
+  || agentCoverage.package !== packedPackage.name
+  || agentCoverage.packageVersion !== packedPackage.version
+  || agentCoverage.summary.unclassified !== 0
+  || agentCoverage.summary.invalidExclusions !== 0
+  || agentCoverage.summary.unresolvedSelections !== 0
+) {
+  fail("Agent Knowledge coverage report is invalid or contains unresolved public surfaces");
+}
+const incompleteOwners = agentCoverage.summary.guidedComponentOwners !== agentCoverage.summary.componentOwners;
+const coverageFailures = agentCoverage.failures ?? [];
+if (incompleteOwners || coverageFailures.length !== 0) {
+  fail("Agent Knowledge coverage is incomplete; strict archive verification requires every owner and zero failures");
+}
+if (agentManifest.coverage !== "./coverage.json") fail("Agent Knowledge manifest does not link its coverage report");
+for (const artifactRecord of [...agentManifest.components, ...agentManifest.guides]) {
   for (const extension of ["json", "md"]) {
-    const artifact = `package/dist/agents/${component.id}.${extension}`;
+    const artifact = `package/dist/agents/${artifactRecord.id}.${extension}`;
     if (!entrySet.has(artifact)) fail(`missing Agent Knowledge artifact: ${artifact}`);
+  }
+  const structured = JSON.parse(runTar(["-xOf", archive, `package/dist/agents/${artifactRecord.id}.json`]));
+  const expectedSchema = agentManifest.components.some(({ id }) => id === artifactRecord.id)
+    ? "flowstack.agent-component.v1"
+    : "flowstack.agent-guide.v1";
+  if (structured.schema !== expectedSchema || structured.id !== artifactRecord.id || structured.package !== packedPackage.name || structured.layer !== "atom") {
+    fail(`invalid Agent Knowledge artifact: ${artifactRecord.id}.json`);
+  }
+}
+const manifestComponentIds = agentManifest.components.map(({ id }) => id).sort();
+const manifestGuideIds = agentManifest.guides.map(({ id }) => id).sort();
+const coveredComponentIds = agentCoverage.components.filter(({ status }) => status === "covered").map(({ id }) => id).sort();
+const coverageGuideIds = agentCoverage.guides.map(({ id }) => id).sort();
+if (JSON.stringify(manifestComponentIds) !== JSON.stringify(coveredComponentIds)) {
+  fail("manifest component IDs differ from covered catalog component IDs");
+}
+if (JSON.stringify(manifestGuideIds) !== JSON.stringify(coverageGuideIds)) {
+  fail("manifest guide IDs differ from catalog guide IDs");
+}
+for (const component of agentCoverage.components) {
+  if (!Array.isArray(component.publicValueSymbols) || component.publicSubpaths.length !== 1) {
+    fail(`coverage component has an invalid public surface: ${component.id}`);
+  }
+  const expectedPaths = { json: `./${component.id}.json`, markdown: `./${component.id}.md` };
+  if (JSON.stringify(component.manifestPaths) !== JSON.stringify(expectedPaths)) {
+    fail(`coverage component has invalid manifest-relative paths: ${component.id}`);
+  }
+  if (component.status === "covered" && (!component.agentSources?.json || !component.agentSources?.markdown)) {
+    fail(`covered component lacks canonical Agent Knowledge sources: ${component.id}`);
+  }
+}
+for (const guide of agentCoverage.guides) {
+  const expectedPaths = { json: `./${guide.id}.json`, markdown: `./${guide.id}.md` };
+  if (JSON.stringify(guide.manifestPaths) !== JSON.stringify(expectedPaths) || !guide.agentSources?.json || !guide.agentSources?.markdown) {
+    fail(`coverage guide has invalid canonical or manifest paths: ${guide.id}`);
   }
 }
 

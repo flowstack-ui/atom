@@ -1,5 +1,12 @@
 # DropdownMenu Changelog
 
+## Unreleased
+
+## 0.23.1
+
+- Added public Agent Knowledge for component selection, required composition,
+  recurring mistakes, and validation.
+
 ## 0.20.6
 
 - Inherited movement-gated submenu hover intent so opening a parent
