@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 0.23.1
+## 0.24.0
 
 - Added source-led Agent Knowledge for native picker and form semantics,
   dropzone enhancement, validation boundaries, file-list composition, and

@@ -1,8 +1,10 @@
 # Atom Changelog
 
-## Unreleased
+## 0.24.0 - 2026-08-28
 
-## 0.23.1 - 2026-08-28
+- Added headless `ColorPicker` opaque-hex selection with editable and native
+  inputs, preset triggers, optional Popover composition, read-only inspection,
+  and hidden form submission.
 
 - Added an export-led Agent Knowledge catalog and deterministic coverage report
   that classify every public subpath and symbol, validate structured selection

@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 0.23.1
+## 0.24.0
 
 - Added source-led Agent Knowledge for native direction pairing, provider
   scope, local overrides, nonrendering context, and bidirectional behavior

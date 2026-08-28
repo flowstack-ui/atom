@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 0.23.1
+## 0.24.0
 
 - Added source-led Agent Knowledge for copying known text, truthful async
   status, latest-operation concurrency, accessibility feedback, and the

@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 0.23.1
+## 0.24.0
 
 - Added source-led Agent Knowledge for determinate and indeterminate work,
   accessible naming and value text, normalized ranges, and Indicator

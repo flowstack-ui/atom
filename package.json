@@ -1,6 +1,6 @@
 {
   "name": "@flowstack-ui/atom",
-  "version": "0.23.1",
+  "version": "0.24.0",
   "browserslist": [
     "baseline 2023 with downstream"
   ],
@@ -97,6 +97,10 @@
     "./collapsible": {
       "types": "./dist/collapsible.d.ts",
       "default": "./dist/collapsible.js"
+    },
+    "./color-picker": {
+      "types": "./dist/color-picker.d.ts",
+      "default": "./dist/color-picker.js"
     },
     "./collection": {
       "types": "./dist/collection.d.ts",

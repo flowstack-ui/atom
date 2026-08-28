@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 0.23.1
+## 0.24.0
 
 - Added public Agent Knowledge for component selection, required composition,
   recurring mistakes, and validation.
