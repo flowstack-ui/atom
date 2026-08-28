@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 0.23.1
+## 0.24.0
 
 - Added source-led Agent Knowledge for article-stream selection, logical
   position and size metadata, loading state, focus movement, scrolling, and

@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 0.23.1
+## 0.24.0
 
 - Documented a consumer-owned safe-area and application-chrome offset recipe,
   while explicitly avoiding an unverified automatic software-keyboard

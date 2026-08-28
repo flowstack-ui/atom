@@ -1,6 +1,6 @@
 {
   "name": "@flowstack-ui/atom",
-  "version": "0.23.1",
+  "version": "0.24.0",
   "browserslist": [
     "baseline 2023 with downstream"
   ],
