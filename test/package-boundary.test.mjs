@@ -84,6 +84,25 @@ test("release verification tiers do not recurse", async () => {
   assert.doesNotMatch(releaseScript, /\["run", "(?:check:release|release:check|test:all)"\]/);
 });
 
+test("nightly release qualification installs every portable browser engine", async () => {
+  const [{ default: verification }, workflow] = await Promise.all([
+    import("../verification.config.mjs"),
+    readFile(new URL(".github/workflows/nightly.yml", packageRoot), "utf8"),
+  ]);
+  const installCommand = workflow.match(
+    /npx playwright install --with-deps[^\n]*/u,
+  )?.[0];
+
+  assert.ok(installCommand, "nightly workflow must install Playwright browsers");
+  for (const engine of verification.browserSupport.portableEngines) {
+    assert.match(
+      installCommand,
+      new RegExp(`(?:^|\\s)${engine}(?:\\s|$)`, "u"),
+      `nightly workflow must install ${engine}`,
+    );
+  }
+});
+
 test("Agent Knowledge verification has no partial-coverage escape hatch", async () => {
   const packageJson = JSON.parse(
     await readFile(new URL("package.json", packageRoot), "utf8"),
