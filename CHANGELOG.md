@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added headless `ColorPicker` opaque-hex selection with editable and native
+  inputs, preset triggers, optional Popover composition, read-only inspection,
+  and hidden form submission.
+
 ## 0.23.1 - 2026-08-28
 
 - Added an export-led Agent Knowledge catalog and deterministic coverage report

@@ -99,6 +99,17 @@ import {
   CollapsibleTrigger,
 } from "./primitives/collapsible/index.js";
 import {
+  ColorPickerContent,
+  ColorPickerControl,
+  ColorPickerHiddenInput,
+  ColorPickerInput,
+  ColorPickerLabel,
+  ColorPickerNativeInput,
+  ColorPickerRoot,
+  ColorPickerSwatchTrigger,
+  ColorPickerTrigger,
+} from "./primitives/color-picker/index.js";
+import {
   ContextMenuContent,
   ContextMenuRoot,
   ContextMenuTrigger,
@@ -812,6 +823,18 @@ export const Popover = {
   Description: PopoverDescription,
   Close: PopoverClose,
   Arrow: PopoverArrow,
+} as const;
+
+export const ColorPicker = {
+  Root: ColorPickerRoot,
+  Label: ColorPickerLabel,
+  Control: ColorPickerControl,
+  Input: ColorPickerInput,
+  NativeInput: ColorPickerNativeInput,
+  HiddenInput: ColorPickerHiddenInput,
+  Trigger: ColorPickerTrigger,
+  Content: ColorPickerContent,
+  SwatchTrigger: ColorPickerSwatchTrigger,
 } as const;
 
 export const Pressable = {

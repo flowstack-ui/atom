@@ -23,6 +23,7 @@ const publicSubpaths = [
   "clipboard",
   "collapsible",
   "collection",
+  "color-picker",
   "context-menu",
   "data-grid",
   "dialog",

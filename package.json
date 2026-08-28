@@ -98,6 +98,10 @@
       "types": "./dist/collapsible.d.ts",
       "default": "./dist/collapsible.js"
     },
+    "./color-picker": {
+      "types": "./dist/color-picker.d.ts",
+      "default": "./dist/color-picker.js"
+    },
     "./collection": {
       "types": "./dist/collection.d.ts",
       "default": "./dist/collection.js"
