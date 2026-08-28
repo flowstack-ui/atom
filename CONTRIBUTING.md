@@ -23,3 +23,10 @@ npm run pack:check
 The repository-only playground has its own guidance in
 `playground/AGENTS.md`, changelog in `playground/CHANGELOG.md`, and versioning
 policy in `playground/docs/versioning.md`.
+
+## Community and security
+
+Search existing issues and use the structured issue forms for bug reports and
+feature requests. Report vulnerabilities privately according to
+[SECURITY.md](SECURITY.md). By participating, you agree to follow the
+[Code of Conduct](CODE_OF_CONDUCT.md).
