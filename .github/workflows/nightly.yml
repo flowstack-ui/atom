@@ -30,7 +30,7 @@ jobs:
             playground/package-lock.json
       - run: npm ci
       - run: npm ci --prefix playground
-      - run: npx playwright install --with-deps chromium webkit
+      - run: npx playwright install --with-deps chromium firefox webkit
       - run: npm run check:release
       - if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
