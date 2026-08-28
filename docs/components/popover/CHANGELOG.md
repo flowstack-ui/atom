@@ -1,5 +1,17 @@
 # Popover Changelog
 
+## Unreleased
+
+## 0.23.1
+
+- Added public Agent Knowledge for component selection, required composition,
+  recurring mistakes, and validation.
+- Preserved centered Content alignment near viewport edges by shifting it into
+  view before considering alternate placements.
+- Kept Popover open when focus or pointer interaction moves into any portalled
+  Atom controlled layer opened from its Content, including Dropdown Menu, even
+  when the browser briefly moves focus to the document during modal setup.
+
 ## 0.20.3
 
 - Modal Content now inherits document-only overflow locking so sticky

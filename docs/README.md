@@ -15,6 +15,8 @@ contribution guidance lives in [`CONTRIBUTING.md`](../CONTRIBUTING.md).
   package, playground, archive, and React peer checks.
 - [Testing](guides/testing.md) - verification tiers, focused ownership, and
   automated test-server lifecycle.
+- [Browser support](guides/browser-support.md) - pinned target, portable
+  engine evidence, and physical-platform boundary.
 - [Agent Knowledge](guides/agent-knowledge.md) - public human- and
   machine-readable component selection, composition, and validation guidance.
 

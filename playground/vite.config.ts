@@ -6,6 +6,9 @@ const packageRoot = resolve(__dirname, "..");
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    target: ["chrome120", "edge120", "firefox121", "safari17.2"],
+  },
   resolve: {
     alias: [
       {

@@ -2,7 +2,11 @@
 
 ## Unreleased
 
-- No unreleased changes.
+## 0.23.1
+
+- Added source-led Agent Knowledge for one-dimensional hierarchy selection,
+  nested relationships, expansion and selection state, focus, typeahead,
+  forms, direction, and virtualization boundaries.
 
 ## 0.17.1
 

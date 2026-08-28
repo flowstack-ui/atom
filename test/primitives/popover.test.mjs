@@ -85,20 +85,26 @@ test("PopoverContent resolves a display contents anchor to its child reference",
   assert.match(source, /child instanceof HTMLElement/);
   assert.match(source, /return child/);
   assert.match(source, /refs\.setReference\(getPopoverReferenceElement\(anchorRef\.current, triggerRef\.current\)\)/);
-  assert.match(source, /getFloatingFallbackPlacements\(side, align\)/);
+  assert.match(source, /getFloatingVisibilityMiddleware\(side, align\)/);
 });
 
-test("PopoverContent treats portalled descendant popover layers as inside", async () => {
+test("PopoverContent treats portalled descendant controlled layers as inside", async () => {
   const source = await readFile(
     new URL("src/primitives/popover/PopoverContent.tsx", packageRoot),
     "utf8",
   );
 
-  assert.match(source, /function isInsideNestedPopoverLayer/);
+  assert.match(source, /function isInsideNestedControlledLayer/);
+  assert.match(source, /function getControlledLayerFromNode/);
+  assert.match(source, /function hasOpenNestedControlledLayer/);
   assert.match(source, /controller\.getAttribute\("aria-controls"\) === layer\.id/);
   assert.match(source, /ownerContent\.contains\(controller\)/);
-  assert.match(source, /ignore: \(target\) => isInsideNestedPopoverLayer\(target, contentRef\.current\)/);
-  assert.match(source, /!isInsideNestedPopoverLayer\(relatedTarget, content\)/);
+  assert.match(source, /ignore: \(target\) => isInsideNestedControlledLayer\(target, contentRef\.current\)/);
+  assert.match(source, /!isInsideNestedControlledLayer\(relatedTarget, content\)/);
+  assert.match(source, /if \(hasOpenNestedControlledLayer\(content\)\) return/);
+  assert.match(source, /if \(!content \|\| !trigger\) return;\s+if \(hasOpenNestedControlledLayer\(content\)\) return/);
+  assert.match(source, /relatedTarget === document\.body/);
+  assert.match(source, /relatedTarget === document\.documentElement/);
 });
 
 test("Popover trigger supports asChild and exposes portal arrow and close parts", () => {

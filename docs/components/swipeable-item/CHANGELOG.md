@@ -1,5 +1,13 @@
 # SwipeableItem Changelog
 
+## Unreleased
+
+## 0.23.1
+
+- Added source-led Agent Knowledge for gesture-enhanced row actions, required
+  non-swipe fallbacks, pointer and scroll behavior, keyboard isolation,
+  logical direction, and action accessibility.
+
 ## 0.19.9
 
 - Preserved native vertical panning with an axis-compatible Content touch

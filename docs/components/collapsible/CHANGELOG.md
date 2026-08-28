@@ -2,7 +2,11 @@
 
 ## Unreleased
 
-- No unreleased changes.
+## 0.23.1
+
+- Added source-led Agent Knowledge for single-disclosure selection, trigger
+  and region relationships, conditional persistence, orientation metadata,
+  and motion measurement boundaries.
 
 ## 0.20.9
 

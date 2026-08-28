@@ -21,9 +21,10 @@ accessibility relationship, so never put required actions inside it.
   capability when the browser's available input devices change.
 - Uses configurable open and close delays and a safe pointer corridor that keeps
   Content open while the pointer crosses the gap from Trigger to Content.
-- Positions Content by trying alternate alignments on the requested side,
-  repeating them on the opposite side, and using perpendicular sides only as
-  final fallbacks; collision shift and Arrow coordinates follow the result.
+- Positions centered Content by shifting within the viewport before considering
+  placement fallbacks. Edge-aligned Content resolves alternate alignments before
+  shifting, and both modes retain opposite- and perpendicular-side fallbacks;
+  Arrow coordinates follow the resolved result.
 - Supports inline or custom-container portals.
 - Participates in topmost-layer Escape dismissal.
 

@@ -1,5 +1,12 @@
 # Modal Changelog
 
+## Unreleased
+
+## 0.23.1
+
+- Added public Agent Knowledge for component selection, primitive-author
+  composition, recurring mistakes, and validation.
+
 ## 0.20.3
 
 - Locked document overflow without also hiding body overflow, preserving

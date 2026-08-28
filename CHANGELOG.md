@@ -2,7 +2,22 @@
 
 ## Unreleased
 
-- No unreleased changes.
+## 0.23.1 - 2026-08-28
+
+- Added an export-led Agent Knowledge catalog and deterministic coverage report
+  that classify every public subpath and symbol, validate structured selection
+  destinations, reject stale generated output, and verify the same complete
+  discovery surface from the packed installed package before publication. All
+  Agent Knowledge build, archive, and installed-consumer paths now enforce the
+  closed 69-owner catalog with zero coverage failures.
+- Embedded original TypeScript sources in published JavaScript maps so package
+  consumers can inspect and bundle Atom without missing-source warnings.
+- Kept collapsible NavList section content mounted through styled exit motion,
+  exposed measured content-size hooks, and suppressed entrance animation for
+  initially open sections.
+- Kept Popover open while focus or pointer interaction moves into portalled
+  Atom controlled layers opened from its Content, including Dropdown Menu,
+  including browser focus transitions through the document during modal setup.
 
 ## 0.23.0 - 2026-08-21
 

@@ -29,6 +29,9 @@ test("package boundary keeps only approved headless runtime dependencies", async
     await readFile(new URL("package.json", packageRoot), "utf8"),
   );
 
+  assert.equal(packageJson.version, "0.23.1");
+  assert.equal(packageJson.repository.url, "git+https://github.com/flowstack-ui/atom.git");
+  assert.deepEqual(packageJson.publishConfig, { access: "public" });
   assert.deepEqual(packageJson.dependencies ?? {}, {
     "@floating-ui/react": "^0.27.19",
   });
@@ -40,12 +43,29 @@ test("package boundary keeps only approved headless runtime dependencies", async
     Object.keys(packageJson.exports).sort(),
     [
       ".",
+      "./agents/coverage.json",
       "./agents/manifest.json",
       "./agents/*.json",
       "./agents/*.md",
       ...publicSubpaths.map((subpath) => `./${subpath}`),
     ].sort(),
   );
+});
+
+test("release identity, changelog, and trusted-publishing provenance stay aligned", async () => {
+  const [packageJsonSource, lockSource, changelog, workflow] = await Promise.all([
+    readFile(new URL("package.json", packageRoot), "utf8"),
+    readFile(new URL("package-lock.json", packageRoot), "utf8"),
+    readFile(new URL("CHANGELOG.md", packageRoot), "utf8"),
+    readFile(new URL(".github/workflows/publish.yml", packageRoot), "utf8"),
+  ]);
+  const packageJson = JSON.parse(packageJsonSource);
+  const packageLock = JSON.parse(lockSource);
+
+  assert.equal(packageLock.version, packageJson.version);
+  assert.equal(packageLock.packages[""].version, packageJson.version);
+  assert.match(changelog, new RegExp(`^## ${packageJson.version} - 2026-08-28$`, "m"));
+  assert.match(workflow, /npm publish[^\n]+--provenance/u);
 });
 
 test("release verification tiers do not recurse", async () => {
@@ -62,6 +82,47 @@ test("release verification tiers do not recurse", async () => {
   assert.match(releaseScript, /\["run", "test:browser"\]/);
   assert.match(releaseScript, /\["run", "pack:check"\]/);
   assert.doesNotMatch(releaseScript, /\["run", "(?:check:release|release:check|test:all)"\]/);
+});
+
+test("Agent Knowledge verification has no partial-coverage escape hatch", async () => {
+  const packageJson = JSON.parse(
+    await readFile(new URL("package.json", packageRoot), "utf8"),
+  );
+  const verificationSources = await Promise.all(
+    [
+      "scripts/agent-catalog.mjs",
+      "scripts/build-agent-knowledge.mjs",
+      "scripts/verify-packed-package.mjs",
+      "scripts/smoke-packed-consumer.mjs",
+    ].map((file) => readFile(new URL(file, packageRoot), "utf8")),
+  );
+
+  assert.deepEqual(
+    Object.keys(packageJson.scripts).filter((name) => name.endsWith(":partial")),
+    [],
+  );
+  for (const source of verificationSources) {
+    assert.doesNotMatch(source, /--partial|uncovered-component.*temporary|temporary component-guide backlog/);
+  }
+});
+
+test("generated Agent Knowledge has defined related guidance labels", async () => {
+  const manifest = JSON.parse(
+    await readFile(new URL("dist/agents/manifest.json", packageRoot), "utf8"),
+  );
+
+  for (const record of [...manifest.guides, ...manifest.components]) {
+    const markdown = await readFile(
+      new URL(`dist/agents/${record.id}.md`, packageRoot),
+      "utf8",
+    );
+    const relatedSection = markdown.split("## Related guidance\n\n")[1] ?? "";
+    assert.doesNotMatch(
+      relatedSection,
+      /\bundefined\b/,
+      `${record.id} must not contain an undefined related guidance label`,
+    );
+  }
 });
 
 test("compiled package keeps implementation files under private internal chunks", async () => {

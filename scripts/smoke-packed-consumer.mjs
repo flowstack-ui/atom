@@ -55,8 +55,8 @@ function run(command, args, cwd) {
   });
 }
 
-const archive = await resolveArchive(process.argv[2]);
-const reactLine = process.argv[3];
+const [archiveInput, reactLine] = process.argv.slice(2);
+const archive = await resolveArchive(archiveInput);
 const versions = reactLines[reactLine];
 
 if (!versions) fail(`React line must be 18 or 19; received ${reactLine ?? "nothing"}`);
@@ -201,8 +201,38 @@ try {
     ].join("\n"),
   );
 
+  await writeFile(
+    path.join(consumerRoot, "agent-knowledge.mjs"),
+    [
+      'import { createRequire } from "node:module";',
+      'const require = createRequire(import.meta.url);',
+      'const manifest = require("@flowstack-ui/atom/agents/manifest.json");',
+      'const coverage = require("@flowstack-ui/atom/agents/coverage.json");',
+      'if (manifest.schema !== "flowstack.agent-manifest.v1" || coverage.schema !== "flowstack.agent-coverage.v1") throw new Error("Agent discovery schema mismatch");',
+      'if (manifest.package !== coverage.package || manifest.packageVersion !== coverage.packageVersion) throw new Error("Agent package identity mismatch");',
+      'if (coverage.summary.unclassified || coverage.summary.invalidExclusions || coverage.summary.unresolvedSelections) throw new Error("Agent catalog has unresolved coverage");',
+      'const incompleteOwners = coverage.summary.guidedComponentOwners !== coverage.summary.componentOwners;',
+      'if (incompleteOwners || coverage.failures.length) throw new Error("Installed Agent Knowledge catalog is incomplete");',
+      'const manifestComponentIds = manifest.components.map(({ id }) => id).sort();',
+      'const coveredComponentIds = coverage.components.filter(({ status }) => status === "covered").map(({ id }) => id).sort();',
+      'if (JSON.stringify(manifestComponentIds) !== JSON.stringify(coveredComponentIds)) throw new Error("Installed component discovery differs from source coverage");',
+      'for (const record of [...manifest.components, ...manifest.guides]) {',
+      '  const artifact = require(`@flowstack-ui/atom/agents/${record.id}.json`);',
+      '  if (artifact.id !== record.id || artifact.package !== manifest.package || artifact.layer !== "atom") throw new Error(`Invalid installed agent artifact: ${record.id}`);',
+      '}',
+      'for (const component of coverage.components) {',
+      '  if (!Array.isArray(component.publicValueSymbols) || component.publicSubpaths.length !== 1) throw new Error(`Invalid installed component surface: ${component.id}`);',
+      '  if (component.manifestPaths.json !== `./${component.id}.json` || component.manifestPaths.markdown !== `./${component.id}.md`) throw new Error(`Invalid installed manifest paths: ${component.id}`);',
+      '  const module = await import(`@flowstack-ui/atom/${component.publicSubpaths[0].slice(2)}`);',
+      '  for (const symbol of component.publicValueSymbols) if (!(symbol in module)) throw new Error(`Missing installed public symbol: ${component.id}#${symbol}`);',
+      '}',
+      '',
+    ].join("\n"),
+  );
+
   run(tscCommand, ["-p", "tsconfig.json"], consumerRoot);
   run(process.execPath, ["runtime.mjs"], consumerRoot);
+  run(process.execPath, ["agent-knowledge.mjs"], consumerRoot);
   if (reactLine === "19") {
     run(process.execPath, ["--conditions", "react-server", "rsc.mjs"], consumerRoot);
   }

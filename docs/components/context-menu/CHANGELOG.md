@@ -1,5 +1,12 @@
 # ContextMenu Changelog
 
+## Unreleased
+
+## 0.23.1
+
+- Added public Agent Knowledge for component selection, required composition,
+  recurring mistakes, and validation.
+
 ## 0.20.7
 
 - Kept the custom menu active on repeated secondary clicks, repositioned it at

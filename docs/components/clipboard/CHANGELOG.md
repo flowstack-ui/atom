@@ -1,5 +1,13 @@
 # Clipboard Changelog
 
+## Unreleased
+
+## 0.23.1
+
+- Added source-led Agent Knowledge for copying known text, truthful async
+  status, latest-operation concurrency, accessibility feedback, and the
+  secure-context boundary.
+
 ## 0.8.0
 
 - Added controlled and uncontrolled text values, native Label/Input

@@ -1,5 +1,12 @@
 # RadioGroup Changelog
 
+## Unreleased
+
+## 0.23.1
+
+- Added public Agent Knowledge for component selection, required composition,
+  recurring mistakes, and validation.
+
 ## 0.11.1
 
 - Made Root `dir="rtl"` control horizontal arrow-key navigation directly,

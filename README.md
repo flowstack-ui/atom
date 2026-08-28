@@ -153,6 +153,14 @@ attributes in your own CSS.
 Avoid depending on internal file paths. Public imports should come from the root
 package or a documented subpath.
 
+## Browser support
+
+Atom uses the pinned `baseline 2023 with downstream` browser floor and
+qualifies portable behavior in current Chromium, Firefox, and Playwright
+WebKit. See the [browser support guide](docs/guides/browser-support.md) for the
+boundary between package, application, emulated-mobile, and physical-platform
+claims.
+
 ## Forms
 
 `Field` owns label, description, error, and shared form-question state. `Input`

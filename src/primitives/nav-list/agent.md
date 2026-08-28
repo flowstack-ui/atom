@@ -20,6 +20,7 @@ Structure persistent, optionally grouped and collapsible navigation lists with c
 
 - **MUST:** Use Link parts for destinations and expose the current destination through the component contract.
 - **MUST:** Use a SectionTrigger only when it controls the associated SectionContent.
+- **MUST:** Style collapsible SectionContent from its data-state and measured content-size hooks; Atom keeps exit content mounted through the animation lifecycle.
 
 ## Common mistakes
 

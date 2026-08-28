@@ -1,0 +1,84 @@
+{
+  "schema": "flowstack.agent-catalog.v1",
+  "package": "@flowstack-ui/atom",
+  "layer": "atom",
+  "packageGuideIds": [
+    "behavior-composition",
+    "layer-selection"
+  ],
+  "classifications": [
+    {
+      "surface": ".#OutsideInteractionEvent",
+      "classification": "utility",
+      "documentation": "docs/guides/public-api.md#subpath-exports",
+      "reason": "The shared outside-interaction event type belongs to the public hooks utility contract."
+    },
+    {
+      "surface": ".#OutsideInteractionPointerType",
+      "classification": "utility",
+      "documentation": "docs/guides/public-api.md#subpath-exports",
+      "reason": "The shared outside-interaction pointer type belongs to the public hooks utility contract."
+    },
+    {
+      "surface": "./collection",
+      "classification": "utility",
+      "documentation": "docs/components/collection/README.md",
+      "reason": "Collection is an independently selectable state and DOM-order helper, not a rendered component family."
+    },
+    {
+      "surface": "./hooks",
+      "classification": "utility",
+      "documentation": "docs/guides/public-api.md#subpath-exports",
+      "reason": "The hooks entry point publishes reusable behavior utilities rather than a selectable component family."
+    },
+    {
+      "surface": "./portal",
+      "classification": "utility",
+      "documentation": "docs/components/portal/README.md",
+      "reason": "Portal is shared rendering infrastructure; prefer each component family's Portal part when that family owns the portalled behavior."
+    },
+    {
+      "surface": "./virtualizer",
+      "classification": "utility",
+      "documentation": "docs/components/virtualizer/README.md",
+      "reason": "Virtualizer publishes measurement and windowing helpers rather than a rendered component family."
+    },
+    {
+      "surface": "./agents/manifest.json",
+      "classification": "metadata",
+      "documentation": "docs/guides/agent-knowledge.md",
+      "reason": "The manifest is the non-executable discovery index for generated Agent Knowledge."
+    },
+    {
+      "surface": "./agents/coverage.json",
+      "classification": "metadata",
+      "documentation": "docs/guides/agent-knowledge.md",
+      "reason": "The coverage report reconciles the released catalog with its Agent Knowledge."
+    },
+    {
+      "surface": "./agents/*.json",
+      "classification": "metadata",
+      "documentation": "docs/guides/agent-knowledge.md",
+      "reason": "The wildcard publishes machine-readable Agent Knowledge and coverage records."
+    },
+    {
+      "surface": "./agents/*.md",
+      "classification": "metadata",
+      "documentation": "docs/guides/agent-knowledge.md",
+      "reason": "The wildcard publishes generated human-readable Agent Knowledge."
+    }
+  ],
+  "exclusions": [],
+  "nativeApplicationDestinations": [
+    {
+      "id": "application-state",
+      "kind": "application",
+      "reason": "Business effects and controlled product state remain application-owned after Atom exposes the reusable state contract."
+    },
+    {
+      "id": "native-element",
+      "kind": "native",
+      "reason": "Semantic native HTML remains the owner when no reusable Atom behavior contract is required."
+    }
+  ]
+}

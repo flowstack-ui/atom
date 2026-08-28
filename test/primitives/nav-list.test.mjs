@@ -193,3 +193,15 @@ test("NavList source keeps native link navigation separate from tree/menu behavi
   assert.doesNotMatch(rootSource + linkSource + triggerSource + contentSource, /role: "tree"/);
   assert.doesNotMatch(rootSource + linkSource + triggerSource + contentSource, /aria-activedescendant/);
 });
+
+test("NavList section content exposes measured disclosure lifecycle hooks", async () => {
+  const contentSource = await readFile(
+    new URL("src/primitives/nav-list/NavListSectionContent.tsx", packageRoot),
+    "utf8",
+  );
+
+  assert.match(contentSource, /useMeasuredContentHeight\(contentRef, isMounted \|\| isOpen, children\)/);
+  assert.match(contentSource, /data-initial-open/);
+  assert.match(contentSource, /onAnimationEnd: composeEventHandlers/);
+  assert.match(contentSource, /if \(!isOpen && !forceMount\) \{\s*setIsMounted\(false\)/);
+});

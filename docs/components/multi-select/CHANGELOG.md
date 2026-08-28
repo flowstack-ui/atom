@@ -1,5 +1,12 @@
 # MultiSelect Changelog
 
+## Unreleased
+
+## 0.23.1
+
+- Added public Agent Knowledge for component selection, required composition,
+  recurring mistakes, and validation.
+
 ## 0.20.0
 
 - Added preventable `Content`/`Listbox.onInteractOutside` and moved outside

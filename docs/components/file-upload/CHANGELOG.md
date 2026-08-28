@@ -1,5 +1,13 @@
 # FileUpload Changelog
 
+## Unreleased
+
+## 0.23.1
+
+- Added source-led Agent Knowledge for native picker and form semantics,
+  dropzone enhancement, validation boundaries, file-list composition, and
+  same-file reselection behavior.
+
 ## 0.19.7
 
 - Related the visible Trigger to its Field label, description/error, required,

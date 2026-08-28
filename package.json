@@ -1,6 +1,9 @@
 {
   "name": "@flowstack-ui/atom",
-  "version": "0.23.0",
+  "version": "0.23.1",
+  "browserslist": [
+    "baseline 2023 with downstream"
+  ],
   "description": "Headless accessible React primitives for Flowstack Atom.",
   "type": "module",
   "license": "MIT",
@@ -32,6 +35,7 @@
       "default": "./dist/index.js"
     },
     "./agents/manifest.json": "./dist/agents/manifest.json",
+    "./agents/coverage.json": "./dist/agents/coverage.json",
     "./agents/*.json": "./dist/agents/*.json",
     "./agents/*.md": "./dist/agents/*.md",
     "./accordion": {
@@ -338,6 +342,7 @@
     "build": "node scripts/clean-dist.mjs && tsc -p tsconfig.build.json && node scripts/prepare-dist.mjs && npm run agents:build",
     "agents:build": "node scripts/build-agent-knowledge.mjs",
     "agents:check": "node scripts/build-agent-knowledge.mjs --check",
+    "agents:coverage": "npm run agents:check",
     "dev": "tsc -p tsconfig.build.json --watch",
     "dev:playground": "npm run playground:dev",
     "dev:playground:network": "npm --prefix playground run dev:network",
@@ -362,10 +367,10 @@
     "test:all": "node scripts/test-all.mjs",
     "check:focused": "npm run test:component",
     "verify:repository-contract": "node scripts/verify-repository-contract.mjs",
-    "check:repository": "npm run verify:repository-contract && npm run agents:check && npm run test",
+    "check:repository": "npm run verify:repository-contract && npm run test && npm run agents:check",
     "check:release": "npm run test:all",
     "release:check": "npm run check:release",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build && npm run agents:check"
   },
   "peerDependencies": {
     "react": ">=18",

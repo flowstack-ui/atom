@@ -13,9 +13,7 @@ import {
 import {
   arrow as floatingArrow,
   autoUpdate,
-  flip,
   offset,
-  shift,
   useFloating,
   type Placement,
 } from "@floating-ui/react";
@@ -24,7 +22,7 @@ import { useDirection } from "../direction/index.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import {
   getFloatingAvailableSizeMiddleware,
-  getFloatingFallbackPlacements,
+  getFloatingVisibilityMiddleware,
   resolveFloatingDirection,
 } from "../../utils/floatingPlacement.js";
 import { composeEventHandlers, composeRefs } from "../../utils/slot.js";
@@ -107,11 +105,7 @@ function TooltipContent(
   const middleware = useMemo(
     () => [
       offset(sideOffset),
-      flip({
-        fallbackPlacements: getFloatingFallbackPlacements(side, align),
-        fallbackStrategy: "bestFit",
-      }),
-      shift({ padding: 8 }),
+      ...getFloatingVisibilityMiddleware(side, align),
       getFloatingAvailableSizeMiddleware(),
       floatingArrow({ element: arrowRef, padding: 8 }),
     ],

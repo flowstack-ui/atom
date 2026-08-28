@@ -1,5 +1,12 @@
 # CheckboxGroup Changelog
 
+## Unreleased
+
+## 0.23.1
+
+- Added public Agent Knowledge for component selection, required composition,
+  recurring mistakes, and validation.
+
 ## 0.6.16
 
 - Explicitly scrolled the first enabled Item into view when inline validation
