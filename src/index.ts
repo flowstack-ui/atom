@@ -31,6 +31,7 @@ export {
   FileUpload,
   Form,
   HoverCard,
+  Highlight,
   Image,
   Input,
   Label,
@@ -251,6 +252,17 @@ export { ImageContent, ImageContext, ImageFallback, ImageRoot, useImageContext }
 export type { ImageContentProps, ImageContextValue, ImageFallbackProps, ImageFallbackWhen, ImageRootProps } from "./primitives/image/index.js";
 export { BadgeRoot } from "./primitives/badge/index.js";
 export type { BadgeRootProps } from "./primitives/badge/index.js";
+export {
+  HighlightMatch,
+  HighlightRoot,
+  findHighlightSegments,
+} from "./primitives/highlight/index.js";
+export type {
+  HighlightMatchProps,
+  HighlightOptions,
+  HighlightRootProps,
+  HighlightSegment,
+} from "./primitives/highlight/index.js";
 export { LinkRoot } from "./primitives/link/index.js";
 export type { LinkRootProps } from "./primitives/link/index.js";
 export {

@@ -29,7 +29,7 @@ test("package boundary keeps only approved headless runtime dependencies", async
     await readFile(new URL("package.json", packageRoot), "utf8"),
   );
 
-  assert.equal(packageJson.version, "0.24.0");
+  assert.equal(packageJson.version, "0.25.0");
   assert.equal(packageJson.repository.url, "git+https://github.com/flowstack-ui/atom.git");
   assert.deepEqual(packageJson.publishConfig, { access: "public" });
   assert.deepEqual(packageJson.dependencies ?? {}, {
@@ -64,7 +64,7 @@ test("release identity, changelog, and trusted-publishing provenance stay aligne
 
   assert.equal(packageLock.version, packageJson.version);
   assert.equal(packageLock.packages[""].version, packageJson.version);
-  assert.match(changelog, new RegExp(`^## ${packageJson.version} - 2026-08-28$`, "m"));
+  assert.match(changelog, new RegExp(`^## ${packageJson.version} - 2026-08-30$`, "m"));
   assert.match(workflow, /npm publish[^\n]+--provenance/u);
 });
 
@@ -230,7 +230,7 @@ test("public component docs and changelogs cover component-style subpaths", asyn
 test("public client entrypoints preserve Next.js client boundaries", async () => {
   const indexSource = await readFile(new URL("src/index.ts", packageRoot), "utf8");
   const namespaceSource = await readFile(new URL("src/namespaces.ts", packageRoot), "utf8");
-  const serverSafeSubpaths = new Set(["app-bar", "badge", "divider", "label", "link", "list", "table"]);
+  const serverSafeSubpaths = new Set(["app-bar", "badge", "divider", "highlight", "label", "link", "list", "table"]);
 
   assert.match(indexSource, /^"use client";/);
   assert.match(namespaceSource, /^"use client";/);

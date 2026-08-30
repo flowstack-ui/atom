@@ -50,6 +50,10 @@ import {
 import { ImageContent, ImageFallback, ImageRoot } from "./primitives/image/index.js";
 import { BadgeRoot } from "./primitives/badge/index.js";
 import {
+  HighlightMatch,
+  HighlightRoot,
+} from "./primitives/highlight/index.js";
+import {
   BreadcrumbEllipsis,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -500,6 +504,11 @@ export const Avatar = {
 
 export const Badge = {
   Root: BadgeRoot,
+} as const;
+
+export const Highlight = {
+  Root: HighlightRoot,
+  Match: HighlightMatch,
 } as const;
 
 export const Breadcrumb = {
