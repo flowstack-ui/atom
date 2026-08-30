@@ -1,5 +1,11 @@
 # Atom Changelog
 
+## 0.25.1 - 2026-08-30
+
+- Prevented Highlight from accepting or forwarding `dangerouslySetInnerHTML`,
+  preserving its plain-text-derived output contract for typed, untyped, and
+  server-rendered consumers.
+
 ## 0.25.0 - 2026-08-30
 
 - Added headless Highlight literal-query segmentation with stable offsets,

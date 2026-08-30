@@ -29,7 +29,7 @@ test("package boundary keeps only approved headless runtime dependencies", async
     await readFile(new URL("package.json", packageRoot), "utf8"),
   );
 
-  assert.equal(packageJson.version, "0.25.0");
+  assert.equal(packageJson.version, "0.25.1");
   assert.equal(packageJson.repository.url, "git+https://github.com/flowstack-ui/atom.git");
   assert.deepEqual(packageJson.publishConfig, { access: "public" });
   assert.deepEqual(packageJson.dependencies ?? {}, {

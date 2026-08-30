@@ -75,6 +75,19 @@ test("Highlight renders native root and match semantics", () => {
   assert.match(html, /Build with <mark data-slot="highlight-match">Brick<\/mark>/);
 });
 
+test("Highlight rejects injected HTML from untyped consumers", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(HighlightRoot, {
+      text: "Safe output",
+      query: "Safe",
+      dangerouslySetInnerHTML: { __html: "<img data-unsafe src=x>" },
+    }),
+  );
+
+  assert.doesNotMatch(html, /data-unsafe/);
+  assert.match(html, /<mark data-slot="highlight-match">Safe<\/mark> output/);
+});
+
 test("Highlight root render and Match asChild preserve composition", () => {
   const root = renderToStaticMarkup(
     React.createElement(HighlightRoot, {
