@@ -1,6 +1,6 @@
 {
   "name": "@flowstack-ui/atom",
-  "version": "0.24.0",
+  "version": "0.25.0",
   "browserslist": [
     "baseline 2023 with downstream"
   ],
@@ -165,6 +165,10 @@
     "./hover-card": {
       "types": "./dist/hover-card.d.ts",
       "default": "./dist/hover-card.js"
+    },
+    "./highlight": {
+      "types": "./dist/highlight.d.ts",
+      "default": "./dist/highlight.js"
     },
     "./image": {
       "types": "./dist/image.d.ts",

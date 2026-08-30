@@ -31,6 +31,7 @@ Decide whether reusable headless behavior belongs in Atom, an existing native el
 - **row and column data:** use Table for read-oriented comparison, DataGrid for flat two-dimensional keyboard navigation or row selection, or TreeGrid for hierarchical interactive rows. Keep sorting, editing, filtering, resizing, and virtualization application-composed and preserve full logical indexes when windowing.
 - **hierarchical item navigation:** use Tree for one primary item column or TreeGrid for several navigable columns. Choose Accordion when branches contain general disclosure content rather than selectable items.
 - **dynamic article stream:** use Feed. Choose List for a static set and add virtualization only when scale justifies its focus and accessibility cost.
+- **literal query highlighting in plain text:** use Highlight. Keep result navigation and rich-content traversal in the application and visual treatment in Brick.
 - **stable media geometry:** use AspectRatio. Use Image when loading fallback is also required and keep all media semantics on the child.
 - **compact identity or contextual status:** use Avatar for a named entity or Badge for a short contextual count or status. Keep essential identity visible and use Progress for ongoing completion rather than status text.
 - **form control labeling:** use Label for one standalone native control or Field.Label for coordinated control, description, error, and state wiring. Use Fieldset for a group of controls.
@@ -102,6 +103,7 @@ Decide whether reusable headless behavior belongs in Atom, an existing native el
 - `tree`
 - `tree-grid`
 - `feed`
+- `highlight`
 - `aspect-ratio`
 - `avatar`
 - `badge`
