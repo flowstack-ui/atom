@@ -122,6 +122,8 @@ try {
       'const clipboardStatus: ClipboardStatusValue = "copied";',
       "void Link.Root({ href: '/guides', children: 'Guides' });",
       "void Highlight.Root({ text: 'Build with Brick', query: 'Brick' });",
+      "// @ts-expect-error Highlight output is derived from plain text and never injected HTML.",
+      "void Highlight.Root({ text: 'Safe output', query: 'Safe', dangerouslySetInnerHTML: { __html: '<b>Unsafe</b>' } });",
       "const highlightSegments = findHighlightSegments('Atom and Brick', { query: ['Atom', 'Brick'] });",
       "// @ts-expect-error Native Link rendering requires href.",
       "void Link.Root({ children: 'Missing destination' });",

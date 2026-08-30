@@ -7,7 +7,7 @@ import {
   type HighlightOptions,
 } from "./findHighlightSegments.js";
 
-type HighlightRootNativeProps = NativeSpanProps<"children">;
+type HighlightRootNativeProps = NativeSpanProps<"children" | "dangerouslySetInnerHTML">;
 
 export interface HighlightRootProps
   extends HighlightRootNativeProps,
@@ -45,8 +45,10 @@ export const HighlightRoot = forwardRef<HTMLSpanElement, HighlightRootProps>(
       </HighlightMatch>
     ) : segment.text);
 
+    const { dangerouslySetInnerHTML: _blockedHtml, ...safeRest } = rest as
+      typeof rest & { dangerouslySetInnerHTML?: unknown };
     const behaviorProps: Record<string, unknown> = {
-      ...rest,
+      ...safeRest,
       ref,
       "data-slot": dataSlot,
     };

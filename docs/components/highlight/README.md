@@ -45,7 +45,8 @@ same offsets.
 ### Root
 
 Renders a `span` containing unmatched text and generated `Match` parts. Native
-span props pass through.
+span props pass through except `children` and `dangerouslySetInnerHTML`, because
+the plain `text` and matching options exclusively determine the output.
 
 | Prop | Type | Default |
 | --- | --- | --- |
