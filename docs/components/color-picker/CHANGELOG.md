@@ -1,5 +1,10 @@
 # ColorPicker Changelog
 
+## 0.26.1 - 2026-08-31
+
+- Disabled `EyeDropperTrigger` and exposed `data-unsupported` when the secure
+  browser EyeDropper API is unavailable, replacing the previous silent no-op.
+
 ## 0.26.0
 
 - Expanded the initial opaque hexadecimal picker into a complete headless color

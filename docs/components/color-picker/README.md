@@ -23,8 +23,8 @@ a color. Saved palettes and persistence remain application state.
 - Inline or positioned popup composition.
 - Value swatch/text, preset groups, selection indicators, and optional
   close-on-select behavior.
-- Progressive EyeDropper support that treats cancellation or lack of browser
-  support as a no-op.
+- Progressive EyeDropper support that disables the trigger when the secure
+  browser API is unavailable and treats cancellation as a no-op.
 - One successful form control, required/disabled/read-only/invalid state,
   external form association, and uncontrolled form reset.
 - The browser-native `input[type=color]` remains available as an opaque-color
@@ -119,9 +119,9 @@ serialize to `hex`, `hexa`, `rgb`, `rgba`, `hsl`, `hsla`, `hsb`, `hsba`, or
 - `View format="…"` conditionally reveals format-specific composition.
 - `TransparencyGrid` paints only the transparency reference; the styled layer
   owns its shape and containment.
-- `EyeDropperTrigger` uses the browser EyeDropper API when available and leaves
-  the value unchanged on unsupported platforms, cancellation, or platform
-  error.
+- `EyeDropperTrigger` uses the browser EyeDropper API when available. It is
+  disabled and exposes `data-unsupported` when the secure browser API is
+  unavailable; cancellation or platform error leaves the value unchanged.
 - `NativeInput` uses the platform's native opaque chooser; selecting through it
   produces an opaque color. Do not present it as a cross-browser replacement
   for alpha editing.
@@ -181,9 +181,10 @@ not mutate. Color must never be the only visible or announced signal; provide
 text when a raw value is not meaningful.
 
 The EyeDropper API is progressive enhancement and normally requires a secure
-context plus user activation. Cancellation is not an error state. Verify the
-finished styled composition with keyboard, pointer, zoom, forced colors, and
-assistive technology.
+context plus user activation. Unsupported browsers receive a disabled trigger
+instead of an action that silently does nothing; cancellation is not an error
+state. Verify the finished styled composition with keyboard, pointer, zoom,
+forced colors, and assistive technology.
 
 ## Data Attributes
 

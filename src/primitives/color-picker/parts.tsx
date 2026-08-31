@@ -18,6 +18,7 @@ import {
   useContext,
   useEffect,
   useRef,
+  useState,
   type ChangeEventHandler,
   type ComponentPropsWithoutRef,
   type FormEventHandler,
@@ -442,12 +443,20 @@ export const ColorPickerEyeDropperTrigger = forwardRef<
   ref,
 ) {
   const { api, onValueChangeEnd } = useColorPickerRootContext();
+  const [isSupported, setIsSupported] = useState(false);
+  useEffect(() => {
+    setIsSupported(
+      typeof window !== "undefined" &&
+        window.isSecureContext !== false &&
+        "EyeDropper" in window,
+    );
+  }, []);
   const machineProps = api.getEyeDropperTriggerProps();
   const { onClick: _machineOnClick, ...passiveMachineProps } = machineProps;
   const handleClick: MouseEventHandler<HTMLButtonElement> = async (event) => {
     onClick?.(event);
     if (event.defaultPrevented) return;
-    if (typeof window === "undefined" || !("EyeDropper" in window)) return;
+    if (!isSupported || typeof window === "undefined" || !("EyeDropper" in window)) return;
     try {
       const result = await new window.EyeDropper().open();
       const color = parseColorPickerValue(result.sRGBHex);
@@ -465,7 +474,15 @@ export const ColorPickerEyeDropperTrigger = forwardRef<
     <button
       {...mergeProps(
         passiveMachineProps,
-        withSlot({ ...props, onClick: handleClick }, dataSlot),
+        withSlot(
+          {
+            ...props,
+            disabled: Boolean(passiveMachineProps.disabled || props.disabled || !isSupported),
+            "data-unsupported": isSupported ? undefined : "",
+            onClick: handleClick,
+          },
+          dataSlot,
+        ),
       )}
       ref={ref}
     />

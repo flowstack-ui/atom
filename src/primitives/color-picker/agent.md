@@ -26,7 +26,7 @@ Provide complete headless color selection with one shared color model, accessibl
 - **MUST:** Give the picker, channel controls, and presets meaningful accessible names and never communicate selection by color alone.
 - **MUST:** Use onValueChangeEnd for expensive work that should wait for a pointer drag, committed channel input, or eyedropper completion; area and slider keyboard steps use the ordinary value-change event.
 - **MUST:** Merge Atom-provided inline styles and CSS variables instead of replacing area, slider, thumb, positioning, or color-math styles.
-- **MUST:** Treat EyeDropper and NativeInput as progressive platform features; NativeInput is opaque-only and unsupported or cancelled EyeDropper use is a no-op.
+- **MUST:** Treat EyeDropper and NativeInput as progressive platform features; NativeInput is opaque-only, unsupported EyeDropper triggers are disabled with data-unsupported, and cancellation is a no-op.
 - **SHOULD:** Use visual swatch shapes through Brick Color Swatch styling rather than adding shape behavior to Atom Root.
 
 ## Common mistakes
