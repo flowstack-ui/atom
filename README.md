@@ -18,8 +18,8 @@ npm install @flowstack-ui/atom
 ```
 
 React and React DOM 18 or newer are peer dependencies and must be provided by
-the consuming application. Atom installs its Floating UI runtime dependency
-automatically.
+the consuming application. Atom installs its approved headless positioning and
+color-interaction runtime dependencies automatically.
 
 ## Boundary
 
@@ -58,7 +58,9 @@ Atom intentionally keeps runtime dependencies narrow.
     "react-dom": ">=18"
   },
   "dependencies": {
-    "@floating-ui/react": "^0.27.19"
+    "@floating-ui/react": "^0.27.19",
+    "@zag-js/color-picker": "1.43.3",
+    "@zag-js/react": "1.43.3"
   }
 }
 ```
@@ -66,6 +68,9 @@ Atom intentionally keeps runtime dependencies narrow.
 `react-dom` is a peer dependency because Atom includes `Portal`.
 `@floating-ui/react` is the approved headless positioning runtime for positioned
 primitives such as menus, popovers, tooltips, hover cards, and select listboxes.
+The exact Zag packages provide Color Picker's color-space model, accessible
+area/channel state machine, form behavior, and React adapter. Atom exposes its
+own public compound API and does not re-export Ark UI or Chakra components.
 
 ## Public API
 

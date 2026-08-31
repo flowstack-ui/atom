@@ -26,6 +26,7 @@ const additionalUnitTests = {
 const browserTests = {
   accordion: ["disclosure-presence.spec.ts"],
   carousel: ["carousel.spec.ts", "carousel.mobile.spec.ts"],
+  "color-picker": ["color-picker.spec.ts", "color-picker.mobile.spec.ts"],
   "alert-dialog": ["modal-containment.spec.ts", "modal-containment.mobile.spec.ts"],
   combobox: [
     "outside-interaction.spec.ts",

@@ -29,11 +29,13 @@ test("package boundary keeps only approved headless runtime dependencies", async
     await readFile(new URL("package.json", packageRoot), "utf8"),
   );
 
-  assert.equal(packageJson.version, "0.25.1");
+  assert.equal(packageJson.version, "0.26.0");
   assert.equal(packageJson.repository.url, "git+https://github.com/flowstack-ui/atom.git");
   assert.deepEqual(packageJson.publishConfig, { access: "public" });
   assert.deepEqual(packageJson.dependencies ?? {}, {
     "@floating-ui/react": "^0.27.19",
+    "@zag-js/color-picker": "1.43.3",
+    "@zag-js/react": "1.43.3",
   });
   assert.deepEqual(packageJson.peerDependencies, {
     react: ">=18",
@@ -64,7 +66,7 @@ test("release identity, changelog, and trusted-publishing provenance stay aligne
 
   assert.equal(packageLock.version, packageJson.version);
   assert.equal(packageLock.packages[""].version, packageJson.version);
-  assert.match(changelog, new RegExp(`^## ${packageJson.version} - 2026-08-30$`, "m"));
+  assert.match(changelog, new RegExp(`^## ${packageJson.version} - 2026-08-31$`, "m"));
   assert.match(workflow, /npm publish[^\n]+--provenance/u);
 });
 

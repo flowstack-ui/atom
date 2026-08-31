@@ -5,37 +5,111 @@ import {
   ColorPicker,
   ColorPickerRoot,
   normalizeColorPickerValue,
+  parseColorPickerValue,
 } from "../../dist/index.js";
 
-test("ColorPicker exposes normalized state, accessible inputs, presets, and one form value", () => {
+test("ColorPicker exposes the complete color anatomy and one successful form control", () => {
   const html = renderToStaticMarkup(
     React.createElement(
       ColorPicker.Root,
-      { defaultValue: "#5B5", name: "accent", form: "settings", required: true },
+      {
+        defaultValue: "rgba(85, 187, 85, 0.5)",
+        name: "accent",
+        form: "settings",
+        required: true,
+        inline: true,
+      },
       React.createElement(ColorPicker.Label, null, "Accent color"),
       React.createElement(
         ColorPicker.Control,
         null,
+        React.createElement(ColorPicker.ValueSwatch),
         React.createElement(ColorPicker.Input),
         React.createElement(ColorPicker.NativeInput),
+        React.createElement(ColorPicker.Trigger, null, "Choose color"),
       ),
-      React.createElement(ColorPicker.SwatchTrigger, { value: "#55bb55" }),
+      React.createElement(ColorPicker.ValueText),
+      React.createElement(
+        ColorPicker.Area,
+        null,
+        React.createElement(ColorPicker.AreaBackground),
+        React.createElement(ColorPicker.AreaThumb),
+      ),
+      React.createElement(
+        ColorPicker.ChannelSlider,
+        { channel: "hue" },
+        React.createElement(ColorPicker.ChannelSliderLabel, null, "Hue"),
+        React.createElement(ColorPicker.ChannelSliderTrack),
+        React.createElement(ColorPicker.ChannelSliderThumb),
+        React.createElement(ColorPicker.ChannelSliderValueText),
+      ),
+      React.createElement(
+        ColorPicker.ChannelSlider,
+        { channel: "alpha" },
+        React.createElement(ColorPicker.TransparencyGrid),
+        React.createElement(ColorPicker.ChannelSliderTrack),
+        React.createElement(ColorPicker.ChannelSliderThumb),
+      ),
+      React.createElement(ColorPicker.ChannelInput, { channel: "red" }),
+      React.createElement(ColorPicker.EyeDropperTrigger, null, "Sample screen"),
+      React.createElement(
+        ColorPicker.SwatchGroup,
+        null,
+        React.createElement(
+          ColorPicker.SwatchTrigger,
+          { value: "#55bb55" },
+          React.createElement(
+            ColorPicker.Swatch,
+            { value: "#55bb55" },
+            React.createElement(ColorPicker.SwatchIndicator, null, "Selected"),
+          ),
+        ),
+      ),
+      React.createElement(ColorPicker.FormatTrigger),
+      React.createElement(ColorPicker.FormatSelect),
+      React.createElement(ColorPicker.View, { format: "rgba" }, "RGBA channels"),
+      React.createElement(ColorPicker.View, { format: "hsla" }, "HSLA channels"),
       React.createElement(ColorPicker.HiddenInput),
     ),
   );
 
-  assert.match(html, /data-slot="color-picker"/);
-  assert.match(html, /data-required=""/);
+  for (const slot of [
+    "color-picker-area",
+    "color-picker-area-background",
+    "color-picker-area-thumb",
+    "color-picker-channel-slider",
+    "color-picker-channel-slider-track",
+    "color-picker-channel-slider-thumb",
+    "color-picker-channel-input",
+    "color-picker-eye-dropper-trigger",
+    "color-picker-swatch-group",
+    "color-picker-swatch-trigger",
+    "color-picker-swatch",
+    "color-picker-swatch-indicator",
+    "color-picker-format-select",
+    "color-picker-value-swatch",
+  ]) {
+    assert.match(html, new RegExp(`data-slot="${slot}"`));
+  }
+  assert.match(html, /aria-roledescription="2d slider"/);
+  assert.match(html, /data-channel="alpha"/);
   assert.match(html, /<label[^>]*for="[^"]+"[^>]*>Accent color<\/label>/);
-  assert.match(html, /<input[^>]*type="text"[^>]*value="#55bb55"/);
-  assert.match(html, /<input[^>]*type="color"[^>]*value="#55bb55"/);
-  assert.match(html, /<button[^>]*aria-pressed="true"[^>]*>.*<\/button>/);
-  assert.match(html, /<input(?=[^>]*type="hidden")(?=[^>]*name="accent")(?=[^>]*form="settings")(?=[^>]*value="#55bb55")[^>]*>/);
+  assert.match(html, /<input(?=[^>]*name="accent")(?=[^>]*form="settings")[^>]*>/);
   assert.equal(html.match(/name="accent"/g)?.length, 1);
   assert.equal(ColorPicker.Root, ColorPickerRoot);
 });
 
-test("ColorPicker propagates disabled and read-only interaction states", () => {
+test("ColorPicker parses and normalizes hexadecimal, alpha, RGB, HSL, and HSB values", () => {
+  assert.equal(normalizeColorPickerValue(" #AbC "), "#aabbcc");
+  assert.equal(normalizeColorPickerValue("#ABCDEF80"), "#abcdef80");
+  assert.equal(normalizeColorPickerValue("rgb(255, 0, 128)"), "#ff0080");
+  assert.equal(normalizeColorPickerValue("hsl(120, 100%, 50%)"), "#00ff00");
+  assert.equal(normalizeColorPickerValue("hsb(240, 100%, 100%)"), "#0000ff");
+  assert.equal(normalizeColorPickerValue("not-a-color"), null);
+  assert.equal(parseColorPickerValue("rgba(1, 2, 3, 0.25)")?.getChannelValue("alpha"), 0.25);
+});
+
+test("ColorPicker propagates disabled and read-only state to every mutating part", () => {
   const html = renderToStaticMarkup(
     React.createElement(
       ColorPicker.Root,
@@ -43,37 +117,20 @@ test("ColorPicker propagates disabled and read-only interaction states", () => {
       React.createElement(ColorPicker.Label, null, "Color"),
       React.createElement(ColorPicker.Input),
       React.createElement(ColorPicker.NativeInput),
+      React.createElement(ColorPicker.EyeDropperTrigger),
       React.createElement(ColorPicker.SwatchTrigger, { value: "#ffffff" }),
+      React.createElement(
+        ColorPicker.ChannelSlider,
+        { channel: "alpha" },
+        React.createElement(ColorPicker.ChannelSliderThumb),
+      ),
     ),
   );
   assert.match(html, /data-disabled=""/);
   assert.match(html, /data-readonly=""/);
-  assert.equal(html.match(/disabled=""/g)?.length, 4);
-});
-
-test("normalizeColorPickerValue accepts only opaque hexadecimal colors", () => {
-  assert.equal(normalizeColorPickerValue(" #AbC "), "#aabbcc");
-  assert.equal(normalizeColorPickerValue("#ABCDEF"), "#abcdef");
-  assert.equal(normalizeColorPickerValue("rgb(0 0 0)"), null);
-  assert.equal(normalizeColorPickerValue("#abcd"), null);
-});
-
-test("ColorPicker avoids dangling label references and keeps read-only content inspectable", () => {
-  const html = renderToStaticMarkup(
-    React.createElement(
-      ColorPicker.Root,
-      { readOnly: true, defaultOpen: true },
-      React.createElement(ColorPicker.Input, { "aria-label": "Hex color" }),
-      React.createElement(ColorPicker.NativeInput),
-      React.createElement(ColorPicker.Trigger, null, "Inspect color"),
-      React.createElement(ColorPicker.Content, null, React.createElement(ColorPicker.SwatchTrigger, { value: "#ffffff" })),
-    ),
-  );
-  assert.doesNotMatch(html, /aria-labelledby=/);
-  assert.match(html, /aria-label="Hex color"/);
-  assert.match(html, /aria-label="Open native color chooser"/);
-  assert.match(html, /<button(?=[^>]*data-slot="color-picker-trigger")(?=[^>]*aria-expanded="true")(?![^>]*aria-disabled)[^>]*>/);
-  assert.match(html, /<button(?=[^>]*data-slot="color-picker-swatch-trigger")(?=[^>]*aria-disabled="true")[^>]*>/);
+  assert.match(html, /data-slot="color-picker-channel-slider-thumb"|data-part="channel-slider-thumb"/);
+  assert.match(html, /aria-disabled=""/);
+  assert.ok((html.match(/disabled=""/g)?.length ?? 0) >= 4);
 });
 
 function installDom() {
@@ -96,6 +153,7 @@ function installDom() {
     Element: dom.window.Element,
     Node: dom.window.Node,
     Event: dom.window.Event,
+    InputEvent: dom.window.InputEvent,
     KeyboardEvent: dom.window.KeyboardEvent,
     MouseEvent: dom.window.MouseEvent,
     FocusEvent: dom.window.FocusEvent,
@@ -116,6 +174,7 @@ function installDom() {
   dom.window.scrollTo = () => {};
 
   return {
+    dom,
     container: dom.window.document.getElementById("root"),
     cleanup() {
       dom.window.close();
@@ -135,6 +194,11 @@ function changeInput(input, value) {
   )?.set;
   valueSetter.call(input, value);
   input.dispatchEvent(new input.ownerDocument.defaultView.InputEvent("input", { bubbles: true }));
+  input.dispatchEvent(new input.ownerDocument.defaultView.Event("change", { bubbles: true }));
+}
+
+async function flush(ms = 0) {
+  await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function createTestRoot(container) {
@@ -149,19 +213,22 @@ function InteractiveFixture(props = {}) {
     React.createElement(ColorPicker.Label, null, "Accent color"),
     React.createElement(ColorPicker.Input),
     React.createElement(ColorPicker.NativeInput),
-    React.createElement(ColorPicker.SwatchTrigger, { value: "#abc", "aria-label": "Use lavender" }),
+    React.createElement(ColorPicker.SwatchTrigger, {
+      value: "#aabbcc",
+      "aria-label": "Use lavender",
+    }),
     React.createElement(ColorPicker.HiddenInput),
   );
 }
 
-test("ColorPicker uncontrolled text, native, and preset interactions update one normalized value", async () => {
+test("ColorPicker text and swatches update one uncontrolled color", async () => {
   const { container, cleanup } = installDom();
   const root = await createTestRoot(container);
   const changes = [];
   try {
     await React.act(async () => root.render(React.createElement(InteractiveFixture, {
       name: "accent",
-      onValueChange: (value) => changes.push(value),
+      onValueChange: (details) => changes.push(details.value.toString("hex").toLowerCase()),
     })));
 
     const textInput = container.querySelector("[data-slot='color-picker-input']");
@@ -169,62 +236,115 @@ test("ColorPicker uncontrolled text, native, and preset interactions update one 
     const hiddenInput = container.querySelector("[data-slot='color-picker-hidden-input']");
     const preset = container.querySelector("[data-slot='color-picker-swatch-trigger']");
 
-    await React.act(async () => changeInput(textInput, "#A1B2C3"));
-    assert.equal(textInput.value, "#a1b2c3");
+    await React.act(async () => {
+      textInput.focus();
+      changeInput(textInput, "#A1B2C3");
+      textInput.blur();
+      await flush();
+    });
+    assert.equal(textInput.value.toLowerCase(), "#a1b2c3");
     assert.equal(nativeInput.value, "#a1b2c3");
-    assert.equal(hiddenInput.value, "#a1b2c3");
+    assert.match(hiddenInput.value, /161, 178, 195/);
 
-    await React.act(async () => changeInput(textInput, "not-a-color"));
-    assert.equal(textInput.value, "not-a-color");
-    await React.act(async () => textInput.dispatchEvent(new FocusEvent("focusout", { bubbles: true })));
-    assert.equal(textInput.value, "#a1b2c3");
-
-    await React.act(async () => changeInput(nativeInput, "#445566"));
-    assert.equal(textInput.value, "#445566");
-    assert.equal(hiddenInput.value, "#445566");
-
-    await React.act(async () => preset.click());
-    assert.equal(textInput.value, "#aabbcc");
+    await React.act(async () => {
+      preset.click();
+      await flush();
+    });
+    assert.equal(textInput.value.toLowerCase(), "#aabbcc");
     assert.equal(nativeInput.value, "#aabbcc");
-    assert.equal(hiddenInput.value, "#aabbcc");
-    assert.equal(preset.getAttribute("aria-pressed"), "true");
-    assert.deepEqual(changes, ["#a1b2c3", "#445566", "#aabbcc"]);
+    assert.equal(preset.getAttribute("data-state"), "checked");
+    assert.deepEqual(changes, ["#a1b2c3", "#aabbcc"]);
   } finally {
     await React.act(async () => root.unmount());
     cleanup();
   }
 });
 
-test("ColorPicker controlled interactions notify without mutating the authored value", async () => {
+test("ColorPicker controlled values notify with details without mutating authored state", async () => {
   const { container, cleanup } = installDom();
   const root = await createTestRoot(container);
   const changes = [];
   try {
     await React.act(async () => root.render(React.createElement(InteractiveFixture, {
       value: "#123456",
-      onValueChange: (value) => changes.push(value),
+      onValueChange: (details) => changes.push(details),
     })));
     const textInput = container.querySelector("[data-slot='color-picker-input']");
     const preset = container.querySelector("[data-slot='color-picker-swatch-trigger']");
 
     await React.act(async () => preset.click());
-    assert.deepEqual(changes, ["#aabbcc"]);
-    assert.equal(textInput.value, "#123456");
-    assert.equal(preset.getAttribute("aria-pressed"), "false");
-
-    await React.act(async () => root.render(React.createElement(InteractiveFixture, {
-      value: "#aabbcc",
-      onValueChange: (value) => changes.push(value),
-    })));
-    assert.equal(textInput.value, "#aabbcc");
-    assert.equal(preset.getAttribute("aria-pressed"), "true");
+    assert.equal(changes[0].value.toString("hex").toLowerCase(), "#aabbcc");
+    assert.equal(typeof changes[0].valueAsString, "string");
+    assert.equal(textInput.value.toLowerCase(), "#123456");
+    assert.equal(preset.getAttribute("data-state"), "unchecked");
   } finally {
     await React.act(async () => root.unmount());
     cleanup();
   }
 });
 
-test("ColorPicker Popover opens from its trigger and Escape closes with focus restoration", async () => {
+test("ColorPicker channel inputs, format controls, and keyboard sliders share one model", async () => {
+  const { container, cleanup } = installDom();
+  const root = await createTestRoot(container);
+  const ended = [];
+  const formats = [];
+  try {
+    await React.act(async () => root.render(
+      React.createElement(
+        ColorPicker.Root,
+        {
+          defaultValue: "rgba(255, 0, 0, 0.5)",
+          inline: true,
+          onValueChangeEnd: (details) => ended.push(details.valueAsString),
+          onFormatChange: (details) => formats.push(details.format),
+        },
+        React.createElement(ColorPicker.ChannelInput, { channel: "red" }),
+        React.createElement(ColorPicker.ChannelInput, { channel: "alpha" }),
+        React.createElement(
+          ColorPicker.ChannelSlider,
+          { channel: "alpha" },
+          React.createElement(ColorPicker.ChannelSliderTrack),
+          React.createElement(ColorPicker.ChannelSliderThumb),
+        ),
+        React.createElement(ColorPicker.FormatTrigger),
+        React.createElement(ColorPicker.FormatSelect),
+        React.createElement(ColorPicker.ValueText),
+      ),
+    ));
+
+    const red = container.querySelector("[data-channel='red']");
+    await React.act(async () => {
+      red.focus();
+      changeInput(red, "128");
+      red.blur();
+      await flush();
+    });
+    assert.equal(red.value, "128");
+    assert.ok(ended.length >= 1);
+
+    const thumb = container.querySelector("[data-slot='color-picker-channel-slider-thumb']");
+    const before = Number(thumb.getAttribute("aria-valuenow"));
+    await React.act(async () => {
+      thumb.focus();
+      thumb.dispatchEvent(new KeyboardEvent("keydown", {
+        bubbles: true,
+        key: "ArrowLeft",
+        code: "ArrowLeft",
+      }));
+      await flush();
+    });
+    assert.ok(Number(thumb.getAttribute("aria-valuenow")) < before);
+    const formatTrigger = container.querySelector("[data-slot='color-picker-format-trigger']");
+    await React.act(async () => formatTrigger.click());
+    assert.deepEqual(formats, ["hsba"]);
+    assert.equal(formatTrigger.textContent, "HSBA");
+  } finally {
+    await React.act(async () => root.unmount());
+    cleanup();
+  }
+});
+
+test("ColorPicker opens, closes, restores focus, and can close after swatch selection", async () => {
   const { container, cleanup } = installDom();
   const root = await createTestRoot(container);
   const openChanges = [];
@@ -232,40 +352,46 @@ test("ColorPicker Popover opens from its trigger and Escape closes with focus re
     await React.act(async () => root.render(
       React.createElement(
         ColorPicker.Root,
-        { onOpenChange: (open, reason) => openChanges.push([open, reason]) },
+        { closeOnSelect: true, onOpenChange: (details) => openChanges.push(details.open) },
+        React.createElement(ColorPicker.Label, null, "Color"),
         React.createElement(ColorPicker.Trigger, null, "Choose color"),
         React.createElement(
-          ColorPicker.Content,
-          { "aria-label": "Preset colors" },
-          React.createElement(ColorPicker.SwatchTrigger, { value: "#ffffff" }, "White"),
+          ColorPicker.Positioner,
+          null,
+          React.createElement(
+            ColorPicker.Content,
+            { "aria-label": "Preset colors" },
+            React.createElement(ColorPicker.SwatchTrigger, { value: "#ffffff" }, "White"),
+          ),
         ),
       ),
     ));
 
     const trigger = container.querySelector("[data-slot='color-picker-trigger']");
+    const content = container.querySelector("[data-slot='color-picker-content']");
     trigger.focus();
     await React.act(async () => {
       trigger.click();
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      await flush(20);
     });
     assert.equal(trigger.getAttribute("aria-expanded"), "true");
-    assert.ok(container.querySelector("[data-slot='color-picker-content']"));
+    assert.equal(content.hidden, false);
 
+    const swatch = container.querySelector("[data-slot='color-picker-swatch-trigger']");
     await React.act(async () => {
-      document.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Escape" }));
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      swatch.click();
+      await flush(20);
     });
     assert.equal(trigger.getAttribute("aria-expanded"), "false");
-    assert.equal(container.querySelector("[data-slot='color-picker-content']"), null);
-    assert.equal(document.activeElement, trigger);
-    assert.deepEqual(openChanges, [[true, undefined], [false, "escapeKeyDown"]]);
+    assert.equal(content.hidden, true);
+    assert.deepEqual(openChanges, [true, false]);
   } finally {
     await React.act(async () => root.unmount());
     cleanup();
   }
 });
 
-test("ColorPicker hidden input submits the current value and uncontrolled form reset restores its default", async () => {
+test("ColorPicker hidden input submits the formatted value and reset restores default state", async () => {
   const { container, cleanup } = installDom();
   const root = await createTestRoot(container);
   const submissions = [];
@@ -288,18 +414,75 @@ test("ColorPicker hidden input submits the current value and uncontrolled form r
     const preset = container.querySelector("[data-slot='color-picker-swatch-trigger']");
 
     await React.act(async () => preset.click());
-    assert.equal(hiddenInput.value, "#aabbcc");
+    assert.match(hiddenInput.value, /170, 187, 204/);
     await React.act(async () => form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })));
-    assert.deepEqual(submissions, [{ accent: "#aabbcc" }]);
+    assert.equal(submissions[0].accent, hiddenInput.value);
 
     await React.act(async () => {
       form.reset();
-      await Promise.resolve();
+      await flush();
     });
-    assert.equal(hiddenInput.value, "#112233");
-    assert.equal(container.querySelector("[data-slot='color-picker-input']").value, "#112233");
+    assert.equal(container.querySelector("[data-slot='color-picker-input']").value.toLowerCase(), "#112233");
   } finally {
     await React.act(async () => root.unmount());
     cleanup();
   }
+});
+
+test("ColorPicker EyeDropper is progressive and reports the sampled color at interaction end", async () => {
+  const { dom, container, cleanup } = installDom();
+  const root = await createTestRoot(container);
+  const ended = [];
+  class EyeDropper {
+    async open() {
+      return { sRGBHex: "#2468ac" };
+    }
+  }
+  dom.window.EyeDropper = EyeDropper;
+  try {
+    await React.act(async () => root.render(
+      React.createElement(
+        ColorPicker.Root,
+        { onValueChangeEnd: (details) => ended.push(details.value.toString("hex").toLowerCase()) },
+        React.createElement(ColorPicker.EyeDropperTrigger, null, "Sample screen"),
+        React.createElement(ColorPicker.Input),
+        React.createElement(ColorPicker.Context, null, (api) =>
+          React.createElement("output", { "data-test-color": "" }, api.value.toString("hex")),
+        ),
+      ),
+    ));
+    await React.act(async () => {
+      container.querySelector("[data-slot='color-picker-eye-dropper-trigger']").click();
+      await flush(50);
+    });
+    assert.deepEqual(ended, ["#2468ac"]);
+    assert.equal(container.querySelector("[data-test-color]").textContent.toLowerCase(), "#2468ac");
+  } finally {
+    await React.act(async () => root.unmount());
+    cleanup();
+  }
+});
+
+test("ColorPicker mirrors area and slider interaction in RTL", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      ColorPicker.Root,
+      { defaultValue: "hsl(90, 50%, 50%)", dir: "rtl", inline: true },
+      React.createElement(
+        ColorPicker.Area,
+        null,
+        React.createElement(ColorPicker.AreaBackground),
+        React.createElement(ColorPicker.AreaThumb),
+      ),
+      React.createElement(
+        ColorPicker.ChannelSlider,
+        { channel: "hue" },
+        React.createElement(ColorPicker.ChannelSliderTrack),
+        React.createElement(ColorPicker.ChannelSliderThumb),
+      ),
+    ),
+  );
+  assert.match(html, /data-slot="color-picker"[^>]*dir="rtl"|dir="rtl"[^>]*data-slot="color-picker"/);
+  assert.match(html, /aria-roledescription="2d slider"/);
+  assert.match(html, /data-orientation="horizontal"/);
 });

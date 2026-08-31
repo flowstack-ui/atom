@@ -1,4 +1,5 @@
 import { CheckboxGroup } from "@flowstack-ui/atom/checkbox-group";
+import { ColorPicker, type ColorPickerColorFormat } from "@flowstack-ui/atom/color-picker";
 import { Combobox } from "@flowstack-ui/atom/combobox";
 import { Direction, type DirectionValue } from "@flowstack-ui/atom/direction";
 import { Listbox } from "@flowstack-ui/atom/listbox";
@@ -31,6 +32,7 @@ const comboboxOptions: ComboboxOption[] = [
 
 export const selectionPrimitiveScenarioIds = new Set([
   "checkbox-group",
+  "color-picker",
   "slider",
   "rating",
   "listbox",
@@ -79,11 +81,96 @@ function usePartRefs<TPart extends string>(_parts: readonly TPart[]) {
 export function useSelectionPrimitiveScenarios() {
   return {
     checkboxGroup: useCheckboxGroupScenario(),
+    colorPicker: useColorPickerScenario(),
     slider: useSliderScenario(),
     rating: useRatingScenario(),
     listbox: useListboxScenario(),
     multiSelect: useMultiSelectScenario(),
     combobox: useComboboxScenario(),
+  };
+}
+
+function useColorPickerScenario() {
+  const [value, setValue] = useState("rgba(91, 91, 214, 0.65)");
+  const [controlled, setControlled] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [controlledOpen, setControlledOpen] = useState(false);
+  const [inline, setInline] = useState(true);
+  const [closeOnSelect, setCloseOnSelect] = useState(false);
+  const [disabled, setDisabled] = useState(false);
+  const [readOnly, setReadOnly] = useState(false);
+  const [required, setRequired] = useState(false);
+  const [invalid, setInvalid] = useState(false);
+  const [format, setFormat] = useState<ColorPickerColorFormat>("rgba");
+  const [propCheck, setPropCheck] = useState(false);
+  const [customRootSlot, setCustomRootSlot] = useState(false);
+  const [customAreaSlot, setCustomAreaSlot] = useState(false);
+  const [customInputSlot, setCustomInputSlot] = useState(false);
+  const [customSwatchSlot, setCustomSwatchSlot] = useState(false);
+  const [submission, setSubmission] = useState("Not submitted");
+  const { log, addLog, clearLog } = useScenarioLog();
+
+  const handleValueChange = (details: { valueAsString: string }) => {
+    setValue(details.valueAsString);
+    addLog(`value ${details.valueAsString}`);
+  };
+  const handleValueChangeEnd = (details: { valueAsString: string }) => {
+    addLog(`committed ${details.valueAsString}`);
+  };
+  const handleOpenChange = (details: { open: boolean }) => {
+    setOpen(details.open);
+    addLog(details.open ? "opened" : "closed");
+  };
+  const handleFormatChange = (details: { format: ColorPickerColorFormat }) => {
+    setFormat(details.format);
+    addLog(`format ${details.format}`);
+  };
+
+  return {
+    state: {
+      value,
+      controlled,
+      open,
+      controlledOpen,
+      inline,
+      closeOnSelect,
+      disabled,
+      readOnly,
+      required,
+      invalid,
+      format,
+      propCheck,
+      customRootSlot,
+      customAreaSlot,
+      customInputSlot,
+      customSwatchSlot,
+      submission,
+      log,
+    },
+    actions: {
+      setValue,
+      setControlled,
+      setOpen,
+      setControlledOpen,
+      setInline,
+      setCloseOnSelect,
+      setDisabled,
+      setReadOnly,
+      setRequired,
+      setInvalid,
+      setFormat,
+      setPropCheck,
+      setCustomRootSlot,
+      setCustomAreaSlot,
+      setCustomInputSlot,
+      setCustomSwatchSlot,
+      setSubmission,
+      handleValueChange,
+      handleValueChangeEnd,
+      handleOpenChange,
+      handleFormatChange,
+      clearLog,
+    },
   };
 }
 
@@ -460,6 +547,36 @@ function useComboboxScenario() {
 export type SelectionPrimitiveScenarios = ReturnType<typeof useSelectionPrimitiveScenarios>;
 
 export function SelectionPrimitiveScenarioToolbar({ scenarioId, scenarios }: { scenarioId: string; scenarios: SelectionPrimitiveScenarios }) {
+  if (scenarioId === "color-picker") {
+    const s = scenarios.colorPicker;
+    return (
+      <ControlToolbar label="Color Picker controls">
+        <ToolbarGroup title="State" value="state">
+          <MenuCheckboxControl checked={s.state.controlled} label="Controlled value" value="controlled" onChange={s.actions.setControlled} />
+          <MenuCheckboxControl checked={s.state.controlledOpen} label="Controlled open" value="controlled-open" onChange={s.actions.setControlledOpen} />
+          <MenuCheckboxControl checked={s.state.disabled} label="Disabled" value="disabled" onChange={s.actions.setDisabled} />
+          <MenuCheckboxControl checked={s.state.readOnly} label="Read only" value="read-only" onChange={s.actions.setReadOnly} />
+          <MenuCheckboxControl checked={s.state.required} label="Required" value="required" onChange={s.actions.setRequired} />
+          <MenuCheckboxControl checked={s.state.invalid} label="Invalid" value="invalid" onChange={s.actions.setInvalid} />
+        </ToolbarGroup>
+        <ToolbarGroup title="Behavior" value="behavior">
+          <MenuCheckboxControl checked={s.state.inline} label="Inline" value="inline" onChange={s.actions.setInline} />
+          <MenuCheckboxControl checked={s.state.closeOnSelect} label="Close on preset" value="close-on-select" onChange={s.actions.setCloseOnSelect} />
+          <MenuRadioControl label="Format" options={colorPickerFormatOptions} value={s.state.format} onChange={(value) => s.actions.setFormat(value as ColorPickerColorFormat)} />
+        </ToolbarGroup>
+        <PropsToolbarGroup
+          propCheck={s.state.propCheck}
+          onPropCheckChange={s.actions.setPropCheck}
+          customSlots={[
+            { checked: s.state.customRootSlot, label: "Root", value: "root-slot", onChange: s.actions.setCustomRootSlot },
+            { checked: s.state.customAreaSlot, label: "Area", value: "area-slot", onChange: s.actions.setCustomAreaSlot },
+            { checked: s.state.customInputSlot, label: "Input", value: "input-slot", onChange: s.actions.setCustomInputSlot },
+            { checked: s.state.customSwatchSlot, label: "Swatch", value: "swatch-slot", onChange: s.actions.setCustomSwatchSlot },
+          ]}
+        />
+      </ControlToolbar>
+    );
+  }
   if (scenarioId === "checkbox-group") {
     const s = scenarios.checkboxGroup;
     return (
@@ -659,6 +776,7 @@ export function SelectionPrimitiveScenarioToolbar({ scenarioId, scenarios }: { s
 }
 
 export function SelectionPrimitiveScenarioCanvas({ scenarioId, scenarios }: { scenarioId: string; scenarios: SelectionPrimitiveScenarios }) {
+  if (scenarioId === "color-picker") return <ColorPickerCanvas scenario={scenarios.colorPicker} />;
   if (scenarioId === "checkbox-group") return <CheckboxGroupCanvas scenario={scenarios.checkboxGroup} />;
   if (scenarioId === "slider") return <SliderCanvas scenario={scenarios.slider} />;
   if (scenarioId === "rating") return <RatingCanvas scenario={scenarios.rating} />;
@@ -666,6 +784,144 @@ export function SelectionPrimitiveScenarioCanvas({ scenarioId, scenarios }: { sc
   if (scenarioId === "multi-select") return <MultiSelectCanvas scenario={scenarios.multiSelect} />;
   if (scenarioId === "combobox") return <ComboboxCanvas scenario={scenarios.combobox} />;
   return null;
+}
+
+const colorPickerPresets = ["#5b5bd6", "#2f9e44", "#e8590c", "rgba(26, 126, 255, 0.4)"];
+
+function ColorPickerCanvas({ scenario }: { scenario: ReturnType<typeof useColorPickerScenario> }) {
+  const s = scenario.state;
+  const rootProps = {
+    className: "playground-color-picker",
+    name: "accent",
+    form: "color-picker-form",
+    disabled: s.disabled || undefined,
+    readOnly: s.readOnly || undefined,
+    required: s.required || undefined,
+    invalid: s.invalid || undefined,
+    inline: s.inline,
+    closeOnSelect: s.closeOnSelect,
+    format: s.format,
+    onFormatChange: scenario.actions.handleFormatChange,
+    onValueChange: scenario.actions.handleValueChange,
+    onValueChangeEnd: scenario.actions.handleValueChangeEnd,
+    onOpenChange: scenario.actions.handleOpenChange,
+    ...partProps("root", { propCheck: s.propCheck, customSlot: s.customRootSlot }, "color-picker-root-custom"),
+    ...(s.controlled ? { value: s.value } : { defaultValue: s.value }),
+    ...(s.controlledOpen ? { open: s.open } : {}),
+  };
+
+  return (
+    <div className="playground-color-picker-stage">
+      <form
+        className="playground-color-picker-form"
+        id="color-picker-form"
+        onSubmit={(event) => {
+          event.preventDefault();
+          scenario.actions.setSubmission(String(new FormData(event.currentTarget).get("accent") ?? "No color"));
+        }}
+      >
+        <button type="submit">Submit color</button>
+        <output aria-live="polite">{s.submission}</output>
+      </form>
+      {s.controlledOpen && !s.inline ? (
+        <button type="button" onClick={() => scenario.actions.setOpen(!s.open)}>
+          {s.open ? "Close" : "Open"} controlled picker
+        </button>
+      ) : null}
+      <ColorPicker.Root {...rootProps}>
+        <ColorPicker.Label>Accent color</ColorPicker.Label>
+        <ColorPicker.Control className="playground-color-picker-control">
+          <ColorPicker.ValueSwatch className="playground-color-picker-value" />
+          <ColorPicker.Input
+            className="playground-color-picker-input"
+            aria-label="Hex color"
+            {...partProps("input", { propCheck: s.propCheck, customSlot: s.customInputSlot }, "color-picker-input-custom")}
+          />
+          <ColorPicker.NativeInput className="playground-color-picker-native" aria-label="Native opaque color" />
+          {!s.inline ? <ColorPicker.Trigger className="atom-button secondary">Choose color</ColorPicker.Trigger> : null}
+        </ColorPicker.Control>
+        <div className="playground-color-picker-current">
+          <ColorPicker.ValueText />
+          <ColorPicker.FormatTrigger className="atom-button secondary" />
+          <ColorPicker.FormatSelect aria-label="Color format" />
+        </div>
+        {s.inline ? (
+          <ColorPickerWorkbench scenario={scenario} />
+        ) : (
+          <ColorPicker.Positioner>
+            <ColorPicker.Content className="playground-color-picker-popover">
+              <ColorPickerWorkbench scenario={scenario} />
+            </ColorPicker.Content>
+          </ColorPicker.Positioner>
+        )}
+        <ColorPicker.HiddenInput />
+      </ColorPicker.Root>
+    </div>
+  );
+}
+
+function ColorPickerWorkbench({ scenario }: { scenario: ReturnType<typeof useColorPickerScenario> }) {
+  const s = scenario.state;
+  return (
+    <div className="playground-color-picker-workbench">
+      <ColorPicker.Area
+        className="playground-color-picker-area"
+        {...partProps("area", { propCheck: s.propCheck, customSlot: s.customAreaSlot }, "color-picker-area-custom")}
+      >
+        <ColorPicker.AreaBackground className="playground-color-picker-area-background" />
+        <ColorPicker.AreaThumb className="playground-color-picker-thumb" />
+      </ColorPicker.Area>
+      <ColorPicker.ChannelSlider channel="hue" className="playground-color-picker-slider">
+        <ColorPicker.ChannelSliderLabel>Hue</ColorPicker.ChannelSliderLabel>
+        <ColorPicker.ChannelSliderTrack className="playground-color-picker-slider-track" />
+        <ColorPicker.ChannelSliderThumb className="playground-color-picker-thumb" />
+        <ColorPicker.ChannelSliderValueText />
+      </ColorPicker.ChannelSlider>
+      <ColorPicker.ChannelSlider channel="alpha" className="playground-color-picker-slider">
+        <ColorPicker.ChannelSliderLabel>Alpha</ColorPicker.ChannelSliderLabel>
+        <div className="playground-color-picker-alpha-track">
+          <ColorPicker.TransparencyGrid size="8px" />
+          <ColorPicker.ChannelSliderTrack className="playground-color-picker-slider-track" />
+          <ColorPicker.ChannelSliderThumb className="playground-color-picker-thumb" />
+        </div>
+        <ColorPicker.ChannelSliderValueText />
+      </ColorPicker.ChannelSlider>
+      <div className="playground-color-picker-channels">
+        <ColorPicker.View format="rgba">
+          <ColorPicker.ChannelInput channel="red" aria-label="Red channel" />
+          <ColorPicker.ChannelInput channel="green" aria-label="Green channel" />
+          <ColorPicker.ChannelInput channel="blue" aria-label="Blue channel" />
+        </ColorPicker.View>
+        <ColorPicker.View format="hsla">
+          <ColorPicker.ChannelInput channel="hue" aria-label="Hue channel" />
+          <ColorPicker.ChannelInput channel="saturation" aria-label="Saturation channel" />
+          <ColorPicker.ChannelInput channel="lightness" aria-label="Lightness channel" />
+        </ColorPicker.View>
+        <ColorPicker.View format="hsba">
+          <ColorPicker.ChannelInput channel="hue" aria-label="Hue channel" />
+          <ColorPicker.ChannelInput channel="saturation" aria-label="Saturation channel" />
+          <ColorPicker.ChannelInput channel="brightness" aria-label="Brightness channel" />
+        </ColorPicker.View>
+        <ColorPicker.ChannelInput channel="alpha" aria-label="Alpha channel" />
+      </div>
+      <div className="playground-color-picker-actions">
+        <ColorPicker.EyeDropperTrigger className="atom-button secondary">Sample screen</ColorPicker.EyeDropperTrigger>
+      </div>
+      <ColorPicker.SwatchGroup className="playground-color-picker-swatches" aria-label="Color presets">
+        {colorPickerPresets.map((value) => (
+          <ColorPicker.SwatchTrigger key={value} value={value} aria-label={`Use ${value}`}>
+            <ColorPicker.Swatch
+              className="playground-color-picker-swatch"
+              value={value}
+              {...partProps("swatch", { propCheck: s.propCheck, customSlot: s.customSwatchSlot }, "color-picker-swatch-custom")}
+            >
+              <ColorPicker.SwatchIndicator className="playground-color-picker-indicator">✓</ColorPicker.SwatchIndicator>
+            </ColorPicker.Swatch>
+          </ColorPicker.SwatchTrigger>
+        ))}
+      </ColorPicker.SwatchGroup>
+    </div>
+  );
 }
 
 function MultiSelectCanvas({ scenario }: { scenario: ReturnType<typeof useMultiSelectScenario> }) {
@@ -1207,6 +1463,7 @@ export function clearSelectionPrimitiveLog(scenarioId: string, scenarios: Select
 }
 
 export function getSelectionPrimitiveCanvasFooter(scenarioId: string, scenarios: SelectionPrimitiveScenarios) {
+  if (scenarioId === "color-picker") return `Value ${scenarios.colorPicker.state.value} | ${scenarios.colorPicker.state.format} | ${scenarios.colorPicker.state.inline ? "inline" : scenarios.colorPicker.state.open ? "open" : "closed"}`;
   if (scenarioId === "checkbox-group") return `Value ${scenarios.checkboxGroup.state.value.join(", ") || "none"}`;
   if (scenarioId === "slider") return `Value ${Array.isArray(scenarios.slider.state.value) ? scenarios.slider.state.value.join(", ") : scenarios.slider.state.value}`;
   if (scenarioId === "rating") return `Value ${scenarios.rating.state.value}`;
@@ -1217,6 +1474,7 @@ export function getSelectionPrimitiveCanvasFooter(scenarioId: string, scenarios:
 }
 
 export function getSelectionPrimitiveSource(scenarioId: string, scenarios?: SelectionPrimitiveScenarios) {
+  if (scenarioId === "color-picker" && scenarios) return getColorPickerSource(scenarios.colorPicker.state);
   if (scenarioId === "checkbox-group" && scenarios) return getCheckboxGroupSource(scenarios.checkboxGroup.state);
   if (scenarioId === "slider" && scenarios) return getSliderSource(scenarios.slider.state);
   if (scenarioId === "rating" && scenarios) return getRatingSource(scenarios.rating.state);
@@ -1227,6 +1485,59 @@ export function getSelectionPrimitiveSource(scenarioId: string, scenarios?: Sele
   return `// ${name} playground scenario
 // The live source panel is intentionally compact for this batch.
 // Use Anatomy and Inspector to verify the generated ARIA, data, and native attributes.`;
+}
+
+function getColorPickerSource(state: ReturnType<typeof useColorPickerScenario>["state"]) {
+  const valueProp = state.controlled
+    ? `value="${state.value}"`
+    : `defaultValue="${state.value}"`;
+  const body = `  <ColorPicker.Area>
+    <ColorPicker.AreaBackground />
+    <ColorPicker.AreaThumb />
+  </ColorPicker.Area>
+  <ColorPicker.ChannelSlider channel="hue">
+    <ColorPicker.ChannelSliderTrack />
+    <ColorPicker.ChannelSliderThumb />
+  </ColorPicker.ChannelSlider>
+  <ColorPicker.ChannelSlider channel="alpha">
+    <ColorPicker.TransparencyGrid />
+    <ColorPicker.ChannelSliderTrack />
+    <ColorPicker.ChannelSliderThumb />
+  </ColorPicker.ChannelSlider>
+  <ColorPicker.FormatSelect />
+  <ColorPicker.ChannelInput channel="alpha" />
+  <ColorPicker.SwatchGroup>
+    <ColorPicker.SwatchTrigger value="#5b5bd6">
+      <ColorPicker.Swatch value="#5b5bd6">
+        <ColorPicker.SwatchIndicator>✓</ColorPicker.SwatchIndicator>
+      </ColorPicker.Swatch>
+    </ColorPicker.SwatchTrigger>
+  </ColorPicker.SwatchGroup>`;
+  const picker = state.inline
+    ? body
+    : `  <ColorPicker.Trigger>Choose color</ColorPicker.Trigger>
+  <ColorPicker.Positioner>
+    <ColorPicker.Content>
+${body.split("\n").map((line) => `    ${line}`).join("\n")}
+    </ColorPicker.Content>
+  </ColorPicker.Positioner>`;
+
+  return `<ColorPicker.Root
+  ${valueProp}
+  format="${state.format}"
+  name="accent"${state.inline ? "\n  inline" : ""}${state.closeOnSelect ? "\n  closeOnSelect" : ""}${state.disabled ? "\n  disabled" : ""}${state.readOnly ? "\n  readOnly" : ""}${state.required ? "\n  required" : ""}${state.invalid ? "\n  invalid" : ""}
+  onValueChange={setValue}
+>
+  <ColorPicker.Label>Accent color</ColorPicker.Label>
+  <ColorPicker.Control>
+    <ColorPicker.ValueSwatch />
+    <ColorPicker.Input />
+    <ColorPicker.NativeInput />
+  </ColorPicker.Control>
+  <ColorPicker.ValueText />
+${picker}
+  <ColorPicker.HiddenInput />
+</ColorPicker.Root>`;
 }
 
 function getMultiSelectSource(state: ReturnType<typeof useMultiSelectScenario>["state"]) {
@@ -1548,6 +1859,7 @@ function renderComboboxSourcePart(part: "Label" | "Input" | "Clear", mode: Compo
 }
 
 function getSections(scenarioId: string, scenarios: SelectionPrimitiveScenarios): AnatomySection[] {
+  if (scenarioId === "color-picker") return colorPickerSections(scenarios.colorPicker.state);
   if (scenarioId === "checkbox-group") return checkboxGroupSections(scenarios.checkboxGroup.state);
   if (scenarioId === "slider") return sliderSections(scenarios.slider.state);
   if (scenarioId === "rating") return ratingSections(scenarios.rating.state);
@@ -1555,6 +1867,44 @@ function getSections(scenarioId: string, scenarios: SelectionPrimitiveScenarios)
   if (scenarioId === "multi-select") return multiSelectSections(scenarios.multiSelect.state);
   if (scenarioId === "combobox") return comboboxSections(scenarios.combobox.state);
   return [];
+}
+
+function colorPickerSections(state: ReturnType<typeof useColorPickerScenario>["state"]): AnatomySection[] {
+  const contentInactive = state.inline || !state.open;
+  return [
+    baseSection("Root", state.value, slotSelector("color-picker", "color-picker-root-custom"), [
+      row("Value", state.value, "state"),
+      row("Format", state.format, "state"),
+      row("Controlled value", bool(state.controlled), "state"),
+      row("Controlled open", bool(state.controlledOpen), "state"),
+      row("Inline", bool(state.inline), "behavior"),
+      row("Close on select", bool(state.closeOnSelect), "behavior"),
+      row("Disabled", bool(state.disabled), "state"),
+      row("Read only", bool(state.readOnly), "state"),
+      row("Required", bool(state.required), "state"),
+      row("Invalid", bool(state.invalid), "state"),
+    ]),
+    baseSection("Label", "Accent color", "[data-slot='color-picker-label']"),
+    baseSection("Control", "value controls", "[data-slot='color-picker-control']"),
+    baseSection("Value Swatch", state.value, "[data-slot='color-picker-value-swatch']"),
+    baseSection("Input", state.value, slotSelector("color-picker-input", "color-picker-input-custom")),
+    baseSection("Native Input", "opaque platform chooser", "[data-slot='color-picker-native-input']"),
+    baseSection("Trigger", state.inline ? "not rendered" : state.open ? "open" : "closed", "[data-slot='color-picker-trigger']", undefined, state.inline),
+    baseSection("Positioner", contentInactive ? "not rendered" : "positioned", "[data-slot='color-picker-positioner']", undefined, contentInactive),
+    baseSection("Content", contentInactive ? "not rendered" : "open", "[data-slot='color-picker-content']", undefined, contentInactive),
+    baseSection("Area", "saturation and brightness", slotSelector("color-picker-area", "color-picker-area-custom")),
+    baseSection("Area Background", "gradient", "[data-slot='color-picker-area-background']"),
+    baseSection("Area Thumb", "current point", "[data-slot='color-picker-area-thumb']"),
+    baseSection("Channel Slider", "hue and alpha", "[data-slot='color-picker-channel-slider']"),
+    baseSection("Channel Input", state.format, "[data-slot='color-picker-channel-input']"),
+    baseSection("Transparency Grid", "alpha backdrop", "[data-slot='color-picker-transparency-grid']"),
+    baseSection("Eye Dropper", "progressive", "[data-slot='color-picker-eye-dropper-trigger']"),
+    baseSection("Swatch Group", "four presets", "[data-slot='color-picker-swatch-group']"),
+    baseSection("Swatch", "selectable preset", slotSelector("color-picker-swatch", "color-picker-swatch-custom")),
+    baseSection("Swatch Indicator", "selected preset", "[data-slot='color-picker-swatch-indicator']"),
+    baseSection("Format Select", state.format, "[data-slot='color-picker-format-select']"),
+    baseSection("Hidden Input", state.value, "input[type='hidden'][name='accent']"),
+  ];
 }
 
 function multiSelectSections(state: ReturnType<typeof useMultiSelectScenario>["state"]): AnatomySection[] {
@@ -1864,6 +2214,7 @@ function getSelectedValues(value: string | string[] | null) {
 }
 
 function getScenario(scenarioId: string, scenarios: SelectionPrimitiveScenarios) {
+  if (scenarioId === "color-picker") return scenarios.colorPicker;
   if (scenarioId === "checkbox-group") return scenarios.checkboxGroup;
   if (scenarioId === "slider") return scenarios.slider;
   if (scenarioId === "rating") return scenarios.rating;
@@ -1901,4 +2252,9 @@ const ratingValueOptions = [
   { label: "3.5", value: "3.5" },
   { label: "4.5", value: "4.5" },
   { label: "5", value: "5" },
+];
+const colorPickerFormatOptions = [
+  { label: "RGBA", value: "rgba" },
+  { label: "HSLA", value: "hsla" },
+  { label: "HSBA", value: "hsba" },
 ];
