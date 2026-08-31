@@ -49,7 +49,7 @@
     {
       "id": "color-picker-platform-progressive",
       "level": "must",
-      "statement": "Treat EyeDropper and NativeInput as progressive platform features; NativeInput is opaque-only and unsupported or cancelled EyeDropper use is a no-op."
+      "statement": "Treat EyeDropper and NativeInput as progressive platform features; NativeInput is opaque-only, unsupported EyeDropper triggers are disabled with data-unsupported, and cancellation is a no-op."
     },
     {
       "id": "color-picker-swatch-shape",

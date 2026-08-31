@@ -1,5 +1,12 @@
 # Atom Changelog
 
+## 0.26.1 - 2026-08-31
+
+- Disabled `ColorPicker.EyeDropperTrigger` and exposed `data-unsupported` when
+  the secure browser EyeDropper API is unavailable, replacing an apparently
+  actionable control that silently did nothing while preserving cancellation
+  as a no-op.
+
 ## 0.26.0 - 2026-08-31
 
 - Expanded `ColorPicker` with RGBA/HSLA/HSBA conversion, alpha, accessible 2D

@@ -451,12 +451,35 @@ test("ColorPicker EyeDropper is progressive and reports the sampled color at int
         ),
       ),
     ));
+    const trigger = container.querySelector("[data-slot='color-picker-eye-dropper-trigger']");
+    assert.equal(trigger.disabled, false);
+    assert.equal(trigger.hasAttribute("data-unsupported"), false);
     await React.act(async () => {
-      container.querySelector("[data-slot='color-picker-eye-dropper-trigger']").click();
+      trigger.click();
       await flush(50);
     });
     assert.deepEqual(ended, ["#2468ac"]);
     assert.equal(container.querySelector("[data-test-color]").textContent.toLowerCase(), "#2468ac");
+  } finally {
+    await React.act(async () => root.unmount());
+    cleanup();
+  }
+});
+
+test("ColorPicker exposes unsupported EyeDropper as unavailable instead of a broken action", async () => {
+  const { container, cleanup } = installDom();
+  const root = await createTestRoot(container);
+  try {
+    await React.act(async () => root.render(
+      React.createElement(
+        ColorPicker.Root,
+        null,
+        React.createElement(ColorPicker.EyeDropperTrigger, null, "Sample screen"),
+      ),
+    ));
+    const trigger = container.querySelector("[data-slot='color-picker-eye-dropper-trigger']");
+    assert.equal(trigger.disabled, true);
+    assert.equal(trigger.hasAttribute("data-unsupported"), true);
   } finally {
     await React.act(async () => root.unmount());
     cleanup();
