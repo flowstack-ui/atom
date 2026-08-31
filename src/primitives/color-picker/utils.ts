@@ -1,10 +1,23 @@
+import { parse, type Color } from "@zag-js/color-picker";
+
 export const COLOR_PICKER_DEFAULT_VALUE = "#000000";
 
-export function normalizeColorPickerValue(value: string): string | null {
-  const input = value.trim().toLowerCase();
-  const short = /^#([\da-f]{3})$/i.exec(input);
-  if (short) {
-    return `#${short[1].split("").map((channel) => channel + channel).join("")}`;
+export function parseColorPickerValue(value: string): Color | null {
+  try {
+    return parse(value.trim());
+  } catch {
+    return null;
   }
-  return /^#[\da-f]{6}$/i.test(input) ? input : null;
+}
+
+/**
+ * Parses any supported color string and returns a stable lowercase hexadecimal
+ * form. Alpha is retained when it is not fully opaque.
+ */
+export function normalizeColorPickerValue(value: string): string | null {
+  const color = parseColorPickerValue(value);
+  if (!color) return null;
+  return color
+    .toString(color.getChannelValue("alpha") < 1 ? "hexa" : "hex")
+    .toLowerCase();
 }

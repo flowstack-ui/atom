@@ -245,6 +245,12 @@ const scenarios: Scenario[] = [
     checks: ["Toggles several values", "Stays open after selection", "Submits every value"],
   },
   {
+    id: "color-picker",
+    label: "Color Picker",
+    category: "Selection",
+    checks: ["Area and channels agree", "Formats preserve color", "Presets and form value update"],
+  },
+  {
     id: "context-menu",
     label: "Context Menu",
     category: "Overlays",

@@ -1,26 +1,42 @@
 "use client";
 
-import { forwardRef, useCallback, useId, useMemo, useRef, type ReactNode } from "react";
-import { useControllableState } from "../../hooks/useControllableState.js";
-import { useFormReset } from "../../hooks/useFormReset.js";
+import * as zagColorPicker from "@zag-js/color-picker";
+import { mergeProps, normalizeProps, useMachine } from "@zag-js/react";
+import {
+  forwardRef,
+  useId,
+  useMemo,
+  type ComponentPropsWithoutRef,
+  type ReactNode,
+} from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
-import { composeRefs } from "../../utils/slot.js";
+import { useDirection, type DirectionValue } from "../direction/index.js";
 import { useFieldContext } from "../field/context.js";
-import { PopoverRoot } from "../popover/index.js";
-import type { PopoverCloseReason } from "../popover/context.js";
-import { ColorPickerContextProvider, type ColorPickerContextValue } from "./context.js";
-import { COLOR_PICKER_DEFAULT_VALUE, normalizeColorPickerValue } from "./utils.js";
+import { ColorPickerContextProvider } from "./context.js";
+import { COLOR_PICKER_DEFAULT_VALUE, parseColorPickerValue } from "./utils.js";
 
 type RootNativeProps = NativeDivProps<"children" | "defaultValue" | "onChange">;
 
 export interface ColorPickerRootProps extends RootNativeProps {
   children: ReactNode;
-  value?: string;
-  defaultValue?: string;
-  onValueChange?: (value: string) => void;
+  value?: string | zagColorPicker.Color;
+  defaultValue?: string | zagColorPicker.Color;
+  onValueChange?: (details: zagColorPicker.ValueChangeDetails) => void;
+  onValueChangeEnd?: (details: zagColorPicker.ValueChangeDetails) => void;
+  format?: zagColorPicker.ColorFormat;
+  defaultFormat?: zagColorPicker.ColorFormat;
+  onFormatChange?: (details: zagColorPicker.FormatChangeDetails) => void;
   open?: boolean;
   defaultOpen?: boolean;
-  onOpenChange?: (open: boolean, reason?: PopoverCloseReason) => void;
+  onOpenChange?: (details: zagColorPicker.OpenChangeDetails) => void;
+  closeOnSelect?: boolean;
+  inline?: boolean;
+  openAutoFocus?: boolean;
+  initialFocusEl?: () => HTMLElement | null;
+  positioning?: zagColorPicker.PositioningOptions;
+  onFocusOutside?: zagColorPicker.Props["onFocusOutside"];
+  onInteractOutside?: zagColorPicker.Props["onInteractOutside"];
+  onPointerDownOutside?: zagColorPicker.Props["onPointerDownOutside"];
   disabled?: boolean;
   readOnly?: boolean;
   invalid?: boolean;
@@ -28,7 +44,17 @@ export interface ColorPickerRootProps extends RootNativeProps {
   name?: string;
   form?: string;
   inputId?: string;
+  dir?: DirectionValue;
   "data-slot"?: string;
+}
+
+function resolveColor(
+  value: string | zagColorPicker.Color | undefined,
+  fallback: zagColorPicker.Color,
+): zagColorPicker.Color | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== "string") return value;
+  return parseColorPickerValue(value) ?? fallback;
 }
 
 export const ColorPickerRoot = forwardRef<HTMLDivElement, ColorPickerRootProps>(
@@ -38,77 +64,90 @@ export const ColorPickerRoot = forwardRef<HTMLDivElement, ColorPickerRootProps>(
       value,
       defaultValue = COLOR_PICKER_DEFAULT_VALUE,
       onValueChange,
+      onValueChangeEnd,
+      format,
+      defaultFormat,
+      onFormatChange,
       open,
       defaultOpen,
       onOpenChange,
+      closeOnSelect,
+      inline,
+      openAutoFocus,
+      initialFocusEl,
+      positioning,
+      onFocusOutside,
+      onInteractOutside,
+      onPointerDownOutside,
       disabled,
       readOnly,
       invalid,
       required,
       name,
       form,
-      inputId: inputIdProp,
+      inputId,
+      dir: dirProp,
+      id: idProp,
       "data-slot": dataSlot = "color-picker",
       ...restProps
     },
     ref,
   ) {
     const field = useFieldContext();
-    const generatedInputId = useId();
-    const inputId = inputIdProp ?? field?.controlId ?? generatedInputId;
-    const isDisabled = disabled ?? field?.disabled ?? false;
-    const isReadOnly = readOnly ?? field?.readOnly ?? false;
-    const isInvalid = invalid ?? field?.invalid ?? false;
-    const isRequired = required ?? field?.required ?? false;
-    const normalizedDefault = normalizeColorPickerValue(defaultValue) ?? COLOR_PICKER_DEFAULT_VALUE;
-    const normalizedControlled = value === undefined ? undefined : normalizeColorPickerValue(value) ?? COLOR_PICKER_DEFAULT_VALUE;
-    const [resolvedValue, setResolvedValue] = useControllableState({
-      value: normalizedControlled,
-      defaultValue: normalizedDefault,
-      onChange: onValueChange,
-    });
-    const rootRef = useRef<HTMLDivElement | null>(null);
-    const composedRef = useMemo(() => composeRefs(rootRef, ref), [ref]);
-    const reset = useCallback(() => setResolvedValue(normalizedDefault), [normalizedDefault, setResolvedValue]);
-    useFormReset(rootRef, form, value !== undefined, reset);
-    const setValue = useCallback((nextValue: string) => {
-      const normalized = normalizeColorPickerValue(nextValue);
-      if (!normalized || isDisabled || isReadOnly) return;
-      setResolvedValue(normalized);
-    }, [isDisabled, isReadOnly, setResolvedValue]);
-    const contextValue = useMemo<ColorPickerContextValue>(() => ({
-      value: resolvedValue,
-      setValue,
-      disabled: isDisabled,
-      readOnly: isReadOnly,
-      invalid: isInvalid,
-      required: isRequired,
-      inputId,
+    const contextDir = useDirection();
+    const generatedId = useId();
+    const fallback = useMemo(
+      () => parseColorPickerValue(COLOR_PICKER_DEFAULT_VALUE)!,
+      [],
+    );
+    const parsedDefaultValue = resolveColor(defaultValue, fallback) ?? fallback;
+    const parsedValue = resolveColor(value, fallback);
+    const machine = useMachine(zagColorPicker.machine, {
+      id: idProp ?? generatedId,
+      ids: inputId ?? field?.controlId
+        ? { input: inputId ?? field?.controlId }
+        : undefined,
+      dir: dirProp ?? contextDir,
+      value: parsedValue,
+      defaultValue: parsedDefaultValue,
+      onValueChange,
+      onValueChangeEnd,
+      format,
+      defaultFormat,
+      onFormatChange,
+      open,
+      defaultOpen,
+      onOpenChange,
+      closeOnSelect,
+      inline,
+      openAutoFocus,
+      initialFocusEl,
+      positioning,
+      onFocusOutside,
+      onInteractOutside,
+      onPointerDownOutside,
+      disabled: disabled ?? field?.disabled,
+      readOnly: readOnly ?? field?.readOnly,
+      invalid: invalid ?? field?.invalid,
+      required: required ?? field?.required,
       name,
-      form,
-    }), [form, inputId, isDisabled, isInvalid, isReadOnly, isRequired, name, resolvedValue, setValue]);
+    });
+    const api = zagColorPicker.connect(machine, normalizeProps);
+    const mergedProps = mergeProps(
+      api.getRootProps() as Record<string, unknown>,
+      { ...restProps, "data-slot": dataSlot } as Record<string, unknown>,
+    ) as ComponentPropsWithoutRef<"div"> & { "data-slot": string };
+    const contextValue = useMemo(
+      () => ({ api, form, onValueChangeEnd }),
+      [api, form, onValueChangeEnd],
+    );
 
     return (
-      <PopoverRoot
-        open={open}
-        defaultOpen={defaultOpen}
-        onOpenChange={onOpenChange}
-        disabled={isDisabled}
-      >
-        <ColorPickerContextProvider value={contextValue}>
-          <div
-            {...restProps}
-            ref={composedRef}
-            data-slot={dataSlot}
-            data-disabled={isDisabled ? "" : undefined}
-            data-readonly={isReadOnly ? "" : undefined}
-            data-invalid={isInvalid ? "" : undefined}
-            data-required={isRequired ? "" : undefined}
-          >
-            {children}
-          </div>
-        </ColorPickerContextProvider>
-      </PopoverRoot>
+      <ColorPickerContextProvider value={contextValue}>
+        <div {...mergedProps} ref={ref}>
+          {children}
+        </div>
+      </ColorPickerContextProvider>
     );
   },
 );

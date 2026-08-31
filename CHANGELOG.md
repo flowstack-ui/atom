@@ -1,5 +1,15 @@
 # Atom Changelog
 
+## 0.26.0 - 2026-08-31
+
+- Expanded `ColorPicker` with RGBA/HSLA/HSBA conversion, alpha, accessible 2D
+  area and channel interactions, format and channel controls, value and preset
+  swatches, completion events, RTL, progressive EyeDropper behavior, inline or
+  positioned composition, form reset, documentation, and exact-version Agent
+  Knowledge. The headless Zag color-picker state machine now supplies the
+  coherent color and interaction model while FLOWSTACK retains its own public
+  anatomy and styling boundary.
+
 ## 0.25.1 - 2026-08-30
 
 - Prevented Highlight from accepting or forwarding `dangerouslySetInnerHTML`,

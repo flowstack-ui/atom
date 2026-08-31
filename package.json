@@ -1,6 +1,6 @@
 {
   "name": "@flowstack-ui/atom",
-  "version": "0.25.1",
+  "version": "0.26.0",
   "browserslist": [
     "baseline 2023 with downstream"
   ],
@@ -385,7 +385,9 @@
     "react-dom": ">=18"
   },
   "dependencies": {
-    "@floating-ui/react": "^0.27.19"
+    "@floating-ui/react": "^0.27.19",
+    "@zag-js/color-picker": "1.43.3",
+    "@zag-js/react": "1.43.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.0",

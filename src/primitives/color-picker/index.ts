@@ -1,25 +1,80 @@
 export { ColorPickerRoot } from "./ColorPickerRoot.js";
 export type { ColorPickerRootProps } from "./ColorPickerRoot.js";
 export {
+  ColorPickerArea,
+  ColorPickerAreaBackground,
+  ColorPickerAreaThumb,
+  ColorPickerChannelInput,
+  ColorPickerChannelSlider,
+  ColorPickerChannelSliderLabel,
+  ColorPickerChannelSliderThumb,
+  ColorPickerChannelSliderTrack,
+  ColorPickerChannelSliderValueText,
   ColorPickerContent,
+  ColorPickerContext,
   ColorPickerControl,
+  ColorPickerEyeDropperTrigger,
+  ColorPickerFormatSelect,
+  ColorPickerFormatTrigger,
   ColorPickerHiddenInput,
   ColorPickerInput,
   ColorPickerLabel,
   ColorPickerNativeInput,
+  ColorPickerPositioner,
+  ColorPickerSwatch,
+  ColorPickerSwatchGroup,
+  ColorPickerSwatchIndicator,
   ColorPickerSwatchTrigger,
+  ColorPickerTransparencyGrid,
   ColorPickerTrigger,
+  ColorPickerValueSwatch,
+  ColorPickerValueText,
+  ColorPickerView,
 } from "./parts.js";
 export type {
+  ColorPickerAreaBackgroundProps,
+  ColorPickerAreaProps,
+  ColorPickerAreaThumbProps,
+  ColorPickerChannelInputProps,
+  ColorPickerChannelSliderLabelProps,
+  ColorPickerChannelSliderProps,
+  ColorPickerChannelSliderThumbProps,
+  ColorPickerChannelSliderTrackProps,
+  ColorPickerChannelSliderValueTextProps,
   ColorPickerContentProps,
+  ColorPickerContextProps,
   ColorPickerControlProps,
+  ColorPickerEyeDropperTriggerProps,
+  ColorPickerFormatSelectProps,
+  ColorPickerFormatTriggerProps,
   ColorPickerHiddenInputProps,
   ColorPickerInputProps,
   ColorPickerLabelProps,
   ColorPickerNativeInputProps,
+  ColorPickerPositionerProps,
+  ColorPickerSwatchGroupProps,
+  ColorPickerSwatchIndicatorProps,
+  ColorPickerSwatchProps,
   ColorPickerSwatchTriggerProps,
+  ColorPickerTransparencyGridProps,
   ColorPickerTriggerProps,
+  ColorPickerValueSwatchProps,
+  ColorPickerValueTextProps,
+  ColorPickerViewProps,
 } from "./parts.js";
 export { useColorPickerContext } from "./context.js";
 export type { ColorPickerContextValue } from "./context.js";
-export { COLOR_PICKER_DEFAULT_VALUE, normalizeColorPickerValue } from "./utils.js";
+export {
+  COLOR_PICKER_DEFAULT_VALUE,
+  normalizeColorPickerValue,
+  parseColorPickerValue,
+} from "./utils.js";
+import type { Color as ZagColor } from "@zag-js/color-picker";
+export type Color = ZagColor;
+export type {
+  ColorChannel as ColorPickerColorChannel,
+  ColorFormat as ColorPickerColorFormat,
+  FormatChangeDetails as ColorPickerFormatChangeDetails,
+  OpenChangeDetails as ColorPickerOpenChangeDetails,
+  ValueChangeDetails as ColorPickerValueChangeDetails,
+} from "@zag-js/color-picker";

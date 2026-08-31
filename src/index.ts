@@ -74,32 +74,7 @@ export {
   VisuallyHidden,
 } from "./namespaces.js";
 
-export {
-  COLOR_PICKER_DEFAULT_VALUE,
-  ColorPickerContent,
-  ColorPickerControl,
-  ColorPickerHiddenInput,
-  ColorPickerInput,
-  ColorPickerLabel,
-  ColorPickerNativeInput,
-  ColorPickerRoot,
-  ColorPickerSwatchTrigger,
-  ColorPickerTrigger,
-  normalizeColorPickerValue,
-  useColorPickerContext,
-} from "./primitives/color-picker/index.js";
-export type {
-  ColorPickerContentProps,
-  ColorPickerContextValue,
-  ColorPickerControlProps,
-  ColorPickerHiddenInputProps,
-  ColorPickerInputProps,
-  ColorPickerLabelProps,
-  ColorPickerNativeInputProps,
-  ColorPickerRootProps,
-  ColorPickerSwatchTriggerProps,
-  ColorPickerTriggerProps,
-} from "./primitives/color-picker/index.js";
+export * from "./primitives/color-picker/index.js";
 
 export * from "./primitives/drag-drop/index.js";
 export * from "./primitives/reorder/index.js";
