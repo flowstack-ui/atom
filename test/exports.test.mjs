@@ -36,6 +36,8 @@ import {
   DataGridBody,
   DataGridCaption,
   DataGridCell,
+  DataGridColumn,
+  DataGridColumnGroup,
   DataGridColumnHeader,
   DataGridFooter,
   DataGridHeader,
@@ -104,6 +106,8 @@ import {
   TableBody,
   TableCaption,
   TableCell,
+  TableColumn,
+  TableColumnGroup,
   TableFooter,
   TableHead,
   TableHeader,
@@ -121,6 +125,8 @@ import {
   TreeGridBody,
   TreeGridCaption,
   TreeGridCell,
+  TreeGridColumn,
+  TreeGridColumnGroup,
   TreeGridColumnHeader,
   TreeGridHeader,
   TreeGridRoot,
@@ -268,6 +274,8 @@ test("package subpath exports can be imported through package self-reference", a
 
     if (subpath === "data-grid") {
       assert.equal(mod.DataGrid.Root, mod.DataGridRoot);
+      assert.equal(mod.DataGrid.ColumnGroup, mod.DataGridColumnGroup);
+      assert.equal(mod.DataGrid.Column, mod.DataGridColumn);
       assert.equal(mod.DataGrid.Header, mod.DataGridHeader);
       assert.equal(mod.DataGrid.Body, mod.DataGridBody);
       assert.equal(mod.DataGrid.Footer, mod.DataGridFooter);
@@ -388,6 +396,8 @@ test("package subpath exports can be imported through package self-reference", a
 
     if (subpath === "tree-grid") {
       assert.equal(mod.TreeGrid.Root, mod.TreeGridRoot);
+      assert.equal(mod.TreeGrid.ColumnGroup, mod.TreeGridColumnGroup);
+      assert.equal(mod.TreeGrid.Column, mod.TreeGridColumn);
       assert.equal(mod.TreeGrid.Header, mod.TreeGridHeader);
       assert.equal(mod.TreeGrid.Body, mod.TreeGridBody);
       assert.equal(mod.TreeGrid.Row, mod.TreeGridRow);
@@ -484,6 +494,8 @@ test("package subpath exports can be imported through package self-reference", a
 
     if (subpath === "table") {
       assert.equal(mod.Table.Root, mod.TableRoot);
+      assert.equal(mod.Table.ColumnGroup, mod.TableColumnGroup);
+      assert.equal(mod.Table.Column, mod.TableColumn);
       assert.equal(mod.Table.Header, mod.TableHeader);
       assert.equal(mod.Table.Body, mod.TableBody);
       assert.equal(mod.Table.Footer, mod.TableFooter);

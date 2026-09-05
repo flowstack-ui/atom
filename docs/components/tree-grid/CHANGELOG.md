@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added optional native `ColumnGroup` and `Column` parts for table-layout
+  sizing hints without changing indexed treegrid semantics or hierarchy.
+
 ## 0.24.0
 
 - Added source-led Agent Knowledge for hierarchical grid selection, indexed

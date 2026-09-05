@@ -15,7 +15,7 @@ Provide a flat ARIA grid with one Root focus target, active-descendant cell navi
 
 ## Required composition
 
-- Give Root an accessible name and accurate total counts, then compose Caption when useful, Header and Body rowgroups, uniquely valued and accurately indexed Rows, indexed ColumnHeader and Cell parts, and Footer only for summaries. Configure selection and controlled active-cell state deliberately.
+- Give Root an accessible name and accurate total counts, optionally place native ColumnGroup and Column sizing hints before Header, then compose Caption when useful, Header and Body rowgroups, uniquely valued and accurately indexed Rows, indexed ColumnHeader and Cell parts, and Footer only for summaries. Configure selection and controlled active-cell state deliberately.
 
 ## Rules
 
@@ -25,6 +25,7 @@ Provide a flat ARIA grid with one Root focus target, active-descendant cell navi
 - **MUST:** Preserve controlled or uncontrolled active-cell and selection state, disabled behavior, and read-only navigation without selection mutation.
 - **MUST:** Use ColumnHeader onAction for equivalent pointer and active-header Enter activation, keep sortDirection truthful, and leave sorting and data reordering to the application.
 - **MUST:** When windowing, preserve logical indexes and totals and keep the active descendant mounted or move active state before its cell leaves the DOM; Virtualizer supplies geometry, not grid semantics or focus management.
+- **MUST:** Treat Column.htmlWidth as a native CSS-pixel number or percentage sizing hint only; do not pass CSS-unit values, and do not use it to define column indexes, columnCount, hierarchy, navigation, or resizing behavior.
 
 ## Common mistakes
 

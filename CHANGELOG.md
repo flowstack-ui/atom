@@ -1,5 +1,11 @@
 # Atom Changelog
 
+## Unreleased
+
+- Added optional native `ColumnGroup` and `Column` anatomy to Table, DataGrid,
+  and TreeGrid for semantic column sizing hints while preserving each
+  primitive's existing behavior and accessibility ownership.
+
 ## 0.26.1 - 2026-08-31
 
 - Disabled `ColorPicker.EyeDropperTrigger` and exposed `data-unsupported` when

@@ -143,6 +143,8 @@ import {
   DataGridBody,
   DataGridCaption,
   DataGridCell,
+  DataGridColumn,
+  DataGridColumnGroup,
   DataGridColumnHeader,
   DataGridFooter,
   DataGridHeader,
@@ -408,6 +410,8 @@ import {
   TableBody,
   TableCaption,
   TableCell,
+  TableColumn,
+  TableColumnGroup,
   TableFooter,
   TableHead,
   TableHeader,
@@ -424,6 +428,8 @@ import {
   TreeGridBody,
   TreeGridCaption,
   TreeGridCell,
+  TreeGridColumn,
+  TreeGridColumnGroup,
   TreeGridColumnHeader,
   TreeGridFooter,
   TreeGridHeader,
@@ -618,6 +624,8 @@ export const ContextMenu = {
 
 export const DataGrid = {
   Root: DataGridRoot,
+  ColumnGroup: DataGridColumnGroup,
+  Column: DataGridColumn,
   Header: DataGridHeader,
   Body: DataGridBody,
   Footer: DataGridFooter,
@@ -1027,6 +1035,8 @@ export const Tabs = {
 
 export const Table = {
   Root: TableRoot,
+  ColumnGroup: TableColumnGroup,
+  Column: TableColumn,
   Header: TableHeader,
   Body: TableBody,
   Footer: TableFooter,
@@ -1045,6 +1055,8 @@ export const Tree = {
 
 export const TreeGrid = {
   Root: TreeGridRoot,
+  ColumnGroup: TreeGridColumnGroup,
+  Column: TreeGridColumn,
   Header: TreeGridHeader,
   Body: TreeGridBody,
   Footer: TreeGridFooter,

@@ -15,7 +15,7 @@ Combine hierarchical row expansion with ARIA grid cell navigation, active-descen
 
 ## Required composition
 
-- Give Root an accessible name and accurate logical totals, then compose Caption when useful, Header and Body rowgroups, uniquely valued Rows with stable parentValue and level metadata, one RowHeader in the tree column, indexed ColumnHeader and Cell parts, and optional Footer summaries. Configure expansion, active-cell state, and selection deliberately.
+- Give Root an accessible name and accurate logical totals, optionally place native ColumnGroup and Column sizing hints before Header, then compose Caption when useful, Header and Body rowgroups, uniquely valued Rows with stable parentValue and level metadata, one RowHeader in the tree column, indexed ColumnHeader and Cell parts, and optional Footer summaries. Configure expansion, active-cell state, and selection deliberately.
 
 ## Rules
 
@@ -25,6 +25,7 @@ Combine hierarchical row expansion with ARIA grid cell navigation, active-descen
 - **MUST:** Align scalar, array, or null value with selectionMode, use stable unique Row values, and distinguish selectable=false from disabled for parent, header, and summary rows.
 - **MUST:** Use ColumnHeader onAction for equivalent pointer and Enter activation, keep sortDirection truthful, and keep sorting, editing, filtering, and persistence application-owned.
 - **MUST:** When windowing hierarchical rows, preserve logical totals, indexes, levels, and parent visibility and keep the active cell and collapse destination mounted; Virtualizer owns geometry only.
+- **MUST:** Treat Column.htmlWidth as a native CSS-pixel number or percentage sizing hint only; do not pass CSS-unit values, and do not use it to define column indexes, columnCount, hierarchy, navigation, or resizing behavior.
 
 ## Common mistakes
 

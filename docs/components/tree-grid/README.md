@@ -20,6 +20,7 @@ than parent and child nodes.
 - Moves an active descendant cell to its collapsed ancestor's tree-column cell
   when controlled or uncontrolled expansion hides that descendant.
 - Gives actionable column headers equivalent pointer and Enter activation.
+- Provides optional native column-group and column sizing hints.
 - Keeps sorting, filtering, resizing, editing, and virtualization outside the primitive.
 
 ## Import
@@ -33,6 +34,9 @@ import { TreeGrid } from "@flowstack-ui/atom";
 ```tsx
 <TreeGrid.Root>
   <TreeGrid.Caption />
+  <TreeGrid.ColumnGroup>
+    <TreeGrid.Column />
+  </TreeGrid.ColumnGroup>
   <TreeGrid.Header>
     <TreeGrid.Row>
       <TreeGrid.ColumnHeader />
@@ -113,6 +117,38 @@ Provides a visible accessible name or description for the treegrid.
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"tree-grid-caption"` |
+
+### ColumnGroup
+
+Renders a native `colgroup` before Header for optional column sizing hints.
+It does not define grid coordinates, hierarchy, keyboard behavior, or resizing.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"tree-grid-column-group"` |
+
+### Column
+
+Renders a native `col` inside ColumnGroup. `htmlWidth` is only a native
+presentational width hint expressed as a CSS-pixel number or percentage; CSS
+units such as `rem` are not valid for this HTML attribute. Keep `columnIndex`,
+`columnCount`, and hierarchy metadata explicit.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `htmlWidth` | `number \| \`${number}%\`` | - |
+| `span` | `number` | - |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"tree-grid-column"` |
 
 ### Header
 

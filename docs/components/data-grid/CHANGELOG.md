@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added optional native `ColumnGroup` and `Column` parts for table-layout
+  sizing hints without changing indexed grid semantics or keyboard behavior.
+
 ## 0.24.0
 
 - Added source-led Agent Knowledge for grid selection, indexed semantics,

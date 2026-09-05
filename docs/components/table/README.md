@@ -13,6 +13,7 @@ there is no meaningful column structure.
 
 - Renders native table semantics.
 - Provides all standard table structural parts.
+- Provides optional native column-group and column sizing hints.
 - Supports `aria-sort` and `data-sort` on header cells.
 - Leaves sorting, filtering, selection, and keyboard grid behavior to higher-level primitives.
 - Stays server-safe with no client boundary.
@@ -28,6 +29,9 @@ import { Table } from "@flowstack-ui/atom";
 ```tsx
 <Table.Root>
   <Table.Caption />
+  <Table.ColumnGroup>
+    <Table.Column />
+  </Table.ColumnGroup>
   <Table.Header>
     <Table.Row>
       <Table.Head />
@@ -74,6 +78,39 @@ Provides the table's visible accessible name and renders `caption`.
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"table-caption"` |
+
+### ColumnGroup
+
+Renders the native `colgroup` that groups optional column sizing hints. Place it
+before Header. It does not create header relationships or application-owned
+resizing behavior.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"table-column-group"` |
+
+### Column
+
+Renders a native `col` inside ColumnGroup. `htmlWidth` forwards the native
+presentational width hint as a CSS-pixel number or percentage. CSS units such
+as `rem` are not valid for this HTML attribute. It does not claim responsive
+or interactive sizing.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `htmlWidth` | `number \| \`${number}%\`` | - |
+| `span` | `number` | - |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"table-column"` |
 
 ### Header
 

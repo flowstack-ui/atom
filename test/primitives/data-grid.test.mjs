@@ -12,6 +12,8 @@ import {
   DataGridBody,
   DataGridCaption,
   DataGridCell,
+  DataGridColumn,
+  DataGridColumnGroup,
   DataGridColumnHeader,
   DataGridFooter,
   DataGridHeader,
@@ -37,6 +39,12 @@ test("DataGrid compound parts render ARIA grid anatomy", () => {
         defaultActiveCell: { rowIndex: 2, columnIndex: 1 },
       },
       React.createElement(DataGrid.Caption, null, "Orders"),
+      React.createElement(
+        DataGrid.ColumnGroup,
+        null,
+        React.createElement(DataGrid.Column, { htmlWidth: "50%" }),
+        React.createElement(DataGrid.Column, null),
+      ),
       React.createElement(
         DataGrid.Header,
         null,
@@ -71,6 +79,8 @@ test("DataGrid compound parts render ARIA grid anatomy", () => {
   assert.match(html, /data-row-count="2"/);
   assert.match(html, /data-selection-mode="multiple"/);
   assert.match(html, /<caption data-slot="data-grid-caption">Orders<\/caption>/);
+  assert.match(html, /<colgroup data-slot="data-grid-column-group">/);
+  assert.match(html, /<col data-slot="data-grid-column" width="50%"\/>/);
   assert.match(html, /<thead role="rowgroup" data-slot="data-grid-header">/);
   assert.match(html, /<tbody role="rowgroup" data-slot="data-grid-body">/);
   assert.match(html, /<tr role="row" aria-rowindex="2" aria-selected="true" data-slot="data-grid-row" data-selectable="" data-row-index="2" data-value="order-1" data-selected="">/);
@@ -80,6 +90,8 @@ test("DataGrid compound parts render ARIA grid anatomy", () => {
   assert.match(html, /role="gridcell"/);
   assert.match(html, /data-column-index="2"/);
   assert.equal(DataGrid.Root, DataGridRoot);
+  assert.equal(DataGrid.ColumnGroup, DataGridColumnGroup);
+  assert.equal(DataGrid.Column, DataGridColumn);
   assert.equal(DataGrid.Header, DataGridHeader);
   assert.equal(DataGrid.Body, DataGridBody);
   assert.equal(DataGrid.Footer, DataGridFooter);

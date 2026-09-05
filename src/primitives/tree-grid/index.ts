@@ -33,3 +33,7 @@ export { TreeGridCell } from "./TreeGridCell.js";
 export type { TreeGridCellProps } from "./TreeGridCell.js";
 export { TreeGridCaption } from "./TreeGridCaption.js";
 export type { TreeGridCaptionProps } from "./TreeGridCaption.js";
+export { TreeGridColumnGroup } from "./TreeGridColumnGroup.js";
+export type { TreeGridColumnGroupProps } from "./TreeGridColumnGroup.js";
+export { TreeGridColumn } from "./TreeGridColumn.js";
+export type { TreeGridColumnProps } from "./TreeGridColumn.js";

@@ -29,3 +29,7 @@ export { DataGridCell } from "./DataGridCell.js";
 export type { DataGridCellProps } from "./DataGridCell.js";
 export { DataGridCaption } from "./DataGridCaption.js";
 export type { DataGridCaptionProps } from "./DataGridCaption.js";
+export { DataGridColumnGroup } from "./DataGridColumnGroup.js";
+export type { DataGridColumnGroupProps } from "./DataGridColumnGroup.js";
+export { DataGridColumn } from "./DataGridColumn.js";
+export type { DataGridColumnProps } from "./DataGridColumn.js";

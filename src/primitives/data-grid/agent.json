@@ -11,14 +11,15 @@
     { "condition": "People only read and compare tabular values without composite cell navigation or row selection.", "useInstead": "Table" },
     { "condition": "Rows expand into a parent-child hierarchy, or the application expects Atom to own sorting, editing, filtering, resizing, or virtualization.", "useInstead": "TreeGrid or an application composition around DataGrid and the relevant utility" }
   ],
-  "composition": ["Give Root an accessible name and accurate total counts, then compose Caption when useful, Header and Body rowgroups, uniquely valued and accurately indexed Rows, indexed ColumnHeader and Cell parts, and Footer only for summaries. Configure selection and controlled active-cell state deliberately."],
+  "composition": ["Give Root an accessible name and accurate total counts, optionally place native ColumnGroup and Column sizing hints before Header, then compose Caption when useful, Header and Body rowgroups, uniquely valued and accurately indexed Rows, indexed ColumnHeader and Cell parts, and Footer only for summaries. Configure selection and controlled active-cell state deliberately."],
   "rules": [
     { "id": "data-grid-name-indexes", "level": "must", "statement": "Give Root an accessible name and provide stable one-based row and column indexes plus accurate rowCount and columnCount, including the logical full collection when rows are paged or virtualized." },
     { "id": "data-grid-focus", "level": "must", "statement": "Keep DOM focus on Root and preserve aria-activedescendant, Arrow movement, Home and End, whole-grid movement, disabled-cell skipping, RTL mirroring, loop, and wrapRows policy." },
     { "id": "data-grid-selection", "level": "must", "statement": "Align scalar, array, or null state with selectionMode; give selectable rows stable unique values; and use selectable=false for header or summary rows that remain navigable but cannot be selected." },
     { "id": "data-grid-state-boundary", "level": "must", "statement": "Preserve controlled or uncontrolled active-cell and selection state, disabled behavior, and read-only navigation without selection mutation." },
     { "id": "data-grid-header-action", "level": "must", "statement": "Use ColumnHeader onAction for equivalent pointer and active-header Enter activation, keep sortDirection truthful, and leave sorting and data reordering to the application." },
-    { "id": "data-grid-virtualization", "level": "must", "statement": "When windowing, preserve logical indexes and totals and keep the active descendant mounted or move active state before its cell leaves the DOM; Virtualizer supplies geometry, not grid semantics or focus management." }
+    { "id": "data-grid-virtualization", "level": "must", "statement": "When windowing, preserve logical indexes and totals and keep the active descendant mounted or move active state before its cell leaves the DOM; Virtualizer supplies geometry, not grid semantics or focus management." },
+    { "id": "data-grid-column-sizing", "level": "must", "statement": "Treat Column.htmlWidth as a native CSS-pixel number or percentage sizing hint only; do not pass CSS-unit values, and do not use it to define column indexes, columnCount, hierarchy, navigation, or resizing behavior." }
   ],
   "commonMistakes": [
     { "mistake": "Using DataGrid for a read-only table or adding independent Tab stops to every cell.", "correction": "Use Table for read-only comparison and keep DataGrid Root as the composite focus owner." },

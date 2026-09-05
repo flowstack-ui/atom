@@ -21,6 +21,7 @@ to connect those application features.
 - Supports row/column counts, looping, row wrapping, and row-click selection.
 - Gives actionable column headers equivalent pointer and Enter activation.
 - Mirrors horizontal arrows in RTL.
+- Provides optional native column-group and column sizing hints.
 - Supports native table rendering plus `asChild` and `render` composition.
 
 ## Import
@@ -34,6 +35,9 @@ import { DataGrid } from "@flowstack-ui/atom";
 ```tsx
 <DataGrid.Root>
   <DataGrid.Caption />
+  <DataGrid.ColumnGroup>
+    <DataGrid.Column />
+  </DataGrid.ColumnGroup>
   <DataGrid.Header>
     <DataGrid.Row>
       <DataGrid.ColumnHeader />
@@ -114,6 +118,38 @@ Renders the native `caption` that names or summarizes the grid for table users.
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"data-grid-caption"` |
+
+### ColumnGroup
+
+Renders a native `colgroup` before Header for optional column sizing hints.
+It does not define grid coordinates, totals, keyboard behavior, or resizing.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"data-grid-column-group"` |
+
+### Column
+
+Renders a native `col` inside ColumnGroup. `htmlWidth` is only a native
+presentational width hint expressed as a CSS-pixel number or percentage; CSS
+units such as `rem` are not valid for this HTML attribute. Keep `columnIndex`
+and `columnCount` explicit.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `htmlWidth` | `number \| \`${number}%\`` | - |
+| `span` | `number` | - |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"data-grid-column"` |
 
 ### Header
 

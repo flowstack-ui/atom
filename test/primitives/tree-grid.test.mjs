@@ -13,6 +13,8 @@ import {
   TreeGridBody,
   TreeGridCaption,
   TreeGridCell,
+  TreeGridColumn,
+  TreeGridColumnGroup,
   TreeGridColumnHeader,
   TreeGridHeader,
   TreeGridRoot,
@@ -37,6 +39,12 @@ test("TreeGrid compound parts render hierarchical grid anatomy", () => {
         defaultExpandedValue: ["platform"],
       },
       React.createElement(TreeGrid.Caption, null, "Projects"),
+      React.createElement(
+        TreeGrid.ColumnGroup,
+        null,
+        React.createElement(TreeGrid.Column, { htmlWidth: "50%" }),
+        React.createElement(TreeGrid.Column, null),
+      ),
       React.createElement(
         TreeGrid.Header,
         null,
@@ -75,6 +83,8 @@ test("TreeGrid compound parts render hierarchical grid anatomy", () => {
   assert.match(html, /aria-multiselectable="true"/);
   assert.match(html, /data-slot="tree-grid"/);
   assert.match(html, /<caption data-slot="tree-grid-caption">Projects<\/caption>/);
+  assert.match(html, /<colgroup data-slot="tree-grid-column-group">/);
+  assert.match(html, /<col data-slot="tree-grid-column" width="50%"\/>/);
   assert.match(html, /<thead role="rowgroup" data-slot="tree-grid-header">/);
   assert.match(html, /<tbody role="rowgroup" data-slot="tree-grid-body">/);
   assert.match(html, /role="row"/);
@@ -87,6 +97,8 @@ test("TreeGrid compound parts render hierarchical grid anatomy", () => {
   assert.match(html, /role="columnheader"/);
   assert.match(html, /aria-sort="ascending"/);
   assert.equal(TreeGrid.Root, TreeGridRoot);
+  assert.equal(TreeGrid.ColumnGroup, TreeGridColumnGroup);
+  assert.equal(TreeGrid.Column, TreeGridColumn);
   assert.equal(TreeGrid.Header, TreeGridHeader);
   assert.equal(TreeGrid.Body, TreeGridBody);
   assert.equal(TreeGrid.Row, TreeGridRow);
