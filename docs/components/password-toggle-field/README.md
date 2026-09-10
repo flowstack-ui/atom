@@ -5,7 +5,7 @@ Password input with controlled visibility state and a keyboard-accessible show/h
 ## When to Use
 
 Use PasswordToggleField when a password input needs a button that lets people
-check what they typed. Use Input for ordinary text and OTPField for a short
+check what they typed. Use Input for ordinary text and PinInput for a short
 one-time verification code. Only add the visibility toggle when revealing the
 password is acceptable for the product's security and privacy needs.
 

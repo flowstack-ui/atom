@@ -51,6 +51,7 @@ import {
 } from "./context.js";
 import { getPopoverPartPresence, isPopoverPart } from "./parts.js";
 import { getPopoverPointerInteractionType } from "./interaction.js";
+import { DetachedLayerPolicyContext, useDetachedLayerPolicy } from "./detached-policy.js";
 
 declare const process:
   | { env?: { NODE_ENV?: string } }
@@ -86,6 +87,11 @@ export interface PopoverContentProps extends PopoverContentNativeProps {
   finalFocus?: PopoverFocusTarget<PopoverFinalFocusDetails>;
   onInteractOutside?: (event: OutsideInteractionEvent) => void;
   "data-slot"?: string;
+}
+
+/** Internal adapter props, not part of the public Popover export. */
+interface DetachedContentEvents {
+  onFocusOutside?: (event: FocusEvent) => void;
 }
 
 export type PopoverFocusTarget<Details> =
@@ -242,7 +248,7 @@ function hasOpenNestedControlledLayer(ownerContent: HTMLElement): boolean {
   });
 }
 
-export const PopoverContent = forwardRef<HTMLDivElement, PopoverContentProps>(
+export const PopoverContentImpl = forwardRef<HTMLDivElement, PopoverContentProps & DetachedContentEvents>(
 function PopoverContent(props, ref) {
   const {
     children,
@@ -253,6 +259,7 @@ function PopoverContent(props, ref) {
     initialFocus,
     finalFocus,
     onInteractOutside,
+    onFocusOutside,
     "aria-label": nativeAriaLabel,
     "aria-labelledby": nativeAriaLabelledBy,
     "aria-describedby": nativeAriaDescribedBy,
@@ -263,6 +270,7 @@ function PopoverContent(props, ref) {
     style,
     ...restProps
   } = props;
+  const detached = useDetachedLayerPolicy();
   const {
     isOpen,
     onOpen,
@@ -288,7 +296,10 @@ function PopoverContent(props, ref) {
   const beforeGuardRef = useRef<HTMLSpanElement>(null);
   const afterGuardRef = useRef<HTMLSpanElement>(null);
   const arrowRef = useRef<SVGSVGElement>(null);
-  const { isPresent, ref: presenceRef } = usePresence({ present: isOpen });
+  const { isPresent, ref: presenceRef } = usePresence({ present: isOpen, onExitComplete: detached?.onExitComplete });
+  const [hasOpened, setHasOpened] = useState(isOpen);
+  useEffect(() => { if (isOpen) setHasOpened(true); }, [isOpen]);
+  const keepMounted = Boolean(detached && !detached.unmountOnExit && (!detached.lazyMount || hasOpened));
   const [isPositioned, setIsPositioned] = useState(false);
   const visibleParts = getPopoverPartPresence(children);
   const childArray = Children.toArray(children);
@@ -338,13 +349,13 @@ function PopoverContent(props, ref) {
   );
   useFocusScopeContainer(
     beforeGuardRef,
-    isPresent && !modal,
+    isPresent && !modal && !detached,
     undefined,
     popoverFocusScopeMetadata,
   );
   useFocusScopeContainer(
     afterGuardRef,
-    isPresent && !modal,
+    isPresent && !modal && !detached,
     undefined,
     popoverFocusScopeMetadata,
   );
@@ -457,19 +468,40 @@ function PopoverContent(props, ref) {
     refs: clickAwayRefs,
     onInteractOutside: (event) => {
       onInteractOutside?.(event);
-      if (!event.defaultPrevented) {
+      if (!event.defaultPrevented && closeOnInteractOutside) {
         onClose(
           "interactOutside",
           getPopoverPointerInteractionType(event.pointerType),
         );
       }
     },
-    enabled: isOpen && closeOnInteractOutside,
-    ignore: (target) => isInsideNestedControlledLayer(target, contentRef.current),
+    enabled: isOpen && (closeOnInteractOutside || Boolean(detached)),
+    ignore: (target) => isInsideNestedControlledLayer(target, contentRef.current) ||
+      Boolean(detached?.persistentElements?.some((getElement) => getElement()?.contains(target))),
   });
 
+  useLayoutEffect(() => {
+    if (!detached || !isOpen || modal) return;
+    const doc = contentRef.current?.ownerDocument ?? document;
+    const handleFocus = (event: FocusEvent) => {
+      const target = event.target;
+      const content = contentRef.current;
+      if (!(target instanceof Node) || !content || content.contains(target) ||
+        isInsideNestedControlledLayer(target, content) || hasOpenNestedControlledLayer(content) ||
+        detached.persistentElements?.some((getElement) => getElement()?.contains(target))) return;
+      // A native focusin event is not cancelable. Give consumers an explicit
+      // cancelable notification without canceling the browser's focus movement.
+      const notification = new FocusEvent("focusoutside", { cancelable: true, relatedTarget: event.relatedTarget });
+      Object.defineProperty(notification, "target", { value: target });
+      onFocusOutside?.(notification);
+      if (closeOnInteractOutside && !notification.defaultPrevented) onClose("focusOutside", "programmatic");
+    };
+    doc?.addEventListener("focusin", handleFocus);
+    return () => doc?.removeEventListener("focusin", handleFocus);
+  }, [detached, isOpen, isPresent, modal, closeOnInteractOutside, onClose, onFocusOutside]);
+
   useEffect(() => {
-    if (!isOpen || modal) return undefined;
+    if (!isOpen || modal || detached) return undefined;
 
     let focusOutFrame = 0;
     let focusSettleFrame = 0;
@@ -545,7 +577,7 @@ function PopoverContent(props, ref) {
       cancelAnimationFrame(focusSettleFrame);
       content?.removeEventListener("focusout", handleFocusOut);
     };
-  }, [isOpen, modal, onClose, triggerRef]);
+  }, [detached, isOpen, modal, onClose, triggerRef]);
 
   useEffect(() => {
     if (!partRegistryReady || !isOpen) return undefined;
@@ -621,10 +653,10 @@ function PopoverContent(props, ref) {
   );
 
   const { refs, floatingStyles, placement, middlewareData } = useFloating({
-    elements: { reference: referenceElement },
+    elements: { reference: detached ? null : referenceElement },
     placement: toPlacement(side, align),
     middleware,
-    whileElementsMounted: autoUpdate,
+    whileElementsMounted: detached ? undefined : autoUpdate,
     open: isOpen,
     onOpenChange: (open) => {
       if (!open) onClose();
@@ -632,7 +664,7 @@ function PopoverContent(props, ref) {
   });
 
   useEffect(() => {
-    refs.setReference(getPopoverReferenceElement(anchorRef.current, triggerRef.current));
+    if (!detached) refs.setReference(getPopoverReferenceElement(anchorRef.current, triggerRef.current));
   });
 
   const composedRef = useMemo(
@@ -690,11 +722,11 @@ function PopoverContent(props, ref) {
     [actualSide, arrowData?.x, arrowData?.y],
   );
 
-  if (!isPresent) return null;
+  if (!isPresent && !keepMounted) return null;
 
   return (
     <PopoverContentContextProvider value={contentContextValue}>
-      {!modal ? (
+      {!modal && !detached ? (
         <span
           ref={beforeGuardRef}
           aria-hidden="true"
@@ -712,7 +744,8 @@ function PopoverContent(props, ref) {
         dir={dirProp ?? resolvedDir}
         data-slot={dataSlot}
         data-state={isOpen ? "open" : "closed"}
-        data-side={actualSide}
+        data-side={detached ? undefined : actualSide}
+        hidden={detached && !isPresent ? true : restProps.hidden}
         {...(isPositioned ? { "data-positioned": "" } : {})}
         aria-label={nativeAriaLabel}
         aria-labelledby={resolvedAriaLabelledBy}
@@ -722,7 +755,7 @@ function PopoverContent(props, ref) {
         className={className}
         style={{
           ...style,
-          ...floatingStyles,
+          ...(detached ? {} : floatingStyles),
         }}
         onMouseEnter={
           triggerMode === "hover"
@@ -736,13 +769,10 @@ function PopoverContent(props, ref) {
         }
       >
         <FocusScopeProvider scope={focusScope}>
-          <div data-slot="popover-viewport">
-            {viewportChildren}
-          </div>
-          {arrowChildren}
+          {detached ? <DetachedLayerPolicyContext.Provider value={null}>{children}</DetachedLayerPolicyContext.Provider> : <><div data-slot="popover-viewport">{viewportChildren}</div>{arrowChildren}</>}
         </FocusScopeProvider>
       </div>
-      {!modal ? (
+      {!modal && !detached ? (
         <span
           ref={afterGuardRef}
           aria-hidden="true"
@@ -755,3 +785,7 @@ function PopoverContent(props, ref) {
     </PopoverContentContextProvider>
   );
 });
+
+export const PopoverContent = forwardRef<HTMLDivElement, PopoverContentProps>(
+  function PopoverContent(props, ref) { return <PopoverContentImpl {...props} ref={ref} />; },
+);

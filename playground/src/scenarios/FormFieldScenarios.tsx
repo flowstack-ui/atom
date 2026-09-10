@@ -4,7 +4,7 @@ import { Fieldset } from "@flowstack-ui/atom/fieldset";
 import { FileUpload, type FileUploadRejectedFile } from "@flowstack-ui/atom/file-upload";
 import { Input } from "@flowstack-ui/atom/input";
 import { NumberInput } from "@flowstack-ui/atom/number-input";
-import { OTPField } from "@flowstack-ui/atom/otp-field";
+import { PinInput } from "@flowstack-ui/atom/pin-input";
 import { PasswordToggleField } from "@flowstack-ui/atom/password-toggle-field";
 import { RadioGroup } from "@flowstack-ui/atom/radio-group";
 import { Textarea } from "@flowstack-ui/atom/textarea";
@@ -29,7 +29,7 @@ export const formFieldScenarioIds = new Set([
   "textarea",
   "number-input",
   "password-toggle-field",
-  "otp-field",
+  "pin-input",
   "file-upload",
 ]);
 
@@ -88,7 +88,7 @@ export function useFormFieldScenarios() {
     textarea: useTextareaScenario(),
     numberInput: useNumberInputScenario(),
     passwordToggleField: usePasswordToggleFieldScenario(),
-    otpField: useOTPFieldScenario(),
+    pinInput: usePinInputScenario(),
     fileUpload: useFileUploadScenario(),
   };
 }
@@ -458,7 +458,7 @@ function usePasswordToggleFieldScenario() {
   };
 }
 
-function useOTPFieldScenario() {
+function usePinInputScenario() {
   const [controlled, setControlled] = useState(true);
   const [disabled, setDisabled] = useState(false);
   const [invalid, setInvalid] = useState(false);
@@ -471,7 +471,7 @@ function useOTPFieldScenario() {
   const [formOwner, setFormOwner] = useState(false);
   const [autoFocus, setAutoFocus] = useState(false);
   const [useNativeAriaLabel, setUseNativeAriaLabel] = useState(true);
-  const [value, setValue] = useState("123");
+  const [value, setValue] = useState<string[]>(["1", "2", "3"]);
   const [rootComposition, setRootComposition] = useState<CompositionMode>("default");
   const [inputComposition, setInputComposition] = useState<CompositionMode>("default");
   const [separatorComposition, setSeparatorComposition] = useState<CompositionMode>("default");
@@ -532,9 +532,9 @@ function useOTPFieldScenario() {
       setCustomSeparatorSlot,
       setPartRef,
       clearLog,
-      setValue: (next: string) => {
+      setValue: (next: string[]) => {
         setValue(next);
-        addLog(`value changed to ${next || "empty"}`);
+        addLog(`value changed to ${next.join("") || "empty"}`);
       },
       noteComplete: (next: string) => addLog(`complete ${next}`),
       noteSubmit: () => addLog("form submitted"),
@@ -895,8 +895,8 @@ export function FormFieldScenarioToolbar({
     );
   }
 
-  if (scenarioId === "otp-field") {
-    const scenario = scenarios.otpField;
+  if (scenarioId === "pin-input") {
+    const scenario = scenarios.pinInput;
     return (
       <ControlToolbar label="OTP Field controls">
         <ToolbarGroup title="State" value="state">
@@ -996,7 +996,7 @@ export function FormFieldScenarioCanvas({
   if (scenarioId === "textarea") return <TextareaCanvas scenario={scenarios.textarea} />;
   if (scenarioId === "number-input") return <NumberInputCanvas scenario={scenarios.numberInput} />;
   if (scenarioId === "password-toggle-field") return <PasswordToggleFieldCanvas scenario={scenarios.passwordToggleField} />;
-  if (scenarioId === "otp-field") return <OTPFieldCanvas scenario={scenarios.otpField} />;
+  if (scenarioId === "pin-input") return <PinInputCanvas scenario={scenarios.pinInput} />;
   if (scenarioId === "file-upload") return <FileUploadCanvas scenario={scenarios.fileUpload} />;
   return null;
 }
@@ -1593,12 +1593,12 @@ function PasswordToggleFieldCanvas({ scenario }: { scenario: ReturnType<typeof u
   );
 }
 
-function OTPFieldCanvas({ scenario }: { scenario: ReturnType<typeof useOTPFieldScenario> }) {
+function PinInputCanvas({ scenario }: { scenario: ReturnType<typeof usePinInputScenario> }) {
   const state = scenario.state;
   const splitIndex = Math.ceil(state.length / 2);
   const cells = Array.from({ length: state.length }, (_, index) => index).flatMap((index) => {
     const input = (
-      <OTPFieldInput
+      <PinInputInput
         customSlot={state.customInputSlot}
         mode={state.inputComposition}
         index={index}
@@ -1610,7 +1610,7 @@ function OTPFieldCanvas({ scenario }: { scenario: ReturnType<typeof useOTPFieldS
     if (state.length <= 4 || index !== splitIndex - 1) return [input];
     return [
       input,
-      <OTPFieldSeparator
+      <PinInputSeparator
         customSlot={state.customSeparatorSlot}
         mode={state.separatorComposition}
         key="separator"
@@ -1631,7 +1631,7 @@ function OTPFieldCanvas({ scenario }: { scenario: ReturnType<typeof useOTPFieldS
     autoFocus: state.autoFocus,
     autoSubmit: state.autoSubmit,
     className: "playground-otp",
-    ...partProps("root", { customSlot: state.customRootSlot, propCheck: state.propCheck }, "otp-field-custom"),
+    ...partProps("root", { customSlot: state.customRootSlot, propCheck: state.propCheck }, "pin-input-custom"),
     disabled: state.disabled,
     form: state.formOwner ? "otp-demo-form" : undefined,
     invalid: state.invalid,
@@ -1639,7 +1639,8 @@ function OTPFieldCanvas({ scenario }: { scenario: ReturnType<typeof useOTPFieldS
     mask: state.mask,
     name: "code",
     onComplete: scenario.actions.noteComplete,
-    onValueChange: scenario.actions.setValue,
+    onValueChange: ({value}: {value: string[]}) => scenario.actions.setValue(value),
+    otp: true,
     readOnly: state.readOnly,
     ref: scenario.actions.setPartRef("root"),
     required: state.required,
@@ -1647,15 +1648,15 @@ function OTPFieldCanvas({ scenario }: { scenario: ReturnType<typeof useOTPFieldS
     ...(state.controlled ? { value: state.value } : { defaultValue: state.value }),
   };
   const otpRoot = state.rootComposition === "asChild" ? (
-    <OTPField.Root {...rootProps} asChild>
+    <PinInput.Root {...rootProps} asChild>
       <section>{content}</section>
-    </OTPField.Root>
+    </PinInput.Root>
   ) : state.rootComposition === "render" ? (
-    <OTPField.Root {...rootProps} render={(props) => <section {...props} />}>
+    <PinInput.Root {...rootProps} render={(props) => <section {...props} />}>
       {content}
-    </OTPField.Root>
+    </PinInput.Root>
   ) : (
-    <OTPField.Root {...rootProps}>{content}</OTPField.Root>
+    <PinInput.Root {...rootProps}>{content}</PinInput.Root>
   );
 
   return (
@@ -1683,7 +1684,7 @@ function OTPFieldCanvas({ scenario }: { scenario: ReturnType<typeof useOTPFieldS
   );
 }
 
-function OTPFieldInput({
+function PinInputInput({
   customSlot,
   index,
   mode,
@@ -1698,26 +1699,26 @@ function OTPFieldInput({
 }) {
   const props = {
     className: "playground-otp-input",
-    ...partProps(`input-${index}`, { customSlot, propCheck }, "otp-field-input-custom"),
+    ...partProps(`input-${index}`, { customSlot, propCheck }, "pin-input-input-custom"),
     index,
   };
 
   if (mode === "asChild") {
     return (
-      <OTPField.Input {...props} asChild ref={refTarget}>
+      <PinInput.Input {...props} asChild ref={refTarget}>
         <input />
-      </OTPField.Input>
+      </PinInput.Input>
     );
   }
 
   if (mode === "render") {
-    return <OTPField.Input {...props} ref={refTarget} render={(inputProps) => <input {...inputProps} />} />;
+    return <PinInput.Input {...props} ref={refTarget} render={(inputProps) => <input {...inputProps} />} />;
   }
 
-  return <OTPField.Input {...props} ref={refTarget} />;
+  return <PinInput.Input {...props} ref={refTarget} />;
 }
 
-function OTPFieldSeparator({
+function PinInputSeparator({
   customSlot,
   mode,
   propCheck,
@@ -1730,22 +1731,22 @@ function OTPFieldSeparator({
 }) {
   const props = {
     className: "playground-otp-separator",
-    ...partProps("separator", { customSlot, propCheck }, "otp-field-separator-custom"),
+    ...partProps("separator", { customSlot, propCheck }, "pin-input-separator-custom"),
   };
 
   if (mode === "asChild") {
     return (
-      <OTPField.Separator {...props} asChild ref={refTarget}>
+      <PinInput.Separator {...props} asChild ref={refTarget}>
         <span>-</span>
-      </OTPField.Separator>
+      </PinInput.Separator>
     );
   }
 
   if (mode === "render") {
-    return <OTPField.Separator {...props} ref={refTarget} render={(separatorProps) => <span {...separatorProps} />}>-</OTPField.Separator>;
+    return <PinInput.Separator {...props} ref={refTarget} render={(separatorProps) => <span {...separatorProps} />}>-</PinInput.Separator>;
   }
 
-  return <OTPField.Separator {...props} ref={refTarget}>-</OTPField.Separator>;
+  return <PinInput.Separator {...props} ref={refTarget}>-</PinInput.Separator>;
 }
 
 function FileUploadCanvas({ scenario }: { scenario: ReturnType<typeof useFileUploadScenario> }) {
@@ -2102,7 +2103,7 @@ function getFormFieldSections(scenarioId: string, scenarios: FormFieldScenarios)
   if (scenarioId === "textarea") return textareaSections(scenarios.textarea.state);
   if (scenarioId === "number-input") return numberInputSections(scenarios.numberInput.state);
   if (scenarioId === "password-toggle-field") return passwordToggleFieldSections(scenarios.passwordToggleField.state);
-  if (scenarioId === "otp-field") return otpFieldSections(scenarios.otpField.state);
+  if (scenarioId === "pin-input") return pinInputSections(scenarios.pinInput.state);
   if (scenarioId === "file-upload") return fileUploadSections(scenarios.fileUpload.state);
   return [];
 }
@@ -2314,12 +2315,12 @@ function passwordToggleFieldSections(state: ReturnType<typeof usePasswordToggleF
   ];
 }
 
-function otpFieldSections(state: ReturnType<typeof useOTPFieldScenario>["state"]): AnatomySection[] {
+function pinInputSections(state: ReturnType<typeof usePinInputScenario>["state"]): AnatomySection[] {
   return [
     {
       title: "Root",
-      summary: state.value || "empty",
-      selector: "[data-slot='otp-field'], [data-slot='otp-field-custom']",
+      summary: state.value.join("") || "empty",
+      selector: "[data-slot='pin-input'], [data-slot='pin-input-custom']",
       rows: [
         { label: "Ref target", value: state.refs.root ?? "none", category: "identity" },
         { label: "Controlled", value: bool(state.controlled), category: "state" },
@@ -2337,9 +2338,9 @@ function otpFieldSections(state: ReturnType<typeof useOTPFieldScenario>["state"]
         { label: "Required", value: bool(state.required), category: "state" },
       ],
     },
-    withRef(partSection("Input 1", state.inputComposition, "[data-slot='otp-field-input'][data-index='0'], [data-slot='otp-field-input-custom'][data-index='0']"), state.refs["input-0"]),
-    withRef(partSection("Input 2", state.inputComposition, "[data-slot='otp-field-input'][data-index='1'], [data-slot='otp-field-input-custom'][data-index='1']"), state.refs["input-1"]),
-    withRef(partSection("Separator", state.length > 4 ? state.separatorComposition : "not rendered", "[data-slot='otp-field-separator'], [data-slot='otp-field-separator-custom']", state.length <= 4), state.refs.separator),
+    withRef(partSection("Input 1", state.inputComposition, "[data-slot='pin-input-input'][data-index='0'], [data-slot='pin-input-input-custom'][data-index='0']"), state.refs["input-0"]),
+    withRef(partSection("Input 2", state.inputComposition, "[data-slot='pin-input-input'][data-index='1'], [data-slot='pin-input-input-custom'][data-index='1']"), state.refs["input-1"]),
+    withRef(partSection("Separator", state.length > 4 ? state.separatorComposition : "not rendered", "[data-slot='pin-input-separator'], [data-slot='pin-input-separator-custom']", state.length <= 4), state.refs.separator),
   ];
 }
 
@@ -2449,7 +2450,7 @@ function getFormFieldLog(scenarioId: string, scenarios: FormFieldScenarios) {
   if (scenarioId === "textarea") return scenarios.textarea.state.log;
   if (scenarioId === "number-input") return scenarios.numberInput.state.log;
   if (scenarioId === "password-toggle-field") return scenarios.passwordToggleField.state.log;
-  if (scenarioId === "otp-field") return scenarios.otpField.state.log;
+  if (scenarioId === "pin-input") return scenarios.pinInput.state.log;
   if (scenarioId === "file-upload") return scenarios.fileUpload.state.log;
   return [];
 }
@@ -2469,7 +2470,7 @@ export function clearFormFieldLog(scenarioId: string, scenarios: FormFieldScenar
   if (scenarioId === "textarea") scenarios.textarea.actions.clearLog();
   if (scenarioId === "number-input") scenarios.numberInput.actions.clearLog();
   if (scenarioId === "password-toggle-field") scenarios.passwordToggleField.actions.clearLog();
-  if (scenarioId === "otp-field") scenarios.otpField.actions.clearLog();
+  if (scenarioId === "pin-input") scenarios.pinInput.actions.clearLog();
   if (scenarioId === "file-upload") scenarios.fileUpload.actions.clearLog();
 }
 
@@ -2504,8 +2505,8 @@ export function getFormFieldCanvasFooter(scenarioId: string, scenarios: FormFiel
     return `${state.controlled ? "Controlled" : "Uncontrolled"} | ${state.visible ? "Visible" : "Hidden"} | Input ${state.inputComposition}`;
   }
 
-  if (scenarioId === "otp-field") {
-    const state = scenarios.otpField.state;
+  if (scenarioId === "pin-input") {
+    const state = scenarios.pinInput.state;
     return `${state.controlled ? "Controlled" : "Uncontrolled"} | Value ${state.value || "empty"} | Length ${state.length}`;
   }
 
@@ -2524,7 +2525,7 @@ export function getFormFieldSource(scenarioId: string, scenarios: FormFieldScena
   if (scenarioId === "textarea") return getTextareaSource(scenarios.textarea.state);
   if (scenarioId === "number-input") return getNumberInputSource(scenarios.numberInput.state);
   if (scenarioId === "password-toggle-field") return getPasswordToggleFieldSource(scenarios.passwordToggleField.state);
-  if (scenarioId === "otp-field") return getOTPFieldSource(scenarios.otpField.state);
+  if (scenarioId === "pin-input") return getPinInputSource(scenarios.pinInput.state);
   if (scenarioId === "file-upload") return getFileUploadSource(scenarios.fileUpload.state);
   return "// No source example for this scenario yet.";
 }
@@ -2905,10 +2906,10 @@ function getPasswordToggleSource(state: ReturnType<typeof usePasswordToggleField
   </PasswordToggleField.Toggle>`;
 }
 
-function getOTPFieldRootSourceProps(state: ReturnType<typeof useOTPFieldScenario>["state"]) {
+function getPinInputRootSourceProps(state: ReturnType<typeof usePinInputScenario>["state"]) {
   return [
-    sourcePartProps("root", state.propCheck, state.customRootSlot, "otp-field-custom").trim(),
-    state.controlled ? "value={value}" : `defaultValue="${state.value}"`,
+    sourcePartProps("root", state.propCheck, state.customRootSlot, "pin-input-custom").trim(),
+    state.controlled ? "value={value}" : `defaultValue={${JSON.stringify(state.value)}}`,
     `length={${state.length}}`,
     `type="${state.type}"`,
     'name="code"',
@@ -2922,71 +2923,72 @@ function getOTPFieldRootSourceProps(state: ReturnType<typeof useOTPFieldScenario
     state.invalid ? "invalid" : "",
     state.required ? "required" : "",
     state.readOnly ? "readOnly" : "",
-    "onValueChange={setValue}",
+    "onValueChange={({value}) => setValue(value)}",
+    "otp",
     "onComplete={handleComplete}",
   ].filter(Boolean).join("\n  ");
 }
 
-function getOTPFieldInputSource(index: number, state: ReturnType<typeof useOTPFieldScenario>["state"]) {
-  const inputProps = sourcePartProps(`input-${index}`, state.propCheck, state.customInputSlot, "otp-field-input-custom");
+function getPinInputInputSource(index: number, state: ReturnType<typeof usePinInputScenario>["state"]) {
+  const inputProps = sourcePartProps(`input-${index}`, state.propCheck, state.customInputSlot, "pin-input-input-custom");
 
   if (state.inputComposition === "asChild") {
-    return `<OTPField.Input${inputProps} index={${index}} asChild>
+    return `<PinInput.Input${inputProps} index={${index}} asChild>
       <input />
-    </OTPField.Input>`;
+    </PinInput.Input>`;
   }
 
   if (state.inputComposition === "render") {
-    return `<OTPField.Input${inputProps} index={${index}} render={(props) => <input {...props} />} />`;
+    return `<PinInput.Input${inputProps} index={${index}} render={(props) => <input {...props} />} />`;
   }
 
-  return `<OTPField.Input${inputProps} index={${index}} />`;
+  return `<PinInput.Input${inputProps} index={${index}} />`;
 }
 
-function getOTPFieldSeparatorSource(state: ReturnType<typeof useOTPFieldScenario>["state"]) {
-  const separatorProps = sourcePartProps("separator", state.propCheck, state.customSeparatorSlot, "otp-field-separator-custom");
+function getPinInputSeparatorSource(state: ReturnType<typeof usePinInputScenario>["state"]) {
+  const separatorProps = sourcePartProps("separator", state.propCheck, state.customSeparatorSlot, "pin-input-separator-custom");
 
   if (state.separatorComposition === "asChild") {
-    return `<OTPField.Separator${separatorProps} asChild>
+    return `<PinInput.Separator${separatorProps} asChild>
       <span>-</span>
-    </OTPField.Separator>`;
+    </PinInput.Separator>`;
   }
 
   if (state.separatorComposition === "render") {
-    return `<OTPField.Separator${separatorProps} render={(props) => <span {...props} />}>-</OTPField.Separator>`;
+    return `<PinInput.Separator${separatorProps} render={(props) => <span {...props} />}>-</PinInput.Separator>`;
   }
 
-  return `<OTPField.Separator${separatorProps}>-</OTPField.Separator>`;
+  return `<PinInput.Separator${separatorProps}>-</PinInput.Separator>`;
 }
 
-function getOTPFieldSource(state: ReturnType<typeof useOTPFieldScenario>["state"]) {
-  const rootProps = getOTPFieldRootSourceProps(state);
-  const separator = state.length > 4 ? `${getOTPFieldSeparatorSource(state)}\n    ` : "";
+function getPinInputSource(state: ReturnType<typeof usePinInputScenario>["state"]) {
+  const rootProps = getPinInputRootSourceProps(state);
+  const separator = state.length > 4 ? `${getPinInputSeparatorSource(state)}\n    ` : "";
   const rootOpen = state.rootComposition === "asChild"
-    ? `<OTPField.Root
+    ? `<PinInput.Root
   ${rootProps}
   asChild
 >
     <section>`
     : state.rootComposition === "render"
-      ? `<OTPField.Root
+      ? `<PinInput.Root
   ${rootProps}
   render={(props) => <section {...props} />}
 >`
-      : `<OTPField.Root
+      : `<PinInput.Root
   ${rootProps}
 >`;
   const rootClose = state.rootComposition === "asChild"
-    ? "    </section>\n  </OTPField.Root>"
-    : "  </OTPField.Root>";
+    ? "    </section>\n  </PinInput.Root>"
+    : "  </PinInput.Root>";
 
   return `<form id="otp-demo-form" onSubmit={handleSubmit}>
   <Field.Root id="otp-code"${sourceBool("invalid", state.invalid)}${sourceBool("required", state.required)}>
     <Field.Label>Verification code</Field.Label>
     ${rootOpen}
-      ${getOTPFieldInputSource(0, state)}
-      ${getOTPFieldInputSource(1, state)}
-      ${separator}${getOTPFieldInputSource(2, state)}
+      ${getPinInputInputSource(0, state)}
+      ${getPinInputInputSource(1, state)}
+      ${separator}${getPinInputInputSource(2, state)}
 ${rootClose}
     <Field.Description id="otp-code-description">Type or paste the code.</Field.Description>
     <Field.Error forceMatch={invalid}>Code has an error.</Field.Error>

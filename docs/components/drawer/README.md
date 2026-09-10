@@ -1,5 +1,9 @@
 # Drawer
 
+Root inherits `onExitComplete?: () => void` from Modal. Completion follows the
+owned content/backdrop exit; reopening cancels the pending callback. Forward it
+when adapting Drawer to Overlay Manager.
+
 Headless modal side-sheet primitives with drawer-specific parts and placement
 metadata.
 

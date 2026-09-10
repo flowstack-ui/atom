@@ -94,6 +94,8 @@ function MultiSelectListbox(
   );
   useDismissableLayer({
     enabled: ctx.isOpen,
+    ownerDocument: ctx.listboxRef.current?.ownerDocument,
+    elements: [ctx.listboxRef.current],
     onEscapeKeyDown: () => {
       ctx.onClose();
       ctx.triggerRef.current?.focus();

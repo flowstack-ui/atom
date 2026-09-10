@@ -24,6 +24,11 @@ import {
   getTabsListNavigationDirection,
 } from "../../dist/_internal/primitives/tabs/TabsList.js";
 
+test("keyboard tab navigation reveals the focused trigger with nearest scrolling", async () => {
+  const source = await readFile(new URL("src/primitives/tabs/TabsList.tsx", packageRoot), "utf8");
+  assert.match(source, /element\.scrollIntoView\(\{ block: "nearest", inline: "nearest", behavior: "instant" \}\)/);
+});
+
 test("Tabs primitives render ARIA linked tab and panel", () => {
   const html = renderToStaticMarkup(
     React.createElement(

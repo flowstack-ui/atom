@@ -101,6 +101,8 @@ export const TabsList = forwardRef<HTMLDivElement, TabsListProps>(
       if (!element) return;
 
       element.focus();
+      // Native focus may leave an already-partially-visible trigger clipped.
+      element.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "instant" });
       if (activationMode === "automatic") {
         setActiveValue(value);
       }

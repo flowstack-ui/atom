@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Reveal keyboard-focused triggers at the nearest scroll edge, including
+  partially visible first/last tabs, without smooth-scroll delays.
+
 - Added public Agent Knowledge for component selection, required composition,
   recurring mistakes, and validation.
 

@@ -6,6 +6,9 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Added the Marquee Data workbench with controller options, replica safety,
+  composition and props controls, live Anatomy, matching Source and callback logs.
+
 - Added a Carousel workbench with optional navigation and picker controls,
   controlled state, loop and direction variants, automatic-rotation evidence,
   native scroll selection, public anatomy, Source, logs, and desktop/mobile

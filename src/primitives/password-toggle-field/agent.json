@@ -8,7 +8,7 @@
   "purpose": "Provide a native password input with controlled or uncontrolled reveal state, an accessible show/hide action, Field validation, and form-safe password restoration.",
   "useWhen": ["A reusable password input benefits from an explicit keyboard-accessible action that lets users verify what they typed and revealing it is acceptable for the product's privacy model."],
   "avoidWhen": [
-    { "condition": "The value is ordinary text, a one-time verification code, or policy forbids revealing the secret.", "useInstead": "Input, OTPField, or a password Input without a reveal control" }
+    { "condition": "The value is ordinary text, a one-time verification code, or policy forbids revealing the secret.", "useInstead": "Input, PinInput, or a password Input without a reveal control" }
   ],
   "composition": ["Compose Root with one Input and a Toggle; add Icon only when the styled layer needs decorative visible/hidden content. Give Input an accessible Field or native label and localize Root showLabel and hideLabel for the Toggle action."],
   "rules": [
@@ -23,5 +23,5 @@
     "Verify Input label, autocomplete and native props, controlled/uncontrolled visibility, password/text switching, localized Show/Hide Toggle labels, decorative Icon state, pointer focus preservation, keyboard Tab/Enter/Space, disabled and read-only behavior, and asChild/render Toggle composition.",
     "Verify Field ID, label, description and error inheritance with native overrides, required/invalid inline and native validation, reset to defaultVisible, type=password restoration before form submission, external form association, and no unintended live-region or aria-pressed semantics."
   ],
-  "related": ["input", "otp-field", "field", "form"]
+  "related": ["input", "pin-input", "field", "form"]
 }

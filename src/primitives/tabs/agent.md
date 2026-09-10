@@ -15,6 +15,7 @@ Switch among related panels in one page with linked tab semantics, selection sta
 ## Required composition
 
 - Compose Trigger and optional Indicator inside List, with one matching Content value for each Trigger inside Root.
+- Preserve nearest-edge scroll reveal for keyboard-focused triggers, including manual activation and partially clipped edge tabs.
 
 ## Rules
 

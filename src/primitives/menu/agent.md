@@ -18,6 +18,7 @@ Provide the shared command and settings menu engine with real item focus, select
 
 ## Rules
 
+- **MUST:** Preserve inert on closed Content and SubContent while presence retains their exit animation. Closed surfaces must not reclaim focus or accept activation.
 - **MUST:** Give standalone or context-driven Content an accessible name with ariaLabel; trigger-based compositions may use the generated trigger relationship.
 - **MUST:** Use Item, CheckboxItem, and RadioItem for their matching menuitem roles, provide unique values within each item registry, and provide textValue when rendered children do not expose searchable text.
 - **MUST:** Preserve Menu's real DOM item focus, disabled-item navigation without activation, typeahead, owner-aware Tab exit, Escape stack, and reason-aware focus restoration.

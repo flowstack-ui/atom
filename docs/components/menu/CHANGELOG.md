@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Make closed Content and SubContent inert while exit presence retains them,
+  preventing pointer focus from stealing an overlay's restored focus.
+
 ## 0.24.0
 
 - Added public Agent Knowledge for component selection, required composition,

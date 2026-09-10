@@ -117,7 +117,7 @@ export const ComboboxInput = forwardRef<HTMLInputElement, ComboboxInputProps>(
 
     const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = useCallback(
       (event) => {
-        if (disabled || readOnly) return;
+        if (disabled || readOnly || event.nativeEvent.isComposing || event.keyCode === 229) return;
 
         const values = getEnabledItemValues();
         const currentValue = highlightedValue;
@@ -219,7 +219,7 @@ export const ComboboxInput = forwardRef<HTMLInputElement, ComboboxInputProps>(
       "aria-activedescendant": isOpen ? activeDescendant : undefined,
       "aria-autocomplete": "list",
       "aria-invalid": invalid || undefined,
-      "aria-required": required || undefined,
+      "aria-required": restProps["aria-required"] ?? (required || undefined),
       "aria-labelledby": restProps["aria-labelledby"] ??
         (restProps["aria-label"] === undefined ? fieldLabelId : undefined),
       "aria-describedby": Object.prototype.hasOwnProperty.call(restProps, "aria-describedby")

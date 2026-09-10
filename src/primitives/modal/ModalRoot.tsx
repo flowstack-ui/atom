@@ -21,6 +21,8 @@ import {
 } from "./context.js";
 import { getModalPartPresence, type ModalPartKind } from "./parts.js";
 import { useCreateFocusScope } from "../../hooks/focus.js";
+import { useOverlayExit } from "../../hooks/useOverlayExit.js";
+import { OverlayScopeProvider, useCreateOverlayScope } from "../../hooks/overlayScope.js";
 import {
   activateModalLayer,
   createModalLayer,
@@ -30,6 +32,8 @@ import {
 } from "./layer.js";
 
 export interface ModalRootProps {
+  /** Called once after all owned surfaces finish a committed close. */
+  onExitComplete?: () => void;
   /** Compound children. */
   children: ReactNode;
   /** Controlled open state. */
@@ -57,6 +61,7 @@ export function ModalRoot({
   closeOnBackdropClick = true,
   disabled = false,
   keepMounted = false,
+  onExitComplete,
 }: ModalRootProps) {
   const parentModal = useOptionalModalContext();
   const isControlled = controlledOpen !== undefined;
@@ -92,6 +97,7 @@ export function ModalRoot({
     () => createModalLayer(parentModal?.layer ?? null),
     [parentModal?.layer],
   );
+  useOverlayExit(isOpen, () => [layer.content, layer.overlay], onExitComplete);
   const [, setLayerRevision] = useState(0);
 
   useLayoutEffect(
@@ -288,9 +294,12 @@ export function ModalRoot({
     ],
   );
 
+  const overlayScope = useCreateOverlayScope(true);
   return (
+    <OverlayScopeProvider value={overlayScope}>
     <ModalContextProvider value={contextValue}>
       {children}
     </ModalContextProvider>
+    </OverlayScopeProvider>
   );
 }

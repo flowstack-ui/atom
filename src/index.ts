@@ -1,4 +1,16 @@
 "use client";
+export * from "./editable.js";
+export * from "./tags-input.js";
+export * from "./native-select.js";
+export * from "./marquee.js";
+export * from "./overlay-manager.js";
+export * from "./calendar.js";
+export * from "./date-input.js";
+export * from "./date-picker.js";
+export * from "./date-value.js";
+
+export * from "./steps.js";
+export * from "./splitter.js";
 
 export {
   Accordion,
@@ -45,7 +57,7 @@ export {
   NavigationMenu,
   NavList,
   NumberInput,
-  OTPField,
+  PinInput,
   PasswordToggleField,
   Pagination,
   Popover,
@@ -738,17 +750,22 @@ export type {
   NumberInputRootProps,
 } from "./primitives/number-input/index.js";
 export {
-  filterOTPFieldValue,
-  getOTPFieldChars,
-  getOTPFieldDisplayChar,
-  getOTPFieldPattern,
-  isOTPFieldCharAccepted,
-  OTPFieldContextProvider,
-  OTPFieldInput,
-  OTPFieldRoot,
-  OTPFieldSeparator,
-  useOTPFieldContext,
-} from "./primitives/otp-field/index.js";
+  filterPinInputValue,
+  usePinInput,
+  PinInputRootProvider,
+  PinInputContext,
+  PinInputLabel,
+  PinInputControl,
+  getPinInputChars,
+  getPinInputDisplayChar,
+  getPinInputPattern,
+  isPinInputCharAccepted,
+  PinInputContextProvider,
+  PinInputInput,
+  PinInputRoot,
+  PinInputSeparator,
+  usePinInputContext,
+} from "./primitives/pin-input/index.js";
 export {
   PasswordToggleFieldContextProvider,
   PasswordToggleFieldIcon,
@@ -792,12 +809,20 @@ export type {
   PaginationRootProps,
 } from "./primitives/pagination/index.js";
 export type {
-  OTPFieldContextValue,
-  OTPFieldInputProps,
-  OTPFieldRootProps,
-  OTPFieldSeparatorProps,
-  OTPFieldType,
-} from "./primitives/otp-field/index.js";
+  PinInputContextValue,
+  PinInputOptions,
+  PinInputController,
+  PinInputValueChangeDetails,
+  PinInputInvalidDetails,
+  PinInputRootProviderProps,
+  PinInputContextProps,
+  PinInputLabelProps,
+  PinInputControlProps,
+  PinInputInputProps,
+  PinInputRootProps,
+  PinInputSeparatorProps,
+  PinInputType,
+} from "./primitives/pin-input/index.js";
 export {
   NavigationMenuContent,
   NavigationMenuContextProvider,
@@ -1427,3 +1452,8 @@ export { Portal } from "./utils/Portal.js";
 export type { PortalProps } from "./utils/Portal.js";
 
 export * from "./primitives/multi-select/index.js";
+export { DownloadTrigger, DownloadTriggerRoot, type DownloadTriggerRootProps, type DownloadableData, type DownloadDetails } from "./primitives/download-trigger/index.js";
+export * from "./action-bar.js";
+export * from "./floating-panel.js";
+export * from "./qr-code.js";
+export * from "./table-of-contents.js";

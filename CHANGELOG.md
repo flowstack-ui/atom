@@ -2,6 +2,44 @@
 
 ## Unreleased
 
+- Add TableOfContents with scoped section tracking, native/managed fragment
+  navigation, controlled current state and optional rail geometry.
+
+- AspectRatio adds an optional CSS custom-property ratio bridge with numeric fallback for styled-layer responsive geometry.
+
+- Keep exiting Menu and submenu content inert so closed command surfaces cannot
+  receive pointer focus or activation during another overlay's focus return.
+
+- Add QrCode encoding, accessible SVG anatomy, controlled state and portable
+  image export through DownloadTrigger using the pinned local uqr encoder.
+
+- Add NativeSelect, Editable and TagsInput with native form integration and
+  separately owned selection, editing and collection-entry behavior.
+- Replace OTPField with PinInput (no legacy export). Use explicit `otp` for
+  verification-code autocomplete. Values are positional string arrays; general
+  PIN entry supports character modes, masking, controllers and native forms.
+
+- Add `Marquee` with measured repetition, explicit inert replicas, independent
+  pause reasons, stationary focus/reduced-motion fallbacks and finite lifecycle.
+
+- Add `FloatingPanel` for nonmodal movable/resizable tools and `OverlayManager`
+  for keyed imperative overlays, typed results and exit settlement.
+- Add root-owned exit completion to Modal and Popover; order registered overlay
+  hosts per rendering document with portal ancestry and modal barriers.
+- Add an unstyled ActionBar Positioner host for shared layer registration.
+
+- Add initial Calendar, DateInput, DatePicker and date-value entrypoints with
+  civil-date values, segmented entry, shared popup selection and canonical form
+  serialization. Full date-family qualification remains in progress.
+
+- Add `DownloadTrigger` for lazy local file downloads with pending, cancellation,
+  error and object-URL lifecycle ownership.
+
+- Add `Splitter` for constrained adjacent-panel resizing and accessible separators.
+
+- Added Steps for headless ordered workflow progression, guarded navigation,
+  completion content and native list/button semantics.
+
 - Added optional native `ColumnGroup` and `Column` anatomy to Table, DataGrid,
   and TreeGrid for semantic column sizing hints while preserving each
   primitive's existing behavior and accessibility ownership.

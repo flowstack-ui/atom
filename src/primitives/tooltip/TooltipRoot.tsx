@@ -183,6 +183,8 @@ export function TooltipRoot({
 
   useDismissableLayer({
     enabled: isOpen,
+    ownerDocument: triggerRef.current?.ownerDocument,
+    getElements: doc => [doc.getElementById(tooltipId)],
     onEscapeKeyDown: handleEscape,
   });
 

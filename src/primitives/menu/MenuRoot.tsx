@@ -165,6 +165,8 @@ export function MenuRoot({
 
   useDismissableLayer({
     enabled: isOpen && closeOnEscape,
+    ownerDocument: contentRef.current?.ownerDocument,
+    elements: [contentRef.current],
     onEscapeKeyDown: () => {
       if (openSubMenuId !== null) return;
       onClose("escape");

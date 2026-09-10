@@ -11,6 +11,8 @@ export interface AspectRatioRootProps extends AspectRatioRootNativeProps {
   children?: ReactNode;
   /** Aspect ratio as width / height. @default 16 / 9 */
   ratio?: number;
+  /** Optional CSS custom property controlling the ratio, with numeric fallback. */
+  ratioVariable?: `--${string}`;
   /** Override the rendered element. */
   render?: RenderProp;
   /** Merge behavior props onto a single child element. */
@@ -28,6 +30,7 @@ export const AspectRatioRoot = forwardRef<HTMLDivElement, AspectRatioRootProps>(
     {
       children,
       ratio = 16 / 9,
+      ratioVariable,
       render,
       asChild,
       style,
@@ -39,7 +42,9 @@ export const AspectRatioRoot = forwardRef<HTMLDivElement, AspectRatioRootProps>(
     const resolvedRatio = normalizeAspectRatio(ratio);
     const resolvedStyle: CSSProperties = {
       ...style,
-      aspectRatio: resolvedRatio,
+      aspectRatio: ratioVariable && /^--[a-zA-Z_][a-zA-Z0-9_-]*$/.test(ratioVariable)
+        ? `var(${ratioVariable}, ${resolvedRatio})`
+        : resolvedRatio,
     };
 
     const behaviorProps: Record<string, unknown> = {

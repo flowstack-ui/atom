@@ -138,6 +138,8 @@ export function HoverCardRoot({
 
   useDismissableLayer({
     enabled: isOpen,
+    ownerDocument: contentElement?.ownerDocument ?? triggerElement?.ownerDocument,
+    elements: [contentElement],
     onEscapeKeyDown: handleEscape,
   });
   useEffect(() => {

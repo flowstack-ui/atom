@@ -139,11 +139,10 @@ test("dismissable layer hook routes Escape to the topmost registered layer", asy
   const source = await readFile(new URL("src/hooks/useDismissableLayer.ts", packageRoot), "utf8");
 
   assert.match(source, /^"use client";/);
-  assert.match(source, /const layers: DismissableLayer\[\] = \[\]/);
-  assert.match(source, /const topLayer = layers\[layers\.length - 1\]/);
-  assert.match(source, /topLayer\?\.onEscapeKeyDownRef\.current\(event\)/);
-  assert.match(source, /document\.addEventListener\("keydown", handleDocumentKeyDown, true\)/);
-  assert.match(source, /document\.removeEventListener\("keydown", handleDocumentKeyDown, true\)/);
+  assert.match(source, /new WeakMap<Document, Registry>/);
+  assert.match(source, /layers\[layers\.length - 1\]\?\.onEscape\(event\)/);
+  assert.match(source, /doc\.addEventListener\("keydown", registry.listener, true\)/);
+  assert.match(source, /doc\.removeEventListener\("keydown", registry.listener, true\)/);
 });
 
 test("outside interaction hook commits click semantics through the topmost layer", async () => {
@@ -296,8 +295,7 @@ test("scroll spy hook source tracks document sections without styling concerns",
   assert.match(source, /decodeURIComponent/);
   assert.match(source, /visibleEntries/);
   assert.match(source, /thresholdKey/);
-  assert.match(source, /MutationObserver/);
-  assert.match(source, /compareDocumentOrder/);
+  assert.match(source, /observeScrollTargets/);
   assert.match(source, /isConnected/);
   assert.doesNotMatch(source, /Math\.abs/);
   assert.match(hooksEntrypoint, /useScrollSpy/);

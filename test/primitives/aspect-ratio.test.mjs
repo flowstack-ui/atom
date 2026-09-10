@@ -46,6 +46,20 @@ test("AspectRatioRoot normalizes invalid ratios", () => {
   assert.match(html, /aspect-ratio:1.7777777777777777/);
 });
 
+test("AspectRatio CSS variable bridge preserves numeric fallback and consumes its prop", () => {
+  for (const [ratio, expected] of [[1, '1'], [0, '1.7777777777777777']]) {
+    const html = renderToStaticMarkup(React.createElement(AspectRatioRoot, {
+      ratio, ratioVariable: '--example-ratio', style: { color: 'red', aspectRatio: 9 },
+    }));
+    assert.ok(html.includes(`aspect-ratio:var(--example-ratio, ${expected})`));
+    assert.doesNotMatch(html, /ratioVariable=/);
+    assert.match(html, /color:red/);
+  }
+  const html = renderToStaticMarkup(React.createElement(AspectRatioRoot, {ratio: 1, ratioVariable: '--bad);color:red'}));
+  assert.match(html, /aspect-ratio:1/);
+  assert.doesNotMatch(html, /color:red/);
+});
+
 test("AspectRatio primitive barrel does not create a client boundary", async () => {
   const indexSource = await readFile(
     new URL("src/primitives/aspect-ratio/index.ts", packageRoot),

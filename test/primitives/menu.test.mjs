@@ -22,6 +22,13 @@ import {
   MenuSubContent,
 } from "../../dist/index.js";
 
+test("exiting menu content is inert before presence unmounts", async () => {
+  for (const part of ["MenuContent", "MenuSubContent"]) {
+    const source = await readFile(new URL(`src/primitives/menu/${part}.tsx`, packageRoot), "utf8");
+    assert.match(source, /inert:\s*!isOpen\s*\|\|\s*undefined/);
+  }
+});
+
 test("Menu primitives render item roles and selection state", () => {
   const html = renderToStaticMarkup(
     React.createElement(

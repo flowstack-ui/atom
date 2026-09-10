@@ -60,10 +60,10 @@ async function wait(milliseconds) {
   });
 }
 
-function SearchDialog({ open }) {
+function SearchDialog({ open, onExitComplete }) {
   return React.createElement(
     Dialog.Root,
-    { open, onOpenChange: () => {} },
+    { open, onOpenChange: () => {}, onExitComplete },
     React.createElement(Dialog.Trigger, null, "Search"),
     React.createElement(
       Dialog.Portal,
@@ -108,6 +108,40 @@ test("presence exits when global transition CSS does not emit an end event", asy
     });
     cleanup();
   }
+});
+
+test("one root exit waits for both surfaces and cancels stale reopening work", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  let completions = 0;
+  const onExitComplete = () => { completions++; };
+  const render = open => React.act(async () => root.render(React.createElement(SearchDialog, { open, onExitComplete })));
+  try {
+    document.head.appendChild(document.createElement("style")).textContent = `
+      .search-overlay { transition-property: opacity; transition-duration: 80ms; }
+      .search-dialog { transition-property: opacity; transition-duration: 5ms; }
+    `;
+    await render(true); await render(false);
+    await wait(40); assert.equal(completions, 0);
+    await render(true); await wait(150); assert.equal(completions, 0);
+    await render(false); await wait(40); assert.equal(completions, 0);
+    await wait(150); assert.equal(completions, 1);
+    await wait(50); assert.equal(completions, 1);
+  } finally { await React.act(async () => root.unmount()); cleanup(); }
+});
+
+test("root exit without animated parts completes exactly once", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  let completions = 0;
+  const onExitComplete = () => { completions++; };
+  try {
+    await React.act(async () => root.render(React.createElement(Dialog.Root, { open: true, onExitComplete })));
+    await React.act(async () => root.render(React.createElement(Dialog.Root, { open: false, onExitComplete })));
+    await wait(50); assert.equal(completions, 1);
+    await React.act(async () => root.render(React.createElement(Dialog.Root, { open: false, onExitComplete })));
+    await wait(50); assert.equal(completions, 1);
+  } finally { await React.act(async () => root.unmount()); cleanup(); }
 });
 
 test("presence respects repeated animation duration before using its fallback", async () => {

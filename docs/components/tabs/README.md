@@ -193,6 +193,9 @@ export default function MountedTabs() {
 
 ## Accessibility
 
+Arrow, Home and End navigation reveals the focused trigger using nearest-edge
+scrolling. Selection mode does not change this focus visibility behavior.
+
 Tabs follows the [WAI-ARIA tabs pattern](https://www.w3.org/WAI/ARIA/apg/patterns/tabs/).
 Triggers and panels have stable ID relationships. Horizontal navigation mirrors
 in RTL; vertical navigation does not change with text direction.

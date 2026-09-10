@@ -15,6 +15,7 @@ import {
   useFocusTrap,
 } from "../../hooks/focus.js";
 import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
+import { useCurrentOverlayScope } from "../../hooks/overlayScope.js";
 import { usePresence } from "../../hooks/usePresence.js";
 import { useScrollLock } from "../../hooks/useScrollLock.js";
 import {
@@ -196,8 +197,11 @@ function useModalContentImplementation(
   );
   useScrollLock(isOpen, wrapperRef, isAllowedScrollTarget, isTopLayer);
   useDismissableLayer({
-    enabled: isOpen && isTopLayer && closeOnEscape,
-    onEscapeKeyDown: () => onClose("escapeKeyDown", "keyboard"),
+    enabled: isOpen && isTopLayer,
+    ownerDocument: wrapperRef.current?.ownerDocument,
+    scope: useCurrentOverlayScope(),
+    elements: [wrapperRef.current, layer.overlay],
+    onEscapeKeyDown: () => { if (closeOnEscape) onClose("escapeKeyDown", "keyboard"); },
   });
 
   useLayoutEffect(() => {

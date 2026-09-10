@@ -34,8 +34,12 @@ test("package boundary keeps only approved headless runtime dependencies", async
   assert.deepEqual(packageJson.publishConfig, { access: "public" });
   assert.deepEqual(packageJson.dependencies ?? {}, {
     "@floating-ui/react": "^0.27.19",
+    "@internationalized/date": "3.12.4",
     "@zag-js/color-picker": "1.43.3",
+    "@zag-js/date-input": "1.43.3",
+    "@zag-js/date-picker": "1.43.3",
     "@zag-js/react": "1.43.3",
+    "uqr": "0.1.3",
   });
   assert.deepEqual(packageJson.peerDependencies, {
     react: ">=18",
@@ -49,6 +53,7 @@ test("package boundary keeps only approved headless runtime dependencies", async
       "./agents/manifest.json",
       "./agents/*.json",
       "./agents/*.md",
+      "./date-value",
       ...publicSubpaths.map((subpath) => `./${subpath}`),
     ].sort(),
   );

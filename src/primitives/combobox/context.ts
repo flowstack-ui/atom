@@ -66,6 +66,11 @@ ComboboxContext.displayName = "ComboboxContext";
 
 export const ComboboxContextProvider = ComboboxContext.Provider;
 
+/** Internal composite-field integration; public callers use the required hook. */
+export function useOptionalComboboxContext(): ComboboxContextValue | null {
+  return useContext(ComboboxContext);
+}
+
 export interface ComboboxGroupContextValue {
   labelId: string;
 }

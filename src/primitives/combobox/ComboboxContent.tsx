@@ -7,6 +7,7 @@ import {
   useEffect,
   isValidElement,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -25,6 +26,23 @@ import type { NativeDivProps } from "../../utils/dom.js";
 import { composeRefs } from "../../utils/slot.js";
 import { ComboboxEmpty } from "./ComboboxEmpty.js";
 import { useComboboxContext } from "./context.js";
+import { useOptionalModalContext } from "../modal/context.js";
+
+// A wrapping composite reference can resize while size middleware paints the
+// popup. Defer observer-triggered writes out of the ResizeObserver delivery cycle.
+const observeComboboxPosition: typeof autoUpdate = (reference, floating, update) => {
+  const view = floating?.ownerDocument.defaultView;
+  if (!view) return autoUpdate(reference, floating, update);
+  let frame = 0;
+  const dispose = autoUpdate(reference, floating, () => {
+    view.cancelAnimationFrame(frame);
+    frame = view.requestAnimationFrame(() => update());
+  });
+  return () => {
+    dispose();
+    view.cancelAnimationFrame(frame);
+  };
+};
 
 type ComboboxContentNativeProps = NativeDivProps<"children" | "role">;
 
@@ -94,6 +112,12 @@ export const ComboboxContent = forwardRef<HTMLDivElement, ComboboxContentProps>(
     ref,
   ) {
     const ctx = useComboboxContext();
+    const modal = useOptionalModalContext();
+    const unregisterBranch = useRef<(() => void) | null>(null);
+    const branchRef = useCallback((node: HTMLElement | null) => {
+      unregisterBranch.current?.();
+      unregisterBranch.current = node && modal ? modal.registerBranch(node) : null;
+    }, [modal?.registerBranch]);
     const [isPositioned, setIsPositioned] = useState(false);
     const {
       contentRef,
@@ -120,6 +144,8 @@ export const ComboboxContent = forwardRef<HTMLDivElement, ComboboxContentProps>(
 
     useDismissableLayer({
       enabled: isOpen,
+      ownerDocument: contentRef.current?.ownerDocument,
+      getElements: () => [contentRef.current],
       onEscapeKeyDown: () => {
         onClose();
         inputRef.current?.focus({ preventScroll: true });
@@ -179,13 +205,13 @@ export const ComboboxContent = forwardRef<HTMLDivElement, ComboboxContentProps>(
       elements: { reference: controlRef.current ?? inputRef.current },
       placement: "bottom-start",
       middleware,
-      whileElementsMounted: autoUpdate,
+      whileElementsMounted: observeComboboxPosition,
       open: isOpen,
     });
 
     const composedRef = useMemo(
-      () => composeRefs(refs.setFloating, contentRef, ref),
-      [contentRef, ref, refs.setFloating],
+      () => composeRefs(refs.setFloating, contentRef, branchRef, ref),
+      [contentRef, ref, refs.setFloating, branchRef],
     );
 
     const hasContent = loading || filteredOptions.length > 0 || noOptionsText;

@@ -1,5 +1,9 @@
 # Dialog
 
+Root inherits `onExitComplete?: () => void` from Modal. Completion follows the
+owned content/backdrop exit; reopening cancels the pending callback. Forward it
+when adapting Dialog to Overlay Manager.
+
 Headless modal dialog primitives with focus containment, dismissal, accessible
 naming, and compound state management.
 

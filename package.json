@@ -30,6 +30,62 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
+    "./table-of-contents": {
+      "types": "./dist/table-of-contents.d.ts",
+      "default": "./dist/table-of-contents.js"
+    },
+    "./qr-code": {
+      "types": "./dist/qr-code.d.ts",
+      "default": "./dist/qr-code.js"
+    },
+    "./tags-input": {
+      "types": "./dist/tags-input.d.ts",
+      "default": "./dist/tags-input.js"
+    },
+    "./editable": {
+      "types": "./dist/editable.d.ts",
+      "import": "./dist/editable.js"
+    },
+    "./native-select": {
+      "types": "./dist/native-select.d.ts",
+      "default": "./dist/native-select.js"
+    },
+    "./marquee": {
+      "types": "./dist/marquee.d.ts",
+      "default": "./dist/marquee.js"
+    },
+    "./floating-panel": {
+      "types": "./dist/floating-panel.d.ts",
+      "default": "./dist/floating-panel.js"
+    },
+    "./overlay-manager": {
+      "types": "./dist/overlay-manager.d.ts",
+      "default": "./dist/overlay-manager.js"
+    },
+    "./action-bar": {
+      "types": "./dist/action-bar.d.ts",
+      "default": "./dist/action-bar.js"
+    },
+    "./calendar": {
+      "types": "./dist/calendar.d.ts",
+      "default": "./dist/calendar.js"
+    },
+    "./date-input": {
+      "types": "./dist/date-input.d.ts",
+      "default": "./dist/date-input.js"
+    },
+    "./date-picker": {
+      "types": "./dist/date-picker.d.ts",
+      "default": "./dist/date-picker.js"
+    },
+    "./date-value": {
+      "types": "./dist/date-value.d.ts",
+      "default": "./dist/date-value.js"
+    },
+    "./download-trigger": {
+      "types": "./dist/download-trigger.d.ts",
+      "default": "./dist/download-trigger.js"
+    },
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
@@ -218,9 +274,9 @@
       "types": "./dist/number-input.d.ts",
       "default": "./dist/number-input.js"
     },
-    "./otp-field": {
-      "types": "./dist/otp-field.d.ts",
-      "default": "./dist/otp-field.js"
+    "./pin-input": {
+      "types": "./dist/pin-input.d.ts",
+      "default": "./dist/pin-input.js"
     },
     "./password-toggle-field": {
       "types": "./dist/password-toggle-field.d.ts",
@@ -289,6 +345,14 @@
     "./swipeable-item": {
       "types": "./dist/swipeable-item.d.ts",
       "default": "./dist/swipeable-item.js"
+    },
+    "./splitter": {
+      "types": "./dist/splitter.d.ts",
+      "default": "./dist/splitter.js"
+    },
+    "./steps": {
+      "types": "./dist/steps.d.ts",
+      "default": "./dist/steps.js"
     },
     "./tabs": {
       "types": "./dist/tabs.d.ts",
@@ -386,14 +450,19 @@
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.19",
+    "@internationalized/date": "3.12.4",
     "@zag-js/color-picker": "1.43.3",
-    "@zag-js/react": "1.43.3"
+    "@zag-js/date-input": "1.43.3",
+    "@zag-js/date-picker": "1.43.3",
+    "@zag-js/react": "1.43.3",
+    "uqr": "0.1.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.0",
     "@types/react": "^19.2.13",
     "@types/react-dom": "^19.2.3",
     "jsdom": "^26.1.0",
+    "jsqr": "1.4.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "typescript": "^5.9.3"

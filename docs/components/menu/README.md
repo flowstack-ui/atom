@@ -470,6 +470,10 @@ export function ActionsMenu() {
 
 ## Accessibility
 
+Closed Content and SubContent are inert during retained exit presence. Preserve
+this owned attribute: a closing menu must not intercept pointer input or take
+focus back from a dialog or its restored launcher.
+
 Follows the [WAI-ARIA menu pattern](https://www.w3.org/WAI/ARIA/apg/patterns/menubar/).
 `Content` renders `role="menu"`, items render the correct menu item roles,
 disabled items expose disabled semantics, and keyboard focus moves on the real

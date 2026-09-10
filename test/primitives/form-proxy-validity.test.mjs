@@ -10,7 +10,7 @@ import {
   Checkbox,
   Combobox,
   FileUpload,
-  OTPField,
+  PinInput,
   RadioGroup,
   Rating,
   Select,
@@ -85,17 +85,17 @@ test("radio submission inputs stay separate from group required validity", () =>
   dom.window.close();
 });
 
-test("OTPField anchors required validity to its first visible cell", () => {
+test("PinInput anchors required validity to its first visible cell", () => {
   const { dom, document } = parse(
     React.createElement(
-      OTPField.Root,
+      PinInput.Root,
       { name: "code", required: true, length: 2 },
-      React.createElement(OTPField.Input),
-      React.createElement(OTPField.Input),
+      React.createElement(PinInput.Input),
+      React.createElement(PinInput.Input),
     ),
   );
-  const cells = document.querySelectorAll('[data-slot="otp-field-input"]');
-  const group = document.querySelector('[data-slot="otp-field"]');
+  const cells = document.querySelectorAll('[data-slot="pin-input-input"]');
+  const group = document.querySelector('[data-slot="pin-input"]');
   const combined = document.querySelector('input[type="hidden"][name="code"]');
 
   assert.equal(cells[0].required, true);

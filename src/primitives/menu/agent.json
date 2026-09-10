@@ -19,6 +19,7 @@
     "Compose Root around Content and uniquely valued Item parts; use ariaLabel when no trigger labels Content. Add Portal and Arrow only when needed, Group with Label for announced grouping, CheckboxItem for independent settings, RadioGroup with RadioItem for exclusive settings, and Sub with its paired SubTrigger and SubContent for a cascade."
   ],
   "rules": [
+    { "id": "menu-exit-inert", "level": "must", "statement": "Preserve inert on closed Content and SubContent while presence retains their exit animation. Closed surfaces must not reclaim focus or accept activation." },
     { "id": "menu-content-name", "level": "must", "statement": "Give standalone or context-driven Content an accessible name with ariaLabel; trigger-based compositions may use the generated trigger relationship." },
     { "id": "menu-item-model", "level": "must", "statement": "Use Item, CheckboxItem, and RadioItem for their matching menuitem roles, provide unique values within each item registry, and provide textValue when rendered children do not expose searchable text." },
     { "id": "menu-owned-focus", "level": "must", "statement": "Preserve Menu's real DOM item focus, disabled-item navigation without activation, typeahead, owner-aware Tab exit, Escape stack, and reason-aware focus restoration." },

@@ -24,6 +24,8 @@ const additionalUnitTests = {
 };
 
 const browserTests = {
+  "table-of-contents": ["table-of-contents.spec.ts"],
+  "qr-code": ["qr-code.spec.ts"],
   accordion: ["disclosure-presence.spec.ts"],
   carousel: ["carousel.spec.ts", "carousel.mobile.spec.ts"],
   "color-picker": ["color-picker.spec.ts", "color-picker.mobile.spec.ts"],

@@ -11,6 +11,8 @@ import {
   type ReactNode,
 } from "react";
 import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
+import { useOverlayExit } from "../../hooks/useOverlayExit.js";
+import { OverlayScopeProvider, useCreateOverlayScope } from "../../hooks/overlayScope.js";
 import { useOptionalModalContext } from "../modal/context.js";
 import { activateModalLayer, createModalLayer } from "../modal/layer.js";
 import {
@@ -24,6 +26,7 @@ import {
   type PopoverTriggerMode,
 } from "./context.js";
 import type { PopoverPartKind } from "./parts.js";
+import { useDetachedLayerPolicy } from "./detached-policy.js";
 
 export interface PopoverRootProps {
   children: ReactNode;
@@ -33,6 +36,7 @@ export interface PopoverRootProps {
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean, reason?: PopoverCloseReason) => void;
+  onExitComplete?: () => void;
   modal?: boolean;
   closeOnEscape?: boolean;
   closeOnInteractOutside?: boolean;
@@ -47,12 +51,14 @@ export function PopoverRoot({
   open: controlledOpen,
   defaultOpen = false,
   onOpenChange,
+  onExitComplete,
   modal = false,
   closeOnEscape = true,
   closeOnInteractOutside = true,
   disabled = false,
 }: PopoverRootProps) {
   const parentModal = useOptionalModalContext();
+  const detached = useDetachedLayerPolicy();
   const isControlled = controlledOpen !== undefined;
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const isOpen = isControlled ? controlledOpen : internalOpen;
@@ -235,10 +241,17 @@ export function PopoverRoot({
     interactionRef.current = null;
   }, []);
 
+  const overlayScope = useCreateOverlayScope(modal);
   useDismissableLayer({
-    enabled: isOpen && closeOnEscape,
-    onEscapeKeyDown: () => onClose("escapeKeyDown", "keyboard"),
+    enabled: isOpen && (closeOnEscape || modal || Boolean(detached)),
+    ownerDocument: modalLayer.content?.ownerDocument ?? triggerRef.current?.ownerDocument,
+    scope: overlayScope, elements: [modalLayer.content],
+    onEscapeKeyDown: (event) => {
+      detached?.onEscapeKeyDown?.(event);
+      if (closeOnEscape && !event.defaultPrevented) onClose("escapeKeyDown", "keyboard");
+    },
   });
+  useOverlayExit(isOpen, () => [modalLayer.content], onExitComplete);
   useLayoutEffect(() => {
     if (!isOpen || !modal) return undefined;
     return activateModalLayer(modalLayer, document);
@@ -300,8 +313,10 @@ export function PopoverRoot({
   );
 
   return (
+    <OverlayScopeProvider value={overlayScope}>
     <PopoverContextProvider value={contextValue}>
       {children}
     </PopoverContextProvider>
+    </OverlayScopeProvider>
   );
 }

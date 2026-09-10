@@ -64,6 +64,7 @@ Provides modal state and shared IDs to compound parts.
 | `closeOnBackdropClick` | `boolean` | `true` |
 | `disabled` | `boolean` | `false` |
 | `keepMounted` | `boolean` | `false` |
+| `onExitComplete` | `() => void` | — |
 
 ### Trigger
 

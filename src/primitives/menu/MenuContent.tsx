@@ -440,6 +440,9 @@ function MenuContent(
     tabIndex: -1,
     "data-slot": dataSlot,
     "data-state": dataState,
+    // Presence may retain an exiting menu; it must no longer receive input
+    // or steal focus restored by another overlay.
+    inert: !isOpen || undefined,
     "data-side": actualSide,
     "data-align": actualAlign,
     ...(isPositioned ? { "data-positioned": "" } : {}),

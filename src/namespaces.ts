@@ -279,10 +279,14 @@ import {
 } from "./primitives/nav-list/index.js";
 import { NumberInputDecrement, NumberInputIncrement, NumberInputInput, NumberInputRoot } from "./primitives/number-input/index.js";
 import {
-  OTPFieldInput,
-  OTPFieldRoot,
-  OTPFieldSeparator,
-} from "./primitives/otp-field/index.js";
+  PinInputInput,
+  PinInputRootProvider,
+  PinInputContext,
+  PinInputLabel,
+  PinInputControl,
+  PinInputRoot,
+  PinInputSeparator,
+} from "./primitives/pin-input/index.js";
 import {
   PasswordToggleFieldIcon,
   PasswordToggleFieldInput,
@@ -828,10 +832,14 @@ export const NumberInput = {
   Decrement: NumberInputDecrement,
 } as const;
 
-export const OTPField = {
-  Root: OTPFieldRoot,
-  Input: OTPFieldInput,
-  Separator: OTPFieldSeparator,
+export const PinInput = {
+  RootProvider: PinInputRootProvider,
+  Context: PinInputContext,
+  Label: PinInputLabel,
+  Control: PinInputControl,
+  Root: PinInputRoot,
+  Input: PinInputInput,
+  Separator: PinInputSeparator,
 } as const;
 
 export const PasswordToggleField = {

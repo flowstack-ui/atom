@@ -41,5 +41,7 @@ listing every document individually.
 
 ## Manual Tests
 
+- [floating-overlays-manual.md](floating-overlays-manual.md) - FloatingPanel and
+  OverlayManager headless qualification; results remain unperformed.
 - [../manual-tests/README.md](../manual-tests/README.md) - reviewed Manual Test
   Protocol location and lifecycle notes.

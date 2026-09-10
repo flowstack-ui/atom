@@ -10,7 +10,7 @@ Provide a native password input with controlled or uncontrolled reveal state, an
 
 ## Choose something else when
 
-- The value is ordinary text, a one-time verification code, or policy forbids revealing the secret. Use Input, OTPField, or a password Input without a reveal control.
+- The value is ordinary text, a one-time verification code, or policy forbids revealing the secret. Use Input, PinInput, or a password Input without a reveal control.
 
 ## Required composition
 
@@ -36,6 +36,6 @@ Provide a native password input with controlled or uncontrolled reveal state, an
 ## Related guidance
 
 - `input`
-- `otp-field`
+- `pin-input`
 - `field`
 - `form`

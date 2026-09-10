@@ -490,6 +490,7 @@ function MenuSubContent(
     "data-menu-sub-content": "",
     "data-slot": dataSlot,
     "data-state": isOpen ? "open" : "closed",
+    inert: !isOpen || undefined,
     "data-side": actualSide,
     "data-align": actualAlign,
     ...(isPositioned ? { "data-positioned": "" } : {}),

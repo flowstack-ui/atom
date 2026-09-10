@@ -162,10 +162,10 @@ import {
   NavigationMenuIndicator,
   NavigationMenuRoot,
   NavigationMenuSub,
-  OTPField,
-  OTPFieldInput,
-  OTPFieldRoot,
-  OTPFieldSeparator,
+  PinInput,
+  PinInputInput,
+  PinInputRoot,
+  PinInputSeparator,
   Pagination,
   PaginationEllipsis,
   PaginationItem,
@@ -225,8 +225,8 @@ import {
   getPaginationRange,
   getProgressState,
   formatFileSize,
-  filterOTPFieldValue,
-  isOTPFieldCharAccepted,
+  filterPinInputValue,
+  isPinInputCharAccepted,
   getVirtualItems,
   getVirtualTotalSize,
   getNavigationMenuGeometry,
@@ -518,12 +518,12 @@ test("package subpath exports can be imported through package self-reference", a
       assert.equal(typeof mod.toast.success, "function");
     }
 
-    if (subpath === "otp-field") {
-      assert.equal(mod.OTPField.Root, mod.OTPFieldRoot);
-      assert.equal(mod.OTPField.Input, mod.OTPFieldInput);
-      assert.equal(mod.OTPField.Separator, mod.OTPFieldSeparator);
-      assert.equal(typeof mod.filterOTPFieldValue, "function");
-      assert.equal(typeof mod.isOTPFieldCharAccepted, "function");
+    if (subpath === "pin-input") {
+      assert.equal(mod.PinInput.Root, mod.PinInputRoot);
+      assert.equal(mod.PinInput.Input, mod.PinInputInput);
+      assert.equal(mod.PinInput.Separator, mod.PinInputSeparator);
+      assert.equal(typeof mod.filterPinInputValue, "function");
+      assert.equal(typeof mod.isPinInputCharAccepted, "function");
     }
 
     if (subpath === "password-toggle-field") {
@@ -550,6 +550,10 @@ test("package subpath exports can be imported through package self-reference", a
       assert.equal(typeof mod.visuallyHiddenStyle, "object");
     }
 
+    if (subpath === "overlay-manager") {
+      assert.equal(typeof mod.createOverlay, "function");
+      continue;
+    }
     const namespaceName = namespaceNameForSubpath(subpath);
     assert.equal(typeof mod[namespaceName], "object", `${subpath} namespace export is missing`);
     assert.ok(mod[namespaceName].Root ?? mod[namespaceName].Provider);

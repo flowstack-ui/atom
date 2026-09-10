@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useControllableState } from "./useControllableState.js";
+import { observeScrollTargets } from "./scrollTargets.js";
 
 export interface ScrollSpyItem {
   id: string;
@@ -74,14 +75,6 @@ function getNearestVisibleEntry(
   })[0];
 }
 
-function compareDocumentOrder(a: Element, b: Element): number {
-  if (a === b) return 0;
-  const position = a.compareDocumentPosition(b);
-  if (position & Node.DOCUMENT_POSITION_FOLLOWING) return -1;
-  if (position & Node.DOCUMENT_POSITION_PRECEDING) return 1;
-  return 0;
-}
-
 export function useScrollSpy<TItem = ScrollSpyItem>({
   items,
   getId = defaultGetId as (item: TItem) => string | undefined,
@@ -102,7 +95,6 @@ export function useScrollSpy<TItem = ScrollSpyItem>({
   });
   const activeIdRef = useRef(activeId);
   activeIdRef.current = activeId;
-  const [domVersion, setDomVersion] = useState(0);
 
   const thresholdKey = Array.isArray(threshold) ? threshold.join(",") : String(threshold);
   const observerThreshold = useMemo(
@@ -159,36 +151,7 @@ export function useScrollSpy<TItem = ScrollSpyItem>({
       return undefined;
     }
 
-    const observedItems = resolvedItems
-      .filter((item) => item.id !== "")
-      .map((item) => {
-        const element = document.getElementById(item.id);
-        if (!element) return null;
-        return { ...item, element };
-      })
-      .filter((item): item is ResolvedScrollSpyItem & { element: HTMLElement } => item !== null)
-      .sort((a, b) => compareDocumentOrder(a.element, b.element));
-
-    const missingIds = resolvedItems
-      .filter((item) => item.id !== "" && !document.getElementById(item.id))
-      .map((item) => item.id);
-
-    if (observedItems.length === 0 && missingIds.length === 0) return undefined;
-
-    let mutationObserver: MutationObserver | undefined;
-    if (missingIds.length > 0 && typeof MutationObserver !== "undefined" && document.body) {
-      mutationObserver = new MutationObserver(() => {
-        if (missingIds.some((id) => document.getElementById(id))) {
-          setDomVersion((version) => version + 1);
-        }
-      });
-      mutationObserver.observe(document.body, { childList: true, subtree: true });
-    }
-
-    if (observedItems.length === 0) {
-      return () => mutationObserver?.disconnect();
-    }
-
+    let observedItems: HTMLElement[] = [];
     const visibleEntries = new Map<Element, IntersectionObserverEntry>();
     const observer = new IntersectionObserver(
       (entries) => {
@@ -206,7 +169,7 @@ export function useScrollSpy<TItem = ScrollSpyItem>({
           return;
         }
 
-        const firstElement = observedItems[0]?.element;
+        const firstElement = observedItems[0];
         if (
           defaultActiveId !== activeIdRef.current &&
           firstElement?.isConnected &&
@@ -218,17 +181,19 @@ export function useScrollSpy<TItem = ScrollSpyItem>({
       { root, rootMargin, threshold: observerThreshold },
     );
 
-    for (const item of observedItems) {
-      observer.observe(item.element);
-    }
+    const stopDiscovery = observeScrollTargets(document, resolvedItems.map(({ id }) => id), (targets) => {
+      observer.disconnect();
+      visibleEntries.clear();
+      observedItems = targets;
+      for (const target of targets) observer.observe(target);
+    });
 
     return () => {
-      mutationObserver?.disconnect();
+      stopDiscovery();
       observer.disconnect();
     };
   }, [
     defaultActiveId,
-    domVersion,
     enabled,
     observerThreshold,
     resolvedItems,

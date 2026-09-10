@@ -4,6 +4,12 @@
 
 Headless accessible React primitives.
 
+Local QR generation: [QrCode](docs/components/qr-code/README.md).
+
+Live document navigation: [TableOfContents](docs/components/table-of-contents/README.md).
+
+Continuous passive content: [Marquee](docs/components/marquee/README.md).
+
 `@flowstack-ui/atom` owns behavior, semantic DOM, ARIA attributes, keyboard
 interaction, focus management, controlled/uncontrolled state, compound context,
 and portals. It does not ship CSS, visual themes, icons, app templates, routing
@@ -231,6 +237,7 @@ Use the primitive that matches the interaction model:
 - `NavList` for native link navigation.
 - `NavigationMenu` for navigation disclosure panels.
 - `Tabs` for tab panels.
+- [`Steps`](docs/components/steps/README.md) for ordered workflow progress and validation gates.
 - `Menu`, `DropdownMenu`, `ContextMenu`, and `Menubar` for command menus.
 - `Tree` for hierarchical one-dimensional navigation or selection.
 
@@ -266,6 +273,9 @@ Higher-level sorting, filtering, editing, column models, and data fetching are
 intentionally outside Atom.
 
 ## Documentation
+
+- [OverlayManager](https://github.com/flowstack-ui/atom/blob/main/docs/components/overlay-manager/README.md) for imperative overlay instances.
+- [FloatingPanel](https://github.com/flowstack-ui/atom/blob/main/docs/components/floating-panel/README.md) for movable/resizable nonmodal tools.
 
 - [Getting started](docs/guides/getting-started.md)
 - [Imports](docs/guides/imports.md)

@@ -14,6 +14,17 @@ Decide whether reusable headless behavior belongs in Atom, an existing native el
 
 ## Selection map
 
+- **same-document section navigation and reading position:** use TableOfContents. Keep target IDs and labels explicit. Atom owns scroll/current/focus behavior; Brick owns presentation. Page layout, sticky offsets and responsive disclosure remain application-owned.
+- **headless locally generated QR graphic:** use QrCode. Encoding, accepted value, SVG semantics and export are Atom-owned. Brick owns scan-safe presentation. This is not a camera scanner or authentication service.
+- **browser-owned option picker with Field and Form integration:** use NativeSelect. Keep native option and optgroup children, platform keyboard behavior and native multiple selection. Choose Select for a custom popup.
+- **inline preview-to-edit transaction:** use Editable. Use Input or Textarea for permanently visible entry. Atom owns draft, commit, cancel and focus; persistence stays application-owned.
+- **authored string collection entry:** use TagsInput. Use MultiSelect for predefined values. Keep collection and draft separate, preserve atomic acceptance and use the public Combobox bridge for suggestions.
+- **continuous passive content motion:** use Marquee. Provide explicit pure inert visual replicas and a persistent pause control; expose stationary originals for focus and reduced motion. Use Carousel for active-slide selection, not repeated motion.
+- **movable resizable nonmodal inspector window:** use FloatingPanel. Use Popover for trigger-anchored content, Dialog for blocking tasks, and Splitter for adjacent panes. Applications own saved geometry and workspace policy.
+- **imperative overlay lifecycle and typed results:** use OverlayManager createOverlay. Mount one Viewport below application providers. The authored overlay retains focus, dismissal and presentation; the manager coordinates identity, results, updates and completed exits.
+- **generated local file download:** use DownloadTrigger. Keep data production and error copy application-owned; use a native download Link for an existing URL.
+- **adjacent resizable regions:** use Splitter. Use Divider for passive separation and Slider for numeric entry; applications own storage and pane content.
+- **ordered interactive workflow progress:** use Steps. Use List for static instructions and Tabs for independent peer panels. Application code owns async validation, submission, and persistence.
 - **native action:** use Button. Choose Link for ordinary navigation and Pressable only for custom interactive surfaces.
 - **application header structure:** use AppBar. Compose Toolbar only when grouped controls require toolbar keyboard behavior.
 - **site or application navigation:** use NavList, NavigationMenu, Breadcrumb, BottomNavigation, Tabs, or Pagination. Select by the navigation relationship, not by visual resemblance.
@@ -22,7 +33,7 @@ Decide whether reusable headless behavior belongs in Atom, an existing native el
 - **choice or persistent control state:** use CheckboxGroup for independent form choices, RadioGroup for one visible form answer, Switch for an immediately applied on/off setting, Toggle for one pressed command, or ToggleGroup for related pressed commands. Choose by semantics and application timing rather than visual shape.
 - **spatial numeric input:** use Slider for a general scalar or range adjusted by feel, or Rating for a short ordered score. Choose NumberInput when exact typed entry matters and Progress when the value is read-only.
 - **option selection presentation:** use Listbox for a visible composite list, Select for one collapsed fixed value, MultiSelect for several collapsed fixed values, or Combobox for editable filtering and optional valid free-form entry. Choose RadioGroup or CheckboxGroup when short form choices should remain separate visible controls.
-- **specialized text entry:** use NumberInput for exact numeric entry with stepping, OTPField for a short one-time code split across cells, or PasswordToggleField for a revealable reusable secret. Keep ordinary text and digit-like identifiers in Input.
+- **specialized text entry:** use NumberInput for exact numeric entry with stepping, PinInput for a short one-time code split across cells, or PasswordToggleField for a revealable reusable secret. Keep ordinary text and digit-like identifiers in Input.
 - **local file selection and drop:** use FileUpload. Use a native file input when custom picker, drop, validation feedback, and selected-item behavior are unnecessary; always validate uploads again on the server.
 - **copy known text with status:** use Clipboard. Choose Button when asynchronous copy state and authored feedback are unnecessary.
 - **short non-blocking update:** use Toast. Use inline content for contextual or durable feedback and AlertDialog when a response is required.
@@ -67,6 +78,7 @@ Decide whether reusable headless behavior belongs in Atom, an existing native el
 
 ## Related guidance
 
+- `table-of-contents`
 - `behavior-composition`
 - `button`
 - `link`
@@ -91,7 +103,7 @@ Decide whether reusable headless behavior belongs in Atom, an existing native el
 - `multi-select`
 - `combobox`
 - `number-input`
-- `otp-field`
+- `pin-input`
 - `password-toggle-field`
 - `file-upload`
 - `clipboard`

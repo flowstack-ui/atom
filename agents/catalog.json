@@ -8,6 +8,12 @@
   ],
   "classifications": [
     {
+      "surface": "./date-value",
+      "classification": "utility",
+      "documentation": "docs/components/date-value/README.md",
+      "reason": "Immutable date values and explicit parsing/conversion helpers are shared non-rendering date infrastructure."
+    },
+    {
       "surface": ".#OutsideInteractionEvent",
       "classification": "utility",
       "documentation": "docs/guides/public-api.md#subpath-exports",

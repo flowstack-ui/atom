@@ -66,7 +66,7 @@ Compose Atom primitives without duplicating their owned semantics, state, access
 - `multi-select`
 - `combobox`
 - `number-input`
-- `otp-field`
+- `pin-input`
 - `password-toggle-field`
 - `file-upload`
 - `clipboard`

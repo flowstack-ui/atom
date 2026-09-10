@@ -1,4 +1,5 @@
 import { Button } from "@flowstack-ui/atom/button";
+import { useMarqueeScenario, MarqueeScenarioToolbar, MarqueeScenarioCanvas, getMarqueeSections, getMarqueeSource } from "./MarqueeScenario";
 import { Checkbox } from "@flowstack-ui/atom/checkbox";
 import { CheckboxGroup } from "@flowstack-ui/atom/checkbox-group";
 import { Combobox } from "@flowstack-ui/atom/combobox";
@@ -12,7 +13,7 @@ import { Form, type ValidationBehavior } from "@flowstack-ui/atom/form";
 import { Input } from "@flowstack-ui/atom/input";
 import { Menubar } from "@flowstack-ui/atom/menubar";
 import { NumberInput } from "@flowstack-ui/atom/number-input";
-import { OTPField } from "@flowstack-ui/atom/otp-field";
+import { PinInput } from "@flowstack-ui/atom/pin-input";
 import { RadioGroup } from "@flowstack-ui/atom/radio-group";
 import { Rating } from "@flowstack-ui/atom/rating";
 import { ScrollArea } from "@flowstack-ui/atom/scroll-area";
@@ -69,6 +70,7 @@ type LogEntry = {
 };
 
 export const dataPrimitiveScenarioIds = new Set([
+  "marquee",
   "table",
   "data-grid",
   "tree",
@@ -105,6 +107,7 @@ function useScenarioLog() {
 
 export function useDataPrimitiveScenarios(): any {
   return {
+    marquee: useMarqueeScenario(),
     table: useTableScenario(),
     dataGrid: useDataGridScenario(),
     tree: useTreeScenario(),
@@ -570,6 +573,7 @@ export function DataPrimitiveScenarioToolbar({
   scenarioId: string;
   scenarios: DataPrimitiveScenarios;
 }): any {
+  if (scenarioId === "marquee") return <MarqueeScenarioToolbar scenario={scenarios.marquee} />;
   if (scenarioId === "table") {
     const scenario = scenarios.table;
     return (
@@ -883,6 +887,7 @@ export function DataPrimitiveScenarioCanvas({
   scenarioId: string;
   scenarios: DataPrimitiveScenarios;
 }): any {
+  if (scenarioId === "marquee") return <MarqueeScenarioCanvas scenario={scenarios.marquee} />;
   if (scenarioId === "table") return <TableScenarioCanvas scenario={scenarios.table} />;
   if (scenarioId === "data-grid") return <DataGridScenarioCanvas scenario={scenarios.dataGrid} />;
   if (scenarioId === "tree") return <TreeScenarioCanvas scenario={scenarios.tree} />;
@@ -946,6 +951,7 @@ export function getDataPrimitiveCanvasFooter(
   scenarioId: string,
   scenarios: DataPrimitiveScenarios,
 ): any {
+  if (scenarioId === "marquee") return `${scenarios.marquee.state.side} | ${scenarios.marquee.state.speed}px/s | ${scenarios.marquee.state.direction}`;
   if (scenarioId === "table") {
     const state = scenarios.table.state;
     return `Sort ${formatTableSort(state.sortDirection)} | Footer ${bool(state.footer)} | Root ${state.composition.root}`;
@@ -985,6 +991,7 @@ export function getDataPrimitiveCanvasFooter(
 }
 
 export function getDataPrimitiveSource(scenarioId: string, scenarios?: DataPrimitiveScenarios): any {
+  if (scenarioId === "marquee") return scenarios ? getMarqueeSource(scenarios.marquee.state) : "";
   if (scenarioId === "table") {
     return getTableSource(scenarios?.table.state);
   }
@@ -2539,9 +2546,9 @@ function FormFoundationControls() {
 
       <Field.Root id="foundation-code" required>
         <Field.Label>Verification code</Field.Label>
-        <OTPField.Root name="code" defaultValue="123456" length={6}>
-          {Array.from({ length: 6 }, (_, index) => <OTPField.Input key={index} index={index} />)}
-        </OTPField.Root>
+        <PinInput.Root name="code" defaultValue={["1", "2", "3", "4", "5", "6"]} length={6} otp>
+          {Array.from({ length: 6 }, (_, index) => <PinInput.Input key={index} index={index} />)}
+        </PinInput.Root>
       </Field.Root>
 
       <Field.Root id="foundation-file">
@@ -2568,6 +2575,7 @@ function getDataPrimitiveSections(
   scenarioId: string,
   scenarios: DataPrimitiveScenarios,
 ): AnatomySection[] {
+  if (scenarioId === "marquee") return getMarqueeSections();
   if (scenarioId === "table") {
     const state = scenarios.table.state;
     return [
@@ -2815,6 +2823,7 @@ function getDataPrimitiveSections(
 }
 
 function getDataPrimitiveLog(scenarioId: string, scenarios: DataPrimitiveScenarios) {
+  if (scenarioId === "marquee") return scenarios.marquee.state.log;
   if (scenarioId === "table") return scenarios.table.state.log;
   if (scenarioId === "data-grid") return scenarios.dataGrid.state.log;
   if (scenarioId === "tree") return scenarios.tree.state.log;
@@ -2826,6 +2835,7 @@ function getDataPrimitiveLog(scenarioId: string, scenarios: DataPrimitiveScenari
 }
 
 function getDataPrimitiveActions(scenarioId: string, scenarios: DataPrimitiveScenarios) {
+  if (scenarioId === "marquee") return scenarios.marquee.actions;
   if (scenarioId === "table") return scenarios.table.actions;
   if (scenarioId === "data-grid") return scenarios.dataGrid.actions;
   if (scenarioId === "tree") return scenarios.tree.actions;

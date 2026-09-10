@@ -57,7 +57,7 @@ Component anatomy uses the main package import. See
 - [NavList](./nav-list/README.md)
 - [NavigationMenu](./navigation-menu/README.md)
 - [NumberInput](./number-input/README.md)
-- [OTPField](./otp-field/README.md)
+- [PinInput](./pin-input/README.md)
 - [Pagination](./pagination/README.md)
 - [PasswordToggleField](./password-toggle-field/README.md)
 - [Popover](./popover/README.md)

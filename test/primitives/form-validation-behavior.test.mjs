@@ -15,7 +15,7 @@ import {
   Form,
   Input,
   NumberInput,
-  OTPField,
+  PinInput,
   PasswordToggleField,
   RadioGroup,
   Rating,
@@ -671,14 +671,14 @@ test("every native validity owner mirrors an inline failure to its visible contr
       visible: '[data-slot="rating"]',
     },
     {
-      name: "OTPField",
+      name: "PinInput",
       element: React.createElement(
-        OTPField.Root,
+        PinInput.Root,
         { required: true, validationBehavior: "inline", length: 2 },
-        React.createElement(OTPField.Input),
-        React.createElement(OTPField.Input),
+        React.createElement(PinInput.Input),
+        React.createElement(PinInput.Input),
       ),
-      visible: '[data-slot="otp-field"]',
+      visible: '[data-slot="pin-input"]',
     },
     {
       name: "FileUpload",

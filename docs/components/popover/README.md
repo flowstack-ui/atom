@@ -1,5 +1,9 @@
 # Popover
 
+`Root.onExitComplete?: () => void` runs after a true-to-false disclosure exit
+finishes. Reopening cancels the previous pending completion. Overlay Manager
+adapters forward the injected callback here; they must not guess a CSS duration.
+
 Positioned disclosure content with optional anchor, modal behavior, focus guards, arrow geometry, and close controls.
 
 ## When to Use
