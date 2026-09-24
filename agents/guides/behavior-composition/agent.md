@@ -14,6 +14,7 @@ Compose Atom primitives without duplicating their owned semantics, state, access
 
 ## Selection map
 
+- **record selection independent from opening a record:** use useSelection and useSelectionCheckbox from @flowstack-ui/atom/selection, with named Checkbox controls. Read docs/components/selection/README.md. Preserve native Table or List semantics. Keep stable IDs, disabled eligibility and visible select-all scope explicit; filtering does not silently delete off-scope selection. ActionDelegate may extend pointer activation to a host without creating a second keyboard target; retain the real Link or Button and independent secondary controls.
 - **one behavior owner:** use one public Atom primitive. Do not combine primitives that compete for the same focus or state contract.
 - **compound anatomy:** use the documented Root and named parts. Keep required parts inside their owning context.
 - **several related disclosure sections:** use Accordion. Preserve Item, Header, Trigger, and Content relationships and choose heading levels from the host document.
@@ -36,6 +37,7 @@ Compose Atom primitives without duplicating their owned semantics, state, access
 
 ## Validation checklist
 
+- For record selection, verify single and multiple modes, disabled/readOnly records, scoped select-all, retained off-scope IDs, range selection, and separate primary/secondary actions. Application code owns pagination, filtering, persistence and bulk effects.
 - Inspect the final DOM rather than only the JSX component names.
 - Exercise keyboard, pointer, touch, focus return, dismissal, disabled state, controlled state, and RTL behavior as applicable.
 - Run automated accessibility checks and perform the component's manual protocol for material interaction changes.

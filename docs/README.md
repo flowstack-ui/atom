@@ -5,6 +5,8 @@ contribution guidance lives in [`CONTRIBUTING.md`](../CONTRIBUTING.md).
 
 ## Start Here
 
+- [composeHost](components/compose-host/README.md) — server-safe host prop and ref composition.
+
 - [TableOfContents](components/table-of-contents/README.md) — same-document navigation and scoped current-location tracking.
 - [QrCode](components/qr-code/README.md) — local encoding, accessible graphics and image export.
 

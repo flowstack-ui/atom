@@ -39,7 +39,7 @@ Decide whether reusable headless behavior belongs in Atom, an existing native el
 - **short non-blocking update:** use Toast. Use inline content for contextual or durable feedback and AlertDialog when a response is required.
 - **gesture-enhanced row actions:** use SwipeableItem. Keep an obvious tap or click path and choose Menu when many actions or discovery make swipe unsuitable.
 - **one inline disclosure region:** use Collapsible. Choose Accordion for several coordinated sections or Dialog for a modal task.
-- **row and column data:** use Table for read-oriented comparison, DataGrid for flat two-dimensional keyboard navigation or row selection, or TreeGrid for hierarchical interactive rows. Keep sorting, editing, filtering, resizing, and virtualization application-composed and preserve full logical indexes when windowing.
+- **row and column data:** use Table for native tabular reading with composed named selection controls, DataGrid for flat two-dimensional keyboard navigation, or TreeGrid for hierarchical interactive rows. Keep sorting, editing, filtering, resizing, and virtualization application-composed and preserve full logical indexes when windowing.
 - **hierarchical item navigation:** use Tree for one primary item column or TreeGrid for several navigable columns. Choose Accordion when branches contain general disclosure content rather than selectable items.
 - **dynamic article stream:** use Feed. Choose List for a static set and add virtualization only when scale justifies its focus and accessibility cost.
 - **literal query highlighting in plain text:** use Highlight. Keep result navigation and rich-content traversal in the application and visual treatment in Brick.
@@ -54,7 +54,7 @@ Decide whether reusable headless behavior belongs in Atom, an existing native el
 - **scrollable viewport with owned scrollbar behavior:** use ScrollArea. Keep ordinary document scrolling native.
 - **resilient media loading:** use Image. Use a native img when loading state and fallback composition are unnecessary.
 - **grouped disclosure sections:** use Accordion. Choose Collapsible for one independent disclosure and Tabs for one shared switching panel.
-- **static ordered or unordered content:** use List. Choose NavList or an interactive collection primitive when items navigate, select, or activate.
+- **static ordered or unordered content:** use List. List may contain named links, buttons and selection checkboxes while preserving native list semantics. Compose useSelection for records; choose NavList for navigation. See behavior-composition and docs/components/selection/README.md for activation and option-selection alternatives.
 
 ## Rules
 

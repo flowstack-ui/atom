@@ -372,7 +372,12 @@ export function focusFirstDescendant(container: HTMLElement): void {
 }
 
 export function isTabbableCandidate(element: HTMLElement): boolean {
-  if (!element.isConnected || element.tabIndex < 0) return false;
+  return element.tabIndex >= 0 && isAvailableFocusTarget(element);
+}
+
+/** Visibility and availability shared by tab stops and programmatic targets. */
+export function isAvailableFocusTarget(element: HTMLElement): boolean {
+  if (!element.isConnected) return false;
   if (element.hidden || element.closest("[hidden], [inert], [aria-hidden='true']")) {
     return false;
   }
@@ -387,11 +392,15 @@ export function isTabbableCandidate(element: HTMLElement): boolean {
   }
   let current: HTMLElement | null = element;
   while (current) {
-    const styles = getComputedStyle(current);
+    if (current.tagName === "DETAILS" && !current.hasAttribute("open")) {
+      const summary: Element | undefined = Array.from(current.children).find(child => child.tagName === "SUMMARY");
+      if (!summary?.contains(element)) return false;
+    }
+    const styles = element.ownerDocument.defaultView?.getComputedStyle(current);
     if (
-      styles.display === "none" ||
-      styles.visibility === "hidden" ||
-      styles.visibility === "collapse"
+      styles?.display === "none" ||
+      styles?.visibility === "hidden" ||
+      styles?.visibility === "collapse"
     ) {
       return false;
     }

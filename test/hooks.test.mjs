@@ -171,7 +171,6 @@ test("overlay primitives use dismissable layer stack for Escape handling", async
     "src/primitives/hover-card/HoverCardRoot.tsx",
     "src/primitives/tooltip/TooltipRoot.tsx",
     "src/primitives/navigation-menu/NavigationMenuRoot.tsx",
-    "src/primitives/navigation-menu/NavigationMenuSub.tsx",
   ];
 
   for (const file of files) {
@@ -179,6 +178,10 @@ test("overlay primitives use dismissable layer stack for Escape handling", async
     assert.match(source, /useDismissableLayer/);
     assert.doesNotMatch(source, /useEscapeKey/);
   }
+  const subSource = await readFile(new URL("src/primitives/navigation-menu/NavigationMenuSub.tsx", packageRoot), "utf8");
+  assert.match(subSource, /import \{ NavigationMenuRoot/);
+  assert.match(subSource, /<NavigationMenuRoot/);
+  assert.doesNotMatch(subSource, /useEscapeKey/);
 });
 
 test("virtualizer helpers calculate visible items with overscan and variable sizes", () => {

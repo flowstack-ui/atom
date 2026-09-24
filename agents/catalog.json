@@ -8,6 +8,12 @@
   ],
   "classifications": [
     {
+      "surface": "./compose-host",
+      "classification": "utility",
+      "documentation": "docs/components/compose-host/README.md",
+      "reason": "Server-safe one-host prop, event and ref composition without a DOM wrapper."
+    },
+    {
       "surface": "./selection",
       "classification": "utility",
       "documentation": "docs/components/selection/README.md",

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
 ## 0.24.0
 
 - Added source-led Agent Knowledge for native direction pairing, provider

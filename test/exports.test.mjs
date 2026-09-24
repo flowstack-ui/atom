@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import {
   assert,
   test,
@@ -6,6 +7,18 @@ import {
   publicSubpaths,
   namespaceNameForSubpath,
 } from "./test-utils.mjs";
+
+test("controller declarations retain peer-compatible native prop aliases", () => {
+  for (const [path, alias] of [
+    ["calendar/Calendar", "HTMLAttributes<HTMLDivElement>"],
+    ["date-input/DateInput", "HTMLAttributes<HTMLDivElement>"],
+    ["tree/useTreeController", "TreeRootProps"],
+  ]) {
+    const declaration = readFileSync(new URL(`../dist/_internal/primitives/${path}.d.ts`, import.meta.url), "utf8");
+    assert.ok(declaration.includes(alias));
+    assert.doesNotMatch(declaration, /SubmitEventHandler|ToggleEventHandler|ChangeEventHandler<[^>]+,/);
+  }
+});
 
 import {
   AlertDialog,
@@ -204,8 +217,15 @@ import {
   SidebarRoot,
   SidebarTrigger,
   Switch,
+  SwitchControl,
+  SwitchField,
+  SwitchHiddenInput,
+  SwitchIndicator,
+  SwitchLabel,
   SwitchRoot,
+  SwitchRootProvider,
   SwitchThumb,
+  SwitchThumbIndicator,
   SwipeableItem,
   SwipeableItemActions,
   SwipeableItemContent,
@@ -238,10 +258,22 @@ import {
 test("package subpath exports can be imported through package self-reference", async () => {
   const rootModule = await import("@flowstack-ui/atom");
   assert.ok(rootModule.Switch.Root);
+  assert.ok(rootModule.Switch.Field);
+  assert.ok(rootModule.Switch.Control);
+  assert.ok(rootModule.Switch.HiddenInput);
   assert.ok(rootModule.Switch.Thumb);
 
   for (const subpath of publicSubpaths) {
     const mod = await import(`@flowstack-ui/atom/${subpath}`);
+    if (subpath === "action-delegate") {
+      assert.equal(mod.ActionDelegate, rootModule.ActionDelegate);
+      continue;
+    }
+    if (subpath === "selection") {
+      assert.equal(typeof mod.useSelection, "function");
+      assert.equal(typeof mod.useSelectionCheckbox, "function");
+      continue;
+    }
 
     if (subpath === "hooks") {
       assert.equal(typeof mod.useControllableState, "function");
@@ -295,7 +327,14 @@ test("package subpath exports can be imported through package self-reference", a
 
     if (subpath === "switch") {
       assert.equal(mod.Switch.Root, mod.SwitchRoot);
+      assert.equal(mod.Switch.Field, mod.SwitchField);
+      assert.equal(mod.Switch.Control, mod.SwitchControl);
+      assert.equal(mod.Switch.Label, mod.SwitchLabel);
+      assert.equal(mod.Switch.HiddenInput, mod.SwitchHiddenInput);
       assert.equal(mod.Switch.Thumb, mod.SwitchThumb);
+      assert.equal(mod.Switch.Indicator, mod.SwitchIndicator);
+      assert.equal(mod.Switch.ThumbIndicator, mod.SwitchThumbIndicator);
+      assert.equal(mod.Switch.RootProvider, mod.SwitchRootProvider);
     }
 
     if (subpath === "checkbox") {
@@ -466,6 +505,9 @@ test("package subpath exports can be imported through package self-reference", a
 
     if (subpath === "progress") {
       assert.equal(mod.Progress.Root, mod.ProgressRoot);
+      assert.equal(mod.Progress.RootProvider, mod.ProgressRootProvider);
+      assert.equal(mod.Progress.Context, mod.ProgressContextView);
+      assert.equal(typeof mod.useProgress, "function");
       assert.equal(mod.Progress.Indicator, mod.ProgressIndicator);
       assert.equal(typeof mod.getProgressState, "function");
     }

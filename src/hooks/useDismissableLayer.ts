@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useCreateOverlayScope, type OverlayScope } from "./overlayScope.js";
 
-type Layer = { onEscape: (event: KeyboardEvent) => void; scope: OverlayScope; elements: HTMLElement[]; order: number };
+type Layer = { onEscape: (event: KeyboardEvent) => void; onAncestorDismiss: (event: Event) => void; scope: OverlayScope; elements: HTMLElement[]; order: number };
 type Registry = { layers: Layer[]; listener: (event: KeyboardEvent) => void };
 const registries = new WeakMap<Document, Registry>();
 let activation = 0;
@@ -34,15 +34,19 @@ export interface UseDismissableLayerOptions {
   getElements?: (document: Document) => readonly (HTMLElement | null | undefined)[];
   /** Called only for the topmost enabled layer when Escape is pressed. */
   onEscapeKeyDown: (event: KeyboardEvent) => void;
+  /** A retained descendant's ancestor has left the active layer stack. */
+  onRequestDismiss?: (event: Event) => void;
 }
 
-export function useDismissableLayer({ enabled, ownerDocument, onEscapeKeyDown, scope: suppliedScope, elements = [], getElements }: UseDismissableLayerOptions): () => void {
+export function useDismissableLayer({ enabled, ownerDocument, onEscapeKeyDown, onRequestDismiss, scope: suppliedScope, elements = [], getElements }: UseDismissableLayerOptions): () => void {
   const implicitScope = useCreateOverlayScope();
   const scope = suppliedScope ?? implicitScope;
   const hosts = useRef(elements); hosts.current = elements;
   const resolveHosts = useRef(getElements); resolveHosts.current = getElements;
   const callback = useRef(onEscapeKeyDown);
   callback.current = onEscapeKeyDown;
+  const ancestorCallback = useRef(onRequestDismiss);
+  ancestorCallback.current = onRequestDismiss;
   const active = useRef<{ registry: Registry; layer: Layer } | null>(null);
   const doc = ownerDocument ?? (typeof document === "undefined" ? null : document);
   useEffect(() => {
@@ -58,7 +62,7 @@ export function useDismissableLayer({ enabled, ownerDocument, onEscapeKeyDown, s
       doc.addEventListener("keydown", registry.listener, true);
     }
     scope.activation = ++activation;
-    const layer: Layer = { onEscape: event => callback.current(event), scope, elements: (resolveHosts.current?.(doc) ?? hosts.current).filter((node): node is HTMLElement => Boolean(node)), order: activation };
+    const layer: Layer = { onEscape: event => callback.current(event), onAncestorDismiss: event => ancestorCallback.current?.(event), scope, elements: (resolveHosts.current?.(doc) ?? hosts.current).filter((node): node is HTMLElement => Boolean(node)), order: activation };
     registry.layers.push(layer);
     scope.refresh = () => synchronize(registry);
     synchronize(registry);
@@ -69,6 +73,17 @@ export function useDismissableLayer({ enabled, ownerDocument, onEscapeKeyDown, s
       new Set([...layer.elements,...scope.hosts]).forEach(node => node.style.removeProperty("--atom-overlay-layer"));
       scope.refresh = undefined;
       scope.activation = 0;
+      // Allow same-commit re-registration (including StrictMode replay) and child
+      // teardown before notifying only descendants that actually remain active.
+      queueMicrotask(() => {
+        if (scope.activation !== 0) return;
+        for (const descendant of [...registry.layers]) {
+          if (ancestor(scope, descendant.scope)) {
+            const EventConstructor = doc.defaultView?.Event;
+            if (EventConstructor) descendant.onAncestorDismiss(new EventConstructor("ancestor-dismiss", { cancelable: true }));
+          }
+        }
+      });
       synchronize(registry);
       if (!registry.layers.length) {
         doc.removeEventListener("keydown", registry.listener, true);

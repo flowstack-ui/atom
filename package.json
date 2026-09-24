@@ -30,6 +30,26 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
+    "./radio-card": {
+      "types": "./dist/radio-card.d.ts",
+      "default": "./dist/radio-card.js"
+    },
+    "./checkbox-card": {
+      "types": "./dist/checkbox-card.d.ts",
+      "default": "./dist/checkbox-card.js"
+    },
+    "./compose-host": {
+      "types": "./dist/compose-host.d.ts",
+      "default": "./dist/compose-host.js"
+    },
+    "./action-delegate": {
+      "types": "./dist/action-delegate.d.ts",
+      "default": "./dist/action-delegate.js"
+    },
+    "./selection": {
+      "types": "./dist/selection.d.ts",
+      "default": "./dist/selection.js"
+    },
     "./table-of-contents": {
       "types": "./dist/table-of-contents.d.ts",
       "default": "./dist/table-of-contents.js"
@@ -401,14 +421,6 @@
     "./visually-hidden": {
       "types": "./dist/visually-hidden.d.ts",
       "default": "./dist/visually-hidden.js"
-    },
-    "./selection": {
-      "types": "./dist/selection.d.ts",
-      "default": "./dist/selection.js"
-    },
-    "./action-delegate": {
-      "types": "./dist/action-delegate.d.ts",
-      "default": "./dist/action-delegate.js"
     }
   },
   "files": [
@@ -459,6 +471,7 @@
   "dependencies": {
     "@floating-ui/react": "^0.27.19",
     "@internationalized/date": "3.12.4",
+    "@internationalized/number": "3.6.8",
     "@zag-js/color-picker": "1.43.3",
     "@zag-js/date-input": "1.43.3",
     "@zag-js/date-picker": "1.43.3",

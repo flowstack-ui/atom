@@ -3,6 +3,8 @@
 import {
   forwardRef,
   useMemo,
+  useLayoutEffect,
+  useState,
   type CSSProperties,
   type ReactNode,
   type RefObject,
@@ -14,6 +16,7 @@ import {
   renderElement,
   type RenderProp,
 } from "./slot.js";
+import { getArrowDepth } from "./floatingArrowPositioning.js";
 
 export type { RenderProp } from "./slot.js";
 
@@ -111,6 +114,17 @@ export const FloatingArrow = forwardRef<SVGSVGElement, FloatingArrowProps>(
     ref,
   ) {
     const geometry = getFloatingArrowGeometry(side, width, height);
+    const [measuredDepth, setMeasuredDepth] = useState<number | null>(null);
+    useLayoutEffect(() => {
+      const node = arrowRef.current;
+      if (!node) return;
+      const measure = () => setMeasuredDepth(getArrowDepth(node) || null);
+      measure();
+      const win = node.ownerDocument.defaultView;
+      const observer = win?.ResizeObserver ? new win.ResizeObserver(measure) : undefined;
+      observer?.observe(node);
+      return () => observer?.disconnect();
+    }, [arrowRef, side, width, height]);
     const composedRef = useMemo(
       () => composeRefs(arrowRef, ref),
       [arrowRef, ref],
@@ -122,7 +136,7 @@ export const FloatingArrow = forwardRef<SVGSVGElement, FloatingArrowProps>(
       top: arrowY === undefined ? undefined : `${arrowY}px`,
       right: "",
       bottom: "",
-      [staticSide]: `-${geometry.outwardSize}px`,
+      [staticSide]: `-${measuredDepth ?? geometry.outwardSize}px`,
     };
 
     const arrowProps = {
@@ -131,6 +145,7 @@ export const FloatingArrow = forwardRef<SVGSVGElement, FloatingArrowProps>(
       "aria-hidden": true,
       "data-slot": dataSlot,
       "data-side": side,
+      "data-atom-floating-arrow": "",
       height: geometry.svgHeight,
       style: {
         ...style,

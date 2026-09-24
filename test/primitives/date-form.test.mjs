@@ -8,7 +8,7 @@ import { parseDate } from "../../dist/date-value.js";
 
 async function withDom(run) {
   const dom = new JSDOM('<!doctype html><div id="root"></div>', { pretendToBeVisual: true, url: "https://example.test" });
-  const keys = ["window", "document", "HTMLElement", "Element", "Node", "Event", "MutationObserver", "IS_REACT_ACT_ENVIRONMENT"];
+  const keys = ["window", "document", "HTMLElement", "Element", "Node", "Event", "MutationObserver", "requestAnimationFrame", "cancelAnimationFrame", "IS_REACT_ACT_ENVIRONMENT"];
   const previous = Object.fromEntries(keys.map(key => [key, globalThis[key]]));
   for (const key of keys) globalThis[key] = key === "IS_REACT_ACT_ENVIRONMENT" ? true : dom.window[key];
   const container = document.getElementById("root");
@@ -26,6 +26,12 @@ async function withDom(run) {
 
 const referenceDate = parseDate("2026-09-05");
 const h = React.createElement;
+async function resetForm(form) {
+  await React.act(async () => {
+    form.reset();
+    await new Promise(resolve => window.setTimeout(resolve, 0));
+  });
+}
 test("multiple DatePicker reports required validation to Field and clears it after a value", () => withDom(async (root, container) => {
   const render = value => h("form", null, h(Field.Root, { required: true },
     h(Field.Label, null, "Meetings"), h(DatePicker.Root, { referenceDate, selectionMode: "multiple", value },
@@ -35,7 +41,7 @@ test("multiple DatePicker reports required validation to Field and clears it aft
   assert.ok(container.querySelector('[data-slot="field"][data-invalid]'));
   await React.act(async () => root.render(render([referenceDate])));
   assert.equal(container.querySelector("input").validity.valid, true);
-  assert.equal(container.querySelector('[data-slot="field"][data-invalid]'), null);
+  assert.ok(!container.querySelector('[data-slot="field"][data-invalid]'), "valid selection clears Field invalid state");
 }));
 test("date picker inherits Field label and description without a duplicate label", () => withDom(async (root, container) => {
   await React.act(async () => root.render(h(Field.Root, null, h(Field.Label, null, "Delivery"), h(Field.Description, null, "Choose a business day"),
@@ -55,14 +61,14 @@ test("uncontrolled date input resets its canonical value", () => withDom(async (
   const form = container.querySelector("form");
   await React.act(async () => container.querySelector("button").click());
   assert.equal(new window.FormData(form).get("date"), "");
-  await React.act(async () => form.reset());
+  await resetForm(form);
   assert.equal(new window.FormData(form).get("date"), "2026-09-05");
 }));
 
 test("controlled date input reset does not call the application setter", () => withDom(async (root, container) => {
   const calls = [];
   await React.act(async () => root.render(h("form", null, input({ value: referenceDate, onValueChange: value => calls.push(value) }))));
-  await React.act(async () => container.querySelector("form").reset());
+  await resetForm(container.querySelector("form"));
   assert.equal(calls.length, 0);
   assert.equal(container.querySelector("input").value, "2026-09-05");
 }));
@@ -83,7 +89,7 @@ test("DatePicker resets its shared input value from the root coordinator", () =>
       h(DatePicker.Input, { "aria-label": "Appointment" }), h(DatePicker.ClearTrigger, null, "Clear")))));
   await React.act(async () => container.querySelector("button").click());
   assert.equal(container.querySelector("input").value, "");
-  await React.act(async () => container.querySelector("form").reset());
+  await resetForm(container.querySelector("form"));
   assert.equal(container.querySelector("input").value, "2026-09-05");
 }));
 

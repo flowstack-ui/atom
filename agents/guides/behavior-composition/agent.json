@@ -14,6 +14,7 @@
     "Test the behavior before adding any higher-layer styling or product workflow."
   ],
   "selection": [
+    { "intent": "record selection independent from opening a record", "use": "useSelection and useSelectionCheckbox from @flowstack-ui/atom/selection, with named Checkbox controls", "note": "Read docs/components/selection/README.md. Preserve native Table or List semantics. Keep stable IDs, disabled eligibility and visible select-all scope explicit; filtering does not silently delete off-scope selection. ActionDelegate may extend pointer activation to a host without creating a second keyboard target; retain the real Link or Button and independent secondary controls.", "destinations": [{ "kind": "component", "id": "action-delegate" }, { "kind": "component", "id": "checkbox" }, { "kind": "component", "id": "table" }, { "kind": "component", "id": "list" }, { "kind": "component", "id": "link" }, { "kind": "component", "id": "button" }, { "kind": "guide", "id": "behavior-composition" }] },
     { "intent": "one behavior owner", "use": "one public Atom primitive", "note": "Do not combine primitives that compete for the same focus or state contract.", "destinations": [{ "kind": "guide", "id": "layer-selection" }] },
     { "intent": "compound anatomy", "use": "the documented Root and named parts", "note": "Keep required parts inside their owning context.", "destinations": [{ "kind": "guide", "id": "behavior-composition" }] },
     { "intent": "several related disclosure sections", "use": "Accordion", "note": "Preserve Item, Header, Trigger, and Content relationships and choose heading levels from the host document.", "destinations": [{ "kind": "component", "id": "accordion" }] },
@@ -33,6 +34,7 @@
     "report": "Document any repeated manual behavior as a potential Atom gap instead of silently normalizing it in applications."
   },
   "validation": [
+    "For record selection, verify single and multiple modes, disabled/readOnly records, scoped select-all, retained off-scope IDs, range selection, and separate primary/secondary actions. Application code owns pagination, filtering, persistence and bulk effects.",
     "Inspect the final DOM rather than only the JSX component names.",
     "Exercise keyboard, pointer, touch, focus return, dismissal, disabled state, controlled state, and RTL behavior as applicable.",
     "Run automated accessibility checks and perform the component's manual protocol for material interaction changes.",

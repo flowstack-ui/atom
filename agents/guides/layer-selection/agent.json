@@ -515,7 +515,7 @@
     },
     {
       "intent": "row and column data",
-      "use": "Table for read-oriented comparison, DataGrid for flat two-dimensional keyboard navigation or row selection, or TreeGrid for hierarchical interactive rows",
+      "use": "Table for native tabular reading with composed named selection controls, DataGrid for flat two-dimensional keyboard navigation, or TreeGrid for hierarchical interactive rows",
       "note": "Keep sorting, editing, filtering, resizing, and virtualization application-composed and preserve full logical indexes when windowing.",
       "destinations": [
         {
@@ -785,7 +785,7 @@
     {
       "intent": "static ordered or unordered content",
       "use": "List",
-      "note": "Choose NavList or an interactive collection primitive when items navigate, select, or activate.",
+      "note": "List may contain named links, buttons and selection checkboxes while preserving native list semantics. Compose useSelection for records; choose NavList for navigation. See behavior-composition and docs/components/selection/README.md for activation and option-selection alternatives.",
       "destinations": [
         {
           "kind": "component",

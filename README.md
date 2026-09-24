@@ -65,8 +65,13 @@ Atom intentionally keeps runtime dependencies narrow.
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.19",
+    "@internationalized/date": "3.12.4",
+    "@internationalized/number": "3.6.8",
     "@zag-js/color-picker": "1.43.3",
-    "@zag-js/react": "1.43.3"
+    "@zag-js/date-input": "1.43.3",
+    "@zag-js/date-picker": "1.43.3",
+    "@zag-js/react": "1.43.3",
+    "uqr": "0.1.3"
   }
 }
 ```
@@ -77,6 +82,10 @@ primitives such as menus, popovers, tooltips, hover cards, and select listboxes.
 The exact Zag packages provide Color Picker's color-space model, accessible
 area/channel state machine, form behavior, and React adapter. Atom exposes its
 own public compound API and does not re-export Ark UI or Chakra components.
+The exact date/number packages provide locale-aware values and number parsing;
+the date Zag runtimes provide segmented date and calendar state machines.
+`uqr` provides local QR encoding. These are headless runtime dependencies, not
+visual recipes or application engines.
 
 ## Public API
 
