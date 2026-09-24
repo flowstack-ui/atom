@@ -137,6 +137,8 @@ jobs:
         run: npx playwright install --with-deps ${{ matrix.engine }}
 
       - name: Test ${{ matrix.project }}
+        env:
+          FLOWSTACK_TEST_ARTIFACT_DIR: test-results/ci-browser
         run: npm run test:browser:project:built -- --project=${{ matrix.project }}
 
       - name: Upload browser qualification report
@@ -147,7 +149,7 @@ jobs:
           path: |
             playwright-report/
             test-results/
-          if-no-files-found: ignore
+          if-no-files-found: error
           retention-days: 14
 
   pack:
