@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Keep the shared Dialog.Positioner on its modal overlay layer when another overlay, such as ActionBar, remains mounted.
+
+- Preserve child state and Content identity when keepMounted dialogs close.
+- Add Positioner as an owned outer scroll boundary with direct-target dismissal.
+
 ## 0.24.0
 
 - Added public Agent Knowledge for component selection, required composition,

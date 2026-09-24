@@ -2,6 +2,8 @@
 
 import {
   DrawerClose,
+  DrawerContext,
+  DrawerPositioner,
   DrawerContent,
   DrawerDescription,
   DrawerOverlay,
@@ -15,6 +17,8 @@ import {
 
 export {
   DrawerClose,
+  DrawerContext,
+  DrawerPositioner,
   DrawerContent,
   DrawerDescription,
   DrawerOverlay,
@@ -23,6 +27,9 @@ export {
   DrawerTrigger,
 } from "./primitives/drawer/index.js";
 export type {
+  DrawerContextProps,
+  DrawerContextValue,
+  DrawerPositionerProps,
   DrawerCloseProps,
   DrawerContentProps,
   DrawerDescriptionProps,
@@ -56,6 +63,8 @@ export type {
 } from "./primitives/modal/index.js";
 
 export const Drawer = {
+  Context: DrawerContext,
+  Positioner: DrawerPositioner,
   Root: ModalRoot,
   Trigger: DrawerTrigger,
   Portal: DrawerPortal,

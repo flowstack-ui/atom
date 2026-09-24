@@ -14,6 +14,8 @@ Provide a short supplemental text description on hover, focus-visible interactio
 
 ## Required composition
 
+- Use unique Trigger values for shared content and Root positioning for collision, sizing, fixed or virtual anchors. Content supports asChild/render. Retained closed content is hidden; Activity requires React 19.2+. Context exposes state and setters, not internal mutable refs.
+- Use useTooltip with RootProvider for externally owned state, or Root for a self-contained instance. Provider shares timing and is not a RootProvider replacement. Set interactive explicitly for pointer retention; content still cannot contain focusable controls. Dismissal switches default true.
 - Compose Root with Trigger and Content; add Provider when descendant tooltips should share timing, Portal only when Content must leave its DOM location, and Arrow only when the styled hint needs a pointer. Plain and rich Content may differ in text structure, but both remain non-interactive tooltips.
 
 ## Rules
@@ -23,6 +25,7 @@ Provide a short supplemental text description on hover, focus-visible interactio
 - **SHOULD:** Keep plain Content to a short hint and use rich only for concise non-interactive title and supporting text; render important information visibly.
 - **MUST:** Preserve hover, focus-visible, Escape, shared delay, and stationary 700 ms touch long-press behavior, including movement, scroll, second-touch, cancellation, disabled, unmount, compatibility-event, and finite dismissal handling.
 - **MUST:** When Trigger uses asChild or render, preserve its native semantics, Atom handlers and refs, and the generated description relationship.
+- **MUST:** With an Arrow mounted, positioning gutter/sideOffset measures the gap to the arrow tip; without an Arrow the gap is to content. Explicit positioning.offset remains a raw offset. Arrow layout-size changes are observed in the owner document when positioning listeners are enabled. Do not compensate for Arrow depth with an additional caller gutter.
 
 ## Common mistakes
 

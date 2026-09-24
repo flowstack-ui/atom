@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Preserve browser DOMRect geometry when positioning against a virtual anchor.
+
+- Add controller/provider, shared triggers, state/indicator, positioning options,
+  lifecycle controls, outside events, IDs and Content composition.
+- Correct disabled disclosure, outside-focus policy and lazy nested focus ownership.
+- Resolve positioning readiness from Floating UI and use owner-document focus.
+
 ## 0.24.0
 
 - Added public Agent Knowledge for component selection, required composition,

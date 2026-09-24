@@ -2,6 +2,65 @@ import { JSDOM } from "jsdom";
 import { createRoot } from "react-dom/client";
 import { assert, test, React, renderToStaticMarkup } from "../test-utils.mjs";
 import { createOverlay } from "../../dist/overlay-manager.js";
+import { Dialog } from "../../dist/dialog.js";
+
+test("OverlayManager settles a Dialog closed before its first open commit", async () => {
+  const dom = new JSDOM("<div id='root'></div>", { pretendToBeVisual: true });
+  const previous = {window:globalThis.window,document:globalThis.document,IS_REACT_ACT_ENVIRONMENT:globalThis.IS_REACT_ACT_ENVIRONMENT};
+  Object.assign(globalThis,{window:dom.window,document:dom.window.document,IS_REACT_ACT_ENVIRONMENT:true});
+  const manager=createOverlay(({title,...props})=>React.createElement(Dialog.Root,props,
+    React.createElement(Dialog.Content,{"aria-label":title},"Content")));
+  const root=createRoot(document.getElementById("root"));
+  try {
+    await React.act(async()=>root.render(React.createElement(React.StrictMode,null,React.createElement(manager.Viewport))));
+    let result, exit, exited=false;
+    await React.act(async()=>{result=manager.open("quick",{title:"Quick"});exit=manager.close("quick","done");exit.then(()=>exited=true);});
+    assert.equal(await result,"done");
+    assert.equal(exited,true,"No visual exit exists before an open commit");
+    assert.equal(manager.has("quick"),false);
+    assert.equal(document.querySelectorAll('[role="dialog"]').length,0);
+  } finally {await React.act(async()=>root.unmount());Object.assign(globalThis,previous);dom.window.close();}
+});
+
+test("OverlayManager handles suspended, replaced and layout-effect closures", async () => {
+  const dom = new JSDOM("<div id='root'></div>", { pretendToBeVisual: true });
+  const previous = { window: globalThis.window, document: globalThis.document, IS_REACT_ACT_ENVIRONMENT: globalThis.IS_REACT_ACT_ENVIRONMENT };
+  Object.assign(globalThis, { window: dom.window, document: dom.window.document, IS_REACT_ACT_ENVIRONMENT: true });
+  const pending = new Promise(() => {});
+  let current;
+  function Panel(props) {
+    current = props;
+    React.useLayoutEffect(() => { if (props.closeOnMount) props.onOpenChange(false); }, []);
+    if (props.suspend) throw pending;
+    return React.createElement("div", null, "Panel");
+  }
+  const manager = createOverlay(Panel);
+  const root = createRoot(document.getElementById("root"));
+  try {
+    await React.act(async () => root.render(React.createElement(React.Suspense, { fallback: "Loading" }, React.createElement(manager.Viewport))));
+    await React.act(async () => { void manager.open("suspended", { suspend: true }); });
+    let exited = false;
+    await React.act(async () => { manager.close("suspended").then(() => { exited = true; }); });
+    assert.equal(exited, true);
+    assert.equal(manager.has("suspended"), false);
+    await React.act(async () => {
+      void manager.open("replacement", {});
+      void manager.close("replacement");
+      void manager.open("replacement", {});
+    });
+    assert.equal(manager.get("replacement").open, true, "Queued cleanup cannot remove a newer generation");
+    await React.act(async () => manager.removeAll());
+    await React.act(async () => { void manager.open("layout", { closeOnMount: true }); });
+    assert.equal(manager.has("layout"), true, "A real open commit must still await the owner's exit");
+    assert.equal(manager.get("layout").open, false);
+    await React.act(async () => current.onExitComplete());
+    assert.equal(manager.has("layout"), false);
+  } finally {
+    await React.act(async () => root.unmount());
+    Object.assign(globalThis, previous);
+    dom.window.close();
+  }
+});
 
 test("OverlayManager isolates result, exit and generation lifetime", async () => {
   const dom = new JSDOM("<div id='root'></div>", { pretendToBeVisual: true });

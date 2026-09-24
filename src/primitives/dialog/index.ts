@@ -1,4 +1,6 @@
 export { DialogClose } from "./DialogClose.js";
+export { DialogPositioner } from "./DialogPositioner.js";
+export type { DialogPositionerProps } from "./DialogPositioner.js";
 export type { DialogCloseProps } from "./DialogClose.js";
 export { DialogContent } from "./DialogContent.js";
 export type { DialogContentProps } from "./DialogContent.js";

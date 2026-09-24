@@ -4,6 +4,7 @@ import {
   forwardRef,
   useCallback,
   useMemo,
+  useId,
   type FocusEvent,
   type FocusEventHandler,
   type PointerEvent as ReactPointerEvent,
@@ -27,6 +28,7 @@ export interface HoverCardTriggerProps extends HoverCardTriggerNativeProps {
   asChild?: boolean;
   className?: string;
   render?: RenderProp;
+  value?: string;
   "data-slot"?: string;
 }
 
@@ -37,6 +39,7 @@ function HoverCardTrigger(
     asChild = false,
     className,
     render,
+    value: valueProp,
     "data-slot": dataSlot = "hover-card-trigger",
     onMouseEnter,
     onMouseLeave,
@@ -55,25 +58,28 @@ function HoverCardTrigger(
     isOpen,
     onOpen,
     onClose,
-    triggerRef,
-    setTriggerElement,
+    registerTrigger, activateTrigger, triggerValue, ids,
     getReferenceProps,
     markTouchInteraction,
     hasRecentTouchInteraction,
     disabled,
+    hoverInputAvailable,
   } = useHoverCardContext();
+  const generatedValue = useId();
+  const value = valueProp ?? generatedValue;
+  const register = useCallback((node: HTMLElement | null) => registerTrigger(value, node), [registerTrigger, value]);
   const composedRef = useMemo(
-    () => composeRefs(triggerRef, setTriggerElement, ref),
-    [ref, setTriggerElement, triggerRef],
+    () => composeRefs(register, ref),
+    [ref, register],
   );
 
   const handleFocus: FocusEventHandler<HTMLSpanElement> = useCallback(
     (event: FocusEvent<HTMLElement>) => {
       if (!hasRecentTouchInteraction() && event.target.matches(":focus-visible")) {
-        if (!disabled) onOpen();
+        if (!disabled) { activateTrigger(value, event.currentTarget); onOpen(); }
       }
     },
-    [disabled, hasRecentTouchInteraction, onOpen],
+    [disabled, hasRecentTouchInteraction, onOpen, activateTrigger, value],
   );
 
   const handleTouchStart = useCallback(() => {
@@ -126,6 +132,13 @@ function HoverCardTrigger(
     ref: composedRef,
     "data-slot": dataSlot,
     "data-state": isOpen ? "open" : "closed",
+    "data-value": valueProp,
+    "data-current": triggerValue === value ? "" : undefined,
+    "data-disabled": disabled ? "" : undefined,
+    id: restProps.id ?? (typeof ids?.trigger === "function" ? ids.trigger(valueProp) : ids?.trigger),
+    onMouseEnter: composeEventHandlers(interactionProps.onMouseEnter as React.MouseEventHandler<HTMLElement> | undefined, (event: React.MouseEvent<HTMLElement>) => {
+      if (hoverInputAvailable && !hasRecentTouchInteraction()) { activateTrigger(value, event.currentTarget); if (!isOpen) onOpen(); }
+    }),
     tabIndex: asChild ? tabIndex : (tabIndex ?? (disabled ? -1 : 0)),
     className,
   };

@@ -11,7 +11,7 @@ import {
   type FloatingArrowGeometry,
   type RenderProp,
 } from "../../utils/floatingArrow.js";
-import { useTooltipContentContext } from "./context.js";
+import { useTooltipContentContext, useTooltipContext } from "./context.js";
 import type { TooltipSide } from "./TooltipContent.js";
 
 type TooltipArrowNativeProps = Omit<SVGProps<SVGSVGElement>, "children">;
@@ -51,10 +51,12 @@ function TooltipArrow(
   ref,
 ) {
   const { arrowRef, side, arrowX, arrowY } = useTooltipContentContext();
+  const { ids } = useTooltipContext();
 
   return (
     <FloatingArrow
       {...restProps}
+      id={restProps.id ?? ids.arrow}
       ref={ref}
       arrowRef={arrowRef}
       arrowX={arrowX}

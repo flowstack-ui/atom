@@ -78,30 +78,12 @@ export const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
 
     if (!isPresent) return null;
 
-    if (isHidden) {
-      return (
-        <div hidden aria-hidden="true">
-          <div
-            {...restProps}
-            ref={contentRef}
-            {...contentProps}
-            data-slot={dataSlot}
-            data-state="closed"
-            className={className}
-          >
-            <FocusScopeProvider scope={focusScope}>
-              {children}
-            </FocusScopeProvider>
-          </div>
-        </div>
-      );
-    }
-
     return (
       <div
         {...restProps}
         ref={contentRef}
         {...contentProps}
+        hidden={isHidden || undefined}
         data-slot={dataSlot}
         data-state={dataState}
         {...(isPositioned ? { "data-positioned": "" } : {})}

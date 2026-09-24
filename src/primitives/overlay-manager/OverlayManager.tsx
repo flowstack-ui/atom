@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useSyncExternalStore, type ComponentType } from "react";
+import { useEffect, useLayoutEffect, useSyncExternalStore, type ComponentType } from "react";
 
 export interface OverlayLifecycleProps {
   open: boolean;
@@ -41,6 +41,7 @@ export function createOverlay<P extends object, R = unknown>(
     exit: ReturnType<typeof deferred<void>>;
   };
   const entries = new Map<string, Entry>();
+  const presented = new Set<number>();
   const subscribers = new Set<() => void>();
   let snapshot: readonly OverlaySnapshotEntry<P & Reserved>[] = [];
   let renderSnapshot: readonly Entry[] = [];
@@ -67,6 +68,7 @@ export function createOverlay<P extends object, R = unknown>(
     const entry = entries.get(id);
     if (!entry) return;
     entries.delete(id);
+    presented.delete(entry.generation);
     entry.result.resolve(undefined);
     entry.exit.resolve();
     publish();
@@ -74,6 +76,7 @@ export function createOverlay<P extends object, R = unknown>(
   const removeAll = () => {
     for (const entry of entries.values()) { entry.result.resolve(undefined); entry.exit.resolve(); }
     entries.clear();
+    presented.clear();
     publish();
   };
   const close = (id: string, value?: R) => {
@@ -83,9 +86,31 @@ export function createOverlay<P extends object, R = unknown>(
       entries.set(id, { ...entry, open: false });
       entry.result.resolve(value);
       publish();
+      // A never-committed overlay has no exit animation to report. Defer until
+      // the current commit finishes: a child may close from its layout effect.
+      queueMicrotask(() => {
+        const latest = entries.get(id);
+        if (latest?.generation === entry.generation && !latest.open && !presented.has(entry.generation)) remove(id);
+      });
     }
     return entry.exit.promise;
   };
+  function ViewportItem({ entry }: { entry: Entry }) {
+    useLayoutEffect(() => {
+      if (entry.open && entries.get(entry.id)?.generation === entry.generation) presented.add(entry.generation);
+    }, [entry.open, entry.id, entry.generation]);
+    return <Component
+      {...entry.props}
+      open={entry.open}
+      onOpenChange={open => {
+        if (entries.get(entry.id)?.generation === entry.generation && !open) void close(entry.id);
+      }}
+      onExitComplete={() => {
+        const latest = entries.get(entry.id);
+        if (latest?.generation === entry.generation && !latest.open) remove(entry.id);
+      }}
+    />;
+  }
   function Viewport() {
     const current = useSyncExternalStore(
       subscribe,
@@ -102,18 +127,7 @@ export function createOverlay<P extends object, R = unknown>(
         queueMicrotask(() => { if (!hosts && ticket === disposal) removeAll(); });
       };
     }, []);
-    return <>{current.map(entry => <Component
-      {...entry.props}
-      key={`${entry.id}:${entry.generation}`}
-      open={entry.open}
-      onOpenChange={open => {
-        if (entries.get(entry.id)?.generation === entry.generation && !open) void close(entry.id);
-      }}
-      onExitComplete={() => {
-        const latest = entries.get(entry.id);
-        if (latest?.generation === entry.generation && !latest.open) remove(entry.id);
-      }}
-    />)}</>;
+    return <>{current.map(entry => <ViewportItem entry={entry} key={`${entry.id}:${entry.generation}`} />)}</>;
   }
   function subscribe(notify: () => void) {
     subscribers.add(notify);
@@ -131,7 +145,7 @@ export function createOverlay<P extends object, R = unknown>(
         publish();
         return existing.result.promise;
       }
-      if (existing) { existing.exit.resolve(); existing.result.resolve(undefined); }
+      if (existing) { presented.delete(existing.generation); existing.exit.resolve(); existing.result.resolve(undefined); }
       const entry: Entry = { id, props: { ...props }, open: true, generation: ++sequence,
         result: deferred<R | undefined>(), exit: deferred<void>() };
       entries.set(id, entry);

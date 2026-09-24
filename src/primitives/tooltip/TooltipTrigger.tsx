@@ -2,6 +2,7 @@
 
 import {
   forwardRef,
+  isValidElement,
   useCallback,
   useEffect,
   useMemo,
@@ -27,6 +28,7 @@ import { useTooltipTouchContext } from "./touchContext.js";
 type TooltipTriggerNativeProps = NativeSpanProps<"children">;
 
 export interface TooltipTriggerProps extends TooltipTriggerNativeProps {
+  value?: string;
   children: ReactNode;
   asChild?: boolean;
   className?: string;
@@ -41,6 +43,7 @@ export const TooltipTrigger = forwardRef<HTMLElement, TooltipTriggerProps>(
 function TooltipTrigger(
   {
     children,
+    value,
     asChild = false,
     className,
     render,
@@ -58,8 +61,18 @@ function TooltipTrigger(
   },
   ref,
 ) {
-  const { isOpen, onOpen, onClose, tooltipId, triggerRef, disabled, isTouchRef } =
+  const { isOpen, onOpen: requestOpen, onClose, tooltipId, disabled, isTouchRef,
+    registerTrigger, activateTrigger, triggerValue, ids, rootId } =
     useTooltipContext();
+  const triggerRef = useRef<HTMLElement | null>(null);
+  const registerRef = useCallback((node: HTMLElement | null) => {
+    triggerRef.current = node;
+    registerTrigger(value, node);
+  }, [registerTrigger, value]);
+  const onOpen = useCallback(() => {
+    if (triggerRef.current) activateTrigger(value, triggerRef.current);
+    requestOpen();
+  }, [activateTrigger, requestOpen, value]);
   const {
     onTouchLongPress,
     onTouchRelease,
@@ -73,8 +86,8 @@ function TooltipTrigger(
   const scrollCleanupRef = useRef<(() => void) | null>(null);
   const [isTouchTracking, setIsTouchTracking] = useState(false);
   const composedRef = useMemo(
-    () => composeRefs(triggerRef, ref),
-    [ref, triggerRef],
+    () => composeRefs(registerRef, ref),
+    [ref, registerRef],
   );
 
   const shouldSuppressForPopover = useCallback((): boolean => {
@@ -180,9 +193,10 @@ function TooltipTrigger(
     longPressTimerRef.current = setTimeout(() => {
       longPressTimerRef.current = null;
       didLongPressRef.current = true;
+      if (triggerRef.current) activateTrigger(value, triggerRef.current);
       onTouchLongPress();
     }, LONG_PRESS_DELAY);
-  }, [cancelTouchSession, disabled, isTouchRef, onTouchLongPress, shouldSuppressForPopover]);
+  }, [activateTrigger, value, cancelTouchSession, disabled, isTouchRef, onTouchLongPress, shouldSuppressForPopover]);
 
   const handleTouchMove: TouchEventHandler<HTMLSpanElement> = useCallback((event) => {
     const touchId = activeTouchIdRef.current;
@@ -237,11 +251,21 @@ function TooltipTrigger(
 
   useEffect(() => () => cancelTouchSession(), [cancelTouchSession]);
 
+  const composedElement = asChild ? children : render;
+  const childDescription = isValidElement<{ "aria-describedby"?: string }>(composedElement)
+    ? composedElement.props["aria-describedby"]
+    : undefined;
+  const describedBy = [...new Set(
+    [childDescription, restProps["aria-describedby"], isOpen && value === triggerValue ? tooltipId : undefined]
+      .filter(Boolean).join(" ").split(/\s+/).filter(Boolean),
+  )].join(" ") || undefined;
   const triggerProps = {
     ...restProps,
+    id: restProps.id ?? (typeof ids.trigger === "function" ? ids.trigger(value) : ids.trigger) ?? `${rootId}-trigger${value === undefined ? "" : `-${encodeURIComponent(value)}`}`,
+    "data-state": isOpen && value === triggerValue ? "open" : "closed",
     ref: composedRef,
     "data-slot": dataSlot,
-    "aria-describedby": isOpen ? tooltipId : undefined,
+    "aria-describedby": describedBy,
     onMouseEnter: composeEventHandlers(onMouseEnter, handleMouseEnter),
     onMouseLeave: composeEventHandlers(onMouseLeave, handleMouseLeave),
     onContextMenu: composeEventHandlers(onContextMenu, handleContextMenu),

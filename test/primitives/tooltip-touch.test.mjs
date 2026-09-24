@@ -6,7 +6,121 @@ import {
   React,
 } from "../test-utils.mjs";
 
-import { Tooltip } from "../../dist/index.js";
+import { Tooltip, useTooltip } from "../../dist/index.js";
+
+test("Tooltip closes when its active trigger is removed without closing on ref reattachment", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  let api;
+  function Fixture({ visible }) {
+    api = useTooltip({ openDelay: 0 });
+    return React.createElement(Tooltip.RootProvider, { value: api }, visible &&
+      React.createElement(Tooltip.Trigger, { value: "first", asChild: true }, React.createElement("button", null, "First")));
+  }
+  try {
+    await React.act(async () => root.render(React.createElement(Fixture, { visible: true })));
+    await React.act(async () => container.querySelector("button").dispatchEvent(new window.MouseEvent("mouseover", { bubbles: true })));
+    assert.equal(api.open, true);
+    await React.act(async () => root.render(React.createElement(Fixture, { visible: true })));
+    assert.equal(api.open, true);
+    await React.act(async () => root.render(React.createElement(Fixture, { visible: false })));
+    assert.equal(api.open, false);
+  } finally { await React.act(async () => root.unmount()); cleanup(); }
+});
+
+test("Tooltip ignores queued pre-open scroll but closes on a subsequent scroll", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  let api;
+  function Fixture() {
+    api = useTooltip();
+    return React.createElement(Tooltip.RootProvider, { value: api }, React.createElement(Tooltip.Trigger, null, "Target"));
+  }
+  try {
+    await React.act(async () => root.render(React.createElement(Fixture)));
+    Object.defineProperty(window, "scrollY", { configurable: true, value: 100 });
+    await React.act(async () => api.setOpen(true));
+    await React.act(async () => document.dispatchEvent(new window.Event("scroll")));
+    assert.equal(api.open, true);
+    Object.defineProperty(window, "scrollY", { configurable: true, value: 200 });
+    await React.act(async () => document.dispatchEvent(new window.Event("scroll")));
+    assert.equal(api.open, false);
+  } finally { await React.act(async () => root.unmount()); cleanup(); }
+});
+
+test("Tooltip follows the active trigger and only describes that trigger", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  const values = [];
+  try {
+    await React.act(async () => root.render(React.createElement(Tooltip.Root,
+      { openDelay: 0, onTriggerValueChange: value => values.push(value) },
+      ...["first", "second"].map(value => React.createElement(Tooltip.Trigger,
+        { key: value, value, asChild: true }, React.createElement("button", null, value))))));
+    const buttons = container.querySelectorAll("button");
+    for (const index of [0, 1]) {
+      await React.act(async () => buttons[index].dispatchEvent(new window.MouseEvent("mouseover", { bubbles: true })));
+      assert.equal(buttons[index].hasAttribute("aria-describedby"), true);
+      assert.equal(buttons[1-index].hasAttribute("aria-describedby"), false);
+    }
+    assert.deepEqual(values, ["first", "second"]);
+  } finally { await React.act(async () => root.unmount()); cleanup(); }
+});
+
+test("Tooltip disabling cancels pending hover and closes without reopening on enable", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  const changes = [];
+  const render = (disabled) => React.createElement(Tooltip.Root,
+    { disabled, openDelay: 30, onOpenChange: value => changes.push(value) },
+    React.createElement(Tooltip.Trigger, { asChild: true }, React.createElement("button", null, "Hint")));
+  try {
+    await React.act(async () => root.render(render(false)));
+    await React.act(async () => container.querySelector("button").dispatchEvent(new window.MouseEvent("mouseover", { bubbles: true })));
+    await React.act(async () => root.render(render(true)));
+    await wait(60);
+    assert.deepEqual(changes, []);
+    await React.act(async () => root.render(render(false)));
+    assert.equal(container.querySelector("button").hasAttribute("aria-describedby"), false);
+  } finally {
+    await React.act(async () => root.unmount());
+    cleanup();
+  }
+});
+
+test("Tooltip controller shares state and dismissal switches preserve open state", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  let api;
+  const changes = [];
+  function Fixture({ dismiss }) {
+    api = useTooltip({ defaultOpen: true, closeOnClick: dismiss, closeOnPointerDown: dismiss,
+      closeOnScroll: dismiss, closeOnEscape: dismiss, onOpenChange: value => changes.push(value) });
+    return React.createElement(Tooltip.RootProvider, { value: api },
+      React.createElement(Tooltip.Trigger, { asChild: true }, React.createElement("button", null, "Hint")));
+  }
+  try {
+    await React.act(async () => root.render(React.createElement(Fixture, { dismiss: false })));
+    for (const type of ["click", "pointerdown", "scroll"]) {
+      await React.act(async () => container.querySelector("button").dispatchEvent(new window.Event(type, { bubbles: true })));
+    }
+    await React.act(async () => document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true })));
+    assert.equal(api.open, true);
+    assert.deepEqual(changes, []);
+    await React.act(async () => root.render(React.createElement(Fixture, { dismiss: true })));
+    await React.act(async () => {
+      container.querySelector("button").dispatchEvent(new window.Event("pointerdown", { bubbles: true }));
+      container.querySelector("button").dispatchEvent(new window.Event("click", { bubbles: true }));
+    });
+    assert.equal(api.open, false);
+    assert.deepEqual(changes, [false]);
+    await React.act(async () => api.setOpen(true));
+    assert.equal(api.open, true);
+  } finally {
+    await React.act(async () => root.unmount());
+    cleanup();
+  }
+});
 
 function installDom() {
   const dom = new JSDOM(

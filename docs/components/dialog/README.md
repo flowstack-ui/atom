@@ -1,5 +1,18 @@
 # Dialog
 
+## Positioner and retained state
+
+`Dialog.Positioner` is an optional div/ref viewport-scroll boundary around Content.
+Render Overlay beside Positioner, never above Content in its ancestry. Positioner
+registers its scrolling area with the modal and dismisses only direct-target
+clicks when the root allows backdrop dismissal and owns the top layer. Consumers
+own its visual layout. Native handlers can prevent dismissal with preventDefault.
+Positioner exposes the same `--atom-overlay-layer` offset as its Overlay and
+Content so styled stacking contexts can stay above the corresponding backdrop,
+including when an ActionBar or another overlay remains mounted.
+`keepMounted` preserves the Content element and child state while hiding it after
+exit; it does not keep a closed dialog interactive or exposed to accessibility.
+
 Root inherits `onExitComplete?: () => void` from Modal. Completion follows the
 owned content/backdrop exit; reopening cancels the pending callback. Forward it
 when adapting Dialog to Overlay Manager.
@@ -63,6 +76,11 @@ It renders no wrapper element.
 | `closeOnBackdropClick` | `boolean` | `true` |
 | `disabled` | `boolean` | `false` |
 | `keepMounted` | `boolean` | `false` |
+| `modal` | `boolean` | `true` |
+| `trapFocus` | `boolean` | `modal` |
+| `preventScroll` | `boolean` | `modal` |
+| `onEscapeKeyDown` | `(event: KeyboardEvent) => void` | - |
+| `onInteractOutside` | `(event: Event) => void` | - |
 
 Close reasons include `"backdropClick"`, `"closeClick"`, and
 `"escapeKeyDown"` for Dialog interactions.
@@ -149,7 +167,7 @@ is supplied.
 | ARIA attribute | Values |
 | --- | --- |
 | `role` | Value from `role` |
-| `aria-modal` | `"true"` while open |
+| `aria-modal` | `"true"` while open and modal; omitted for nonmodal panels |
 | `aria-hidden` | `"true"` while retained only for exit presence |
 | `inert` | Present while retained only for exit presence |
 | `aria-label` | Explicit native value, otherwise `ariaLabel` compatibility value |
@@ -162,8 +180,8 @@ is supplied.
 | `[data-state]` | `"open" \| "closed"` |
 | `[data-positioned]` | Present after the opening frames |
 
-With `keepMounted`, closed Content remains inside a hidden, `aria-hidden`
-wrapper and does not expose `aria-modal`.
+With `keepMounted`, closed Content keeps its own hidden, inert, `aria-hidden`
+host and child state, and does not expose `aria-modal`.
 
 If an exit animation keeps Content present after `open` becomes false, Content
 immediately becomes inert and accessibility-hidden and loses `aria-modal` while

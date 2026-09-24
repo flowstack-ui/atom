@@ -24,10 +24,11 @@ Manage keyed authored overlay instances, typed results and completed exits witho
 ## Common mistakes
 
 - **Avoid:** Awaiting close to obtain the user answer. **Instead:** Await open for the typed result; close and waitForExit await exit completion. Removal settles pending work.
+- **Avoid:** Waiting for an animation from an instance that never committed open, or treating snapshot reads as reactive hooks. **Instead:** Precommit closure is removed automatically; committed instances still require the authored exit callback. Use application state for reactive activity displays.
 
 ## Validation checklist
 
-- Test result versus exit timing, updates, reopen during exit, removal, host disposal, nested focus and provider context.
+- Test result versus exit timing, early close, suspended content, layout-effect closure, updates, reopen during exit, removal, host disposal, nested focus and provider context.
 
 ## Related guidance
 

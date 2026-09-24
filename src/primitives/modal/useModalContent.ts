@@ -15,6 +15,7 @@ import {
   useFocusTrap,
 } from "../../hooks/focus.js";
 import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
+import { useOutsideInteraction } from "../../hooks/useOutsideInteraction.js";
 import { useCurrentOverlayScope } from "../../hooks/overlayScope.js";
 import { usePresence } from "../../hooks/usePresence.js";
 import { useScrollLock } from "../../hooks/useScrollLock.js";
@@ -112,6 +113,8 @@ function useModalContentImplementation(
   } = options;
   const {
     isOpen,
+    modal = true, trapFocus = modal, preventScroll = modal,
+    onEscapeKeyDown, onInteractOutside,
     onClose,
     modalId,
     titleId,
@@ -187,21 +190,37 @@ function useModalContentImplementation(
     [focusScope, layer],
   );
 
-  useFocusTrap(wrapperRef, isOpen && isTopLayer, { scope: focusScope });
-  useModalIsolation(layer, focusScope, isOpen);
+  useFocusTrap(wrapperRef, isOpen && isTopLayer && trapFocus, { scope: focusScope });
+  useModalIsolation(layer, focusScope, isOpen && modal);
   useFocusScopeContainer(
     wrapperRef,
     isOpen,
     focusScope,
     modalContentFocusMetadata,
   );
-  useScrollLock(isOpen, wrapperRef, isAllowedScrollTarget, isTopLayer);
+  useScrollLock(isOpen && preventScroll, wrapperRef, isAllowedScrollTarget, isTopLayer);
+  useOutsideInteraction({
+    refs: [wrapperRef, triggerRef],
+    enabled: isOpen && isTopLayer && !modal,
+    ignore: target => focusScope.contains(target),
+    onInteractOutside: event => {
+      onInteractOutside?.(event.originalEvent);
+      if (!event.originalEvent.defaultPrevented && closeOnBackdropClick) {
+        onClose("backdropClick", event.pointerType === "virtual" ? "programmatic" : event.pointerType);
+      }
+    },
+  });
   useDismissableLayer({
-    enabled: isOpen && isTopLayer,
+    // A child modal temporarily owns focus, but its open parent remains a layer.
+    // Unregistering the parent would request dismissal of that very child.
+    enabled: isOpen,
     ownerDocument: wrapperRef.current?.ownerDocument,
     scope: useCurrentOverlayScope(),
     elements: [wrapperRef.current, layer.overlay],
-    onEscapeKeyDown: () => { if (closeOnEscape) onClose("escapeKeyDown", "keyboard"); },
+    onEscapeKeyDown: event => {
+      onEscapeKeyDown?.(event);
+      if (!event.defaultPrevented && closeOnEscape) onClose("escapeKeyDown", "keyboard");
+    },
   });
 
   useLayoutEffect(() => {
@@ -212,6 +231,8 @@ function useModalContentImplementation(
 
     return () => {
       queueMicrotask(() => {
+        // A nonmodal outside press hands focus to the page, not back to its trigger.
+        if (!modal && finalFocusRef.current === undefined && finalFocusDetailsRef.current.reason === "backdropClick") return;
         const target = resolveFocusTarget(
           finalFocusRef.current,
           finalFocusDetailsRef.current,
@@ -230,7 +251,7 @@ function useModalContentImplementation(
         }
       });
     };
-  }, [isOpen, triggerRef]);
+  }, [isOpen, modal, triggerRef]);
 
   useLayoutEffect(() => {
     if (!isOpen) {
@@ -380,7 +401,7 @@ function useModalContentImplementation(
     contentProps: {
       id: modalId,
       role,
-      "aria-modal": isOpen ? "true" : undefined,
+      "aria-modal": isOpen && modal ? "true" : undefined,
       "aria-labelledby": resolvedAriaLabelledBy,
       "aria-describedby": resolvedAriaDescribedBy,
       "aria-label": resolvedAriaLabel,

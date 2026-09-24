@@ -11,7 +11,7 @@ import {
   type FloatingArrowGeometry,
   type RenderProp,
 } from "../../utils/floatingArrow.js";
-import { useHoverCardContentContext } from "./context.js";
+import { useHoverCardContentContext, useHoverCardContext } from "./context.js";
 import type { HoverCardSide } from "./HoverCardContent.js";
 
 type HoverCardArrowNativeProps = Omit<SVGProps<SVGSVGElement>, "children">;
@@ -51,10 +51,12 @@ function HoverCardArrow(
   ref,
 ) {
   const { arrowRef, side, arrowX, arrowY } = useHoverCardContentContext();
+  const { ids } = useHoverCardContext();
 
   return (
     <FloatingArrow
       {...restProps}
+      id={restProps.id ?? ids?.arrow}
       ref={ref}
       arrowRef={arrowRef}
       arrowX={arrowX}

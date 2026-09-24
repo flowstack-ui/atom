@@ -1,5 +1,16 @@
 # FloatingPanel
 
+ResizeTriggers accepts shared ResizeTrigger props except axis and forwards them
+to every selected handle. Use individual ResizeTrigger components for individual
+refs or labels. The shortcut does not accept a shared ref.
+
+Content is the default initial focus and a tab stop. Arrow keys move; Control or
+Command plus arrows resize. Pointer handles are named groups with tabIndex=-1,
+not buttons. Explicit handle semantics/tabIndex are available for authored
+compositions. Provide click/tap geometry controls for non-drag operation.
+StageTrigger shows minimize/maximize normally and only restore while staged;
+controller commands remain available for direct stage transitions.
+
 Headless movable/resizable nonmodal tools. Import `FloatingPanel` and
 `useFloatingPanel` from `@flowstack-ui/atom/floating-panel`.
 

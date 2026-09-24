@@ -58,7 +58,7 @@ export const FloatingPanelContent = forwardRef<HTMLDivElement, FloatingPanelPart
   if (!presence.mounted) return null;
   const attributes = { ...props, ...data(c), ref: combined, "data-slot": slot, id: c.options.ids?.content ?? `${c.id}-content`, dir: c.dir,
     "data-presence": presence.target ? "open" : "closed",
-    role: props.role ?? "dialog", tabIndex: props.tabIndex ?? -1,
+    role: props.role ?? "dialog", tabIndex: props.tabIndex ?? 0,
     "aria-labelledby": props["aria-label"] ? undefined : props["aria-labelledby"] ?? c.options.ids?.title ?? `${c.id}-title`,
     "aria-describedby": props["aria-describedby"] ?? (c.descriptions ? c.options.ids?.description ?? `${c.id}-description` : undefined), "aria-hidden": !presence.interactive ? true : undefined, inert: !presence.interactive ? true : undefined,
     hidden: !presence.visible || props.hidden, style: { ...style, width: "100%", height: "100%", boxSizing: "border-box", ...(!presence.visible ? { display: "none" } : {}), ...(presence.skipEntry ? { animation: "none", transition: "none" } : {}) },
@@ -102,7 +102,7 @@ export const FloatingPanelResizeTrigger = forwardRef<HTMLDivElement, FloatingPan
   const c = usePanelContext(), handlers = usePanelInteraction(c, axis);
   const locations: CSSProperties = { position: "absolute", touchAction: "none", ...(axis.includes("n") ? { top: 0 } : axis.includes("s") ? { bottom: 0 } : { top: 0, bottom: 0 }),
     ...(axis.includes("w") ? { left: 0 } : axis.includes("e") ? { right: 0 } : { left: 0, right: 0 }) };
-  const attributes = { ...props, ...data(c), ref, "data-slot": slot, "data-axis": axis, role: props.role ?? "button", tabIndex: handlers.disabled ? -1 : props.tabIndex ?? 0,
+  const attributes = { ...props, ...data(c), ref, "data-slot": slot, "data-axis": axis, role: props.role ?? "group", tabIndex: handlers.disabled ? -1 : props.tabIndex ?? -1,
     "aria-label": props["aria-label"] ?? `${c.options.translations?.resize ?? "Resize panel"} ${axis}`, "aria-disabled": handlers.disabled || undefined,
     hidden: handlers.disabled || props.hidden, style: { ...style, ...locations },
     onPointerDown: (e: React.PointerEvent<HTMLDivElement>) => { onPointerDown?.(e); if (!e.defaultPrevented) handlers.onPointerDown(e); },
@@ -124,8 +124,8 @@ export const FloatingPanelDragTrigger = forwardRef<HTMLDivElement, FloatingPanel
     onLostPointerCapture: (e: React.PointerEvent<HTMLDivElement>) => { onLostPointerCapture?.(e); handlers.onLostPointerCapture(e); },
     onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => { onKeyDown?.(e); if (!e.defaultPrevented) handlers.onKeyDown(e); } });
 });
-export interface FloatingPanelResizeTriggersProps { axes?: readonly FloatingPanelAxis[] }
-export function FloatingPanelResizeTriggers({ axes = ["n", "s", "e", "w", "ne", "nw", "se", "sw"] }: FloatingPanelResizeTriggersProps) { return <>{axes.map(axis => <FloatingPanelResizeTrigger key={axis} axis={axis} />)}</>; }
+export interface FloatingPanelResizeTriggersProps extends Omit<FloatingPanelResizeTriggerProps, "axis"> { axes?: readonly FloatingPanelAxis[] }
+export function FloatingPanelResizeTriggers({ axes = ["n", "s", "e", "w", "ne", "nw", "se", "sw"], ...props }: FloatingPanelResizeTriggersProps) { return <>{axes.map(axis => <FloatingPanelResizeTrigger {...props} key={axis} axis={axis} />)}</>; }
 export interface FloatingPanelButtonProps extends NativeButtonProps<"children"> { children?: ReactNode; asChild?: boolean; render?: RenderProp; "data-slot"?: string }
 function authoredLabel(children: ReactNode, asChild: boolean | undefined, render: RenderProp | undefined) {
   const child = asChild ? children : render;
@@ -138,7 +138,7 @@ export const FloatingPanelStageTrigger = forwardRef<HTMLButtonElement, FloatingP
   const name = stage === "default" ? "restore" : stage === "minimized" ? "minimize" : "maximize";
   return element("button", children, asChild, render, { ...props, ...data(c), ref, type: props.type ?? "button", "data-slot": slot,
     "aria-label": props["aria-label"] ?? authoredLabel(children, asChild, render) ?? c.options.translations?.[name] ?? `${name} panel`, disabled: disabled || c.options.disabled || c.options.resizable === false,
-    hidden: stage === c.stage || (stage === "default" && c.stage === "default") || props.hidden,
+    hidden: (stage === "default" ? c.stage === "default" : c.stage !== "default") || props.hidden,
     onClick: (e: React.MouseEvent<HTMLButtonElement>) => { onClick?.(e); if (!e.defaultPrevented && !disabled && !c.options.disabled && c.options.resizable !== false) c[name](); } });
 });
 export const FloatingPanelCloseTrigger = forwardRef<HTMLButtonElement, FloatingPanelButtonProps>(function FloatingPanelCloseTrigger({ children, asChild, render, disabled, onClick, "data-slot": slot = "floating-panel-close-trigger", ...props }, ref) {

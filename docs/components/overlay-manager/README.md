@@ -25,6 +25,17 @@ getSnapshot returns stable readonly entries containing id, props and open.
 remove/removeAll skip animation and settle all pending work. Permanent host
 unmount also cancels outstanding instances; StrictMode replay does not.
 
+The result settles when closure is requested, not when React commits the closed
+state. If an instance closes before its first open commit (including suspended
+content), there is no visual exit: the manager removes it after the current
+commit opportunity and settles its exit promise. Once an open instance commits,
+exit completion remains owned by its overlay. A stale exit cannot remove a
+replacement generation.
+
+`get` and `getSnapshot` are imperative reads, not reactive hooks. Use application
+state for UI that displays manager activity. Put default authored props in the
+overlay component; this factory does not accept an options/default-props object.
+
 ## Accessibility
 
 The authored overlay owns focus, Escape, isolation, naming and restoration.

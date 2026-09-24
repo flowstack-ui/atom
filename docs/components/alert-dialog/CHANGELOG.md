@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Keep the shared Dialog.Positioner on its modal overlay layer when another overlay, such as ActionBar, remains mounted.
+
 ## 0.24.0
 
 - Added public Agent Knowledge for component selection, required composition,

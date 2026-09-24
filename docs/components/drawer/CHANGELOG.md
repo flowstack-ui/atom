@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Preserve retained Content identity and state. Add Positioner, Context and
+  opt-in nonmodal/focus/scroll policies with cancelable dismissal notifications.
+
 - Added public Agent Knowledge for component selection, required composition,
   recurring mistakes, and validation.
 

@@ -28,7 +28,11 @@ Root/RootProvider: `open`, `defaultOpen=false`, `onOpenChange(open, reason)`,
 `closeOnInteractOutside=true`, `lazyMount=true`, `unmountOnExit=true`,
 `onExitComplete`, `onEscapeKeyDown(event)` and `persistentElements` (element getters).
 Escape is preventable. A controlled parent may refuse a request.
-RootProvider accepts Root props; it is not an external store instance API.
+useActionBar(options) returns {open, setOpen}. Pass that unchanged controller to
+RootProvider value. Legacy RootProvider state props remain supported.
+Root accepts onFocusOutside/onInteractOutside/onPointerDownOutside callbacks;
+preventDefault cancels outside dismissal. Lifecycle options also include present,
+immediate=true, skipAnimationOnMount=false and hideMode="display-none".
 
 Content forwards div props/ref, owns dialog role and IDs, accepts native naming,
 `initialFocus=false`, `finalFocus`, `onInteractOutside` and `onFocusOutside`.
@@ -36,7 +40,7 @@ Focus targets accept refs, resolver functions or false. Outside events support
 preventDefault. No positioning props or invisible anchor are needed.
 
 Context children receive `{open, setOpen}`. Portal accepts container/disabled.
-Positioner is an optional unstyled div with native props/ref. Use it for a fixed
+Positioner is an optional unstyled div with native props/ref and asChild/render. Use it for a fixed
 placement wrapper: it participates in the same layer as Content, receiving the
 runtime `--atom-overlay-layer` index rather than establishing an unrelated stack.
 Title/Description establish accessible relationships. SelectionTrigger and
@@ -53,7 +57,8 @@ Opening preserves focus by default. Opt into initial focus for a task requiring
 it; nonmodal mode never traps focus. Supply an accessible name. Keep selection
 regions persistent or turn off outside dismissal when selecting further records.
 Retained children are hidden after exit; lazyMount=false plus unmountOnExit=false
-mounts them before first open. No React Activity effect suspension is implied.
+mounts them before first open. hideMode="activity" suspends hidden effects when
+the React runtime supports Activity; React18 falls back to hidden mounting.
 Rendering is unstyled; position and paint belong to the consumer/Brick.
 
 ## Data Attributes

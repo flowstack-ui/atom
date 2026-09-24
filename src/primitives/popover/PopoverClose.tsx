@@ -46,6 +46,7 @@ function PopoverClose(
   ref,
 ) {
   const {
+    ids,
     onClose,
     recordInteraction,
     consumeInteraction,
@@ -77,6 +78,7 @@ function PopoverClose(
   );
   const closeProps = {
     ...restProps,
+    id: restProps.id ?? ids.close,
     ref,
     "data-slot": dataSlot,
     onClick: handleClick,

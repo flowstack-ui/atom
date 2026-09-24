@@ -32,6 +32,11 @@ export interface ModalFinalFocusDetails {
 }
 
 export interface ModalContextValue {
+  modal?: boolean;
+  trapFocus?: boolean;
+  preventScroll?: boolean;
+  onEscapeKeyDown?: (event: KeyboardEvent) => void;
+  onInteractOutside?: (event: Event) => void;
   /** Whether the modal is open. */
   isOpen: boolean;
   /** Open the modal. */

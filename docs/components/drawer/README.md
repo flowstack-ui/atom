@@ -63,6 +63,12 @@ It renders no wrapper.
 | `closeOnBackdropClick` | `boolean` | `true` |
 | `disabled` | `boolean` | `false` |
 | `keepMounted` | `boolean` | `false` |
+| `modal` | `boolean` | `true` |
+| `trapFocus` | `boolean` | `modal` |
+| `preventScroll` | `boolean` | `modal` |
+| `onEscapeKeyDown` | `(event: KeyboardEvent) => void` | - |
+| `onInteractOutside` | `(event: Event) => void` | - |
+| `onExitComplete` | `() => void` | - |
 
 ### Trigger
 
@@ -146,7 +152,7 @@ attribute only; it does not apply positioning.
 | ARIA attribute | Values |
 | --- | --- |
 | `role` | `"dialog"` |
-| `aria-modal` | `"true"` while open |
+| `aria-modal` | `"true"` while open and modal; omitted for nonmodal panels |
 | `aria-hidden` | `"true"` while retained only for exit presence |
 | `inert` | Present while retained only for exit presence |
 | `aria-label` | Explicit native value, otherwise `ariaLabel` compatibility value |
@@ -160,8 +166,8 @@ attribute only; it does not apply positioning.
 | `[data-placement]` | Consumer-provided placement string |
 | `[data-positioned]` | Present after the opening frames |
 
-With `keepMounted`, closed Content remains inside a hidden, `aria-hidden`
-wrapper and preserves its class name and placement metadata.
+With `keepMounted`, closed Content keeps its own host with `hidden`, `inert`,
+and `aria-hidden`. The same node, child state, class and placement survive reopening.
 
 Exit-animated Content retained after close immediately loses `aria-modal` and
 becomes inert and accessibility-hidden. Background isolation, focus ownership,
@@ -290,3 +296,15 @@ its registered descendant portals, and returns after close.
 ## Changelog
 
 See [CHANGELOG.md](./CHANGELOG.md).
+## Positioner, state, and modality
+
+`Drawer.Positioner` is an owned layout/scroll boundary; keep it beside Overlay,
+never inside the aria-hidden scrim. `Drawer.Context` renders children with
+`{ open, setOpen }`. `keepMounted` preserves the same Content host and child state.
+
+Root defaults to `modal=true`; `trapFocus` and `preventScroll` default to that
+value. For nonmodal use `modal={false}`, omit Overlay, and keep unused positioner
+area pointer-transparent. `onEscapeKeyDown` and `onInteractOutside` receive
+cancelable native events before dismissal. Existing focus-target callbacks,
+disabled, controlled state and exit completion remain supported. Container
+positioning changes geometry, not the scope of document modality.

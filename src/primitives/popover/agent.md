@@ -14,6 +14,10 @@ Present a small interactive panel anchored to a trigger or explicit anchor with 
 
 ## Required composition
 
+- positioning.getAnchorRect accepts plain Rect objects and browser DOMRect/DOMRectReadOnly values directly; return current viewport geometry, or null to fall back to the normal reference. Do not require consumers to serialize browser rectangles.
+- Presentation adapters wrapping semantic parts must retain their identity with markPopoverPart. Mark a wrapped Arrow as arrow so Content keeps it outside the clipping viewport; applications normally use the supplied parts directly.
+- onRequestDismiss observes an ancestor closing while the child remains mounted; cancellation affects the child only. Removing the active trigger requests closing and clears its value. Controlled owners accept the callbacks. For default-open shared triggers, provide defaultTriggerValue. Keep the original usePopover controller object for RootProvider; it exposes no mutable refs.
+- Use usePopover and RootProvider for external control, State/usePopoverState for state and methods, and unique Trigger values for shared content. Root positioning supplies collision, offset, fixed/same-width and virtual anchors. Content supports asChild/render without bypassing the owned viewport. lazyMount/unmountOnExit/immediate default true; retained content is hidden; Activity falls back to display-none when unavailable.
 - Compose Root around Content; add Trigger for local activation or omit it for controlled and triggerless workflows, add Anchor only when positioning must use another reference, and use Portal only when Content must leave its DOM location. Inside Content, use Title or native labeling for the accessible name, add Description and Close only when needed, and add Arrow only when the styled layer needs a pointer; when present, Arrow must be a direct Content child.
 
 ## Rules
@@ -24,6 +28,7 @@ Present a small interactive panel anchored to a trigger or explicit anchor with 
 - **MUST:** Preserve hover opening without focus movement, touch-safe Content focus, keyboard and pointer initial focus, outside-destination focus, and final-focus restoration unless explicit targets are required.
 - **SHOULD:** Use Anchor only when positioning must reference a different element than Trigger, and style from resolved data-side and available-size variables rather than assuming the requested placement always wins.
 - **MUST:** Keep Arrow as a direct Content child so it remains outside the generated viewport wrapper and can align with the resolved floating placement.
+- **MUST:** With an Arrow mounted, positioning gutter/sideOffset measures the gap to the arrow tip; without an Arrow the gap is to content. Explicit positioning.offset remains a raw offset. Arrow layout-size changes are observed in the owner document when positioning listeners are enabled. Do not compensate for Arrow depth with an additional caller gutter.
 
 ## Common mistakes
 

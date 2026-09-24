@@ -80,12 +80,58 @@ or rich hover behavior. Root renders no DOM element.
 | `closeDelay` | `number` | Provider value or `150` |
 | `disabled` | `boolean` | `false` |
 | `variant` | `"plain" \| "rich"` | `"plain"` |
+| `interactive` | `boolean` | `false` for plain, `true` for legacy rich |
+| `closeOnClick` | `boolean` | `true` |
+| `closeOnPointerDown` | `boolean` | `true` |
+| `closeOnScroll` | `boolean` | `true` |
+| `closeOnEscape` | `boolean` | `true` |
+
+`interactive` retains the hint when the pointer enters Content. It does not
+permit focusable descendants: use Popover for interactive content. Set it
+explicitly to separate hover policy from the legacy `variant` default.
+Disabling suppresses even controlled-open content and cancels pending timers.
+Existing descriptions on the trigger and its composed child are preserved.
+
+### RootProvider and useTooltip
+
+`useTooltip(options)` accepts the Root options without children and returns one
+controller. Pass it to `<Tooltip.RootProvider value={controller}>` rather than
+nesting another Root. The controller exposes `open` and `setOpen(boolean)`;
+Provider still means shared timing, not controller ownership. RootProvider
+adds no DOM element. Root is the convenience composition of this same hook
+and provider.
 
 **ARIA:** Root renders no element and adds no ARIA attributes.
 
 **Data attributes:** Root renders no element and exposes none.
 
 ### Trigger
+
+Root also accepts `id`, `ids` (`content`, `arrow`, and `trigger`, the latter a
+string or value-to-ID function), and `aria-label`. For shared content, give
+each Trigger a unique `value`; use `triggerValue`, `defaultTriggerValue` and
+`onTriggerValueChange(value)` on Root. Only the active trigger is described.
+`Tooltip.Context` calls its child with `open`, `setOpen`, `triggerValue` and
+`setTriggerValue`, without exposing mutable internal refs.
+
+Root mounting options are `lazyMount=true`, `unmountOnExit=true`, `present`,
+`onExitComplete`, `immediate=false`, `skipAnimationOnMount=false`, and
+`hideMode="display-none"`. Activity hiding requires React 19.2+; older versions
+must use display-none. Retained closed content is hidden and inaccessible.
+`present` controls mounting independently, not the open ARIA state.
+
+Root `positioning` accepts `placement`, `strategy`, `gutter`,
+`offset: { mainAxis, crossAxis }`, `flip`, `slide`, `boundary`,
+`overflowPadding`, `sameWidth`, `fitViewport`, `hideWhenDetached`, `listeners`,
+`animationFrame`, `arrowPadding`, and `getAnchorRect`. Placement uses physical
+sides and logical start/end. `getAnchorRect` returns `{x,y,width,height}` or null.
+Supplied placement/offset options override Content's legacy placement options;
+omitted fields retain their Content fallback. Size constraints use the supplied
+collision boundary. `listeners=false` performs one measurement; animated
+references can opt into animation-frame tracking.
+
+Content supports `asChild` and `render`; the composed host must forward its ref,
+native attributes and style for measurement, positioning and exit presence.
 
 Reference element that describes itself with tooltip content while open.
 
@@ -144,7 +190,7 @@ from Trigger and then `Direction.Provider`.
 | `[data-state]` | `"open" \| "closed"` |
 | `[data-side]` | `"top" \| "right" \| "bottom" \| "left"` |
 | `[data-variant]` | `"plain" \| "rich"` |
-| `[data-positioned]` | Present after the first positioning frame |
+| `[data-positioned]` | Present after Floating UI has computed positioning |
 
 Plain Content is normally one short description. Rich Content may use a short
 title, supporting description, and non-interactive inline formatting. Both

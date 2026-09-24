@@ -1,7 +1,7 @@
 import { JSDOM } from "jsdom";
 import { createRoot } from "react-dom/client";
 import { assert, test, React } from "../test-utils.mjs";
-import { HoverCard } from "../../dist/index.js";
+import { HoverCard, useHoverCard } from "../../dist/index.js";
 
 function installDom({ hoverInput = true } = {}) {
   const dom = new JSDOM(
@@ -91,6 +91,52 @@ function dispatchMouse(target, type, options = {}) {
 async function actDispatch(callback) {
   await React.act(async () => callback());
 }
+
+test("HoverCard controller shares one retained host between valued triggers", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  let controller;
+  function Shared() {
+    controller = useHoverCard({ openDelay: 0, unmountOnExit: false, lazyMount: false });
+    return React.createElement(HoverCard.RootProvider, { value: controller },
+      ...["ada", "grace"].map(value => React.createElement(HoverCard.Trigger, { key: value, value, asChild: true }, React.createElement("a", { href: `/${value}` }, value))),
+      React.createElement(HoverCard.Content, null, React.createElement(HoverCard.Context, null, ({ triggerValue }) => triggerValue ?? "empty")));
+  }
+  try {
+    await React.act(async () => root.render(React.createElement(Shared)));
+    const host = container.querySelector("[data-slot='hover-card-content']");
+    assert.equal(host.hidden, true);
+    await actDispatch(() => dispatchMouse(container.querySelector("a"), "mouseover"));
+    await wait(25);
+    assert.equal(controller.open, true);
+    assert.equal(host.textContent, "ada");
+    await actDispatch(() => dispatchMouse(container.querySelectorAll("a")[1], "mouseover"));
+    await wait(25);
+    assert.equal(host.textContent, "grace");
+    assert.equal(container.querySelector("[data-slot='hover-card-content']"), host);
+    await React.act(async () => controller.setOpen(false));
+    await wait(30);
+    assert.equal(host.hidden, true);
+    assert.equal(host.getAttribute("aria-hidden"), "true");
+  } finally { await React.act(async () => root.unmount()); cleanup(); }
+});
+
+test("HoverCard cancels pending keyboard opening when disabled", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  const render = disabled => React.createElement(HoverCard.Root, { disabled, openDelay: 40 },
+    React.createElement(HoverCard.Trigger, { asChild: true }, React.createElement("a", { href: "/ada" }, "Ada")),
+    React.createElement(HoverCard.Content, null, "Preview"));
+  try {
+    await React.act(async () => root.render(render(false)));
+    const trigger = container.querySelector("a");
+    trigger.matches = () => true;
+    await actDispatch(() => trigger.focus());
+    await React.act(async () => root.render(render(true)));
+    await wait(80);
+    assert.equal(container.querySelector("[data-slot='hover-card-content']"), null);
+  } finally { await React.act(async () => root.unmount()); cleanup(); }
+});
 
 function setRect(element, rect) {
   element.getBoundingClientRect = () => ({

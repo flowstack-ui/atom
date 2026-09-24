@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Add shared valued triggers, controller/provider and Context, positioning and
+  presence options, stable IDs and preventable outside notifications.
+- Default opening delay is 600ms. Cancel disabled pending opens and position
+  before showing content; preserve native touch activation and safe hover travel.
+
 ## 0.24.0
 
 - Added public Agent Knowledge for component selection, required composition,

@@ -22,6 +22,7 @@ Detached contextual action layer with controlled disclosure, dismissal and focus
 - **MUST:** Keep record selection, translated messages and business effects application-owned. Closing does not clear selection.
 - **MUST:** Name Content through Title or native aria-label. Default initialFocus is false; nonmodal opening preserves selection focus.
 - **MUST:** Use closeOnInteractOutside=false or persistentElements for continued collection selection. Set unmountOnExit=false to retain child state.
+- **MUST:** Pass the unchanged useActionBar result to RootProvider value for external control. RootProvider also retains legacy Root props. Positioner asChild/render must resolve to one host forwarding refs. Use present, immediate, skipAnimationOnMount and hideMode deliberately; Activity falls back to hidden mounting on React18. Do not pass anchored positioning or trigger-value options.
 
 ## Common mistakes
 

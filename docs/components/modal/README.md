@@ -1,5 +1,12 @@
 # Modal
 
+Modal behavior is the default. Dialog and Drawer may opt into `modal={false}`;
+`trapFocus` and `preventScroll` then default to false. Omit the overlay when the
+background should remain interactive. AlertDialog does not expose these opt-outs.
+`onEscapeKeyDown` and `onInteractOutside` receive native cancelable events:
+call `preventDefault()` to cancel the associated dismissal. Nonmodal outside
+dismissal preserves the page focus unless an explicit `finalFocus` is supplied.
+
 Shared foundation for modal dialog behavior, focus management, portals, titles, descriptions, and close controls.
 
 ## When to Use
@@ -64,6 +71,11 @@ Provides modal state and shared IDs to compound parts.
 | `closeOnBackdropClick` | `boolean` | `true` |
 | `disabled` | `boolean` | `false` |
 | `keepMounted` | `boolean` | `false` |
+| `modal` | `boolean` | `true` |
+| `trapFocus` | `boolean` | `modal` |
+| `preventScroll` | `boolean` | `modal` |
+| `onEscapeKeyDown` | `(event: KeyboardEvent) => void` | - |
+| `onInteractOutside` | `(event: Event) => void` | - |
 | `onExitComplete` | `() => void` | — |
 
 ### Trigger

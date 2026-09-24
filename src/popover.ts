@@ -8,12 +8,16 @@ import {
   PopoverDescription,
   PopoverPortal,
   PopoverRoot,
+  PopoverRootProvider,
+  PopoverState,
+  PopoverIndicator,
   PopoverTrigger,
   PopoverTitle,
 } from "./primitives/popover/index.js";
 
 export {
   getPopoverArrowGeometry,
+  markPopoverPart,
   PopoverAnchor,
   PopoverArrow,
   PopoverClose,
@@ -59,6 +63,9 @@ export type {
 } from "./utils/interactions.js";
 
 export const Popover = {
+  RootProvider: PopoverRootProvider,
+  State: PopoverState,
+  Indicator: PopoverIndicator,
   Root: PopoverRoot,
   Anchor: PopoverAnchor,
   Trigger: PopoverTrigger,
@@ -69,3 +76,6 @@ export const Popover = {
   Close: PopoverClose,
   Arrow: PopoverArrow,
 } as const;
+
+export { usePopover, usePopoverState, PopoverRootProvider, PopoverState, PopoverIndicator } from "./primitives/popover/index.js";
+export type { UsePopoverOptions, UsePopoverReturn, PopoverRootProviderProps, PopoverStateProps, PopoverIndicatorProps, PopoverPositioningOptions, PopoverIds, PopoverLifecycleOptions, PopoverOutsideEvents } from "./primitives/popover/index.js";

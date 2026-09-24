@@ -11,7 +11,7 @@ import {
   type FloatingArrowGeometry,
   type RenderProp,
 } from "../../utils/floatingArrow.js";
-import { usePopoverContentContext } from "./context.js";
+import { usePopoverContentContext, usePopoverContext } from "./context.js";
 import type { PopoverSide } from "./PopoverContent.js";
 import { markPopoverPart } from "./parts.js";
 
@@ -52,10 +52,12 @@ function PopoverArrow(
   ref,
 ) {
   const { arrowRef, side, arrowX, arrowY } = usePopoverContentContext();
+  const { ids } = usePopoverContext();
 
   return (
     <FloatingArrow
       {...restProps}
+      id={restProps.id ?? ids.arrow}
       ref={ref}
       arrowRef={arrowRef}
       arrowX={arrowX}

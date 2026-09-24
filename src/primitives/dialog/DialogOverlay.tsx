@@ -41,6 +41,7 @@ export const DialogOverlay = forwardRef<HTMLDivElement, DialogOverlayProps>(
     const {
       isOpen,
       onClose,
+      onInteractOutside,
       closeOnBackdropClick,
       recordInteraction,
       consumeInteraction,
@@ -113,8 +114,10 @@ export const DialogOverlay = forwardRef<HTMLDivElement, DialogOverlayProps>(
             return;
           }
           const interactionType = consumeInteraction(event.currentTarget);
+          if (isTopLayer && !event.defaultPrevented) onInteractOutside?.(event.nativeEvent);
           if (
             !event.defaultPrevented &&
+            !event.nativeEvent.defaultPrevented &&
             isTopLayer &&
             !disabled &&
             closeOnBackdropClick

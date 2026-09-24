@@ -12,3 +12,7 @@ export { DrawerTitle } from "./DrawerTitle.js";
 export type { DrawerHeadingLevel, DrawerTitleProps } from "./DrawerTitle.js";
 export { DrawerTrigger } from "./DrawerTrigger.js";
 export type { DrawerTriggerProps } from "./DrawerTrigger.js";
+export { DrawerContext } from "./DrawerContext.js";
+export type { DrawerContextProps, DrawerContextValue } from "./DrawerContext.js";
+export { DrawerPositioner } from "./DrawerPositioner.js";
+export type { DrawerPositionerProps } from "./DrawerPositioner.js";

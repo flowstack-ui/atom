@@ -4,6 +4,7 @@ import { createContext, useContext, type RefObject } from "react";
 import type { ModalLayer } from "../modal/layer.js";
 import type { PopoverSide } from "./PopoverContent.js";
 import type { PopoverPartKind } from "./parts.js";
+import type { PopoverIds, PopoverLifecycleOptions, PopoverOutsideEvents, PopoverPositioningOptions } from "./options.js";
 
 export type PopoverTriggerMode = "click" | "hover";
 export type PopoverInteractionType =
@@ -36,6 +37,18 @@ export interface PopoverFinalFocusDetails {
 }
 
 export interface PopoverContextValue {
+  ids: PopoverIds;
+  positioning?: PopoverPositioningOptions;
+  lifecycle: PopoverLifecycleOptions;
+  outsideEvents: PopoverOutsideEvents;
+  portalled: boolean;
+  triggerValue: string | undefined;
+  setTriggerValue: (value: string | undefined) => void;
+  registerTrigger: (value: string, node: HTMLElement | null) => void;
+  isTriggerTarget: (node: Node) => boolean;
+  activateTrigger: (value: string, node: HTMLElement, interactionType: PopoverInteractionType) => void;
+  reposition: () => void;
+  updateRef: RefObject<(() => void) | null>;
   isOpen: boolean;
   onToggle: (interactionType?: PopoverInteractionType) => void;
   onOpen: (

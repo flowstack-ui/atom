@@ -31,6 +31,7 @@ Provide a named nonmodal movable and resizable application panel with controlled
 ## Validation checklist
 
 - Verify all resize axes, keyboard and touch alternatives, constraints, cancellation, stages, controlled rejection, nested overlays, RTL, focus and exit lifecycle. With normal motion, position, size and stage must remain stable throughout closing; also verify interrupted exit reopening.
+- Content is a keyboard tab stop; pointer handles are named groups outside the default tab sequence. ResizeTriggers forwards shared handle props except axis, without a shared ref. Use individual ResizeTrigger refs. Staged UI shows restore only; controller commands remain available.
 
 ## Related guidance
 

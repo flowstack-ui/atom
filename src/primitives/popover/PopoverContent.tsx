@@ -1,5 +1,9 @@
 "use client";
 
+import { arrowOffset, autoUpdateWithArrow } from "../../utils/floatingArrowPositioning.js";
+
+import * as React from "react";
+import { normalizePopoverAnchorRect } from "./anchor-rect.js";
 import {
   Children,
   forwardRef,
@@ -15,8 +19,11 @@ import {
 } from "react";
 import {
   arrow as floatingArrow,
-  autoUpdate,
   offset,
+  flip,
+  shift,
+  hide,
+  size,
   useFloating,
   type Placement,
 } from "@floating-ui/react";
@@ -41,7 +48,7 @@ import {
   getFloatingVisibilityMiddleware,
   resolveFloatingDirection,
 } from "../../utils/floatingPlacement.js";
-import { composeEventHandlers, composeRefs } from "../../utils/slot.js";
+import { cloneAndMerge, composeEventHandlers, composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
 import {
   PopoverContentContextProvider,
   usePopoverContext,
@@ -78,6 +85,8 @@ const popoverFocusScopeMetadata = {
 } as const;
 
 export interface PopoverContentProps extends PopoverContentNativeProps {
+  asChild?: boolean;
+  render?: RenderProp;
   children: ReactNode;
   side?: PopoverSide;
   align?: PopoverAlign;
@@ -86,6 +95,7 @@ export interface PopoverContentProps extends PopoverContentNativeProps {
   initialFocus?: PopoverFocusTarget<PopoverInitialFocusDetails>;
   finalFocus?: PopoverFocusTarget<PopoverFinalFocusDetails>;
   onInteractOutside?: (event: OutsideInteractionEvent) => void;
+  onFocusOutside?: (event: FocusEvent) => void;
   "data-slot"?: string;
 }
 
@@ -141,7 +151,7 @@ function focusNextElementAfterTrigger(
   guards: HTMLElement[],
 ): void {
   const focusableElements = Array.from(
-    document.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+    trigger.ownerDocument.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
   );
   const triggerIndex = focusableElements.indexOf(trigger);
 
@@ -167,25 +177,25 @@ function getPopoverReferenceElement(
 ): HTMLElement | null {
   if (!anchor) return trigger;
 
-  const anchorStyle = window.getComputedStyle(anchor);
+  const anchorStyle = anchor.ownerDocument.defaultView!.getComputedStyle(anchor);
   const child = anchor.firstElementChild;
 
-  if (anchorStyle.display === "contents" && child instanceof HTMLElement) {
-    return child;
+  if (anchorStyle.display === "contents" && child?.nodeType === 1) {
+    return child as HTMLElement;
   }
 
   return anchor;
 }
 
 function getElementFromNode(target: Node): Element | null {
-  return target instanceof Element ? target : target.parentElement;
+  return target.nodeType === 1 ? target as Element : target.parentElement;
 }
 
 function getControlledLayerController(layer: HTMLElement): HTMLElement | null {
   if (!layer.id) return null;
 
   const controllers = Array.from(
-    document.querySelectorAll<HTMLElement>("[aria-controls]"),
+    layer.ownerDocument.querySelectorAll<HTMLElement>("[aria-controls]"),
   );
 
   return controllers.find((controller) => (
@@ -198,10 +208,10 @@ function getControlledLayerFromNode(target: Node): HTMLElement | null {
 
   while (element) {
     if (
-      element instanceof HTMLElement &&
-      getControlledLayerController(element)
+      "focus" in element &&
+      getControlledLayerController(element as HTMLElement)
     ) {
-      return element;
+      return element as HTMLElement;
     }
 
     element = element.parentElement;
@@ -243,8 +253,10 @@ function hasOpenNestedControlledLayer(ownerContent: HTMLElement): boolean {
     const controlledId = controller.getAttribute("aria-controls");
     if (!controlledId) return false;
 
-    const controlledLayer = document.getElementById(controlledId);
-    return Boolean(controlledLayer && !ownerContent.contains(controlledLayer));
+    const controlledLayer = ownerContent.ownerDocument.getElementById(controlledId);
+    // An expanded descendant may be awaiting its lazy portal/presence commit.
+    // Its opening focus transaction is already owned before the host exists.
+    return !controlledLayer || !ownerContent.contains(controlledLayer);
   });
 }
 
@@ -252,6 +264,8 @@ export const PopoverContentImpl = forwardRef<HTMLDivElement, PopoverContentProps
 function PopoverContent(props, ref) {
   const {
     children,
+    asChild,
+    render,
     side = "bottom",
     align = "center",
     sideOffset = 8,
@@ -289,6 +303,14 @@ function PopoverContent(props, ref) {
     partRegistryReady,
     initialFocusDetails,
     finalFocusDetails,
+    positioning: p,
+    lifecycle,
+    outsideEvents,
+    portalled,
+    disabled,
+    triggerValue,
+    updateRef,
+    isTriggerTarget,
   } = usePopoverContext();
   const contextDir = useDirection();
   const contentRef = useRef<HTMLDivElement>(null);
@@ -296,13 +318,30 @@ function PopoverContent(props, ref) {
   const beforeGuardRef = useRef<HTMLSpanElement>(null);
   const afterGuardRef = useRef<HTMLSpanElement>(null);
   const arrowRef = useRef<SVGSVGElement>(null);
-  const { isPresent, ref: presenceRef } = usePresence({ present: isOpen, onExitComplete: detached?.onExitComplete });
+  const [scheduledPresent, setScheduledPresent] = useState(isOpen);
+  useEffect(() => {
+    const win = contentRef.current?.ownerDocument.defaultView ?? triggerRef.current?.ownerDocument.defaultView ?? (typeof window !== "undefined" ? window : undefined);
+    if (lifecycle.immediate || !win?.requestAnimationFrame) { setScheduledPresent(isOpen); return; }
+    const frame = win.requestAnimationFrame(() => setScheduledPresent(isOpen));
+    return () => win.cancelAnimationFrame(frame);
+  }, [isOpen, lifecycle.immediate, triggerRef]);
+  const desiredPresent = !disabled && (lifecycle.present ?? (lifecycle.immediate ? isOpen : scheduledPresent));
+  const { isPresent, ref: presenceRef } = usePresence({ present: desiredPresent, onExitComplete: detached?.onExitComplete ?? lifecycle.onExitComplete });
+  const initialOpen = useRef(isOpen);
+  const transitioned = useRef(false);
+  if (initialOpen.current !== isOpen) transitioned.current = true;
   const [hasOpened, setHasOpened] = useState(isOpen);
   useEffect(() => { if (isOpen) setHasOpened(true); }, [isOpen]);
-  const keepMounted = Boolean(detached && !detached.unmountOnExit && (!detached.lazyMount || hasOpened));
-  const [isPositioned, setIsPositioned] = useState(false);
-  const visibleParts = getPopoverPartPresence(children);
-  const childArray = Children.toArray(children);
+  const mounting = detached ?? lifecycle;
+  const keepMounted = Boolean(!mounting.unmountOnExit && hasOpened || !mounting.lazyMount && !hasOpened);
+  // Exit animation may retain DOM, but closed content must leave tab navigation.
+  // Setting the attribute works in React 18 as well as React 19.
+  useLayoutEffect(() => {
+    contentRef.current?.toggleAttribute("inert", !isOpen);
+  });
+  const composedChildren = asChild && React.isValidElement<{ children?: ReactNode }>(children) ? children.props.children : children;
+  const visibleParts = getPopoverPartPresence(composedChildren);
+  const childArray = Children.toArray(composedChildren);
   const arrowChildren = childArray.filter((child) => isPopoverPart(child, "arrow"));
   const viewportChildren = childArray.filter((child) => !isPopoverPart(child, "arrow"));
   const warnedRef = useRef(new Set<string>());
@@ -349,13 +388,13 @@ function PopoverContent(props, ref) {
   );
   useFocusScopeContainer(
     beforeGuardRef,
-    isPresent && !modal && !detached,
+    isOpen && portalled && !modal && !detached,
     undefined,
     popoverFocusScopeMetadata,
   );
   useFocusScopeContainer(
     afterGuardRef,
-    isPresent && !modal && !detached,
+    isOpen && portalled && !modal && !detached,
     undefined,
     popoverFocusScopeMetadata,
   );
@@ -365,20 +404,27 @@ function PopoverContent(props, ref) {
   useScrollLock(isOpen && modal, contentRef);
 
   useLayoutEffect(() => {
-    if (!isOpen) return undefined;
+    if (!isOpen || !isPresent) return undefined;
 
-    previousElementRef.current = document.activeElement instanceof HTMLElement
-      ? document.activeElement
+    const doc = contentRef.current?.ownerDocument ?? triggerRef.current?.ownerDocument;
+    if (!doc) return;
+    previousElementRef.current = doc.activeElement && "focus" in doc.activeElement
+      ? doc.activeElement as HTMLElement
       : null;
     didMoveFocusRef.current = false;
     initialFocusAppliedRef.current = false;
 
     return () => {
+      // Closing makes retained content inert before the microtask runs. Capture
+      // ownership now so that browser-driven blur does not lose the return target.
+      const closingActive = doc.activeElement;
+      const closingOwnedFocus = Boolean(closingActive &&
+        (contentRef.current?.contains(closingActive) || focusScope.contains(closingActive)));
       queueMicrotask(() => {
         const details = finalFocusDetailsRef.current;
         const content = contentRef.current;
-        const activeElement = document.activeElement instanceof HTMLElement
-          ? document.activeElement
+        const activeElement = doc.activeElement && "focus" in doc.activeElement
+          ? doc.activeElement as HTMLElement
           : null;
         const focusIsInside = Boolean(
           activeElement &&
@@ -390,7 +436,8 @@ function PopoverContent(props, ref) {
           details.reason === "hoverLeave";
 
         if (preserveDestination) return;
-        if (!didMoveFocusRef.current && !focusIsInside) return;
+        const blurredOnClose = closingOwnedFocus && (!activeElement || activeElement === doc.body);
+        if (!didMoveFocusRef.current && !focusIsInside && !blurredOnClose) return;
 
         const explicitTarget = resolveFocusTarget(
           finalFocusRef.current,
@@ -398,22 +445,22 @@ function PopoverContent(props, ref) {
         );
         if (explicitTarget === false) return;
         if (
-          explicitTarget instanceof HTMLElement &&
+          explicitTarget &&
           isAvailableFocusTarget(explicitTarget)
         ) {
           explicitTarget.focus({ preventScroll: true });
           return;
         }
-        if (isRestorableFocusTarget(previousElementRef.current)) {
-          previousElementRef.current.focus({ preventScroll: true });
-          return;
-        }
         if (isRestorableFocusTarget(triggerRef.current)) {
           triggerRef.current.focus({ preventScroll: true });
+          return;
+        }
+        if (isRestorableFocusTarget(previousElementRef.current)) {
+          previousElementRef.current.focus({ preventScroll: true });
         }
       });
     };
-  }, [focusScope, isOpen, triggerRef]);
+  }, [focusScope, isOpen, isPresent, triggerRef]);
 
   useLayoutEffect(() => {
     if (!isOpen || !isPresent || initialFocusAppliedRef.current) return;
@@ -424,8 +471,8 @@ function PopoverContent(props, ref) {
     const details = initialFocusDetailsRef.current;
     if (details.reason === "triggerHover") return;
     if (
-      content.contains(document.activeElement) ||
-      focusScope.contains(document.activeElement)
+      content.contains(content.ownerDocument.activeElement) ||
+      focusScope.contains(content.ownerDocument.activeElement)
     ) {
       return;
     }
@@ -433,7 +480,7 @@ function PopoverContent(props, ref) {
     const explicitTarget = resolveFocusTarget(initialFocusRef.current, details);
     if (explicitTarget === false) return;
     if (
-      explicitTarget instanceof HTMLElement &&
+      explicitTarget &&
       isAvailableFocusTarget(explicitTarget) &&
       (content.contains(explicitTarget) || focusScope.contains(explicitTarget))
     ) {
@@ -452,13 +499,6 @@ function PopoverContent(props, ref) {
     didMoveFocusRef.current = true;
   }, [focusScope, isOpen, isPresent]);
 
-  useEffect(() => {
-    if (!isPresent) return undefined;
-    setIsPositioned(false);
-    const raf = requestAnimationFrame(() => setIsPositioned(true));
-    return () => cancelAnimationFrame(raf);
-  }, [isPresent]);
-
   const clickAwayRefs = useMemo(
     () => [contentRef, triggerRef, anchorRef],
     [triggerRef, anchorRef],
@@ -466,8 +506,10 @@ function PopoverContent(props, ref) {
 
   useOutsideInteraction({
     refs: clickAwayRefs,
+    onPointerDownOutside: outsideEvents.onPointerDownOutside,
     onInteractOutside: (event) => {
       onInteractOutside?.(event);
+      outsideEvents.onInteractOutside?.(event);
       if (!event.defaultPrevented && closeOnInteractOutside) {
         onClose(
           "interactOutside",
@@ -475,33 +517,53 @@ function PopoverContent(props, ref) {
         );
       }
     },
-    enabled: isOpen && (closeOnInteractOutside || Boolean(detached)),
+    enabled: isOpen,
     ignore: (target) => isInsideNestedControlledLayer(target, contentRef.current) ||
-      Boolean(detached?.persistentElements?.some((getElement) => getElement()?.contains(target))),
+      isTriggerTarget(target) ||
+      Boolean((detached?.persistentElements ?? outsideEvents.persistentElements)?.some((getElement) => getElement()?.contains(target))),
   });
 
   useLayoutEffect(() => {
     if (!detached || !isOpen || modal) return;
-    const doc = contentRef.current?.ownerDocument ?? document;
+    const doc = contentRef.current?.ownerDocument;
+    const win = doc?.defaultView;
+    if (!doc || !win) return;
     const handleFocus = (event: FocusEvent) => {
       const target = event.target;
       const content = contentRef.current;
-      if (!(target instanceof Node) || !content || content.contains(target) ||
-        isInsideNestedControlledLayer(target, content) || hasOpenNestedControlledLayer(content) ||
-        detached.persistentElements?.some((getElement) => getElement()?.contains(target))) return;
+      if (!target || !("nodeType" in target) || !content || content.contains(target as Node) ||
+        isInsideNestedControlledLayer(target as Node, content) || hasOpenNestedControlledLayer(content) ||
+        detached.persistentElements?.some((getElement) => getElement()?.contains(target as Node))) return;
       // A native focusin event is not cancelable. Give consumers an explicit
       // cancelable notification without canceling the browser's focus movement.
-      const notification = new FocusEvent("focusoutside", { cancelable: true, relatedTarget: event.relatedTarget });
+      const notification = new win.FocusEvent("focusoutside", { cancelable: true, relatedTarget: event.relatedTarget });
       Object.defineProperty(notification, "target", { value: target });
       onFocusOutside?.(notification);
+      outsideEvents.onFocusOutside?.(notification);
+      outsideEvents.onInteractOutside?.(notification);
       if (closeOnInteractOutside && !notification.defaultPrevented) onClose("focusOutside", "programmatic");
     };
     doc?.addEventListener("focusin", handleFocus);
     return () => doc?.removeEventListener("focusin", handleFocus);
-  }, [detached, isOpen, isPresent, modal, closeOnInteractOutside, onClose, onFocusOutside]);
+  }, [detached, isOpen, isPresent, modal, closeOnInteractOutside, onClose, onFocusOutside, outsideEvents]);
 
   useEffect(() => {
     if (!isOpen || modal || detached) return undefined;
+
+    const doc = contentRef.current?.ownerDocument ?? triggerRef.current?.ownerDocument;
+    const win = doc?.defaultView;
+    if (!doc || !win) return;
+    const requestAnimationFrame = win.requestAnimationFrame?.bind(win) ?? ((fn: FrameRequestCallback) => win.setTimeout(() => fn(Date.now()), 16));
+    const cancelAnimationFrame = win.cancelAnimationFrame?.bind(win) ?? win.clearTimeout.bind(win);
+    const notify = (target: EventTarget | null) => {
+      if (target && "nodeType" in target && outsideEvents.persistentElements?.some(get => get()?.contains(target as Node))) return;
+      const notification = new win.FocusEvent("focusoutside", { cancelable: true });
+      Object.defineProperty(notification, "target", { value: target });
+      onFocusOutside?.(notification);
+      outsideEvents.onFocusOutside?.(notification);
+      outsideEvents.onInteractOutside?.(notification);
+      if (closeOnInteractOutside && !notification.defaultPrevented) onClose("focusOutside", "programmatic");
+    };
 
     let focusOutFrame = 0;
     let focusSettleFrame = 0;
@@ -516,11 +578,11 @@ function PopoverContent(props, ref) {
       cancelAnimationFrame(focusSettleFrame);
       focusOutFrame = requestAnimationFrame(() => {
         focusSettleFrame = requestAnimationFrame(() => {
-          const activeElement = document.activeElement;
+          const activeElement = doc.activeElement;
           if (
-            activeElement instanceof Node &&
+            activeElement &&
             (content.contains(activeElement) ||
-              trigger.contains(activeElement) ||
+              isTriggerTarget(activeElement) ||
               isInsideNestedControlledLayer(activeElement, content) ||
               activeElement === beforeGuard ||
               activeElement === afterGuard)
@@ -530,7 +592,7 @@ function PopoverContent(props, ref) {
 
           if (hasOpenNestedControlledLayer(content)) return;
 
-          onClose("focusOutside", "programmatic");
+          notify(activeElement);
         });
       });
     };
@@ -546,8 +608,8 @@ function PopoverContent(props, ref) {
       if (hasOpenNestedControlledLayer(content)) return;
       if (
         !relatedTarget ||
-        relatedTarget === document.body ||
-        relatedTarget === document.documentElement
+        relatedTarget === doc.body ||
+        relatedTarget === doc.documentElement
       ) {
         closeAfterFocusSettles(
           content,
@@ -560,12 +622,12 @@ function PopoverContent(props, ref) {
 
       if (
         !content.contains(relatedTarget) &&
-        !trigger.contains(relatedTarget) &&
+        !isTriggerTarget(relatedTarget) &&
         !isInsideNestedControlledLayer(relatedTarget, content) &&
         relatedTarget !== beforeGuard &&
         relatedTarget !== afterGuard
       ) {
-        onClose("focusOutside", "programmatic");
+        notify(relatedTarget);
       }
     };
 
@@ -577,7 +639,7 @@ function PopoverContent(props, ref) {
       cancelAnimationFrame(focusSettleFrame);
       content?.removeEventListener("focusout", handleFocusOut);
     };
-  }, [detached, isOpen, modal, onClose, triggerRef]);
+  }, [detached, isOpen, modal, onClose, triggerRef, closeOnInteractOutside, onFocusOutside, outsideEvents, isTriggerTarget]);
 
   useEffect(() => {
     if (!partRegistryReady || !isOpen) return undefined;
@@ -642,21 +704,32 @@ function PopoverContent(props, ref) {
 
   const referenceElement = getPopoverReferenceElement(anchorRef.current, triggerRef.current);
   const resolvedDir = resolveFloatingDirection(dirProp, referenceElement, contextDir);
-  const middleware = useMemo(
-    () => [
-      offset(sideOffset),
-      ...getFloatingVisibilityMiddleware(side, align),
-      getFloatingAvailableSizeMiddleware(),
-      floatingArrow({ element: arrowRef, padding: 8 }),
-    ],
-    [align, side, sideOffset],
-  );
+  const middleware = useMemo(() => {
+    const collision = { boundary: typeof p?.boundary === "function" ? p.boundary() : p?.boundary, padding: p?.overflowPadding ?? 8 };
+    return [
+      p?.offset !== undefined ? offset(p.offset) : arrowOffset(arrowRef, p?.gutter ?? sideOffset, p?.shift ?? 0),
+      ...(p ? [p.flip !== false && flip({ ...collision, fallbackPlacements: Array.isArray(p.flip) ? p.flip : undefined }), p.slide !== false && shift({ ...collision, crossAxis: p.overlap })] : getFloatingVisibilityMiddleware(side, align)),
+      p?.sizeMiddleware !== false && getFloatingAvailableSizeMiddleware(),
+      (p?.sameWidth || p?.fitViewport) && size({ ...collision, apply({ rects, availableWidth, availableHeight, elements }) {
+        elements.floating.style.setProperty("--atom-popover-reference-width", `${rects.reference.width}px`);
+        elements.floating.style.setProperty("--atom-popover-available-width", `${Math.max(0, availableWidth)}px`);
+        elements.floating.style.setProperty("--atom-popover-available-height", `${Math.max(0, availableHeight)}px`);
+      } }),
+      p?.hideWhenDetached && hide(collision),
+      floatingArrow({ element: arrowRef, padding: p?.arrowPadding ?? 8 }),
+    ];
+  }, [p, align, side, sideOffset]);
 
-  const { refs, floatingStyles, placement, middlewareData } = useFloating({
+  const { refs, floatingStyles, placement, middlewareData, isPositioned, update } = useFloating({
     elements: { reference: detached ? null : referenceElement },
-    placement: toPlacement(side, align),
+    placement: p?.placement ?? toPlacement(side, align),
+    strategy: p?.strategy ?? "absolute",
+    transform: false,
     middleware,
-    whileElementsMounted: detached ? undefined : autoUpdate,
+    whileElementsMounted: detached ? undefined : (reference, floating, update) => {
+      if (p?.listeners === false) { update(); return () => {}; }
+      return autoUpdateWithArrow(arrowRef)(reference, floating, update, { ...(typeof p?.listeners === "object" ? p.listeners : {}), ...(p?.animationFrame === undefined ? {} : { animationFrame: p.animationFrame }) });
+    },
     open: isOpen,
     onOpenChange: (open) => {
       if (!open) onClose();
@@ -664,8 +737,18 @@ function PopoverContent(props, ref) {
   });
 
   useEffect(() => {
-    if (!detached) refs.setReference(getPopoverReferenceElement(anchorRef.current, triggerRef.current));
-  });
+    if (detached) return;
+    const reference = getPopoverReferenceElement(anchorRef.current, triggerRef.current);
+    refs.setPositionReference(p?.getAnchorElement?.() ?? (p?.getAnchorRect ? {
+      contextElement: reference ?? undefined,
+      getBoundingClientRect: () => {
+        const rect = p.getAnchorRect?.() ?? reference?.getBoundingClientRect() ?? { x: 0, y: 0, width: 0, height: 0 };
+        return normalizePopoverAnchorRect(rect);
+      },
+    } : reference));
+  }, [detached, p, triggerValue, isOpen, anchorRef, triggerRef, refs.setPositionReference]);
+  useEffect(() => { updateRef.current = update; return () => { updateRef.current = null; }; }, [update, updateRef]);
+  useEffect(() => { p?.onPositioned?.({ placed: isPositioned }); }, [isPositioned, p?.onPositioned]);
 
   const composedRef = useMemo(
     () => composeRefs(refs.setFloating, contentRef, presenceRef, ref),
@@ -674,8 +757,12 @@ function PopoverContent(props, ref) {
 
   const setFloatingRef = useCallback(
     (node: HTMLDivElement | null) => {
-      composedRef(node);
+      const cleanup = composedRef(node);
       setModalLayerContent(modalLayer, node);
+      if (typeof cleanup === "function") return () => {
+        cleanup();
+        setModalLayerContent(modalLayer, null);
+      };
     },
     [composedRef, modalLayer],
   );
@@ -694,9 +781,9 @@ function PopoverContent(props, ref) {
     const trigger = triggerRef.current;
     if (!trigger) return;
 
-    onClose("focusOutside", "keyboard");
+    if (closeOnInteractOutside) onClose("focusOutside", "keyboard");
     focusWithoutScrolling(trigger);
-  }, [onClose, triggerRef]);
+  }, [onClose, triggerRef, closeOnInteractOutside]);
   const handleAfterGuardFocus = useCallback(() => {
     const trigger = triggerRef.current;
     const content = contentRef.current;
@@ -705,13 +792,13 @@ function PopoverContent(props, ref) {
 
     if (!trigger || !content) return;
 
-    onClose("focusOutside", "keyboard");
+    if (closeOnInteractOutside) onClose("focusOutside", "keyboard");
     focusNextElementAfterTrigger(
       trigger,
       content,
       [beforeGuard, afterGuard].filter(Boolean) as HTMLElement[],
     );
-  }, [onClose, triggerRef]);
+  }, [onClose, triggerRef, closeOnInteractOutside]);
   const contentContextValue: PopoverContentContextValue = useMemo(
     () => ({
       arrowRef,
@@ -724,9 +811,36 @@ function PopoverContent(props, ref) {
 
   if (!isPresent && !keepMounted) return null;
 
+  const panelChildren = <FocusScopeProvider scope={focusScope}>
+    {detached ? <DetachedLayerPolicyContext.Provider value={null}>{composedChildren}</DetachedLayerPolicyContext.Provider> : <><div data-slot="popover-viewport">{viewportChildren}</div>{arrowChildren}</>}
+  </FocusScopeProvider>;
+  const attributes = {
+    ...restProps, ref: setFloatingRef, id: popoverId, role: "dialog",
+    dir: dirProp ?? resolvedDir, "data-slot": dataSlot,
+    "data-state": isOpen ? "open" : "closed", "data-side": detached ? undefined : actualSide,
+    "data-placement": placement, "data-positioned": isPositioned ? "" : undefined,
+    "data-initial-open": initialOpen.current && !transitioned.current && lifecycle.skipAnimationOnMount ? "" : undefined,
+    hidden: !isPresent || restProps.hidden,
+    "aria-hidden": !isOpen ? true : undefined,
+    "aria-label": nativeAriaLabel, "aria-labelledby": resolvedAriaLabelledBy,
+    "aria-describedby": resolvedAriaDescribedBy, "aria-modal": modal || undefined,
+    tabIndex: -1, className,
+    style: { ...style, ...(detached ? {} : floatingStyles),
+      ...(p?.sameWidth ? { width: "var(--atom-popover-reference-width)" } : {}),
+      ...(p?.fitViewport ? { maxWidth: "var(--atom-popover-available-width)", maxHeight: "var(--atom-popover-available-height)" } : {}),
+      ...(middlewareData.hide?.referenceHidden ? { visibility: "hidden" as const } : {}),
+      ...(!isPresent ? { display: "none" } : {}),
+    },
+    onMouseEnter: triggerMode === "hover" ? composeEventHandlers(onMouseEnter, hoverOpen) : onMouseEnter,
+    onMouseLeave: triggerMode === "hover" ? composeEventHandlers(onMouseLeave, hoverClose) : onMouseLeave,
+    children: panelChildren,
+  };
+  const panel = asChild ? cloneAndMerge(children, attributes) : renderElement(render, "div", attributes);
+  const Activity = (React as unknown as { Activity?: React.ComponentType<{ mode: "visible" | "hidden"; children: ReactNode }> }).Activity;
+
   return (
     <PopoverContentContextProvider value={contentContextValue}>
-      {!modal && !detached ? (
+      {isOpen && portalled && !modal && !detached ? (
         <span
           ref={beforeGuardRef}
           aria-hidden="true"
@@ -736,43 +850,8 @@ function PopoverContent(props, ref) {
           onFocus={handleBeforeGuardFocus}
         />
       ) : null}
-      <div
-        {...restProps}
-        ref={setFloatingRef}
-        id={popoverId}
-        role="dialog"
-        dir={dirProp ?? resolvedDir}
-        data-slot={dataSlot}
-        data-state={isOpen ? "open" : "closed"}
-        data-side={detached ? undefined : actualSide}
-        hidden={detached && !isPresent ? true : restProps.hidden}
-        {...(isPositioned ? { "data-positioned": "" } : {})}
-        aria-label={nativeAriaLabel}
-        aria-labelledby={resolvedAriaLabelledBy}
-        aria-describedby={resolvedAriaDescribedBy}
-        aria-modal={modal || undefined}
-        tabIndex={-1}
-        className={className}
-        style={{
-          ...style,
-          ...(detached ? {} : floatingStyles),
-        }}
-        onMouseEnter={
-          triggerMode === "hover"
-            ? composeEventHandlers(onMouseEnter, hoverOpen)
-            : onMouseEnter
-        }
-        onMouseLeave={
-          triggerMode === "hover"
-            ? composeEventHandlers(onMouseLeave, hoverClose)
-            : onMouseLeave
-        }
-      >
-        <FocusScopeProvider scope={focusScope}>
-          {detached ? <DetachedLayerPolicyContext.Provider value={null}>{children}</DetachedLayerPolicyContext.Provider> : <><div data-slot="popover-viewport">{viewportChildren}</div>{arrowChildren}</>}
-        </FocusScopeProvider>
-      </div>
-      {!modal && !detached ? (
+      {Activity && lifecycle.hideMode === "activity" ? <Activity mode={isPresent ? "visible" : "hidden"}>{panel}</Activity> : panel}
+      {isOpen && portalled && !modal && !detached ? (
         <span
           ref={afterGuardRef}
           aria-hidden="true"

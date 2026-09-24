@@ -24,7 +24,10 @@ export type {
 } from "./HoverCardContent.js";
 export { HoverCardPortal } from "./HoverCardPortal.js";
 export type { HoverCardPortalProps } from "./HoverCardPortal.js";
-export { HoverCardRoot } from "./HoverCardRoot.js";
-export type { HoverCardRootProps } from "./HoverCardRoot.js";
+export { HoverCardRoot, HoverCardRootProvider, useHoverCard } from "./HoverCardRoot.js";
+export type { HoverCardRootProps, HoverCardRootProviderProps, UseHoverCardOptions, UseHoverCardReturn } from "./HoverCardRoot.js";
+export { HoverCardContext } from "./HoverCardContext.js";
+export type { HoverCardContextProps } from "./HoverCardContext.js";
+export type { HoverCardIds, HoverCardLifecycleOptions, HoverCardOutsideEvents, HoverCardPositioningOptions } from "./options.js";
 export { HoverCardTrigger } from "./HoverCardTrigger.js";
 export type { HoverCardTriggerProps } from "./HoverCardTrigger.js";

@@ -84,7 +84,7 @@ test("HoverCardContent updates Floating UI after the trigger ref commits", async
     "utf8",
   );
 
-  assert.match(source, /setReferenceElement\(triggerRef\.current\)/);
+  assert.match(source, /triggerElement: referenceElement/);
   assert.match(source, /elements: \{ reference: referenceElement \}/);
   assert.match(source, /getFloatingVisibilityMiddleware\(side, align\)/);
 });

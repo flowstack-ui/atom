@@ -14,6 +14,7 @@ Provide the shared headless foundation for custom modal-family primitives, inclu
 
 ## Required composition
 
+- Modal behavior is the default. Dialog and Drawer can opt into modal=false; focus trapping and scroll locking then default to false. Omit the scrim for background interaction. AlertDialog remains strictly modal. Native onEscapeKeyDown and onInteractOutside events can cancel dismissal with preventDefault. Nonmodal outside dismissal preserves page focus unless finalFocus is explicitly configured.
 - Compose Root around the custom content owner; add Trigger for local activation or omit it for controlled and triggerless workflows, and use Portal only when the content must leave its DOM location. Build the content owner with useModalContent, spread its contentProps onto the focusable content element, and compose the returned presenceRef with the content ref.
 - Place Title when it supplies the accessible name, Description when descriptive context is needed, and Close when the surface needs an owned close control. Native labeling can replace Title, and controlled workflows can close without Close. Register consumer-owned third-party portals with Branch only when they cannot be mounted inside the content element.
 
