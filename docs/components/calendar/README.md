@@ -1,5 +1,7 @@
 # Calendar
 
+Month tables use localized abbreviated labels by default. Use `monthFormat="long"` on Grid or MonthTable for full names. RangeText and ViewTrigger describe all visible months, regardless of selection mode.
+
 Inline single, range, or multiple date selection. Calendar owns date-grid focus and selection, not an overlay.
 
 ## When to Use
@@ -42,9 +44,33 @@ Compose Header and Grid inside Root. Calendar is inline; use DatePicker for a po
 
 ## API Reference
 
+### Store and composition
+
+`useCalendar(options)` and `RootProvider value={calendar}` retain state outside
+conditional content. `useCalendarContext` exposes value, focusedValue, view,
+visibleRange/visibleRangeText and setValue/setFocusedValue/setView/clearValue.
+Underscore-prefixed controller members are internal.
+
+`minView` and `maxView` bound navigation. Terminal month/year selection returns
+the start of the selected period as a DateValue, not its end timestamp. A period
+is selectable when it includes an available date within the bounds.
+
+`View view="day|month|year"` hides inactive content. `ViewControl` groups navigation
+and `RangeText` shows the visible range. `Table`, `TableHead`, `TableBody`,
+`TableRow`, `TableHeader`, `TableCell` and `TableCellTrigger` provide semantic
+table composition. Cells take a DateValue for days or a numeric month/year.
+Triggers inherit their cell value. `DayTable`, `MonthTable` and `YearTable`
+are convenience grids; place fixed-view tables inside matching View parts.
+Grid uses the same table parts, supports weekdayFormat narrow/short/long,
+and hides outside days without collapsing their layout footprint.
+
 ### Root
 
-Owns controlled `value` / `onValueChange` or uncontrolled `defaultValue`. `referenceDate` is required and must agree between server and client. `selectionMode` defaults to `single`; its value is a date or null. `range` uses `{ start, end }`; Calendar and DatePicker also accept `multiple` with an array. `locale`, `timeZone`, `min`, `max`, `disabled`, `readOnly`, `invalid` and `isDateUnavailable` configure date behavior. Native div props pass through; this part does not support `asChild`.
+Owns controlled `value` / `onValueChange` or uncontrolled `defaultValue`. `referenceDate` is required and must agree between server and client. `selectionMode` defaults to `single`; its value is a date or null. `range` uses `{ start, end }`; `multiple` uses an array. `locale`, `timeZone`, `min`, `max`, `disabled`, `readOnly`, `invalid` and `isDateUnavailable` configure date behavior. Native div props pass through. Root and RootProvider support `asChild` with one noninteractive host; the internal content region remains.
+
+Calendar is not a native form input and supplies no named submission or reset
+proxy. Applications own serialization and controlled reset when using it alone.
+Use DatePicker when entry and native form participation should share one owner.
 
 ### Context
 
@@ -85,8 +111,7 @@ Renders a table and date buttons for the current day, month or year view. `month
 
 ### Data attributes
 
-Root emits `[data-slot]="calendar"`. Editable segments expose `[data-disabled]`
-and `[data-readonly]`; calendar date cells expose `[data-selected]` and
+Root emits `[data-slot]="calendar"`. Calendar date cells expose `[data-selected]` and
 `[data-unavailable]`. Popup state attributes belong to Popover, not Calendar.
 
 
@@ -115,10 +140,12 @@ The inline Calendar is not a dialog. Popover owns popup focus behavior in DatePi
 
 | Key | Description |
 | --- | --- |
-| Arrow keys | Change the focused calendar date or edit/move between input segments. |
+| Arrow keys | Move the focused calendar date. |
 | Page Up / Page Down | Navigate calendar periods. |
 | Enter / Space | Select a focused calendar date. |
-| Escape | Dismiss the DatePicker popup. |
+
+Standalone Calendar has no popup to dismiss. DatePicker's Popover owns Escape
+and focus return when composing calendar selection inside a popup.
 
 Automated behavior does not certify real assistive-technology or physical-device interaction. Follow the manual protocol before release qualification.
 

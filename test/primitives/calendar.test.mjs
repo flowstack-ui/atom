@@ -2,6 +2,33 @@ import { assert, test, React, renderToStaticMarkup } from "../test-utils.mjs";
 import { Calendar } from "../../dist/calendar.js";
 import { parseDate, parseZonedDateTime, toCalendar, createCalendar } from "../../dist/date-value.js";
 import { selectionArray, selectionValue, validDateSelection, preserveDateType } from "../../dist/_internal/primitives/calendar/value.js";
+test("Calendar composes root and triggers without nested interactive hosts", () => {
+  const h = React.createElement;
+  const date = parseDate("2026-09-18");
+  const html = renderToStaticMarkup(h(Calendar.Root, { referenceDate: date, asChild: true },
+    h("section", { "aria-label": "Composed calendar" },
+      h(Calendar.PrevTrigger, { asChild: true }, h("button", { type: "button" }, "Previous")),
+      h(Calendar.Table, null, h(Calendar.TableBody, null, h(Calendar.TableRow, null,
+        h(Calendar.TableCell, { value: date }, h(Calendar.TableCellTrigger, { asChild: true }, h("button", { type: "button" }, "18")))))))));
+  assert.match(html, /^<section/);
+  assert.equal((html.match(/<button\b/g) ?? []).length, 2);
+  assert.doesNotMatch(html, /asChild|aschild|<button[^>]*><button/);
+  assert.match(html, /data-slot="calendar-content"/);
+  assert.match(html, /data-slot="calendar-day"/);
+});
+test("month labels default to short and accept full localized names", () => {
+  const h = React.createElement;
+  const render = monthFormat => renderToStaticMarkup(h(Calendar.Root, { referenceDate: parseDate("2026-09-18"), defaultView: "month", locale: "en-US" }, h(Calendar.MonthTable, { monthFormat })));
+  assert.match(render(undefined), />Sep<\/button>/);
+  assert.match(render("long"), />September<\/button>/);
+});
+test("visible heading describes both displayed months regardless of selection mode", () => {
+  const h = React.createElement;
+  for (const selectionMode of ["single", "multiple", "range"]) {
+    const html = renderToStaticMarkup(h(Calendar.Root, { referenceDate: parseDate("2026-09-18"), numOfMonths: 2, selectionMode, locale: "en-US" }, h(Calendar.RangeText), h(Calendar.ViewTrigger)));
+    assert.equal((html.match(/September 2026 - October 2026/g) ?? []).length, 2);
+  }
+});
 test("civil date movement preserves zone across DST and calendar-system identity", () => {
   const before = parseZonedDateTime("2026-03-07T14:30[America/New_York]");
   const after = preserveDateType(parseDate("2026-03-08"), before);
@@ -21,6 +48,23 @@ test("Calendar renders an inline grid, selection and no popup", () => {
     React.createElement(Calendar.Grid, {"aria-label":"Choose date"})));
   assert.match(html,/role="grid"/); assert.match(html,/data-selected/);
   assert.doesNotMatch(html,/role="dialog"|type="hidden"/);
+});
+test("composable calendar cells share semantics and multi-month IDs stay unique", () => {
+  const date = parseDate("2026-09-18");
+  const h = React.createElement;
+  const html = renderToStaticMarkup(h(Calendar.Root, { referenceDate: date, numOfMonths: 2 },
+    h(Calendar.Grid), h(Calendar.Grid, { monthOffset: 1, hideOutsideDays: true, weekdayFormat: "short" })));
+  const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.equal((html.match(/data-columns="7"/g) ?? []).length, 2);
+  assert.match(html, /visibility:hidden/);
+  assert.doesNotMatch(html, /data-outside-hidden="" hidden/);
+  const custom = renderToStaticMarkup(h(Calendar.Root, { referenceDate: date },
+    h(Calendar.Table, null, h(Calendar.TableBody, null, h(Calendar.TableRow, null,
+      h(Calendar.TableCell, { value: date }, h(Calendar.TableCellTrigger, null, "Meeting")))))));
+  assert.match(custom, /role="gridcell"/);
+  assert.match(custom, /data-slot="calendar-day"/);
+  assert.match(custom, />Meeting<\/button>/);
 });
 test("date modes preserve explicit empty values and reject malformed ranges", () => {
   assert.equal(selectionValue("single",[]),null);

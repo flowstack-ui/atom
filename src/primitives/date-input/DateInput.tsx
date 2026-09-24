@@ -1,23 +1,26 @@
 "use client";
 import * as engine from "@zag-js/date-input";
 import { mergeProps, normalizeProps, useMachine, type PropTypes } from "@zag-js/react";
-import { createContext, forwardRef, useContext, useEffect, useId, useRef, type HTMLAttributes, type ReactNode, type InputHTMLAttributes, type ButtonHTMLAttributes, type LabelHTMLAttributes } from "react";
+import { createContext, forwardRef, useContext, useEffect, useId, useRef, useMemo, type HTMLAttributes, type ReactNode, type InputHTMLAttributes, type ButtonHTMLAttributes, type LabelHTMLAttributes } from "react";
 import { toZoned, type DateValue } from "@internationalized/date";
 import { useDirection } from "../direction/index.js";
 import { useFieldContext } from "../field/context.js";
+import { useFieldsetContext } from "../fieldset/context.js";
+import { useNativeDateDisabled } from "../calendar/useNativeDateDisabled.js";
 import { useControllableState } from "../../hooks/useControllableState.js";
-import { composeRefs } from "../../utils/slot.js";
+import { composeRefs, cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
 import { useFormValidation } from "../../hooks/useFormValidation.js";
 import { scheduleFirstInvalidFocus } from "../form/validation.js";
 import { selectionArray, selectionValue, validDateSelection, type DateSelectionProps, type DateSelectionValue } from "../calendar/value.js";
 
-export interface DateInputOptions extends Pick<engine.Props, "locale" | "timeZone" | "min" | "max" | "disabled" | "readOnly" | "required" | "invalid" | "isDateUnavailable" | "createCalendar" | "hourCycle" | "hideTimeZone" | "granularity" | "shouldForceLeadingZeros" | "getRootNode"> {
+export interface DateInputOptions extends Pick<engine.Props, "locale" | "timeZone" | "min" | "max" | "disabled" | "readOnly" | "required" | "invalid" | "isDateUnavailable" | "createCalendar" | "hourCycle" | "hideTimeZone" | "granularity" | "shouldForceLeadingZeros" | "getRootNode" | "formatter" | "format" | "placeholderValue" | "defaultPlaceholderValue" | "onPlaceholderChange" | "translations" | "ids"> {
   referenceDate: DateValue;
   name?: string;
   form?: string;
   invalidMessage?: string;
   segmentLabels?: Partial<Record<engine.EditableSegmentType, string>>;
+  onDateFocusChange?: (details: { focused: boolean }) => void;
 }
 type InputSelection = Exclude<DateSelectionProps, { selectionMode: "multiple" }>;
 export type DateInputRootProps = Omit<HTMLAttributes<HTMLDivElement>, "defaultValue" | "onChange" | "dir"> & { dir?: "ltr" | "rtl" } & DateInputOptions & InputSelection;
@@ -37,28 +40,32 @@ function useRoot() {
   if (!context) throw new Error("DateInput parts require DateInput.Root");
   return context;
 }
-export type DateInputContextValue = Pick<engine.Api<PropTypes>, "value" | "getSegments" | "focus">;
+export type DateInputContextValue = Pick<engine.Api<PropTypes>, "value" | "getSegments" | "focus" | "clearValue" | "setValue" | "placeholderValue">;
 export function useDateInputContext(): DateInputContextValue {
-  const { value, getSegments, focus } = useRoot().api;
-  return { value, getSegments, focus };
+  const { value, getSegments, focus, clearValue, setValue, placeholderValue } = useRoot().api;
+  return { value, getSegments, focus, clearValue, setValue, placeholderValue };
 }
-export const DateInputRoot = forwardRef<HTMLDivElement, DateInputRootProps>(function DateInputRoot(props, ref) {
+export function useDateInput(props: DateInputRootProps) {
   const { referenceDate, selectionMode = "single", value, defaultValue, onValueChange, children, id, dir,
-    name, form, invalidMessage = "Enter a valid date", segmentLabels, ...rest } = props;
+    name, form, invalidMessage = "Enter a valid date", segmentLabels, onDateFocusChange, ...rest } = props;
   const generatedId = useId();
   const direction = useDirection();
   const field = useFieldContext();
+  const fieldset = useFieldsetContext();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const nativeDisabled = useNativeDateDisabled(rootRef);
   const [options, native] = engine.splitProps(rest);
   const initial = useRef<DateSelectionValue>(defaultValue ?? selectionValue(selectionMode, []));
   const [selected, setSelected] = useControllableState<DateSelectionValue>({ value, defaultValue: initial.current,
     onChange: onValueChange as ((value: DateSelectionValue) => void) | undefined });
   const resolved = { ...options, referenceDate, name, form, invalidMessage, segmentLabels,
-    locale: options.locale ?? "en-US", disabled: options.disabled ?? field?.disabled,
-    readOnly: options.readOnly ?? field?.readOnly, required: options.required ?? field?.required,
-    invalid: options.invalid ?? field?.invalid };
+    locale: options.locale ?? "en-US", disabled: !!(nativeDisabled ?? fieldset?.disabled) || (options.disabled ?? field?.disabled),
+    readOnly: options.readOnly ?? field?.readOnly, required: options.required ?? field?.required ?? fieldset?.required,
+    invalid: options.invalid ?? field?.invalid ?? fieldset?.invalid };
   const service = useMachine(engine.machine, { ...options, min: undefined, max: undefined,
+    onFocusChange: onDateFocusChange,
     disabled: resolved.disabled, readOnly: resolved.readOnly, required: resolved.required, invalid: resolved.invalid,
-    id: id ?? generatedId, dir: dir ?? direction, selectionMode, defaultPlaceholderValue: referenceDate,
+    id: id ?? generatedId, dir: dir ?? direction, selectionMode, defaultPlaceholderValue: options.defaultPlaceholderValue ?? referenceDate,
     value: selectionArray(selectionMode, selected),
     onValueChange: details => setSelected(selectionValue(selectionMode, details.value.map((date, index) => {
       const previous = selectionArray(selectionMode, selected)[index] ?? referenceDate;
@@ -67,9 +74,21 @@ export const DateInputRoot = forwardRef<HTMLDivElement, DateInputRootProps>(func
   });
   const connected = engine.connect(service, normalizeProps);
   const api = { ...connected, value: selectionArray(selectionMode, selected) };
-  return <Context.Provider value={{ api, options: resolved, mode: selectionMode, setValue: setSelected, initial: initial.current, controlled: value !== undefined, explicitInvalid: props.invalid }}>
-    <div {...mergeProps(api.getRootProps(), native)} data-slot="date-input" ref={ref}>{children}</div>
+  const context: ContextValue = { api, options: resolved, mode: selectionMode, setValue: setSelected, initial: initial.current, controlled: value !== undefined, explicitInvalid: props.invalid };
+  const rootProps: HTMLAttributes<HTMLDivElement> = mergeProps(api.getRootProps(), native);
+  return { value: api.value, getSegments: api.getSegments, focus: api.focus, clearValue: api.clearValue, setValue: api.setValue, placeholderValue: api.placeholderValue,
+    /** @internal */ _context: context, /** @internal */ _rootProps: rootProps, /** @internal */ _children: children, /** @internal */ _rootRef: rootRef };
+}
+export type UseDateInputReturn = ReturnType<typeof useDateInput>;
+export const DateInputRootProvider = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement> & { value: UseDateInputReturn }>(function DateInputRootProvider({ value, children, ...props }, ref) {
+  const composedRef = useMemo(() => composeRefs(value._rootRef, ref), [value._rootRef, ref]);
+  return <Context.Provider value={value._context}>
+    <div {...mergeProps(value._rootProps, props)} data-slot="date-input" ref={composedRef}>{children ?? value._children}</div>
   </Context.Provider>;
+});
+export const DateInputRoot = forwardRef<HTMLDivElement, DateInputRootProps>(function DateInputRoot(props, ref) {
+  const value = useDateInput(props);
+  return <DateInputRootProvider value={value} ref={ref} />;
 });
 
 export function DateInputContext({ children }: { children: (api: DateInputContextValue) => ReactNode }) { return children(useDateInputContext()); }
@@ -89,7 +108,9 @@ export const DateInputLabel = forwardRef<HTMLLabelElement, LabelHTMLAttributes<H
 export const DateInputSegmentGroup = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement> & { index?: number }>(function DateInputSegmentGroup({ index = 0, ...props }, ref) {
   const { api, options, mode } = useRoot();
   const field = useFieldContext();
-  const invalid = !validDateSelection(api.value, { ...options, locale: options.locale ?? "en-US", selectionMode: mode });
+  const segments = api.getSegments({ index }).filter(segment => segment.isEditable);
+  const incomplete = segments.some(segment => segment.isPlaceholder) && segments.some(segment => !segment.isPlaceholder);
+  const invalid = incomplete || !validDateSelection(api.value, { ...options, locale: options.locale ?? "en-US", selectionMode: mode });
   return <div {...mergeProps(api.getSegmentGroupProps({ index }), { "aria-describedby": field?.describedBy, ...props,
     "aria-labelledby": props["aria-labelledby"] ?? (props["aria-label"] ? undefined : field?.labelId ?? api.getSegmentGroupProps({ index })["aria-labelledby"]) })}
     aria-invalid={invalid || options.invalid || undefined} data-invalid={invalid || options.invalid ? "" : undefined} data-slot="date-input-segment-group" ref={ref} />;
@@ -102,9 +123,11 @@ export const DateInputSegment = forwardRef<HTMLSpanElement, HTMLAttributes<HTMLS
 export function DateInputSegments({ index = 0 }: { index?: number }) {
   return useDateInputContext().getSegments({ index }).map((segment, position) => <DateInputSegment key={`${segment.type}-${position}`} segment={segment} index={index} />);
 }
-export const DateInputClearTrigger = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<HTMLButtonElement>>(function DateInputClearTrigger({ onClick, ...props }, ref) {
+export const DateInputClearTrigger = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<HTMLButtonElement> & { asChild?: boolean; render?: RenderProp }>(function DateInputClearTrigger({ onClick, asChild, render, children, ...props }, ref) {
   const { api, options } = useRoot();
-  return <button {...props} type="button" data-slot="date-input-clear-trigger" disabled={props.disabled || options.disabled || options.readOnly} ref={ref} onClick={event => { onClick?.(event); if (!event.defaultPrevented) api.clearValue(); }} />;
+  const disabled = props.disabled || options.disabled || options.readOnly;
+  const behavior = { ...props, type: "button" as const, "data-slot": "date-input-clear-trigger", disabled, ref, onClick: (event: React.MouseEvent<HTMLButtonElement>) => { onClick?.(event); if (!event.defaultPrevented && !disabled) api.clearValue(); } };
+  return asChild ? cloneAndMerge(children, behavior) : renderElement(render, "button", { ...behavior, children });
 });
 
 export const DateInputHiddenInput = forwardRef<HTMLInputElement, Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "value" | "defaultValue"> & { index?: number }>(function DateInputHiddenInput({ index = 0, name, ...props }, forwardedRef) {

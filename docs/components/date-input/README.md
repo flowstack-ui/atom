@@ -41,6 +41,17 @@ Use Control for input groups. Popup composition belongs to DatePicker, not DateI
 
 ## API Reference
 
+### Store and formatting
+
+`useDateInput(options)` and `RootProvider value={input}` expose the same segmented
+controller as Root. Context provides focus, setValue, clearValue, placeholderValue
+and getSegments. Underscore-prefixed members are internal.
+
+Root accepts formatter, format, placeholderValue/defaultPlaceholderValue,
+onPlaceholderChange, translations and ids. A time-only formatter changes the
+visible segments, not the value model: use a full DateValue with an explicit
+reference date; submission still includes that date.
+
 ### Root
 
 Owns controlled `value` / `onValueChange` or uncontrolled `defaultValue`. `referenceDate` is required and must agree between server and client. `selectionMode` defaults to `single`; its value is a date or null. `range` uses `{ start, end }`; Calendar and DatePicker also accept `multiple` with an array. `locale`, `timeZone`, `min`, `max`, `disabled`, `readOnly`, `invalid` and `isDateUnavailable` configure date behavior. Native div props pass through; this part does not support `asChild`.
@@ -85,8 +96,8 @@ Renders a visually hidden validation and serialization input. `index` defaults t
 ### Data attributes
 
 Root emits `[data-slot]="date-input"`. Editable segments expose `[data-disabled]`
-and `[data-readonly]`; calendar date cells expose `[data-selected]` and
-`[data-unavailable]`. Popup state attributes belong to Popover, not Calendar.
+and `[data-readonly]`; SegmentGroup exposes `[data-invalid]`. DateInput has no
+calendar cells, popup, or popup state attributes.
 
 
 ```tsx
@@ -107,16 +118,18 @@ export function Example() {
 
 ## Accessibility
 
-Provide an accessible name for every input group and calendar grid. Calendar follows the
-[APG date-picker grid pattern](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/examples/datepicker-dialog/).
-The inline Calendar is not a dialog. Popover owns popup focus behavior in DatePicker.
+Provide an accessible name for each SegmentGroup, including separate start and
+end labels for a range. Editable segments use spinbutton semantics; literal
+separators are not editable. DateInput does not render a calendar or dialog.
 
 | Key | Description |
 | --- | --- |
-| Arrow keys | Change the focused calendar date or edit/move between input segments. |
-| Page Up / Page Down | Navigate calendar periods. |
-| Enter / Space | Select a focused calendar date. |
-| Escape | Dismiss the DatePicker popup. |
+| Arrow Up / Arrow Down | Adjust the focused editable segment. |
+| Arrow Left / Arrow Right | Move between segments in the resolved direction. |
+
+Compose HiddenInput for native validity, canonical submission and uncontrolled
+reset; mount indices 0 and 1 for a range. DatePicker owns calendar selection and
+popup Escape behavior when those capabilities are needed.
 
 Automated behavior does not certify real assistive-technology or physical-device interaction. Follow the manual protocol before release qualification.
 

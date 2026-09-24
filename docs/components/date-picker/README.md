@@ -8,6 +8,20 @@ Use when both keyboard date entry and popup date selection are needed. Use Calen
 
 ## Features
 
+Text entry is additive: keep `Input` for segments, or set `entryMode="text"`
+and use `TextInput` (a native input). Use `entryMode="none"` for button-only
+selection. Text syntax defaults to strict `YYYY-MM-DD`; multiple values use
+semicolons. Pair custom formatting/parsing in `textCodec`, or use
+`selectionTextCodec` for an explicit multiple-value grammar. Invalid drafts remain
+visible and cannot submit an older committed date. No implicit clamping occurs.
+
+`useDatePicker` with `RootProvider value={store}` provides external control.
+`IndicatorGroup` groups optional actions; `PresetTrigger value={...}` selects a
+valid preset. Root owns automatic form controls; `formControl="manual"` permits
+one explicit `HiddenInput`. Existing explicit HiddenInput in auto mode is unnamed
+and does not duplicate submitted values. Do not access underscore-prefixed store
+members: they connect the provider internally.
+
 Contiguous range validation with an unavailable-date predicate is bounded to
 36,600 days. Longer ranges are invalid; no exception is thrown during editing.
 
@@ -55,7 +69,7 @@ Supply explicit `aria-label` or `aria-labelledby` on Input when composing an ext
 
 ### Context
 
-Root combines Calendar and DateInput options. `open`/`onOpenChange` or `defaultOpen` control the popup. `closeOnSelect` defaults true for single and complete ranges; multiple remains open. `startLabel`/`endLabel` name endpoints (Start date/End date). `ValueText` formats multiple values; `HiddenInput` mirrors multiple values with repeated names. Single/range Input already includes form mirrors. Multiple does not support segmented Input.
+Root combines Calendar and DateInput options. `open`/`onOpenChange` or `defaultOpen` control the popup. `closeOnSelect` defaults true for single and complete ranges; multiple remains open. `startLabel`/`endLabel` name endpoints (Start date/End date). `ValueText` formats selected values. Root owns canonical form mirrors for all entry paths; manual HiddenInput supports every selection mode. Multiple does not support segmented Input.
 
 
 Calls `children` with the current context and renders no DOM. The corresponding public `useDatePickerContext` hook requires Root.
