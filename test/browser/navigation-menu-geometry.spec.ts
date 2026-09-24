@@ -6,28 +6,32 @@ async function expectRootRelativeGeometry(
   trigger: Locator,
   viewport: Locator,
 ) {
-  const [rootBox, triggerBox, geometry] = await Promise.all([
-    root.boundingBox(),
-    trigger.boundingBox(),
-    viewport.evaluate((element) => {
-      const style = getComputedStyle(element);
-      return {
-        left: style.getPropertyValue("--atom-navigation-menu-trigger-left"),
-        top: style.getPropertyValue("--atom-navigation-menu-trigger-top"),
-        width: style.getPropertyValue("--atom-navigation-menu-trigger-width"),
-        height: style.getPropertyValue("--atom-navigation-menu-trigger-height"),
-      };
-    }),
-  ]);
+  // Open state precedes scheduled layout measurement. Keep asserting the exact
+  // geometry, but observe it after the browser has supplied the measurement.
+  await expect(async () => {
+    const [rootBox, triggerBox, geometry] = await Promise.all([
+      root.boundingBox(),
+      trigger.boundingBox(),
+      viewport.evaluate((element) => {
+        const style = getComputedStyle(element);
+        return {
+          left: style.getPropertyValue("--atom-navigation-menu-trigger-left"),
+          top: style.getPropertyValue("--atom-navigation-menu-trigger-top"),
+          width: style.getPropertyValue("--atom-navigation-menu-trigger-width"),
+          height: style.getPropertyValue("--atom-navigation-menu-trigger-height"),
+        };
+      }),
+    ]);
 
-  if (!rootBox || !triggerBox) {
-    throw new Error("Navigation Menu geometry is not measurable.");
-  }
+    if (!rootBox || !triggerBox) {
+      throw new Error("Navigation Menu geometry is not measurable.");
+    }
 
-  expect(Number.parseFloat(geometry.left)).toBeCloseTo(triggerBox.x - rootBox.x, 1);
-  expect(Number.parseFloat(geometry.top)).toBeCloseTo(triggerBox.y - rootBox.y, 1);
-  expect(Number.parseFloat(geometry.width)).toBeCloseTo(triggerBox.width, 1);
-  expect(Number.parseFloat(geometry.height)).toBeCloseTo(triggerBox.height, 1);
+    expect(Number.parseFloat(geometry.left)).toBeCloseTo(triggerBox.x - rootBox.x, 1);
+    expect(Number.parseFloat(geometry.top)).toBeCloseTo(triggerBox.y - rootBox.y, 1);
+    expect(Number.parseFloat(geometry.width)).toBeCloseTo(triggerBox.width, 1);
+    expect(Number.parseFloat(geometry.height)).toBeCloseTo(triggerBox.height, 1);
+  }).toPass({ timeout: 5000 });
 }
 
 async function expectResolvedHorizontalViewport(

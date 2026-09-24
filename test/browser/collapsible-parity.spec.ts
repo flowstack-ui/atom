@@ -25,10 +25,21 @@ test("exit ignores nested animation events and interrupted transitions", async (
   page,
 }) => {
   const content = page.locator("#outer-panel");
-  await page.getByRole("button", { name: "External close" }).click();
-  await content.locator("p").dispatchEvent("animationend", { bubbles: true });
-  await expect(content).toBeAttached();
-  await page.getByRole("button", { name: "External open" }).click();
+  // Keep the interruption inside one browser turn. Driver/actionability round
+  // trips can outlast this fixture's 200ms exit on a slower engine or CI host.
+  const interrupted = await page.evaluate(async () => {
+    const button = (label: string) => Array.from(document.querySelectorAll("button"))
+      .find(element => element.textContent === label)!;
+    button("External close").click();
+    await Promise.resolve(); // Flush the discrete React update before observing it.
+    const panel = document.querySelector<HTMLElement>("#outer-panel")!;
+    const closing = panel.dataset.state;
+    panel.querySelector("p")!.dispatchEvent(new AnimationEvent("animationend", { bubbles: true }));
+    const nestedIgnored = panel.isConnected && document.querySelector('[aria-label="Exits"]')!.textContent === "0";
+    button("External open").click();
+    return { closing, nestedIgnored };
+  });
+  expect(interrupted).toEqual({ closing: "closed", nestedIgnored: true });
   await page.waitForTimeout(300);
   await expect(page.getByLabel("Exits")).toHaveText("0");
   await expect(content).toBeVisible();

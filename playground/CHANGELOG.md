@@ -6,6 +6,9 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Make interrupted-exit browser checks independent of driver round-trip speed
+  and wait for measured navigation geometry before asserting exact alignment.
+
 - Align desktop qualification with Chromium, Firefox and WebKit, retain
   successful browser reports, and update the 0.27.0 manual candidate protocol.
 - Correct ScrollArea coverage records that counted automated evidence as manual
