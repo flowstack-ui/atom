@@ -1,10 +1,11 @@
 "use client";
 
-import { forwardRef, type ReactNode } from "react";
+import { forwardRef, useMemo, useRef, type ReactNode } from "react";
 import type { NativeListItemProps } from "../../utils/dom.js";
-import { renderElement, type RenderProp } from "../../utils/slot.js";
+import { composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
 import { DragDropDraggable, DragDropDropTarget } from "../drag-drop/index.js";
 import { ReorderItemContextProvider, useReorderContext } from "./context.js";
+import { useReorderGeometry } from "./useReorderGeometry.js";
 
 type NativeProps = NativeListItemProps<"children">;
 
@@ -26,9 +27,12 @@ export const ReorderItem = forwardRef<HTMLLIElement, ReorderItemProps>(
     ...restProps
   }, ref) {
     const { getItemLabel } = useReorderContext();
+    const elementRef = useRef<HTMLLIElement | null>(null);
+    const mergedRef = useMemo(() => composeRefs(elementRef, ref), [ref]);
+    useReorderGeometry(value, elementRef);
     const element = renderElement(render, "li", {
       ...restProps,
-      ref,
+      ref: mergedRef,
       "data-slot": dataSlot,
       "data-value": value,
       ...(disabled && { "data-disabled": "" }),

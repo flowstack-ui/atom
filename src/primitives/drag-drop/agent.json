@@ -11,7 +11,7 @@
   ],
   "avoidWhen": [
     {
-      "condition": "The user is only arranging a single linear list.",
+      "condition": "The user is arranging one controlled collection in a linear or row-major wrapping grid layout.",
       "useInstead": "Reorder"
     },
     {
@@ -22,7 +22,9 @@
   "composition": [
     "Place Draggable and DropTarget parts within Root; nest Handle inside each Draggable and provide a human label for every source and target.",
     "Provide localized Root instructions and message functions, and convert onDragEnd details into application or adapter state only after a valid release.",
-    "Add a visible simple-pointer alternative appropriate to the surrounding interface; generic dragging alone does not satisfy that requirement."
+    "Add a visible simple-pointer alternative appropriate to the surrounding interface; generic dragging alone does not satisfy that requirement.",
+    "Use Root activation for gesture thresholds, autoScroll for ancestor edge scrolling and targetStrategy for linear gap handling. Preserve cancellation on blur, capture loss and unavailable sources.",
+    "Active draggable sources and handles expose data-drag-input (pointer or keyboard), absent when idle. Use this attribute for input-specific styling rather than duplicating sensor state."
   ],
   "rules": [
     {
@@ -54,7 +56,7 @@
   "commonMistakes": [
     {
       "mistake": "Using DragDrop directly for a normal sortable list or treating data sort order as manual item order.",
-      "correction": "Use Reorder for one-dimensional manual arrangement and keep query sorting separate."
+      "correction": "Use Reorder for manual arrangement of one linear or row-major grid collection and keep query sorting separate."
     },
     {
       "mistake": "Depending on drag gestures or keyboard movement as the only alternatives.",

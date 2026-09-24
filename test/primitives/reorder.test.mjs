@@ -53,7 +53,7 @@ function renderReorder(items = ["verify", "approve", "deploy"], rootProps = {}) 
 test("Reorder renders ordered-list semantics, controls, boundaries, and drop indicators", () => {
   const html = renderReorder();
 
-  assert.match(html, /^<ol data-slot="reorder" data-orientation="vertical">/);
+  assert.match(html, /^<ol data-slot="reorder" data-orientation="vertical" data-layout="linear" data-displacement="auto">/);
   assert.equal((html.match(/<li data-slot="reorder-item"/g) ?? []).length, 3);
   assert.equal((html.match(/data-slot="reorder-handle"/g) ?? []).length, 3);
   assert.match(html, /disabled="" data-slot="reorder-move-before" data-move="before"/);
@@ -72,7 +72,7 @@ test("Reorder renders ordered-list semantics, controls, boundaries, and drop ind
 
 test("Reorder exposes disabled and read-only root state", () => {
   const html = renderReorder(["verify"], { disabled: true, readOnly: true, orientation: "horizontal" });
-  assert.match(html, /^<ol data-slot="reorder" data-orientation="horizontal" data-disabled="" data-readonly="">/);
+  assert.match(html, /^<ol data-slot="reorder" data-orientation="horizontal" data-layout="linear" data-displacement="auto" data-disabled="" data-readonly="">/);
   assert.equal((html.match(/ disabled=""/g) ?? []).length, 5);
 });
 
@@ -90,7 +90,7 @@ test("Reorder Root supports asChild without replacing the authored list", () => 
     ),
   );
 
-  assert.match(html, /^<ul aria-label="Manual order" data-slot="reorder" data-orientation="vertical"><\/ul>/);
+  assert.match(html, /^<ul aria-label="Manual order" data-slot="reorder" data-orientation="vertical" data-layout="linear" data-displacement="auto"><\/ul>/);
   assert.doesNotMatch(html, /<ol/);
 });
 
@@ -132,4 +132,12 @@ test("Reorder applies completed drag details and direct movement through one con
   assert.match(rootSource, /onDragEnd=\{\(details\) => apply\(details, details\.input\)\}/);
   assert.match(rootSource, /apply\(\{ activeValue: value, input: "keyboard", overValue, position \}, "control"\)/);
   assert.match(moveSource, /if \(!event\.defaultPrevented && !unavailable\) root\.move\(item\.value, move\)/);
+});
+
+test("grid layout and displacement opt-out preserve list semantics", () => {
+  const html = renderReorder(["verify", "approve"], { layout: "grid", displacement: "none" });
+  assert.match(html, /^<ol /);
+  assert.match(html, /data-layout="grid" data-displacement="none"/);
+  assert.doesNotMatch(html, /role="grid"/);
+  assert.doesNotMatch(html, /<ol[^>]*\slayout=/);
 });

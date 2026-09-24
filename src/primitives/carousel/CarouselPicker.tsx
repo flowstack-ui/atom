@@ -2,7 +2,11 @@
 
 import { forwardRef, type ReactNode } from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
-import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
+import {
+  cloneAndMerge,
+  renderElement,
+  type RenderProp,
+} from "../../utils/slot.js";
 import { useCarouselContext } from "./context.js";
 
 type CarouselPickerNativeProps = NativeDivProps<"children" | "role">;
@@ -37,7 +41,9 @@ export const CarouselPicker = forwardRef<HTMLDivElement, CarouselPickerProps>(
       "data-slot": dataSlot,
       "data-state": context.isPlaying
         ? "playing"
-        : context.autoPlay ? "paused" : "stopped",
+        : context.autoPlay
+          ? "paused"
+          : "stopped",
       className,
     };
 

@@ -11,6 +11,7 @@ import {
 } from "react";
 import type { NativeButtonProps } from "../../utils/dom.js";
 import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
+import { useSpatialLayout } from "./spatial.js";
 import { useDragDropContext } from "./context.js";
 import { useDragDropItemContext } from "./item-context.js";
 
@@ -31,6 +32,7 @@ export interface DragDropHandleProps extends NativeProps {
 }
 
 interface PointerSession {
+  element: HTMLElement;
   active: boolean;
   pointerId: number;
   pointerType: string;
@@ -50,10 +52,12 @@ export const DragDropHandle = forwardRef<HTMLElement, DragDropHandleProps>(
     onPointerMove,
     onPointerUp,
     onPointerCancel,
+    onLostPointerCapture,
     "data-slot": dataSlot = "drag-drop-handle",
     ...restProps
   }, ref) {
     const {
+      activation,
       begin,
       cancel,
       commit,
@@ -67,6 +71,7 @@ export const DragDropHandle = forwardRef<HTMLElement, DragDropHandleProps>(
       updatePointer,
     } = useDragDropContext();
     const item = useDragDropItemContext();
+    const layout = useSpatialLayout();
     const pointerRef = useRef<PointerSession | null>(null);
     const active = state.activeValue === item.value;
     const unavailable = disabled || readOnly || item.disabled;
@@ -75,9 +80,17 @@ export const DragDropHandle = forwardRef<HTMLElement, DragDropHandleProps>(
       const session = pointerRef.current;
       if (session?.timer) clearTimeout(session.timer);
       pointerRef.current = null;
+      if (session?.element.hasPointerCapture(session.pointerId)) {
+        session.element.releasePointerCapture(session.pointerId);
+      }
     }, []);
 
     useEffect(() => clearPointer, [clearPointer]);
+
+    useEffect(() => {
+      if (unavailable || (pointerRef.current?.active && !active)) clearPointer();
+      if (unavailable && active) cancel();
+    }, [active, unavailable, cancel, clearPointer]);
 
     const startPointer = useCallback((session: PointerSession, element: HTMLElement) => {
       if (session.active) return;
@@ -91,6 +104,7 @@ export const DragDropHandle = forwardRef<HTMLElement, DragDropHandleProps>(
       onPointerDown?.(event);
       if (event.defaultPrevented || unavailable || event.button !== 0 || pointerRef.current) return;
       const session: PointerSession = {
+        element: event.currentTarget,
         active: false,
         pointerId: event.pointerId,
         pointerType: event.pointerType,
@@ -102,9 +116,9 @@ export const DragDropHandle = forwardRef<HTMLElement, DragDropHandleProps>(
       event.currentTarget.setPointerCapture(event.pointerId);
       if (event.pointerType === "touch") {
         const element = event.currentTarget;
-        session.timer = setTimeout(() => startPointer(session, element), 220);
+        session.timer = setTimeout(() => startPointer(session, element), activation.touchDelay);
       }
-    }, [onPointerDown, startPointer, unavailable]);
+    }, [activation.touchDelay, onPointerDown, startPointer, unavailable]);
 
     const handlePointerMove = useCallback<PointerEventHandler<HTMLElement>>((event) => {
       onPointerMove?.(event);
@@ -114,7 +128,7 @@ export const DragDropHandle = forwardRef<HTMLElement, DragDropHandleProps>(
       const distance = Math.hypot(event.clientX - session.startX, event.clientY - session.startY);
       if (!session.active) {
         if (session.pointerType === "touch") {
-          if (distance > 8) {
+          if (distance > activation.touchTolerance) {
             clearPointer();
             if (event.currentTarget.hasPointerCapture(event.pointerId)) {
               event.currentTarget.releasePointerCapture(event.pointerId);
@@ -122,13 +136,13 @@ export const DragDropHandle = forwardRef<HTMLElement, DragDropHandleProps>(
           }
           return;
         }
-        if (distance < 6) return;
+        if (distance < activation.distance) return;
         startPointer(session, event.currentTarget);
       }
       if (!session.active) return;
       event.preventDefault();
       updatePointer({ x: event.clientX, y: event.clientY });
-    }, [clearPointer, onPointerMove, startPointer, updatePointer]);
+    }, [activation, clearPointer, onPointerMove, startPointer, updatePointer]);
 
     const finishPointer = useCallback((event: Parameters<PointerEventHandler<HTMLElement>>[0], cancelled: boolean) => {
       const session = pointerRef.current;
@@ -145,7 +159,7 @@ export const DragDropHandle = forwardRef<HTMLElement, DragDropHandleProps>(
 
     const handlePointerUp = useCallback<PointerEventHandler<HTMLElement>>((event) => {
       onPointerUp?.(event);
-      if (!event.defaultPrevented) finishPointer(event, false);
+      finishPointer(event, event.defaultPrevented);
     }, [finishPointer, onPointerUp]);
 
     const handlePointerCancel = useCallback<PointerEventHandler<HTMLElement>>((event) => {
@@ -177,6 +191,11 @@ export const DragDropHandle = forwardRef<HTMLElement, DragDropHandleProps>(
         moveKeyboard(event.key === "Home" ? "first" : "last");
         return;
       }
+      if (layout === "grid" && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
+        event.preventDefault();
+        moveKeyboard(event.key.slice(5).toLowerCase() as "left" | "right" | "up" | "down");
+        return;
+      }
       const startKey = orientation === "vertical"
         ? "ArrowUp"
         : dir === "rtl" ? "ArrowRight" : "ArrowLeft";
@@ -187,7 +206,7 @@ export const DragDropHandle = forwardRef<HTMLElement, DragDropHandleProps>(
         event.preventDefault();
         moveKeyboard(event.key === startKey ? "start" : "end");
       }
-    }, [active, begin, cancel, commit, dir, item.value, moveKeyboard, onKeyDown, orientation, unavailable]);
+    }, [active, begin, cancel, commit, dir, layout, item.value, moveKeyboard, onKeyDown, orientation, unavailable]);
 
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
@@ -198,7 +217,12 @@ export const DragDropHandle = forwardRef<HTMLElement, DragDropHandleProps>(
       "aria-describedby": instructionsId,
       "data-slot": dataSlot,
       "data-value": item.value,
-      ...(active && { "data-dragging": "" }),
+      ...(active && { "data-dragging": "", "data-drag-input": state.input }),
+      ...(unavailable && { "data-disabled": "" }),
+      onLostPointerCapture: (event: Parameters<PointerEventHandler<HTMLElement>>[0]) => {
+        onLostPointerCapture?.(event as never);
+        finishPointer(event, true);
+      },
       onKeyDown: handleKeyDown,
       onPointerCancel: handlePointerCancel,
       onPointerDown: handlePointerDown,

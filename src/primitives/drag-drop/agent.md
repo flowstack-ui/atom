@@ -10,7 +10,7 @@ Provide headless same-document drag lifecycle, pointer and keyboard input, targe
 
 ## Choose something else when
 
-- The user is only arranging a single linear list. Use Reorder.
+- The user is arranging one controlled collection in a linear or row-major wrapping grid layout. Use Reorder.
 - The task is automatic data sorting, native file transfer, freeform canvas placement, or movement between tree parents. Use the relevant collection, file, canvas, or tree-specific behavior.
 
 ## Required composition
@@ -18,6 +18,8 @@ Provide headless same-document drag lifecycle, pointer and keyboard input, targe
 - Place Draggable and DropTarget parts within Root; nest Handle inside each Draggable and provide a human label for every source and target.
 - Provide localized Root instructions and message functions, and convert onDragEnd details into application or adapter state only after a valid release.
 - Add a visible simple-pointer alternative appropriate to the surrounding interface; generic dragging alone does not satisfy that requirement.
+- Use Root activation for gesture thresholds, autoScroll for ancestor edge scrolling and targetStrategy for linear gap handling. Preserve cancellation on blur, capture loss and unavailable sources.
+- Active draggable sources and handles expose data-drag-input (pointer or keyboard), absent when idle. Use this attribute for input-specific styling rather than duplicating sensor state.
 
 ## Rules
 
@@ -29,7 +31,7 @@ Provide headless same-document drag lifecycle, pointer and keyboard input, targe
 
 ## Common mistakes
 
-- **Avoid:** Using DragDrop directly for a normal sortable list or treating data sort order as manual item order. **Instead:** Use Reorder for one-dimensional manual arrangement and keep query sorting separate.
+- **Avoid:** Using DragDrop directly for a normal sortable list or treating data sort order as manual item order. **Instead:** Use Reorder for manual arrangement of one linear or row-major grid collection and keep query sorting separate.
 - **Avoid:** Depending on drag gestures or keyboard movement as the only alternatives. **Instead:** Add visible one-activation movement controls or another contextual simple-pointer alternative.
 - **Avoid:** Mutating application objects during pointer movement. **Instead:** Render transient data attributes during movement and update controlled application state only from a completed drop.
 

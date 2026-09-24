@@ -12,10 +12,15 @@ export type {
 } from "./SwipeableItemContent.js";
 export {
   SwipeableItemRoot,
+  SwipeableItemRootProvider,
+  SwipeableItemContext,
 } from "./SwipeableItemRoot.js";
 export type {
   SwipeableItemRootProps,
+  SwipeableItemRootProviderProps,
 } from "./SwipeableItemRoot.js";
+export { useSwipeableItem } from "./useSwipeableItem.js";
+export type { UseSwipeableItemProps, SwipeableItemController } from "./useSwipeableItem.js";
 export {
   SwipeableItemContextProvider,
   useSwipeableItemContext,

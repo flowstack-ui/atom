@@ -1,5 +1,6 @@
 export { DragDropRoot } from "./DragDropRoot.js";
 export type { DragDropRootProps } from "./DragDropRoot.js";
+export type { DragDropActivation } from "./options.js";
 export { DragDropDraggable } from "./DragDropDraggable.js";
 export type { DragDropDraggableProps } from "./DragDropDraggable.js";
 export { DragDropDropTarget } from "./DragDropDropTarget.js";

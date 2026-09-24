@@ -1,7 +1,7 @@
 import { JSDOM } from "jsdom";
 import { createRoot } from "react-dom/client";
 import { assert, test, React } from "../test-utils.mjs";
-import { Carousel } from "../../dist/index.js";
+import { Carousel, useCarouselContext } from "../../dist/index.js";
 
 function installDom() {
   const dom = new JSDOM("<!doctype html><div id='root'></div>", { url: "https://example.test/" });
@@ -87,6 +87,18 @@ function Fixture({ autoPlay = false, onValueChange, loop = true }) {
   );
 }
 
+test("Carousel composed slide host replacement updates the controller registration", async () => {
+  const {container,cleanup}=installDom();const root=createRoot(container);let api;
+  function Probe(){api=useCarouselContext();return null;}
+  function Host({tag}){return React.createElement(Carousel.Root,{defaultValue:"one"},React.createElement(Probe),React.createElement(Carousel.Viewport,null,React.createElement(Carousel.Track,null,React.createElement(Carousel.Slide,{value:"one",asChild:true},React.createElement(tag,null,"One")))));}
+  try{
+    await React.act(async()=>root.render(React.createElement(Host,{tag:"div"})));
+    const old=api.getSlideElement("one");assert.equal(old.tagName,"DIV");
+    await React.act(async()=>root.render(React.createElement(Host,{tag:"article"})));
+    assert.equal(api.getSlideElement("one").tagName,"ARTICLE");assert.notEqual(api.getSlideElement("one"),old);assert.equal(old.isConnected,false);
+  }finally{await React.act(async()=>root.unmount());cleanup();}
+});
+
 test("Carousel controls select slides and remove inactive content from focus", async () => {
   const { container, cleanup } = installDom();
   const root = createRoot(container);
@@ -127,7 +139,7 @@ test("Carousel controls select slides and remove inactive content from focus", a
   }
 });
 
-test("Carousel exposes directional loop positioning without duplicating authored slides", async () => {
+test("Carousel loops selection without cloning or positioning unmeasured authored slides", async () => {
   const { container, cleanup } = installDom();
   const root = createRoot(container);
   try {
@@ -135,12 +147,12 @@ test("Carousel exposes directional loop positioning without duplicating authored
     const carousel = container.querySelector("[data-slot='carousel-root']");
     const slides = [...container.querySelectorAll("[data-slot='carousel-slide']")];
     assert.equal(slides.length, 3);
-    assert.equal(slides[2].dataset.loopPosition, "before");
+    assert.equal(slides[2].dataset.loopPosition, undefined);
 
     await React.act(async () => container.querySelector("[data-slot='carousel-previous']").click());
     assert.equal(carousel.dataset.value, "three");
-    assert.equal(carousel.dataset.loopTransition, "previous");
-    assert.equal(slides[2].dataset.loopPosition, "before");
+    assert.equal(container.querySelectorAll("[data-slot='carousel-slide']").length, 3);
+    assert.equal(slides[2].dataset.loopPosition, undefined);
   } finally {
     await React.act(async () => root.unmount());
     cleanup();

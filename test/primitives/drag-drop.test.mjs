@@ -92,9 +92,9 @@ test("DragDrop source owns thresholds, release commit, cancellation, and directi
     "utf8",
   );
 
-  assert.match(handleSource, /distance < 6/);
-  assert.match(handleSource, /distance > 8/);
-  assert.match(handleSource, /setTimeout\(\(\) => startPointer\(session, element\), 220\)/);
+  assert.match(handleSource, /distance < activation.distance/);
+  assert.match(handleSource, /distance > activation.touchTolerance/);
+  assert.match(handleSource, /setTimeout\(\(\) => startPointer\(session, element\), activation.touchDelay\)/);
   assert.match(handleSource, /setPointerCapture\(event\.pointerId\)/);
   assert.match(handleSource, /else commit\(\)/);
   assert.match(handleSource, /if \(cancelled\) cancel\(\)/);

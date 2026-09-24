@@ -191,3 +191,12 @@ See [CHANGELOG.md](CHANGELOG.md).
 Viewport defaults to tabIndex=0 while static so keyboard users can scroll all
 original content. Explicit tabIndex overrides are preserved; authors who remove
 the tab stop must provide equivalent access. Moving viewports add no tab stop.
+
+## Responsive coverage updates
+
+Viewport-only changes update copy counts immediately, even while paused. New
+replicas synchronize their CSS animation phase to the original before paint.
+Only track animations are synchronized, never descendants. If the animation API
+is unavailable, use stationary originals. Measured travel-distance changes
+restart the current cycle while preserving completed iterations and requested
+pause; content replacement explicitly restarts the run.

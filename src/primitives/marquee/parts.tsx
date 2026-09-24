@@ -1,12 +1,13 @@
 "use client";
 
-import { createContext, forwardRef, useCallback, useContext, useEffect, useMemo, useRef, type CSSProperties, type ReactNode, type FocusEvent, type AnimationEvent } from "react";
+import { createContext, forwardRef, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, type CSSProperties, type ReactNode, type FocusEvent, type AnimationEvent } from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { cloneAndMerge, composeEventHandlers, composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
 import { useMarquee, type InternalMarquee, type MarqueeController, type MarqueeOptions } from "./controller.js";
 import { invalidMarqueeReplica } from "./geometry.js";
 
 const Context = createContext<InternalMarquee | null>(null);
+const useLayout = typeof window === "undefined" ? useEffect : useLayoutEffect;
 Context.displayName = "MarqueeContext";
 function useInternalMarquee() {
   const value = useContext(Context);
@@ -67,6 +68,33 @@ function Replica({ index, renderReplica, className, style }: { index: number; re
   const value = useInternalMarquee();
   const localRef = useRef<HTMLDivElement>(null);
   const replicaRef = useCallback((node: HTMLDivElement | null) => { localRef.current = node; node?.setAttribute("inert", ""); }, []);
+  useLayout(() => {
+    const node = localRef.current;
+    const original = node?.parentElement?.querySelector<HTMLElement>("[data-original]");
+    if (!node || !original) return;
+    if (!original.getAnimations || !node.getAnimations) {
+      value.setInvalidReplica(true);
+      return;
+    }
+    // Match only track CSS animations, never descendant artwork animations.
+    const source = original.getAnimations?.().filter(a => "animationName" in a) ?? [];
+    const copies = node.getAnimations?.().filter(a => "animationName" in a) ?? [];
+    let disposed = false;
+    const synchronize = () => { for (const animation of copies) {
+      const match = source.find(a => (a as CSSAnimation).animationName === (animation as CSSAnimation).animationName);
+      if (!match) continue;
+      if (!value.paused && match.startTime !== null && match.playState === "running") animation.startTime = match.startTime;
+      else if (match.currentTime !== null) animation.currentTime = match.currentTime;
+    } };
+    synchronize();
+    // CSS pause/play changes can still be pending in this layout effect. Align
+    // again when the browser has committed them, without taking ownership of
+    // playState away from the CSS recipe with imperative pause()/play() calls.
+    void Promise.all([...source, ...copies].map(animation => animation.ready)).then(() => {
+      if (!disposed) synchronize();
+    }, () => { /* A replacement animation cancels the pending transition. */ });
+    return () => { disposed = true; };
+  }, [value.copyCount, value.generation, value.paused]);
   useEffect(() => {
     const node = localRef.current, view = node?.ownerDocument.defaultView;
     if (!node || !view) return;

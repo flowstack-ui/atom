@@ -2,8 +2,12 @@
 
 import { createContext, useContext } from "react";
 import type { DirectionValue } from "../direction/index.js";
+import type { CSSProperties } from "react";
+import type { CarouselSnapPage } from "./geometry.js";
+import type { CarouselTranslations, UseCarouselProps } from "./useCarousel.js";
 
 export type CarouselChangeReason =
+  | "collection"
   | "autoplay"
   | "next"
   | "picker"
@@ -21,14 +25,47 @@ export interface CarouselSelectionOptions {
 
 export interface CarouselSlideData extends Record<string, unknown> {
   label?: string;
+  snapAlign?: "start" | "center" | "end";
 }
 
 export interface CarouselContextValue {
+  page: number;
+  pageSnapPoints: CarouselSnapPage[];
+  selectPage: (page: number, reason?: CarouselChangeReason) => void;
+  refresh: () => void;
+  play: () => void;
+  pause: () => void;
+  orientation: "horizontal" | "vertical";
+  slidesPerPage: number;
+  autoSize: boolean;
+  snapType: "mandatory" | "proximity";
+  allowMouseDrag: boolean;
+  isDragging: boolean;
+  setDragging: (dragging: boolean) => void;
+  initialized: boolean;
+  visibleValues: string[];
+  inViewValues: string[];
+  shifts: Record<string, number>;
+  onViewportScroll: () => void;
+  settle: () => void;
+  readOffset: () => number;
+  writeOffset: (offset: number, instant?: boolean) => void;
+  translations?: CarouselTranslations;
+  ids?: UseCarouselProps["ids"];
+  rootStyle: CSSProperties;
+  touchNavigation: boolean;
+  onRootFocus: (target: Element) => void;
+  onRootHover: (hovered: boolean) => void;
+  onRootPointerDown: (target: Element) => void;
+  onRootPointerUp: (pointerType: string) => void;
+  slideCount?: number;
+  defaultPage: number;
   activeValue: string;
   autoPlay: boolean;
   isPlaying: boolean;
   dir: DirectionValue;
   loop: boolean;
+  seamlessLoop: boolean;
   loopTransition: CarouselLoopTransition;
   previousAriaLabel: string;
   nextAriaLabel: string;

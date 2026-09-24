@@ -4,6 +4,9 @@ import {
   SwipeableItemActions,
   SwipeableItemContent,
   SwipeableItemRoot,
+  SwipeableItemRootProvider,
+  SwipeableItemContext,
+  useSwipeableItem,
 } from "./primitives/swipeable-item/index.js";
 
 export {
@@ -11,6 +14,9 @@ export {
   SwipeableItemContent,
   SwipeableItemContextProvider,
   SwipeableItemRoot,
+  SwipeableItemRootProvider,
+  SwipeableItemContext,
+  useSwipeableItem,
   clampSwipeableItemOffset,
   getSwipeableItemOffsetForSide,
   getSwipeableItemSideForOffset,
@@ -24,11 +30,16 @@ export type {
   SwipeableItemContextValue,
   SwipeableItemOpenSide,
   SwipeableItemRootProps,
+  SwipeableItemRootProviderProps,
+  SwipeableItemController,
+  UseSwipeableItemProps,
   SwipeableItemSide,
 } from "./primitives/swipeable-item/index.js";
 
 export const SwipeableItem = {
   Root: SwipeableItemRoot,
+  RootProvider: SwipeableItemRootProvider,
+  Context: SwipeableItemContext,
   Content: SwipeableItemContent,
   Actions: SwipeableItemActions,
 } as const;

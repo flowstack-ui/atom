@@ -9,11 +9,13 @@ import {
   ReorderMoveToEnd,
   ReorderMoveToStart,
   ReorderRoot,
+  ReorderPreview,
 } from "./primitives/reorder/index.js";
 
 export * from "./primitives/reorder/index.js";
 
 export const Reorder = {
+  Preview: ReorderPreview,
   Root: ReorderRoot,
   Item: ReorderItem,
   Handle: ReorderHandle,

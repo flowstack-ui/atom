@@ -1,24 +1,8 @@
 "use client";
-
-import {
-  ScrollAreaRoot,
-  ScrollAreaViewport,
-} from "./primitives/scroll-area/index.js";
-
-export {
-  ScrollAreaContextProvider,
-  ScrollAreaRoot,
-  ScrollAreaViewport,
-  useScrollAreaContext,
-} from "./primitives/scroll-area/index.js";
-export type {
-  ScrollAreaContextValue,
-  ScrollAreaOrientation,
-  ScrollAreaRootProps,
-  ScrollAreaViewportProps,
-} from "./primitives/scroll-area/index.js";
-
+import { ScrollAreaRoot, ScrollAreaRootProvider, ScrollAreaViewport, ScrollAreaContent, ScrollAreaScrollbar, ScrollAreaThumb, ScrollAreaCorner, ScrollAreaContext } from "./primitives/scroll-area/index.js";
+export * from "./primitives/scroll-area/index.js";
 export const ScrollArea = {
-  Root: ScrollAreaRoot,
-  Viewport: ScrollAreaViewport,
+  Root: ScrollAreaRoot, RootProvider: ScrollAreaRootProvider, Viewport: ScrollAreaViewport,
+  Content: ScrollAreaContent, Scrollbar: ScrollAreaScrollbar, Thumb: ScrollAreaThumb,
+  Corner: ScrollAreaCorner, Context: ScrollAreaContext,
 } as const;

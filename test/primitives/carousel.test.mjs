@@ -9,6 +9,7 @@ import {
 
 import {
   Carousel,
+  useCarousel,
   CarouselNext,
   CarouselPicker,
   CarouselPickerItem,
@@ -21,7 +22,56 @@ import {
   getCarouselAdjacentValue,
   getClosestCarouselValue,
   normalizeCarouselInterval,
+  getCarouselSnapPages,
+  closestCarouselPage,
 } from "../../dist/index.js";
+
+test("Carousel controller exposes commands without internal transport or registration", () => {
+  let controller;
+  function Example() {
+    controller = useCarousel({ slideCount: 3, loop: false });
+    return React.createElement(Carousel.RootProvider, { value: controller }, "Content");
+  }
+  assert.match(renderToStaticMarkup(React.createElement(Example)), /data-page="0"/);
+  assert.equal(typeof controller.selectPage, "function");
+  assert.equal(typeof controller.refresh, "function");
+  for (const key of ["registerSlide", "unregisterSlide", "writeOffset", "settle", "setDragging", "shifts", "rootStyle"]) {
+    assert.equal(key in controller, false, key);
+  }
+});
+
+test("Carousel measured pages deduplicate clamped terminal pages", () => {
+  const items = Array.from({ length: 5 }, (_, index) => ({ value: String(index), start: index * 110, size: 100 }));
+  const pages = getCarouselSnapPages(items, 320, 540, 1);
+  assert.deepEqual(pages.map(page => page.offset), [0, 110, 220]);
+  assert.equal(closestCarouselPage(pages, 180), 2);
+});
+test("Carousel measured pages support movement groups and variable alignment", () => {
+  const items = [{ value: "a", start: 0, size: 100 }, { value: "b", start: 120, size: 200 }, { value: "c", start: 340, size: 120 }];
+  assert.deepEqual(getCarouselSnapPages(items, 200, 460, 2).map(page => page.value), ["a", "c"]);
+  assert.equal(getCarouselSnapPages([{ value: "c", start: 340, size: 120, align: "center" }], 200, 600, 1)[0].offset, 300);
+});
+
+test("Carousel loop movement uses complete groups without an extra terminal item", () => {
+  const items = Array.from({ length: 4 }, (_, index) => ({ value: String(index), start: 100 + index * 100, size: 100 }));
+  assert.deepEqual(getCarouselSnapPages(items, 200, 600, 2, 0, true).map(page => page.index), [0, 2]);
+  assert.deepEqual(getCarouselSnapPages(items, 200, 600, Number.NaN, 0, true).map(page => page.index), [0, 1, 2, 3]);
+});
+
+test("Carousel accepts finite SSR page estimates and exposes indexed visible peers", () => {
+  const html = renderToStaticMarkup(React.createElement(CarouselRoot, { defaultPage: 1, slideCount: 6, slidesPerPage: 2, loop: false },
+    React.createElement(CarouselViewport, null, React.createElement(CarouselTrack, null,
+      Array.from({length:6}, (_,index)=>React.createElement(CarouselSlide,{key:index,index,value:String(index)},String(index)))))));
+  assert.equal((html.match(/data-visible=""/g) ?? []).length, 2);
+  assert.match(html, /data-state="active" data-value="2"/);
+  assert.doesNotThrow(()=>renderToStaticMarkup(React.createElement(CarouselRoot,{slideCount:Infinity})));
+});
+
+test("Carousel SSR page estimates use movement size rather than visible item count", () => {
+  const html=renderToStaticMarkup(React.createElement(CarouselRoot,{defaultPage:2,slideCount:6,slidesPerPage:2,slidesPerMove:1,loop:false},React.createElement(CarouselViewport,null,React.createElement(CarouselTrack,null,Array.from({length:6},(_,index)=>React.createElement(CarouselSlide,{key:index,index,value:String(index)},String(index)))))));
+  assert.match(html,/data-state="active" data-value="2"/);
+  assert.equal((html.match(/data-visible=""/g)??[]).length,2);
+});
 
 test("Carousel renders the accessible one-active-slide contract", () => {
   const html = renderToStaticMarkup(

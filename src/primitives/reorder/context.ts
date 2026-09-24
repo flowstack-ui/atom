@@ -16,6 +16,8 @@ export interface ReorderChangeDetails {
 
 export interface ReorderContextValue {
   items: string[];
+  displacement: "auto" | "none";
+  elements: Map<string, HTMLElement>;
   disabled: boolean;
   readOnly: boolean;
   getItemLabel: (value: string) => string;

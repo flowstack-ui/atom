@@ -2,29 +2,32 @@
 
 ## Purpose
 
-Coordinate one-active-slide content rotation, optional automatic playback, direct selection, native swipe scrolling, and accessible inactive-slide semantics.
+Present measured carousel pages with accessible navigation, multiple visible items, optional autoplay and native scroll motion.
 
 ## Use when
 
-- A small sequence of authored content should occupy one viewport and support previous, next, direct, touch, or optional timed selection.
+- Peer content benefits from one or several visible slides with optional navigation, touch scrolling and mouse drag.
 
 ## Choose something else when
 
-- All items should remain visible, named document panels are selected, or a row reveals actions. Use ordinary layout or scrolling, Tabs, or SwipeableItem.
+- Every item must be visible at once for comparison. Use Grid, Stack or List.
 
 ## Required composition
 
-- Compose Root, Viewport, Track, and uniquely valued Slide parts; add Previous, Next, Picker with PickerItem, and RotationControl only when the experience needs those controls.
+- Compose Root, Viewport, Track and uniquely valued Slide parts. Add the controls appropriate to the content.
+- Use useCarousel and RootProvider for one externally accessible controller. Choose value-based or page-based control, not both.
 
 ## Rules
 
-- **MUST:** Provide value or defaultValue matching one Slide and give every Slide a short unique accessible label.
 - **MUST:** When automatic rotation is enabled, include visible RotationControl, Previous, and Next controls; Picker controls remain optional.
 - **SHOULD:** Keep grouped PickerItem controls to a small set because each native picker button is a tab stop.
-- **MUST:** Supply viewport overflow, one-slide track geometry, and scroll snap in the styled layer; do not replace Atom selection, pause, or inactive semantics.
 - **MUST:** Keep styled viewport motion instant until Root exposes data-initialized, then enable the ordinary motion recipe so SSR hydration cannot start a competing native snap animation.
-- **MUST:** Style carousel-loop-boundary spacers and data-loop-position Slides as one-viewport boundary positions so Next and Previous preserve their requested direction; never clone authored slide content.
 - **MUST:** Do not place essential content only in a slide that users cannot reach without waiting for automatic rotation.
+- **MUST:** Derive automatic indicators and progress from pageSnapPoints, not raw item count. Several visible items can share one snap page.
+- **MUST:** Visible peer slides remain interactive; do not add application inert or aria-hidden rules based solely on the selected value.
+- **MUST:** Never clone authored slides. Short-content loops may settle instantly when smooth cyclic placement would require duplication.
+- **MUST:** Use value/defaultValue or page/defaultPage exclusively. Keep stable Slide values and supply index for server-known page visibility.
+- **MUST:** Custom viewport CSS disables scroll snapping during data-programmatic and data-dragging; slides apply the measured --atom-carousel-shift translation.
 
 ## Common mistakes
 

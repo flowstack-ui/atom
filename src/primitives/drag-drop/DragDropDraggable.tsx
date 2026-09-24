@@ -55,7 +55,7 @@ export const DragDropDraggable = forwardRef<HTMLElement, DragDropDraggableProps>
       } as CSSProperties,
       "data-slot": dataSlot,
       "data-value": value,
-      ...(active && { "data-dragging": "" }),
+      ...(active && { "data-dragging": "", "data-drag-input": state.input }),
       ...(disabled && { "data-disabled": "" }),
     };
 

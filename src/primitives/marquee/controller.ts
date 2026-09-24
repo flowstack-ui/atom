@@ -48,16 +48,11 @@ export function useMarquee(options: MarqueeOptions = {}): InternalMarquee {
   const [hovered, setHovered] = useState(false), [focused, setFocused] = useState(false);
   const [reduced, setReduced] = useState(true), [hidden, setHidden] = useState(false);
   const [geometry, setGeometry] = useState<Geometry | null>(null);
-  const pending = useRef<Geometry | null | undefined>(undefined);
-  const measureNewRun = useRef(true);
   const [generation, setGeneration] = useState(0), [iteration, setIteration] = useState(0), [completed, setCompleted] = useState(false);
   const count = useRef(0), done = useRef(false), runStart = useRef(0);
   const bump = useCallback(() => { runStart.current = count.current; setGeneration(value => value + 1); }, []);
   const restart = useCallback(() => {
     count.current = 0; done.current = false; setIteration(0); setCompleted(false);
-    measureNewRun.current = true;
-    if (pending.current !== undefined) setGeometry(pending.current);
-    pending.current = undefined;
     bump();
   }, [bump]);
   const pause = useCallback(() => setRequestedPaused(true), [setRequestedPaused]);
@@ -65,7 +60,6 @@ export function useMarquee(options: MarqueeOptions = {}): InternalMarquee {
   const togglePause = useCallback(() => setRequestedPaused(value => !value), [setRequestedPaused]);
   const unavailable = !geometry || !hasReplica || invalidReplica;
   const isStatic = unavailable || focused || reduced || completed;
-  const stateRef = useRef({ isStatic, geometry }); stateRef.current = { isStatic, geometry };
   const geometryRef = useRef(geometry); geometryRef.current = geometry;
   const spacing = options.spacing ?? "1rem";
 
@@ -89,8 +83,12 @@ export function useMarquee(options: MarqueeOptions = {}): InternalMarquee {
     const commit = (next: Geometry | null) => {
       const old = geometryRef.current;
       if (old?.distance === next?.distance && old?.duration === next?.duration && old?.copyCount === next?.copyCount) return;
-      if (!old || measureNewRun.current || stateRef.current.isStatic || !next) { pending.current = undefined; geometryRef.current = next; setGeometry(next); bump(); }
-      else pending.current = next;
+      geometryRef.current = next;
+      setGeometry(next);
+      // Coverage cannot wait for the next loop (or a paused loop indefinitely).
+      // Copy-only updates preserve the run; new replicas join its current phase.
+      // A changed coordinate system starts a fresh cycle, retaining loop count.
+      if (old?.distance !== next?.distance || old?.duration !== next?.duration) bump();
     };
     const measure = () => {
       frame = null; if (disposed) return;
@@ -102,7 +100,6 @@ export function useMarquee(options: MarqueeOptions = {}): InternalMarquee {
       const extent = orientation === "horizontal" ? content.scrollWidth : content.scrollHeight;
       const available = orientation === "horizontal" ? viewport.clientWidth : viewport.clientHeight;
       commit(validLength ? marqueeGeometry(extent, available, Number.isFinite(gap) ? gap : 0, numbers.speed, options.autoFill ?? false) : null);
-      measureNewRun.current = false;
     };
     const schedule = () => { if (frame === null) frame = view.requestAnimationFrame(measure); };
     const observer = view.ResizeObserver ? new view.ResizeObserver(schedule) : null;
@@ -120,7 +117,6 @@ export function useMarquee(options: MarqueeOptions = {}): InternalMarquee {
     const next = ++count.current; setIteration(next);
     callbacks.current.onLoopComplete?.({ iteration: next });
     if (last) { done.current = true; setCompleted(true); callbacks.current.onComplete?.({ iterations: next }); }
-    else if (pending.current !== undefined) { const nextGeometry = pending.current; pending.current = undefined; geometryRef.current = nextGeometry; setGeometry(nextGeometry); bump(); }
   }, [bump]);
   const changeFocus = useCallback((next: boolean) => { setFocused(next); bump(); }, [bump]);
   const pauseReasons: MarqueePauseReason[] = [];

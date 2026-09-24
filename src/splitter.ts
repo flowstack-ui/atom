@@ -1,4 +1,4 @@
 "use client";
-import { SplitterRoot, SplitterPanel, SplitterResizeTrigger, SplitterContext } from "./primitives/splitter/index.js";
+import { SplitterRoot, SplitterRootProvider, SplitterPanel, SplitterResizeTrigger, SplitterContext } from "./primitives/splitter/index.js";
 export * from "./primitives/splitter/index.js";
-export const Splitter = { Root: SplitterRoot, Panel: SplitterPanel, ResizeTrigger: SplitterResizeTrigger, Context: SplitterContext } as const;
+export const Splitter = { Root: SplitterRoot, RootProvider: SplitterRootProvider, Panel: SplitterPanel, ResizeTrigger: SplitterResizeTrigger, Context: SplitterContext } as const;
