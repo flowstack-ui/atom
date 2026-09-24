@@ -25,18 +25,30 @@ export interface ProgressState {
 }
 
 function normalizeProgressRange(min: number, max: number): { min: number; max: number } {
-  if (max > min) return { min, max };
-  return { min, max: min + 100 };
+  const finiteMin = Number.isFinite(min) ? min : 0;
+  if (Number.isFinite(max) && max > finiteMin) return { min: finiteMin, max };
+  const fallbackMax = finiteMin + 100;
+  // At very large magnitudes adding 100 may round back to min or overflow.
+  // A valid finite fallback is preferable to invalid ARIA and NaN geometry.
+  return Number.isFinite(fallbackMax) && fallbackMax > finiteMin
+    ? { min: finiteMin, max: fallbackMax }
+    : { min: 0, max: 100 };
 }
 
 export function clampProgressValue(value: number, min = 0, max = 100): number {
   const range = normalizeProgressRange(min, max);
-  return Math.min(Math.max(value, range.min), range.max);
+  return Number.isNaN(value) ? range.min : Math.min(Math.max(value, range.min), range.max);
 }
 
 export function getProgressPercent(value: number, min = 0, max = 100): number {
   const range = normalizeProgressRange(min, max);
-  return ((clampProgressValue(value, range.min, range.max) - range.min) / (range.max - range.min)) * 100;
+  const clamped = clampProgressValue(value, range.min, range.max);
+  const span = range.max - range.min;
+  // Opposite-sign finite endpoints can have an infinite difference.
+  const fraction = Number.isFinite(span)
+    ? (clamped - range.min) / span
+    : (clamped / 2 - range.min / 2) / (range.max / 2 - range.min / 2);
+  return Math.min(100, Math.max(0, fraction * 100));
 }
 
 export function getProgressState({
@@ -45,10 +57,10 @@ export function getProgressState({
   max = 100,
 }: ProgressStateOptions): ProgressState {
   const range = normalizeProgressRange(min, max);
-  const isIndeterminate = value === null || value === undefined;
+  const isIndeterminate = value === null || value === undefined || Number.isNaN(value);
   const clampedValue = isIndeterminate ? null : clampProgressValue(value, range.min, range.max);
   const percent =
-    clampedValue === null ? null : ((clampedValue - range.min) / (range.max - range.min)) * 100;
+    clampedValue === null ? null : getProgressPercent(clampedValue, range.min, range.max);
   const dataState =
     clampedValue === null
       ? "indeterminate"

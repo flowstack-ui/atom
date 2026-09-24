@@ -1,13 +1,14 @@
 "use client";
 
-import { forwardRef, useMemo, type ReactNode } from "react";
+import { forwardRef, type ReactNode, type Ref } from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
 import { ProgressContextProvider } from "./context.js";
-import { getProgressState } from "./utils.js";
+import { useProgress, type UseProgressProps, type ProgressController } from "./useProgress.js";
 
 type ProgressRootNativeProps = NativeDivProps<
   | "children"
+  | "defaultValue"
   | "role"
   | "aria-valuemin"
   | "aria-valuemax"
@@ -15,7 +16,7 @@ type ProgressRootNativeProps = NativeDivProps<
   | "aria-valuetext"
 >;
 
-export interface ProgressRootProps extends ProgressRootNativeProps {
+export interface ProgressRootProps extends ProgressRootNativeProps, UseProgressProps {
   /** Override the rendered root element. */
   render?: RenderProp;
   /** Merge behavior props onto a single child element. */
@@ -36,54 +37,56 @@ export interface ProgressRootProps extends ProgressRootNativeProps {
   "data-slot"?: string;
 }
 
+function renderProgressRoot(
+  state: ProgressController,
+  {
+    render, asChild, children, "aria-valuetext": ariaValueText,
+    getValueLabel, "data-slot": dataSlot = "progress", ...restProps
+  }: Omit<ProgressRootProps, keyof UseProgressProps>,
+  ref: Ref<HTMLDivElement>,
+) {
+  const resolvedValueText = ariaValueText ?? (state.value === null ? undefined : getValueLabel?.(state.value, state.min, state.max));
+  const behaviorProps: Record<string, unknown> = {
+    ...restProps, ref,
+    id: restProps.id ?? state.ids.root,
+    role: "progressbar",
+    "aria-valuemin": state.min, "aria-valuemax": state.max,
+    "aria-valuenow": state.value,
+    "aria-valuetext": resolvedValueText,
+    "data-state": state.dataState, "data-slot": dataSlot,
+    "data-min": state.min, "data-max": state.max,
+    "data-value": state.value,
+    "data-percent": state.percent,
+  };
+  const element = asChild ? cloneAndMerge(children, behaviorProps)
+    : renderElement(render, "div", { ...behaviorProps, children });
+  return <ProgressContextProvider value={state}>{element}</ProgressContextProvider>;
+}
+
 export const ProgressRoot = forwardRef<HTMLDivElement, ProgressRootProps>(
   function ProgressRoot(
     {
-      render,
-      asChild,
-      children,
       value,
+      defaultValue,
+      onValueChange,
+      ids,
       min = 0,
       max = 100,
-      "aria-valuetext": ariaValueText,
-      getValueLabel,
-      "data-slot": dataSlot = "progress",
       ...restProps
     },
     ref,
   ) {
-    const state = useMemo(
-      () => getProgressState({ value, min, max }),
-      [max, min, value],
-    );
-    const resolvedValueText =
-      ariaValueText ??
-      (state.value === null ? undefined : getValueLabel?.(state.value, state.min, state.max));
+    const state = useProgress({ value, defaultValue, onValueChange, ids, min, max });
+    return renderProgressRoot(state, restProps, ref);
+  },
+);
 
-    const behaviorProps: Record<string, unknown> = {
-      ...restProps,
-      ref,
-      role: "progressbar",
-      "aria-valuemin": state.min,
-      "aria-valuemax": state.max,
-      ...(state.value !== null && { "aria-valuenow": state.value }),
-      ...(resolvedValueText && { "aria-valuetext": resolvedValueText }),
-      "data-state": state.dataState,
-      "data-slot": dataSlot,
-      "data-min": state.min,
-      "data-max": state.max,
-      ...(state.value !== null && { "data-value": state.value }),
-      ...(state.percent !== null && { "data-percent": state.percent }),
-    };
+export interface ProgressRootProviderProps extends Omit<ProgressRootProps, keyof UseProgressProps> {
+  value: ProgressController;
+}
 
-    const element = asChild
-      ? cloneAndMerge(children, behaviorProps)
-      : renderElement(render, "div", { ...behaviorProps, children });
-
-    return (
-      <ProgressContextProvider value={state}>
-        {element}
-      </ProgressContextProvider>
-    );
+export const ProgressRootProvider = forwardRef<HTMLDivElement, ProgressRootProviderProps>(
+  function ProgressRootProvider({ value, ...props }, ref) {
+    return renderProgressRoot(value, props, ref);
   },
 );

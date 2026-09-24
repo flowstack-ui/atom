@@ -39,8 +39,8 @@ export const ProgressIndicator = forwardRef<HTMLDivElement, ProgressIndicatorPro
       "data-slot": dataSlot,
       "data-min": state.min,
       "data-max": state.max,
-      ...(state.value !== null && { "data-value": state.value }),
-      ...(state.percent !== null && { "data-percent": state.percent }),
+      "data-value": state.value,
+      "data-percent": state.percent,
     };
 
     if (asChild) {

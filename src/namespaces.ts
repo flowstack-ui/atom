@@ -320,6 +320,8 @@ import { PressableRoot } from "./primitives/pressable/index.js";
 import {
   ProgressIndicator,
   ProgressRoot,
+  ProgressRootProvider,
+  ProgressContextView,
 } from "./primitives/progress/index.js";
 import { RadioGroupRoot, RadioRoot } from "./primitives/radio-group/index.js";
 import {
@@ -926,6 +928,8 @@ export const Pressable = {
 
 export const Progress = {
   Root: ProgressRoot,
+  RootProvider: ProgressRootProvider,
+  Context: ProgressContextView,
   Indicator: ProgressIndicator,
 } as const;
 

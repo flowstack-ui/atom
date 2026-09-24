@@ -1031,6 +1031,9 @@ export { PressableRoot } from "./primitives/pressable/index.js";
 export type { PressableRootProps } from "./primitives/pressable/index.js";
 export {
   ProgressContextProvider,
+  ProgressContextView,
+  ProgressRootProvider,
+  useProgress,
   ProgressIndicator,
   ProgressRoot,
   clampProgressValue,
@@ -1040,6 +1043,11 @@ export {
 } from "./primitives/progress/index.js";
 export type {
   ProgressContextValue,
+  ProgressContextProps,
+  ProgressController,
+  ProgressIds,
+  UseProgressProps,
+  ProgressRootProviderProps,
   ProgressDataState,
   ProgressIndicatorProps,
   ProgressRootProps,

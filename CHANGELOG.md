@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add Progress controllers and providers with finite numeric normalization;
+  preserve batched requests and clear indeterminate composed-host values.
+
 - Preserve child refs through element composition without React ref-access
   warnings, and retain cleanup-returning refs alongside ordinary null-detach refs.
 
