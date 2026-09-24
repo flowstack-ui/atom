@@ -60,6 +60,15 @@ async function wait(milliseconds) {
   });
 }
 
+function installClock(context) {
+  context.mock.timers.enable({ apis: ["setTimeout", "Date"], now: 1000 });
+  // JSDOM does not run CSS animations. Advance only the fallback scheduling
+  // contract here; native animation ordering remains browser-tested.
+  window.requestAnimationFrame = callback => setTimeout(() => callback(Date.now()), 16);
+  window.cancelAnimationFrame = handle => clearTimeout(handle);
+  return milliseconds => React.act(async () => context.mock.timers.tick(milliseconds));
+}
+
 function SearchDialog({ open, onExitComplete }) {
   return React.createElement(
     Dialog.Root,
@@ -110,8 +119,9 @@ test("presence exits when global transition CSS does not emit an end event", asy
   }
 });
 
-test("one root exit waits for both surfaces and cancels stale reopening work", async () => {
+test("one root exit waits for both surfaces and cancels stale reopening work", async (context) => {
   const { container, cleanup } = installDom();
+  const wait = installClock(context);
   const root = createRoot(container);
   let completions = 0;
   const onExitComplete = () => { completions++; };
@@ -144,8 +154,9 @@ test("root exit without animated parts completes exactly once", async () => {
   } finally { await React.act(async () => root.unmount()); cleanup(); }
 });
 
-test("presence respects repeated animation duration before using its fallback", async () => {
+test("presence respects repeated animation duration before using its fallback", async (context) => {
   const { container, cleanup } = installDom();
+  const wait = installClock(context);
   const root = createRoot(container);
   try {
     document.head.appendChild(document.createElement("style")).textContent = `
@@ -179,8 +190,9 @@ test("presence respects repeated animation duration before using its fallback", 
   }
 });
 
-test("presence repeats transition timing lists and ignores descendant end events", async () => {
+test("presence repeats transition timing lists and ignores descendant end events", async (context) => {
   const { container, cleanup } = installDom();
+  const wait = installClock(context);
   const root = createRoot(container);
   try {
     document.head.appendChild(document.createElement("style")).textContent = `
