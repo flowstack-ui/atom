@@ -7,6 +7,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 const packageRoot = new URL("..", import.meta.url);
 const publicSubpaths = [
+  "action-delegate",
+  "selection",
   "table-of-contents",
   "qr-code",
   "editable",
@@ -29,6 +31,7 @@ const publicSubpaths = [
   "calendar",
   "carousel",
   "checkbox",
+  "checkbox-card",
   "checkbox-group",
   "clipboard",
   "collapsible",
@@ -73,6 +76,7 @@ const publicSubpaths = [
   "pressable",
   "progress",
   "radio-group",
+  "radio-card",
   "rating",
   "reorder",
   "scroll-area",
