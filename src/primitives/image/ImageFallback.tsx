@@ -15,7 +15,7 @@ export interface ImageFallbackProps extends NativeProps {
   children?: ReactNode;
   "data-slot"?: string;
 }
-export const ImageFallback = forwardRef<HTMLDivElement, ImageFallbackProps>(function ImageFallback({ when = ["idle", "loading", "error"], render, asChild, children, "data-slot": dataSlot = "image-fallback", ...rest }, ref) {
+export const ImageFallback = forwardRef<HTMLDivElement, ImageFallbackProps>(function ImageFallback({ when = ["idle", "error"], render, asChild, children, "data-slot": dataSlot = "image-fallback", ...rest }, ref) {
   const { status } = useImageContext();
   const matches = Array.isArray(when) ? when.includes(status as ImageFallbackWhen) : when === status;
   if (!matches) return null;

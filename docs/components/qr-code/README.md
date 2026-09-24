@@ -1,5 +1,17 @@
 # QrCode
 
+September 19 additions: Root accepts id/ids (root, frame, overlay), with stable
+generated defaults and native part IDs taking precedence. Root/RootProvider,
+Frame, Pattern and Overlay accept asChild. Frame must resolve to svg and Pattern
+to path; projected components must forward owner props, children and refs.
+Frame preserves generated backing, title/description and default Pattern.
+React 18 null callbacks and React 19 cleanup functions are preserved.
+
+useQrCodeDownload takes QR DownloadTrigger options and returns the producer and
+options for the existing DownloadTrigger/useDownload owner. It performs no file
+delivery itself. This lets styled libraries reuse their finished actions without
+duplicating QR serialization or download lifecycle.
+
 Encode text locally as SVG; no QR generation service, camera or payload request.
 
 ## Anatomy

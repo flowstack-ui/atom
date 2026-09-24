@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- No unreleased changes.
+- Preserve composed aria-disabled state, block its activation and retain keyboard discovery when a Toolbar supplies a focusable disabled action.
 
 ## 0.2.1
 

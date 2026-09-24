@@ -16,11 +16,12 @@ import {
   type ReactNode,
 } from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
+import { useOverlayLayerHost } from "../../hooks/overlayScope.js";
+import { useFocusScopeContainer } from "../../hooks/focus.js";
 import { Portal, type PortalProps } from "../../utils/Portal.js";
 import { cloneAndMerge, composeEventHandlers, composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
 import { visuallyHiddenStyle } from "../visually-hidden/index.js";
 import { ToastViewportContextProvider, useToastProviderContext } from "./context.js";
-import { dismissToast, pauseToast, resumeToast } from "./store.js";
 import { ToastAction } from "./ToastAction.js";
 import { ToastCancel } from "./ToastCancel.js";
 import { ToastClose } from "./ToastClose.js";
@@ -118,10 +119,19 @@ export const ToastViewport = forwardRef<HTMLDivElement, ToastViewportProps>(
     ref,
   ) {
     const provider = useToastProviderContext();
+    const store = provider.store;
     const viewportRef = useRef<HTMLDivElement | null>(null);
+    const layerHostRef = useOverlayLayerHost();
+    const politeRef = useRef<HTMLDivElement | null>(null);
+    const assertiveRef = useRef<HTMLDivElement | null>(null);
     const previousFocusRef = useRef<HTMLElement | null>(null);
-    const allToasts = useToastStore();
-    const [expanded, setExpanded] = useState(false);
+    const hoverRef = useRef(false);
+    const focusRef = useRef(false);
+    const allToasts = useToastStore(store);
+    const expanded = store.isExpanded();
+    const setExpanded = useCallback((value: boolean) => value ? store.expand() : store.collapse(), [store]);
+    const dismissToast = store.dismiss;
+    const ownerDocument = container?.ownerDocument ?? (typeof document !== "undefined" ? document : undefined);
     const [politeAnnouncement, setPoliteAnnouncement] = useState("");
     const [assertiveAnnouncement, setAssertiveAnnouncement] = useState("");
     const announcedMessagesRef = useRef(new Map<string, string>());
@@ -142,19 +152,36 @@ export const ToastViewport = forwardRef<HTMLDivElement, ToastViewportProps>(
       () => visibleToastEntries.map((entry) => entry.toast),
       [visibleToastEntries],
     );
+    useFocusScopeContainer(viewportRef, visibleToasts.length > 0);
+    useFocusScopeContainer(politeRef, true);
+    useFocusScopeContainer(assertiveRef, true);
     const visibleIdsRef = useRef<string[]>([]);
     visibleIdsRef.current = visibleToasts.map((toast) => toast.id);
 
-    const pauseVisibleToasts = useCallback(() => {
-      visibleIdsRef.current.forEach((id) => pauseToast(id));
-    }, []);
+    useEffect(() => { store.setVisible(visibleIdsRef.current); }, [store, visibleToasts]);
+    useEffect(() => () => {
+      store.setVisible([]);
+      store.resume(undefined, "hover");
+      store.resume(undefined, "focus");
+    }, [store]);
+    useEffect(() => {
+      if (visibleToasts.length || !previousFocusRef.current) return;
+      const previous = previousFocusRef.current;
+      previousFocusRef.current = null;
+      if (previous.isConnected) previous.focus();
+    }, [visibleToasts.length]);
 
-    const resumeVisibleToasts = useCallback(() => {
-      visibleIdsRef.current.forEach((id) => resumeToast(id));
-    }, []);
+    const pauseVisibleToasts = useCallback((reason = "hover") => {
+      store.pause(undefined, reason);
+    }, [store]);
+
+    const resumeVisibleToasts = useCallback((reason = "hover") => {
+      store.resume(undefined, reason);
+    }, [store]);
 
     const handleMouseEnter = useCallback<MouseEventHandler<HTMLDivElement>>(
       () => {
+        hoverRef.current = true;
         if (provider.expandOnHover) setExpanded(true);
         if (provider.pauseOnHover) pauseVisibleToasts();
       },
@@ -163,23 +190,32 @@ export const ToastViewport = forwardRef<HTMLDivElement, ToastViewportProps>(
 
     const handleMouseLeave = useCallback<MouseEventHandler<HTMLDivElement>>(
       () => {
-        if (provider.expandOnHover) setExpanded(false);
+        hoverRef.current = false;
+        if (provider.expandOnHover && !focusRef.current) setExpanded(false);
         if (provider.pauseOnHover) resumeVisibleToasts();
       },
       [provider.expandOnHover, provider.pauseOnHover, resumeVisibleToasts],
     );
 
     useEffect(() => {
-      if (!provider.pauseOnFocusLoss) return undefined;
-
-      window.addEventListener("blur", pauseVisibleToasts);
-      window.addEventListener("focus", resumeVisibleToasts);
+      const win = ownerDocument?.defaultView;
+      if (!provider.pauseOnFocusLoss || !win || !ownerDocument) return undefined;
+      const blur = () => pauseVisibleToasts("window");
+      const focus = () => resumeVisibleToasts("window");
+      const visibility = () => ownerDocument.hidden ? pauseVisibleToasts("page") : resumeVisibleToasts("page");
+      visibility();
+      win.addEventListener("blur", blur);
+      win.addEventListener("focus", focus);
+      ownerDocument.addEventListener("visibilitychange", visibility);
 
       return () => {
-        window.removeEventListener("blur", pauseVisibleToasts);
-        window.removeEventListener("focus", resumeVisibleToasts);
+        win.removeEventListener("blur", blur);
+        win.removeEventListener("focus", focus);
+        ownerDocument.removeEventListener("visibilitychange", visibility);
+        resumeVisibleToasts("window");
+        resumeVisibleToasts("page");
       };
-    }, [pauseVisibleToasts, provider.pauseOnFocusLoss, resumeVisibleToasts]);
+    }, [ownerDocument, pauseVisibleToasts, provider.pauseOnFocusLoss, resumeVisibleToasts]);
 
     useEffect(() => {
       const nextIds = new Set(allToasts.map((toast) => toast.id));
@@ -191,6 +227,7 @@ export const ToastViewport = forwardRef<HTMLDivElement, ToastViewportProps>(
       });
 
       allToasts.forEach((toast) => {
+        if (toast.status !== "visible") return;
         const message = getToastAnnouncement(toast);
         if (!message) return;
 
@@ -238,23 +275,25 @@ export const ToastViewport = forwardRef<HTMLDivElement, ToastViewportProps>(
       const handleDocumentKeyDown = (event: KeyboardEvent) => {
         if (!matchesHotkey(event, provider.hotkey) || visibleIdsRef.current.length === 0) return;
         event.preventDefault();
-        const activeElement = document.activeElement;
-        previousFocusRef.current = activeElement instanceof HTMLElement ? activeElement : null;
+        const activeElement = ownerDocument?.activeElement;
+        previousFocusRef.current = activeElement && "focus" in activeElement ? activeElement as HTMLElement : null;
         viewportRef.current?.focus();
       };
-      document.addEventListener("keydown", handleDocumentKeyDown);
-      return () => document.removeEventListener("keydown", handleDocumentKeyDown);
-    }, [provider.hotkey]);
+      ownerDocument?.addEventListener("keydown", handleDocumentKeyDown);
+      return () => ownerDocument?.removeEventListener("keydown", handleDocumentKeyDown);
+    }, [ownerDocument, provider.hotkey]);
 
     const handleFocus = useCallback<FocusEventHandler<HTMLDivElement>>(() => {
-      if (provider.pauseOnFocus) pauseVisibleToasts();
+      focusRef.current = true;
+      if (provider.pauseOnFocus) pauseVisibleToasts("focus");
       if (provider.expandOnHover) setExpanded(true);
     }, [pauseVisibleToasts, provider.expandOnHover, provider.pauseOnFocus]);
 
     const handleBlur = useCallback<FocusEventHandler<HTMLDivElement>>((event) => {
       if (event.currentTarget.contains(event.relatedTarget)) return;
-      if (provider.pauseOnFocus) resumeVisibleToasts();
-      if (provider.expandOnHover) setExpanded(false);
+      focusRef.current = false;
+      if (provider.pauseOnFocus) resumeVisibleToasts("focus");
+      if (provider.expandOnHover && !hoverRef.current) setExpanded(false);
     }, [provider.expandOnHover, provider.pauseOnFocus, resumeVisibleToasts]);
 
     const handleKeyDown = useCallback<KeyboardEventHandler<HTMLDivElement>>((event: ReactKeyboardEvent<HTMLDivElement>) => {
@@ -276,7 +315,7 @@ export const ToastViewport = forwardRef<HTMLDivElement, ToastViewportProps>(
 
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
-      ref: composeRefs(viewportRef, ref),
+      ref: composeRefs(viewportRef, layerHostRef, ref),
       role: "region",
       tabIndex: -1,
       "aria-label": provider.hotkey.length > 0
@@ -284,6 +323,12 @@ export const ToastViewport = forwardRef<HTMLDivElement, ToastViewportProps>(
         : provider.label,
       "data-slot": dataSlot,
       "data-position": position,
+      style: {
+        "--atom-toast-count": visibleToasts.length,
+        "--atom-toast-total-height": `${visibleToasts.reduce((sum,item) => sum + (item.height ?? 0),0)}px`,
+        "--atom-toast-front-height": `${visibleToasts[0]?.height ?? 0}px`,
+        ...restProps.style,
+      },
       ...(expanded && { "data-expanded": "" }),
       onMouseEnter: composeEventHandlers(onMouseEnter, handleMouseEnter),
       onMouseLeave: composeEventHandlers(onMouseLeave, handleMouseLeave),
@@ -299,6 +344,7 @@ export const ToastViewport = forwardRef<HTMLDivElement, ToastViewportProps>(
     return (
       <Portal container={container} disabled={portalDisabled}>
         <div
+          ref={politeRef}
           role="status"
           aria-live="polite"
           aria-atomic="true"
@@ -308,6 +354,7 @@ export const ToastViewport = forwardRef<HTMLDivElement, ToastViewportProps>(
           {politeAnnouncement}
         </div>
         <div
+          ref={assertiveRef}
           role="alert"
           aria-live="assertive"
           aria-atomic="true"

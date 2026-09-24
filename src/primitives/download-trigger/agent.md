@@ -15,6 +15,7 @@ Initiate a generated-file download after explicit user activation with lazy prep
 ## Required composition
 
 - Render DownloadTrigger.Root with data, fileName and a visible name. Supply mimeType for strings. Lazy producers receive AbortSignal. Use render only with an action host that forwards all props/ref.
+- useDownload shares the lifecycle and returns state, loading, download(ownerDocument?) and cancel. Call download from user activation, pass the owner document for iframes, bind loading to the action, and handle errors.
 
 ## Rules
 

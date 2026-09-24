@@ -18,6 +18,7 @@ Encode text locally into a named SVG QR graphic with controlled state and explic
 
 ## Rules
 
+- **MUST:** Preserve compatible asChild hosts, scoped id/ids and React ref cleanup. Frame resolves to svg and Pattern to path. useQrCodeDownload supplies the QR producer to the existing download owner, not a second file-delivery lifecycle.
 - **MUST:** Preserve the accepted string; encoding does not validate, fetch or encrypt it. Do not expose secrets through generated labels or logging.
 - **MUST:** Keep the four-module quiet zone and verify actual decoding after changing size, colors, inversion or logos. ECC percentages do not guarantee safe logo coverage.
 - **MUST:** Use the QR DownloadTrigger for lazy snapshot export. Unsupported overlays require exportSrc or explicit includeOverlay=false. Handle onDownloadError; initiated is not saved.

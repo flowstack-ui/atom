@@ -1,6 +1,38 @@
 import { assert, test, React, renderToStaticMarkup } from "../test-utils.mjs";
 import { QrCode, encodeQrCode, QrCodeError } from "../../dist/qr-code.js";
 import jsQR from "jsqr";
+import { JSDOM } from "jsdom";
+import { createRoot } from "react-dom/client";
+
+test("QR projection preserves SVG geometry, scoped IDs and React cleanup", async () => {
+  const dom = new JSDOM('<div id="app"></div>', { pretendToBeVisual: true });
+  const saved = { window: globalThis.window, document: globalThis.document, IS_REACT_ACT_ENVIRONMENT: globalThis.IS_REACT_ACT_ENVIRONMENT };
+  Object.assign(globalThis, { window: dom.window, document: dom.window.document, IS_REACT_ACT_ENVIRONMENT: true });
+  let attached = 0, cleaned = 0;
+  const ref = node => { if (node) { attached++; return () => cleaned++; } };
+  const h = React.createElement;
+  const root = createRoot(document.getElementById("app"));
+  try {
+    await React.act(async () => root.render(h(React.StrictMode, null, h(QrCode.Root, { id: "qr", ids: { frame: "graphic" }, asChild: true },
+      h("div", null, h(QrCode.Frame, { asChild: true, ref, titleText: "Example" }, h("svg", { ref, className: "projected" },
+        h(QrCode.Pattern, { asChild: true }, h("path", { fill: "purple" })))),
+      h(QrCode.Overlay, { ref, asChild: true }, h("div", { ref }, "Logo")))))));
+    assert.ok(document.querySelector("#qr #graphic.projected"));
+    assert.equal(document.querySelectorAll("svg").length, 1);
+    assert.ok(document.querySelector("svg rect[data-slot=qr-code-background]"));
+    assert.ok(document.querySelector("svg path").getAttribute("d"));
+    assert.equal(document.querySelector("svg path").getAttribute("fill"), "purple");
+    assert.ok(document.getElementById("qr-overlay"));
+    await React.act(async () => root.unmount());
+    assert.ok(attached > 0);
+    assert.equal(cleaned, attached);
+  } finally { dom.window.close(); Object.assign(globalThis, saved); }
+});
+
+test("QR rejects incompatible intrinsic SVG projection", () => {
+  assert.throws(() => renderToStaticMarkup(React.createElement(QrCode.Root, null,
+    React.createElement(QrCode.Frame, { asChild: true }, React.createElement("div")))), /svg host/);
+});
 
 test("QR preserves independent decoded Unicode/text and all ECC levels", () => {
   for (const ecc of ["L", "M", "Q", "H"]) for (const value of ["https://example.com/share", "  hello\n🌎 café 日本語  "]) {

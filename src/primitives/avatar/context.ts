@@ -6,6 +6,8 @@ import type { ImageLoadingStatus } from "./useImageLoadingStatus.js";
 export interface AvatarContextValue {
   /** Current image loading status. */
   status: ImageLoadingStatus;
+  src?: string;
+  reportStatus?: (status: ImageLoadingStatus) => void;
 }
 
 export const AvatarContext = createContext<AvatarContextValue | null>(null);

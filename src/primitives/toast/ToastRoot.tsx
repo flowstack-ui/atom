@@ -13,9 +13,9 @@ import {
   type PointerEventHandler,
 } from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
-import { cloneAndMerge, composeEventHandlers, renderElement, type RenderProp } from "../../utils/slot.js";
+import { cloneAndMerge, composeEventHandlers, composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
 import { ToastRootContextProvider, useToastProviderContext, useToastViewportContext } from "./context.js";
-import { dismissToast, getDefaultToastDuration } from "./store.js";
+import { getDefaultToastDuration } from "./store.js";
 import type { ToastData, ToastState, ToastSwipeDirection, ToastSwipeState, ToastType } from "./types.js";
 
 type ToastRootNativeProps = NativeDivProps<"children" | "role">;
@@ -68,7 +68,38 @@ export const ToastRoot = forwardRef<HTMLDivElement, ToastRootProps>(
   ) {
     const provider = useToastProviderContext();
     const viewport = useToastViewportContext();
-    const [state, setState] = useState<ToastState>("entering");
+    const [localState, setState] = useState<ToastState>("entering");
+    const state = toast?.status === "dismissing" ? "exiting" : localState;
+    const elementRef = useRef<HTMLDivElement | null>(null);
+    useEffect(() => {
+      const element = elementRef.current;
+      if (!toast || !element) return;
+      // Layout height must not include the presentation layer's stack scale.
+      const measure = () => provider.store.setHeight(toast.id, element.offsetHeight);
+      measure();
+      const Observer = element.ownerDocument.defaultView?.ResizeObserver;
+      if (!Observer) return;
+      const observer = new Observer(measure); observer.observe(element);
+      return () => observer.disconnect();
+    }, [provider.store, toast?.id]);
+    const callbacksRef = useRef({ onAutoClose, onDismiss });
+    callbacksRef.current = { onAutoClose, onDismiss };
+    useEffect(() => {
+      if (!toast?.status) return;
+      let autoReported = false;
+      let dismissed = false;
+      return provider.store.subscribe(() => {
+        const record = provider.store.getToasts().find(item => item.id === toast.id);
+        if (record?.status === "dismissing" && record.remainingDuration === 0 && !autoReported) {
+          autoReported = true;
+          callbacksRef.current.onAutoClose?.();
+        }
+        if (!record && !dismissed) {
+          dismissed = true;
+          callbacksRef.current.onDismiss?.();
+        }
+      });
+    }, [provider.store, toast?.id, Boolean(toast?.status)]);
     const [removed, setRemoved] = useState(false);
     const closeButtonEnabled = closeButton ?? toast?.closeButton ?? provider.closeButton;
     const autoCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -83,8 +114,8 @@ export const ToastRoot = forwardRef<HTMLDivElement, ToastRootProps>(
 
     const runRemove = useCallback(() => {
       onDismiss?.();
-      if (toast) dismissToast(toast.id);
-    }, [onDismiss, toast]);
+      if (toast) provider.store.remove(toast.id);
+    }, [onDismiss, toast, provider.store]);
 
     const completeRemove = useCallback(() => {
       runRemove();
@@ -98,6 +129,7 @@ export const ToastRoot = forwardRef<HTMLDivElement, ToastRootProps>(
 
     const startExit = useCallback(() => {
       if (stateRef.current === "exiting") return;
+      if (toast?.status) { provider.store.dismiss(toast.id); return; }
 
       stateRef.current = "exiting";
       setState("exiting");
@@ -105,7 +137,7 @@ export const ToastRoot = forwardRef<HTMLDivElement, ToastRootProps>(
       if (autoCloseTimerRef.current) clearTimeout(autoCloseTimerRef.current);
       if (removeTimerRef.current) clearTimeout(removeTimerRef.current);
       removeTimerRef.current = setTimeout(completeRemove, removeDelay);
-    }, [completeRemove, removeDelay]);
+    }, [completeRemove, removeDelay, toast?.id, toast?.status, provider.store]);
 
     const handleDismiss = useCallback(() => {
       startExit();
@@ -179,7 +211,7 @@ export const ToastRoot = forwardRef<HTMLDivElement, ToastRootProps>(
 
     useEffect(() => {
       if (autoCloseTimerRef.current) clearTimeout(autoCloseTimerRef.current);
-      if (duration === Infinity || paused || stateRef.current === "exiting") return undefined;
+      if (toast?.status || duration === Infinity || paused || stateRef.current === "exiting") return undefined;
 
       autoCloseTimerRef.current = setTimeout(() => {
         if (stateRef.current === "exiting") return;
@@ -210,7 +242,6 @@ export const ToastRoot = forwardRef<HTMLDivElement, ToastRootProps>(
       [],
     );
 
-    if (removed) return null;
 
     const contextValue = useMemo(
       () => ({
@@ -224,9 +255,13 @@ export const ToastRoot = forwardRef<HTMLDivElement, ToastRootProps>(
       [closeButtonEnabled, dismissible, handleDismiss, state, toast, type],
     );
 
+    if (removed) return null;
+    const visible = provider.store.getVisibleToasts();
+    const depth = index ?? 0;
+    const before = visible.slice(0, depth).reduce((sum,item) => sum + (item.height ?? 0),0);
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
-      ref,
+      ref: composeRefs(elementRef,ref),
       "data-slot": dataSlot,
       "data-state": state,
       "data-type": type,
@@ -235,13 +270,14 @@ export const ToastRoot = forwardRef<HTMLDivElement, ToastRootProps>(
       ...(toast?.id && { "data-toast-id": toast.id }),
       ...(resolvedSwipeDirection && { "data-swipe-direction": resolvedSwipeDirection }),
       ...(swipeState && { "data-swipe": swipeState }),
-      style: resolvedSwipeDirection
-        ? {
+      style: {
             ...(restProps.style as CSSProperties | undefined),
-            "--atom-toast-swipe-move-x": `${swipeDelta.x}px`,
-            "--atom-toast-swipe-move-y": `${swipeDelta.y}px`,
-          } as CSSProperties
-        : restProps.style,
+            "--atom-toast-depth": depth,
+            "--atom-toast-offset": `${before}px`,
+            "--atom-toast-height": `${toast?.height ?? 0}px`,
+            "--atom-toast-swipe-move-x": `${resolvedSwipeDirection ? swipeDelta.x : 0}px`,
+            "--atom-toast-swipe-move-y": `${resolvedSwipeDirection ? swipeDelta.y : 0}px`,
+          } as CSSProperties,
       onKeyDown: composeEventHandlers(restProps.onKeyDown, handleKeyDown),
       onPointerDown: composeEventHandlers(restProps.onPointerDown, handlePointerDown),
       onPointerMove: composeEventHandlers(restProps.onPointerMove, handlePointerMove),

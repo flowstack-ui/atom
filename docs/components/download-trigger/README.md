@@ -53,3 +53,12 @@ exports remain application-owned. No download or Blob URL is created at render.
 
 See test/primitives/download-trigger.test.mjs and test/browser/download-trigger.spec.ts.
 Manual devices, screen readers and browser-policy restrictions require separate checks.
+# Shared download hook
+
+`useDownload(options)` shares the trigger lifecycle and returns `state`, `loading`,
+`download(ownerDocument?)` and `cancel()`. Call download only from user activation;
+pass the activated control's ownerDocument inside iframes. The default document is
+resolved at activation, never during SSR. Options include data, fileName, mimeType,
+disabled/loading and the same lifecycle callbacks as Root. Bind loading to the
+action's busy presentation; cancel prevents late results from handing off a file.
+Fetching, serialization and error messages remain application-owned.

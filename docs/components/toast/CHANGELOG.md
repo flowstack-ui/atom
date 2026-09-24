@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Add scoped stores, scoped helpers, tracked promises and lifecycle events.
+- Preserve exit on external dismissal, queued reading time and independent pause reasons.
+- Observe the portal owner document for visibility and keyboard access.
+- Expose measured toast height and stack depth to styled consumers.
+
 ## 0.24.0
 
 - Documented a consumer-owned safe-area and application-chrome offset recipe,

@@ -1,11 +1,10 @@
-import {
-  addToast,
-  dismissToast,
-  getDefaultToastDuration,
-  updateToast,
-} from "./store.js";
+import { defaultToastStore, getDefaultToastDuration, type ToastStore } from "./store.js";
 import type { ToastId, ToastOptions, ToastPromiseOptions, ToastUpdateOptions } from "./types.js";
 
+export function createToastApi(store: ToastStore = defaultToastStore) {
+const addToast = store.create;
+const updateToast = store.update;
+const dismissToast = store.dismiss;
 function createToast(message: string | ToastOptions, options?: ToastOptions): ToastId {
   const resolvedOptions =
     typeof message === "object" && message !== null
@@ -31,7 +30,7 @@ createToast.loading = (message: string, options?: Omit<ToastOptions, "type">): T
   addToast({ type: "loading", title: message, duration: Infinity, ...options });
 
 createToast.promise = async <T>(
-  promise: Promise<T>,
+  promise: Promise<T> | (() => Promise<T>),
   options: ToastPromiseOptions<T>,
 ): Promise<T> => {
   const loadingOptions =
@@ -41,7 +40,7 @@ createToast.promise = async <T>(
   const id = addToast({ type: "loading", duration: Infinity, ...loadingOptions });
 
   try {
-    const result = await promise;
+    const result = await (typeof promise === "function" ? promise() : promise);
     const successResult =
       typeof options.success === "function" ? options.success(result) : options.success;
     const successOptions =
@@ -79,4 +78,22 @@ createToast.update = (id: ToastId, options: ToastUpdateOptions): void => {
   updateToast(id, options);
 };
 
-export { createToast as toast };
+createToast.pause = store.pause;
+createToast.resume = store.resume;
+createToast.remove = store.remove;
+createToast.isVisible = store.isVisible;
+createToast.isDismissed = store.isDismissed;
+createToast.getCount = store.getCount;
+createToast.getVisibleToasts = store.getVisibleToasts;
+createToast.expand = store.expand;
+createToast.collapse = store.collapse;
+createToast.store = store;
+createToast.track = <T>(promise: Promise<T> | (() => Promise<T>), options: ToastPromiseOptions<T>) => {
+  const loading = typeof options.loading === "string" ? {title:options.loading} : options.loading;
+  const id = store.create({...loading,type:"loading",duration:Infinity});
+  const result = createToast.promise(promise,{...options,loading:{...loading,id}});
+  return {id,unwrap:() => result};
+};
+return createToast;
+}
+export const toast = createToastApi();

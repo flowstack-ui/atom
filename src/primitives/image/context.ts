@@ -3,7 +3,7 @@
 import { createContext, useContext } from "react";
 import type { ImageLoadingStatus } from "../../utils/imageLoadingStatus.js";
 
-export interface ImageContextValue { src?: string; status: ImageLoadingStatus; }
+export interface ImageContextValue { src?: string; srcSet?: string; status: ImageLoadingStatus; reportStatus?: (status: ImageLoadingStatus) => void; }
 export const ImageContext = createContext<ImageContextValue | null>(null);
 ImageContext.displayName = "ImageContext";
 export function useImageContext() {

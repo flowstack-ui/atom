@@ -18,7 +18,7 @@ Represent a person, team, organization, or other named entity with a tracked ima
 
 ## Rules
 
-- **MUST:** Pass the source to Root for preloading and use the same source on Image so rendered content matches the tracked loading status.
+- **MUST:** Pass the source to Root and let Image inherit it. Observe the rendered image; never preload with a detached Image. Keep native lazy loading, responsive sources and request attributes on Image.
 - **MUST:** Keep visible identifying text nearby whenever identity is important; do not make an image or initials the sole source of essential identity.
 - **MUST:** Use meaningful Image alt text only when the image communicates identity not already stated nearby; otherwise use alt empty and hide redundant Fallback text from assistive technology.
 - **MUST:** Provide a fallback that remains understandable for missing, loading, and failed images, and choose any loading delay without leaving essential identity temporarily unavailable.

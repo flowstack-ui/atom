@@ -12,7 +12,7 @@
   ],
   "composition": ["Compose Root with the tracked src, an Image using the same src, and a Fallback that is meaningful while idle, loading, or errored. Add delayMs only to avoid brief fallback flashes. Use Group only for several Avatars and add group semantics explicitly only when the collection needs an announced name."],
   "rules": [
-    { "id": "avatar-source", "level": "must", "statement": "Pass the source to Root for preloading and use the same source on Image so rendered content matches the tracked loading status." },
+    { "id": "avatar-source", "level": "must", "statement": "Pass the source to Root and let Image inherit it. Observe the rendered image; never preload with a detached Image. Keep native lazy loading, responsive sources and request attributes on Image." },
     { "id": "avatar-identity", "level": "must", "statement": "Keep visible identifying text nearby whenever identity is important; do not make an image or initials the sole source of essential identity." },
     { "id": "avatar-alt", "level": "must", "statement": "Use meaningful Image alt text only when the image communicates identity not already stated nearby; otherwise use alt empty and hide redundant Fallback text from assistive technology." },
     { "id": "avatar-fallback", "level": "must", "statement": "Provide a fallback that remains understandable for missing, loading, and failed images, and choose any loading delay without leaving essential identity temporarily unavailable." },

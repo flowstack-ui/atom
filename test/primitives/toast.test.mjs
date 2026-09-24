@@ -258,7 +258,7 @@ test("Toast source keeps timers and live announcers stable", async () => {
   assert.match(viewportSource, /toast-announcer-polite[\s\S]*\{politeAnnouncement\}/);
   assert.match(viewportSource, /toast-announcer-assertive[\s\S]*\{assertiveAnnouncement\}/);
   assert.match(viewportSource, /<Fragment key=\{toast\.id\}>/);
-  assert.match(viewportSource, /document\.addEventListener\("keydown"/);
+  assert.match(viewportSource, /ownerDocument\?\.addEventListener\("keydown"/);
   assert.match(viewportSource, /provider\.pauseOnFocus/);
   assert.match(viewportSource, /restoreFocusAfterDismiss/);
 });
