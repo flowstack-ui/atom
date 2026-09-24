@@ -4,7 +4,7 @@
 
 - No unreleased changes.
 
-## 0.27.0
+## 0.27.0 - 2026-09-24
 
 - Share compound namespace definitions between root and focused imports; restore
   missing controller and composition parts for Accordion, Collapsible, Combobox,

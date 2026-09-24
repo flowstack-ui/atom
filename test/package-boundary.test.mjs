@@ -29,7 +29,6 @@ test("package boundary keeps only approved headless runtime dependencies", async
     await readFile(new URL("package.json", packageRoot), "utf8"),
   );
 
-  assert.equal(packageJson.version, "0.26.1");
   assert.equal(packageJson.repository.url, "git+https://github.com/flowstack-ui/atom.git");
   assert.deepEqual(packageJson.publishConfig, { access: "public" });
   assert.deepEqual(packageJson.dependencies ?? {}, {
@@ -71,6 +70,7 @@ test("release identity, changelog, and trusted-publishing provenance stay aligne
   const packageJson = JSON.parse(packageJsonSource);
   const packageLock = JSON.parse(lockSource);
 
+  assert.match(packageJson.version, /^\d+\.\d+\.\d+$/);
   assert.equal(packageLock.version, packageJson.version);
   assert.equal(packageLock.packages[""].version, packageJson.version);
   const escapedVersion = packageJson.version.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
