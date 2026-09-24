@@ -66,6 +66,28 @@ function setMeasuredSize(element, getHeight, getWidth) {
   });
 }
 
+test("Accordion exit isolates child animations and immediately hides interactive descendants", async (context) => {
+  let exits = 0;
+  await withDom(React.createElement(Accordion.Root, {defaultValue:"one",onExitComplete:()=>exits++},
+    React.createElement(Accordion.Item,{value:"one"},
+      React.createElement(Accordion.Header,null,React.createElement(Accordion.Trigger,null,"Question")),
+      React.createElement(Accordion.Content,{style:{animationName:"owned-exit",animationDuration:"0.2s"}},React.createElement("button",null,"Inner")))), async dom => {
+    const trigger=dom.window.document.querySelector('[data-slot="accordion-trigger"]');
+    const content=dom.window.document.querySelector('[data-slot="accordion-content"]');
+    const child=content.querySelector("button");
+    context.mock.timers.enable({ apis: ["setTimeout", "Date"], now: 1000 });
+    await React.act(async()=>trigger.click());
+    assert.equal(content.getAttribute("aria-hidden"),"true");
+    assert.ok(content.hasAttribute("inert"));
+    await React.act(async()=>child.dispatchEvent(new dom.window.Event("animationend",{bubbles:true})));
+    assert.ok(content.isConnected,"child event must not finish panel exit");
+    await React.act(async()=>trigger.click());
+    await React.act(async()=>context.mock.timers.tick(280));
+    assert.ok(content.isConnected,"reopening cancels exit removal");
+    assert.equal(exits,0);
+  });
+});
+
 test("Collapsible keeps content size variables synchronized with intrinsic resizing", async () => {
   await withDom(
     React.createElement(

@@ -87,7 +87,9 @@ function TouchTooltip({
   );
 }
 
-test("Tooltip touch opens at 700ms and plain dismissal starts after release", async () => {
+test("Tooltip touch opens at 700ms and plain dismissal starts after release", async (context) => {
+  context.mock.timers.enable({ apis: ["setTimeout", "Date"], now: 1000 });
+  const wait = milliseconds => React.act(async () => context.mock.timers.tick(milliseconds));
   const { container, cleanup } = installDom();
   const root = createRoot(container);
   const changes = [];
@@ -129,7 +131,9 @@ test("Tooltip touch opens at 700ms and plain dismissal starts after release", as
   }
 });
 
-test("Tooltip rich touch uses a finite 3000ms post-release dismissal", async () => {
+test("Tooltip rich touch uses a finite 3000ms post-release dismissal", async (context) => {
+  context.mock.timers.enable({ apis: ["setTimeout", "Date"], now: 1000 });
+  const wait = milliseconds => React.act(async () => context.mock.timers.tick(milliseconds));
   const { container, cleanup } = installDom();
   const root = createRoot(container);
   const changes = [];
