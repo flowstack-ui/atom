@@ -17,6 +17,7 @@ export interface DataGridCellData extends Record<string, unknown> {
   columnIndex: number;
   rowValue?: string;
   onAction?: () => void;
+  enterInteraction?: () => boolean;
 }
 
 export interface DataGridRowData extends Record<string, unknown> {
@@ -26,6 +27,7 @@ export interface DataGridRowData extends Record<string, unknown> {
 }
 
 export interface DataGridContextValue {
+  dir: "ltr" | "rtl";
   gridId: string;
   gridRef: RefObject<HTMLElement | null>;
   disabled: boolean;
@@ -63,7 +65,7 @@ export interface DataGridContextValue {
   getCellId: (rowIndex: number, columnIndex: number) => string | undefined;
   focusCell: (rowIndex: number, columnIndex: number) => void;
   isRowSelected: (value: string | undefined) => boolean;
-  selectRow: (value: string | undefined) => void;
+  selectRow: (value: string | undefined, extend?: boolean) => void;
   selectOnRowClick: boolean;
 }
 

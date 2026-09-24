@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added independent Trigger, shared ColumnResizeHandle interaction, page movement,
+  range/select-all and opt-in interactive cell/header controls with F2/Escape.
+- Establish an eligible cell on focus and recover disabled or removed active
+  cells without repeatedly requesting declined controlled state changes.
+
 - Added optional native `ColumnGroup` and `Column` parts for table-layout
   sizing hints without changing indexed treegrid semantics or hierarchy.
 

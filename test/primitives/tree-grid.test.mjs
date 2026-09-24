@@ -298,11 +298,11 @@ test("TreeGrid source combines tree expansion with grid keyboard navigation", as
   assert.match(rootSource, /toggleExpandedRow\(activeRow\.value\)/);
   assert.match(rootSource, /case " ":/);
   assert.match(rootSource, /!row\.data\.selectable/);
-  assert.match(rootSource, /if \(!rowValue \|\| disabled\) return;/);
+  assert.match(rootSource, /if \(!rowValue \|\| disabled \|\| getRow\(rowValue\)\?\.disabled/);
   assert.match(rootSource, /expandedValues/);
   assert.match(rootSource, /activeItem\.data\.onAction\(\)/);
   assert.match(rootSource, /isRowVisible\(activeRowValue\)/);
-  assert.match(rootSource, /setResolvedActiveCell\(\{ rowIndex: parentRow\.data\.rowIndex, columnIndex: 1 \}\)/);
+  assert.match(rootSource, /request\(\{ rowIndex: parentRow\.data\.rowIndex, columnIndex: 1 \}\)/);
   assert.match(rootSource, /aria-activedescendant/);
   assert.match(rowSource, /aria-expanded/);
   assert.match(rowSource, /aria-level/);

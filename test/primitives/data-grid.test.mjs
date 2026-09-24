@@ -25,6 +25,57 @@ import {
 import {
   getDataGridNavigationDirection,
 } from "../../dist/_internal/primitives/data-grid/DataGridRoot.js";
+import { JSDOM } from "jsdom";
+import { createRoot } from "react-dom/client";
+
+test("DataGrid pointer entry initializes the targeted cell before focus recovery", async () => {
+  const dom = new JSDOM('<div id="root"></div>', { pretendToBeVisual: true });
+  const keys = ["window", "document", "HTMLElement", "Element", "Node", "Event", "MutationObserver", "IS_REACT_ACT_ENVIRONMENT"];
+  const previous = new Map(keys.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
+  for (const key of keys) Object.defineProperty(globalThis, key, { configurable: true, writable: true, value: key === "IS_REACT_ACT_ENVIRONMENT" ? true : dom.window[key] });
+  dom.window.HTMLElement.prototype.scrollIntoView = () => {};
+  const container = document.getElementById("root");
+  const root = createRoot(container);
+  const h = React.createElement;
+  try {
+    for (const target of ["cell", "header", "cancelled", "secondary", "disabled", "control", "keyboard"]) {
+      const changes = [];
+      let actions = 0;
+      await React.act(async () => root.render(h(DataGrid.Root, { key: target, onActiveCellChange: value => changes.push(value) },
+        h(DataGrid.Header, null, h(DataGrid.Row, { rowIndex: 1 },
+          h(DataGrid.ColumnHeader, { columnIndex: 1 }, "First"),
+          h(DataGrid.ColumnHeader, { columnIndex: 2, onAction: () => actions++ }, "Second"))),
+        h(DataGrid.Body, null, h(DataGrid.Row, { rowIndex: 2, value: "row" },
+          h(DataGrid.Cell, { columnIndex: 1 }, "Other"),
+          h(DataGrid.Cell, { columnIndex: 2, disabled: target === "disabled", interactive: target === "control",
+            onMouseDown: target === "cancelled" ? event => event.preventDefault() : undefined },
+            target === "control" ? h("button", null, "Action") : "Target"))))));
+      const grid = container.querySelector("[role=grid]");
+      const cell = target === "header" ? container.querySelectorAll("th")[1] : container.querySelectorAll("td")[1];
+      if (target === "keyboard") {
+        await React.act(async () => grid.focus());
+        assert.deepEqual(changes, [{ rowIndex: 1, columnIndex: 1 }]);
+        continue;
+      }
+      await React.act(async () => (target === "control" ? cell.querySelector("button") : cell).dispatchEvent(new dom.window.MouseEvent("mousedown", { bubbles: true, cancelable: true, button: target === "secondary" ? 2 : 0 })));
+      if (["cancelled", "secondary", "disabled", "control"].includes(target)) {
+        assert.deepEqual(changes, []);
+        continue;
+      }
+      await React.act(async () => grid.focus());
+      assert.deepEqual(changes, [{ rowIndex: target === "header" ? 1 : 2, columnIndex: 2 }]);
+      assert.equal(grid.getAttribute("aria-activedescendant"), cell.id);
+      assert.equal(actions, 0);
+      await React.act(async () => cell.click());
+      assert.equal(changes.length, 1);
+      assert.equal(actions, target === "header" ? 1 : 0);
+    }
+  } finally {
+    await React.act(async () => root.unmount());
+    for (const [key, descriptor] of previous) { if (descriptor) Object.defineProperty(globalThis, key, descriptor); else delete globalThis[key]; }
+    dom.window.close();
+  }
+});
 
 test("DataGrid compound parts render ARIA grid anatomy", () => {
   const html = renderToStaticMarkup(
@@ -334,8 +385,8 @@ test("DataGrid source uses Collection and keeps keyboard navigation in Root", as
   assert.match(rootSource, /if \(!wrapRows\) return;/);
   assert.match(rootSource, /for \(let offset = 1; offset < rowIndexes\.length; offset \+= 1\)/);
   assert.match(rootSource, /cell\.data\.columnIndex === current\.columnIndex/);
-  assert.match(rootSource, /if \(row && !row\.data\.selectable\) return;/);
-  assert.match(rootSource, /selectRow\(item\.data\.rowValue\)/);
+  assert.match(rootSource, /if \(!row \|\| row\.disabled \|\| !row\.data\.selectable\) return;/);
+  assert.match(rootSource, /selectRow\(item\.data\.rowValue, event\.shiftKey\)/);
   assert.match(rootSource, /event\.key === "Enter" && item\?\.data\.onAction/);
   assert.match(rootSource, /item\.data\.onAction\(\)/);
   assert.match(rowSource, /selectable = true/);
@@ -348,4 +399,17 @@ test("DataGrid source uses Collection and keeps keyboard navigation in Root", as
   assert.match(columnHeaderSource, /onAction\?: \(\) => void/);
   assert.match(columnHeaderSource, /focusCell\(resolvedRowIndex, resolvedColumnIndex\);\s+onAction\?\.\(\)/);
   assert.match(columnHeaderSource, /data-actionable/);
+});
+
+test("DataGrid row headers and bounded resize controls expose truthful semantics", () => {
+  const html = renderToStaticMarkup(React.createElement(DataGrid.Root, { "aria-label": "Rows" },
+    React.createElement(DataGrid.Body, null, React.createElement(DataGrid.Row, { rowIndex: 1 },
+      React.createElement(DataGrid.RowHeader, { columnIndex: 1 }, "Order")))));
+  assert.match(html, /<th[^>]*role="rowheader"[^>]*scope="row"/);
+  const resize = renderToStaticMarkup(React.createElement(DataGrid.ColumnResizeHandle, {
+    "aria-label": "Resize name", defaultValue: 999, min: 80, max: 240,
+  }));
+  assert.match(resize, /aria-valuenow="240"/);
+  assert.match(resize, /role="separator"/);
+  assert.match(resize, /tabindex="-1"/);
 });

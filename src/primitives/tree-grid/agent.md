@@ -11,7 +11,7 @@ Combine hierarchical row expansion with ARIA grid cell navigation, active-descen
 ## Choose something else when
 
 - The hierarchy has one primary item column, rows are flat, or people only read a noninteractive table. Use Tree, DataGrid, or Table.
-- The application expects Atom to own sorting, filtering, editing, resizing, persistence, or virtualization. Use an application composition around TreeGrid and the relevant utility.
+- The application expects Atom to own sorting, filtering, editing persistence, column width application, or virtualization. Use an application composition around TreeGrid and the relevant utility.
 
 ## Required composition
 
@@ -19,8 +19,11 @@ Combine hierarchical row expansion with ARIA grid cell navigation, active-descen
 
 ## Rules
 
+- **MUST:** Opt into Cell, RowHeader or ColumnHeader interactive for child controls. F2 enters controls and Escape returns to navigation; Enter preserves ColumnHeader.onAction. Do not steal editing keys or expose stale active descendants while child controls have focus.
+- **MUST:** Use Trigger with RowHeader.expandOnClick=false for independent disclosure. Compose a named ColumnResizeHandle inside an interactive indexed header and apply its controlled width to the column; keep the default negative tabIndex for F2 entry.
+- **MUST:** Sort siblings recursively and flatten preorder, never sort the flat list independently. Preserve parent relationships and recompute truthful logical coordinates after reordering.
 - **MUST:** Name Root and preserve treegrid, rowgroup, row, rowheader, columnheader, and gridcell relationships with stable row values, parent values, levels, and one-based logical coordinates.
-- **MUST:** Keep DOM focus on Root and preserve active-descendant navigation across visible cells, RTL-aware expand and collapse behavior in the tree column, vertical row movement, Home and End, whole-grid movement, disabled skipping, and loop policy.
+- **MUST:** Keep navigation focus on Root except during explicit interactive-cell entry. Preserve eligible initial focus and recovery, visible-cell arrows, RTL expansion, Home/End, pageSize movement, disabled skipping, range selection, visible select-all and loop policy.
 - **MUST:** Mark only real parent Rows expandable, keep descendants hidden from navigation while an ancestor is collapsed, and allow Atom to relocate an active descendant to the collapsed ancestor's tree-column cell.
 - **MUST:** Align scalar, array, or null value with selectionMode, use stable unique Row values, and distinguish selectable=false from disabled for parent, header, and summary rows.
 - **MUST:** Use ColumnHeader onAction for equivalent pointer and Enter activation, keep sortDirection truthful, and keep sorting, editing, filtering, and persistence application-owned.

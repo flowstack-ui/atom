@@ -12,6 +12,8 @@ import {
 } from "react";
 import type { NativeTableHeadProps } from "../../utils/dom.js";
 import { composeEventHandlers } from "../../utils/dom.js";
+import { FOCUSABLE_SELECTOR as NATIVE_FOCUSABLE_SELECTOR } from "../../hooks/focus.js";
+const FOCUSABLE_SELECTOR = `${NATIVE_FOCUSABLE_SELECTOR}, [tabindex="-1"], [contenteditable="true"]`;
 import {
   cloneAndMerge,
   composeRefs,
@@ -41,6 +43,8 @@ export interface DataGridColumnHeaderProps extends DataGridColumnHeaderNativePro
   columnIndex?: number;
   index?: number;
   disabled?: boolean;
+  /** Enter/F2 focuses a child control authored with tabIndex=-1. */
+  interactive?: boolean;
   sortDirection?: DataGridSortDirection;
   onAction?: () => void;
   render?: RenderProp;
@@ -55,12 +59,16 @@ export const DataGridColumnHeader = forwardRef<HTMLTableCellElement, DataGridCol
       columnIndex,
       index,
       disabled = false,
+      interactive = false,
       sortDirection,
       onAction,
       scope = "col",
       render,
       asChild,
       onClick,
+      onMouseDown,
+      onKeyDown,
+      onFocus,
       "data-slot": dataSlot = "data-grid-column-header",
       ...restProps
     },
@@ -76,6 +84,7 @@ export const DataGridColumnHeader = forwardRef<HTMLTableCellElement, DataGridCol
       selectionMode,
       unregisterCell,
       updateCell,
+      setActiveCell,
     } = useDataGridContext();
     const rowCtx = useDataGridRowContext();
     const cellRef = useRef<HTMLElement | null>(null);
@@ -93,6 +102,14 @@ export const DataGridColumnHeader = forwardRef<HTMLTableCellElement, DataGridCol
       ? getDataGridCellValue(resolvedRowIndex, resolvedColumnIndex)
       : `header-${generatedId}`;
     const cellId = `${gridId}-cell-${generatedId}`;
+    const enterInteraction = useCallback(() => {
+      if (!interactive || isDisabled) return false;
+      const child = [...(cellRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR) ?? [])]
+        .find(node => !node.matches(":disabled, [aria-disabled='true']") && !node.closest("[hidden], [inert]") && node.getClientRects().length > 0);
+      if (!child) return false;
+      child.focus({ preventScroll: true });
+      return child.ownerDocument.activeElement === child;
+    }, [interactive, isDisabled]);
 
     const cellData = useMemo<DataGridCellData>(
       () => ({
@@ -101,8 +118,9 @@ export const DataGridColumnHeader = forwardRef<HTMLTableCellElement, DataGridCol
         columnIndex: resolvedColumnIndex ?? 0,
         rowValue: rowCtx?.value,
         onAction,
+        enterInteraction: interactive ? enterInteraction : undefined,
       }),
-      [cellId, onAction, resolvedColumnIndex, resolvedRowIndex, rowCtx?.value],
+      [cellId, enterInteraction, interactive, onAction, resolvedColumnIndex, resolvedRowIndex, rowCtx?.value],
     );
 
     useEffect(() => {
@@ -117,8 +135,10 @@ export const DataGridColumnHeader = forwardRef<HTMLTableCellElement, DataGridCol
       updateCell(cellValue, cellData, isDisabled);
     }, [cellData, cellValue, isDisabled, resolvedColumnIndex, resolvedRowIndex, updateCell]);
 
-    const handleClick = useCallback<MouseEventHandler<HTMLTableCellElement>>(() => {
+    const handleClick = useCallback<MouseEventHandler<HTMLTableCellElement>>((event) => {
       if (!resolvedRowIndex || !resolvedColumnIndex || isDisabled) return;
+      const control = (event.target as Element).closest(FOCUSABLE_SELECTOR);
+      if (control && event.currentTarget.contains(control)) return;
       focusCell(resolvedRowIndex, resolvedColumnIndex);
       onAction?.();
     }, [focusCell, isDisabled, onAction, resolvedColumnIndex, resolvedRowIndex]);
@@ -145,6 +165,24 @@ export const DataGridColumnHeader = forwardRef<HTMLTableCellElement, DataGridCol
       ...(selected && { "data-selected": "" }),
       ...(actuallyDisabled && { "data-disabled": "" }),
       onClick: composeEventHandlers(onClick, handleClick),
+      onMouseDown: composeEventHandlers(onMouseDown, event => {
+        if (event.button !== 0 || !resolvedRowIndex || !resolvedColumnIndex || isDisabled) return;
+        if ((event.target as Element).closest("[role='grid']") !== event.currentTarget.closest("[role='grid']")) return;
+        const control = (event.target as Element).closest(FOCUSABLE_SELECTOR);
+        if (control && event.currentTarget.contains(control)) return;
+        setActiveCell({ rowIndex: resolvedRowIndex, columnIndex: resolvedColumnIndex });
+      }),
+      onFocus: composeEventHandlers(onFocus, event => {
+        if (!isDisabled && resolvedRowIndex && resolvedColumnIndex && event.target !== event.currentTarget)
+          setActiveCell({ rowIndex: resolvedRowIndex, columnIndex: resolvedColumnIndex });
+      }),
+      onKeyDown: composeEventHandlers(onKeyDown, event => {
+        if (!interactive || event.key !== "Escape" || event.target === event.currentTarget || isDisabled) return;
+        if ((event.target as Element).closest("[role='grid']") !== event.currentTarget.closest("[role='grid']")) return;
+        if (!resolvedRowIndex || !resolvedColumnIndex) return;
+        event.preventDefault(); event.stopPropagation();
+        focusCell(resolvedRowIndex, resolvedColumnIndex);
+      }),
     };
 
     if (asChild) {

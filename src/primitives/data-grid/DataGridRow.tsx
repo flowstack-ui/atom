@@ -11,6 +11,8 @@ import {
 } from "react";
 import type { NativeTableRowProps } from "../../utils/dom.js";
 import { composeEventHandlers } from "../../utils/dom.js";
+import { FOCUSABLE_SELECTOR as NATIVE_FOCUSABLE_SELECTOR } from "../../hooks/focus.js";
+const FOCUSABLE_SELECTOR = `${NATIVE_FOCUSABLE_SELECTOR}, [tabindex="-1"], [contenteditable="true"]`;
 import {
   cloneAndMerge,
   composeRefs,
@@ -100,9 +102,11 @@ export const DataGridRow = forwardRef<HTMLTableRowElement, DataGridRowProps>(
       updateRow(value, rowData, isDisabled);
     }, [isDisabled, rowData, updateRow, value]);
 
-    const handleClick = useCallback<MouseEventHandler<HTMLTableRowElement>>(() => {
+    const handleClick = useCallback<MouseEventHandler<HTMLTableRowElement>>((event) => {
       if (!selectOnRowClick || isDisabled || !selectable) return;
-      selectRow(value);
+      const control = (event.target as Element).closest(FOCUSABLE_SELECTOR);
+      if (control && event.currentTarget.contains(control)) return;
+      selectRow(value, event.shiftKey);
     }, [isDisabled, selectOnRowClick, selectable, selectRow, value]);
 
     const rowContext = useMemo<DataGridRowContextValue>(

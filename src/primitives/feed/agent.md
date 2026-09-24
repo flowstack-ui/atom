@@ -25,6 +25,7 @@ Provide a named ARIA feed of focusable articles with article-to-article keyboard
 - **MUST:** Preserve PageUp and PageDown article movement, Control or Command Home and End movement outside the feed, focus of the target article, nearest scrolling, and consumer preventDefault cancellation.
 - **MUST:** Keep each Item focusable by default while allowing focusable descendants, and ensure navigation identifies the containing direct article when focus starts inside it.
 - **MUST:** When windowing, keep the current and keyboard target articles mounted or materialize them before focus moves, retain stable keys and logical positions, and remember that Virtualizer supplies measurement rather than feed semantics or loading.
+- **MUST:** Skip hidden, inert, disabled and CSS-hidden article and exit targets. Preserve native editor/composite shortcuts and nested feed ownership, use the owning document, and reveal only successfully focused targets. Authored tabIndex=-1 articles remain programmatic navigation targets.
 
 ## Common mistakes
 

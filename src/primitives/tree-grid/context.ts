@@ -28,11 +28,13 @@ export interface TreeGridCellData extends Record<string, unknown> {
   columnIndex: number;
   rowValue?: string;
   onAction?: () => void;
+  enterInteraction?: () => boolean;
 }
 
 export type TreeGridRowEntry = CollectionItem<string, HTMLElement, TreeGridRowData>;
 
 export interface TreeGridContextValue {
+  dir: "ltr" | "rtl";
   treeGridId: string;
   treeGridRef: RefObject<HTMLElement | null>;
   disabled: boolean;
@@ -69,10 +71,11 @@ export interface TreeGridContextValue {
   unregisterCell: (value: string) => void;
   getCellId: (rowIndex: number, columnIndex: number) => string | undefined;
   focusCell: (rowIndex: number, columnIndex: number) => void;
+  setActiveCell: (value: TreeGridCellCoordinates | null) => void;
   isRowVisible: (value: string | undefined, parentValue?: string | null) => boolean;
   isRowSelected: (value: string | undefined) => boolean;
   isRowExpanded: (value: string | undefined) => boolean;
-  selectRow: (value: string | undefined) => void;
+  selectRow: (value: string | undefined, range?: boolean) => void;
   toggleExpandedRow: (value: string | undefined) => void;
   expandRow: (value: string | undefined) => void;
   collapseRow: (value: string | undefined) => void;

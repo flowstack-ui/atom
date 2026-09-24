@@ -37,3 +37,7 @@ export { TreeGridColumnGroup } from "./TreeGridColumnGroup.js";
 export type { TreeGridColumnGroupProps } from "./TreeGridColumnGroup.js";
 export { TreeGridColumn } from "./TreeGridColumn.js";
 export type { TreeGridColumnProps } from "./TreeGridColumn.js";
+export { TreeGridTrigger } from "./TreeGridTrigger.js";
+export type { TreeGridTriggerProps } from "./TreeGridTrigger.js";
+export { TreeGridColumnResizeHandle } from "./TreeGridColumnResizeHandle.js";
+export type { TreeGridColumnResizeHandleProps } from "./TreeGridColumnResizeHandle.js";

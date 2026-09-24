@@ -9,11 +9,11 @@ import {
   useRef,
   useState,
   type MouseEventHandler,
-  type PointerEventHandler,
   type ReactNode,
 } from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { composeEventHandlers } from "../../utils/dom.js";
+import { useCompositeInteraction } from "../../utils/useCompositeInteraction.js";
 import {
   cloneAndMerge,
   composeRefs,
@@ -45,7 +45,10 @@ export interface TreeItemProps extends TreeItemNativeProps {
   label?: string;
   children?: ReactNode;
   disabled?: boolean;
+  /** Nonselectable items remain navigable and expandable. */
+  selectable?: boolean;
   expandable?: boolean;
+  interactive?: boolean;
   render?: RenderProp;
   asChild?: boolean;
   "data-slot"?: string;
@@ -58,10 +61,14 @@ export const TreeItem = forwardRef<HTMLElement, TreeItemProps>(
       label,
       children,
       disabled = false,
+      selectable = true,
       expandable = false,
+      interactive = false,
       render,
       asChild,
       onClick,
+      onMouseDown,
+      onKeyDown,
       onPointerMove,
       onPointerLeave,
       "data-slot": dataSlot = "tree-item",
@@ -71,6 +78,13 @@ export const TreeItem = forwardRef<HTMLElement, TreeItemProps>(
   ) {
     const {
       activeValue,
+      selectionMode,
+      expandOnClick,
+      treeRef,
+      checkable,
+      getCheckedState,
+      loadingValues,
+      loadErrors,
       disabled: treeDisabled,
       isValueExpanded,
       isValueSelected,
@@ -92,13 +106,14 @@ export const TreeItem = forwardRef<HTMLElement, TreeItemProps>(
     const [groupCount, setGroupCount] = useState(0);
     const composedRef = useMemo(() => composeRefs(itemRef, ref), [ref]);
     const isDisabled = disabled || treeDisabled;
-    const selected = isValueSelected(value);
+    const selected = selectable && isValueSelected(value);
     const active = activeValue === value;
-    const activeValueRef = useRef(activeValue);
-    activeValueRef.current = activeValue;
     const expanded = isValueExpanded(value);
     const isExpandable = expandable || groupCount > 0;
     const textValue = registeredTextValue ?? label ?? (typeof children === "string" ? children : value);
+    const interaction = useCompositeInteraction(itemRef, interactive, isDisabled,
+      () => setActiveValue(value),
+      () => { treeRef.current?.focus({ preventScroll: true }); setActiveValue(value); });
 
     const itemData = useMemo<TreeItemData>(
       () => ({
@@ -107,8 +122,10 @@ export const TreeItem = forwardRef<HTMLElement, TreeItemProps>(
         parentValue: branchCtx.parentValue,
         level: branchCtx.level,
         expandable: isExpandable,
+        selectable,
+        enterInteraction: interactive ? interaction.enterInteraction : undefined,
       }),
-      [branchCtx.level, branchCtx.parentValue, isExpandable, itemId, textValue],
+      [branchCtx.level, branchCtx.parentValue, isExpandable, selectable, itemId, textValue, interactive, interaction.enterInteraction],
     );
 
     const eventTargetsCurrentItem = useCallback(
@@ -139,32 +156,24 @@ export const TreeItem = forwardRef<HTMLElement, TreeItemProps>(
     const handleClick = useCallback<MouseEventHandler<HTMLElement>>((event) => {
       if (!eventTargetsCurrentItem(event.target)) return;
       if (isDisabled) return;
+      const target = event.target as Element;
+      if (target.closest('button, input, select, textarea, a[href], [contenteditable="true"]')) return;
       event.stopPropagation();
+      treeRef.current?.focus({ preventScroll: true });
       setActiveValue(value);
-      selectValue(value);
-      if (isExpandable) toggleExpandedValue(value);
+      selectValue(value, event.shiftKey, event.ctrlKey || event.metaKey);
+      if (isExpandable && expandOnClick) toggleExpandedValue(value);
     }, [
       eventTargetsCurrentItem,
       isDisabled,
       isExpandable,
+      expandOnClick,
+      treeRef,
       selectValue,
       setActiveValue,
       toggleExpandedValue,
       value,
     ]);
-
-    const handlePointerMove = useCallback<PointerEventHandler<HTMLElement>>((event) => {
-      if (!eventTargetsCurrentItem(event.target)) return;
-      if (!isDisabled && activeValueRef.current !== value) {
-        setActiveValue(value);
-      }
-    }, [eventTargetsCurrentItem, isDisabled, setActiveValue, value]);
-
-    const handlePointerLeave = useCallback<PointerEventHandler<HTMLElement>>(() => {
-      if (activeValueRef.current === value) {
-        setActiveValue(null);
-      }
-    }, [setActiveValue, value]);
 
     const registerText = useCallback(
       (nextTextValue: string) => {
@@ -223,7 +232,11 @@ export const TreeItem = forwardRef<HTMLElement, TreeItemProps>(
       ref: composedRef,
       id: itemId,
       role: "treeitem",
-      "aria-selected": selected,
+      "aria-selected": selectionMode === "none" || !selectable ? undefined : selected,
+      "aria-checked": checkable ? getCheckedState(value) : undefined,
+      "aria-busy": loadingValues.includes(value) || undefined,
+      "data-loading": loadingValues.includes(value) ? "" : undefined,
+      "data-load-error": Object.prototype.hasOwnProperty.call(loadErrors, value) ? "" : undefined,
       "aria-disabled": isDisabled || undefined,
       "aria-expanded": isExpandable ? expanded : undefined,
       "aria-level": branchCtx.level,
@@ -232,14 +245,22 @@ export const TreeItem = forwardRef<HTMLElement, TreeItemProps>(
       "data-value": value,
       "data-state": selected ? "checked" : "unchecked",
       "data-level": branchCtx.level,
-      ...(selected && { "data-selected": "" }),
+      ...(selected && selectable && { "data-selected": "" }),
       ...(active && { "data-active": "" }),
       ...(isExpandable && { "data-expandable": "" }),
       ...(expanded && { "data-expanded": "" }),
       ...(isDisabled && { "data-disabled": "" }),
       onClick: composeEventHandlers(onClick, handleClick),
-      onPointerMove: composeEventHandlers(onPointerMove, handlePointerMove),
-      onPointerLeave: composeEventHandlers(onPointerLeave, handlePointerLeave),
+      onMouseDown: composeEventHandlers(onMouseDown, event => {
+        if (event.button !== 0 || isDisabled || !eventTargetsCurrentItem(event.target)) return;
+        const control = (event.target as Element).closest('button, input, select, textarea, a[href], [contenteditable="true"], [tabindex]');
+        if (control && event.currentTarget.contains(control) && control !== event.currentTarget) return;
+        setActiveValue(value);
+      }),
+      onKeyDown: composeEventHandlers(onKeyDown, interaction.onKeyDown),
+      "data-interactive": interactive ? "" : undefined,
+      onPointerMove,
+      onPointerLeave,
     };
 
     return (

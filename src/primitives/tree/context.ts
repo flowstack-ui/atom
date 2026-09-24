@@ -12,6 +12,8 @@ export interface TreeItemData extends Record<string, unknown> {
   parentValue: string | null;
   level: number;
   expandable: boolean;
+  selectable: boolean;
+  enterInteraction?: () => boolean;
 }
 
 export type TreeItemEntry = CollectionItem<string, HTMLElement, TreeItemData>;
@@ -20,10 +22,19 @@ export interface TreeContextValue {
   value: TreeSelectionValue;
   selectedValues: string[];
   multiple: boolean;
+  selectionMode: "none" | "single" | "multiple";
+  expandOnClick: boolean;
+  checkable: boolean;
+  checkedValues: string[];
+  getCheckedState: (value: string) => boolean | "mixed";
+  toggleChecked: (value: string) => void;
+  loadingValues: string[];
+  loadErrors: Readonly<Record<string, unknown>>;
+  retryLoad: (value: string) => void;
   expandedValues: string[];
   activeValue: string | null;
   setActiveValue: (value: string | null) => void;
-  selectValue: (value: string) => void;
+  selectValue: (value: string, range?: boolean, additive?: boolean) => void;
   toggleExpandedValue: (value: string) => void;
   expandValue: (value: string) => void;
   collapseValue: (value: string) => void;

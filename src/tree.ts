@@ -5,6 +5,9 @@ import {
   TreeItem,
   TreeItemText,
   TreeRoot,
+  TreeRootProvider,
+  TreeTrigger,
+  TreeCheckbox,
 } from "./primitives/tree/index.js";
 
 export {
@@ -15,9 +18,14 @@ export {
   TreeItemContextProvider,
   TreeItemText,
   TreeRoot,
+  TreeRootProvider,
+  TreeTrigger,
+  TreeCheckbox,
   useTreeBranchContext,
   useTreeContext,
   useTreeItemContext,
+  createTreeCollection,
+  useTreeController,
 } from "./primitives/tree/index.js";
 export type {
   TreeBranchContextValue,
@@ -30,12 +38,22 @@ export type {
   TreeItemTextProps,
   TreeOrientation,
   TreeRootProps,
+  TreeRootProviderProps,
+  TreeTriggerProps,
+  TreeCheckboxProps,
   TreeSelectionValue,
+  TreeNode,
+  TreeNodeEntry,
+  TreeCollection,
+  UseTreeControllerOptions,
 } from "./primitives/tree/index.js";
 
 export const Tree = {
   Root: TreeRoot,
+  RootProvider: TreeRootProvider,
   Item: TreeItem,
   ItemText: TreeItemText,
   Group: TreeGroup,
+  Trigger: TreeTrigger,
+  Checkbox: TreeCheckbox,
 } as const;

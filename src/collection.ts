@@ -1,5 +1,8 @@
 "use client";
 
+export { createFilter } from "./utils/createFilter.js";
+export type { FilterOptions, LocaleFilter } from "./utils/createFilter.js";
+
 import { useCallback, useRef, useState } from "react";
 
 export type CollectionValue = string;

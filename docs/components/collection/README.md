@@ -1,5 +1,20 @@
 # Collection
 
+## Locale-aware filtering
+
+`createFilter({ locale, ...Intl.CollatorOptions })` is available from
+`@flowstack-ui/atom/collection` and the root entry. It returns `contains`,
+`startsWith` and `endsWith`, each accepting a value and query string. The default
+locale is en-US and default usage is search. Pass `sensitivity: "base"` to
+ignore case and accents where supported by the locale. Input uses NFC Unicode
+normalization, empty queries match, and malformed locales/options retain native
+Intl errors. Collators are retained in a bounded 100-entry cache.
+
+This compares equal-length Unicode substrings. It is not fuzzy matching,
+transliteration, or a guarantee that expanding characters and ignored punctuation
+match across different substring lengths. Filtering and ranking a collection
+remain consumer policy; this helper does not change registered items.
+
 Headless utilities for registering elements by value and navigating them in
 document order.
 

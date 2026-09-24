@@ -4,6 +4,8 @@ import {
   DataGridBody,
   DataGridCaption,
   DataGridCell,
+  DataGridRowHeader,
+  DataGridColumnResizeHandle,
   DataGridColumn,
   DataGridColumnGroup,
   DataGridColumnHeader,
@@ -14,6 +16,8 @@ import {
 } from "./primitives/data-grid/index.js";
 
 export {
+  DataGridColumnResizeHandle,
+  DataGridRowHeader,
   DataGridBody,
   DataGridCaption,
   DataGridCell,
@@ -30,6 +34,8 @@ export {
   useDataGridRowContext,
 } from "./primitives/data-grid/index.js";
 export type {
+  DataGridColumnResizeHandleProps,
+  DataGridRowHeaderProps,
   DataGridBodyProps,
   DataGridCaptionProps,
   DataGridCellCoordinates,
@@ -59,5 +65,7 @@ export const DataGrid = {
   Row: DataGridRow,
   ColumnHeader: DataGridColumnHeader,
   Cell: DataGridCell,
+  RowHeader: DataGridRowHeader,
+  ColumnResizeHandle: DataGridColumnResizeHandle,
   Caption: DataGridCaption,
 } as const;

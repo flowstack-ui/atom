@@ -12,6 +12,7 @@ import {
 } from "react";
 import type { NativeTableHeadProps } from "../../utils/dom.js";
 import { composeEventHandlers } from "../../utils/dom.js";
+import { useCompositeInteraction } from "../../utils/useCompositeInteraction.js";
 import {
   cloneAndMerge,
   composeRefs,
@@ -43,6 +44,7 @@ export interface TreeGridColumnHeaderProps extends TreeGridColumnHeaderNativePro
   disabled?: boolean;
   sortDirection?: TreeGridSortDirection;
   onAction?: () => void;
+  interactive?: boolean;
   render?: RenderProp;
   asChild?: boolean;
   "data-slot"?: string;
@@ -57,10 +59,13 @@ export const TreeGridColumnHeader = forwardRef<HTMLTableCellElement, TreeGridCol
       disabled = false,
       sortDirection,
       onAction,
+      interactive = false,
       scope = "col",
       render,
       asChild,
       onClick,
+      onMouseDown,
+      onKeyDown,
       "data-slot": dataSlot = "tree-grid-column-header",
       ...restProps
     },
@@ -70,6 +75,7 @@ export const TreeGridColumnHeader = forwardRef<HTMLTableCellElement, TreeGridCol
       activeCell,
       disabled: treeGridDisabled,
       focusCell,
+      setActiveCell,
       focused,
       registerCell,
       selectionMode,
@@ -96,6 +102,9 @@ export const TreeGridColumnHeader = forwardRef<HTMLTableCellElement, TreeGridCol
       ? getTreeGridCellValue(resolvedRowIndex, resolvedColumnIndex)
       : `column-header-${generatedId}`;
     const cellId = `${treeGridId}-cell-${generatedId}`;
+    const interaction = useCompositeInteraction(cellRef, interactive, isDisabled,
+      () => { if (resolvedRowIndex && resolvedColumnIndex) setActiveCell({ rowIndex: resolvedRowIndex, columnIndex: resolvedColumnIndex }); },
+      () => { if (resolvedRowIndex && resolvedColumnIndex) focusCell(resolvedRowIndex, resolvedColumnIndex); });
 
     const cellData = useMemo<TreeGridCellData>(
       () => ({
@@ -104,8 +113,9 @@ export const TreeGridColumnHeader = forwardRef<HTMLTableCellElement, TreeGridCol
         columnIndex: resolvedColumnIndex ?? 0,
         rowValue: rowCtx?.value,
         onAction,
+        enterInteraction: interactive ? interaction.enterInteraction : undefined,
       }),
-      [cellId, onAction, resolvedColumnIndex, resolvedRowIndex, rowCtx?.value],
+      [cellId, onAction, resolvedColumnIndex, resolvedRowIndex, rowCtx?.value, interactive, interaction.enterInteraction],
     );
 
     useEffect(() => {
@@ -120,11 +130,12 @@ export const TreeGridColumnHeader = forwardRef<HTMLTableCellElement, TreeGridCol
       updateCell(cellValue, cellData, isDisabled);
     }, [cellData, cellValue, isDisabled, resolvedColumnIndex, resolvedRowIndex, updateCell]);
 
-    const handleClick = useCallback<MouseEventHandler<HTMLTableCellElement>>(() => {
+    const handleClick = useCallback<MouseEventHandler<HTMLTableCellElement>>((event) => {
       if (!resolvedRowIndex || !resolvedColumnIndex || isDisabled) return;
+      if (interactive && (event.target as Element).closest('button, input, select, textarea, a[href], [contenteditable="true"], [tabindex]')) return;
       focusCell(resolvedRowIndex, resolvedColumnIndex);
       onAction?.();
-    }, [focusCell, isDisabled, onAction, resolvedColumnIndex, resolvedRowIndex]);
+    }, [focusCell, isDisabled, interactive, onAction, resolvedColumnIndex, resolvedRowIndex]);
 
     const active = focused &&
       activeCell?.rowIndex === resolvedRowIndex &&
@@ -148,6 +159,17 @@ export const TreeGridColumnHeader = forwardRef<HTMLTableCellElement, TreeGridCol
       ...(sortDirection !== undefined && { "data-sort": sortDirection }),
       ...(onAction && isNavigable && !actuallyDisabled && { "data-actionable": "" }),
       onClick: composeEventHandlers(onClick, handleClick),
+      onMouseDown: composeEventHandlers(onMouseDown, event => {
+        if (event.button !== 0 || !resolvedRowIndex || !resolvedColumnIndex || isDisabled) return;
+        const target = event.target as Element;
+        if (target.closest("[role='treegrid']") !== event.currentTarget.closest("[role='treegrid']")) return;
+        const control = target.closest('button, input, select, textarea, a[href], [contenteditable="true"], [tabindex]');
+        if (control && event.currentTarget.contains(control)) return;
+        // Resolve the pointer cell before native focus initializes keyboard entry.
+        setActiveCell({ rowIndex: resolvedRowIndex, columnIndex: resolvedColumnIndex });
+      }),
+      onKeyDown: composeEventHandlers(onKeyDown, interaction.onKeyDown),
+      "data-interactive": interactive ? "" : undefined,
     };
 
     if (asChild) return cloneAndMerge(children, behaviorProps);
