@@ -99,6 +99,7 @@ export function MenuRoot({
         : null;
     }
 
+    let cancelRestore: (() => void) | undefined;
     if (!isOpen && previousOpenRef.current) {
       const transaction = pendingCloseRef.current ?? {
         reason: "programmatic" as const,
@@ -108,10 +109,22 @@ export function MenuRoot({
       const shouldRestore = transaction.reason !== "interactOutside" && transaction.reason !== "tab";
       const destination = transaction.focus ?? triggerRef.current ?? focusOriginRef.current;
       if (shouldRestore && destination?.isConnected) {
-        requestAnimationFrame(() => destination.focus({ preventScroll: true }));
+        const doc = destination.ownerDocument;
+        const view = doc.defaultView;
+        const activeAtClose = doc.activeElement;
+        const frame = view?.requestAnimationFrame(() => {
+          // A newer focus handoff owns focus, even if closing was deferred.
+          if (destination.isConnected && doc.activeElement === activeAtClose) {
+            destination.focus({ preventScroll: true });
+          }
+        });
+        cancelRestore = () => {
+          if (frame !== undefined) view?.cancelAnimationFrame(frame);
+        };
       }
     }
     previousOpenRef.current = isOpen;
+    return cancelRestore;
   }, [isOpen]);
 
   useLayoutEffect(() => {

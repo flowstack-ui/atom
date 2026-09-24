@@ -87,6 +87,52 @@ async function pointerActivation(target, options) {
   }));
 }
 
+test("closing menu cannot reclaim focus after a newer focus handoff or reopen", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  const frames = new Map();
+  let sequence = 0;
+  const schedule = callback => { frames.set(++sequence, callback); return sequence; };
+  const cancel = id => frames.delete(id);
+  globalThis.requestAnimationFrame = window.requestAnimationFrame = schedule;
+  globalThis.cancelAnimationFrame = window.cancelAnimationFrame = cancel;
+  const render = open => React.createElement(React.Fragment, null,
+    React.createElement(DropdownMenu.Root, { open, modal: false },
+      React.createElement(DropdownMenu.Trigger, null, "Menu")),
+    React.createElement("button", { id: "next-owner" }, "Next owner"));
+  const flush = async () => {
+    const callbacks = [...frames.values()];
+    frames.clear();
+    await React.act(async () => callbacks.forEach(callback => callback(0)));
+  };
+  try {
+    await React.act(async () => root.render(render(true)));
+    await React.act(async () => root.render(render(false)));
+    const next = document.getElementById("next-owner");
+    next.focus();
+    await flush();
+    assert.equal(document.activeElement, next, "a later focus owner wins over delayed close restoration");
+
+    next.blur();
+    await React.act(async () => root.render(render(true)));
+    await React.act(async () => root.render(render(false)));
+    await flush();
+    assert.equal(document.activeElement, container.querySelector("[data-slot=dropdown-menu-trigger]"), "ordinary close still returns focus");
+
+    await React.act(async () => root.render(render(true)));
+    await React.act(async () => root.render(render(false)));
+    await React.act(async () => root.render(render(true)));
+    assert.equal(frames.size, 0, "reopening cancels obsolete restoration");
+    await React.act(async () => root.render(render(false)));
+    await React.act(async () => root.unmount());
+    assert.equal(frames.size, 0, "unmount cancels pending restoration");
+  } finally {
+    await React.act(async () => root.unmount());
+    cleanup();
+  }
+});
+
+
 test("Dropdown Menu moves real focus through disabled items and exits its owner with Tab", async () => {
   const { container, cleanup } = installDom();
   const root = createRoot(container);

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Cancel deferred close-focus restoration on reopen or unmount, and preserve a
+  newer focus handoff instead of reclaiming focus from another control.
+
 - Make closed Content and SubContent inert while exit presence retains them,
   preventing pointer focus from stealing an overlay's restored focus.
 
