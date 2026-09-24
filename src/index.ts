@@ -1139,15 +1139,32 @@ export type {
   SidebarTriggerProps,
 } from "./primitives/sidebar/index.js";
 export {
+  SwitchControl,
   SwitchContextProvider,
+  SwitchField,
+  SwitchHiddenInput,
+  SwitchIndicator,
+  SwitchLabel,
   SwitchRoot,
+  SwitchRootProvider,
   SwitchThumb,
+  SwitchThumbIndicator,
+  useSwitch,
   useSwitchContext,
 } from "./primitives/switch/index.js";
 export type {
+  SwitchController,
+  SwitchControlProps,
   SwitchContextValue,
+  SwitchFieldProps,
+  SwitchHiddenInputProps,
+  SwitchIndicatorProps,
+  SwitchLabelProps,
   SwitchRootProps,
+  SwitchRootProviderProps,
   SwitchThumbProps,
+  SwitchThumbIndicatorProps,
+  UseSwitchProps,
 } from "./primitives/switch/index.js";
 export {
   SwipeableItemActions,

@@ -400,7 +400,17 @@ import {
   SliderThumb,
   SliderTrack,
 } from "./primitives/slider/index.js";
-import { SwitchRoot, SwitchThumb } from "./primitives/switch/index.js";
+import {
+  SwitchControl,
+  SwitchField,
+  SwitchHiddenInput,
+  SwitchIndicator,
+  SwitchLabel,
+  SwitchRoot,
+  SwitchRootProvider,
+  SwitchThumb,
+  SwitchThumbIndicator,
+} from "./primitives/switch/index.js";
 import {
   SwipeableItemActions,
   SwipeableItemContent,
@@ -1030,7 +1040,14 @@ export const Slider = {
 
 export const Switch = {
   Root: SwitchRoot,
+  Field: SwitchField,
+  Control: SwitchControl,
+  Label: SwitchLabel,
+  HiddenInput: SwitchHiddenInput,
   Thumb: SwitchThumb,
+  Indicator: SwitchIndicator,
+  ThumbIndicator: SwitchThumbIndicator,
+  RootProvider: SwitchRootProvider,
 } as const;
 
 export const SwipeableItem = {

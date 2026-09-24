@@ -9,8 +9,16 @@ import {
 
 import {
   Switch,
+  SwitchControl,
+  SwitchField,
+  SwitchHiddenInput,
+  SwitchIndicator,
+  SwitchLabel,
   SwitchRoot,
+  SwitchRootProvider,
   SwitchThumb,
+  SwitchThumbIndicator,
+  useSwitch,
 } from "../../dist/index.js";
 
 test("SwitchRoot renders WAI-ARIA switch state attributes", () => {
@@ -74,9 +82,105 @@ test("SwitchRoot passes native button attributes without losing Atom behavior", 
   );
 });
 
-test("Switch namespace exposes Root and Thumb parts", () => {
+test("Switch namespace exposes legacy and compound parts", () => {
   assert.equal(Switch.Root, SwitchRoot);
+  assert.equal(Switch.Field, SwitchField);
+  assert.equal(Switch.Control, SwitchControl);
+  assert.equal(Switch.Label, SwitchLabel);
+  assert.equal(Switch.HiddenInput, SwitchHiddenInput);
   assert.equal(Switch.Thumb, SwitchThumb);
+  assert.equal(Switch.Indicator, SwitchIndicator);
+  assert.equal(Switch.ThumbIndicator, SwitchThumbIndicator);
+  assert.equal(Switch.RootProvider, SwitchRootProvider);
+});
+
+test("Switch compound anatomy has one state owner, one control, and one native input", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Switch.Field,
+      {
+        id: "weekly-reports",
+        defaultChecked: true,
+        name: "weeklyReports",
+        value: "enabled",
+        required: true,
+      },
+      React.createElement(Switch.Label, null, "Weekly reports"),
+      React.createElement(
+        Switch.Control,
+        null,
+        React.createElement(Switch.Indicator, { fallback: "off" }, "on"),
+        React.createElement(
+          Switch.Thumb,
+          null,
+          React.createElement(Switch.ThumbIndicator, { fallback: "0" }, "1"),
+        ),
+      ),
+      React.createElement(Switch.HiddenInput, { title: "native owner" }),
+    ),
+  );
+
+  assert.match(html, /^<div/);
+  assert.match(html, /data-slot="switch-field"/);
+  assert.match(html, /data-state="checked"/);
+  assert.match(html, /<label[^>]*id="weekly-reports-label"[^>]*for="weekly-reports-control"/);
+  assert.match(html, /<button[^>]*id="weekly-reports-control"/);
+  assert.match(html, /role="switch"/);
+  assert.match(html, /aria-checked="true"/);
+  assert.match(html, /aria-labelledby="weekly-reports-label"/);
+  assert.equal((html.match(/<input/g) ?? []).length, 1);
+  assert.match(html, /id="weekly-reports-input"/);
+  assert.match(html, /name="weeklyReports"/);
+  assert.match(html, /value="enabled"/);
+  assert.match(html, /checked=""/);
+  assert.match(html, /required=""/);
+  assert.match(html, /title="native owner"/);
+  assert.match(html, /data-slot="switch-indicator"[^>]*>on<\/span>/);
+  assert.match(html, /data-slot="switch-thumb-indicator"[^>]*>1<\/span>/);
+});
+
+test("Switch compound unchecked indicators render fallback artwork", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Switch.Field,
+      { id: "privacy", checked: false },
+      React.createElement(Switch.Label, null, "Privacy"),
+      React.createElement(
+        Switch.Control,
+        null,
+        React.createElement(Switch.Indicator, { fallback: "off" }, "on"),
+        React.createElement(Switch.Thumb, null),
+      ),
+      React.createElement(Switch.HiddenInput, null),
+    ),
+  );
+
+  assert.match(html, /aria-checked="false"/);
+  assert.match(html, /data-slot="switch-indicator"[^>]*>off<\/span>/);
+  assert.doesNotMatch(html, /data-slot="switch-indicator"[^>]*>on<\/span>/);
+});
+
+test("Switch RootProvider consumes a controller without changing the submitted value API", () => {
+  function ProviderExample() {
+    const controller = useSwitch({ checked: true });
+    return React.createElement(
+      Switch.RootProvider,
+      {
+        id: "provider-switch",
+        value: controller,
+        inputValue: "subscribed",
+        name: "updates",
+      },
+      React.createElement(Switch.Label, null, "Updates"),
+      React.createElement(Switch.Control, null),
+      React.createElement(Switch.HiddenInput, null),
+    );
+  }
+
+  const html = renderToStaticMarkup(React.createElement(ProviderExample));
+  assert.match(html, /aria-checked="true"/);
+  assert.match(html, /name="updates"/);
+  assert.match(html, /value="subscribed"/);
 });
 
 test("SwitchThumb renders checked state inside SwitchRoot", () => {
@@ -265,8 +369,9 @@ test("SwitchRoot source keeps keyboard activation for non-native renders", async
   const source = await readFile(new URL("src/primitives/switch/SwitchRoot.tsx", packageRoot), "utf8");
 
   assert.match(source, /handleKeyDown/);
-  assert.match(source, /event\.currentTarget instanceof HTMLButtonElement/);
+  assert.match(source, /event\.currentTarget\.tagName === "BUTTON"/);
   assert.match(source, /event\.key !== "Enter" && event\.key !== " "/);
   assert.match(source, /event\.preventDefault\(\)/);
-  assert.match(source, /onKeyDown: composeEventHandlers\(onKeyDown, handleKeyDown\)/);
+  assert.match(source, /onKeyDown: composeEventHandlers\(/);
+  assert.match(source, /composeEventHandlers\(host\.onKeyDown, handleKeyDown\)/);
 });

@@ -9,7 +9,6 @@ import {
   useMemo,
   useRef,
 } from "react";
-import { useControllableState } from "../../hooks/useControllableState.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
 import { useFormValidation } from "../../hooks/useFormValidation.js";
 import {
@@ -25,6 +24,8 @@ import {
   type RenderProp,
 } from "../../utils/slot.js";
 import { SwitchContextProvider } from "./context.js";
+import { switchComposedHost } from "./composedHost.js";
+import { useSwitch } from "./useSwitch.js";
 import { useFieldContext } from "../field/context.js";
 import type { ValidationBehavior } from "../form/validation.js";
 
@@ -101,17 +102,21 @@ export const SwitchRoot = forwardRef<HTMLButtonElement, SwitchRootProps>(
     ref,
   ) {
     const field = useFieldContext();
-    const isDisabled = disabled ?? field?.disabled ?? false;
+    const host = switchComposedHost(children, render, asChild);
+    const isDisabled = Boolean(disabled || field?.disabled || host.disabled);
     const isReadOnly = readOnly ?? field?.readOnly ?? false;
     const isRequired = required ?? field?.required ?? false;
     const inputRef = useRef<HTMLInputElement>(null);
     const rootRef = useRef<HTMLButtonElement>(null);
     useFormControlProxy(inputRef, rootRef);
-    const [isChecked, setIsChecked] = useControllableState({
-      value: checked,
-      defaultValue: defaultChecked,
-      onChange: onCheckedChange,
+    const controller = useSwitch({
+      checked,
+      defaultChecked,
+      onCheckedChange,
+      disabled: isDisabled,
+      readOnly: isReadOnly,
     });
+    const isChecked = controller.checked;
     const validation = useFormValidation({
       validityRef: inputRef,
       ownerRef: rootRef,
@@ -125,29 +130,40 @@ export const SwitchRoot = forwardRef<HTMLButtonElement, SwitchRootProps>(
     const isInvalid = validation.invalid;
 
     const handleClick: MouseEventHandler<HTMLButtonElement> = () => {
-      if (isDisabled || isReadOnly) return;
-      setIsChecked((currentChecked) => !currentChecked);
+      controller.toggle();
     };
 
     const handleKeyDown: KeyboardEventHandler<HTMLElement> = (event) => {
-      if (event.currentTarget instanceof HTMLButtonElement) return;
+      if (event.currentTarget.tagName === "BUTTON") return;
       if (event.key !== "Enter" && event.key !== " ") return;
       event.preventDefault();
-      if (isDisabled || isReadOnly) return;
-      setIsChecked((currentChecked) => !currentChecked);
+      controller.toggle();
     };
-    const reset = useCallback(() => setIsChecked(defaultChecked), [defaultChecked, setIsChecked]);
+    const reset = useCallback(
+      () => controller.setChecked(defaultChecked),
+      [controller.setChecked, defaultChecked],
+    );
     useFormReset(inputRef, form, checked !== undefined, reset);
 
     const contextValue = useMemo(
       () => ({
         checked: isChecked,
+        setChecked: controller.setChecked,
+        toggle: controller.toggle,
         disabled: isDisabled,
         readOnly: isReadOnly,
         invalid: isInvalid,
         required: isRequired,
       }),
-      [isDisabled, isInvalid, isChecked, isReadOnly, isRequired],
+      [
+        controller.setChecked,
+        controller.toggle,
+        isDisabled,
+        isInvalid,
+        isChecked,
+        isReadOnly,
+        isRequired,
+      ],
     );
 
     // Native props pass through first; Atom-owned behavior props below stay authoritative.
@@ -169,14 +185,20 @@ export const SwitchRoot = forwardRef<HTMLButtonElement, SwitchRootProps>(
       ...(isRequired && { "data-required": "" }),
       "data-state": isChecked ? "checked" : "unchecked",
       "data-slot": dataSlot,
-      onClick: composeEventHandlers(onClick, handleClick),
-      onKeyDown: composeEventHandlers(onKeyDown, handleKeyDown),
+      onClick: composeEventHandlers(
+        onClick,
+        composeEventHandlers(host.onClick, handleClick),
+      ),
+      onKeyDown: composeEventHandlers(
+        onKeyDown,
+        composeEventHandlers(host.onKeyDown, handleKeyDown),
+      ),
       className,
     };
 
     const rootElement = asChild
-      ? cloneAndMerge(children, behaviorProps)
-      : renderElement(render, "button", { ...behaviorProps, children });
+      ? cloneAndMerge(host.children, behaviorProps)
+      : renderElement(host.render, "button", { ...behaviorProps, children });
 
     return (
       <SwitchContextProvider value={contextValue}>
