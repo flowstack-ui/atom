@@ -4,7 +4,15 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { runEvidenceStep, sourceIdentity } from "../scripts/release-evidence.mjs";
+import { browserArguments, runEvidenceStep, sourceIdentity } from "../scripts/release-evidence.mjs";
+
+test("worker override preserves the browser lane and rejects invalid concurrency", () => {
+  assert.deepEqual(browserArguments(undefined), ["run", "test:browser:built"]);
+  assert.deepEqual(browserArguments("1"), ["run", "test:browser:built", "--", "--workers=1"]);
+  for (const value of ["", "0", "-1", "1.5", "50%", "Infinity", "9007199254740992"]) {
+    assert.throws(() => browserArguments(value), /positive integer/);
+  }
+});
 
 test("release identity covers dirty edits, untracked files and deletions but ignores output", () => {
   const root = mkdtempSync(join(tmpdir(), "atom-evidence-identity-"));

@@ -3,6 +3,15 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { closeSync, lstatSync, openSync, readFileSync, readlinkSync, renameSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
+export function browserArguments(workers) {
+  const args = ["run", "test:browser:built"];
+  if (workers === undefined) return args;
+  if (!/^[1-9]\d*$/.test(workers) || !Number.isSafeInteger(Number(workers))) {
+    throw new Error("FLOWSTACK_TEST_WORKERS must be a positive integer");
+  }
+  return [...args, "--", `--workers=${workers}`];
+}
+
 export function sourceIdentity(root) {
   const git = (...args) => execFileSync("git", args, { cwd: root, encoding: "utf8", maxBuffer: 20 * 1024 * 1024 });
   const paths = [...new Set(git("ls-files", "-z", "--cached", "--others", "--exclude-standard").split("\0").filter(Boolean))].sort();

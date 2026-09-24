@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
-import { sourceIdentity, runEvidenceStep, saveEvidence } from "./release-evidence.mjs";
+import { browserArguments, sourceIdentity, runEvidenceStep, saveEvidence } from "./release-evidence.mjs";
 
 const packageRoot = resolve(import.meta.dirname, "..");
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
@@ -27,9 +27,10 @@ function run(name, args) {
 }
 
 try {
+  const browserArgs = browserArguments(process.env.FLOWSTACK_TEST_WORKERS);
   run("repository", ["run", "check:repository"]);
   run("playground-build", ["run", "playground:build"]);
-  run("browser", ["run", "test:browser:built"]);
+  run("browser", browserArgs);
   const browserReport = JSON.parse(await readFile(resolve(evidenceDirectory, "browser", "report.json"), "utf8"));
   if (!browserReport.stats || browserReport.stats.unexpected !== 0 || browserReport.stats.expected < 1) throw new Error("Browser report is missing successful qualification evidence");
   summary.browser = { stats: browserReport.stats, projects: browserReport.config.projects.map(project => ({ name: project.name, testDir: project.testDir })), workers: browserReport.config.workers, playwrightVersion: JSON.parse(await readFile(resolve(packageRoot, "node_modules/@playwright/test/package.json"), "utf8")).version };

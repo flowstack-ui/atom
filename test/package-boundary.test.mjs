@@ -88,7 +88,8 @@ test("release verification tiers do not recurse", async () => {
   assert.equal(packageJson.scripts["check:release"], "npm run test:all");
   assert.match(releaseScript, /\["run", "check:repository"\]/);
   assert.equal((releaseScript.match(/\["run", "playground:build"\]/g) ?? []).length, 1);
-  assert.match(releaseScript, /\["run", "test:browser:built"\]/);
+  assert.match(releaseScript, /browserArguments\(process\.env\.FLOWSTACK_TEST_WORKERS\)/);
+  assert.match(releaseScript, /run\("browser", browserArgs\)/);
   assert.doesNotMatch(releaseScript, /\["run", "test:browser"\]/);
   assert.match(releaseScript, /\["run", "pack:check"\]/);
   assert.doesNotMatch(releaseScript, /\["run", "(?:check:release|release:check|test:all)"\]/);

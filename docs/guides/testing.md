@@ -45,3 +45,8 @@ Do not edit the repository during a qualification run. The runner compares
 source identity again at the end and fails if it changed. An interrupted run
 may remain `running`; it is never valid release evidence. A successful focused
 or repository command does not replace a completed release report.
+
+On a constrained or busy host, run `FLOWSTACK_TEST_WORKERS=1 npm run check:release`
+to reduce concurrent browser load without changing the matrix, retries or
+timeouts. The value must be a positive integer; omit it for Playwright's existing
+default. The effective count is retained in the browser report.
