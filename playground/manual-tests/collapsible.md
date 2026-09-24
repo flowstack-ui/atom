@@ -1,5 +1,15 @@
 # Collapsible Manual Test Protocol
 
+## Parity additions (not manually performed)
+
+Open `/__tests/collapsible` for focused browser evidence. Verify closed preview
+controls are skipped with Tab, expanded controls become available, closing from
+focused content restores Trigger focus, nested indicators stay independent and
+interrupted exits do not report completion. Repeat with screen reader, actual
+browser zoom, physical touch and reduced motion. Controller/lifecycle/Activity
+state and effect checks also have automated tests; those do not mark this manual
+protocol passed.
+
 Run one step at a time in chat. Stop after each step until the tester confirms pass or reports an issue.
 
 ## Step 0: Playground Smoke Check

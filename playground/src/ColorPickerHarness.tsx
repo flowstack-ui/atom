@@ -1,4 +1,4 @@
-import { ColorPicker } from "@flowstack-ui/atom/color-picker";
+import { ColorPicker, useColorPicker } from "@flowstack-ui/atom/color-picker";
 import { useState } from "react";
 
 const presets = ["#5b5bd6", "#2f9e44", "#e8590c", "rgba(26, 126, 255, 0.4)"];
@@ -46,6 +46,8 @@ function PickerBody() {
 export function ColorPickerHarness() {
   const [value, setValue] = useState("rgba(91, 91, 214, 0.65)");
   const [completed, setCompleted] = useState(0);
+  const [exits, setExits] = useState(0);
+  const store = useColorPicker({defaultValue: "#123456", lazyMount: true, unmountOnExit: false, ids: {content: "stored-color-content"}, onExitComplete: () => setExits(n => n + 1)});
 
   return (
     <main className="color-harness">
@@ -84,6 +86,15 @@ export function ColorPickerHarness() {
           <ColorPicker.ChannelSliderThumb className="color-harness-thumb" />
         </ColorPicker.ChannelSlider>
       </ColorPicker.Root>
+      <ColorPicker.RootProvider value={store}>
+        <ColorPicker.Trigger aria-label="Stored color">Stored color</ColorPicker.Trigger>
+        <ColorPicker.Positioner>
+          <ColorPicker.Content><ColorPicker.Input aria-label="Stored hex" /></ColorPicker.Content>
+        </ColorPicker.Positioner>
+      </ColorPicker.RootProvider>
+      <button onClick={() => store.api.setValue("#ff0000")}>Set stored red</button>
+      <output data-testid="stored-value">{store.api.value.toString("hex")}</output>
+      <output data-testid="stored-exits">{exits}</output>
     </main>
   );
 }

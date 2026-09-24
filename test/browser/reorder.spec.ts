@@ -103,3 +103,47 @@ test("horizontal keyboard movement mirrors in RTL and unavailable states block c
   await expect(page.getByRole("button", { name: "Move Verify production", exact: true })).toBeDisabled();
   await expect(page.getByRole("button", { name: "Move Verify production later" })).toBeDisabled();
 });
+
+test("grid moves through both axes without changing DOM until commit", async ({ page }) => {
+  const scenario = await openReorder(page);
+  await page.getByRole("menuitem", { name: "Layout", exact: true }).click();
+  await page.getByRole("menuitemradio", { name: "Grid", exact: true }).click();
+  await page.keyboard.press("Escape");
+  const handle = page.getByRole("button", { name: "Move Verify production", exact: true });
+  await handle.focus();
+  await handle.press("Space");
+  await handle.press("ArrowDown");
+  await expect(scenario.announcer).toHaveText("Verify production will move to position 3 of 4.");
+  await expect.poll(() => order(page)).toEqual(["verify", "approve", "deploy", "notify"]);
+  await expect.poll(() => scenario.items.nth(2).evaluate(node => parseFloat((node as HTMLElement).style.getPropertyValue("--atom-reorder-y")))).not.toBe(0);
+  await expect(handle).toBeFocused();
+  await handle.press("Enter");
+  await expect.poll(() => order(page)).toEqual(["approve", "deploy", "verify", "notify"]);
+  await expect(handle).toBeFocused();
+});
+
+test("wrapping unequal widths project actual positions and restore CSS order", async ({ page }) => {
+  const scenario = await openReorder(page);
+  await page.getByRole("menuitem", { name: "Layout", exact: true }).click();
+  await page.getByRole("menuitemradio", { name: "Grid", exact: true }).click();
+  await page.keyboard.press("Escape");
+  await scenario.root.evaluate(root => {
+    Object.assign((root as HTMLElement).style, { display: "flex", alignItems: "flex-start", flexWrap: "wrap", width: "700px" });
+    [...root.children].forEach((node, index) => { if (node instanceof HTMLElement) Object.assign(node.style, { width: [260, 380, 310, 240][index] + "px", boxSizing: "border-box", flexShrink: "0" }); });
+  });
+  const handle = page.getByRole("button", { name: "Move Verify production", exact: true });
+  await handle.focus();
+  await handle.press("Space");
+  await handle.press("End");
+  const projected = await scenario.items.evaluateAll(nodes => nodes.map(node => {
+    const element = node as HTMLElement;
+    return { value: element.dataset.value, x: element.offsetLeft + parseFloat(element.style.getPropertyValue("--atom-reorder-x")), y: element.offsetTop + parseFloat(element.style.getPropertyValue("--atom-reorder-y")), order: element.style.order };
+  }));
+  expect(projected.every(entry => entry.order === "")).toBe(true);
+  await handle.press("Enter");
+  const actual = await scenario.items.evaluateAll(nodes => nodes.map(node => ({ value: (node as HTMLElement).dataset.value, x: (node as HTMLElement).offsetLeft, y: (node as HTMLElement).offsetTop })));
+  for (const entry of projected.filter(entry => entry.value !== "verify")) {
+    expect(actual.find(value => value.value === entry.value)).toMatchObject({ x: entry.x, y: entry.y });
+  }
+  await expect(handle).toBeFocused();
+});

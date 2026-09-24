@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Splitter } from "@flowstack-ui/atom/splitter";
 import { Button } from "@flowstack-ui/atom/button";
+import { SplitterRegressionHarness } from "./SplitterRegressionHarness";
 
 export function SplitterHarness() {
   const [vertical, setVertical] = useState(false), [rtl, setRtl] = useState(false), [disabled, setDisabled] = useState(false);
@@ -27,5 +28,6 @@ export function SplitterHarness() {
     <Splitter.Root data-testid="controlled" panels={[{ id: "one" }, { id: "two" }]} sizes={{ one: 50, two: 50 }} style={{ width: 800, height: 100 }}>
       <Splitter.Panel panelId="one">Controlled</Splitter.Panel><Splitter.ResizeTrigger before="one" after="two" aria-label="Rejected size" /><Splitter.Panel panelId="two">Parent rejects changes</Splitter.Panel>
     </Splitter.Root>
+    <SplitterRegressionHarness />
   </section>;
 }

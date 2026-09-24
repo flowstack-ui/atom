@@ -1,5 +1,8 @@
 # Dropdown Menu Manual Test Protocol
 
+Also run the [shared controller and policy workbench](../manual-tests/menu-policies.md) for this owner.
+Its automated results do not mark this manual protocol complete.
+
 Use the Dropdown Menu route with default controls unless a step says otherwise.
 
 ## 1. Trigger and focus lifecycle

@@ -8,10 +8,14 @@ listed below. Do not mark a workbook device record passed from emulation.
 
 Record these values before testing:
 
-- Atom version: `0.20.1`
-- Atom commit: record the final tagged commit
+- Atom version: `0.27.0` candidate (not a publication claim)
+- Atom commit and archive SHA-256: copy from the retained release report
 - Playground commit: same repository commit as the Atom candidate
 - Test date and tester: record with each platform result
+
+For this candidate, physical-device, screen-reader, actual 200–400% zoom and
+native high-contrast qualification are owner-deferred. Their results remain
+`not run`; neither automated emulation nor this disposition records a pass.
 
 ## Required devices
 

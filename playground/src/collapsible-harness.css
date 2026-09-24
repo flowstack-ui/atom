@@ -1,0 +1,4 @@
+/* Test-owned motion, never shipped by the headless package. */
+.collapsible-harness-motion[data-state="closed"] { animation: collapsible-harness-exit 200ms linear; }
+@keyframes collapsible-harness-exit { from { opacity: 1; } to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .collapsible-harness-motion { animation: none !important; } }

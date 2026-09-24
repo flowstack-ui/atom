@@ -1,0 +1,10 @@
+.scroll-harness { position: relative; width: 400px; height: 250px; border: 1px solid; }
+.scroll-harness [data-slot="scroll-area-viewport"] { width: 100%; height: 100%; overflow: auto; scrollbar-width: none; }
+.scroll-harness [data-slot="scroll-area-content"] { min-width: 100%; width: max-content; }
+.scroll-harness [data-slot="scroll-area-scrollbar"] { position: absolute; background: #ddd; touch-action: none; user-select: none; }
+.scroll-harness [data-slot="scroll-area-scrollbar"][data-orientation="vertical"] { inset-block: 2px 12px; inset-inline-end: 2px; width: 8px; }
+.scroll-harness [data-slot="scroll-area-scrollbar"][data-orientation="horizontal"] { inset-inline: 2px 12px; bottom: 2px; height: 8px; display: flex; }
+.scroll-harness [data-slot="scroll-area-thumb"] { background: #555; border-radius: 8px; }
+.scroll-harness [data-slot="scroll-area-thumb"][data-orientation="vertical"] { min-height: 24px; width: 100%; }
+.scroll-harness [data-slot="scroll-area-thumb"][data-orientation="horizontal"] { min-width: 24px; height: 100%; }
+.scroll-harness [data-state="hidden"] { visibility: hidden; }

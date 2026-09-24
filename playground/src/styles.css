@@ -25,6 +25,10 @@
   display: flex;
 }
 
+.playground-carousel-viewport[data-programmatic] {
+  scroll-snap-type: none;
+}
+
 .playground-carousel-track > [data-slot="carousel-loop-boundary"] {
   flex: 0 0 100%;
 }
@@ -41,20 +45,8 @@
   text-align: center;
 }
 
-.playground-carousel-slide[data-loop-position="before"] {
-  transform: translateX(calc(-1 * var(--atom-carousel-count) * 100%));
-}
-
-.playground-carousel-slide[data-loop-position="after"] {
-  transform: translateX(calc(var(--atom-carousel-count) * 100%));
-}
-
-[dir="rtl"] .playground-carousel-slide[data-loop-position="before"] {
-  transform: translateX(calc(var(--atom-carousel-count) * 100%));
-}
-
-[dir="rtl"] .playground-carousel-slide[data-loop-position="after"] {
-  transform: translateX(calc(-1 * var(--atom-carousel-count) * 100%));
+.playground-carousel-slide {
+  translate: var(--atom-carousel-shift, 0px) 0;
 }
 
 .playground-carousel-slide span {
@@ -2789,6 +2781,14 @@ h2 {
 .utility-swipe-content strong {
   font-size: 16px;
   line-height: 1.2;
+}
+
+.utility-swipe-content[data-dragging] {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .utility-swipe-content { transition: none; }
 }
 
 .utility-swipe-content span {
@@ -5845,4 +5845,14 @@ h2 {
   .playground-reorder-actions {
     grid-column: 1 / -1;
   }
+}
+
+/* Reorder geometry is headless; the scenario supplies its motion presentation. */
+.playground-reorder-item {
+  translate: var(--atom-reorder-x, 0px) var(--atom-reorder-y, 0px);
+  transition: translate 160ms ease;
+}
+.playground-reorder-item[data-reorder-measuring] { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  .playground-reorder-item { transition: none; }
 }

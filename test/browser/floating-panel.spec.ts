@@ -7,6 +7,8 @@ test('keyboard geometry, stages and focus return',async({page})=>{
   await expect(page.getByLabel('Geometry',{exact:true})).toContainText('"x":121');
   await page.getByRole('button',{name:'maximize panel',exact:true}).click();
   await expect(panel).toHaveAttribute('data-stage','maximized');
+  await expect(page.getByRole('button',{name:'minimize panel',exact:true})).toHaveCount(0);
+  await page.getByRole('button',{name:'restore panel',exact:true}).click();
   await page.getByRole('button',{name:'minimize panel',exact:true}).click();
   await expect(page.getByLabel('Note')).toBeHidden();
   await page.getByRole('button',{name:'restore panel',exact:true}).click();

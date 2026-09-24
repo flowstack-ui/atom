@@ -1,5 +1,32 @@
 # NavigationMenu Manual Test Protocol
 
+Also run the [shared controller and policy workbench](menu-policies.md) for this owner.
+Its automated results do not mark this manual protocol complete.
+
+## Additional policy and lifecycle qualification
+
+The following cases require fixtures using the corresponding public props;
+the historical toolbar below does not yet expose every new policy. Do not
+mark these manual cases complete from unit or geometry test results alone.
+
+- Verify independent `openDelay` and `closeDelay`, legacy fallback, and nested
+  override precedence with mouse. Verify disabled hover does not disable tap
+  or keyboard, and disabled pointer click still permits Enter and Space.
+- Verify persistent pointer-leave panels still dismiss with Escape and outside
+  focus/click. Cancel each Content outside callback and verify dismissal is
+  prevented without trapping native focus.
+- Verify `viewport={false}` inline panels preserve native navigation semantics,
+  and shared Viewport `align` works in LTR, RTL and vertical orientation.
+- With `unmountOnExit={false}`, edit a field, close/reopen and verify its value
+  remains; closed content must be hidden and unavailable to Tab/screen readers.
+- Verify Content callback/object refs address the actual host in both modes,
+  including `asChild`, and detach only when the host unmounts.
+- Verify controller RootProvider and Context state, ItemIndicator open state,
+  and `closeOnClick={false}`. Prevented native onClick must suppress selection;
+  prevented onSelect must suppress close while retaining native link behavior.
+- Repeat with nested disclosures, a nested portalled overlay, and an iframe
+  owner document. Escape must close only the top eligible scope.
+
 ## Step 0: Playground Smoke Check
 
 Setup

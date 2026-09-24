@@ -1,4 +1,5 @@
 import { AppBar } from "@flowstack-ui/atom/app-bar";
+import { RecordUtilityToolbar, RecordUtilityCanvas, RecordUtilitySource, RecordUtilityAnatomy, RecordUtilityFooter, RecordUtilityLog } from "./scenarios/RecordUtilityWorkbench";
 import { Button } from "@flowstack-ui/atom/button";
 import { Menubar } from "@flowstack-ui/atom/menubar";
 import { ScrollArea } from "@flowstack-ui/atom/scroll-area";
@@ -6,6 +7,7 @@ import { Tabs } from "@flowstack-ui/atom/tabs";
 import { useState } from "react";
 import { StepsHarness } from "./StepsHarness";
 import { SplitterHarness } from "./SplitterHarness";
+import { ScrollAreaHarness } from "./ScrollAreaHarness";
 import { DownloadTriggerHarness } from "./DownloadTriggerHarness";
 import { QrCodeHarness } from "./QrCodeHarness";
 import { TableOfContentsHarness } from "./TableOfContentsHarness";
@@ -471,6 +473,10 @@ const scenarios: Scenario[] = [
     checks: ["Arrow keys move", "Panel changes", "Tab order stays correct"],
   },
   {
+    id: "selection", label: "Selection", category: "Utilities", checks: ["Named checkboxes", "Scope state", "Read-only and disabled"]
+  },
+  {id:"action-delegate",label:"Action Delegate",category:"Utilities",checks:["Native primary link","Independent actions","No extra tab stop"]},
+  {
     id: "steps",
     label: "Steps",
     category: "Navigation",
@@ -786,6 +792,7 @@ export function App() {
         <section className="scenario-header" aria-labelledby="scenario-title">
           <p className="category-label">{activeScenario.category}</p>
           <h1 id="scenario-title">{activeScenario.label}</h1>
+          {["Menu", "DropdownMenu", "ContextMenu", "Menubar", "NavigationMenu"].includes(activeScenario.label.replace(/ /g, "")) && <a href={`/__tests/menu-policies?owner=${activeScenario.label.replace(/ /g, "")}`}>Controller, lifecycle and policy workbench</a>}
         </section>
 
         <DomEvidenceRevisionContext.Provider value={inspector.revision}>
@@ -1376,6 +1383,7 @@ function ScenarioToolbar({
   toggleScenario: ReturnType<typeof useToggleScenario>;
   toggleGroupScenario: ReturnType<typeof useToggleGroupScenario>;
 }) {
+  if (scenarioId === "selection" || scenarioId === "action-delegate") return <RecordUtilityToolbar delegate={scenarioId === "action-delegate"} />;
   if (scenarioId === "button") return <ButtonScenarioToolbar scenario={buttonScenario} />;
   if (scenarioId === "checkbox") return <CheckboxScenarioToolbar scenario={checkboxScenario} />;
   if (scenarioId === "radio-group") return <RadioGroupScenarioToolbar scenario={radioGroupScenario} />;
@@ -1564,9 +1572,11 @@ function ScenarioCanvas({
   toggleGroupScenario: ReturnType<typeof useToggleGroupScenario>;
   label: string;
 }) {
+  if (scenarioId === "selection" || scenarioId === "action-delegate") return <RecordUtilityCanvas delegate={scenarioId === "action-delegate"} />;
   if (scenarioId === "button") return <ButtonScenarioCanvas scenario={buttonScenario} />;
   if (scenarioId === "steps") return <StepsHarness />;
   if (scenarioId === "splitter") return <SplitterHarness />;
+  if (scenarioId === "scroll-area-parity") return <ScrollAreaHarness />;
   if (scenarioId === "download-trigger") return <DownloadTriggerHarness />;
   if (scenarioId === "qr-code") return <QrCodeHarness />;
   if (scenarioId === "table-of-contents") return <TableOfContentsHarness />;
@@ -1765,6 +1775,7 @@ function ScenarioSource({
   toggleScenario: ReturnType<typeof useToggleScenario>;
   toggleGroupScenario: ReturnType<typeof useToggleGroupScenario>;
 }) {
+  if (scenarioId === "selection" || scenarioId === "action-delegate") return <RecordUtilitySource delegate={scenarioId === "action-delegate"} />;
   const source = getScenarioSource({
     alertDialogScenario,
     buttonScenario,
@@ -1875,6 +1886,7 @@ function ScenarioCanvasFooter({
   toggleScenario: ReturnType<typeof useToggleScenario>;
   toggleGroupScenario: ReturnType<typeof useToggleGroupScenario>;
 }) {
+  if (scenarioId === "selection" || scenarioId === "action-delegate") return <RecordUtilityFooter />;
   if (scenarioId === "button") {
     const state = buttonScenario.state;
     return <div className="panel-footer">{`Pressed ${state.pressCount} | Disabled ${state.disabled} | Loading ${state.loading}`}</div>;
@@ -2965,6 +2977,7 @@ function ScenarioAnatomy({
   onToggleAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
   onToggleGroupAnatomyOpenGroupsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
 }) {
+  if (scenarioId === "selection" || scenarioId === "action-delegate") return <RecordUtilityAnatomy delegate={scenarioId === "action-delegate"} />;
   if (scenarioId === "button") {
     return (
       <ButtonScenarioAnatomy
@@ -3237,6 +3250,7 @@ function ScenarioLog({
   toggleScenario: ReturnType<typeof useToggleScenario>;
   toggleGroupScenario: ReturnType<typeof useToggleGroupScenario>;
 }) {
+  if (scenarioId === "selection" || scenarioId === "action-delegate") return <RecordUtilityLog />;
   if (scenarioId === "button") return <ScenarioEventLog log={buttonScenario.state.log} />;
   if (scenarioId === "checkbox") return <ScenarioEventLog log={checkboxScenario.state.log} />;
   if (scenarioId === "radio-group") return <ScenarioEventLog log={radioGroupScenario.state.log} />;

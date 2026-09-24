@@ -6,6 +6,11 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Align desktop qualification with Chromium, Firefox and WebKit, retain
+  successful browser reports, and update the 0.27.0 manual candidate protocol.
+- Correct ScrollArea coverage records that counted automated evidence as manual
+  passes; preserve the owner-deferred physical-device and assistive checks.
+
 - Added the Marquee Data workbench with controller options, replica safety,
   composition and props controls, live Anatomy, matching Source and callback logs.
 

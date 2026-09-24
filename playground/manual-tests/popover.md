@@ -1,5 +1,13 @@
 # Popover Manual Test Protocol
 
+## Expanded API qualification
+
+Verify shared triggers move one panel, repeat activation closes it, and Escape
+restores the active trigger. Check disabled transitions, retained drafts,
+outside-event cancellation, custom IDs, virtual anchors and iframe-owned portals.
+Repeat keyboard, touch and screen-reader interaction in nested modal/nonmodal
+contexts. Automated tests do not mark these manual steps passed.
+
 Use this file as the full tester-first checklist. In chat, run one step at a
 time and stop after each step until the tester confirms pass or reports an
 issue.
