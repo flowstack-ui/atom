@@ -101,3 +101,46 @@ test("Breadcrumb primitive barrel does not create a client boundary", async () =
 
   assert.doesNotMatch(indexSource, /^"use client";/);
 });
+
+
+test("Breadcrumb naming preserves native, legacy, referenced and composed labels", () => {
+  const cases = [
+    [{}, "Breadcrumb"],
+    [{ "aria-label": "Native" }, "Native"],
+    [{ ariaLabel: "Legacy" }, "Legacy"],
+    [{ "aria-label": "Native", ariaLabel: "Legacy" }, "Native"],
+    [{ "aria-label": "" }, ""],
+  ];
+  for (const [props, label] of cases) {
+    const html = renderToStaticMarkup(React.createElement(Breadcrumb.Root, props));
+    assert.match(html, new RegExp(`aria-label="${label}"`));
+    assert.doesNotMatch(html, /ariaLabel=/);
+  }
+  for (const props of [
+    { "aria-labelledby": "heading" },
+    { asChild: true, children: React.createElement("nav", { "aria-labelledby": "heading" }) },
+    { render: React.createElement("nav", { "aria-labelledby": "heading" }) },
+    { render: props => React.createElement("nav", { ...props, "aria-labelledby": "heading" }) },
+  ]) {
+    const html = renderToStaticMarkup(React.createElement(Breadcrumb.Root, props));
+    assert.match(html, /aria-labelledby="heading"/);
+    assert.doesNotMatch(html, /aria-label=/);
+  }
+  for (const mode of ["asChild", "render"]) {
+    const child = React.createElement("nav", { "aria-label": "Child", className: "child" });
+    const props = mode === "asChild" ? { asChild: true, children: child } : { render: child };
+    assert.match(renderToStaticMarkup(React.createElement(Breadcrumb.Root, props)), /aria-label="Child"/);
+    const overridden = renderToStaticMarkup(React.createElement(Breadcrumb.Root, { ...props, "aria-label": "Parent", className: "parent" }));
+    assert.match(overridden, /aria-label="Parent"/);
+    assert.match(overridden, /class="child parent"/);
+  }
+});
+
+test("Breadcrumb Page composes a real current destination without an artificial link role", () => {
+  const html = renderToStaticMarkup(React.createElement(Breadcrumb.Page, { asChild: true },
+    React.createElement("a", { href: "/current", "aria-current": "false" }, "Current")));
+  assert.match(html, /^<a /);
+  assert.match(html, /href="\/current"/);
+  assert.match(html, /aria-current="page"/);
+  assert.doesNotMatch(html, /role=|aria-disabled=/);
+});

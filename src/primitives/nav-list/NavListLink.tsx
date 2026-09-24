@@ -55,6 +55,7 @@ export const NavListLink = forwardRef<HTMLAnchorElement, NavListLinkProps>(
   ) {
     const { orientation } = useNavListContext();
     const resolvedAriaCurrent = ariaCurrent ?? (active ? current : undefined);
+    const isCurrent = resolvedAriaCurrent !== undefined && resolvedAriaCurrent !== false;
 
     const handleClick: MouseEventHandler<HTMLAnchorElement> = useCallback(
       (event) => {
@@ -67,13 +68,13 @@ export const NavListLink = forwardRef<HTMLAnchorElement, NavListLinkProps>(
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref,
-      ...(href !== undefined && !disabled ? { href } : {}),
+      ...(disabled ? { href: null } : href !== undefined ? { href } : {}),
       "aria-current": resolvedAriaCurrent ?? undefined,
       "aria-disabled": disabled || undefined,
       ...(disabled ? { tabIndex: -1 } : {}),
       "data-slot": dataSlot,
       "data-orientation": orientation,
-      ...(active ? { "data-active": "", "data-current": "" } : {}),
+      ...(isCurrent ? { "data-active": "", "data-current": "" } : {}),
       ...(disabled ? { "data-disabled": "" } : {}),
       onClick: composeEventHandlers(onClick, handleClick),
     };

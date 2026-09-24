@@ -16,3 +16,5 @@ export { MenubarTrigger } from "./MenubarTrigger.js";
 export type { MenubarTriggerProps } from "./MenubarTrigger.js";
 export { MenubarContent } from "./MenubarContent.js";
 export type { MenubarContentProps } from "./MenubarContent.js";
+export { MenubarRootProvider, MenubarContext, useMenubar, useMenubarState } from "./MenubarState.js";
+export type { UseMenubarOptions, UseMenubarReturn, MenubarRootProviderProps, MenubarContextProps } from "./MenubarState.js";

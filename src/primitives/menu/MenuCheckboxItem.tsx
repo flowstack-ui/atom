@@ -4,9 +4,12 @@ import { forwardRef, useCallback, useEffect, useRef, type MouseEventHandler, typ
 import type { NativeDivProps } from "../../utils/dom.js";
 import { cloneAndMerge, composeEventHandlers, composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
 import { MenuItemStateContextProvider, useMenuContext, type MenuItemCheckedState } from "./context.js";
+import { createMenuSelectionEvent, type MenuSelectionEvent } from "./options.js";
+import { leaveMenuItem } from "./pointer.js";
 
-type MenuCheckboxItemNativeProps = NativeDivProps<"children" | "role">;
+type MenuCheckboxItemNativeProps = NativeDivProps<"children" | "role" | "onSelect">;
 export interface MenuCheckboxItemProps extends MenuCheckboxItemNativeProps {
+  onSelect?: (event: MenuSelectionEvent) => void;
   value: string;
   textValue?: string;
   checked?: MenuItemCheckedState;
@@ -20,7 +23,7 @@ export interface MenuCheckboxItemProps extends MenuCheckboxItemNativeProps {
 }
 
 export const MenuCheckboxItem = forwardRef<HTMLElement, MenuCheckboxItemProps>(function MenuCheckboxItem(
-  { value, textValue, checked = false, onCheckedChange, disabled = false, closeOnSelect = false, children, asChild = false, render, onClick, onPointerEnter, onPointerLeave, onFocus, "data-slot": dataSlot = "menu-checkbox-item", ...restProps },
+  { value, textValue, checked = false, onCheckedChange, onSelect, disabled = false, closeOnSelect = false, children, asChild = false, render, onClick, onPointerEnter, onPointerLeave, onFocus, "data-slot": dataSlot = "menu-checkbox-item", ...restProps },
   forwardedRef,
 ) {
   const ctx = useMenuContext();
@@ -35,15 +38,19 @@ export const MenuCheckboxItem = forwardRef<HTMLElement, MenuCheckboxItemProps>(f
   useEffect(() => {
     ctx.registerLabel(value, textValue ?? (typeof children === "string" ? children : value));
   }, [children, ctx.registerLabel, textValue, value]);
-  const handleClick: MouseEventHandler<HTMLElement> = useCallback(() => {
+  const handleClick: MouseEventHandler<HTMLElement> = useCallback((event) => {
     if (disabled) return;
+    const selection = createMenuSelectionEvent(value, event.currentTarget, event.nativeEvent);
+    onSelect?.(selection);
+    ctx.dispatchSelect?.(selection);
+    if (selection.defaultPrevented) return;
     onCheckedChange?.(checked === "indeterminate" ? true : !checked);
     ctx.onItemSelect(value, { closeOnSelect });
-  }, [checked, closeOnSelect, ctx, disabled, onCheckedChange, value]);
+  }, [checked, closeOnSelect, ctx, disabled, onCheckedChange, onSelect, value]);
   const handlePointerEnter: PointerEventHandler<HTMLElement> = useCallback((event) => {
     if (event.pointerType !== "mouse") return;
     ctx.onHighlight(value);
-    event.currentTarget.focus({ preventScroll: true });
+    if (!ctx.controlledHighlight) event.currentTarget.focus({ preventScroll: true });
     if (ctx.openSubMenuId) ctx.onSubMenuClose();
   }, [ctx, value]);
   const dataState = checked === "indeterminate" ? "indeterminate" : checked ? "checked" : "unchecked";
@@ -63,7 +70,7 @@ export const MenuCheckboxItem = forwardRef<HTMLElement, MenuCheckboxItemProps>(f
     "data-value": value,
     onClick: composeEventHandlers(onClick, handleClick),
     onPointerEnter: composeEventHandlers(onPointerEnter, handlePointerEnter),
-    onPointerLeave,
+    onPointerLeave: composeEventHandlers(onPointerLeave, (event) => leaveMenuItem(event, ctx, value)),
     onFocus: composeEventHandlers(onFocus, () => ctx.onHighlight(value)),
   };
   const content = asChild ? cloneAndMerge(children, behaviorProps) : renderElement(render, "div", { ...behaviorProps, children });

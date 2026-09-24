@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Preserve native and composed landmark names; support native aria-label in types.
+- Document and verify real linked current-page composition.
+
 - Added public Agent Knowledge for component selection, required composition,
   recurring mistakes, and validation.
 

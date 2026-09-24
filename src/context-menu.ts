@@ -1,11 +1,13 @@
 "use client";
 
 import {
+  ContextMenuRootProvider,
   ContextMenuContent,
   ContextMenuRoot,
   ContextMenuTrigger,
 } from "./primitives/context-menu/index.js";
 import {
+  MenuContext,
   MenuCheckboxItem,
   MenuArrow,
   MenuGroup,
@@ -22,6 +24,7 @@ import {
 } from "./primitives/menu/index.js";
 
 export {
+  ContextMenuRootProvider, useContextMenu,
   ContextMenuContextProvider,
   ContextMenuContent,
   ContextMenuRoot,
@@ -29,6 +32,7 @@ export {
   useContextMenuContext,
 } from "./primitives/context-menu/index.js";
 export type {
+  ContextMenuRootProviderProps, UseContextMenuOptions, UseContextMenuReturn,
   ContextMenuAnchorPoint,
   ContextMenuContextValue,
   ContextMenuContentProps,
@@ -36,6 +40,7 @@ export type {
   ContextMenuTriggerProps,
 } from "./primitives/context-menu/index.js";
 export {
+  MenuContext, useMenuState,
   MenuItem,
   MenuArrow,
   MenuCheckboxItem,
@@ -51,6 +56,7 @@ export {
   MenuSubContent,
 } from "./primitives/menu/index.js";
 export type {
+  MenuContextProps, MenuState, MenuPositioningOptions, MenuLifecycleOptions, MenuOutsideEvents, MenuHighlightTarget, MenuHighlightChangeDetails, MenuSelectionEvent, MenuNavigateDetails,
   MenuContentProps,
   MenuCloseReason,
   MenuArrowProps,
@@ -75,6 +81,8 @@ export type {
 } from "./utils/interactions.js";
 
 export const ContextMenu = {
+  RootProvider: ContextMenuRootProvider,
+  Context: MenuContext,
   Root: ContextMenuRoot,
   Trigger: ContextMenuTrigger,
   Portal: MenuPortal,

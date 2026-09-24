@@ -5,6 +5,23 @@
 - Cancel deferred close-focus restoration on reopen or unmount, and preserve a
   newer focus handoff instead of reclaiming focus from another control.
 
+- Avoid retained-content layout-effect warnings during server rendering while
+  preserving pre-paint positioning, focus and isolation setup on hydration.
+
+- Clear pointer highlight on ordinary, checkbox and radio row departure while
+  preserving keyboard navigation and controlled state acceptance.
+- Register menu positioning hosts in overlay ordering and retain open parent
+  modal registrations while a child menu owns focus.
+
+- Preserve native DOMRect coordinates for virtual root and submenu anchors.
+- Preserve inert exit protection on React 18 as well as React 19.
+- Add public controllers, RootProvider and Context composition, controlled/scoped highlight, typeahead control, cancellable selection, and native/router link navigation.
+- Add shared positioning, preventable outside events, persistent elements, and configurable retained presence. Content remains the semantic scroll/ref owner while Arrow renders outside its clipping region.
+- Preserve pointer container focus, keyboard first/last entry, active trigger identity, and menu-local item reveal.
+
+- Wait for resolved floating placement before initial anchored-menu focus, and
+  reveal highlighted items only inside their owning menu. Root menus and
+  submenus no longer scroll the page or surrounding panels during item reveal.
 - Make closed Content and SubContent inert while exit presence retains them,
   preventing pointer focus from stealing an overlay's restored focus.
 

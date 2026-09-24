@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  MenuRootProvider, MenuContext,
   MenuCheckboxItem,
   MenuArrow,
   MenuContent,
@@ -19,6 +20,7 @@ import {
 } from "./primitives/menu/index.js";
 
 export {
+  MenuRootProvider, MenuContext, useMenu, useMenuState,
   MenuContextProvider,
   MenuCheckboxItem,
   MenuArrow,
@@ -42,6 +44,8 @@ export {
   useMenuSubContext,
 } from "./primitives/menu/index.js";
 export type {
+  MenuRootProviderProps, UseMenuOptions, UseMenuReturn, MenuContextProps, MenuState,
+  MenuPositioningOptions, MenuLifecycleOptions, MenuOutsideEvents, MenuHighlightTarget, MenuHighlightChangeDetails, MenuSelectionEvent, MenuNavigateDetails,
   MenuAlign,
   MenuCloseReason,
   MenuContextValue,
@@ -72,6 +76,8 @@ export type {
 } from "./utils/interactions.js";
 
 export const Menu = {
+  RootProvider: MenuRootProvider,
+  Context: MenuContext,
   Root: MenuRoot,
   Portal: MenuPortal,
   Content: MenuContent,

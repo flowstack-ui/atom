@@ -25,6 +25,8 @@ import {
 } from "../../utils/slot.js";
 import { useToolbarToggleContext } from "./toggleContext.js";
 import { useToolbarItem } from "./useToolbarItem.js";
+import { useToolbarContext } from "./context.js";
+import { toolbarActionHost } from "./actionHost.js";
 
 type ToolbarToggleItemNativeProps = NativeButtonProps<
   "children" | "disabled" | "onChange" | "role" | "type" | "value"
@@ -70,7 +72,9 @@ export const ToolbarToggleItem = forwardRef<
   ref,
 ) {
   const toggleCtx = useToolbarToggleContext();
-  const isDisabled = disabled || toggleCtx.disabled;
+  const host = toolbarActionHost(children, render, asChild);
+  const toolbar = useToolbarContext();
+  const isDisabled = disabled || toggleCtx.disabled || host.disabled || toolbar.disabled;
   const { itemRef, tabIndex, handleFocus } = useToolbarItem(isDisabled);
   const composedRef = useMemo(() => composeRefs(itemRef, ref), [itemRef, ref]);
   const isPressed = toggleCtx.value.includes(value);
@@ -83,18 +87,21 @@ export const ToolbarToggleItem = forwardRef<
     (asChild ? childIsNativeButton(children) : renderIsNativeButton(render));
 
   const handleClick = useCallback(
-    (_event: MouseEvent<HTMLButtonElement>) => {
-      if (!isDisabled) {
-        toggleCtx.onItemPress(value);
-      }
+    (event: MouseEvent<HTMLButtonElement>) => {
+      if (isDisabled) { event.preventDefault(); return; }
+      onClick?.(event);
+      if (!event.defaultPrevented) host.onClick?.(event);
+      if (!event.defaultPrevented) host.onPress?.(event);
+      if (!event.defaultPrevented) toggleCtx.onItemPress(value);
     },
-    [isDisabled, toggleCtx, value],
+    [isDisabled, toggleCtx, value, onClick, host.onClick, host.onPress],
   );
 
   const handleKeyDown = useCallback<KeyboardEventHandler<HTMLElement>>(
     (event) => {
       if (event.key !== " " && event.key !== "Enter") {
         onKeyDown?.(event as never);
+        if (!event.defaultPrevented) host.onKeyDown?.(event);
         return;
       }
 
@@ -104,6 +111,7 @@ export const ToolbarToggleItem = forwardRef<
       }
 
       onKeyDown?.(event as never);
+      if (!event.defaultPrevented) host.onKeyDown?.(event);
       if (event.defaultPrevented) return;
 
       if (hasNativeButtonKeyboardActivation(event.currentTarget, event.key)) {
@@ -113,7 +121,7 @@ export const ToolbarToggleItem = forwardRef<
       event.preventDefault();
       event.currentTarget.click();
     },
-    [isDisabled, onKeyDown],
+    [isDisabled, onKeyDown, host.onKeyDown],
   );
 
   const behaviorProps: Record<string, unknown> = {
@@ -130,16 +138,16 @@ export const ToolbarToggleItem = forwardRef<
     "data-value": value,
     ...(isDisabled ? { "data-disabled": "" } : {}),
     className,
-    onClick: composeEventHandlers(onClick, handleClick),
+    onClick: handleClick,
     onFocus: composeEventHandlers(onFocus, () => handleFocus()),
     onKeyDown: handleKeyDown,
   };
 
   if (asChild) {
-    return cloneAndMerge(children, behaviorProps);
+    return cloneAndMerge(host.children, behaviorProps);
   }
 
   return (
-    renderElement(render, "button", { ...behaviorProps, children })
+    renderElement(host.render, "button", { ...behaviorProps, children })
   );
 });

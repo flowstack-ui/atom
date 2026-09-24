@@ -1,5 +1,13 @@
 "use client";
 
+import { arrowOffset, autoUpdateWithArrow } from "../../utils/floatingArrowPositioning.js";
+import { useOverlayLayerHost } from "../../hooks/overlayScope.js";
+import { normalizeMenuAnchorRect } from "./anchorRect.js";
+import { menuInertValue } from "./inert.js";
+import { useMenuPositioner } from "./useMenuPositioner.js";
+
+import { revealMenuItem } from "./revealItem.js";
+
 import {
   forwardRef,
   useCallback,
@@ -13,9 +21,9 @@ import {
   type ReactNode,
 } from "react";
 import {
-  autoUpdate,
   arrow as floatingArrow,
   flip,
+  hide,
   offset,
   shift,
   size as sizeMiddleware,
@@ -25,6 +33,8 @@ import { useCollection } from "../../collection.js";
 import { useFocusScopeContainer } from "../../hooks/focus.js";
 import { useOutsideInteraction } from "../../hooks/useOutsideInteraction.js";
 import { usePresence } from "../../hooks/usePresence.js";
+import { useMenuPresence } from "./useMenuPresence.js";
+import type { MenuPositioningOptions } from "./options.js";
 import type { OutsideInteractionEvent } from "../../utils/interactions.js";
 import { Portal } from "../../utils/Portal.js";
 import type { NativeDivProps } from "../../utils/dom.js";
@@ -42,6 +52,7 @@ import {
   MenuPortalContextProvider,
   MenuContextProvider,
   useMenuSubContext,
+  useMenuPortalContext,
   type MenuContextValue,
   type MenuContentContextValue,
   type MenuInitialHighlight,
@@ -57,6 +68,7 @@ const menuSubFocusScopeMetadata = {
 type MenuSubContentNativeProps = NativeDivProps<"children" | "role">;
 
 export interface MenuSubContentProps extends MenuSubContentNativeProps {
+  positioning?: MenuPositioningOptions;
   children: ReactNode;
   sideOffset?: number;
   loop?: boolean;
@@ -72,7 +84,8 @@ export const MenuSubContent = forwardRef<HTMLDivElement, MenuSubContentProps>(
 function MenuSubContent(
   {
     children,
-    sideOffset = 4,
+    sideOffset: sideOffsetProp,
+    positioning,
     loop = true,
     className,
     ariaLabel,
@@ -87,6 +100,7 @@ function MenuSubContent(
   },
   ref,
 ) {
+  const portalContext = useMenuPortalContext();
   const subCtx = useMenuSubContext();
   if (!subCtx) {
     throw new Error("MenuSubContent must be used within a MenuSubRoot");
@@ -101,15 +115,18 @@ function MenuSubContent(
     parentMenuContext,
   } = subCtx;
   const contextDir = useDirection();
+  const p = positioning ?? subCtx.positioning;
+  const sideOffset = sideOffsetProp ?? p?.offset?.mainAxis ?? p?.gutter ?? 4;
   const dir = resolveFloatingDirection(
     dirProp,
     subTriggerRef.current,
     contextDir,
   );
   const internalRef = useRef<HTMLDivElement>(null);
+  const { positioner, setPositioner } = useMenuPositioner(internalRef);
   const arrowRef = useRef<SVGSVGElement>(null);
-  const { isPresent, ref: presenceRef } = usePresence({ present: isOpen });
-  const [isPositioned, setIsPositioned] = useState(false);
+  const { isPresent, ref: presenceRef, shouldRender, skipAnimation, Activity } = useMenuPresence(isOpen, subCtx.lifecycle, internalRef);
+
   const [floatingSize, setFloatingSize] = useState({
     availableHeight: 0,
     availableWidth: 0,
@@ -165,11 +182,61 @@ function MenuSubContent(
     return labelRegistryRef.current.get(value);
   }, []);
 
+  const preferredSide = dir === "rtl" ? "left" : "right";
+  const collision = { padding: p?.overflowPadding ?? 8, boundary: typeof p?.boundary === "function" ? p.boundary() : p?.boundary };
+  const { refs, floatingStyles, placement, middlewareData, isPositioned, update } = useFloating({
+    placement: p?.placement ?? `${preferredSide}-start`,
+    strategy: p?.strategy ?? parentMenuContext.positioning?.strategy ?? "absolute",
+    middleware: [
+      p?.offset?.mainAxis !== undefined
+        ? offset({ mainAxis: sideOffset, crossAxis: p.offset.crossAxis ?? p.shift ?? 0 })
+        : arrowOffset(arrowRef, sideOffset, p?.offset?.crossAxis ?? p?.shift ?? 0),
+      p?.flip !== false && flip({
+        fallbackPlacements: Array.isArray(p?.flip) ? p.flip : getFloatingFallbackPlacements(preferredSide, "start"),
+        ...collision,
+      }),
+      p?.slide !== false && shift({ ...collision, crossAxis: p?.overlap ?? true }),
+      (p?.sizeMiddleware !== false || p?.sameWidth || p?.fitViewport) && sizeMiddleware({
+        ...collision,
+        apply({ availableHeight, availableWidth, elements, rects }) {
+          const nextSize = {
+            availableHeight: Math.max(0, availableHeight),
+            availableWidth: Math.max(0, availableWidth),
+            triggerHeight: rects.reference.height,
+            triggerWidth: rects.reference.width,
+          };
+          setFloatingSize((current) => (
+            current.availableHeight === nextSize.availableHeight
+            && current.availableWidth === nextSize.availableWidth
+            && current.triggerHeight === nextSize.triggerHeight
+            && current.triggerWidth === nextSize.triggerWidth
+              ? current
+              : nextSize
+          ));
+          Object.assign(elements.floating.style, {
+            "--atom-menu-available-width": `${nextSize.availableWidth}px`,
+            "--atom-menu-available-height": `${nextSize.availableHeight}px`,
+            "--atom-menu-trigger-width": `${rects.reference.width}px`,
+            "--atom-menu-trigger-height": `${rects.reference.height}px`,
+          });
+        },
+      }),
+      p?.hideWhenDetached && hide(collision),
+      floatingArrow({ element: arrowRef, padding: p?.arrowPadding ?? 8 }),
+    ],
+    whileElementsMounted: (reference, floating, update) => {
+      if (p?.listeners === false) { update(); return () => {}; }
+      return autoUpdateWithArrow(arrowRef)(reference, floating, update, { ...(typeof p?.listeners === "object" ? p.listeners : {}), ...(p?.animationFrame === undefined ? {} : { animationFrame: p.animationFrame }) });
+    },
+    open: isOpen,
+  });
+
+
   const focusItem = useCallback((value: string) => {
     setHighlightedValue(value);
     const element = getItemElement(value);
     element?.focus({ preventScroll: true });
-    element?.scrollIntoView({ block: "nearest" });
+    revealMenuItem(element, internalRef.current);
   }, [getItemElement]);
 
   const onItemSelect = useCallback(
@@ -182,19 +249,9 @@ function MenuSubContent(
     [onClose, parentMenuContext],
   );
 
-  useEffect(() => {
-    if (isPresent) {
-      setIsPositioned(false);
-      const raf = requestAnimationFrame(() => setIsPositioned(true));
-      return () => cancelAnimationFrame(raf);
-    }
-    setIsPositioned(false);
-    return undefined;
-  }, [isPresent]);
 
   useEffect(() => {
     if (!isOpen) {
-      setIsPositioned(false);
       setHighlightedValue(null);
       setInitialHighlight("first");
     }
@@ -202,7 +259,8 @@ function MenuSubContent(
   }, [isOpen]);
 
   useEffect(() => {
-    if (!isPresent) return undefined;
+    if (!isOpen || !isPresent || !isPositioned) return undefined;
+    // Let the newly registered submenu focus scope settle before moving focus.
     const raf = requestAnimationFrame(() => {
       const values = getItemValues();
       if (values.length > 0) {
@@ -210,13 +268,13 @@ function MenuSubContent(
       }
     });
     return () => cancelAnimationFrame(raf);
-  }, [focusItem, getItemValues, initialHighlight, isPresent]);
+  }, [focusItem, getItemValues, initialHighlight, isPresent, isOpen, isPositioned]);
 
   useEffect(() => {
-    if (!isOpen || !highlightedValue) return;
+    if (!isOpen || !isPositioned || !highlightedValue) return;
     const el = getItemElement(highlightedValue);
-    el?.scrollIntoView({ block: "nearest" });
-  }, [getItemElement, highlightedValue, isOpen]);
+    revealMenuItem(el, internalRef.current);
+  }, [getItemElement, highlightedValue, isOpen, isPositioned]);
 
   const clickAwayRefs = useMemo(
     () => [internalRef, subTriggerRef],
@@ -226,6 +284,7 @@ function MenuSubContent(
     refs: clickAwayRefs,
     onInteractOutside: (event) => {
       onInteractOutside?.(event);
+      parentMenuContext.outsideEvents?.onInteractOutside?.(event);
       if (event.defaultPrevented) return;
       const isInsideMenuTree = event.target instanceof Element
         && event.target.closest("[role='menu']") !== null;
@@ -233,8 +292,25 @@ function MenuSubContent(
       else parentMenuContext.onCloseTree("interactOutside");
     },
     enabled: isOpen,
-    ignore: (target) => nestedOpenSubMenuId !== null && isMenuSubContent(target),
+    onPointerDownOutside: parentMenuContext.outsideEvents?.onPointerDownOutside,
+    ignore: (target) => Boolean(parentMenuContext.outsideEvents?.persistentElements?.some(get => get()?.contains(target)) || nestedOpenSubMenuId !== null && isMenuSubContent(target)),
   });
+  useEffect(() => {
+    const host = internalRef.current;
+    const doc = host?.ownerDocument;
+    const win = doc?.defaultView;
+    if (!isOpen || !doc || !win || nestedOpenSubMenuId !== null) return;
+    const listener = (event: FocusEvent) => {
+      const target = event.target as Node | null;
+      if (!target || host?.contains(target) || parentMenuContext.contentRef.current?.contains(target) || parentMenuContext.isTriggerTarget?.(target) || isMenuSubContent(target) || parentMenuContext.outsideEvents?.persistentElements?.some(get => get()?.contains(target))) return;
+      const outside = new win.FocusEvent("focusoutside", { cancelable: true, relatedTarget: event.relatedTarget });
+      parentMenuContext.outsideEvents?.onFocusOutside?.(outside);
+      parentMenuContext.outsideEvents?.onInteractOutside?.(outside);
+      if (!outside.defaultPrevented && !parentMenuContext.modal) parentMenuContext.onCloseTree("interactOutside");
+    };
+    doc.addEventListener("focusin", listener);
+    return () => doc.removeEventListener("focusin", listener);
+  }, [isOpen, nestedOpenSubMenuId, parentMenuContext]);
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLDivElement>) => {
@@ -305,6 +381,8 @@ function MenuSubContent(
           break;
         }
         case "Escape": {
+          parentMenuContext.outsideEvents?.onEscapeKeyDown?.(event.nativeEvent);
+          if (event.nativeEvent.defaultPrevented) { event.stopPropagation(); return; }
           event.preventDefault();
           event.stopPropagation();
           onClose();
@@ -312,7 +390,7 @@ function MenuSubContent(
           break;
         }
         default: {
-          if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+          if (parentMenuContext.typeahead !== false && event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
             event.preventDefault();
             event.stopPropagation();
             typeaheadBuffer.current += event.key.toLowerCase();
@@ -340,69 +418,41 @@ function MenuSubContent(
       loop,
       onClose,
       parentMenuContext.contentRef,
+      parentMenuContext.typeahead,
       subTriggerRef,
     ],
   );
 
-  const preferredSide = dir === "rtl" ? "left" : "right";
-  const { refs, floatingStyles, placement, middlewareData } = useFloating({
-    placement: `${preferredSide}-start`,
-    middleware: [
-      offset(sideOffset),
-      flip({
-        fallbackPlacements: getFloatingFallbackPlacements(preferredSide, "start"),
-        padding: 8,
-      }),
-      shift({ padding: 8, crossAxis: true }),
-      sizeMiddleware({
-        padding: 8,
-        apply({ availableHeight, availableWidth, elements, rects }) {
-          const nextSize = {
-            availableHeight: Math.max(0, availableHeight),
-            availableWidth: Math.max(0, availableWidth),
-            triggerHeight: rects.reference.height,
-            triggerWidth: rects.reference.width,
-          };
-          setFloatingSize((current) => (
-            current.availableHeight === nextSize.availableHeight
-            && current.availableWidth === nextSize.availableWidth
-            && current.triggerHeight === nextSize.triggerHeight
-            && current.triggerWidth === nextSize.triggerWidth
-              ? current
-              : nextSize
-          ));
-          Object.assign(elements.floating.style, {
-            "--atom-menu-available-width": `${nextSize.availableWidth}px`,
-            "--atom-menu-available-height": `${nextSize.availableHeight}px`,
-            "--atom-menu-trigger-width": `${rects.reference.width}px`,
-            "--atom-menu-trigger-height": `${rects.reference.height}px`,
-          });
-        },
-      }),
-      floatingArrow({ element: arrowRef, padding: 8 }),
-    ],
-    whileElementsMounted: autoUpdate,
-    open: isOpen,
-  });
 
   useEffect(() => {
-    refs.setReference(subTriggerRef.current);
-  }, [isOpen, refs, subTriggerRef]);
+    refs.setPositionReference(p?.getAnchorElement?.() ?? (p?.getAnchorRect ? { contextElement: subTriggerRef.current ?? undefined, getBoundingClientRect: () => normalizeMenuAnchorRect(p.getAnchorRect!()) } : subTriggerRef.current));
+  }, [isOpen, refs, subTriggerRef, p]);
+  useEffect(() => { p?.onPositioned?.({ placed: isPositioned }); }, [isPositioned, p?.onPositioned]);
+  useEffect(() => () => clearTimeout(typeaheadTimeout.current), []);
 
+  const contentLayerRef = useOverlayLayerHost();
+  const positionerLayerRef = useOverlayLayerHost();
   const composedRef = useMemo(
-    () => composeRefs(refs.setFloating, internalRef, presenceRef, ref),
-    [presenceRef, ref, refs.setFloating],
+    () => composeRefs(internalRef, presenceRef, ref, contentLayerRef),
+    [presenceRef, ref, contentLayerRef],
   );
+  const positionerRef = useMemo(() => composeRefs(refs.setFloating, setPositioner, positionerLayerRef), [refs.setFloating, setPositioner, positionerLayerRef]);
 
   const setFloatingRef = useCallback(
     (node: HTMLDivElement | null) => {
-      composedRef(node);
+      return composedRef(node);
     },
     [composedRef],
   );
 
   const subMenuContext: MenuContextValue = useMemo(
     () => ({
+      typeahead: parentMenuContext.typeahead,
+      positioning: p,
+      lifecycle: subCtx.lifecycle,
+      outsideEvents: parentMenuContext.outsideEvents,
+      dispatchSelect: parentMenuContext.dispatchSelect,
+      navigate: parentMenuContext.navigate,
       isOpen,
       onOpen: subCtx.onOpen,
       onClose,
@@ -435,6 +485,7 @@ function MenuSubContent(
       onSubMenuClose: onNestedSubMenuClose,
     }),
     [
+      parentMenuContext, p, subCtx.lifecycle,
       getItemElement,
       getItemValues,
       getLabel,
@@ -458,12 +509,15 @@ function MenuSubContent(
     ],
   );
 
-  if (!isPresent) return null;
+  if (!shouldRender) return null;
 
   const actualSide = placement.split("-")[0] as "top" | "right" | "bottom" | "left";
   const actualAlign = (placement.split("-")[1] ?? "center") as "start" | "center" | "end";
   const arrowData = middlewareData.arrow;
   const contentContextValue: MenuContentContextValue = {
+    arrowHost: positioner,
+    updatePosition: update,
+    arrowVisible: isOpen && isPositioned,
     arrowRef,
     side: actualSide,
     align: actualAlign,
@@ -490,14 +544,20 @@ function MenuSubContent(
     "data-menu-sub-content": "",
     "data-slot": dataSlot,
     "data-state": isOpen ? "open" : "closed",
-    inert: !isOpen || undefined,
+    inert: menuInertValue(!isOpen),
+    hidden: !isPresent || restProps.hidden,
+    "aria-hidden": !isOpen || undefined,
     "data-side": actualSide,
     "data-align": actualAlign,
     ...(isPositioned ? { "data-positioned": "" } : {}),
     className,
     style: {
       ...style,
-      ...floatingStyles,
+      position: "relative",
+      ...(p?.sameWidth ? { width: floatingSize.triggerWidth } : {}),
+      ...(p?.fitViewport ? { maxWidth: floatingSize.availableWidth, maxHeight: floatingSize.availableHeight } : {}),
+      ...(middlewareData.hide?.referenceHidden ? { visibility: "hidden" } : {}),
+      ...(skipAnimation ? { animation: "none", transition: "none" } : {}),
       "--atom-menu-available-height": `${floatingSize.availableHeight}px`,
       "--atom-menu-available-width": `${floatingSize.availableWidth}px`,
       "--atom-menu-trigger-height": `${floatingSize.triggerHeight}px`,
@@ -509,13 +569,14 @@ function MenuSubContent(
   const contentElement = asChild
     ? cloneAndMerge(children, behaviorProps)
     : renderElement(render, "div", { ...behaviorProps, children });
+  const positionedContent = <div ref={positionerRef} data-atom-menu-positioner="" hidden={!isPresent} style={{ ...floatingStyles, width: "max-content", visibility: (!isPositioned && isOpen) || middlewareData.hide?.referenceHidden ? "hidden" : undefined, pointerEvents: isOpen ? undefined : "none" }}>{contentElement}</div>;
 
   return (
     <MenuContextProvider value={subMenuContext}>
-      <Portal>
+      <Portal container={portalContext?.container ?? subTriggerRef.current?.ownerDocument.body} disabled={portalContext !== null}>
         <DirectionProvider dir={dir}>
           <MenuContentContextProvider value={contentContextValue}>
-            <MenuPortalContextProvider value={null}>{contentElement}</MenuPortalContextProvider>
+            <MenuPortalContextProvider value={null}>{Activity ? <Activity mode={isPresent ? "visible" : "hidden"}>{positionedContent}</Activity> : positionedContent}</MenuPortalContextProvider>
           </MenuContentContextProvider>
         </DirectionProvider>
       </Portal>
@@ -524,5 +585,5 @@ function MenuSubContent(
 });
 
 function isMenuSubContent(target: Node): boolean {
-  return target instanceof Element && target.closest("[data-menu-sub-content]") !== null;
+  return target.nodeType === 1 && (target as Element).closest("[data-menu-sub-content]") !== null;
 }

@@ -249,3 +249,16 @@ label that explains what it reveals.
 ## Changelog
 
 See [CHANGELOG.md](./CHANGELOG.md).
+
+
+## Native landmark naming and linked current pages
+
+Root accepts native `aria-label` and `aria-labelledby`. An explicit native
+`aria-label` wins over the legacy `ariaLabel` alias. The fallback `Breadcrumb`
+applies only when the final composed host has neither naming attribute.
+Referenced labels retain browser accessible-name precedence. A composed host's
+own label survives when the parent supplies no label.
+
+Page remains a noninteractive span by default. `Page asChild` may compose one
+real anchor/router link with an href; the final host retains `aria-current="page"`.
+Do not add a link role to inert text. Use one current location per trail.

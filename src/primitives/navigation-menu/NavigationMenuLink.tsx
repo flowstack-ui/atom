@@ -23,7 +23,7 @@ import {
   type RenderProp,
 } from "../../utils/slot.js";
 
-type NavigationMenuLinkNativeProps = NativeAnchorProps<"children" | "href">;
+type NavigationMenuLinkNativeProps = NativeAnchorProps<"children" | "href" | "onSelect">;
 
 export interface NavigationMenuLinkProps extends NavigationMenuLinkNativeProps {
   children: ReactNode;
@@ -31,7 +31,8 @@ export interface NavigationMenuLinkProps extends NavigationMenuLinkNativeProps {
   render?: RenderProp;
   href?: string;
   active?: boolean;
-  onSelect?: () => void;
+  onSelect?: (event: Event) => void;
+  closeOnClick?: boolean;
   className?: string;
   "data-slot"?: string;
 }
@@ -47,6 +48,7 @@ export const NavigationMenuLink = forwardRef<
     href,
     active = false,
     onSelect,
+    closeOnClick = true,
     className,
     onClick,
     onKeyDown,
@@ -84,13 +86,16 @@ export const NavigationMenuLink = forwardRef<
   const handleClick: MouseEventHandler<HTMLAnchorElement> = useCallback(
     (event) => {
       onClick?.(event);
-      onSelect?.();
+      if (event.defaultPrevented) return;
+      const EventConstructor = event.currentTarget.ownerDocument.defaultView?.Event ?? Event;
+      const selection = new EventConstructor("navigation-menu.select", { cancelable: true });
+      onSelect?.(selection);
 
-      if (activeValue !== null) {
+      if (activeValue !== null && closeOnClick && !selection.defaultPrevented) {
         onValueChange(null);
       }
     },
-    [activeValue, onClick, onSelect, onValueChange],
+    [activeValue, onClick, onSelect, onValueChange, closeOnClick],
   );
 
   const focusControl = useCallback(

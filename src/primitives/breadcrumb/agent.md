@@ -18,12 +18,13 @@ Represent the current page's ancestry as a named navigation landmark and ordered
 
 ## Rules
 
-- **MUST:** Render one non-link Page for the current location and use links only for ancestors.
+- **MUST:** Render one current Page, optionally composed with a real destination anchor; keep ancestor destinations as Links.
 - **MUST:** When Ellipsis opens hidden pages, compose it with a real named button.
+- **MUST:** Name Root with native aria-label, aria-labelledby or the legacy ariaLabel alias; native aria-label wins over the alias and the default label applies only to an otherwise unnamed host.
 
 ## Common mistakes
 
-- **Avoid:** Making the current page another link or placing separators outside the ordered list. **Instead:** Use Page once and keep Item and Separator parts inside List.
+- **Avoid:** Adding a link role to inert current text or placing separators outside the ordered list. **Instead:** Use Page once, optionally composed with a real anchor, and keep Item and Separator parts inside List.
 
 ## Validation checklist
 

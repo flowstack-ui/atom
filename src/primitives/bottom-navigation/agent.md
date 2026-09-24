@@ -29,6 +29,7 @@ Provide a named navigation landmark with active state for a short, stable set of
 
 - Confirm the landmark name distinguishes it from other navigation.
 - Confirm the active destination exposes aria-current and disabled Items cannot navigate.
+- Control route selection from the actual location. Verify modified, download and new-tab clicks do not select the destination in the current document; custom adapters must forward native behavior props.
 
 ## Related guidance
 

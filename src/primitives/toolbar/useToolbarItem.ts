@@ -47,7 +47,7 @@ export function useToolbarItem(disabled = false): UseToolbarItemReturn {
       const firstFocusable = items.find(
         (item) =>
           !(item as HTMLButtonElement).disabled &&
-          item.getAttribute("aria-disabled") !== "true",
+          (item.getAttribute("aria-disabled") !== "true" || item.hasAttribute("data-focusable-disabled")),
       );
       tabIndex = firstFocusable === el ? 0 : -1;
     }

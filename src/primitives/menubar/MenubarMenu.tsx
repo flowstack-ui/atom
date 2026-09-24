@@ -1,10 +1,10 @@
 "use client";
 
-import { type ReactNode } from "react";
-import { MenuRoot } from "../menu/index.js";
+import { useMemo, type ReactNode } from "react";
+import { MenuRoot, type MenuRootProps } from "../menu/index.js";
 import { MenubarMenuContextProvider, useMenubarContext } from "./context.js";
 
-export interface MenubarMenuProps {
+export interface MenubarMenuProps extends Omit<MenuRootProps, "open" | "defaultOpen" | "onOpenChange" | "modal"> {
   children: ReactNode;
   value: string;
   closeOnSelect?: boolean;
@@ -18,11 +18,21 @@ export function MenubarMenu({
   closeOnSelect = true,
   loop = true,
   closeOnEscape = true,
+  persistentElements,
+  ...options
 }: MenubarMenuProps) {
   const barCtx = useMenubarContext();
+  // Adjacent triggers belong to this composite, not to the outside page.
+  // Focus moves synchronously before the previous popup's effects clean up.
+  const menuPersistentElements = useMemo(
+    () => [() => barCtx.rootRef.current, ...(persistentElements ?? [])],
+    [barCtx.rootRef, persistentElements],
+  );
 
   return (
     <MenuRoot
+      {...options}
+      persistentElements={menuPersistentElements}
       open={barCtx.openValue === value}
       onOpenChange={(open) => {
         if (open) {

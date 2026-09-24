@@ -1,7 +1,98 @@
 import { JSDOM } from "jsdom";
 import { createRoot } from "react-dom/client";
 import { assert, test, React } from "../test-utils.mjs";
-import { Combobox, Menu, DropdownMenu, ContextMenu, Menubar } from "../../dist/index.js";
+// Floating UI selects its browser layout effects at module evaluation time.
+// Import after installing a DOM so these tests exercise real positioning readiness.
+const bootstrap = installDom();
+const { Combobox, Menu, DropdownMenu, ContextMenu, Menubar, useMenu, useContextMenu, useMenubar } = await import("../../dist/index.js");
+bootstrap.cleanup();
+
+test("closing menu cannot reclaim focus after a newer focus handoff or reopen", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  const frames = new Map();
+  let sequence = 0;
+  const schedule = callback => { frames.set(++sequence, callback); return sequence; };
+  const cancel = id => frames.delete(id);
+  globalThis.requestAnimationFrame = window.requestAnimationFrame = schedule;
+  globalThis.cancelAnimationFrame = window.cancelAnimationFrame = cancel;
+  const render = open => React.createElement(React.Fragment, null,
+    React.createElement(DropdownMenu.Root, { open, modal: false },
+      React.createElement(DropdownMenu.Trigger, null, "Menu")),
+    React.createElement("button", { id: "next-owner" }, "Next owner"));
+  const flush = async () => {
+    const callbacks = [...frames.values()];
+    frames.clear();
+    await React.act(async () => callbacks.forEach(callback => callback(0)));
+  };
+  try {
+    await React.act(async () => root.render(render(true)));
+    await React.act(async () => root.render(render(false)));
+    const next = document.getElementById("next-owner");
+    next.focus();
+    await flush();
+    assert.equal(document.activeElement, next, "a later focus owner wins over delayed close restoration");
+
+    next.blur();
+    await React.act(async () => root.render(render(true)));
+    await React.act(async () => root.render(render(false)));
+    await flush();
+    assert.equal(document.activeElement, container.querySelector("[data-slot=dropdown-menu-trigger]"), "ordinary close still returns focus");
+
+    await React.act(async () => root.render(render(true)));
+    await React.act(async () => root.render(render(false)));
+    await React.act(async () => root.render(render(true)));
+    assert.equal(frames.size, 0, "reopening cancels obsolete restoration");
+    await React.act(async () => root.render(render(false)));
+    await React.act(async () => root.unmount());
+    assert.equal(frames.size, 0, "unmount cancels pending restoration");
+  } finally {
+    await React.act(async () => root.unmount());
+    cleanup();
+  }
+});
+
+test("context invocation preserves an explicit default highlighted item", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  try {
+    await React.act(async () => root.render(React.createElement(ContextMenu.Root, { modal: false, defaultHighlightedValue: "beta" },
+      React.createElement(ContextMenu.Trigger, null, "Target"),
+      React.createElement(ContextMenu.Content, { ariaLabel: "Commands" },
+        React.createElement(ContextMenu.Item, { value: "alpha" }, "Alpha"),
+        React.createElement(ContextMenu.Item, { value: "beta" }, "Beta")))));
+    await dispatch(document.querySelector("[data-slot=context-menu-trigger]"), new window.MouseEvent("contextmenu", { bubbles: true, cancelable: true, button: 2, clientX: 24, clientY: 32 }));
+    await wait();
+    const beta = document.querySelector("[data-value=beta]");
+    assert.equal(beta.hasAttribute("data-highlighted"), true);
+    assert.equal(document.activeElement, beta);
+  } finally { await React.act(async () => root.unmount()); cleanup(); }
+});
+
+test("submenu default opening commits once and uncontrolled changes notify", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  const changes = [];
+  try {
+    await React.act(async () => root.render(React.createElement(Menu.Root, { defaultOpen: true, modal: false },
+      React.createElement(Menu.Content, { ariaLabel: "Commands" },
+        React.createElement(Menu.Sub, { defaultOpen: true, onOpenChange: value => changes.push(value) },
+          React.createElement(Menu.SubTrigger, { value: "more" }, "More"),
+          React.createElement(Menu.SubContent, { ariaLabel: "More commands" }, React.createElement(Menu.Item, { value: "copy" }, "Copy")))))));
+    await wait();
+    const trigger = document.querySelector("[data-value=more]");
+    assert.equal(trigger.getAttribute("aria-expanded"), "true");
+    assert.deepEqual(changes, [], "default state is not a change notification");
+    await key(document.querySelector("[data-value=copy]"), "Escape");
+    await wait();
+    assert.equal(trigger.getAttribute("aria-expanded"), "false");
+    assert.deepEqual(changes, [false]);
+    await key(trigger, "ArrowRight");
+    await wait();
+    assert.equal(trigger.getAttribute("aria-expanded"), "true");
+    assert.deepEqual(changes, [false, true]);
+  } finally { await React.act(async () => root.unmount()); cleanup(); }
+});
 
 function installDom() {
   const dom = new JSDOM("<!doctype html><html><body><div id='root'></div></body></html>", {
@@ -86,52 +177,6 @@ async function pointerActivation(target, options) {
     detail: 1,
   }));
 }
-
-test("closing menu cannot reclaim focus after a newer focus handoff or reopen", async () => {
-  const { container, cleanup } = installDom();
-  const root = createRoot(container);
-  const frames = new Map();
-  let sequence = 0;
-  const schedule = callback => { frames.set(++sequence, callback); return sequence; };
-  const cancel = id => frames.delete(id);
-  globalThis.requestAnimationFrame = window.requestAnimationFrame = schedule;
-  globalThis.cancelAnimationFrame = window.cancelAnimationFrame = cancel;
-  const render = open => React.createElement(React.Fragment, null,
-    React.createElement(DropdownMenu.Root, { open, modal: false },
-      React.createElement(DropdownMenu.Trigger, null, "Menu")),
-    React.createElement("button", { id: "next-owner" }, "Next owner"));
-  const flush = async () => {
-    const callbacks = [...frames.values()];
-    frames.clear();
-    await React.act(async () => callbacks.forEach(callback => callback(0)));
-  };
-  try {
-    await React.act(async () => root.render(render(true)));
-    await React.act(async () => root.render(render(false)));
-    const next = document.getElementById("next-owner");
-    next.focus();
-    await flush();
-    assert.equal(document.activeElement, next, "a later focus owner wins over delayed close restoration");
-
-    next.blur();
-    await React.act(async () => root.render(render(true)));
-    await React.act(async () => root.render(render(false)));
-    await flush();
-    assert.equal(document.activeElement, container.querySelector("[data-slot=dropdown-menu-trigger]"), "ordinary close still returns focus");
-
-    await React.act(async () => root.render(render(true)));
-    await React.act(async () => root.render(render(false)));
-    await React.act(async () => root.render(render(true)));
-    assert.equal(frames.size, 0, "reopening cancels obsolete restoration");
-    await React.act(async () => root.render(render(false)));
-    await React.act(async () => root.unmount());
-    assert.equal(frames.size, 0, "unmount cancels pending restoration");
-  } finally {
-    await React.act(async () => root.unmount());
-    cleanup();
-  }
-});
-
 
 test("Dropdown Menu moves real focus through disabled items and exits its owner with Tab", async () => {
   const { container, cleanup } = installDom();
@@ -737,4 +782,110 @@ test("vertical Menubar declares orientation and uses up/down roving focus", asyn
     await React.act(async () => root.unmount());
     cleanup();
   }
+});
+
+test("menu selection is ordered, cancellable and leaves rejected choice state unchanged", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  const calls = [];
+  try {
+    await React.act(async () => root.render(React.createElement(Menu.Root, { defaultOpen: true, modal: false, onSelect: event => { calls.push(`root:${event.value}`); event.preventDefault(); } },
+      React.createElement(Menu.Content, { ariaLabel: "Commands" },
+        React.createElement(Menu.CheckboxItem, { value: "wrap", checked: false, onClick: () => calls.push("native"), onSelect: () => calls.push("item"), onCheckedChange: () => calls.push("change") }, "Wrap")))));
+    await wait();
+    await dispatch(document.querySelector("[role=menuitemcheckbox]"), new window.MouseEvent("click", { bubbles: true, cancelable: true }));
+    assert.deepEqual(calls, ["native", "item", "root:wrap"]);
+    assert.equal(document.querySelector("[role=menuitemcheckbox]").getAttribute("aria-checked"), "false");
+    assert.equal(document.querySelector("[role=menu]").getAttribute("data-state"), "open");
+  } finally { await React.act(async () => root.unmount()); cleanup(); }
+});
+
+test("menu controller resolves repeated radio values through public group identity", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  let api;
+  function Fixture() {
+    api = useMenu({ defaultOpen: true, modal: false, defaultHighlightedValue: { value: "same", groupId: "second" } });
+    return React.createElement(Menu.RootProvider, { value: api }, React.createElement(Menu.Content, { ariaLabel: "Settings" },
+      ...["first", "second"].map(id => React.createElement(Menu.RadioGroup, { id, key: id }, React.createElement(Menu.RadioItem, { value: "same" }, id)))));
+  }
+  try {
+    await React.act(async () => root.render(React.createElement(Fixture)));
+    await wait();
+    assert.equal(document.querySelector("[data-highlighted]")?.textContent, "second");
+    await React.act(async () => api.setHighlightedValue({ value: "same", groupId: "first" }));
+    await wait();
+    assert.equal(document.querySelector("[data-highlighted]")?.textContent, "first");
+    assert.deepEqual(api.highlightedValue, { value: "same", groupId: "first" });
+  } finally { await React.act(async () => root.unmount()); cleanup(); }
+});
+
+test("multiple dropdown triggers share content and pointer opening starts on container", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  try {
+    await React.act(async () => root.render(React.createElement(DropdownMenu.Root, { modal: false },
+      React.createElement(DropdownMenu.Trigger, { value: "one" }, "One"),
+      React.createElement(DropdownMenu.Trigger, { value: "two" }, "Two"),
+      React.createElement(DropdownMenu.Content, null, React.createElement(DropdownMenu.Item, { value: "copy" }, "Copy")))));
+    const triggers = container.querySelectorAll("button");
+    await dispatch(triggers[0], new window.MouseEvent("click", { bubbles: true, detail: 1 }));
+    await wait();
+    assert.equal(document.activeElement?.getAttribute("role"), "menu");
+    assert.equal(document.querySelector("[data-highlighted]"), null);
+    await dispatch(triggers[1], new window.MouseEvent("click", { bubbles: true, detail: 1 }));
+    await wait();
+    assert.equal(triggers[0].getAttribute("aria-expanded"), "false");
+    assert.equal(triggers[1].getAttribute("aria-expanded"), "true");
+    assert.equal(document.querySelector("[role=menu]").getAttribute("aria-labelledby"), triggers[1].id);
+    await key(document.activeElement, "ArrowDown");
+    assert.equal(document.activeElement?.textContent, "Copy");
+    await key(document.activeElement, "Escape");
+    await wait();
+    assert.equal(document.activeElement, triggers[1]);
+  } finally { await React.act(async () => root.unmount()); cleanup(); }
+});
+
+test("menu retained lifecycle stays hidden and inert and typeahead can be disabled", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  let api;
+  let exits = 0;
+  function Fixture() {
+    api = useMenu({ lazyMount: false, unmountOnExit: false, modal: false, typeahead: false, onExitComplete: () => exits++ });
+    return React.createElement(Menu.RootProvider, { value: api }, React.createElement(Menu.Content, { ariaLabel: "Choices" }, React.createElement(Menu.Item, { value: "alpha" }, "Alpha"), React.createElement(Menu.Item, { value: "beta" }, "Beta")));
+  }
+  try {
+    await React.act(async () => root.render(React.createElement(Fixture)));
+    assert.equal(document.querySelector("[role=menu]").hidden, true);
+    assert.equal(document.querySelector("[role=menu]").hasAttribute("inert"), true);
+    await React.act(async () => api.setOpen(true)); await wait();
+    const menu = document.querySelector("[role=menu]");
+    assert.equal(menu.hidden, false);
+    await key(document.activeElement, "b");
+    assert.notEqual(document.activeElement?.textContent, "Beta");
+    await React.act(async () => api.setOpen(false)); await wait();
+    assert.equal(menu.hidden, true);
+    assert.equal(menu.hasAttribute("inert"), true);
+    assert.equal(exits, 1);
+  } finally { await React.act(async () => root.unmount()); cleanup(); }
+});
+
+test("menu routing hook handles normal links without taking over modified navigation", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  const calls = [];
+  try {
+    await React.act(async () => root.render(React.createElement(Menu.Root, { defaultOpen: true, modal: false, closeOnSelect: false, navigate: event => calls.push(event.value) },
+      React.createElement(Menu.Content, null, React.createElement(Menu.Item, { value: "record", asChild: true }, React.createElement("a", { href: "#record" }, "Record"))))));
+    await wait();
+    const link = document.querySelector("a");
+    const normal = new window.MouseEvent("click", { bubbles: true, cancelable: true });
+    await dispatch(link, normal);
+    assert.equal(normal.defaultPrevented, true);
+    const modified = new window.MouseEvent("click", { bubbles: true, cancelable: true, ctrlKey: true });
+    await dispatch(link, modified);
+    assert.equal(modified.defaultPrevented, false);
+    assert.deepEqual(calls, ["record"]);
+  } finally { await React.act(async () => root.unmount()); cleanup(); }
 });

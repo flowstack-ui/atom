@@ -2,6 +2,8 @@
 
 import {
   ToolbarButton,
+  ToolbarGroup,
+  ToolbarInput,
   ToolbarLink,
   ToolbarRoot,
   ToolbarSeparator,
@@ -10,6 +12,8 @@ import {
 } from "./primitives/toolbar/index.js";
 
 export {
+  ToolbarGroup,
+  ToolbarInput,
   ToolbarButton,
   ToolbarContextProvider,
   ToolbarLink,
@@ -23,6 +27,8 @@ export {
   useToolbarToggleContext,
 } from "./primitives/toolbar/index.js";
 export type {
+  ToolbarGroupProps,
+  ToolbarInputProps,
   ToolbarButtonProps,
   ToolbarContextValue,
   ToolbarDirection,
@@ -37,6 +43,8 @@ export type {
 } from "./primitives/toolbar/index.js";
 
 export const Toolbar = {
+  Group: ToolbarGroup,
+  Input: ToolbarInput,
   Root: ToolbarRoot,
   Button: ToolbarButton,
   Link: ToolbarLink,

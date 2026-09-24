@@ -3,20 +3,22 @@
 import {
   forwardRef,
   useCallback,
+  useContext,
+  useEffect,
   useId,
   useMemo,
   useRef,
   useState,
   type CSSProperties,
-  type FocusEventHandler,
   type ReactNode,
 } from "react";
 import { useCollection } from "../../collection.js";
 import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
+import { useOutsideInteraction } from "../../hooks/useOutsideInteraction.js";
+import { OverlayScopeProvider, useCreateOverlayScope } from "../../hooks/overlayScope.js";
 import type { NativeNavProps } from "../../utils/dom.js";
 import {
   cloneAndMerge,
-  composeEventHandlers,
   composeRefs,
   renderElement,
   type RenderProp,
@@ -24,6 +26,7 @@ import {
 import { useDirection, type DirectionValue } from "../direction/index.js";
 import {
   NavigationMenuContextProvider,
+  NavigationMenuControllerViewportContext,
   type ContentNodeEntry,
   type NavigationMenuContextValue,
   type NavigationMenuControlType,
@@ -39,6 +42,16 @@ export interface NavigationMenuRootProps extends NavigationMenuRootNativeProps {
   defaultValue?: string;
   onValueChange?: (value: string | null) => void;
   delayDuration?: number;
+  openDelay?: number;
+  closeDelay?: number;
+  disableClickTrigger?: boolean;
+  disableHoverTrigger?: boolean;
+  disablePointerLeaveClose?: boolean;
+  lazyMount?: boolean;
+  unmountOnExit?: boolean;
+  hideMode?: "display-none" | "activity";
+  /** Use false for inline disclosure panels without a shared Viewport. */
+  viewport?: boolean;
   skipDelayDuration?: number;
   loop?: boolean;
   orientation?: "horizontal" | "vertical";
@@ -60,19 +73,35 @@ export const NavigationMenuRoot = forwardRef<
     defaultValue,
     onValueChange,
     delayDuration = 200,
+    openDelay,
+    closeDelay,
+    disableClickTrigger = false,
+    disableHoverTrigger = false,
+    disablePointerLeaveClose = false,
+    lazyMount: lazyMountProp,
+    unmountOnExit: unmountOnExitProp,
+    hideMode = "display-none",
+    viewport = true,
     skipDelayDuration = 300,
     loop = true,
     orientation = "horizontal",
     dir: dirProp,
     className,
     style,
-    onBlur,
     "data-slot": dataSlot = "navigation-menu",
     ...restProps
   },
   ref,
 ) {
+  const lazyMount = lazyMountProp ?? true;
+  const unmountOnExit = unmountOnExitProp ?? true;
+  const lifecycleExplicit = lazyMountProp !== undefined || unmountOnExitProp !== undefined;
+  const [viewportSide, setViewportSide] = useState<"left" | "right" | null>(null);
+  const normalizeDelay = (value: number) => Number.isFinite(value) ? Math.max(0, value) : 200;
+  const resolvedOpenDelay = normalizeDelay(openDelay ?? delayDuration);
+  const resolvedCloseDelay = normalizeDelay(closeDelay ?? delayDuration);
   const contextDir = useDirection();
+  const overlayScope = useCreateOverlayScope();
   const dir = dirProp ?? contextDir;
   const {
     "aria-label": ariaLabel = "Main",
@@ -85,10 +114,15 @@ export const NavigationMenuRoot = forwardRef<
   const activeValue = isControlled ? controlledValue : internalValue;
 
   const [previousValue, setPreviousValue] = useState<string | null>(null);
+  const [observedValue, setObservedValue] = useState(activeValue);
+  // Track committed value changes, including externally controlled updates.
+  if (observedValue !== activeValue) {
+    setPreviousValue(observedValue);
+    setObservedValue(activeValue);
+  }
 
   const setValue = useCallback(
     (newValue: string | null) => {
-      setPreviousValue(activeValue);
       if (!isControlled) setInternalValue(newValue);
       onValueChange?.(newValue);
     },
@@ -204,45 +238,126 @@ export const NavigationMenuRoot = forwardRef<
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
+  const getContentValues = useCallback(() => Array.from(contentNodeRegistryRef.current.keys()), []);
 
   const startCloseTimer = useCallback(() => {
     clearTimeout(closeTimerRef.current);
+    if (disablePointerLeaveClose) return;
     closeTimerRef.current = setTimeout(() => {
       handleValueChange(null);
-    }, delayDuration);
-  }, [delayDuration, handleValueChange]);
+    }, resolvedCloseDelay);
+  }, [resolvedCloseDelay, disablePointerLeaveClose, handleValueChange]);
 
   const cancelCloseTimer = useCallback(() => {
     clearTimeout(closeTimerRef.current);
   }, []);
 
   const rootRef = useRef<HTMLElement | null>(null);
+  const localViewportRef = useRef<HTMLDivElement | null>(null);
+  const controllerViewportRef = useContext(NavigationMenuControllerViewportContext);
+  const viewportRef = controllerViewportRef ?? localViewportRef;
+  const getViewportNode = useCallback(() => viewportRef.current, [viewportRef]);
+  const reposition = useCallback(() => {
+    const node = viewportRef.current;
+    const view = node?.ownerDocument.defaultView;
+    if (node && view) node.dispatchEvent(new view.Event("atom-navigation-menu-reposition"));
+  }, [viewportRef]);
+  useEffect(() => () => {
+    clearTimeout(closeTimerRef.current);
+    clearTimeout(skipDelayTimerRef.current);
+  }, []);
   const composedRef = useMemo(() => composeRefs(rootRef, ref), [ref]);
   const idPrefix = useId();
 
   useDismissableLayer({
     enabled: activeValue !== null,
+    scope: overlayScope,
+    ownerDocument: rootRef.current?.ownerDocument,
     onEscapeKeyDown: (event) => {
+      if (activeValue) getContentNode(activeValue)?.onEscapeKeyDown?.(event);
+      if (event.defaultPrevented) return;
       const target = event.target;
       if (
-        target instanceof Element &&
-        target.closest('[data-slot="navigation-menu-sub"]')
+        target && (target as Element).nodeType === 1 &&
+        (target as Element).closest('[data-slot="navigation-menu-sub"]') &&
+        (target as Element).closest('[data-slot="navigation-menu-sub"]') !== rootRef.current
       ) {
         return;
       }
 
       const trigger = activeValue === null ? null : getTriggerElement(activeValue);
+      event.preventDefault();
       handleValueChange(null);
-      trigger?.focus();
+      trigger?.focus({ preventScroll: true });
     },
   });
+
+  const isNestedLayerTarget = useCallback((target: Node) => {
+    const root = rootRef.current;
+    if (!root) return false;
+    return Array.from(root.querySelectorAll<HTMLElement>('[aria-controls][aria-expanded="true"]')).some(trigger => {
+      const ids = trigger.getAttribute("aria-controls")?.split(/\s+/) ?? [];
+      const tree = root.getRootNode();
+      return ids.some(id =>
+        ("getElementById" in tree && (tree as Document | ShadowRoot).getElementById(id)?.contains(target)) ||
+        root.ownerDocument.getElementById(id)?.contains(target));
+    });
+  }, []);
+
+  useOutsideInteraction({
+    refs: [rootRef, viewportRef],
+    ignore: isNestedLayerTarget,
+    enabled: activeValue !== null,
+    onPointerDownOutside: event => {
+      if (activeValue) getContentNode(activeValue)?.onPointerDownOutside?.(event);
+    },
+    onInteractOutside: event => {
+      if (activeValue) getContentNode(activeValue)?.onInteractOutside?.(event);
+      if (!event.defaultPrevented) handleValueChange(null);
+    },
+  });
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || !activeValue) return;
+    const doc = root.ownerDocument;
+    const onOutside = (event: FocusEvent) => {
+      const target = event.target as Node | null;
+      if (target && (root.contains(target) || viewportRef.current?.contains(target) || isNestedLayerTarget(target))) return;
+      const entry = getContentNode(activeValue);
+      const notification = new (doc.defaultView?.FocusEvent ?? FocusEvent)("focusoutside", { cancelable: true, relatedTarget: event.relatedTarget });
+      Object.defineProperty(notification, "target", { value: target });
+      entry?.onFocusOutside?.(notification);
+      entry?.onInteractOutside?.(notification);
+      if (!notification.defaultPrevented) handleValueChange(null);
+    };
+    doc.addEventListener("focusin", onOutside);
+    return () => {
+      doc.removeEventListener("focusin", onOutside);
+    };
+  }, [activeValue, getContentNode, handleValueChange, isNestedLayerTarget]);
 
   const contextValue: NavigationMenuContextValue = useMemo(
     () => ({
       value: activeValue,
+      open: activeValue !== null,
+      setValue: handleValueChange,
+      get isViewportRendered() { return viewportRef.current !== null; },
+      getViewportNode,
+      reposition,
       onValueChange: handleValueChange,
       previousValue,
-      delayDuration,
+      delayDuration: resolvedOpenDelay,
+      closeDelay: resolvedCloseDelay,
+      disableClickTrigger,
+      disableHoverTrigger,
+      disablePointerLeaveClose,
+      lazyMount,
+      lifecycleExplicit,
+      viewportSide,
+      setViewportSide,
+      unmountOnExit,
+      hideMode,
+      viewport,
       skipDelayDuration,
       isSkipDelayActive,
       orientation,
@@ -264,17 +379,33 @@ export const NavigationMenuRoot = forwardRef<
       registerContentNode,
       unregisterContentNode,
       getContentNode,
+      getContentValues,
       startCloseTimer,
       cancelCloseTimer,
       rootRef,
+      viewportRef,
       idPrefix,
     }),
     [
       activeValue,
+      getViewportNode,
+      reposition,
       cancelCloseTimer,
-      delayDuration,
+      resolvedOpenDelay,
+      resolvedCloseDelay,
+      disableClickTrigger,
+      disableHoverTrigger,
+      disablePointerLeaveClose,
+      lazyMount,
+      lifecycleExplicit,
+      viewportSide,
+      unmountOnExit,
+      hideMode,
+      viewport,
+      viewportRef,
       dir,
       getContentNode,
+      getContentValues,
       getControlElement,
       getControlType,
       getFirstTriggerValue,
@@ -301,18 +432,6 @@ export const NavigationMenuRoot = forwardRef<
     ],
   );
 
-  const handleBlur: FocusEventHandler<HTMLElement> = useCallback(() => {
-    requestAnimationFrame(() => {
-      const root = rootRef.current;
-      const activeElement = document.activeElement;
-
-      if (!root || !(activeElement instanceof Node)) return;
-      if (root.contains(activeElement)) return;
-
-      handleValueChange(null);
-    });
-  }, [handleValueChange]);
-
   const behaviorProps = {
     ...navigationProps,
     ref: composedRef,
@@ -322,17 +441,16 @@ export const NavigationMenuRoot = forwardRef<
     "aria-label": ariaLabel,
     className,
     style,
-    onBlur: composeEventHandlers(onBlur, handleBlur),
   };
 
   return (
-    <NavigationMenuContextProvider value={contextValue}>
+    <OverlayScopeProvider value={overlayScope}><NavigationMenuContextProvider value={contextValue}>
       {asChild
         ? cloneAndMerge(children, behaviorProps)
         : renderElement(render, "nav", {
             ...behaviorProps,
             children,
           })}
-    </NavigationMenuContextProvider>
+    </NavigationMenuContextProvider></OverlayScopeProvider>
   );
 });

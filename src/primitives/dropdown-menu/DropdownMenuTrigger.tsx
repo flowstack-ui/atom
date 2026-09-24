@@ -18,9 +18,10 @@ import {
 } from "../../utils/slot.js";
 import { useMenuContext } from "../menu/index.js";
 
-type DropdownMenuTriggerNativeProps = NativeButtonProps<"children" | "disabled" | "type">;
+type DropdownMenuTriggerNativeProps = NativeButtonProps<"children" | "disabled" | "type" | "value">;
 
 export interface DropdownMenuTriggerProps extends DropdownMenuTriggerNativeProps {
+  value?: string;
   children?: ReactNode;
   disabled?: boolean;
   className?: string;
@@ -33,6 +34,7 @@ export const DropdownMenuTrigger = forwardRef<HTMLElement, DropdownMenuTriggerPr
   function DropdownMenuTrigger(
     {
       children,
+      value = "default",
       disabled = false,
       className,
       asChild = false,
@@ -45,18 +47,21 @@ export const DropdownMenuTrigger = forwardRef<HTMLElement, DropdownMenuTriggerPr
     ref,
   ) {
     const ctx = useMenuContext();
-    const composedRef = useMemo(() => composeRefs(ctx.triggerRef, ref), [ctx.triggerRef, ref]);
+    const register = useCallback((node: HTMLElement | null) => { if (ctx.registerTrigger) ctx.registerTrigger(value, node); else ctx.triggerRef.current = node; }, [ctx.registerTrigger, ctx.triggerRef, value]);
+    const composedRef = useMemo(() => composeRefs(register, ref), [register, ref]);
 
-    const handleClick: MouseEventHandler<HTMLElement> = useCallback(() => {
+    const handleClick: MouseEventHandler<HTMLElement> = useCallback((event) => {
       if (disabled) return;
-      ctx.onInitialHighlight("first");
-      ctx.onHighlight(null);
-      ctx.onToggle();
-    }, [ctx, disabled]);
+      const changing = ctx.triggerValue !== undefined && ctx.triggerValue !== value;
+      ctx.activateTrigger?.(value, event.currentTarget);
+      ctx.onInitialHighlight(event.detail === 0 ? "first" : null);
+      if (ctx.isOpen && changing) ctx.onOpen(); else ctx.onToggle();
+    }, [ctx, disabled, value]);
 
     const handleKeyDown: KeyboardEventHandler<HTMLElement> = useCallback(
       (event) => {
         if (disabled) return;
+        ctx.activateTrigger?.(value, event.currentTarget);
 
         if (event.key === "Enter" || event.key === " " || event.key === "ArrowDown") {
           event.preventDefault();
@@ -70,22 +75,22 @@ export const DropdownMenuTrigger = forwardRef<HTMLElement, DropdownMenuTriggerPr
           ctx.onOpen();
         }
       },
-      [ctx, disabled],
+      [ctx, disabled, value],
     );
 
     const triggerProps = {
       ...restProps,
       ref: composedRef,
-      id: ctx.triggerId,
+      id: ctx.triggerId.replace(/-trigger(?:-.*)?$/, `-trigger-${value}`),
       role: asChild || render ? "button" : undefined,
       tabIndex: asChild || render ? (disabled ? -1 : 0) : undefined,
       type: !asChild && !render ? "button" : undefined,
       disabled: !asChild && !render ? disabled || undefined : undefined,
       "data-slot": dataSlot,
-      "data-state": ctx.isOpen ? "open" : "closed",
+      "data-state": ctx.isOpen && (ctx.triggerValue === undefined || ctx.triggerValue === value) ? "open" : "closed",
       "data-disabled": disabled ? "" : undefined,
       "aria-haspopup": "menu",
-      "aria-expanded": ctx.isOpen,
+      "aria-expanded": ctx.isOpen && (ctx.triggerValue === undefined || ctx.triggerValue === value),
       "aria-controls": ctx.menuId,
       "aria-disabled": disabled || undefined,
       onClick: composeEventHandlers(onClick as MouseEventHandler<HTMLElement> | undefined, handleClick),

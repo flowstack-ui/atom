@@ -2,6 +2,13 @@
 
 Headless navigation list primitives for sidebars, page navigation, and grouped route lists.
 
+Resolved `aria-current` controls both semantic and data current state; an explicit
+false overrides active. Disabled native, asChild and render anchors have no href.
+Router adapters must forward the supplied native attributes and events.
+SectionContent uses shared presence for exit completion and interruption, becomes
+inert/aria-hidden immediately on close, and returns contained focus to the trigger.
+forceMount retains the closed host with hidden after exit completion.
+
 ## When to Use
 
 Use NavList for an ordinary list of destinations, such as sidebar links,

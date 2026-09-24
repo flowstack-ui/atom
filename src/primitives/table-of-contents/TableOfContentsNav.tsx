@@ -1,6 +1,6 @@
 "use client";
-import { forwardRef, useEffect, useRef, useState, useId, type HTMLAttributes, type CSSProperties } from "react";
-import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
+import { forwardRef, useEffect, useMemo, useRef, useState, useId, type HTMLAttributes, type CSSProperties } from "react";
+import { cloneAndMerge, composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
 import { NavContext, useController } from "./context.js";
 
 export interface TableOfContentsNavProps extends HTMLAttributes<HTMLElement> {
@@ -16,6 +16,7 @@ export const TableOfContentsNav = forwardRef<HTMLElement, TableOfContentsNavProp
 }, ref) {
   const { activeId } = useController();
   const node = useRef<HTMLElement | null>(null);
+  const mergedRef = useMemo(() => composeRefs(node, ref), [ref]);
   const generatedId = useId();
   const [titleId, setTitleId] = useState(`toc-title-${generatedId}`);
   const [geometry, setGeometry] = useState<{ top: number; height: number } | null>(null);
@@ -55,7 +56,7 @@ export const TableOfContentsNav = forwardRef<HTMLElement, TableOfContentsNavProp
     "data-indicator-ready": geometry ? "" : undefined,
     style: { "--atom-table-of-contents-indicator-block-start": `${geometry?.top ?? 0}px`,
       "--atom-table-of-contents-indicator-block-size": `${geometry?.height ?? 0}px`, ...style } as CSSProperties,
-    ref: (element: HTMLElement | null) => { node.current = element; if (typeof ref === "function") ref(element); else if (ref) ref.current = element; },
+    ref: mergedRef,
   };
   return <NavContext.Provider value={{ titleId, setTitleId }}>
     {asChild ? cloneAndMerge(children, props) : renderElement(render, "nav", { ...props, children })}

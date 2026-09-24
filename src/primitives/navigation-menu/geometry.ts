@@ -25,13 +25,18 @@ export interface NavigationMenuViewportPositionOptions {
   triggerRect: NavigationMenuRect;
   rootRect: NavigationMenuRect;
   viewportWidth: number;
-  boundaryRect: Pick<NavigationMenuRect, "left" | "width">;
+  boundaryRect: Pick<NavigationMenuRect, "left" | "width"> & Partial<Pick<NavigationMenuRect, "top" | "height">>;
   collisionPadding?: number;
+  align?: "center" | "start" | "end";
+  dir?: "ltr" | "rtl";
+  orientation?: "horizontal" | "vertical";
+  viewportHeight?: number;
 }
 
 export interface NavigationMenuViewportPosition {
   left: number;
   availableWidth: number;
+  top?: number;
 }
 
 export type NavigationMenuGeometryStyle = CSSProperties & {
@@ -84,6 +89,10 @@ export function getNavigationMenuViewportPosition({
   viewportWidth,
   boundaryRect,
   collisionPadding = 8,
+  align = "center",
+  dir = "ltr",
+  orientation = "horizontal",
+  viewportHeight = 0,
 }: NavigationMenuViewportPositionOptions): NavigationMenuViewportPosition {
   const padding = Math.max(0, collisionPadding);
   const boundaryStart = boundaryRect.left + padding;
@@ -91,16 +100,25 @@ export function getNavigationMenuViewportPosition({
   const availableWidth = Math.max(0, boundaryEnd - boundaryStart);
   const resolvedWidth = Math.min(Math.max(0, viewportWidth), availableWidth);
   const triggerCenter = triggerRect.left + triggerRect.width / 2;
-  const preferredLeft = triggerCenter - resolvedWidth / 2;
+  const start = dir === "rtl" ? triggerRect.left + triggerRect.width - resolvedWidth : triggerRect.left;
+  const end = dir === "rtl" ? triggerRect.left : triggerRect.left + triggerRect.width - resolvedWidth;
+  const preferredLeft = align === "start" ? start : align === "end" ? end : triggerCenter - resolvedWidth / 2;
   const maximumLeft = Math.max(boundaryStart, boundaryEnd - resolvedWidth);
   const absoluteLeft = Math.min(
     Math.max(preferredLeft, boundaryStart),
     maximumLeft,
   );
+  const preferredTop = triggerRect.top + (align === "start" ? 0 : align === "end" ? triggerRect.height - viewportHeight : (triggerRect.height - viewportHeight) / 2);
+  const topStart = (boundaryRect.top ?? 0) + padding;
+  const topEnd = boundaryRect.height === undefined ? Infinity : (boundaryRect.top ?? 0) + boundaryRect.height - padding - viewportHeight;
+  const absoluteTop = Math.min(Math.max(preferredTop, topStart), Math.max(topStart, topEnd));
 
   return {
     left: absoluteLeft - rootRect.left,
     availableWidth,
+    ...(orientation === "vertical" ? {
+      top: absoluteTop - rootRect.top,
+    } : {}),
   };
 }
 
@@ -110,5 +128,6 @@ export function getNavigationMenuViewportPositionStyle(
   return {
     "--atom-navigation-menu-viewport-left": `${position.left}px`,
     "--atom-navigation-menu-viewport-available-width": `${position.availableWidth}px`,
+    ...(position.top !== undefined ? { "--atom-navigation-menu-viewport-top": `${position.top}px` } : {}),
   };
 }

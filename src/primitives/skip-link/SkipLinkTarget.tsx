@@ -1,10 +1,10 @@
 "use client";
 
 import { forwardRef, type ReactNode } from "react";
-import type { NativeMainProps } from "../../utils/dom.js";
+import type { NativeDivProps } from "../../utils/dom.js";
 import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
 
-type SkipLinkTargetNativeProps = NativeMainProps<"children">;
+type SkipLinkTargetNativeProps = NativeDivProps<"children">;
 
 export interface SkipLinkTargetProps extends SkipLinkTargetNativeProps {
   /** Override the rendered target element. */
@@ -44,7 +44,7 @@ export const SkipLinkTarget = forwardRef<HTMLElement, SkipLinkTargetProps>(
       return cloneAndMerge(children, behaviorProps);
     }
 
-    return renderElement(render, "main", {
+    return renderElement(render, "div", {
       ...behaviorProps,
       children,
     });

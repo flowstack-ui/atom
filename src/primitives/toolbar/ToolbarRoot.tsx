@@ -28,6 +28,7 @@ import {
 type ToolbarRootNativeProps = NativeDivProps<"children" | "dir" | "role">;
 
 export interface ToolbarRootProps extends ToolbarRootNativeProps {
+  disabled?: boolean;
   /** Toolbar orientation. */
   orientation?: ToolbarOrientation;
   /** Text direction. */
@@ -49,6 +50,7 @@ export interface ToolbarRootProps extends ToolbarRootNativeProps {
 }
 
 function isDisabled(el: HTMLElement): boolean {
+  if (el.hasAttribute("data-focusable-disabled")) return false;
   return (
     (el as HTMLButtonElement).disabled === true ||
     el.getAttribute("aria-disabled") === "true"
@@ -61,6 +63,7 @@ export const ToolbarRoot = forwardRef<HTMLDivElement, ToolbarRootProps>(
       orientation = "horizontal",
       dir: dirProp,
       loop = true,
+      disabled = false,
       ariaLabel,
       render,
       asChild,
@@ -141,9 +144,15 @@ export const ToolbarRoot = forwardRef<HTMLDivElement, ToolbarRootProps>(
       const items = getItems();
       if (items.length === 0) return;
 
-      const focused = document.activeElement as HTMLElement | null;
+      const focused = event.currentTarget.ownerDocument.activeElement as HTMLElement | null;
       const currentIndex = focused ? items.indexOf(focused) : -1;
       if (currentIndex === -1) return;
+      // Nested composites and editable controls own their editing keys.
+      if ((event.target as Element).closest('[role="toolbar"]') !== event.currentTarget) return;
+      if (focused?.matches('input,textarea,[contenteditable="true"]')) {
+        if (orientation === "horizontal" || event.key === "Home" || event.key === "End" ||
+          focused.matches('input[type="number"],textarea,[contenteditable="true"]')) return;
+      }
 
       const isHorizontal = orientation === "horizontal";
       const isRtl = dir === "rtl";
@@ -190,6 +199,7 @@ export const ToolbarRoot = forwardRef<HTMLDivElement, ToolbarRootProps>(
 
     const contextValue: ToolbarContextValue = useMemo(
       () => ({
+        disabled,
         orientation,
         dir,
         loop,
@@ -201,6 +211,7 @@ export const ToolbarRoot = forwardRef<HTMLDivElement, ToolbarRootProps>(
         registeredVersion,
       }),
       [
+        disabled,
         activeItem,
         dir,
         getItems,
@@ -218,7 +229,9 @@ export const ToolbarRoot = forwardRef<HTMLDivElement, ToolbarRootProps>(
       ref,
       dir,
       role: "toolbar",
-      "aria-label": ariaLabel,
+      ...(ariaLabel !== undefined && { "aria-label": ariaLabel }),
+      "aria-disabled": disabled || undefined,
+      ...(disabled && { "data-disabled": "" }),
       "aria-orientation": orientation,
       "data-slot": dataSlot,
       "data-orientation": orientation,

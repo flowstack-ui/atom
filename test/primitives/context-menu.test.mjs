@@ -70,18 +70,18 @@ test("ContextMenu wires anchor point into menu content", async () => {
   assert.match(triggerSource, /const LONG_PRESS_DELAY = 700/);
   assert.match(triggerSource, /const LONG_PRESS_TOLERANCE = 10/);
   assert.match(triggerSource, /"data-pressed": pressed \? "" : undefined/);
-  assert.match(triggerSource, /ctx\.onHighlight\(null\)/);
+  assert.doesNotMatch(triggerSource, /ctx\.onHighlight\(null\)/);
   assert.match(triggerSource, /"data-slot": dataSlot = "context-menu-trigger"/);
   assert.match(triggerSource, /"data-slot": dataSlot/);
   assert.match(triggerSource, /"data-disabled": disabled \? "" : undefined/);
   assert.match(triggerSource, /if \(asChild\) \{\s*return cloneAndMerge\(children, triggerProps\);/s);
   assert.match(triggerSource, /return renderElement\(render, "span", \{ \.\.\.triggerProps, children \}\)/);
-  assert.match(rootSource, /closeOnSelect = true/);
-  assert.match(rootSource, /loop = true/);
-  assert.match(rootSource, /closeOnEscape = true/);
-  assert.match(rootSource, /closeOnSelect=\{closeOnSelect\}/);
-  assert.match(rootSource, /loop=\{loop\}/);
-  assert.match(rootSource, /closeOnEscape=\{closeOnEscape\}/);
+  assert.match(rootSource, /useContextMenu = useMenu/);
+  assert.match(rootSource, /useContextMenu\(options\)/);
+  const sharedRoot = await readFile(new URL("src/primitives/menu/MenuRoot.tsx", packageRoot), "utf8");
+  assert.match(sharedRoot, /loop = true/);
+  assert.match(sharedRoot, /closeOnEscape = true/);
+  assert.match(sharedRoot, /closeOnSelect = true/);
 });
 
 test("ContextMenuTrigger supports asChild and render composition", () => {

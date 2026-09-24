@@ -1,4 +1,8 @@
 export { ToolbarButton } from "./ToolbarButton.js";
+export { ToolbarGroup } from "./ToolbarGroup.js";
+export type { ToolbarGroupProps } from "./ToolbarGroup.js";
+export { ToolbarInput } from "./ToolbarInput.js";
+export type { ToolbarInputProps } from "./ToolbarInput.js";
 export type { ToolbarButtonProps } from "./ToolbarButton.js";
 export { ToolbarLink } from "./ToolbarLink.js";
 export type { ToolbarLinkProps } from "./ToolbarLink.js";

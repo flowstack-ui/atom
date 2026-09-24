@@ -23,6 +23,8 @@ import {
   type RenderProp,
 } from "../../utils/slot.js";
 import { useToolbarItem } from "./useToolbarItem.js";
+import { useToolbarContext } from "./context.js";
+import { toolbarActionHost } from "./actionHost.js";
 
 type ToolbarButtonNativeProps = NativeButtonProps<
   "children" | "disabled" | "onKeyDown" | "type"
@@ -33,6 +35,7 @@ export interface ToolbarButtonProps extends ToolbarButtonNativeProps {
   children?: ReactNode;
   /** Disable this button. */
   disabled?: boolean;
+  focusableWhenDisabled?: boolean;
   /** Keyboard event handler. */
   onKeyDown?: KeyboardEventHandler<HTMLElement>;
   /** CSS class name supplied by the styled layer or consumer. */
@@ -51,7 +54,8 @@ export const ToolbarButton = forwardRef<HTMLButtonElement, ToolbarButtonProps>(
   function ToolbarButton(
     {
       children,
-      disabled = false,
+      disabled: ownDisabled = false,
+      focusableWhenDisabled = false,
       onClick,
       className,
       ariaLabel,
@@ -64,7 +68,10 @@ export const ToolbarButton = forwardRef<HTMLButtonElement, ToolbarButtonProps>(
     },
     ref,
   ) {
-    const { itemRef, tabIndex, handleFocus } = useToolbarItem(disabled);
+    const host = toolbarActionHost(children, render, asChild);
+    const toolbar = useToolbarContext();
+    const disabled = ownDisabled || host.disabled || toolbar.disabled;
+    const { itemRef, tabIndex, handleFocus } = useToolbarItem(disabled && !focusableWhenDisabled);
     const composedRef = useMemo(() => composeRefs(itemRef, ref), [itemRef, ref]);
     const isDefaultButton = !asChild && render === undefined;
     const hasNativeSemantics = isDefaultButton ||
@@ -78,6 +85,7 @@ export const ToolbarButton = forwardRef<HTMLButtonElement, ToolbarButtonProps>(
       (event) => {
         if (event.key !== " " && event.key !== "Enter") {
           onKeyDown?.(event as never);
+          if (!event.defaultPrevented) host.onKeyDown?.(event);
           return;
         }
 
@@ -87,6 +95,7 @@ export const ToolbarButton = forwardRef<HTMLButtonElement, ToolbarButtonProps>(
         }
 
         onKeyDown?.(event as never);
+        if (!event.defaultPrevented) host.onKeyDown?.(event);
         if (event.defaultPrevented) return;
 
         if (hasNativeButtonKeyboardActivation(event.currentTarget, event.key)) {
@@ -96,29 +105,36 @@ export const ToolbarButton = forwardRef<HTMLButtonElement, ToolbarButtonProps>(
         event.preventDefault();
         event.currentTarget.click();
       },
-      [disabled, onKeyDown],
+      [disabled, onKeyDown, host.onKeyDown],
     );
 
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref: composedRef,
-      ...(isNativeButton ? { type: "button", disabled: disabled || undefined } : {}),
+      ...(isNativeButton ? { type: "button", disabled: disabled && !focusableWhenDisabled } : {}),
+      ...(!isNativeButton && disabled && { disabled: !focusableWhenDisabled }),
       ...(!hasNativeSemantics ? { role: "button" } : {}),
       tabIndex,
       ...(ariaLabel !== undefined && { "aria-label": ariaLabel }),
-      ...(!isNativeButton && { "aria-disabled": disabled || undefined }),
+      "aria-disabled": disabled || undefined,
+      ...(disabled && focusableWhenDisabled && { "data-focusable-disabled": "" }),
       "data-slot": dataSlot,
       ...(disabled ? { "data-disabled": "" } : {}),
       className,
-      onClick,
+      onClick: (event: React.MouseEvent<HTMLElement>) => {
+        if (disabled) { event.preventDefault(); return; }
+        onClick?.(event as never);
+        if (!event.defaultPrevented) host.onClick?.(event);
+        if (!event.defaultPrevented) host.onPress?.(event);
+      },
       onFocus: composeEventHandlers(onFocus, () => handleFocus()),
       onKeyDown: handleKeyDown,
     };
 
     if (asChild) {
-      return cloneAndMerge(children, behaviorProps);
+      return cloneAndMerge(host.children, behaviorProps);
     }
 
-    return renderElement(render, "button", { ...behaviorProps, children });
+    return renderElement(host.render, "button", { ...behaviorProps, children });
   },
 );

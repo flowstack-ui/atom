@@ -99,7 +99,10 @@ export const NavigationMenuTrigger = forwardRef<
 
   const focusContent = useCallback(
     (position: "first" | "last") => {
-      const content = document.getElementById(contentId);
+      const tree = internalRef.current?.getRootNode();
+      const content = tree && "getElementById" in tree
+        ? (tree as Document | ShadowRoot).getElementById(contentId)
+        : null;
       if (!content) return;
 
       const focusable = Array.from(
@@ -126,7 +129,7 @@ export const NavigationMenuTrigger = forwardRef<
   }, [focusContent, isOpen]);
 
   const handlePointerEnter: PointerEventHandler<HTMLButtonElement> = useCallback((event) => {
-    if (event.pointerType !== "mouse" || disabled) return;
+    if (event.pointerType !== "mouse" || disabled || ctx.disableHoverTrigger) return;
     cancelCloseTimer();
 
     if (activeValue === value) return;
@@ -150,6 +153,7 @@ export const NavigationMenuTrigger = forwardRef<
     cancelCloseTimer,
     delayDuration,
     disabled,
+    ctx.disableHoverTrigger,
     isSkipDelayActive,
     onValueChange,
     value,
@@ -162,8 +166,8 @@ export const NavigationMenuTrigger = forwardRef<
     startCloseTimer();
   }, [startCloseTimer]);
 
-  const handleClick: MouseEventHandler<HTMLButtonElement> = useCallback(() => {
-    if (disabled) return;
+  const handleClick: MouseEventHandler<HTMLButtonElement> = useCallback((event) => {
+    if (disabled || (ctx.disableClickTrigger && event.detail !== 0)) return;
     clearTimeout(openTimerRef.current);
     cancelCloseTimer();
     if (isOpen && pointerOpenedRef.current) {
@@ -172,7 +176,7 @@ export const NavigationMenuTrigger = forwardRef<
     }
     pointerOpenedRef.current = false;
     onValueChange(isOpen ? null : value);
-  }, [cancelCloseTimer, disabled, isOpen, onValueChange, value]);
+  }, [cancelCloseTimer, disabled, ctx.disableClickTrigger, isOpen, onValueChange, value]);
 
   const focusTrigger = useCallback(
     (nextValue: string | null) => {
@@ -195,6 +199,11 @@ export const NavigationMenuTrigger = forwardRef<
   const handleKeyDown: KeyboardEventHandler<HTMLButtonElement> = useCallback(
     (event) => {
       if (disabled) return;
+
+      // Keyboard interaction supersedes delayed pointer intent. A pending
+      // leave timer must not dismiss content after focus has entered it.
+      clearTimeout(openTimerRef.current);
+      cancelCloseTimer();
 
       switch (event.key) {
         case "Enter":
@@ -273,6 +282,7 @@ export const NavigationMenuTrigger = forwardRef<
       disabled,
       focusContent,
       focusTrigger,
+      cancelCloseTimer,
       getFirstTriggerValue,
       getLastTriggerValue,
       getNextTriggerValue,

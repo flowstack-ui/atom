@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useCallback, useMemo, type ReactNode } from "react";
+import { forwardRef, isValidElement, useCallback, useMemo, type ReactNode } from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
 import type { NativeNavProps } from "../../utils/dom.js";
 import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
@@ -10,7 +10,7 @@ import {
 } from "./context.js";
 
 type BottomNavigationRootNativeProps = NativeNavProps<
-  "children" | "defaultValue" | "onChange" | "aria-label"
+  "children" | "defaultValue" | "onChange"
 >;
 
 export type BottomNavigationLabelVisibility = "always" | "active" | "hidden";
@@ -54,7 +54,7 @@ export const BottomNavigationRoot = forwardRef<HTMLElement, BottomNavigationRoot
       render,
       asChild,
       "data-slot": dataSlot = "bottom-nav-root",
-      ariaLabel = "Bottom navigation",
+      ariaLabel,
       ...restProps
     },
     ref,
@@ -87,10 +87,14 @@ export const BottomNavigationRoot = forwardRef<HTMLElement, BottomNavigationRoot
       [labelVisibility, onChange, value],
     );
 
+    const composed = asChild ? children : render;
+    const composedProps = isValidElement(composed) ? composed.props as Record<string, unknown> : {};
+    const nativeLabel = restProps["aria-label"] ?? composedProps["aria-label"];
+    const labelledBy = restProps["aria-labelledby"] ?? composedProps["aria-labelledby"];
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref,
-      "aria-label": ariaLabel,
+      "aria-label": nativeLabel ?? (labelledBy ? undefined : ariaLabel ?? "Bottom navigation"),
       "data-label-visibility": labelVisibility,
       "data-position": position,
       "data-slot": dataSlot,

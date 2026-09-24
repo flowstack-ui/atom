@@ -2,9 +2,11 @@
 
 import {
   forwardRef,
+  cloneElement,
   useCallback,
   type MouseEventHandler,
   type ReactNode,
+  type ReactElement,
 } from "react";
 import type { NativeButtonProps } from "../../utils/dom.js";
 import {
@@ -16,7 +18,7 @@ import {
 import { useBottomNavigationContext } from "./context.js";
 
 type BottomNavigationItemNativeProps = NativeButtonProps<
-  "children" | "disabled" | "onChange" | "type" | "value"
+  "children" | "disabled" | "onChange" | "value"
 >;
 
 export interface BottomNavigationItemProps extends BottomNavigationItemNativeProps {
@@ -28,6 +30,8 @@ export interface BottomNavigationItemProps extends BottomNavigationItemNativePro
   target?: string;
   /** Link relationship for anchor rendering. */
   rel?: string;
+  /** Download the link resource instead of selecting a destination. */
+  download?: string | boolean;
   /** Disabled destinations are skipped by interaction and announced as disabled. */
   disabled?: boolean;
   /** Override the rendered element. */
@@ -63,15 +67,20 @@ export const BottomNavigationItem = forwardRef<HTMLElement, BottomNavigationItem
       labelVisibility === "always" ||
       (labelVisibility === "active" && isActive);
     const defaultTag = href !== undefined ? "a" : "button";
-    const isDefaultButton = !asChild && render === undefined && href === undefined;
 
     const handleClick: MouseEventHandler<HTMLElement> = useCallback(
       (event) => {
-        if (disabled) {
+        if (disabled || event.currentTarget.getAttribute("aria-disabled") === "true") {
           event.preventDefault();
           return;
         }
 
+        const host = event.currentTarget;
+        if (host.tagName === "A" && (
+          event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ||
+          host.hasAttribute("download") ||
+          (host.getAttribute("target") && host.getAttribute("target")?.toLowerCase() !== "_self")
+        )) return;
         onChange(value);
       },
       [disabled, onChange, value],
@@ -80,10 +89,9 @@ export const BottomNavigationItem = forwardRef<HTMLElement, BottomNavigationItem
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref,
-      ...(href !== undefined && !disabled ? { href } : {}),
+      ...(disabled ? { href: null } : href !== undefined ? { href } : {}),
       ...(target !== undefined ? { target } : {}),
       ...(rel !== undefined ? { rel } : {}),
-      ...(isDefaultButton ? { type: "button", disabled: disabled || undefined } : {}),
       "aria-current": isActive ? "page" : undefined,
       "aria-disabled": disabled || undefined,
       ...(disabled ? { tabIndex: -1 } : {}),
@@ -93,16 +101,20 @@ export const BottomNavigationItem = forwardRef<HTMLElement, BottomNavigationItem
       ...(disabled ? { "data-disabled": "" } : {}),
       ...(isActive ? { "data-active": "" } : {}),
       ...(isLabelVisible ? { "data-label-visible": "" } : {}),
-      onClick: composeEventHandlers(onClick, handleClick),
+      onClick,
     };
 
-    if (asChild) {
-      return cloneAndMerge(children, behaviorProps);
-    }
-
-    return renderElement(render, defaultTag, {
-      ...behaviorProps,
-      children,
+    const element = asChild ? cloneAndMerge(children, behaviorProps)
+      : renderElement(render, defaultTag, { ...behaviorProps, children });
+    const elementProps = element.props as Record<string, unknown>;
+    // Normalize the actual intrinsic host after composition; custom adapters
+    // must forward the public behavior props to their interactive element.
+    const nativeProps = element.type === "button"
+      ? { type: elementProps.type ?? "button", disabled: disabled || elementProps.disabled || undefined }
+      : {};
+    return cloneElement(element as ReactElement<Record<string, unknown>>, {
+      ...nativeProps,
+      onClick: composeEventHandlers(elementProps.onClick as MouseEventHandler<HTMLElement> | undefined, handleClick),
     });
   },
 );

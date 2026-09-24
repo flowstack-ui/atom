@@ -34,6 +34,7 @@ const LONG_PRESS_DELAY = 700;
 const LONG_PRESS_TOLERANCE = 10;
 
 export interface ContextMenuTriggerProps extends ContextMenuTriggerNativeProps {
+  value?: string;
   children: ReactNode;
   disabled?: boolean;
   asChild?: boolean;
@@ -47,6 +48,7 @@ export const ContextMenuTrigger = forwardRef<
 >(function ContextMenuTrigger(
   {
     children,
+    value = "default",
     disabled = false,
     asChild = false,
     render,
@@ -76,10 +78,8 @@ export const ContextMenuTrigger = forwardRef<
   } | null>(null);
   const syntheticOpenAtRef = useRef(0);
   const registrationRef = useRef<ContextMenuTriggerRegistration | null>(null);
-  const composedRef = useMemo(
-    () => composeRefs(triggerRef, ctx.triggerRef, ref),
-    [ctx.triggerRef, ref],
-  );
+  const register = useCallback((node: HTMLElement | null) => { if (ctx.registerTrigger) ctx.registerTrigger(value, node); else ctx.triggerRef.current = node; }, [ctx.registerTrigger, ctx.triggerRef, value]);
+  const composedRef = useMemo(() => composeRefs(triggerRef, register, ref), [register, ref]);
 
   const clearLongPress = useCallback(() => {
     const session = pressRef.current;
@@ -125,7 +125,7 @@ export const ContextMenuTrigger = forwardRef<
 
   useLayoutEffect(() => {
     const registration = registrationRef.current;
-    if (!ctx.isOpen || !registration) return undefined;
+    if (!ctx.isOpen || !registration || ctx.triggerRef.current !== registration.element) return undefined;
     return activateContextMenuTrigger(registration);
   }, [ctx.isOpen, ctx.onClose, disabled]);
 
@@ -135,12 +135,12 @@ export const ContextMenuTrigger = forwardRef<
       event.preventDefault();
       clearLongPress();
       if (Date.now() - syntheticOpenAtRef.current < 1000) return;
+      ctx.activateTrigger?.(value, event.currentTarget);
       setAnchorPoint({ x: event.clientX, y: event.clientY });
-      ctx.onInitialHighlight("first");
-      ctx.onHighlight(null);
+      ctx.onInitialHighlight(null);
       ctx.onOpen();
     },
-    [clearLongPress, ctx, disabled, setAnchorPoint],
+    [clearLongPress, ctx, disabled, setAnchorPoint, value],
   );
 
   const handlePointerDown: PointerEventHandler<HTMLElement> = useCallback((event) => {
@@ -162,15 +162,15 @@ export const ContextMenuTrigger = forwardRef<
       const session = pressRef.current;
       if (!session || session.pointerId !== pointerId) return;
       syntheticOpenAtRef.current = Date.now();
+      ctx.activateTrigger?.(value, element);
       setAnchorPoint({ x, y });
-      ctx.onInitialHighlight("first");
-      ctx.onHighlight(null);
+      ctx.onInitialHighlight(null);
       ctx.onOpen();
       clearLongPress();
     }, LONG_PRESS_DELAY);
     pressRef.current = { pointerId, x, y, timer, previousUserSelect, previousCallout };
     setPressed(true);
-  }, [clearLongPress, ctx, disabled, setAnchorPoint]);
+  }, [clearLongPress, ctx, disabled, setAnchorPoint, value]);
 
   const handlePointerMove: PointerEventHandler<HTMLElement> = useCallback((event) => {
     const session = pressRef.current;
@@ -192,6 +192,7 @@ export const ContextMenuTrigger = forwardRef<
 
       if ((event.key === "F10" && event.shiftKey) || event.key === "ContextMenu") {
         event.preventDefault();
+        ctx.activateTrigger?.(value, event.currentTarget);
         const referenceElement = triggerRef.current?.firstElementChild ?? triggerRef.current;
         const rect = referenceElement?.getBoundingClientRect();
         if (rect) {
@@ -201,19 +202,18 @@ export const ContextMenuTrigger = forwardRef<
           });
         }
         ctx.onInitialHighlight("first");
-        ctx.onHighlight(null);
         ctx.onOpen();
       }
     },
-    [ctx, disabled, setAnchorPoint],
+    [ctx, disabled, setAnchorPoint, value],
   );
 
   const triggerProps = {
     ...restProps,
     ref: composedRef,
-    id: ctx.triggerId,
+    id: ctx.triggerId.replace(/-trigger(?:-.*)?$/, `-trigger-${value}`),
     "data-slot": dataSlot,
-    "data-state": ctx.isOpen ? "open" : "closed",
+    "data-state": ctx.isOpen && (ctx.triggerValue === undefined || ctx.triggerValue === value) ? "open" : "closed",
     "data-disabled": disabled ? "" : undefined,
     "data-pressed": pressed ? "" : undefined,
     onContextMenu: composeEventHandlers(onContextMenu, handleContextMenu),
