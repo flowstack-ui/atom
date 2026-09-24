@@ -105,7 +105,11 @@ test("custom checkbox and switch values submit and restore uncontrolled defaults
     await click(switchControl);
     assert.deepEqual(Array.from(new window.FormData(form).entries()), [["updates", "enabled"]]);
 
-    await React.act(async () => form.reset());
+    await React.act(async () => {
+      form.reset();
+      // Custom controls wait until cancellation of the native reset is known.
+      await new Promise((resolve) => window.setTimeout(resolve, 0));
+    });
     assert.equal(checkbox.getAttribute("aria-checked"), "true");
     assert.equal(switchControl.getAttribute("aria-checked"), "false");
     assert.deepEqual(Array.from(new window.FormData(form).entries()), [["terms", "accepted"]]);

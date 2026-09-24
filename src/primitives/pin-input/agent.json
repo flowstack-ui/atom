@@ -57,7 +57,7 @@
     {
       "id": "pin-form",
       "level": "must",
-      "statement": "The first visible cell validates all required positions, with invalid mirrored to every cell. Root automatically owns one named hidden value; never duplicate it. Reset must work without name, with external form and with prevented reset. Optional incomplete FormData is joined text; use array state for positional partial data."
+      "statement": "The first visible cell validates all required positions, with invalid mirrored to every cell. Root automatically owns one named hidden value; never duplicate it. Reset must work without name, with external form, with prevented reset and after a late RootProvider mount. Queued resets are cancelled on form reassociation or unmount; controlled values remain application-owned. Optional incomplete FormData is joined text; use array state for positional partial data."
     }
   ],
   "commonMistakes": [

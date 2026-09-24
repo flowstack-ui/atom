@@ -209,7 +209,7 @@ test("prevented reset retains edits", async () =>
   mounted({ defaultValue: ["1"] }, async (inputs, form, win, api) => {
     form.addEventListener("reset", (event) => event.preventDefault());
     await React.act(async () => api().setValueAtIndex(0, "9"));
-    await React.act(async () => form.reset());
+    await React.act(async () => { form.reset(); await new Promise(resolve => win.setTimeout(resolve, 0)); });
     assert.equal(api().value[0], "9");
   }));
 test("IME does not advance or delete until committed", async () =>
@@ -263,7 +263,7 @@ test("nameless native reset restores initial cells", async () =>
         }),
       ),
     );
-    await React.act(async () => form.reset());
+    await React.act(async () => { form.reset(); await new Promise(resolve => win.setTimeout(resolve, 0)); });
     assert.deepEqual(
       inputs.map((input) => input.value),
       ["1", "2", "3", "4"],

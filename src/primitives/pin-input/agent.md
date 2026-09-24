@@ -25,7 +25,7 @@ Coordinate a fixed-length PIN or optional OTP across slot-preserving character c
 - **MUST:** Name Root through native ARIA or Field, localize every generated position label, keep Separator aria-hidden, and do not add unsupported aria-required to role=group.
 - **MUST:** Preserve one roving Tab stop, render-order registration, character advance, Arrow/Home/End, Backspace/Delete, paste distribution, disabled/read-only state, and focus movement.
 - **MUST:** onComplete runs after changed accepted complete state commits, not for initial/external values or a refused controlled update. autoSubmit is explicit product policy and must observe committed hidden value and completeness validity. Preserve optional blurOnComplete and selectOnFocus.
-- **MUST:** The first visible cell validates all required positions, with invalid mirrored to every cell. Root automatically owns one named hidden value; never duplicate it. Reset must work without name, with external form and with prevented reset. Optional incomplete FormData is joined text; use array state for positional partial data.
+- **MUST:** The first visible cell validates all required positions, with invalid mirrored to every cell. Root automatically owns one named hidden value; never duplicate it. Reset must work without name, with external form, with prevented reset and after a late RootProvider mount. Queued resets are cancelled on form reassociation or unmount; controlled values remain application-owned. Optional incomplete FormData is joined text; use array state for positional partial data.
 
 ## Common mistakes
 

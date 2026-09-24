@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { useFormValidation } from "../../hooks/useFormValidation.js";
+import { useFormReset } from "../../hooks/useFormReset.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import {
   cloneAndMerge,
@@ -276,20 +277,14 @@ export function usePinInput(options: PinInputOptions = {}): PinInputController {
     if (latest.current.blurOnComplete) blur();
     if (latest.current.autoSubmit) firstInputRef.current?.form?.requestSubmit();
   });
-  useEffect(() => {
-    const form = firstInputRef.current?.form;
-    if (!form) return;
-    const reset = (event: Event) =>
-      queueMicrotask(() => {
-        if (event.defaultPrevented) return;
-        pending.current = null;
-        if (latest.current.value === undefined)
-          setUncontrolled([...initial.current]);
-        setActiveIndex(0);
-      });
-    form.addEventListener("reset", reset);
-    return () => form.removeEventListener("reset", reset);
-  }, [options.form, firstInputRef]);
+  // Reset navigation state for either mode; controlled values remain owner-owned.
+  // The shared binding follows a late RootProvider and cancels obsolete timers.
+  useFormReset(firstInputRef, options.form, false, () => {
+    pending.current = null;
+    if (latest.current.value === undefined)
+      setUncontrolled([...initial.current]);
+    setActiveIndex(0);
+  });
   const didAutoFocus = useRef(false);
   useEffect(() => {
     if (options.autoFocus && !disabled && !didAutoFocus.current) {

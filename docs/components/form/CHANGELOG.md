@@ -1,5 +1,10 @@
 # Form Changelog
 
+## Unreleased
+
+- Cancel queued uncontrolled reset callbacks on unmount or form reassociation,
+  while keeping the latest callback during ordinary rerenders.
+
 ## 0.6.17
 
 - Kept explicit inline validation focus scrolling safe in non-browser DOM
