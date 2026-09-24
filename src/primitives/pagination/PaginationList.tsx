@@ -3,6 +3,8 @@
 import { forwardRef, type ReactNode } from "react";
 import type { NativeOrderedListProps } from "../../utils/dom.js";
 import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
+import { PaginationListContext } from "./PaginationListItem.js";
+import { usePaginationContext } from "./context.js";
 
 type PaginationListNativeProps = NativeOrderedListProps<"children">;
 
@@ -22,19 +24,21 @@ export const PaginationList = forwardRef<HTMLOListElement, PaginationListProps>(
     { children, render, asChild, "data-slot": dataSlot = "pagination-list", ...restProps },
     ref,
   ) {
+    const { ids } = usePaginationContext();
     const behaviorProps: Record<string, unknown> = {
+      id: ids?.list,
       ...restProps,
       ref,
       "data-slot": dataSlot,
     };
 
     if (asChild) {
-      return cloneAndMerge(children, behaviorProps);
+      return <PaginationListContext.Provider value>{cloneAndMerge(children, behaviorProps)}</PaginationListContext.Provider>;
     }
 
-    return renderElement(render, "ol", {
+    return <PaginationListContext.Provider value>{renderElement(render, "ol", {
       ...behaviorProps,
       children,
-    });
+    })}</PaginationListContext.Provider>;
   },
 );

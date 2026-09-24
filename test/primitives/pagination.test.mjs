@@ -18,7 +18,102 @@ import {
   PaginationPrevious,
   PaginationRoot,
   getPaginationRange,
+  usePagination,
 } from "../../dist/index.js";
+
+test("Pagination ID maps provide distinct generated hosts and native overrides", () => {
+  const html = renderToStaticMarkup(React.createElement(Pagination.Root, {
+    totalPages: 100, defaultPage: 50,
+    ids: { root: "pages", list: "pages-list", next: "next-page", item: page => `page-${page}`, ellipsis: index => `gap-${index}` },
+  }, React.createElement(Pagination.List, null, React.createElement(Pagination.Items), React.createElement(Pagination.Next, { id: "override-next" }))));
+  assert.match(html, /id="pages"/);
+  assert.match(html, /id="pages-list"/);
+  assert.match(html, /id="page-50"/);
+  assert.match(html, /id="gap-1"/);
+  assert.match(html, /id="override-next"/);
+  assert.doesNotMatch(html, /id="next-page"/);
+});
+
+test("Pagination ranges retain current page with zero boundaries and siblings", () => {
+  for (const boundaryCount of [0, 1, 2]) for (const siblingCount of [0, 1, 2]) {
+    for (let currentPage = 1; currentPage <= 40; currentPage++) {
+      const items = getPaginationRange({ totalPages: 40, currentPage, boundaryCount, siblingCount });
+      const pages = items.filter(item => typeof item === "number");
+      assert.ok(pages.includes(currentPage));
+      assert.deepEqual(pages, [...new Set(pages)].sort((a, b) => a - b));
+      assert.ok(pages.every(page => page >= 1 && page <= 40));
+    }
+  }
+  assert.ok(getPaginationRange({ totalPages: Number.MAX_SAFE_INTEGER, currentPage: 500 }).length <= 7);
+});
+
+test("Pagination count mode and provider expose a clamped record range on the server", () => {
+  let state;
+  function Example() {
+    state = usePagination({ count: 23, defaultPageSize: 10, defaultPage: 3 });
+    return React.createElement(Pagination.RootProvider, { value: state },
+      React.createElement(Pagination.Context, null, value => String(value.pageRange.end)));
+  }
+  assert.match(renderToStaticMarkup(React.createElement(Example)), />23<\/nav>/);
+  assert.equal(state.totalPages, 3);
+  assert.deepEqual(state.pageRange, { start: 20, end: 23 });
+  assert.deepEqual(state.slice(Array.from({ length: 23 }, (_, i) => i)), [20, 21, 22]);
+});
+
+test("Pagination custom generated controls omit list wrappers outside List", () => {
+  const html = renderToStaticMarkup(React.createElement(Pagination.Root, { count: 100 },
+    React.createElement(Pagination.Items, { render: ({ page }) => React.createElement("button", null, `Open ${page}`) })));
+  assert.doesNotMatch(html, /<li/);
+  assert.match(html, /aria-current="page"/);
+  assert.match(html, /Open 1/);
+  assert.doesNotMatch(html, /<button[^>]*><button/);
+});
+
+test("Pagination validates models and numeric inputs", () => {
+  const view = props => renderToStaticMarkup(React.createElement(Pagination.Root, props, React.createElement(Pagination.Items)));
+  assert.throws(() => view({ count: 20, totalPages: 2 }), /exactly one/);
+  assert.throws(() => view({ count: 20, pageSize: 0 }), /pageSize/);
+  assert.throws(() => view({ count: Infinity }), /count/);
+  assert.throws(() => getPaginationRange({ totalPages: Infinity, currentPage: 1 }), /safe integer/);
+  assert.equal(view({ count: 0 }), "");
+});
+
+test("Pagination controller changes size while preserving the first visible record", async () => {
+  const { JSDOM } = await import("jsdom");
+  const { createRoot } = await import("react-dom/client");
+  const dom = new JSDOM("<div id='root'></div>");
+  const previous = { window: globalThis.window, document: globalThis.document, act: globalThis.IS_REACT_ACT_ENVIRONMENT };
+  globalThis.window = dom.window;
+  globalThis.document = dom.window.document;
+  globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+  let state;
+  const root = createRoot(document.getElementById("root"));
+  function Example({ count = 100, disabled = false }) {
+    state = usePagination({ count, defaultPageSize: 10, defaultPage: 5, disabled });
+    return React.createElement(Pagination.RootProvider, { value: state }, React.createElement(Pagination.Items));
+  }
+  try {
+    await React.act(async () => root.render(React.createElement(Example)));
+    await React.act(async () => state.setPageSize(25));
+    assert.equal(state.page, 2);
+    assert.deepEqual(state.pageRange, { start: 25, end: 50 });
+    await React.act(async () => state.goToLastPage());
+    assert.equal(state.page, 4);
+    await React.act(async () => root.render(React.createElement(Example, { count: 6 })));
+    assert.equal(state.page, 1);
+    assert.deepEqual(state.pageRange, { start: 0, end: 6 });
+    await React.act(async () => root.render(React.createElement(Example, { disabled: true })));
+    const page = state.page;
+    await React.act(async () => state.setPage(1));
+    assert.equal(state.page, page);
+  } finally {
+    await React.act(async () => root.unmount());
+    dom.window.close();
+    globalThis.window = previous.window;
+    globalThis.document = previous.document;
+    globalThis.IS_REACT_ACT_ENVIRONMENT = previous.act;
+  }
+});
 
 test("Pagination compound parts render nav, current page, controls, and ellipsis", () => {
   const items = getPaginationRange({

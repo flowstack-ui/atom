@@ -2,7 +2,11 @@
 
 ## Unreleased
 
-- No unreleased changes.
+- Added count/page-size state, an external controller and RootProvider, Context,
+  and optional First/Last controls.
+- Added custom generated-control rendering and direct group composition while
+  preserving ordered-list wrappers inside List.
+- Validate count/size inputs and expose clamped record ranges and local slicing.
 
 ## 0.23.0
 

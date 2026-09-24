@@ -15,6 +15,7 @@ import {
   type RenderProp,
 } from "../../utils/slot.js";
 import { usePaginationContext } from "./context.js";
+import { PaginationListItem } from "./PaginationListItem.js";
 
 type PaginationItemNativeProps = NativeButtonProps<
   "children" | "disabled" | "onClick" | "type" | "value"
@@ -79,6 +80,7 @@ export const PaginationItem = forwardRef<HTMLElement, PaginationItemProps>(
     );
 
     const behaviorProps: Record<string, unknown> = {
+      id: ctx.ids?.item?.(page),
       ...restProps,
       ref,
       ...(isLink
@@ -107,16 +109,16 @@ export const PaginationItem = forwardRef<HTMLElement, PaginationItemProps>(
     };
 
     if (asChild) {
-      return <li data-slot="pagination-list-item">{cloneAndMerge(children, behaviorProps)}</li>;
+      return <PaginationListItem>{cloneAndMerge(children, behaviorProps)}</PaginationListItem>;
     }
 
     return (
-      <li data-slot="pagination-list-item">
+      <PaginationListItem>
         {renderElement(render, isLink ? "a" : "button", {
           ...behaviorProps,
           children: children ?? page,
         })}
-      </li>
+      </PaginationListItem>
     );
   },
 );

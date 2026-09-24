@@ -1,5 +1,13 @@
 # Accordion Changelog
 
+## Unreleased
+
+- Add useAccordion, RootProvider, Context, ItemContext and decorative Indicator.
+- Add custom relationship IDs, independent mounting flags, Activity fallback,
+  focus notifications and per-item exit callbacks while retaining value defaults.
+- Isolate exit presence from descendant animation events, cancel interrupted
+  exits, and make closing content inert with trigger focus recovery.
+
 ## 0.22.6 - 2026-08-10
 
 - Added public Agent Knowledge for grouped disclosure selection, complete

@@ -1,12 +1,38 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import {
+  createContext,
+  useContext,
+  type MutableRefObject,
+  type ReactNode,
+} from "react";
 import type { DirectionValue } from "../direction/index.js";
 
 export type TabsOrientation = "horizontal" | "vertical";
 export type TabsActivationMode = "automatic" | "manual";
 
 export interface TabsContextValue {
+  value: string;
+  setValue: (value: string) => void;
+  clearValue: () => void;
+  focusedValue: string;
+  setFocusedValue: (value: string) => void;
+  focus: (value: string) => void;
+  select: (value: string, node?: HTMLElement) => void;
+  getId: (
+    part: "root" | "list" | "trigger" | "content" | "indicator",
+    value?: string,
+  ) => string;
+  listRef: MutableRefObject<HTMLElement | null>;
+  indicatorReady: boolean;
+  setIndicatorReady: (ready: boolean) => void;
+  collectionVersion: number;
+  composite: boolean;
+  hasNavigate: boolean;
+  lazyMount?: boolean;
+  unmountOnExit?: boolean;
+  hideMode: "display-none" | "activity";
+  onExitComplete?: () => void;
   /** Currently active tab value. */
   activeValue: string;
   /** Registered trigger values in render order. */
@@ -33,17 +59,25 @@ export interface TabsContextValue {
   getTriggerValues: () => string[];
 }
 
-const TabsContext = createContext<TabsContextValue | null>(null);
-TabsContext.displayName = "TabsContext";
+const InternalTabsContext = createContext<TabsContextValue | null>(null);
+InternalTabsContext.displayName = "TabsContext";
 
-export const TabsContextProvider = TabsContext.Provider;
+export const TabsContextProvider = InternalTabsContext.Provider;
 
 export function useTabsContext(): TabsContextValue {
-  const context = useContext(TabsContext);
+  const context = useContext(InternalTabsContext);
 
   if (!context) {
     throw new Error("Tabs compound components must be used within <TabsRoot>.");
   }
 
   return context;
+}
+
+export function TabsContext({
+  children,
+}: {
+  children: (context: TabsContextValue) => ReactNode;
+}) {
+  return children(useTabsContext());
 }

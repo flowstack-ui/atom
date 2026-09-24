@@ -1,37 +1,22 @@
 "use client";
-
-import { createContext, useContext } from "react";
-
-export interface CollapsibleContextValue {
-  /** Whether content is currently visible. */
-  isOpen: boolean;
-  /** Toggle open state. */
-  onToggle: () => void;
-  /** Open content. */
-  onOpen: () => void;
-  /** Close content. */
-  onClose: () => void;
-  /** Unique ID for the content panel. */
-  contentId: string;
-  /** Unique ID for the trigger. */
-  triggerId: string;
-  /** Whether interaction is disabled. */
-  disabled: boolean;
-  /** Axis used by the styled layer for disclosure layout and motion. */
-  orientation: "vertical" | "horizontal";
-}
-
-const CollapsibleContext = createContext<CollapsibleContextValue | null>(null);
-CollapsibleContext.displayName = "CollapsibleContext";
-
-export const CollapsibleContextProvider = CollapsibleContext.Provider;
-
+import { createContext, useContext, type ReactNode } from "react";
+import type { UseCollapsibleReturn } from "./controller.js";
+export type CollapsibleContextValue = UseCollapsibleReturn;
+const OwnerContext = createContext<CollapsibleContextValue | null>(null);
+OwnerContext.displayName = "OwnerContext";
+export const CollapsibleContextProvider = OwnerContext.Provider;
 export function useCollapsibleContext(): CollapsibleContextValue {
-  const context = useContext(CollapsibleContext);
-
-  if (!context) {
-    throw new Error("Collapsible compound components must be used within <CollapsibleRoot>.");
-  }
-
-  return context;
+  const value = useContext(OwnerContext);
+  if (!value)
+    throw new Error(
+      "Collapsible compound components must be used within <CollapsibleRoot>.",
+    );
+  return value;
+}
+export function CollapsibleContext({
+  children,
+}: {
+  children: (value: CollapsibleContextValue) => ReactNode;
+}) {
+  return children(useCollapsibleContext());
 }

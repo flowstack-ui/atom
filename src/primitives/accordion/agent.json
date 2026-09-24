@@ -29,6 +29,8 @@
     "Use landmark=false on Content when many simultaneous regions would make landmark navigation noisy."
   ],
   "rules": [
+    { "id": "accordion-lifecycle", "level": "must", "statement": "Use Root lazyMount and unmountOnExit independently; both default true. Content keepMounted explicitly overrides both for compatibility. Closed panels are inert and aria-hidden during exit. Activity pauses effects on React 19.2+ and falls back to ordinary hidden content on older React." },
+    { "id": "accordion-controller", "level": "must", "statement": "Use useAccordion with RootProvider for external control; setValue accepts an array in the controller while Root retains its discriminated single/multiple value API. Use ids for linked IDs and Context/ItemContext or their hooks for nearest-owner state. Indicator is decorative and reads its nearest Item." },
     {
       "id": "accordion-anatomy",
       "level": "must",

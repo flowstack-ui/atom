@@ -2,6 +2,7 @@
 
 import {
   forwardRef,
+  useMemo,
   type KeyboardEventHandler,
   type MouseEventHandler,
   type ReactNode,
@@ -10,6 +11,7 @@ import type { NativeButtonProps } from "../../utils/dom.js";
 import {
   cloneAndMerge,
   composeEventHandlers,
+  composeRefs,
   renderElement,
   type RenderProp,
 } from "../../utils/slot.js";
@@ -47,8 +49,9 @@ export const CollapsibleTrigger = forwardRef<HTMLButtonElement, CollapsibleTrigg
     },
     ref,
   ) {
-    const { isOpen, onToggle, contentId, triggerId, disabled, orientation } =
+    const { isOpen, onToggle, contentId, triggerId, disabled, orientation, triggerRef } =
       useCollapsibleContext();
+    const composedRef = useMemo(() => composeRefs(triggerRef, ref), [triggerRef, ref]);
     const usesNativeButton = !asChild && (render === undefined || render === "button");
 
     const handleClick: MouseEventHandler<HTMLButtonElement> = () => {
@@ -64,7 +67,7 @@ export const CollapsibleTrigger = forwardRef<HTMLButtonElement, CollapsibleTrigg
 
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
-      ref,
+      ref: composedRef,
       type: usesNativeButton ? "button" : undefined,
       role: usesNativeButton ? undefined : "button",
       id: triggerId,

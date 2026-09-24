@@ -11,7 +11,7 @@ numeric work completion. Steps does not submit, save or validate business data.
 ## Features
 
 - Controlled/uncontrolled progression and completion content.
-- Synchronous forward validation in linear mode.
+- Synchronous forward validation, optional-stage navigation, and an external controller.
 - Native ordered list and buttons, direction inheritance and composition.
 - Preserved hidden panels by default; deterministic server output.
 
@@ -65,7 +65,9 @@ Renders div. Native onChange is replaced by onStepChange.
 | linear | boolean | false |
 | disabled | boolean | false |
 | isStepValid | (index: number) => boolean | all valid |
-| onStepInvalid | ({step, targetStep}) => void | — |
+| onStepInvalid | ({step, targetStep, action}) => void | — |
+| isStepSkippable | (index: number) => boolean | none |
+| id / ids | string / StepsIds | generated |
 | orientation | horizontal \| vertical | horizontal |
 | dir | ltr \| rtl | Direction provider |
 | asChild | boolean | false |
@@ -77,10 +79,9 @@ complete without firing a callback. Completion callback fires on an observed
 transition into completion, not initial mount or an unaccepted controlled request.
 No-op navigation emits nothing. Disabled blocks all internal requests.
 
-Linear mode checks every crossed index before forward navigation; first failure
-reports onStepInvalid without changing state. Back/reset do not validate.
-External controlled updates bypass guards. Async validation, skipped/optional
-stages and branching require controlled application policy.
+Supplied validity guards forward navigation even without linear mode. Linear mode checks every crossed nonoptional index; the first failure reports onStepInvalid without changing state. Its action is `next` or `set`. Back/reset do not validate. External controlled updates bypass guards. Async validation and branching remain application-owned.
+
+`isStepSkippable` marks optional stages: Next and Previous bypass them, while direct setStep/Trigger selection remains available. Back stops at zero, even if it is optional. Next may reach completion. Optional stages are excluded from validation; skipped earlier stages still use positional completed styling.
 
 | Data attribute | Values |
 | --- | --- |
@@ -138,7 +139,7 @@ asChild and render pass through. Emits `[data-slot]=steps-separator`,
 
 ### ItemContext
 
-No DOM. Required children callback receives index/current/completed/incomplete.
+No DOM. Required children callback receives index/current/completed/incomplete, first, last, skippable, triggerId, contentId, and isValid().
 Use for custom indicators or application-localized state descriptions.
 
 ### Content
@@ -149,8 +150,7 @@ pointing at the item's Title; provide aria-label or aria-labelledby for an expli
 name. tabIndex defaults -1. Native div props, asChild and render pass through.
 Emits `[data-slot]=steps-content`, `[data-state]=active|inactive` and
 `[data-steps-panel]`. Root recovers focus from hidden mounted content into the new
-panel only when the previous focus was inside the root. Keep navigation outside
-panels; applications own custom/unmounted or asynchronous focus handoff.
+panel only when the previous focus was in its own hidden or removed panel. Nested workflows do not claim one another's panels. Keep navigation outside panels; applications own asynchronous focus handoff.
 
 ### CompletedContent
 
@@ -161,14 +161,14 @@ message and optional accessible name. No automatic live announcement. Emits
 
 ### PrevTrigger
 
-Button requesting step-1. Disabled at zero or Root disabled; consumer disabled is
+Button requesting the previous nonoptional stage (or zero). Disabled at zero or Root disabled; consumer disabled is
 also respected. Native button props, asChild and render pass through, type=button
 is owned. onClick preventDefault cancels navigation. Emits
 `[data-slot]=steps-prev-trigger` and `[data-disabled]`. Supply visible text.
 
 ### NextTrigger
 
-Button requesting step+1, including completion from the last stage. Same composition
+Button requesting the next nonoptional stage, including completion from the last stage. Same composition
 and event rules as PrevTrigger; disabled at count. Emits
 `[data-slot]=steps-next-trigger` and `[data-disabled]`. Supply visible text.
 
@@ -178,6 +178,13 @@ No DOM. Required children callback receives step, count, isCompleted, hasNextSte
 hasPrevStep, disabled, orientation, dir, idPrefix and setStep/nextStep/prevStep/resetStep.
 The public useStepsContext/useStepsItemContext hooks expose the same values within
 their respective providers. Do not use idPrefix to infer application identity.
+
+### useSteps and RootProvider
+
+`useSteps(options)` accepts the state options from Root and returns `UseStepsReturn`.
+Pass the result as `value` to `Steps.RootProvider`; the provider owns only the host and focus recovery. Use one provider per controller. Context/hooks expose `percent` (0–100), `getItemState(index)`, `isStepValid`, `isStepSkippable`, `getId`, and `goToNextStep`/`goToPrevStep` aliases alongside the existing navigation API. A zero count reports 100%.
+
+Use `id` for a stable root prefix, or `ids` to coordinate root/list/completedContent and trigger/title/description/content ID functions. Supply corresponding Title or an explicit accessible name for Content.
 
 ## Examples
 

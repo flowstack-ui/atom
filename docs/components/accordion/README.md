@@ -42,6 +42,26 @@ import { Accordion } from "@flowstack-ui/atom";
 
 ## API Reference
 
+### Controller, contexts, and lifecycle
+
+`useAccordion(options)` returns the controller consumed by `RootProvider value`.
+Root keeps its single-string/multiple-array value API; controller `value` and
+`setValue` use arrays. `Context` and `ItemContext` accept render callbacks;
+`useAccordionContext` and `useAccordionItemContext` expose the same nearest
+owner. `Indicator` is a decorative span with nearest-item state and orientation,
+supports native props, refs, asChild/render, and supplies no default artwork.
+
+Root options include `ids` (`root`, `item(value)`, `itemTrigger(value)`,
+`itemContent(value)`), `onFocusChange({value})` (null on trigger blur),
+`onExitComplete(value)`, `lazyMount`, `unmountOnExit`, and `hideMode`.
+Both mounting flags default true. Disable unmounting to retain state after
+first opening; disable lazy mounting to render content before first opening.
+Content keepMounted explicitly overrides both flags for compatibility.
+Closed panels are inert and aria-hidden throughout exit; focus inside a
+closing panel returns to its trigger. Exit completion ignores descendant
+animation events and cancelled exits. Activity pauses retained hidden effects
+on React 19.2+, with display-none fallback without effect pausing on older React.
+
 ### Root
 
 Owns the expanded-item state and keyboard-navigation settings for every item.

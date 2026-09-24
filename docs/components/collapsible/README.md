@@ -15,7 +15,8 @@ content must interrupt the page in a separate modal layer.
 - Supports vertical and horizontal expansion intent.
 - Connects Trigger and Content with generated ARIA IDs.
 - Supports disabled triggers and custom trigger rendering.
-- Keeps Content mounted on request for exit animations.
+- Separates lazy mounting, retention and exit presence.
+- Supports partial previews, state/controller access and Activity hiding.
 - Exposes open state and measured content size for consumer-owned animation.
 
 ## Import
@@ -47,6 +48,12 @@ Owns the disclosure state and shares it with Trigger and Content. It renders a
 | `onOpenChange` | `(open: boolean) => void` | - |
 | `disabled` | `boolean` | `false` |
 | `orientation` | `"vertical" \| "horizontal"` | `"vertical"` |
+| `ids` | `{ root?, trigger?, content? }` | generated |
+| `lazyMount` | `boolean` | `true` |
+| `unmountOnExit` | `boolean` | `true` |
+| `collapsedHeight` / `collapsedWidth` | nonnegative number (px) or CSS length | none |
+| `hideMode` | `"display-none" \| "activity"` | `"display-none"` |
+| `onExitComplete` | `() => void` | none |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -84,8 +91,11 @@ keyboard behavior; custom elements receive button semantics.
 ### Content
 
 Contains the disclosed region and identifies Trigger as its accessible label.
-It unmounts after closing by default, while `keepMounted` leaves a hidden copy
-available for consumer-owned exit animation.
+It unmounts after its owned exit completes by default. Set Root
+`unmountOnExit={false}` to retain state after opening, and `lazyMount={false}`
+for eager mounting. Unlike Chakra, Brick/Atom preserve lazy/unmount defaults.
+Deprecated Content `keepMounted` overrides both options (true means eager and
+retained). Do not mix legacy and Root policies; conflicting use warns.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -109,6 +119,38 @@ mounted when responsive reflow, fonts, images, or other intrinsic changes
 alter the panel. `orientation` is behavior metadata for styled layers:
 vertical motion uses height and horizontal motion uses width. Trigger keyboard
 activation does not change.
+
+### Controller and context
+
+`useCollapsible(options)` returns `open`, exit-aware `visible`, `disabled`,
+`setOpen(boolean)` and `measureSize()`. Pass it to
+`<Collapsible.RootProvider value={controller}>`. `Collapsible.Context` accepts
+a render callback; `useCollapsibleContext` reads the nearest owner. Existing
+`isOpen`, `onOpen`, `onClose`, `onToggle` context aliases remain supported.
+RootProvider host props do not configure the controller; pass options to the hook.
+
+`Collapsible.Indicator` is a decorative span with its own state/disabled/axis
+metadata. It supports render/asChild and supplies no artwork. All public parts
+forward refs. `ids` owns trigger/content IDs; native part IDs cannot break ARIA.
+Root `ids.root` overrides native Root id.
+
+### Partial previews and hiding
+
+Nonzero collapsed dimensions keep Content mounted regardless of lazy/unmount
+settings. Closed previews are inert and aria-hidden; place Trigger outside
+Content and keep essential instructions outside the preview. The entire closed
+region, including its visible excerpt, is unavailable to assistive interaction.
+Dimensions accept numeric pixels or nonnegative CSS unit lengths, not arbitrary
+expressions. The settled preview is clamped to natural content size.
+`--collapsed-height`, `--collapsed-width` and `data-has-collapsed-size` allow the
+styled layer to animate to the preview size rather than zero.
+
+Activity pauses hidden effects on React 19.2+. Older React falls back to
+display-none, retaining state without pausing effects. Unmount takes precedence
+over Activity; nonzero previews stay visible rather than Activity-hidden.
+Activity pauses effects in retained closed content while retaining React state.
+Exit completion excludes initial closed render and interrupted exits. Focus
+inside closing content returns to Trigger; no focus is moved on ordinary open.
 
 ## Examples
 

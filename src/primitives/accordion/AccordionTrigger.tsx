@@ -45,6 +45,8 @@ export const AccordionTrigger = forwardRef<HTMLButtonElement, AccordionTriggerPr
       "data-slot": dataSlot = "accordion-trigger",
       onClick,
       onKeyDown,
+      onFocus,
+      onBlur,
       ...restProps
     },
     ref,
@@ -126,6 +128,8 @@ export const AccordionTrigger = forwardRef<HTMLButtonElement, AccordionTriggerPr
       disabled: usesNativeButton ? item.disabled || undefined : undefined,
       onClick: composeEventHandlers(onClick, handleClick),
       onKeyDown: composeEventHandlers(onKeyDown, handleKeyDown),
+      onFocus: composeEventHandlers(onFocus, () => group.onFocusChange?.({ value: item.value })),
+      onBlur: composeEventHandlers(onBlur, () => group.onFocusChange?.({ value: null })),
       className,
     };
 

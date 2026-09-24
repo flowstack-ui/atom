@@ -1,138 +1,102 @@
 "use client";
-
-import {
-  forwardRef,
-  useCallback,
-  useId,
-  type ReactNode,
-} from "react";
-import { useCollection } from "../../collection.js";
-import { useControllableState } from "../../hooks/useControllableState.js";
+import { forwardRef, type ReactNode } from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
-import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
-import { useDirection, type DirectionValue } from "../direction/index.js";
 import {
-  TabsContextProvider,
-  type TabsActivationMode,
-  type TabsContextValue,
-  type TabsOrientation,
-} from "./context.js";
+  cloneAndMerge,
+  renderElement,
+  type RenderProp,
+} from "../../utils/slot.js";
+import { TabsContextProvider } from "./context.js";
+import {
+  useTabs,
+  type UseTabsProps,
+  type UseTabsReturn,
+} from "./controller.js";
 
-type TabsRootNativeProps = NativeDivProps<"children" | "defaultValue" | "dir" | "onChange">;
-
-export interface TabsRootProps extends TabsRootNativeProps {
-  /** Controlled active tab value. */
-  value?: string;
-  /** Uncontrolled initial active tab value. */
-  defaultValue?: string;
-  /** Callback when active tab changes. */
-  onValueChange?: (value: string) => void;
-  /** Tab layout orientation. */
-  orientation?: TabsOrientation;
-  /** Text direction used for horizontal arrow-key navigation. Defaults to DirectionProvider. */
-  dir?: DirectionValue;
-  /** Focus activation or explicit activation. */
-  activationMode?: TabsActivationMode;
-  /** Arrow keys wrap from last to first. */
-  loop?: boolean;
-  /** Override the rendered element. */
+export interface TabsRootProps
+  extends NativeDivProps<"children" | "defaultValue" | "dir" | "onChange">,
+    UseTabsProps {
   render?: RenderProp;
-  /** Merge behavior props onto a single child element. */
   asChild?: boolean;
-  /** Compound children. */
   children?: ReactNode;
-  /** CSS class name supplied by the styled layer or consumer. */
-  className?: string;
-  /** Data slot identifier. */
   "data-slot"?: string;
 }
-
+export interface TabsRootProviderProps
+  extends Omit<TabsRootProps, keyof UseTabsProps> {
+  value: UseTabsReturn;
+}
+export const TabsRootProvider = forwardRef<
+  HTMLDivElement,
+  TabsRootProviderProps
+>(function TabsRootProvider(
+  {
+    value,
+    render,
+    asChild,
+    children,
+    "data-slot": slot = "tabs-root",
+    ...rest
+  },
+  ref,
+) {
+  const props = {
+    ...rest,
+    ref,
+    id: value.getId("root"),
+    dir: value.dir,
+    "data-slot": slot,
+    "data-orientation": value.orientation,
+  };
+  const element = asChild
+    ? cloneAndMerge(children, props)
+    : renderElement(render, "div", { ...props, children });
+  return <TabsContextProvider value={value}>{element}</TabsContextProvider>;
+});
 export const TabsRoot = forwardRef<HTMLDivElement, TabsRootProps>(
   function TabsRoot(
     {
       value,
-      defaultValue = "",
-      onValueChange,
-      orientation = "horizontal",
-      dir: dirProp,
-      activationMode = "automatic",
-      loop = true,
-      render,
-      asChild,
-      children,
-      className,
-      "data-slot": dataSlot = "tabs-root",
-      ...restProps
-    },
-    ref,
-  ) {
-    const contextDir = useDirection();
-    const dir = dirProp ?? contextDir;
-    const [activeValue, setActiveValue] = useControllableState({
-      value,
       defaultValue,
-      onChange: onValueChange,
-    });
-    const idPrefix = useId();
-    const {
-      registerItem: registerCollectionTrigger,
-      unregisterItem: unregisterCollectionTrigger,
-      getItem: getCollectionTrigger,
-      getValues: getCollectionTriggerValues,
-    } = useCollection<string, HTMLButtonElement>();
-
-    const registerTrigger = useCallback(
-      (value: string, element: HTMLButtonElement) => {
-        registerCollectionTrigger(value, element);
-      },
-      [registerCollectionTrigger],
-    );
-
-    const unregisterTrigger = useCallback(
-      (value: string) => unregisterCollectionTrigger(value),
-      [unregisterCollectionTrigger],
-    );
-
-    const getTriggerElement = useCallback((value: string): HTMLButtonElement | null => {
-      return getCollectionTrigger(value)?.element ?? null;
-    }, [getCollectionTrigger]);
-
-    const getTriggerValues = useCallback((): string[] => {
-      return getCollectionTriggerValues();
-    }, [getCollectionTriggerValues]);
-
-    const contextValue: TabsContextValue = {
-      activeValue,
-      registeredValues: getTriggerValues(),
-      setActiveValue,
-      idPrefix,
+      onValueChange,
       orientation,
       dir,
       activationMode,
       loop,
-      registerTrigger,
-      unregisterTrigger,
-      getTriggerElement,
-      getTriggerValues,
-    };
-
-    const behaviorProps: Record<string, unknown> = {
-      ...restProps,
-      ref,
+      loopFocus,
+      deselectable,
+      composite,
+      onFocusChange,
+      navigate,
+      id,
+      ids,
+      lazyMount,
+      unmountOnExit,
+      hideMode,
+      onExitComplete,
+      ...rest
+    },
+    ref,
+  ) {
+    const api = useTabs({
+      value,
+      defaultValue,
+      onValueChange,
+      orientation,
       dir,
-      "data-slot": dataSlot,
-      "data-orientation": orientation,
-      className,
-    };
-
-    const element = asChild
-      ? cloneAndMerge(children, behaviorProps)
-      : renderElement(render, "div", { ...behaviorProps, children });
-
-    return (
-      <TabsContextProvider value={contextValue}>
-        {element}
-      </TabsContextProvider>
-    );
+      activationMode,
+      loop,
+      loopFocus,
+      deselectable,
+      composite,
+      onFocusChange,
+      navigate,
+      id,
+      ids,
+      lazyMount,
+      unmountOnExit,
+      hideMode,
+      onExitComplete,
+    });
+    return <TabsRootProvider {...rest} value={api} ref={ref} />;
   },
 );

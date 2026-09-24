@@ -3,6 +3,7 @@
 import { forwardRef, type ReactNode } from "react";
 import type { NativeSpanProps } from "../../utils/dom.js";
 import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
+import { PaginationListItem } from "./PaginationListItem.js";
 
 type PaginationEllipsisNativeProps = NativeSpanProps<"children" | "aria-hidden">;
 
@@ -36,16 +37,16 @@ export const PaginationEllipsis = forwardRef<HTMLSpanElement, PaginationEllipsis
     };
 
     if (asChild) {
-      return <li data-slot="pagination-list-item">{cloneAndMerge(children, behaviorProps)}</li>;
+      return <PaginationListItem>{cloneAndMerge(children, behaviorProps)}</PaginationListItem>;
     }
 
     return (
-      <li data-slot="pagination-list-item">
+      <PaginationListItem>
         {renderElement(render, "span", {
           ...behaviorProps,
           children,
         })}
-      </li>
+      </PaginationListItem>
     );
   },
 );

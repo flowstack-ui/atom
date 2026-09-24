@@ -9,7 +9,7 @@ export interface PaginationRangeOptions {
 
 export function clampPaginationPage(page: number, totalPages: number): number {
   if (totalPages <= 0) return 1;
-  return Math.max(1, Math.min(page, totalPages));
+  return Math.max(1, Math.min(Number.isFinite(page) ? Math.trunc(page) : 1, totalPages));
 }
 
 export function getPaginationRange({
@@ -18,10 +18,11 @@ export function getPaginationRange({
   siblingCount = 1,
   boundaryCount = 1,
 }: PaginationRangeOptions): PaginationRangeItem[] {
+  if (!Number.isSafeInteger(totalPages)) throw new RangeError("Pagination totalPages must be a safe integer.");
   if (totalPages <= 0) return [];
 
-  const normalizedSiblingCount = Math.max(0, siblingCount);
-  const normalizedBoundaryCount = Math.max(0, boundaryCount);
+  const normalizedSiblingCount = Math.min(totalPages, Math.max(0, Number.isFinite(siblingCount) ? Math.trunc(siblingCount) : 1));
+  const normalizedBoundaryCount = Math.min(totalPages, Math.max(0, Number.isFinite(boundaryCount) ? Math.trunc(boundaryCount) : 1));
   const targetCount = Math.min(
     totalPages,
     normalizedBoundaryCount * 2 + normalizedSiblingCount * 2 + 3,

@@ -6,17 +6,26 @@ import {
   PaginationItems,
   PaginationList,
   PaginationNext,
+  PaginationFirst,
+  PaginationLast,
   PaginationPrevious,
   PaginationRoot,
+  PaginationRootProvider,
+  PaginationContextConsumer,
 } from "./primitives/pagination/index.js";
 
 export {
   PaginationContextProvider,
+  PaginationContextConsumer,
+  PaginationRootProvider,
+  usePagination,
   PaginationEllipsis,
   PaginationItem,
   PaginationItems,
   PaginationList,
   PaginationNext,
+  PaginationFirst,
+  PaginationLast,
   PaginationPrevious,
   PaginationRoot,
   clampPaginationPage,
@@ -26,6 +35,7 @@ export {
 } from "./primitives/pagination/index.js";
 export type {
   PaginationContextValue,
+  PaginationIds,
   PaginationControlProps,
   PaginationEllipsisProps,
   PaginationItemProps,
@@ -36,14 +46,21 @@ export type {
   PaginationRangeItem,
   PaginationRangeOptions,
   PaginationRootProps,
+  PaginationRootProviderProps,
+  UsePaginationProps,
+  UsePaginationReturn,
 } from "./primitives/pagination/index.js";
 
 export const Pagination = {
   Root: PaginationRoot,
+  RootProvider: PaginationRootProvider,
+  Context: PaginationContextConsumer,
   List: PaginationList,
   Previous: PaginationPrevious,
   Items: PaginationItems,
   Item: PaginationItem,
   Ellipsis: PaginationEllipsis,
   Next: PaginationNext,
+  First: PaginationFirst,
+  Last: PaginationLast,
 } as const;

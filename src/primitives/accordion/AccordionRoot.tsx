@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useCallback, type ReactNode } from "react";
+import { forwardRef, useCallback, useId, type ReactNode } from "react";
 import { useCollection } from "../../collection.js";
 import { useControllableState } from "../../hooks/useControllableState.js";
 import type { NativeDivProps } from "../../utils/dom.js";
@@ -14,6 +14,12 @@ import {
 type AccordionRootNativeProps = NativeDivProps<"children" | "defaultValue" | "onChange">;
 
 interface AccordionRootCommonProps extends AccordionRootNativeProps {
+  ids?: { root?: string; item?: (value: string) => string; itemTrigger?: (value: string) => string; itemContent?: (value: string) => string };
+  lazyMount?: boolean;
+  unmountOnExit?: boolean;
+  hideMode?: "display-none" | "activity";
+  onExitComplete?: (value: string) => void;
+  onFocusChange?: (details: { value: string | null }) => void;
   /** Allow all items to close in single mode. */
   collapsible?: boolean;
   /** Disable all items. */
@@ -60,9 +66,8 @@ export type AccordionRootProps =
   | AccordionRootSingleProps
   | AccordionRootMultipleProps;
 
-export const AccordionRoot = forwardRef<HTMLDivElement, AccordionRootProps>(
-  function AccordionRoot(
-    {
+export type UseAccordionOptions = AccordionRootProps;
+export function useAccordion({
       type = "single",
       value,
       defaultValue,
@@ -71,15 +76,14 @@ export const AccordionRoot = forwardRef<HTMLDivElement, AccordionRootProps>(
       disabled = false,
       orientation = "vertical",
       dir: dirProp,
-      render,
-      asChild,
-      children,
-      className,
-      "data-slot": dataSlot = "accordion-root",
-      ...restProps
-    },
-    ref,
-  ) {
+      ids,
+      lazyMount = true,
+      unmountOnExit = true,
+      hideMode = "display-none",
+      onExitComplete,
+      onFocusChange,
+    }: UseAccordionOptions = {}): AccordionContextValue {
+    const generatedId = useId();
     const contextDir = useDirection();
     const dir = dirProp ?? contextDir;
     const isMultiple = type === "multiple";
@@ -186,6 +190,19 @@ export const AccordionRoot = forwardRef<HTMLDivElement, AccordionRootProps>(
     );
 
     const contextValue: AccordionContextValue = {
+      rootId: ids?.root ?? `${generatedId}-accordion`,
+      ids,
+      lazyMount,
+      unmountOnExit,
+      hideMode,
+      onExitComplete,
+      onFocusChange,
+      setValue: (next) => {
+        if (disabled) return;
+        const normalized = [...new Set(next)];
+        if (!collapsible && !isMultiple && expandedValue.length && !normalized.length) return;
+        setExpandedValue(isMultiple ? normalized : normalized.slice(0, 1));
+      },
       value: expandedValue,
       onToggle,
       multiple: isMultiple,
@@ -202,13 +219,22 @@ export const AccordionRoot = forwardRef<HTMLDivElement, AccordionRootProps>(
       getLastTriggerValue,
     };
 
+    return contextValue;
+}
+
+export type UseAccordionReturn = ReturnType<typeof useAccordion>;
+export interface AccordionRootProviderProps extends Omit<AccordionRootCommonProps, "onFocusChange" | "onExitComplete" | "ids" | "lazyMount" | "unmountOnExit" | "hideMode" | "disabled" | "collapsible"> {
+  value: UseAccordionReturn;
+}
+export const AccordionRootProvider = forwardRef<HTMLDivElement, AccordionRootProviderProps>(function AccordionRootProvider({ value: api, render, asChild, children, className, "data-slot": dataSlot = "accordion-root", ...props }, ref) {
     const behaviorProps: Record<string, unknown> = {
-      ...restProps,
+      ...props,
       ref,
-      dir,
+      id: props.id ?? api.rootId,
+      dir: api.dir,
       "data-slot": dataSlot,
-      "data-orientation": orientation,
-      ...(disabled ? { "data-disabled": "" } : {}),
+      "data-orientation": api.orientation,
+      ...(api.disabled ? { "data-disabled": "" } : {}),
       className,
     };
 
@@ -217,9 +243,14 @@ export const AccordionRoot = forwardRef<HTMLDivElement, AccordionRootProps>(
       : renderElement(render, "div", { ...behaviorProps, children });
 
     return (
-      <AccordionContextProvider value={contextValue}>
+      <AccordionContextProvider value={api}>
         {element}
       </AccordionContextProvider>
     );
-  },
-);
+});
+
+export const AccordionRoot = forwardRef<HTMLDivElement, AccordionRootProps>(function AccordionRoot(props, ref) {
+  const api = useAccordion(props);
+  const { type, value, defaultValue, onValueChange, collapsible, disabled, orientation, dir, ids, lazyMount, unmountOnExit, hideMode, onExitComplete, onFocusChange, ...host } = props;
+  return <AccordionRootProvider {...host} ref={ref} value={api} />;
+});

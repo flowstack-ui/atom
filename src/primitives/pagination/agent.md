@@ -14,7 +14,10 @@ Represent movement through ordered result pages with named navigation, current-p
 
 ## Required composition
 
-- Compose Root and List with Page items plus Previous, Next, and Ellipsis as needed.
+- Use exactly one of totalPages or count. Count mode owns pageSize, defaultPageSize and onPageSizeChange; fetching remains application-owned.
+- Use usePagination with RootProvider for external controls; Context and usePaginationContext expose the same state inside Root.
+- Compose Root and List for ordered-list semantics, or render controls directly for control-group composition. Items render custom hosts through asChild without nested buttons.
+- First and Last are optional controls; record ranges, slice and setPageSize require count mode.
 - For URL-backed results, provide Root getPageHref so Item, Previous, and Next render native anchors; derive controlled Root page from the current route.
 
 ## Rules

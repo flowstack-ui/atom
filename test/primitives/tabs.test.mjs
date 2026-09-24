@@ -25,8 +25,10 @@ import {
 } from "../../dist/_internal/primitives/tabs/TabsList.js";
 
 test("keyboard tab navigation reveals the focused trigger with nearest scrolling", async () => {
-  const source = await readFile(new URL("src/primitives/tabs/TabsList.tsx", packageRoot), "utf8");
-  assert.match(source, /element\.scrollIntoView\(\{ block: "nearest", inline: "nearest", behavior: "instant" \}\)/);
+  const source = await readFile(new URL("src/primitives/tabs/controller.ts", packageRoot), "utf8");
+  assert.match(source, /focus\(\{ preventScroll: true \}\)/);
+  assert.match(source, /list.scrollLeft/);
+  assert.doesNotMatch(source, /scrollIntoView/);
 });
 
 test("Tabs primitives render ARIA linked tab and panel", () => {
@@ -59,7 +61,7 @@ test("Tabs primitives render ARIA linked tab and panel", () => {
   assert.match(html, /data-value="password"/);
   assert.match(html, /role="tabpanel"/);
   assert.match(html, /aria-labelledby="[^"]+-trigger-account"/);
-  assert.doesNotMatch(html, /role="tabpanel"[^>]*tabindex=/);
+  assert.match(html, /role="tabpanel"[^>]*tabindex="0"/);
   assert.match(html, /Account content/);
   assert.doesNotMatch(html, /Password content/);
 });
@@ -107,9 +109,9 @@ test("TabsRoot resolves local and provider direction for horizontal navigation",
     ),
   );
 
-  assert.match(localHtml, /^<div dir="rtl"/);
-  assert.match(providerHtml, /^<div dir="rtl"/);
-  assert.match(overrideHtml, /^<div dir="ltr"/);
+  assert.match(localHtml, /^<div[^>]* dir="rtl"/);
+  assert.match(providerHtml, /^<div[^>]* dir="rtl"/);
+  assert.match(overrideHtml, /^<div[^>]* dir="ltr"/);
 });
 
 test("TabsList horizontal arrow navigation mirrors in RTL while vertical navigation does not", () => {
@@ -201,11 +203,11 @@ test("TabsContent keepMounted renders inactive panel hidden", () => {
 
 test("TabsRoot source uses Collection for DOM-ordered trigger registration", async () => {
   const source = await readFile(
-    new URL("src/primitives/tabs/TabsRoot.tsx", packageRoot),
+    new URL("src/primitives/tabs/controller.ts", packageRoot),
     "utf8",
   );
 
   assert.match(source, /useCollection<string, HTMLButtonElement>\(\)/);
-  assert.match(source, /registerCollectionTrigger/);
+  assert.match(source, /collection.registerItem/);
   assert.doesNotMatch(source, /compareDocumentPosition/);
 });
