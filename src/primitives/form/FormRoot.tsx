@@ -3,7 +3,9 @@
 import {
   forwardRef,
   useCallback,
+  useEffect,
   useMemo,
+  useRef,
   useState,
   type FormEvent,
   type FormEventHandler,
@@ -57,6 +59,8 @@ export const FormRoot = forwardRef<HTMLFormElement, FormRootProps>(
     },
     ref,
   ) {
+    const submissionGeneration = useRef(0);
+    useEffect(() => () => { submissionGeneration.current += 1; }, []);
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [callbackInvalid, setCallbackInvalid] = useState(false);
@@ -119,6 +123,9 @@ export const FormRoot = forwardRef<HTMLFormElement, FormRootProps>(
           return;
         }
 
+        const generation = ++submissionGeneration.current;
+        const form = event.currentTarget;
+        const isCurrent = () => generation === submissionGeneration.current;
         setSubmitting(true);
         setSubmitted(false);
 
@@ -132,6 +139,8 @@ export const FormRoot = forwardRef<HTMLFormElement, FormRootProps>(
             ? await validationResult
             : validationResult;
 
+          if (!isCurrent()) return;
+
           if (isValid === false) {
             event.preventDefault();
             setCallbackInvalid(true);
@@ -140,17 +149,26 @@ export const FormRoot = forwardRef<HTMLFormElement, FormRootProps>(
 
           setCallbackInvalid(false);
 
-          const submitResult = onSubmit?.(event);
+          // React clears currentTarget after dispatch, before async validation
+          // resolves. Preserve the callback's form without mutating that event.
+          const submitEvent: FormEvent<HTMLFormElement> = event.currentTarget === form
+            ? event
+            : Object.assign(Object.create(event), {
+                currentTarget: form,
+                preventDefault: event.preventDefault.bind(event),
+                stopPropagation: event.stopPropagation.bind(event),
+              });
+          const submitResult = onSubmit?.(submitEvent);
           if (isPromiseLike(submitResult)) {
             await submitResult;
           }
 
-          setSubmitted(true);
+          if (isCurrent()) setSubmitted(true);
         } catch (error) {
-          setSubmitted(false);
+          if (isCurrent()) setSubmitted(false);
           throw error;
         } finally {
-          setSubmitting(false);
+          if (isCurrent()) setSubmitting(false);
         }
       },
       [action, onSubmit, preventDefaultOnSubmit, validateOnSubmit],
@@ -161,6 +179,7 @@ export const FormRoot = forwardRef<HTMLFormElement, FormRootProps>(
         onReset?.(event);
         if (event.defaultPrevented) return;
 
+        submissionGeneration.current += 1;
         setSubmitting(false);
         setSubmitted(false);
         setCallbackInvalid(false);

@@ -58,11 +58,19 @@ provides submission state to descendants.
 | `render` | `RenderProp` | - |
 
 Async validation always prevents default navigation so validation can finish.
+Successful async validation does not restart native navigation automatically;
+perform the accepted application submission in `onSubmit`.
+The accepted callback retains the form as `event.currentTarget`, including
+after asynchronous validation, so it can construct `FormData` normally.
 A synchronous `false` result also prevents submission and marks the Form
 invalid. For an async `onSubmit` without async validation, set
 `preventDefaultOnSubmit` when browser navigation is not wanted. Rejected submit
 handlers leave submitted state false and rethrow the error so the application
 or framework can observe it.
+
+Callback state belongs to the latest submission attempt. Reset or unmount
+invalidates earlier pending completions; network requests themselves remain
+application-owned. React function-action pending state remains React-owned.
 
 | Data attribute | Values |
 | --- | --- |

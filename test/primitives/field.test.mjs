@@ -19,6 +19,20 @@ import {
   markFieldPart,
 } from "../../dist/index.js";
 
+test("Field explicit IDs and targeted Items preserve separate control relationships", () => {
+  const h = React.createElement;
+  const html = renderToStaticMarkup(h(Field.Root, { ids: { control: "price", label: "price-label", description: "price-help" }, target: "amount" },
+    h(Field.Label, null, "Price"),
+    h(Field.Item, { value: "currency" }, h(Input.Root, { "aria-label": "Currency" })),
+    h(Field.Item, { value: "amount" }, h(Input.Root)),
+    h(Field.Description, null, "Amount before tax")));
+  assert.match(html, /for="price-item-amount"/);
+  assert.match(html, /id="price-item-currency"/);
+  assert.match(html, /id="price-item-amount"/);
+  assert.match(html, /id="price-label"/);
+  assert.match(html, /aria-describedby="price-help"/);
+});
+
 test("Field bridges Fieldset state and validation behavior to controls", () => {
   const html = renderToStaticMarkup(
     React.createElement(
@@ -39,9 +53,9 @@ test("Field bridges Fieldset state and validation behavior to controls", () => {
   );
 
   assert.match(html, /data-slot="fieldset"[^>]*data-invalid=""[^>]*data-disabled=""[^>]*data-required=""/);
-  assert.match(html, /data-slot="field"[^>]*data-atom-validation-behavior="inline"[^>]*data-invalid=""[^>]*data-disabled=""[^>]*data-required=""/);
-  assert.match(html, /<input(?=[^>]*data-slot="input")(?=[^>]*disabled="")(?=[^>]*required="")(?=[^>]*aria-invalid="true")[^>]*>/);
-  assert.match(html, /aria-describedby="nested-value-error"/);
+  assert.match(html, /data-slot="field"[^>]*data-atom-validation-behavior="inline"[^>]*data-disabled=""[^>]*data-required=""/);
+  assert.match(html, /<input(?=[^>]*data-slot="input")(?=[^>]*disabled="")(?=[^>]*required="")[^>]*>/);
+  assert.doesNotMatch(html, /aria-describedby="nested-value-error"/);
 });
 
 test("Field parts render generated IDs and state data attributes", () => {

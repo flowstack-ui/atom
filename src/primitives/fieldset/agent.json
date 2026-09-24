@@ -14,6 +14,6 @@
     { "id": "fieldset-visible-legend", "level": "must", "statement": "Provide a meaningful legend unless an equivalent documented accessible naming strategy is required." }
   ],
   "commonMistakes": [{ "mistake": "Using one Field to label a collection of controls.", "correction": "Use Fieldset for the group and Field for each independently labeled control." }],
-  "validation": ["Inspect fieldset and legend semantics.", "Confirm disabled, required, and invalid group state reaches descendants as documented."],
+  "validation": ["Inspect fieldset and legend semantics.", "Confirm disabled and required inheritance; group invalidity must not feed back into independent Fields."],
   "related": ["form", "field", "checkbox"]
 }

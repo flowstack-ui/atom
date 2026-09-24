@@ -11,6 +11,7 @@ export interface FieldContextValue {
   required: boolean;
   readOnly: boolean;
   controlId: string;
+  targetId?: string;
   labelId: string;
   descriptionId: string;
   errorId: string;

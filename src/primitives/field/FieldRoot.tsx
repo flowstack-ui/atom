@@ -32,6 +32,9 @@ import {
 type FieldRootNativeProps = NativeDivProps<"children">;
 
 export interface FieldRootProps extends FieldRootNativeProps {
+  ids?: { control?: string; label?: string; description?: string; error?: string };
+  /** Named Item activated by the root Label. */
+  target?: string;
   children: ReactNode;
   invalid?: boolean;
   disabled?: boolean;
@@ -57,6 +60,8 @@ export const FieldRoot = forwardRef<HTMLDivElement, FieldRootProps>(
       render,
       asChild,
       id: providedId,
+      ids,
+      target,
       "data-slot": dataSlot = "field",
       ...restProps
     },
@@ -68,15 +73,14 @@ export const FieldRoot = forwardRef<HTMLDivElement, FieldRootProps>(
       fieldsetContext?.reportControlValidity ?? formContext?.reportControlValidity;
     const isDisabled = Boolean(disabled || fieldsetContext?.disabled);
     const isRequired = required ?? fieldsetContext?.required ?? false;
-    const inheritedInvalid = fieldsetContext?.invalid ?? false;
     const validationId = useId();
     const rootRef = useRef<HTMLDivElement>(null);
     const autoId = useId();
     const baseId = providedId ?? autoId;
-    const controlId = `${baseId}-control`;
-    const labelId = `${baseId}-label`;
-    const descriptionId = `${baseId}-description`;
-    const errorId = `${baseId}-error`;
+    const controlId = ids?.control ?? `${baseId}-control`;
+    const labelId = ids?.label ?? `${baseId}-label`;
+    const descriptionId = ids?.description ?? `${baseId}-description`;
+    const errorId = ids?.error ?? `${baseId}-error`;
     const relationshipChildren =
       asChild && isValidElement<{ children?: ReactNode }>(children)
         ? children.props.children
@@ -94,7 +98,7 @@ export const FieldRoot = forwardRef<HTMLDivElement, FieldRootProps>(
       () => new Set(),
     );
     const effectiveInvalid =
-      Boolean(invalid) || inheritedInvalid || invalidControlIds.size > 0 || invalidNativeElements.size > 0;
+      Boolean(invalid) || invalidControlIds.size > 0 || invalidNativeElements.size > 0;
     const visibleParts = getFieldPartPresence(relationshipChildren, effectiveInvalid);
     const [partCounts, setPartCounts] = useState({ description: 0, error: 0 });
     const [partRegistryReady, setPartRegistryReady] = useState(false);
@@ -155,6 +159,7 @@ export const FieldRoot = forwardRef<HTMLDivElement, FieldRootProps>(
         required: isRequired,
         readOnly,
         controlId,
+        targetId: target ? `${controlId}-item-${encodeURIComponent(target)}` : controlId,
         labelId,
         descriptionId,
         errorId,
@@ -167,6 +172,7 @@ export const FieldRoot = forwardRef<HTMLDivElement, FieldRootProps>(
       }),
       [
         controlId,
+        target,
         describedBy,
         descriptionId,
         isDisabled,

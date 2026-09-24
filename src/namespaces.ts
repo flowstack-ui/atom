@@ -189,12 +189,15 @@ import {
   FieldLabel,
   FieldRequiredIndicator,
   FieldRoot,
+  FieldItem,
+  FieldContext,
 } from "./primitives/field/index.js";
 import {
   FieldsetDescription,
   FieldsetError,
   FieldsetLegend,
   FieldsetRoot,
+  FieldsetContext,
 } from "./primitives/fieldset/index.js";
 import {
   FeedItem,
@@ -702,6 +705,8 @@ export const Input = {
 } as const;
 
 export const Field = {
+  Item: FieldItem,
+  Context: FieldContext,
   Root: FieldRoot,
   Label: FieldLabel,
   Description: FieldDescription,
@@ -710,6 +715,7 @@ export const Field = {
 } as const;
 
 export const Fieldset = {
+  Context: FieldsetContext,
   Root: FieldsetRoot,
   Legend: FieldsetLegend,
   Description: FieldsetDescription,

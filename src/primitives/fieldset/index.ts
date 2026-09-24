@@ -14,3 +14,5 @@ export { FieldsetRoot } from "./FieldsetRoot.js";
 export type { FieldsetRootProps } from "./FieldsetRoot.js";
 export { markFieldsetPart } from "./parts.js";
 export type { FieldsetPartKind } from "./parts.js";
+export { FieldsetContext } from "./FieldsetContext.js";
+export type { FieldsetContextProps } from "./FieldsetContext.js";

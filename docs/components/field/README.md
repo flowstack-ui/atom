@@ -20,9 +20,10 @@ state or description/error wiring is needed.
 - Supports custom parts through public context hooks.
 - Preserves server relationships when Root composes one wrapper with
   `asChild`.
-- Bridges a containing Fieldset's disabled, required, invalid, and validation
-  state to its control and reports aggregate Field validity back through that
-  Fieldset before Form.
+- Bridges a containing Fieldset's disabled, required, and validation state to
+  its control and reports Field validity back through that Fieldset before Form.
+  Group invalidity does not mark every independently labelled Field invalid.
+- Supports explicit relationship IDs and separately identified compound items.
 
 ## Import
 
@@ -38,6 +39,8 @@ import { Field } from "@flowstack-ui/atom";
   <Field.Description />
   <Field.Error />
   <Field.RequiredIndicator />
+  <Field.Item />
+  <Field.Context />
 </Field.Root>
 
 useFieldContext()
@@ -57,7 +60,9 @@ state. It does not render the actual form control.
 | `disabled` | `boolean` | Fieldset state or `false` |
 | `required` | `boolean` | Fieldset state or `false` |
 | `readOnly` | `boolean` | `false` |
-| `invalid` | `boolean` | Fieldset state or `false` |
+| `invalid` | `boolean` | `false`; combined with this Field's control validity |
+| `ids` | `{ control?: string; label?: string; description?: string; error?: string }` | Generated IDs |
+| `target` | `string` | Root control; set to an Item value for compound entry |
 | `validationBehavior` | `"inline" \| "native"` | Fieldset/Form value, then automatic |
 | `orientation` | `"vertical" \| "horizontal"` | `"vertical"` |
 | `asChild` | `boolean` | `false` |
@@ -65,6 +70,9 @@ state. It does not render the actual form control.
 
 Supplying `id` creates `${id}-control`, `${id}-label`, `${id}-description`,
 and `${id}-error`; otherwise the base ID is generated.
+Use `ids.control` to coordinate an authored control ID, or explicitly match
+Label's `htmlFor`. Set each invalid Field explicitly when presenting server
+errors; Fieldset invalidity alone describes the group.
 
 | Data attribute | Values |
 | --- | --- |
@@ -155,6 +163,34 @@ to avoid showing two required markers.
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"field-required-indicator" \| "field-optional-indicator"` |
+
+### Item
+
+Renders a structural `div` and provides a separate control ID derived from its
+unique value. Use it for related parts of one compound answer, not unrelated
+fields. Set Root `target` to the value named by Root's Label and give secondary
+controls accessible names. Supporting descriptions and validity remain shared.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `value` | `string` | Required; unique within Root |
+| `children` | `ReactNode` | - |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"field-item"` |
+| `[data-value]` | Authored item value |
+
+### Context
+
+Renders `children(context)` without adding a host. It exposes the resolved
+Field state and relationships and must be used inside Root.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `children` | `(context: FieldContextValue) => ReactNode` | Required |
 
 ### useFieldContext
 

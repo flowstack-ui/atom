@@ -2,8 +2,13 @@
 
 ## Unreleased
 
+- Preserve the accepted submit callback's form target after asynchronous
+  validation without mutating React's dispatched event.
+
 - Cancel queued uncontrolled reset callbacks on unmount or form reassociation,
   while keeping the latest callback during ordinary rerenders.
+
+- Callback state is owned by the latest submission attempt. Reset or unmount invalidates earlier pending completions; requests themselves remain application-owned. React function-action pending state remains React-owned.
 
 ## 0.6.17
 

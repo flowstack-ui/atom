@@ -1457,3 +1457,8 @@ export * from "./action-bar.js";
 export * from "./floating-panel.js";
 export * from "./qr-code.js";
 export * from "./table-of-contents.js";
+
+export { FieldItem, FieldContext } from "./primitives/field/index.js";
+export type { FieldItemProps, FieldContextProps } from "./primitives/field/index.js";
+export { FieldsetContext } from "./primitives/fieldset/index.js";
+export type { FieldsetContextProps } from "./primitives/fieldset/index.js";

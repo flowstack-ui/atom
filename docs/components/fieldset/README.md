@@ -34,6 +34,7 @@ import { Fieldset } from "@flowstack-ui/atom";
   <Fieldset.Legend />
   <Fieldset.Description />
   <Fieldset.Error />
+  <Fieldset.Context />
 </Fieldset.Root>
 
 useFieldsetContext()
@@ -64,6 +65,8 @@ relationships to its Description and currently visible Error.
 
 Root does not emit `aria-required`; required group state must be communicated
 through Legend text and the descendant controls where appropriate.
+Root aggregates child validity without feeding group invalidity back into each
+independently labelled Field. Mark invalid Fields explicitly when needed.
 
 | Data attribute | Values |
 | --- | --- |
@@ -123,6 +126,15 @@ Root's accessible description. It has no live role by default; pass native
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"fieldset-error"` |
+
+### Context
+
+Renders `children(context)` without a DOM wrapper and exposes resolved group
+state and relationships. It must be used inside Root.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `children` | `(context: FieldsetContextValue) => ReactNode` | Required |
 
 ### useFieldsetContext
 
