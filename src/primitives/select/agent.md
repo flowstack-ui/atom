@@ -18,12 +18,15 @@ Choose one value from a compact trigger-owned popup listbox with typeahead, acti
 
 ## Rules
 
+- **MUST:** For opaque or async options, provide items records with value, label and disabled state; synchronize them with rendered Items for SSR labels and native form submission. Pass the original useSelect controller to RootProvider once. Use lazyMount/unmountOnExit/present/onExitComplete for presence, ids for stable relationships, and preventDefault on the matching outside or Escape callback to cancel dismissal. Closed retained content stays inert.
+- **MUST:** Use closeOnSelect, loopFocus, highlightedValue/onHighlightChange and positioning for owned selection and popup policy. Render ClearTrigger beside Trigger, never inside its button, with a localized accessible name. Preserve disabled/readOnly, native autofill and popup-local post-positioning scroll.
 - **MUST:** Give Trigger an accessible name through native ARIA or Field labeling and preserve its combobox, expanded, controls, active-descendant, required, read-only, invalid, and disabled relationships.
 - **MUST:** Use Select only for one predefined value and route controlled value and open state through their matching callbacks.
 - **MUST:** Give every Item a stable unique value and ItemText or label so Trigger Value display, option naming, typeahead, and the hidden native select work even before the popup mounts.
 - **MUST:** Preserve Trigger-owned Arrow, Home/End, printable typeahead, Enter/Space selection, Tab, Escape stack, disabled skipping, highlight, focus restoration, and completed outside-interaction behavior.
 - **MUST:** Preserve the hidden native select's name, form, options, selected value, disabled state, required validity, reset, and validation-focus redirection to Trigger.
 - **MUST:** Use either Content or Listbox once, keep Arrow inside it, and keep scroll buttons outside the registered Viewport so Atom can own positioning and overflow state.
+- **MUST:** With an Arrow mounted, positioning gutter/sideOffset measures the gap to the arrow tip; without an Arrow the gap is to content. Explicit positioning.offset remains a raw offset. Arrow layout-size changes are observed in the owner document when positioning listeners are enabled. Do not compensate for Arrow depth with an additional caller gutter.
 
 ## Common mistakes
 

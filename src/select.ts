@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  SelectClearTrigger,
   SelectArrow,
   SelectContent,
   SelectGroup,
@@ -11,6 +12,7 @@ import {
   SelectLabel,
   SelectListbox,
   SelectPortal,
+  SelectRootProvider,
   SelectRoot,
   SelectScrollDownButton,
   SelectScrollUpButton,
@@ -21,6 +23,7 @@ import {
 } from "./primitives/select/index.js";
 
 export {
+  SelectClearTrigger,
   SelectArrow,
   SelectContent,
   SelectContextProvider,
@@ -46,6 +49,7 @@ export {
   useSelectItemContext,
 } from "./primitives/select/index.js";
 export type {
+  SelectClearTriggerProps,
   SelectArrowProps,
   SelectContentProps,
   SelectContextValue,
@@ -74,7 +78,9 @@ export type {
 } from "./utils/interactions.js";
 
 export const Select = {
+  ClearTrigger: SelectClearTrigger,
   Root: SelectRoot,
+  RootProvider: SelectRootProvider,
   Trigger: SelectTrigger,
   Value: SelectValue,
   Icon: SelectIcon,
@@ -92,3 +98,6 @@ export const Select = {
   Separator: SelectSeparator,
   Arrow: SelectArrow,
 } as const;
+
+export { useSelect, SelectRootProvider } from "./primitives/select/index.js";
+export type { UseSelectReturn, SelectRootProviderProps, SelectOption, SelectIds, SelectLifecycleOptions, SelectOutsideEvents } from "./primitives/select/index.js";

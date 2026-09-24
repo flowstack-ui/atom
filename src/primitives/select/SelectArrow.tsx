@@ -39,6 +39,7 @@ export const SelectArrow = forwardRef<HTMLSpanElement, SelectArrowProps>(
         aria-hidden="true"
         data-slot={dataSlot}
         data-side={side}
+        data-atom-floating-arrow=""
         data-align={align}
         className={className}
         style={{ ...style, ...positionStyle }}

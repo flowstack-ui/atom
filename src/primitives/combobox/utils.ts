@@ -57,15 +57,16 @@ export function getNextComboboxValue(
   values: string[],
   currentValue: string | null,
   direction: "next" | "previous",
+  loop = true,
 ): string | null {
   if (values.length === 0) return null;
 
-  const currentIndex = currentValue ? values.indexOf(currentValue) : -1;
+  const currentIndex = currentValue !== null ? values.indexOf(currentValue) : -1;
   if (currentIndex === -1) {
     return direction === "next" ? values[0] : values[values.length - 1] ?? null;
   }
 
   const delta = direction === "next" ? 1 : -1;
-  const nextIndex = (currentIndex + delta + values.length) % values.length;
+  const nextIndex = loop ? (currentIndex + delta + values.length) % values.length : Math.max(0, Math.min(values.length - 1, currentIndex + delta));
   return values[nextIndex] ?? null;
 }

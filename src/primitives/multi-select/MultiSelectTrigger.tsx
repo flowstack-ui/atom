@@ -90,7 +90,7 @@ export const MultiSelectTrigger = forwardRef<HTMLButtonElement, MultiSelectTrigg
 
     const handleKeyDown: KeyboardEventHandler<HTMLButtonElement> = useCallback(
       (event) => {
-        if (disabled || readOnly) return;
+        if (event.defaultPrevented || disabled || readOnly) return;
 
         const values = getEnabledItemValues();
         const currentValue = highlightedValue ?? getInitialMultiSelectHighlight(ctxRef.current);
@@ -102,7 +102,7 @@ export const MultiSelectTrigger = forwardRef<HTMLButtonElement, MultiSelectTrigg
               onOpen("current");
               onHighlight(getInitialMultiSelectHighlight(ctxRef.current));
             } else {
-              onHighlight(getNextMultiSelectHighlight(values, currentValue, "next"));
+              onHighlight(getNextMultiSelectHighlight(values, currentValue, "next", ctxRef.current.loopFocus));
             }
             break;
           }
@@ -112,7 +112,7 @@ export const MultiSelectTrigger = forwardRef<HTMLButtonElement, MultiSelectTrigg
               onOpen("last");
               onHighlight(values[values.length - 1] ?? null);
             } else {
-              onHighlight(getNextMultiSelectHighlight(values, currentValue, "previous"));
+              onHighlight(getNextMultiSelectHighlight(values, currentValue, "previous", ctxRef.current.loopFocus));
             }
             break;
           }

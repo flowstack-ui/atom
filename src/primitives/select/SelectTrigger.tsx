@@ -88,7 +88,7 @@ export const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
 
     const handleKeyDown: KeyboardEventHandler<HTMLButtonElement> = useCallback(
       (event) => {
-        if (disabled || readOnly) return;
+        if (event.defaultPrevented || disabled || readOnly) return;
 
         const values = getEnabledItemValues();
         const currentValue = highlightedValue ?? getInitialSelectHighlight(ctxRef.current);
@@ -100,7 +100,7 @@ export const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
               onOpen("current");
               onHighlight(getInitialSelectHighlight(ctxRef.current));
             } else {
-              onHighlight(getNextSelectHighlight(values, currentValue, "next"));
+              onHighlight(getNextSelectHighlight(values, currentValue, "next", ctxRef.current.loopFocus));
             }
             break;
           }
@@ -110,7 +110,7 @@ export const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
               onOpen("last");
               onHighlight(values[values.length - 1] ?? null);
             } else {
-              onHighlight(getNextSelectHighlight(values, currentValue, "previous"));
+              onHighlight(getNextSelectHighlight(values, currentValue, "previous", ctxRef.current.loopFocus));
             }
             break;
           }

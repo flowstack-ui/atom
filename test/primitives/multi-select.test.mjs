@@ -9,6 +9,7 @@ import {
 
 import {
   Field,
+  useMultiSelectContext,
   MultiSelect,
   MultiSelectContent,
   MultiSelectGroup,
@@ -21,6 +22,35 @@ import {
   MultiSelectValue,
   MultiSelectViewport,
 } from "../../dist/index.js";
+
+test("MultiSelect exposes controlled highlight and preserves configurable navigation policy", () => {
+  let state;
+  const highlights = [];
+  function Probe() { state = useMultiSelectContext(); return null; }
+  renderToStaticMarkup(React.createElement(MultiSelect.Root, {
+    highlightedValue: "a", loopFocus: false, onHighlightChange: value => highlights.push(value),
+  }, React.createElement(Probe)));
+  assert.equal(state.highlightedValue, "a");
+  assert.equal(state.loopFocus, false);
+  state.onHighlight("b");
+  assert.deepEqual(highlights, ["b"]);
+  assert.equal(state.highlightedValue, "a", "controlled highlight is not changed internally");
+});
+
+test("MultiSelect keyboard navigation can clamp or wrap", async () => {
+  const { getNextMultiSelectHighlight: next } = await import("../../dist/_internal/primitives/multi-select/keyboard.js");
+  assert.equal(next(["a", "b"], "b", "next", false), "b");
+  assert.equal(next(["a", "b"], "a", "previous", false), "a");
+  assert.equal(next(["a", "b"], "b", "next", true), "a");
+  assert.equal(next([], null, "next", false), null);
+});
+
+test("MultiSelect reveals highlighted items only within its positioned popup", async () => {
+  const source = await readFile(new URL("src/primitives/multi-select/MultiSelectListbox.tsx", packageRoot), "utf8");
+  assert.doesNotMatch(source, /scrollIntoView/);
+  assert.match(source, /!isPositioned/);
+  assert.match(source, /revealWithin\(ctx.getItemElement/);
+});
 
 function fixture(rootProps = {}) {
   return React.createElement(

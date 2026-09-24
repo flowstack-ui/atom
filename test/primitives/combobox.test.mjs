@@ -7,6 +7,32 @@ import {
   packageRoot,
 } from "../test-utils.mjs";
 
+test("multiple values expose selected options and repeated named entries", () => {
+  const html = renderToStaticMarkup(React.createElement(Combobox.Root, {
+    options: [{ value: "a", label: "Alpha" }, { value: "b", label: "Beta", disabled: true }],
+    multiple: true, defaultValues: ["a", "b"], name: "skills", required: true,
+  }, React.createElement(Combobox.Input, { "aria-label": "Skills" }), React.createElement(Combobox.Listbox, null,
+    React.createElement(Combobox.Item, { value: "a" }, "Alpha"), React.createElement(Combobox.Item, { value: "b" }, "Beta"))));
+  assert.match(html, /aria-multiselectable="true"/);
+  assert.equal((html.match(/name="skills"/g) ?? []).length, 2);
+  assert.equal((html.match(/aria-selected="true"/g) ?? []).length, 2);
+  assert.match(html, /aria-disabled="true"/);
+});
+
+test("controlled selection initializes display text during server rendering", () => {
+  const html = renderToStaticMarkup(React.createElement(Combobox.Root, {
+    options: [{ value: "a", label: "Alpha" }], value: "a",
+  }, React.createElement(Combobox.Input, { "aria-label": "Letter" })));
+  assert.match(html, /value="Alpha"/);
+});
+
+test("option host composition preserves a single link", () => {
+  const html = renderToStaticMarkup(React.createElement(Combobox.Root, { options: [{ value: "docs" }] },
+    React.createElement(Combobox.Item, { value: "docs", asChild: true }, React.createElement("a", { href: "/docs" }, "Docs"))));
+  assert.match(html, /<a[^>]*role="option"/);
+  assert.equal((html.match(/<a /g) ?? []).length, 1);
+});
+
 import {
   Combobox,
   ComboboxClear,
@@ -28,6 +54,16 @@ import {
   Portal,
   filterComboboxOptions,
 } from "../../dist/index.js";
+
+test("Combobox Control supports a single composed host", () => {
+  for (const props of [{asChild: true}, {render: React.createElement('section')}]) {
+    const html=renderToStaticMarkup(React.createElement(Combobox.Root,{options:[],disabled:true},
+      React.createElement(Combobox.Control,props,props.asChild ? React.createElement('section',null,'Control') : 'Control')));
+    assert.match(html, /<section[^>]+data-slot="combobox-control"/);
+    assert.match(html, /data-disabled=""/);
+    assert.doesNotMatch(html, /asChild|<div[^>]+data-slot="combobox-control"/);
+  }
+});
 
 test("Combobox compound parts render combobox/listbox anatomy", () => {
   const options = [
@@ -134,7 +170,7 @@ test("Combobox owns visible filtering, full-control positioning, and trigger tog
     "utf8",
   );
 
-  assert.match(rootSource, /defaultInputValue \?\? getComboboxOptionLabel/);
+  assert.match(rootSource, /controlledValue \?\? defaultValue/);
   assert.match(itemSource, /filteredOptions\.some/);
   assert.match(itemSource, /if \(!isVisible\) return null/);
   assert.match(contentSource, /controlRef\.current \?\? inputRef\.current/);
@@ -242,7 +278,9 @@ test("Combobox free-solo commit honors clearOnSelect", async () => {
   assert.match(contextSource, /clearOnSelect: boolean/);
   assert.match(rootSource, /clearOnSelect,/);
   assert.match(inputSource, /else if \(freeSolo && inputValue\) \{/);
-  assert.match(inputSource, /onInputValueChange\(clearOnSelect \? "" : inputValue\);/);
+  assert.match(inputSource, /selectOption\(\{ value: inputValue, label: inputValue \}\)/);
+  assert.match(rootSource, /selectionBehavior = clearOnSelect \? "clear" : "replace"/);
+  assert.match(rootSource, /multiple \|\| selectionBehavior === "clear"/);
 });
 
 test("Combobox pointer selection suppresses focus reopen", async () => {
@@ -263,7 +301,7 @@ test("Combobox pointer selection suppresses focus reopen", async () => {
   assert.match(rootSource, /suppressNextInputFocusOpen/);
   assert.match(rootSource, /consumeInputFocusOpenSuppression/);
   assert.match(inputSource, /if \(consumeInputFocusOpenSuppression\(\)\) return;/);
-  assert.match(itemSource, /onPointerDown=\{composeEventHandlers\(onPointerDown, handlePointerDown\)\}/);
+  assert.match(itemSource, /onPointerDown: composeEventHandlers\(onPointerDown, handlePointerDown\)/);
   assert.match(itemSource, /suppressNextInputFocusOpen\(\);/);
 });
 

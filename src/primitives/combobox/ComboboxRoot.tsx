@@ -2,6 +2,7 @@
 
 import {
   useCallback,
+  useEffect,
   useId,
   useMemo,
   useRef,
@@ -56,6 +57,24 @@ export interface ComboboxRootProps {
   name?: string;
   form?: string;
   validationBehavior?: ValidationBehavior;
+  /** Multiple mode uses values/onValuesChange without changing the scalar API. */
+  multiple?: boolean;
+  values?: string[];
+  defaultValues?: string[];
+  onValuesChange?: (values: string[]) => void;
+  closeOnSelect?: boolean;
+  openOnClick?: boolean;
+  openOnChange?: boolean | ((details: { inputValue: string }) => boolean);
+  loopFocus?: boolean;
+  highlightedValue?: string | null;
+  onHighlightChange?: (value: string | null) => void;
+  scrollToIndexFn?: (details: { index: number; value: string }) => void;
+  onFormReset?: () => void;
+  inputBehavior?: "none" | "autohighlight" | "autocomplete";
+  selectionBehavior?: "replace" | "clear" | "preserve";
+  openOnKeyPress?: boolean;
+  defaultHighlightedValue?: string | null;
+  onSelect?: (option: ComboboxOption) => void;
 }
 
 export function ComboboxRoot({
@@ -85,6 +104,23 @@ export function ComboboxRoot({
   name,
   form,
   validationBehavior,
+  multiple = false,
+  values: controlledValues,
+  defaultValues = [],
+  onValuesChange,
+  closeOnSelect = !multiple,
+  openOnClick = false,
+  openOnChange = true,
+  loopFocus = true,
+  highlightedValue: controlledHighlight,
+  onHighlightChange,
+  scrollToIndexFn,
+  onFormReset,
+  inputBehavior = "none",
+  selectionBehavior = clearOnSelect ? "clear" : "replace",
+  openOnKeyPress = true,
+  defaultHighlightedValue = null,
+  onSelect,
 }: ComboboxRootProps) {
   const field = useFieldContext();
   const isDisabled = disabled ?? field?.disabled ?? false;
@@ -100,15 +136,28 @@ export function ComboboxRoot({
     defaultValue,
     onChange: onValueChange,
   });
-  const initialInputValue = defaultInputValue ?? getComboboxOptionLabel(options.find(option => option.value === defaultValue) ?? { value: "", label: "" });
+  const [values, setValues] = useControllableState<string[]>({ value: controlledValues, defaultValue: defaultValues, onChange: onValuesChange });
+  const initialInputValue = defaultInputValue ?? (multiple ? "" : getComboboxOptionLabel(options.find(option => option.value === (controlledValue ?? defaultValue)) ?? { value: "", label: "" }));
   const [inputValue, setInputValueState] = useControllableState<string>({
     value: controlledInputValue,
     defaultValue: initialInputValue,
     onChange: onInputValueChange,
   });
+  const [completionQuery, setCompletionQuery] = useState(initialInputValue);
 
-  const [highlightedValue, setHighlightedValue] = useState<string | null>(null);
+  const [highlightedValue, setHighlightedValue] = useControllableState<string | null>({ value: controlledHighlight, defaultValue: defaultHighlightedValue, onChange: onHighlightChange });
   const [emptyMounted, setEmptyMounted] = useState(false);
+  const lastSelection = useRef({ value, label: options.find(option => option.value === value)?.label });
+  useEffect(() => {
+    const option = options.find(option => option.value === value);
+    const label = option ? getComboboxOptionLabel(option) : undefined;
+    const previous = lastSelection.current;
+    if (!multiple && controlledInputValue === undefined && selectionBehavior === "replace" &&
+      (previous.value !== value || (previous.label === undefined && label !== undefined))) {
+      setInputValueState(label ?? "");
+    }
+    lastSelection.current = { value, label };
+  }, [value, options, multiple, controlledInputValue, selectionBehavior, setInputValueState]);
 
   const idPrefix = useId();
   const comboboxId = `combobox-${idPrefix}`;
@@ -133,14 +182,21 @@ export function ComboboxRoot({
   const contentRef = useRef<HTMLDivElement>(null);
   const suppressInputFocusOpenRef = useRef(false);
   const reset = useCallback(() => {
+    onFormReset?.();
     if (controlledValue === undefined) setValue(defaultValue);
+    if (controlledValues === undefined) setValues(defaultValues);
     if (controlledInputValue === undefined) setInputValueState(initialInputValue);
+    setCompletionQuery(initialInputValue);
     if (controlledOpen === undefined) setOpen(defaultOpen);
     setHighlightedValue(null);
   }, [
     controlledInputValue,
+    onFormReset,
     controlledOpen,
     controlledValue,
+    controlledValues,
+    defaultValues,
+    setValues,
     initialInputValue,
     defaultOpen,
     defaultValue,
@@ -157,8 +213,8 @@ export function ComboboxRoot({
   } = useCollection<string, HTMLElement, ComboboxItemData>();
 
   const filteredOptions = useMemo(
-    () => filterOptions(options, inputValue),
-    [filterOptions, inputValue, options],
+    () => filterOptions(options, inputBehavior === "autocomplete" ? completionQuery : inputValue),
+    [filterOptions, inputValue, options, inputBehavior, completionQuery],
   );
   const groupedOptions = useMemo(
     () => groupComboboxOptions(filteredOptions, groupBy),
@@ -168,9 +224,24 @@ export function ComboboxRoot({
   const setInputValue = useCallback(
     (next: string) => {
       setInputValueState(next);
+      setCompletionQuery(next);
     },
     [setInputValueState],
   );
+
+  useEffect(() => {
+    if (isOpen && inputBehavior === "autohighlight") setHighlightedValue(filteredOptions.find(option => !option.disabled)?.value ?? null);
+  }, [inputValue, isOpen, inputBehavior, filteredOptions, setHighlightedValue]);
+  useEffect(() => {
+    if (highlightedValue !== null && !filteredOptions.some(option => option.value === highlightedValue && !option.disabled)) setHighlightedValue(null);
+  }, [filteredOptions, highlightedValue, setHighlightedValue]);
+
+  const completeOption = useCallback((itemValue: string) => {
+    const option = options.find(option => option.value === itemValue);
+    if (!option || option.disabled || isDisabled || isReadOnly || multiple) return;
+    setValue(itemValue);
+    setInputValueState(getComboboxOptionLabel(option));
+  }, [options, isDisabled, isReadOnly, multiple, setValue, setInputValueState]);
 
   const onOpen = useCallback(() => {
     if (!isDisabled && !isReadOnly) setOpen(true);
@@ -210,8 +281,8 @@ export function ComboboxRoot({
   }, [getCollectionItem]);
 
   const getEnabledItemValues = useCallback(() => {
-    return filteredOptions.filter((option) => !option.disabled).map((option) => option.value);
-  }, [filteredOptions]);
+    return filteredOptions.filter((option) => !option.disabled && !getCollectionItem(option.value)?.disabled).map((option) => option.value);
+  }, [filteredOptions, getCollectionItem]);
 
   const getOption = useCallback(
     (itemValue: string) => options.find((option) => option.value === itemValue),
@@ -238,32 +309,45 @@ export function ComboboxRoot({
 
   const selectOption = useCallback(
     (option: ComboboxOption) => {
-      if (isDisabled || isReadOnly || option.disabled) return;
+      if (isDisabled || isReadOnly || option.disabled || getCollectionItem(option.value)?.disabled) return;
 
-      setValue(option.value);
-      const nextInputValue = clearOnSelect ? "" : getComboboxOptionLabel(option);
-      setInputValue(nextInputValue);
-      onClose();
+      if (multiple) setValues(values.includes(option.value) ? values.filter(value => value !== option.value) : [...values, option.value]);
+      else setValue(option.value);
+      if (multiple || selectionBehavior === "clear") setInputValue("");
+      else if (selectionBehavior === "replace") setInputValue(getComboboxOptionLabel(option));
+      onSelect?.(option);
+      if (closeOnSelect) onClose();
       inputRef.current?.focus({ preventScroll: true });
     },
-    [clearOnSelect, isDisabled, isReadOnly, onClose, setInputValue, setValue],
+    [selectionBehavior, onSelect, closeOnSelect, multiple, values, setValues, isDisabled, isReadOnly, onClose, setInputValue, setValue, getCollectionItem],
   );
 
   const clearSelection = useCallback(() => {
     if (isDisabled || isReadOnly) return;
     setValue(null);
+    if (multiple) setValues([]);
     setInputValue("");
     setHighlightedValue(null);
     inputRef.current?.focus({ preventScroll: true });
-  }, [isDisabled, isReadOnly, setInputValue, setValue]);
+  }, [isDisabled, isReadOnly, setInputValue, setValue, multiple, setValues]);
 
   const contextValue = useMemo<ComboboxContextValue>(
     () => ({
+      inputBehavior,
+      openOnKeyPress,
+      completeOption,
       isOpen,
       onOpen,
       onClose,
       onToggle,
       value,
+      multiple,
+      values,
+      onValuesChange: setValues,
+      openOnClick,
+      openOnChange,
+      loopFocus,
+      scrollToIndexFn,
       onValueChange: setValue,
       inputValue,
       onInputValueChange: setInputValue,
@@ -306,6 +390,9 @@ export function ComboboxRoot({
       loadingText,
     }),
     [
+      inputBehavior,
+      openOnKeyPress,
+      completeOption,
       comboboxId,
       clearSelection,
       clearOnSelect,
@@ -348,6 +435,13 @@ export function ComboboxRoot({
       unregisterEmpty,
       unregisterItem,
       value,
+      multiple,
+      values,
+      setValues,
+      openOnClick,
+      openOnChange,
+      loopFocus,
+      scrollToIndexFn,
     ],
   );
 
@@ -357,8 +451,8 @@ export function ComboboxRoot({
         <input
           ref={validationInputRef}
           type="text"
-          name={name}
-          value={value ?? ""}
+          name={multiple ? undefined : name}
+          value={multiple ? (values.length ? "selected" : "") : value ?? ""}
           form={form}
           disabled={isDisabled}
           required={isRequired}
@@ -369,6 +463,7 @@ export function ComboboxRoot({
           style={formControlProxyStyle}
         />
       ) : null}
+      {multiple && name !== undefined ? values.map(selected => <input key={selected} type="hidden" name={name} value={selected} form={form} disabled={isDisabled} />) : null}
       {children}
     </ComboboxContextProvider>
   );

@@ -1,5 +1,23 @@
 # MultiSelect
 
+## Selection policy and popup positioning
+
+`closeOnSelect` controls whether choosing an option closes the popup (Select:
+true; MultiSelect: false). `loopFocus` defaults true for compatibility; false
+stops Arrow navigation at the first/last enabled item. Control highlight with
+`highlightedValue` and `onHighlightChange`, or initialize it with
+`defaultHighlightedValue`. A controlled null means no highlighted option.
+
+`positioning` accepts placement, strategy, gutter, flip, slide, overflowPadding,
+sameWidth and hideWhenDetached. Highlight reveal remains within the positioned
+popup; it never scrolls the document. `autoComplete` reaches the native form
+proxy. Disabled options retain their native disabled state.
+
+`MultiSelect.ClearTrigger` renders beside Trigger, never inside its button.
+Supply an accessible localized name. Clearing respects disabled/read-only state,
+closes the popup and returns focus without scrolling. Single Select additionally
+accepts `deselectable` (false by default) to clear when choosing its current value.
+
 Headless compact multi-value selection primitives.
 
 ## When to use
@@ -70,7 +88,8 @@ import { MultiSelect } from "@flowstack-ui/atom/multi-select";
 | `validationBehavior` | `"native" \| "inline"` | Field/Form value |
 
 Values are deduplicated in first-occurrence order. Item activation toggles one
-value without closing Content. Uncontrolled value and open state return to
+value without closing Content by default (`closeOnSelect={false}`). Set
+`closeOnSelect` to close after selection. Uncontrolled value and open state return to
 their defaults on form reset.
 
 ## Parts
@@ -88,7 +107,7 @@ their defaults on form reset.
 - `Viewport`, scroll buttons, and `Arrow` own the specialized overflow and
   positioned-popup anatomy.
 - `Item` requires `value`, accepts `label` and `disabled`, exposes option ARIA,
-  checked/highlighted/disabled data, and stays open after toggling.
+  checked/highlighted/disabled data, and respects Root's `closeOnSelect` policy.
 - `ItemText`, `ItemIndicator`, `Group`, `Label`, and `Separator` preserve the
   complete collection anatomy.
 - `Portal` accepts `container` and `disabled`.
@@ -102,7 +121,7 @@ Content has `role="listbox"` and `aria-multiselectable="true"`; Items have
 
 - Arrow keys move the active option without changing selection.
 - Home/End move to the first/last enabled option.
-- Space or Enter toggles the active option and keeps Content open.
+- Space or Enter toggles the active option and keeps Content open by default.
 - Printable keys use option labels for typeahead.
 - Escape closes and restores Trigger focus.
 - Tab and completed mouse, touch, pen, or virtual outside activation close the
@@ -138,3 +157,32 @@ mandatory chips. Those require separate interaction contracts.
 - `test/primitives/multi-select.test.mjs`
 - `playground/manual-tests/multi-select.md`
 - playground `multi-select` scenario and `MultiSelect` workbook sheet
+# Data, controllers and lifecycle
+
+Pass `items={[{ value: "a", label: "Alpha", disabled: false }]}` when options
+are rendered through opaque components or loaded asynchronously. These records
+provide labels and native form options before the popup mounts. Keep rendered
+Item values synchronized with the records. Selected values still submit when
+their presentation is unmounted. Explicit records take precedence over cached
+mounted labels.
+
+`useMultiSelect(options)` returns the original controller for
+`MultiSelect.RootProvider value={controller}`. Supply records to an external
+controller. Its `context` exposes current value, isOpen, highlightedValue and
+the same open/close/highlight/selection/clear actions used by the parts; do not
+copy the controller or nest a second Root. The provider owns the native form
+proxy. Controlled props remain authoritative.
+
+Root supports `ids={{root, trigger, content}}`, `lazyMount` and
+`unmountOnExit` (both true by default), `present`, and `onExitComplete`.
+Retained closed content is hidden and inert. Exit timing follows authored CSS;
+no animation is required. Presence does not change the open state.
+
+`onPointerDownOutside`, `onFocusOutside` and `onEscapeKeyDown` can prevent
+their respective dismissal. Content also supports `onInteractOutside`.
+Portals default to the trigger's owner document, including iframe documents.
+
+`onSelect(value)` observes option activation separately from value changes.
+`scrollToIndexFn({ index, value })` delegates reveal to an application-owned
+scroller. It does not add virtualization: keyboard registration still requires
+mounted options. Omit it to use the popup-local reveal behavior.

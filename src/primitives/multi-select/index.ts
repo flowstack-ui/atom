@@ -18,6 +18,10 @@ export type {
   MultiSelectItemEntry,
 } from "./context.js";
 export { MultiSelectRoot } from "./MultiSelectRoot.js";
+export { useMultiSelect, MultiSelectRootProvider } from "./MultiSelectRoot.js";
+export type { UseMultiSelectReturn, MultiSelectRootProviderProps } from "./MultiSelectRoot.js";
+export type { SelectOption, SelectIds, SelectLifecycleOptions, SelectOutsideEvents } from "../../utils/selectOptions.js";
+export { MultiSelectClearTrigger, type MultiSelectClearTriggerProps } from "./MultiSelectClearTrigger.js";
 export type { MultiSelectRootProps } from "./MultiSelectRoot.js";
 export { MultiSelectTrigger } from "./MultiSelectTrigger.js";
 export type { MultiSelectTriggerProps } from "./MultiSelectTrigger.js";

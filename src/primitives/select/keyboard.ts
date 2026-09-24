@@ -14,10 +14,15 @@ export function getNextSelectHighlight(
   values: string[],
   currentValue: string | null,
   direction: "next" | "previous",
+  loop = true,
 ): string | null {
   if (values.length === 0) return null;
 
   const currentIndex = currentValue ? values.indexOf(currentValue) : -1;
+  if (!loop && currentIndex >= 0) {
+    const nextIndex = Math.max(0, Math.min(values.length - 1, currentIndex + (direction === "next" ? 1 : -1)));
+    return values[nextIndex];
+  }
 
   if (direction === "next") {
     return values[currentIndex < values.length - 1 ? currentIndex + 1 : 0];

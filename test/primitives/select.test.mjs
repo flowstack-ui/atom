@@ -9,6 +9,7 @@ import {
 
 import {
   Field,
+  useSelectContext,
   Select,
   SelectContent,
   SelectGroup,
@@ -24,6 +25,35 @@ import {
   SelectValue,
   SelectViewport,
 } from "../../dist/index.js";
+
+test("Select exposes controlled highlight and preserves configurable navigation policy", () => {
+  let state;
+  const highlights = [];
+  function Probe() { state = useSelectContext(); return null; }
+  renderToStaticMarkup(React.createElement(Select.Root, {
+    highlightedValue: "a", loopFocus: false, onHighlightChange: value => highlights.push(value),
+  }, React.createElement(Probe)));
+  assert.equal(state.highlightedValue, "a");
+  assert.equal(state.loopFocus, false);
+  state.onHighlight("b");
+  assert.deepEqual(highlights, ["b"]);
+  assert.equal(state.highlightedValue, "a", "controlled highlight is not changed internally");
+});
+
+test("Select keyboard navigation can clamp or wrap", async () => {
+  const { getNextSelectHighlight: next } = await import("../../dist/_internal/primitives/select/keyboard.js");
+  assert.equal(next(["a", "b"], "b", "next", false), "b");
+  assert.equal(next(["a", "b"], "a", "previous", false), "a");
+  assert.equal(next(["a", "b"], "b", "next", true), "a");
+  assert.equal(next([], null, "next", false), null);
+});
+
+test("Select reveals highlighted items only within its positioned popup", async () => {
+  const source = await readFile(new URL("src/primitives/select/SelectListbox.tsx", packageRoot), "utf8");
+  assert.doesNotMatch(source, /scrollIntoView/);
+  assert.match(source, /!isPositioned/);
+  assert.match(source, /revealWithin\(ctx.getItemElement/);
+});
 
 test("Select primitives render combobox trigger and option state", () => {
   const html = renderToStaticMarkup(
@@ -333,7 +363,7 @@ test("Select source keeps trigger-owned keyboard navigation and stable registrat
   assert.match(triggerSource, /onOpen\("last"\)/);
   assert.match(triggerSource, /onOpen\("first"\)/);
   assert.match(triggerSource, /if \(!isOpen\) \{/);
-  assert.match(triggerSource, /getNextSelectHighlight\(values, currentValue, "next"\)/);
+  assert.match(triggerSource, /getNextSelectHighlight\(values, currentValue, "next", ctxRef\.current\.loopFocus\)/);
   assert.match(triggerSource, /case "Enter":/);
   assert.match(triggerSource, /ctxRef\.current = ctx/);
   assert.match(triggerSource, /onValueChange\(highlightedValue\)/);

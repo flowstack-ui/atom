@@ -30,6 +30,7 @@ export const ComboboxListbox = forwardRef<HTMLDivElement, ComboboxListboxProps>(
         ref={ref}
         id={ctx.listboxId}
         role="listbox"
+        aria-multiselectable={ctx.multiple || undefined}
         tabIndex={-1}
         data-slot={dataSlot}
         data-state={ctx.isOpen ? "open" : "closed"}

@@ -25,9 +25,17 @@ import {
 } from "../../hooks/useFormControlProxy.js";
 import { useFieldContext } from "../field/context.js";
 import type { ValidationBehavior } from "../form/validation.js";
+import type { SelectPositioningOptions } from "../../utils/selectPositioning.js";
+import type { SelectOption, SelectIds, SelectLifecycleOptions, SelectOutsideEvents } from "../../utils/selectOptions.js";
 import { MultiSelectItemText } from "./MultiSelectItemText.js";
 
-export interface MultiSelectRootProps {
+export interface MultiSelectRootProps extends SelectLifecycleOptions, SelectOutsideEvents {
+  /** Data records for opaque/async children and server-rendered form options. */
+  items?: readonly SelectOption[];
+  ids?: SelectIds;
+  /** Observe option activation separately from value changes. */
+  onSelect?: (value: string) => void;
+  scrollToIndexFn?: (details: { index: number; value: string }) => void;
   children: ReactNode;
   value?: string[];
   defaultValue?: string[];
@@ -42,9 +50,18 @@ export interface MultiSelectRootProps {
   name?: string;
   form?: string;
   validationBehavior?: ValidationBehavior;
+  /** Close after toggling an option; false keeps multiple selection open. */
+  closeOnSelect?: boolean;
+  /** Wrap keyboard navigation at the first and last enabled option. */
+  loopFocus?: boolean;
+  positioning?: SelectPositioningOptions;
+  highlightedValue?: string | null;
+  defaultHighlightedValue?: string | null;
+  onHighlightChange?: (value: string | null) => void;
+  autoComplete?: string;
 }
 
-export function MultiSelectRoot({
+export function useMultiSelect({
   children,
   value: controlledValue,
   defaultValue,
@@ -59,7 +76,25 @@ export function MultiSelectRoot({
   name,
   form,
   validationBehavior,
-}: MultiSelectRootProps) {
+  closeOnSelect = false,
+  autoComplete,
+  loopFocus = true,
+  positioning,
+  highlightedValue: controlledHighlight,
+  defaultHighlightedValue = null,
+  onHighlightChange,
+  onSelect,
+  scrollToIndexFn,
+  items,
+  ids,
+  lazyMount = true,
+  unmountOnExit = true,
+  present,
+  onExitComplete,
+  onFocusOutside,
+  onPointerDownOutside,
+  onEscapeKeyDown,
+}: Omit<MultiSelectRootProps, "children"> & { children?: ReactNode } = {}) {
   const fieldCtx = useFieldContext();
   const isDisabled = disabled ?? fieldCtx?.disabled ?? false;
   const isReadOnly = readOnly ?? fieldCtx?.readOnly ?? false;
@@ -76,7 +111,12 @@ export function MultiSelectRoot({
     [isOpenControlled, onOpenChange],
   );
 
-  const [highlightedValue, setHighlightedValue] = useState<string | null>(null);
+  const [internalHighlight, setInternalHighlight] = useState<string | null>(defaultHighlightedValue);
+  const highlightedValue = controlledHighlight !== undefined ? controlledHighlight : internalHighlight;
+  const setHighlightedValue = useCallback((next: string | null) => {
+    if (controlledHighlight === undefined) setInternalHighlight(next);
+    if (next !== highlightedValue) onHighlightChange?.(next);
+  }, [controlledHighlight, highlightedValue, onHighlightChange]);
   const [openHighlightIntent, setOpenHighlightIntent] =
     useState<MultiSelectContextValue["openHighlightIntent"]>(null);
 
@@ -91,7 +131,7 @@ export function MultiSelectRoot({
     setOpen(false);
     setHighlightedValue(null);
     setOpenHighlightIntent(null);
-  }, [setOpen]);
+  }, [setOpen, setHighlightedValue]);
 
   const onToggle = useCallback(() => {
     if (isDisabled || isReadOnly) return;
@@ -109,21 +149,31 @@ export function MultiSelectRoot({
   const handleValueChange = useCallback(
     (next: string) => {
       if (isDisabled || isReadOnly) return;
+      onSelect?.(next);
       const nextValue = value.includes(next)
         ? value.filter((itemValue) => itemValue !== next)
         : [...value, next];
       if (!isValueControlled) setInternalValue(nextValue);
       onValueChange?.(nextValue);
+      if (closeOnSelect) {
+        setOpen(false);
+        setHighlightedValue(null);
+      }
     },
-    [isDisabled, isReadOnly, isValueControlled, onValueChange, value],
+    [isDisabled, isReadOnly, isValueControlled, onSelect, onValueChange, value, closeOnSelect, setOpen, setHighlightedValue],
   );
 
   const [isInsidePortal, setInsidePortal] = useState(false);
+  const clearValue = useCallback(() => {
+    if (isDisabled || isReadOnly) return;
+    if (!isValueControlled) setInternalValue([]);
+    onValueChange?.([]);
+  }, [isDisabled, isReadOnly, isValueControlled, onValueChange]);
 
   const idPrefix = useId();
-  const multiSelectId = `multi-select-${idPrefix}`;
-  const triggerId = `multi-select-trigger-${idPrefix}`;
-  const listboxId = `multi-select-listbox-${idPrefix}`;
+  const multiSelectId = ids?.root ?? `multi-select-${idPrefix}`;
+  const triggerId = ids?.trigger ?? `multi-select-trigger-${idPrefix}`;
+  const listboxId = ids?.content ?? `multi-select-listbox-${idPrefix}`;
 
   const triggerRef = useRef<HTMLButtonElement>(null);
   const multiSelectRef = useRef<HTMLSelectElement>(null);
@@ -142,13 +192,15 @@ export function MultiSelectRoot({
   const reset = useCallback(() => {
     if (!isValueControlled) setInternalValue(normalizeValues(defaultValue));
     if (!isOpenControlled) setInternalOpen(defaultOpen);
-    setHighlightedValue(null);
-  }, [defaultOpen, defaultValue, isOpenControlled, isValueControlled]);
+    if (controlledHighlight === undefined) setInternalHighlight(defaultHighlightedValue);
+  }, [defaultOpen, defaultValue, isOpenControlled, isValueControlled, controlledHighlight, defaultHighlightedValue]);
   useFormReset(triggerRef, form, false, reset);
   const listboxRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const labelMapRef = useRef<Map<string, string>>(new Map());
-  const staticItems = useMemo(() => collectStaticMultiSelectItems(children), [children]);
+  const staticItems = useMemo(() => items
+    ? new Map(items.map(item => [item.value, { text: item.label, disabled: item.disabled === true }]))
+    : collectStaticMultiSelectItems(children), [children, items]);
   const {
     version: registryVersion,
     registerItem: registerCollectionItem,
@@ -199,8 +251,8 @@ export function MultiSelectRoot({
 
   const getLabel = useCallback((itemValue: string) => {
     return (
-      labelMapRef.current.get(itemValue) ??
       staticItems.get(itemValue)?.text ??
+      labelMapRef.current.get(itemValue) ??
       getCollectionItem(itemValue)?.data.textValue
     );
   }, [getCollectionItem, staticItems]);
@@ -225,11 +277,17 @@ export function MultiSelectRoot({
   const ctx: MultiSelectContextValue = useMemo(
     () => ({
       isOpen,
+      scrollToIndexFn,
+      lifecycle: { lazyMount, unmountOnExit, present, onExitComplete },
+      outsideEvents: { onFocusOutside, onPointerDownOutside, onEscapeKeyDown },
+      loopFocus,
+      positioning,
       onOpen,
       onClose,
       onToggle,
       value,
       onValueChange: handleValueChange,
+      clearValue,
       highlightedValue,
       onHighlight: setHighlightedValue,
       multiSelectId,
@@ -262,6 +320,8 @@ export function MultiSelectRoot({
       clearOpenHighlightIntent: () => setOpenHighlightIntent(null),
     }),
     [
+      scrollToIndexFn,
+      lazyMount, unmountOnExit, present, onExitComplete, onFocusOutside, onPointerDownOutside, onEscapeKeyDown,
       fieldCtx?.controlId,
       fieldCtx?.describedBy,
       fieldCtx?.labelId,
@@ -271,10 +331,14 @@ export function MultiSelectRoot({
       getItemValues,
       getLabel,
       handleValueChange,
+      clearValue,
       highlightedValue,
+      setHighlightedValue,
       isInsidePortal,
       isOpen,
       isDisabled,
+      loopFocus,
+      positioning,
       isInvalid,
       isReadOnly,
       isRequired,
@@ -296,12 +360,13 @@ export function MultiSelectRoot({
     ],
   );
 
-  return (
-    <MultiSelectContextProvider value={ctx}>
-      {name !== undefined || isRequired ? (
+  return {
+    context: ctx,
+    nativeControl: name !== undefined || isRequired ? (
         <select
           ref={multiSelectRef}
           name={name}
+          autoComplete={autoComplete}
           value={value}
           multiple
           form={form}
@@ -309,20 +374,44 @@ export function MultiSelectRoot({
           required={isRequired}
           aria-hidden="true"
           tabIndex={-1}
-          onFocus={() => triggerRef.current?.focus()}
+          onFocus={() => triggerRef.current?.focus({ preventScroll: true })}
           {...validation.validationProps}
+          onChange={(event) => {
+            validation.validationProps.onChange();
+            if (isDisabled || isReadOnly) return;
+            const next = Array.from(event.currentTarget.selectedOptions, option => option.value);
+            if (!isValueControlled) setInternalValue(next);
+            onValueChange?.(next);
+          }}
           style={formControlProxyStyle}
         >
-          {Array.from(staticItems.keys()).map((itemValue) => (
-            <option key={itemValue} value={itemValue}>
+          {Array.from(new Set([...staticItems.keys(), ...value])).map((itemValue) => (
+            <option key={itemValue} value={itemValue} disabled={staticItems.get(itemValue)?.disabled}>
               {getLabel(itemValue) ?? itemValue}
             </option>
           ))}
         </select>
-      ) : null}
-      {children}
-    </MultiSelectContextProvider>
-  );
+      ) : null,
+  };
+}
+
+export type UseMultiSelectReturn = ReturnType<typeof useMultiSelect>;
+
+export interface MultiSelectRootProviderProps {
+  value: UseMultiSelectReturn;
+  children?: ReactNode;
+}
+
+export function MultiSelectRootProvider({ value, children }: MultiSelectRootProviderProps) {
+  return <MultiSelectContextProvider value={value.context}>
+    {value.nativeControl}
+    {children}
+  </MultiSelectContextProvider>;
+}
+
+export function MultiSelectRoot(props: MultiSelectRootProps) {
+  const controller = useMultiSelect(props);
+  return <MultiSelectRootProvider value={controller}>{props.children}</MultiSelectRootProvider>;
 }
 
 function normalizeValues(value: string[] | undefined): string[] {
