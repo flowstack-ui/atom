@@ -18,6 +18,7 @@ Own inline preview/edit transactions, commit/cancel and focus without visual sty
 
 ## Rules
 
+- **MUST:** Root, RootProvider, Area, Control and Preview support one-child asChild projection. Preserve native Input/Textarea/Label hosts. Keep preview children synchronized through Context valueText; do not nest interactive descendants inside a preview.
 - **MUST:** Treat onValueChange as draft changes and onValueCommit as a commit request; persistence belongs to the application.
 - **MUST:** Update controlled value/edit in their callbacks; refused edit transitions do not commit or revert.
 - **MUST:** Use one named input or textarea; do not render both or add a duplicate hidden form value.

@@ -9,6 +9,7 @@ export {
   TagsInputControl,
   TagsInputInput,
   TagsInputItem,
+  TagsInputItemContext,
   TagsInputItemPreview,
   TagsInputItemText,
   TagsInputItemInput,

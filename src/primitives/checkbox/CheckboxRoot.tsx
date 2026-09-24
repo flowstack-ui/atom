@@ -6,12 +6,15 @@ import {
   type KeyboardEventHandler,
   type MouseEventHandler,
   type ReactNode,
+  type Ref,
+  type InputHTMLAttributes,
   useCallback,
   useEffect,
   useMemo,
   useRef,
 } from "react";
-import { useControllableState } from "../../hooks/useControllableState.js";
+import { useCheckbox } from "./useCheckbox.js";
+import { checkboxComposedHost } from "./composedHost.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
 import { useFormValidation } from "../../hooks/useFormValidation.js";
 import {
@@ -47,6 +50,10 @@ type CheckboxRootNativeProps = NativeButtonProps<
 >;
 
 export interface CheckboxRootProps extends CheckboxRootNativeProps {
+  /** Ref to the single automatically managed native form input. */
+  inputRef?: Ref<HTMLInputElement>;
+  /** Native integration props; state, form ownership and proxy visibility remain authoritative. */
+  inputProps?: Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "checked" | "defaultChecked" | "name" | "value" | "disabled" | "required" | "form" | "tabIndex" | "style" | "children">;
   /** Controlled checked state. Use "indeterminate" for the mixed state. */
   checked?: CheckboxCheckedState;
   /** Uncontrolled initial checked state. Use "indeterminate" for the mixed state. */
@@ -91,6 +98,8 @@ export const CheckboxRoot = forwardRef<HTMLButtonElement, CheckboxRootProps>(
   function CheckboxRoot(
     {
       checked,
+      inputRef: externalInputRef,
+      inputProps,
       defaultChecked = false,
       onCheckedChange,
       disabled,
@@ -114,18 +123,20 @@ export const CheckboxRoot = forwardRef<HTMLButtonElement, CheckboxRootProps>(
     ref,
   ) {
     const field = useFieldContext();
-    const isDisabled = disabled ?? field?.disabled ?? false;
-    const isReadOnly = readOnly ?? field?.readOnly ?? false;
-    const isRequired = required ?? field?.required ?? false;
+    const host = checkboxComposedHost(children, render, asChild);
+    const isDisabled = Boolean(disabled || field?.disabled || host.disabled);
+    const isReadOnly = Boolean(readOnly || field?.readOnly);
+    const isRequired = Boolean(required || field?.required);
     const inputRef = useRef<HTMLInputElement>(null);
     const rootRef = useRef<HTMLButtonElement>(null);
     const interactedRef = useRef(false);
     useFormControlProxy(inputRef, rootRef);
-    const [isChecked, setIsChecked] = useControllableState({
-      value: checked,
-      defaultValue: defaultChecked,
-      onChange: onCheckedChange,
+    const { checked: isChecked, setChecked: setIsChecked } = useCheckbox({
+      checked,
+      defaultChecked,
+      onCheckedChange,
     });
+    const mergedInputRef = useMemo(() => composeRefs(inputRef, externalInputRef), [externalInputRef]);
     const validation = useFormValidation({
       validityRef: inputRef,
       ownerRef: rootRef,
@@ -205,20 +216,21 @@ export const CheckboxRoot = forwardRef<HTMLButtonElement, CheckboxRootProps>(
       ...(isInvalid && { "data-invalid": "" }),
       ...(isRequired && { "data-required": "" }),
       className,
-      onClick: composeEventHandlers(onClick, handleClick),
+      onClick: composeEventHandlers(onClick, composeEventHandlers(host.onClick, handleClick)),
       onBlur: composeEventHandlers(onBlur, handleBlur),
-      onKeyDown: composeEventHandlers(onKeyDown, handleKeyDown),
+      onKeyDown: composeEventHandlers(onKeyDown, composeEventHandlers(host.onKeyDown, handleKeyDown)),
     };
 
     const rootElement = asChild
-      ? cloneAndMerge(children, behaviorProps)
-      : renderElement(render, "button", { ...behaviorProps, children });
+      ? cloneAndMerge(host.children, behaviorProps)
+      : renderElement(host.render, "button", { ...behaviorProps, children });
 
     return (
       <CheckboxContextProvider value={contextValue}>
-        {name !== undefined || isRequired ? (
+        {name !== undefined || isRequired || externalInputRef !== undefined || inputProps !== undefined ? (
           <input
-            ref={inputRef}
+            {...inputProps}
+            ref={mergedInputRef}
             type="checkbox"
             aria-hidden="true"
             tabIndex={-1}
@@ -228,8 +240,14 @@ export const CheckboxRoot = forwardRef<HTMLButtonElement, CheckboxRootProps>(
             checked={isChecked === true}
             disabled={isDisabled}
             required={isRequired}
-            onFocus={() => rootRef.current?.focus()}
             {...validation.validationProps}
+            onFocus={(event) => { inputProps?.onFocus?.(event); rootRef.current?.focus(); }}
+            onChange={composeEventHandlers(inputProps?.onChange, (event) => {
+              if (!isDisabled && !isReadOnly) setIsChecked(event.currentTarget.checked);
+              validation.validationProps.onChange();
+            })}
+            onInput={composeEventHandlers(inputProps?.onInput, validation.validationProps.onInput)}
+            onInvalid={composeEventHandlers(inputProps?.onInvalid, validation.validationProps.onInvalid)}
             style={formControlProxyStyle}
           />
         ) : null}

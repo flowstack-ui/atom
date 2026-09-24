@@ -18,6 +18,8 @@ Choose a value on a small ordered rating scale through one slider-semantic contr
 
 ## Rules
 
+- **MUST:** Use useRating with RootProvider for external control; hoveredValue and previewValue are preview-only, while value alone owns submission and aria-valuenow.
+- **MUST:** Label names Root and Control only groups decorative Items. Keep automatic inputs by default; use inputMode=manual with exactly one HiddenInput for explicit submission composition. Never add independent interactive descendants.
 - **MUST:** Keep Root as the only focusable role=slider control and every Item aria-hidden; do not turn rating symbols into separate radio or button stops.
 - **MUST:** Give Root an accessible name and meaningful aria-valuetext, using getValueLabel when the default value-out-of-maximum wording is insufficient.
 - **MUST:** Use a valid ordered min/max range, positive step, and Item values that represent the visual segments; preserve snapping and partial-fill state for fractional ratings.
@@ -31,6 +33,7 @@ Choose a value on a small ordered rating scale through one slider-semantic contr
 
 ## Validation checklist
 
+- Verify compound labels, controller reset, hover versus committed value, automatic and manual input uniqueness, primary-pointer filtering, disabled tab order, dynamic native fieldsets and canceled reset.
 - Verify Root name and slider ARIA, whole and fractional controlled/uncontrolled values, snapping, generated and custom value text, decorative Item empty/partial/full fill, Arrow, PageUp/PageDown, Home/End, disabled/read-only state, and LTR/RTL.
 - Verify pointer selection within each segment and across gaps, drag capture, one-pointer ownership, vertical scroll preservation, true cancellation rollback, lost-capture finalization, repeated selection with and without allowClear, required-above-minimum validation, Field integration, hidden form value, and reset.
 

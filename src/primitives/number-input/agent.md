@@ -18,8 +18,9 @@ Edit an exact numeric value through text and spinbutton stepping with parsing, f
 
 ## Rules
 
+- **MUST:** Use Scrubber data-scrubbing for active drag presentation. Preserve matching-pointer cleanup on release/cancel/capture loss, blur, visibility loss, Escape, disabled/read-only changes and unmount. Keep cursor paint in the styled layer and preserve keyboard input; no pointer lock is required.
 - **MUST:** Use NumberInput only for values that can be meaningfully stepped and clamped; postal codes, phone numbers, account numbers, and similar identifiers remain text Input values.
-- **MUST:** Use number or null controlled state with onValueChange, preserve intermediate display text while editing, and treat null as an intentional empty numeric value.
+- **MUST:** Default numeric mode uses number/null and a numeric onValueChange callback. Opt-in valueMode=string uses string values and callback details containing value and valueAsNumber; blank or unparseable details use NaN. Do not mix the two modes. Preserve intermediate editing text.
 - **MUST:** Keep parser and formatter reversible for valid values, choose positive step and appropriate precision, and decide whether clampOnBlur should normalize out-of-range input.
 - **MUST:** Preserve Input's spinbutton name, numeric ARIA, Arrow/Page/Home/End keys, disabled/read-only/required/invalid state, and native validity.
 - **MUST:** Use Increment and Decrement only inside Root, preserve input focus on pointer activation, aria-controls, boundary disabled state, and localized accessible action names.
@@ -31,6 +32,8 @@ Edit an exact numeric value through text and spinbutton stepping with parsing, f
 
 ## Validation checklist
 
+- Verify locale and formatOptions parsing for decimal, currency and percent; never combine formatOptions with custom parser/formatter callbacks. Verify string callback details and parsed hidden values independently.
+- Verify useNumberInput/RootProvider, Label, ValueText, Context and supplementary Scrubber composition; modifier keys, focused opt-in wheel stepping, spinOnPress interruption, disabled transitions and unmount cleanup.
 - Verify controlled number and null state, uncontrolled default, intermediate typing, parsing, formatting, inferred and explicit precision, min/max, clampOnBlur, step and largeStep, Arrow/Page/Home/End, empty state, disabled/read-only behavior, and boundary step buttons with pointer/touch focus preservation.
 - Verify automatic, static one-Input, and render-callback paths; accessible name and value text; required and numeric native validity; inline/native Field reporting; hidden parsed name/form submission; external form; reset; native props; refs; asChild; and render composition.
 

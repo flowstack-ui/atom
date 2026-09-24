@@ -23,17 +23,21 @@ export { FileUploadItemName } from "./FileUploadItemName.js";
 export type { FileUploadItemNameProps } from "./FileUploadItemName.js";
 export { FileUploadItemSize } from "./FileUploadItemSize.js";
 export type { FileUploadItemSizeProps } from "./FileUploadItemSize.js";
-export { FileUploadRoot } from "./FileUploadRoot.js";
-export type { FileUploadRootProps } from "./FileUploadRoot.js";
+export { FileUploadRoot, FileUploadRootProvider, useFileUpload } from "./FileUploadRoot.js";
+export type { FileUploadRootProps, FileUploadRootProviderProps, FileUploadController } from "./FileUploadRoot.js";
+export * from "./FileUploadParts.js";
 export { FileUploadTrigger } from "./FileUploadTrigger.js";
 export type { FileUploadTriggerProps } from "./FileUploadTrigger.js";
 export {
   fileMatchesAccept,
   formatFileSize,
   validateFileUploadFiles,
+  normalizeFileAccept,
 } from "./utils.js";
 export type {
   FileUploadRejectedFile,
+  FileUploadAccept,
+  FileUploadError,
   FileUploadValidationOptions,
   FileUploadValidationResult,
 } from "./utils.js";

@@ -55,6 +55,17 @@ Uncontrolled values return to `defaultValue` on native form reset.
 | `validationBehavior` | `"inline" \| "native"` | Field/Form value or `"native"` |
 | `id` | `string` | Field control ID |
 
+With auto-resize off, Atom does not write or clear `height`, `minHeight`,
+`maxHeight`, or `overflowY`. With auto-resize on, Atom temporarily owns those
+inline properties, preserves CSS minimum/maximum constraints, and restores the
+latest authored values when auto-resize is disabled. Width, reveal, typography,
+and document-font changes trigger a new measurement.
+
+`minRows` and `maxRows` accept positive finite row counts and are floored.
+Invalid values are ignored; a maximum below the minimum is raised to the
+minimum. Explicit native `rows` controls the rendered row attribute, while
+active sizing still observes the normalized bounds.
+
 | ARIA attribute | Values |
 | --- | --- |
 | `aria-describedby` | Explicit IDs or inherited Field description/error IDs |
@@ -123,6 +134,11 @@ export default () => (
   <Textarea.Root autoResize minRows={3} maxRows={8} />
 );
 ```
+
+Auto-resize and native manual resize are separate sizing models. Keep
+consumer-authored `minHeight`/`maxHeight` constraints on the native textarea;
+Atom combines them with row bounds and enables vertical scrolling at the
+effective maximum.
 
 ## Accessibility
 

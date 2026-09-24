@@ -1,5 +1,10 @@
 # ColorPicker Changelog
 
+## Unreleased
+
+- Add useColorPicker and RootProvider using the original color controller.
+- Add part IDs and configurable Content mounting, retention and exit callbacks.
+
 ## 0.26.1 - 2026-08-31
 
 - Disabled `EyeDropperTrigger` and exposed `data-unsupported` when the secure

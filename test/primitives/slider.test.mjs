@@ -14,6 +14,16 @@ import {
   SliderRoot,
   SliderThumb,
   SliderTrack,
+  SliderControl,
+  SliderLabel,
+  SliderValueText,
+  SliderMarker,
+  SliderMarkerGroup,
+  SliderMarkerIndicator,
+  SliderMarkerLabel,
+  SliderDraggingIndicator,
+  SliderHiddenInput,
+  applySliderCollision,
   valueToPercent,
 } from "../../dist/index.js";
 
@@ -22,6 +32,15 @@ test("Slider namespace exposes compound parts", () => {
   assert.equal(Slider.Track, SliderTrack);
   assert.equal(Slider.Range, SliderRange);
   assert.equal(Slider.Thumb, SliderThumb);
+  assert.equal(Slider.Control, SliderControl);
+  assert.equal(Slider.Label, SliderLabel);
+  assert.equal(Slider.ValueText, SliderValueText);
+  assert.equal(Slider.Marker, SliderMarker);
+  assert.equal(Slider.MarkerGroup, SliderMarkerGroup);
+  assert.equal(Slider.MarkerIndicator, SliderMarkerIndicator);
+  assert.equal(Slider.MarkerLabel, SliderMarkerLabel);
+  assert.equal(Slider.DraggingIndicator, SliderDraggingIndicator);
+  assert.equal(Slider.HiddenInput, SliderHiddenInput);
 });
 
 test("Slider compound parts render track range and thumbs", () => {
@@ -135,8 +154,8 @@ test("Slider range thumbs expose their effective dependent bounds", () => {
 });
 
 test("Slider preserves scroll, reverts cancellation, and commits capture loss", async () => {
-  const rootSource = await readFile(
-    new URL("src/primitives/slider/SliderRoot.tsx", packageRoot),
+  const controllerSource = await readFile(
+    new URL("src/primitives/slider/useSlider.ts", packageRoot),
     "utf8",
   );
   const trackSource = await readFile(
@@ -144,16 +163,92 @@ test("Slider preserves scroll, reverts cancellation, and commits capture loss", 
     "utf8",
   );
 
-  assert.match(rootSource, /if \(disabled \|\| readOnly \|\| pointerSessionRef\.current\) return/);
-  assert.match(rootSource, /currentValues: newValues/);
-  assert.match(rootSource, /commitValues\(session\.currentValues\)/);
-  assert.match(rootSource, /updateValues\(session\.initialValues\)/);
+  assert.match(controllerSource, /disabled \|\| readOnly \|\| pointerSessionRef\.current \|\| event\.button !== 0/);
+  assert.match(controllerSource, /currentValues: \[\.\.\.values\]/);
+  assert.match(controllerSource, /onValueCommit\?\.\(toOutput\(session\.currentValues\)\)/);
+  assert.match(controllerSource, /setValues\(session\.initialValues\)/);
   assert.match(trackSource, /touchAction: context\.orientation === "horizontal" \? "pan-y" : "pan-x"/);
   assert.match(trackSource, /onLostPointerCapture: composeEventHandlers/);
   assert.match(trackSource, /onLostPointerCapture,[\s\S]*context\.handlePointerUp/);
-  assert.match(rootSource, /onLostPointerCapture: handlePointerUp/);
-  assert.doesNotMatch(rootSource, /onLostPointerCapture: handlePointerCancel/);
-  assert.doesNotMatch(rootSource, /onPointerCancel: handlePointerUp/);
+  assert.match(controllerSource, /onLostPointerCapture: handlePointerUp/);
+  assert.doesNotMatch(controllerSource, /onLostPointerCapture: handlePointerCancel/);
+  assert.doesNotMatch(controllerSource, /onPointerCancel: handlePointerUp/);
+});
+
+test("Slider preserves explicit thumb names and root labelledby", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Slider.Root,
+      { value: [20, 80], "aria-labelledby": "price-label", "aria-describedby": "price-help" },
+      React.createElement(Slider.Thumb, { index: 0, "aria-label": "Minimum price", "aria-describedby": "minimum-help" }),
+      React.createElement(Slider.Thumb, { index: 1, "aria-labelledby": "maximum-label" }),
+    ),
+  );
+  assert.match(html, /aria-label="Minimum price"/);
+  assert.doesNotMatch(html, /aria-label="Minimum price 1"/);
+  assert.match(html, /aria-describedby="price-help minimum-help"/);
+  assert.match(html, /aria-labelledby="maximum-label"/);
+});
+
+test("Slider renders richer anatomy, centered origin, and explicit inputs", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Slider.Root,
+      { value: -20, min: -100, max: 100, origin: "center", name: "offset", hiddenInputMode: "explicit" },
+      React.createElement(Slider.Label, null, "Offset"),
+      React.createElement(Slider.ValueText, null),
+      React.createElement(
+        Slider.Control,
+        null,
+        React.createElement(Slider.Track, null, React.createElement(Slider.Range)),
+        React.createElement(Slider.Thumb),
+        React.createElement(Slider.DraggingIndicator),
+      ),
+      React.createElement(Slider.HiddenInput),
+    ),
+  );
+  assert.match(html, /data-origin="center"/);
+  assert.match(html, /data-start="40" data-end="50"/);
+  assert.match(html, /data-slot="slider-label"/);
+  assert.match(html, /data-slot="slider-value-text"[^>]*>-20</);
+  assert.equal((html.match(/type="hidden"/g) ?? []).length, 1);
+});
+
+test("Slider collision policies preserve ordering and active identity", () => {
+  assert.deepEqual(
+    applySliderCollision([20, 40, 60], 55, 0, "none", 0, 100, 1, 5),
+    { values: [35, 40, 60], activeIndex: 0 },
+  );
+  assert.deepEqual(
+    applySliderCollision([20, 40, 60], 55, 0, "push", 0, 100, 1, 5),
+    { values: [55, 60, 65], activeIndex: 0 },
+  );
+  assert.deepEqual(
+    applySliderCollision([20, 40, 60], 55, 0, "swap", 0, 100, 1, 0),
+    { values: [40, 55, 60], activeIndex: 1 },
+  );
+  assert.deepEqual(
+    applySliderCollision([80, 90, 100], 95, 0, "push", 0, 100, 1, 5),
+    { values: [90, 95, 100], activeIndex: 0 },
+  );
+});
+
+test("Slider controller source implements Shift+Arrow and contained geometry", async () => {
+  const source = await readFile(new URL("src/primitives/slider/useSlider.ts", packageRoot), "utf8");
+  assert.match(source, /event\.shiftKey \? largeStep : config\.step/);
+  assert.match(source, /thumbAlignment === "contain"/);
+  assert.match(source, /ResizeObserver/);
+  assert.match(source, /finishSession\("cancel"\)/);
+  assert.match(source, /thumbNodesRef\.current\.get\(result\.activeIndex\)\?\.focus\(\{ preventScroll: true \}\)/);
+});
+
+test("Slider scalar fill reaches rail boundaries with explicit visible containment", () => {
+  const html = renderToStaticMarkup(React.createElement(Slider.Root, {
+    defaultValue: 100, thumbSize: {width:20, height:20}, "aria-label":"Volume",
+  }, React.createElement(Slider.Track, null, React.createElement(Slider.Range)), React.createElement(Slider.Thumb)));
+  assert.match(html, /inset-inline-start:0%/);
+  assert.match(html, /inset-inline-end:calc\(100% - 100%\)/);
+  assert.match(html, /calc\(10px \+ \(100% - 20px\) \* 1\)/);
 });
 
 test("Slider consumes Direction.Provider for horizontal RTL behavior", () => {

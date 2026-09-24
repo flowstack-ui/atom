@@ -1,14 +1,15 @@
 "use client";
 
-import { forwardRef, type CSSProperties, type ReactNode } from "react";
+import { forwardRef, useCallback, useMemo, type CSSProperties, type ReactNode } from "react";
 import type { NativeSpanProps } from "../../utils/dom.js";
 import {
   cloneAndMerge,
   composeEventHandlers,
+  composeRefs,
   renderElement,
   type RenderProp,
 } from "../../utils/slot.js";
-import { getSliderThumbOffsetStyle, useSliderContext } from "./context.js";
+import { useSliderContext } from "./context.js";
 
 type SliderThumbNativeProps = NativeSpanProps<"children">;
 
@@ -34,12 +35,18 @@ export const SliderThumb = forwardRef<HTMLSpanElement, SliderThumbProps>(
       children,
       className,
       style,
+      onFocus,
+      onBlur,
       onKeyDown,
       onPointerDown,
       onPointerMove,
       onPointerUp,
       onPointerCancel,
       onLostPointerCapture,
+      "aria-label": ariaLabel,
+      "aria-labelledby": ariaLabelledby,
+      "aria-describedby": ariaDescribedby,
+      "aria-valuetext": ariaValueText,
       "data-slot": dataSlot = "slider-thumb",
       ...restProps
     },
@@ -48,16 +55,25 @@ export const SliderThumb = forwardRef<HTMLSpanElement, SliderThumbProps>(
     const context = useSliderContext();
     const thumbState = context.getThumbState(index);
     const thumbProps = context.getThumbProps(index);
-    const offsetStyle = getSliderThumbOffsetStyle(
-      context.orientation,
-      thumbState.percent,
+    const offsetStyle = context.getThumbOffsetStyle(index);
+    const registerRef = useCallback(
+      (node: HTMLSpanElement | null) => context.registerThumb(index, node),
+      [context.registerThumb, index],
     );
+    const composedRef = useMemo(() => composeRefs(registerRef, ref), [registerRef, ref]);
+    const describedBy = [thumbProps["aria-describedby"], ariaDescribedby]
+      .filter(Boolean)
+      .flatMap((value) => value!.split(/\s+/u));
 
     // Native span props pass through before Atom behavior and value geometry.
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ...thumbProps,
-      ref,
+      ref: composedRef,
+      "aria-label": ariaLabel ?? thumbProps["aria-label"],
+      "aria-labelledby": ariaLabelledby ?? (ariaLabel ? undefined : thumbProps["aria-labelledby"]),
+      "aria-describedby": [...new Set(describedBy)].join(" ") || undefined,
+      "aria-valuetext": ariaValueText ?? thumbProps["aria-valuetext"],
       "data-slot": dataSlot,
       "data-value": thumbState.value,
       "data-percent": thumbState.percent,
@@ -66,6 +82,8 @@ export const SliderThumb = forwardRef<HTMLSpanElement, SliderThumbProps>(
         ...offsetStyle,
       },
       className,
+      onFocus: composeEventHandlers(onFocus, thumbProps.onFocus),
+      onBlur: composeEventHandlers(onBlur, thumbProps.onBlur),
       onKeyDown: composeEventHandlers(onKeyDown, thumbProps.onKeyDown),
       onPointerDown: composeEventHandlers(
         onPointerDown,

@@ -1,59 +1,16 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  type PointerEvent,
-  type RefObject,
-} from "react";
-import type { DirectionValue } from "../direction/index.js";
-import type { SliderOrientation, SliderThumbBehaviorProps } from "./SliderRoot.js";
+import { createContext, useContext } from "react";
+import type { SliderController, SliderOrientation, SliderRangeState } from "./useSlider.js";
 
-export interface SliderRangeState {
-  minPercent: number;
-  maxPercent: number;
-  startPercent: number;
-  endPercent: number;
-}
-
-export interface SliderThumbState {
-  index: number;
-  value: number;
-  percent: number;
-}
-
-export interface SliderContextValue {
-  values: number[];
-  isRange: boolean;
-  min: number;
-  max: number;
-  step: number;
-  orientation: SliderOrientation;
-  dir: DirectionValue;
-  disabled: boolean;
-  trackRef: RefObject<HTMLDivElement | null>;
-  valueToPercent: (value: number) => number;
-  getThumbProps: (thumbIndex: number) => SliderThumbBehaviorProps;
-  getThumbState: (thumbIndex: number) => SliderThumbState;
-  getRangeState: () => SliderRangeState;
-  handleTrackPointerDown: (event: PointerEvent) => void;
-  handlePointerMove: (event: PointerEvent) => void;
-  handlePointerUp: (event: PointerEvent) => void;
-  handlePointerCancel: (event: PointerEvent) => void;
-}
-
-const SliderContext = createContext<SliderContextValue | null>(null);
+const SliderContext = createContext<SliderController | null>(null);
 SliderContext.displayName = "SliderContext";
 
 export const SliderContextProvider = SliderContext.Provider;
 
-export function useSliderContext(): SliderContextValue {
+export function useSliderContext(): SliderController {
   const context = useContext(SliderContext);
-
-  if (!context) {
-    throw new Error("Slider primitives must be used within Slider.Root");
-  }
-
+  if (!context) throw new Error("Slider primitives must be used within Slider.Root or Slider.RootProvider");
   return context;
 }
 
@@ -71,12 +28,9 @@ export function getSliderRangeOffsetStyle(
   range: SliderRangeState,
 ): Record<string, string> {
   return orientation === "horizontal"
-    ? {
-        insetInlineStart: `${range.startPercent}%`,
-        insetInlineEnd: `${100 - range.endPercent}%`,
-      }
-    : {
-        insetBlockStart: `${100 - range.endPercent}%`,
-        insetBlockEnd: `${range.startPercent}%`,
-      };
+    ? { insetInlineStart: `${range.startPercent}%`, insetInlineEnd: `${100 - range.endPercent}%` }
+    : { insetBlockStart: `${100 - range.endPercent}%`, insetBlockEnd: `${range.startPercent}%` };
 }
+
+export type SliderContextValue = SliderController;
+export type { SliderRangeState, SliderThumbState } from "./useSlider.js";

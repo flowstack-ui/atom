@@ -1,5 +1,28 @@
 # FileUpload
 
+## Selection composition
+
+`useFileUpload(options)` returns a controller for `<FileUpload.RootProvider value={controller}>`.
+`FileUpload.Context` and `useFileUploadContext` expose files, rejections, remaining capacity,
+transforming/error state, `setFilesFromList`, `setClipboardFiles`, `clearFiles`,
+`clearRejectedFiles`, `removeFile`, and `openFilePicker`.
+
+`accept` supports comma-separated strings, arrays and MIME-to-extension maps. `minSize`
+and `maxSize` are byte limits. `validateFile(file, context)` may return a string or structured
+error array; existing string error codes remain available. `onFileAccept`, `onFileReject`
+and `onFileChange` supplement the original state callbacks.
+
+`transformFiles` may return a promise; obsolete work never commits after clear, removal,
+reset, newer intake, disabled/readOnly or unmount. Handle `transformError` or
+`onTransformError`. `directory` preserves relative paths and `capture` requests native
+camera input where supported. Neither replaces server validation or upload transport.
+
+Dropzone supports click/keyboard intake, `disableClick`, and Root `allowDrop`. Nested
+interactive elements retain their own actions. Always include HiddenInput and a named
+Trigger. `ClearTrigger`, `FileText`, `Label`, `ItemPreview`, `ItemPreviewImage`, and
+`ItemGroup type="rejected"` support richer file interfaces. Preview object URLs are revoked
+automatically; author meaningful image alt text only when the filename does not suffice.
+
 Headless native file-picker, dropzone, validation, selected-file collection,
 and removal primitives.
 

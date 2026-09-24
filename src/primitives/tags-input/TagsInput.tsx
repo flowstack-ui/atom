@@ -31,6 +31,7 @@ import { ComboboxInput } from "../combobox/ComboboxInput.js";
 import { ComboboxControl } from "../combobox/ComboboxControl.js";
 import { useOptionalComboboxContext } from "../combobox/context.js";
 import type { ComboboxRootProps } from "../combobox/ComboboxRoot.js";
+const useSafeLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 import {
   TagsInputContext as StoreContext,
   getTagsInputStore,
@@ -40,22 +41,35 @@ import {
   type TagsInputOptions,
   type TagsInputController,
   type TagsInputOutsideEvent,
+  type TagsInputItemState,
 } from "./controller.js";
+
+type HostComposition = { asChild?: boolean; render?: RenderProp };
+function host<T extends HTMLElement, P extends HTMLAttributes<T>>(tag: "div" | "span" | "label" | "input") {
+  return forwardRef<T, P & HostComposition>(function TagsInputHost({ asChild, render, children, ...props }, ref) {
+    const native = { ...props, ref };
+    return asChild ? cloneAndMerge(children, native) : renderElement(render, tag, { ...native, children });
+  });
+}
+const Div = host<HTMLDivElement, HTMLAttributes<HTMLDivElement>>("div");
+const Span = host<HTMLSpanElement, HTMLAttributes<HTMLSpanElement>>("span");
+const Label = host<HTMLLabelElement, LabelHTMLAttributes<HTMLLabelElement>>("label");
+const Input = host<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>("input");
 
 export type TagsInputRootProps = Omit<
   HTMLAttributes<HTMLDivElement>,
   "defaultValue" | "onChange" | "dir"
 > &
-  TagsInputOptions & { "data-slot"?: string };
-export type TagsInputRootProviderProps = HTMLAttributes<HTMLDivElement> & {
+  TagsInputOptions & HostComposition & { "data-slot"?: string };
+export type TagsInputRootProviderProps = HTMLAttributes<HTMLDivElement> & HostComposition & {
   value: TagsInputController;
   "data-slot"?: string;
 };
 export type TagsInputInputProps = Omit<
   InputHTMLAttributes<HTMLInputElement>,
   "value" | "defaultValue" | "name" | "type" | "required" | "size"
->;
-export type TagsInputItemProps = HTMLAttributes<HTMLDivElement> & {
+> & HostComposition;
+export type TagsInputItemProps = HTMLAttributes<HTMLDivElement> & HostComposition & {
   index: number;
   value: string;
   disabled?: boolean;
@@ -64,7 +78,7 @@ export type TagsInputItemProps = HTMLAttributes<HTMLDivElement> & {
 export type TagsInputItemInputProps = Omit<
   InputHTMLAttributes<HTMLInputElement>,
   "value" | "defaultValue" | "name" | "type"
->;
+> & HostComposition;
 export type TagsInputTriggerProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   asChild?: boolean;
   render?: RenderProp;
@@ -208,18 +222,20 @@ export const TagsInputRootProvider = forwardRef<
   const invalid = options.invalid;
   return (
     <StoreContext.Provider value={store}>
-      <div
+      <Div
         {...props}
         ref={composeRefs(root, ref)}
         id={props.id ?? store.id("root")}
         dir={options.dir}
         data-slot={slot}
         data-disabled={options.disabled ? "" : undefined}
+        aria-disabled={options.disabled || undefined}
         data-readonly={options.readOnly ? "" : undefined}
         data-invalid={invalid ? "" : undefined}
         data-empty={api.empty ? "" : undefined}
       >
         {children}
+      </Div>
         <span
           role="status"
           aria-live="polite"
@@ -228,7 +244,6 @@ export const TagsInputRootProvider = forwardRef<
         >
           <span key={store.announcement.key}>{store.announcement.text}</span>
         </span>
-      </div>
     </StoreContext.Provider>
   );
 });
@@ -241,11 +256,11 @@ export function TagsInputContext({
 }
 export const TagsInputLabel = forwardRef<
   HTMLLabelElement,
-  LabelHTMLAttributes<HTMLLabelElement>
+  LabelHTMLAttributes<HTMLLabelElement> & HostComposition
 >(function TagsInputLabel(props, ref) {
   const store = useTagsInputStore();
   return (
-    <label
+    <Label
       {...props}
       ref={ref}
       id={props.id ?? store.id("label")}
@@ -256,7 +271,7 @@ export const TagsInputLabel = forwardRef<
 });
 export const TagsInputControl = forwardRef<
   HTMLDivElement,
-  HTMLAttributes<HTMLDivElement>
+  HTMLAttributes<HTMLDivElement> & HostComposition
 >(function TagsInputControl({ onClick, ...props }, ref) {
   const store = useTagsInputStore(),
     combo = useOptionalComboboxContext();
@@ -272,7 +287,7 @@ export const TagsInputControl = forwardRef<
       },
     ),
   };
-  return combo ? <ComboboxControl {...native} /> : <div {...native} />;
+  return combo ? <ComboboxControl {...native} /> : <Div {...native} />;
 });
 
 /** Bind the existing Combobox without a second draft owner or named proxy. */
@@ -431,7 +446,7 @@ export const TagsInputInput = forwardRef<HTMLInputElement, TagsInputInputProps>(
       readOnly: options.readOnly,
       form: options.form,
       maxLength: options.maxLength,
-      placeholder: props.placeholder ?? options.placeholder,
+      placeholder: options.readOnly ? undefined : props.placeholder ?? options.placeholder,
       autoComplete: props.autoComplete ?? "off",
       "aria-label": props["aria-label"] ?? options.translations?.inputLabel,
       "aria-labelledby":
@@ -481,7 +496,7 @@ export const TagsInputInput = forwardRef<HTMLInputElement, TagsInputInputProps>(
     };
     // Combobox reads its controlled draft from the bindings; its native onChange
     // also follows our normalization handler, so delimiter adds must not be undone.
-    return combo ? <ComboboxInput {...native} /> : <input {...native} />;
+    return combo ? <ComboboxInput {...native} /> : <Input {...native} />;
   },
 );
 
@@ -490,15 +505,23 @@ const ItemContext = createContext<{
   value: string;
   disabled?: boolean;
 } | null>(null);
+ItemContext.displayName = "TagsInputItem";
 function useItem() {
   const item = useContext(ItemContext);
   if (!item) throw new Error("TagsInput item parts require Item");
   return item;
 }
+export function TagsInputItemContext({ children }: {
+  children: (state: TagsInputItemState & { index: number; value: string }) => ReactNode;
+}) {
+  const item = useItem();
+  const { api } = useTagsInputStore();
+  return children({ ...item, ...api.getItemState(item) });
+}
 export const TagsInputItem = forwardRef<HTMLDivElement, TagsInputItemProps>(
   function TagsInputItem({ index, value, disabled, children, ...props }, ref) {
     const store = useTagsInputStore();
-    useLayoutEffect(() => {
+    useSafeLayoutEffect(() => {
       store.disabledItems.current.set(index, !!disabled);
       return () => {
         store.disabledItems.current.delete(index);
@@ -510,21 +533,22 @@ export const TagsInputItem = forwardRef<HTMLDivElement, TagsInputItemProps>(
     );
     return (
       <ItemContext.Provider value={item}>
-        <div
+        <Div
           {...props}
           ref={ref}
           data-slot="tags-input-item"
           data-disabled={disabled || store.options.disabled ? "" : undefined}
+          aria-disabled={disabled || store.options.disabled || undefined}
         >
           {children}
-        </div>
+        </Div>
       </ItemContext.Provider>
     );
   },
 );
 export const TagsInputItemPreview = forwardRef<
   HTMLSpanElement,
-  HTMLAttributes<HTMLSpanElement>
+  HTMLAttributes<HTMLSpanElement> & HostComposition
 >(function TagsInputItemPreview(
   { onPointerDown, onDoubleClick, ...props },
   ref,
@@ -533,7 +557,7 @@ export const TagsInputItemPreview = forwardRef<
     { api } = useTagsInputStore(),
     state = api.getItemState(item);
   return (
-    <span
+    <Span
       {...props}
       ref={ref}
       id={props.id ?? state.id}
@@ -545,28 +569,28 @@ export const TagsInputItemPreview = forwardRef<
         if (
           !state.disabled &&
           event.button === 0 &&
-          !(event.target as HTMLElement).closest("button")
+          !(event.target as HTMLElement).closest("button, a[href], input, select, textarea, [contenteditable], [role=button], [role=link]")
         ) {
           event.preventDefault();
           api.focus();
           api.highlight(item.index);
         }
       })}
-      onDoubleClick={composeEventHandlers(onDoubleClick, () => {
-        if (!state.disabled) api.startEdit(item.index);
+      onDoubleClick={composeEventHandlers(onDoubleClick, (event) => {
+        if (!state.disabled && !(event.target as HTMLElement).closest("button, a[href], input, select, textarea, [contenteditable], [role=button], [role=link]")) api.startEdit(item.index);
       })}
     />
   );
 });
 export const TagsInputItemText = forwardRef<
   HTMLSpanElement,
-  HTMLAttributes<HTMLSpanElement>
+  HTMLAttributes<HTMLSpanElement> & HostComposition
 >(function TagsInputItemText({ children, ...props }, ref) {
   const item = useItem();
   return (
-    <span {...props} ref={ref} data-slot="tags-input-item-text">
+    <Span {...props} ref={ref} data-slot="tags-input-item-text">
       {children ?? item.value}
-    </span>
+    </Span>
   );
 });
 export const TagsInputItemInput = forwardRef<
@@ -577,8 +601,9 @@ export const TagsInputItemInput = forwardRef<
     item = useItem(),
     state = store.api.getItemState(item);
   return (
-    <input
+    <Input
       {...props}
+      id={props.id ?? store.id("itemInput", item.index)}
       ref={composeRefs(state.editing ? store.itemInput : undefined, ref)}
       hidden={!state.editing}
       value={state.editing ? store.api.editValue : ""}
@@ -631,6 +656,7 @@ function trigger(part: "delete" | "clear") {
       const native = {
         ...props,
         ref,
+        id: props.id ?? store.id(part === "delete" ? "itemDeleteTrigger" : "clearTrigger", part === "delete" ? item!.index : undefined),
         type: "button",
         disabled: !!disabled,
         hidden: part === "clear" && api.empty,
@@ -649,11 +675,10 @@ function trigger(part: "delete" | "clear") {
           if (!disabled)
             api.clearValue(part === "delete" ? item!.index : undefined);
         }),
-        children,
       };
       return asChild
         ? cloneAndMerge(children, native)
-        : renderElement(render, "button", native);
+        : renderElement(render, "button", { ...native, children });
     },
   );
 }
@@ -680,7 +705,7 @@ export const TagsInputHiddenInput = forwardRef<
     form: options.form,
     reportValidity: field?.reportControlValidity,
   });
-  useLayoutEffect(() => {
+  useSafeLayoutEffect(() => {
     proxy.current?.setCustomValidity(
       options.required && api.empty && !options.readOnly
         ? (options.translations?.requiredMessage ??
@@ -725,6 +750,7 @@ export const TagsInput = {
   Control: TagsInputControl,
   Input: TagsInputInput,
   Item: TagsInputItem,
+  ItemContext: TagsInputItemContext,
   ItemPreview: TagsInputItemPreview,
   ItemText: TagsInputItemText,
   ItemInput: TagsInputItemInput,

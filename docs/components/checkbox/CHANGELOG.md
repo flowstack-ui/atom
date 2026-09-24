@@ -1,5 +1,10 @@
 # Checkbox Changelog
 
+## Unreleased
+
+- Added state controller hooks and RootProvider composition.
+- Added native input refs/props and authoritative inherited availability; composed child event cancellation now precedes activation.
+
 ## 0.6.16
 
 - Explicitly scrolled the visible Root into view when inline validation directs

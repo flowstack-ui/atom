@@ -18,6 +18,7 @@ Provide an independent checked, unchecked, or mixed selection with keyboard, poi
 
 ## Rules
 
+- **MUST:** Use useCheckbox with RootProvider for external state access. Keep form integration on the rendered Root; inputRef and inputProps target its single automatic native input. Do not add a second hidden input. Inherited Field disabled/readOnly cannot be overridden with false.
 - **MUST:** Provide a visible label for each checkbox unless the visual context is truly redundant and an accessible name remains.
 - **MUST:** Use checkbox semantics only for independently selectable values or a documented aggregate mixed state.
 

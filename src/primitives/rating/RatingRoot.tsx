@@ -5,10 +5,14 @@ import {
   useCallback,
   useMemo,
   useRef,
+  useEffect,
+  useId,
+  useState,
+  Children,
+  isValidElement,
   type KeyboardEventHandler,
   type ReactNode,
 } from "react";
-import { useControllableState } from "../../hooks/useControllableState.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
 import { useFormValidation } from "../../hooks/useFormValidation.js";
 import { formControlProxyStyle, useFormControlProxy } from "../../hooks/useFormControlProxy.js";
@@ -34,6 +38,8 @@ import {
 } from "./utils.js";
 import { useFieldContext } from "../field/context.js";
 import type { ValidationBehavior } from "../form/validation.js";
+import { useFieldsetContext } from "../fieldset/context.js";
+import { useRating, ratingControllerGuards, type RatingController } from "./useRating.js";
 
 type RatingRootNativeProps = NativeDivProps<
   | "children"
@@ -46,6 +52,7 @@ type RatingRootNativeProps = NativeDivProps<
   | "aria-valuenow"
   | "aria-valuetext"
   | "onKeyDown"
+  | "inputMode"
 >;
 
 interface RatingPointerSession {
@@ -56,6 +63,12 @@ interface RatingPointerSession {
 }
 
 export interface RatingRootProps extends RatingRootNativeProps {
+  /** Hover previews do not change the committed form value. */
+  onHoverChange?: (value: number | null) => void;
+  /** Automatic inputs by default; manual requires one HiddenInput. */
+  inputMode?: "auto" | "manual";
+  ids?: { root?: string; label?: string; control?: string; input?: string };
+  autoFocus?: boolean;
   /** Controlled rating value. */
   value?: number;
   /** Initial rating value for uncontrolled mode. */
@@ -108,12 +121,31 @@ export interface RatingRootProps extends RatingRootNativeProps {
   "data-slot"?: string;
 }
 
-export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
-  function RatingRoot(
+export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(function RatingRoot(props, ref) {
+  const controller = useRating(props);
+  return <RatingRootProvider {...props} controller={controller} ref={ref} />;
+});
+
+export interface RatingRootProviderProps extends Omit<RatingRootProps, "value" | "defaultValue" | "onValueChange"> {
+  controller: RatingController;
+}
+
+export const RatingRootProvider = forwardRef<HTMLDivElement, RatingRootProviderProps>(
+  function RatingRootProvider(
+    providerProps,
+    ref,
+  ) {
+    const { controller } = providerProps;
+    const
     {
       value,
       defaultValue,
       onValueChange,
+      onHoverChange,
+      inputMode = "auto",
+      ids,
+      autoFocus,
+      controller: _controller,
       allowClear = false,
       min: minProp = 0,
       max: maxProp = 5,
@@ -137,14 +169,65 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
       onKeyDown,
       "data-slot": dataSlot = "rating",
       ...restProps
-    },
-    ref,
-  ) {
+    } = { ...controller.options, ...providerProps };
     const field = useFieldContext();
-    const isDisabled = disabled ?? field?.disabled ?? false;
+    const fieldset = useFieldsetContext();
+    const [nativeDisabled, setNativeDisabled] = useState(false);
+    const isDisabled = nativeDisabled || !!fieldset?.disabled || (disabled ?? field?.disabled ?? false);
     const isReadOnly = readOnly ?? field?.readOnly ?? false;
     const isRequired = required ?? field?.required ?? false;
     const rootRef = useRef<HTMLDivElement>(null);
+    const generatedId = useId();
+    const rootId = restProps.id ?? ids?.root ?? field?.controlId ?? `rating-${generatedId}`;
+    const labelId = ids?.label ?? `${rootId}-label`;
+    let authoredLabel: string | undefined;
+    let authoredInputCount = 0;
+    const inspectParts = (nodes: ReactNode) => Children.forEach(nodes, child => {
+      if (!isValidElement<{ id?: string; children?: ReactNode }>(child)) return;
+      const part = (child.type as unknown as Record<symbol, string>)[Symbol.for("flowstack.rating.part")];
+      if (part === "label") authoredLabel = child.props.id ?? labelId;
+      if (part === "input") authoredInputCount += 1;
+      inspectParts(child.props.children);
+    });
+    inspectParts(children);
+    if (authoredInputCount > 1 || (inputMode === "auto" && authoredInputCount)) {
+      throw new Error('Rating accepts one HiddenInput, only in inputMode="manual"');
+    }
+    const [registeredLabel, setRegisteredLabel] = useState<string>();
+    const hiddenInputOwner = useRef<symbol | null>(null);
+    useEffect(() => {
+      const root = rootRef.current;
+      const Observer = root?.ownerDocument.defaultView?.MutationObserver;
+      if (!root || !Observer) return;
+      const sync = () => {
+        let ancestor = root.parentElement;
+        let disabledByFieldset = false;
+        while (ancestor) {
+          if (ancestor.tagName === "FIELDSET" && (ancestor as HTMLFieldSetElement).disabled) {
+            const legend = Array.from(ancestor.children).find(child => child.tagName === "LEGEND");
+            if (!legend?.contains(root)) disabledByFieldset = true;
+          }
+          ancestor = ancestor.parentElement;
+        }
+        setNativeDisabled(disabledByFieldset);
+      };
+      sync();
+      const observer = new Observer(sync);
+      observer.observe(root.ownerDocument.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ["disabled"] });
+      return () => observer.disconnect();
+    }, []);
+    useEffect(() => {
+      const guards = ratingControllerGuards.get(controller);
+      const guard = () => !isDisabled && !isReadOnly;
+      guards?.add(guard);
+      return () => { guards?.delete(guard); };
+    }, [controller, isDisabled, isReadOnly]);
+    const autofocusDone = useRef(false);
+    useEffect(() => {
+      if (autofocusDone.current) return;
+      autofocusDone.current = true;
+      if (autoFocus && !isDisabled && !validationInputRef.current?.matches(":disabled")) rootRef.current?.focus();
+    }, [autoFocus, isDisabled]);
     const pointerSessionRef = useRef<RatingPointerSession | null>(null);
     const validationInputRef = useRef<HTMLInputElement>(null);
     useFormControlProxy(validationInputRef, rootRef);
@@ -157,6 +240,7 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
       inheritedValidationBehavior: field?.validationBehavior,
       form,
       reportValidity: field?.reportControlValidity,
+      clearOnReset: false,
     });
     const isInvalid = validation.invalid;
     const range = useMemo(
@@ -165,25 +249,41 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
     );
     const contextDir = useDirection();
     const dir = dirProp ?? contextDir;
-    const step = stepProp > 0 ? stepProp : 1;
+    const step = Number.isFinite(stepProp) && stepProp > 0 ? stepProp : 1;
     const largeStep =
-      largeStepProp ??
+      (Number.isFinite(largeStepProp) && largeStepProp! > 0 ? largeStepProp : undefined) ??
       Math.min(
         step * 10,
         step * Math.ceil((range.max - range.min) / 2 / step),
       );
-    const [ratingValue, setRatingValue] = useControllableState({
-      value: value === undefined ? undefined : clampRatingValue(value, range.min, range.max),
-      defaultValue: clampRatingValue(defaultValue ?? range.min, range.min, range.max),
-      onChange: onValueChange,
-    });
+    const ratingValue = controller.value;
+    const setRatingValue = controller.setValue;
     const clampedValue = clampRatingValue(ratingValue, range.min, range.max);
     const reset = useCallback(() => {
-      if (value === undefined) {
-        setRatingValue(clampRatingValue(defaultValue ?? range.min, range.min, range.max));
+      if (!rootRef.current) return;
+      pointerSessionRef.current = null;
+      controller.reset();
+      validation.clearNativeInvalid();
+    }, [controller.reset, validation.clearNativeInvalid]);
+    useFormReset(rootRef, form, false, reset);
+    useEffect(() => {
+      pointerSessionRef.current = null;
+      controller.setHoveredValue(null);
+    }, [isDisabled, isReadOnly, range.min, range.max, step]);
+    useEffect(() => () => {
+      const session = pointerSessionRef.current;
+      if (session) {
+        for (const item of rootRef.current?.querySelectorAll<HTMLElement>('[data-slot="rating-item"]') ?? []) {
+          if (item.hasPointerCapture?.(session.pointerId)) item.releasePointerCapture?.(session.pointerId);
+        }
       }
-    }, [defaultValue, range.max, range.min, setRatingValue, value]);
-    useFormReset(rootRef, form, value !== undefined, reset);
+      pointerSessionRef.current = null;
+    }, [isDisabled, isReadOnly, range.min, range.max, step]);
+    useEffect(() => {
+      if (inputMode === "manual" && !hiddenInputOwner.current) {
+        throw new Error('Rating inputMode="manual" requires one HiddenInput');
+      }
+    }, [inputMode, children]);
     const valueText =
       ariaValueText ??
       getValueLabel?.(clampedValue, range.min, range.max) ??
@@ -199,8 +299,8 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
     );
 
     const getItemState = useCallback(
-      (itemValue: number) => getRatingItemState(clampedValue, itemValue, range.min),
-      [clampedValue, range.min],
+      (itemValue: number) => getRatingItemState(controller.previewValue, itemValue, range.min),
+      [controller.previewValue, range.min],
     );
 
     const beginPointerInteraction = useCallback(
@@ -303,6 +403,7 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
 
         if (!handled) return;
         event.preventDefault();
+        controller.setHoveredValue(null);
         setValue(nextValue);
       },
       [
@@ -315,12 +416,26 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
         isReadOnly,
         setValue,
         step,
+        controller.setHoveredValue,
       ],
     );
 
     const contextValue = useMemo<RatingContextValue>(
       () => ({
         value: clampedValue,
+        hoveredValue: controller.hoveredValue,
+        previewValue: controller.previewValue,
+        setHoveredValue: controller.setHoveredValue,
+        clearValue: controller.clearValue,
+        items: controller.items,
+        rootRef,
+        rootId,
+        labelId,
+        controlId: ids?.control ?? `${rootId}-control`,
+        setRegisteredLabel,
+        inputMode,
+        hiddenInputOwner,
+        input: { name, form, formValue, id: ids?.input },
         min: range.min,
         max: range.max,
         step,
@@ -338,6 +453,7 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
         cancelPointerInteraction,
       }),
       [
+        controller, rootId, labelId, ids, inputMode, name, form, formValue,
         clampedValue,
         isDisabled,
         getItemState,
@@ -360,15 +476,15 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref: composeRefs(rootRef, ref),
-      id: restProps.id ?? field?.controlId,
+      id: rootId,
       role: "slider",
-      tabIndex: tabIndex ?? 0,
+      tabIndex: isDisabled ? -1 : tabIndex ?? 0,
       "aria-valuemin": range.min,
       "aria-valuemax": range.max,
       "aria-valuenow": clampedValue,
       "aria-valuetext": valueText,
       "aria-labelledby": restProps["aria-labelledby"] ??
-        (restProps["aria-label"] === undefined ? field?.labelId : undefined),
+        (restProps["aria-label"] === undefined ? authoredLabel ?? registeredLabel ?? field?.labelId : undefined),
       "aria-describedby": Object.prototype.hasOwnProperty.call(restProps, "aria-describedby")
         ? restProps["aria-describedby"]
         : field?.describedBy,
@@ -383,6 +499,7 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
       "data-max": range.max,
       "data-step": step,
       onKeyDown: composeEventHandlers(onKeyDown, handleKeyDown),
+      onPointerLeave: composeEventHandlers(restProps.onPointerLeave, () => controller.setHoveredValue(null)),
     };
 
     const root = asChild
@@ -407,7 +524,7 @@ export const RatingRoot = forwardRef<HTMLDivElement, RatingRootProps>(
           />
         ) : null}
         {root}
-        {name ? (
+        {name && inputMode === "auto" ? (
           <input
             type="hidden"
             name={name}

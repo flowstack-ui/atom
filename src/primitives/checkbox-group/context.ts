@@ -3,6 +3,8 @@
 import { createContext, useContext } from "react";
 
 export interface CheckboxGroupContextValue {
+  /** Upper bound for adding unchecked choices. */
+  maxSelectedValues?: number;
   /** Currently selected values. */
   groupValues: string[];
   /** Mounted item values retained for compatible custom aggregate controls. */
@@ -16,7 +18,7 @@ export interface CheckboxGroupContextValue {
   /** Check if a specific item is selected. */
   isItemChecked: (value: string) => boolean;
   /** Register an item value and visible control on mount. */
-  registerItem: (value: string, element: HTMLButtonElement) => void;
+  registerItem: (value: string, element: HTMLButtonElement | HTMLInputElement) => void;
   /** Unregister an item value on unmount. */
   unregisterItem: (value: string) => void;
   /** Form field name shared across checkboxes. */
@@ -49,6 +51,10 @@ const CheckboxGroupContext = createContext<CheckboxGroupContextValue | null>(nul
 CheckboxGroupContext.displayName = "CheckboxGroupContext";
 
 export const CheckboxGroupContextProvider = CheckboxGroupContext.Provider;
+
+export function useOptionalCheckboxGroupContext() {
+  return useContext(CheckboxGroupContext);
+}
 
 const CheckboxGroupItemContext = createContext<CheckboxGroupItemContextValue | null>(null);
 CheckboxGroupItemContext.displayName = "CheckboxGroupItemContext";

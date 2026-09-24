@@ -10,8 +10,10 @@ import type { PropTypes } from "@zag-js/react";
 export type ColorPickerContextValue = ZagColorPickerApi<PropTypes>;
 
 interface ColorPickerRootContextValue {
+  lifecycle: { lazyMount: boolean; unmountOnExit: boolean; present?: boolean; onExitComplete?: () => void };
   api: ColorPickerContextValue;
   form?: string;
+  inputId?: string;
   onValueChangeEnd?: (details: ValueChangeDetails) => void;
 }
 

@@ -1,8 +1,11 @@
+export type FileUploadAccept = string | string[] | Record<string, string[]>;
+export interface FileUploadError { code: string; message?: string }
 export interface FileUploadValidationOptions {
-  accept?: string;
+  accept?: FileUploadAccept;
   maxFiles?: number;
   maxSize?: number;
-  validateFile?: (file: File) => string | null | undefined | false;
+  minSize?: number;
+  validateFile?: (file: File, details: { files: File[]; acceptedFiles: File[] }) => string | FileUploadError[] | null | undefined | false;
 }
 
 export interface FileUploadValidationResult {
@@ -13,12 +16,18 @@ export interface FileUploadValidationResult {
 export interface FileUploadRejectedFile {
   file: File;
   errors: string[];
+  details?: FileUploadError[];
 }
 
-export function fileMatchesAccept(file: File, accept: string | undefined): boolean {
+export function normalizeFileAccept(accept: FileUploadAccept | undefined): string | undefined {
+  if (accept === undefined || typeof accept === "string") return accept;
+  return (Array.isArray(accept) ? accept : Object.entries(accept).flatMap(([mime, extensions]) => [mime, ...extensions])).join(",");
+}
+
+export function fileMatchesAccept(file: File, accept: FileUploadAccept | undefined): boolean {
   if (!accept) return true;
 
-  const rules = accept
+  const rules = normalizeFileAccept(accept)!
     .split(",")
     .map((rule) => rule.trim().toLowerCase())
     .filter(Boolean);
@@ -61,18 +70,20 @@ export function validateFileUploadFiles(
     if (options.maxSize !== undefined && file.size > options.maxSize) {
       errors.push("size");
     }
+    if (options.minSize !== undefined && file.size < options.minSize) errors.push("too-small");
 
-    const customError = options.validateFile?.(file);
+    const customError = options.validateFile?.(file, { files, acceptedFiles: [...acceptedFiles] });
     if (typeof customError === "string" && customError.length > 0) {
       errors.push(customError);
     }
+    if (Array.isArray(customError)) errors.push(...customError.map((error) => error.code));
 
     if (maxFiles !== undefined && acceptedFiles.length >= maxFiles) {
       errors.push("count");
     }
 
     if (errors.length > 0) {
-      rejectedFiles.push({ file, errors });
+      rejectedFiles.push({ file, errors, ...(Array.isArray(customError) && { details: customError }) });
     } else {
       acceptedFiles.push(file);
     }
@@ -81,7 +92,7 @@ export function validateFileUploadFiles(
   return { acceptedFiles, rejectedFiles };
 }
 
-export function formatFileSize(size: number): string {
+export function formatFileSize(size: number, locale?: string): string {
   if (!Number.isFinite(size) || size <= 0) return "0 B";
 
   const units = ["B", "KB", "MB", "GB", "TB"] as const;
@@ -93,7 +104,7 @@ export function formatFileSize(size: number): string {
     unitIndex += 1;
   }
 
-  const formatted = value >= 10 || unitIndex === 0
+  const formatted = locale ? new Intl.NumberFormat(locale, { maximumFractionDigits: value >= 10 || unitIndex === 0 ? 0 : 1 }).format(value) : value >= 10 || unitIndex === 0
     ? Math.round(value).toString()
     : value.toFixed(1);
   return `${formatted} ${units[unitIndex]}`;

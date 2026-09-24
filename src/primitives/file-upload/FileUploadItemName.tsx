@@ -34,10 +34,7 @@ export const FileUploadItemName = forwardRef<HTMLSpanElement, FileUploadItemName
     };
 
     if (asChild) {
-      return cloneAndMerge(children, {
-        ...behaviorProps,
-        children: content,
-      });
+      return cloneAndMerge(children, behaviorProps);
     }
 
     return renderElement(render, "span", {

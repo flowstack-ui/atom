@@ -8,6 +8,7 @@ import { useFileUploadContext } from "./context.js";
 type FileUploadItemGroupNativeProps = NativeListProps<"children">;
 
 export interface FileUploadItemGroupProps extends FileUploadItemGroupNativeProps {
+  type?: "accepted" | "rejected";
   children?: ReactNode | ((file: File, index: number) => ReactNode);
   render?: RenderProp;
   asChild?: boolean;
@@ -24,6 +25,7 @@ export const FileUploadItemGroup = forwardRef<HTMLUListElement, FileUploadItemGr
   function FileUploadItemGroup(
     {
       children,
+      type = "accepted",
       render,
       asChild,
       "data-slot": dataSlot = "file-upload-item-group",
@@ -32,17 +34,18 @@ export const FileUploadItemGroup = forwardRef<HTMLUListElement, FileUploadItemGr
     ref,
   ) {
     const ctx = useFileUploadContext();
+    const files = type === "rejected" ? ctx.rejectedFiles.map((entry) => entry.file) : ctx.files;
     const hasFunctionChild = isFunctionChild(children);
     const content = hasFunctionChild
-      ? ctx.files.map((file, index) => children(file, index))
+      ? files.map((file, index) => children(file, index))
       : children;
 
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref,
       "data-slot": dataSlot,
-      "data-count": ctx.files.length,
-      ...(ctx.files.length > 0 && { "data-filled": "" }),
+      "data-count": files.length,
+      ...(files.length > 0 && { "data-filled": "" }),
     };
 
     if (asChild) {
@@ -52,10 +55,7 @@ export const FileUploadItemGroup = forwardRef<HTMLUListElement, FileUploadItemGr
         );
       }
 
-      return cloneAndMerge(children, {
-        ...behaviorProps,
-        children: content,
-      });
+      return cloneAndMerge(children, behaviorProps);
     }
 
     return renderElement(render, "ul", {

@@ -5,6 +5,7 @@ import {
   useCallback,
   useEffect,
   useId,
+  useMemo,
   useRef,
   useState,
   type ChangeEventHandler,
@@ -15,7 +16,7 @@ import {
   type ReactNode,
 } from "react";
 import type { NativeInputProps } from "../../utils/dom.js";
-import { composeEventHandlers } from "../../utils/slot.js";
+import { composeEventHandlers, composeRefs } from "../../utils/slot.js";
 import {
   cloneAndMerge,
   renderElement,
@@ -84,18 +85,14 @@ export const PinInputInput = forwardRef<HTMLInputElement, PinInputInputProps>(
       return () => unregisterInput(inputKey);
     }, [inputKey, registerInput, unregisterInput]);
 
-    const setRef = useCallback(
+    const setInputRef = context.setInputRef;
+    const registerRef = useCallback(
       (element: HTMLInputElement | null) => {
-        context.setInputRef(resolvedIndex, element);
-
-        if (typeof ref === "function") {
-          ref(element);
-        } else if (ref) {
-          ref.current = element;
-        }
+        setInputRef(resolvedIndex, element);
       },
-      [context, resolvedIndex, ref],
+      [setInputRef, resolvedIndex],
     );
+    const setRef = useMemo(() => composeRefs(registerRef, ref), [registerRef, ref]);
 
     const handleInput = useCallback<FormEventHandler<HTMLInputElement>>(
       (event) => {

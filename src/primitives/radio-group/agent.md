@@ -18,6 +18,9 @@ Manage one selected form option with radiogroup semantics, roving focus, orienta
 
 ## Rules
 
+- **MUST:** Recover the first enabled Tab entry when selection is absent or disabled without rewriting controlled state. Required validity needs a registered eligible selection.
+- **MUST:** Use ItemRoot with exactly one ItemHiddenInput, ItemText and optional ItemDescription for open composition. Links must not be nested in the closed Radio button. RootProvider consumes useRadioGroup; input refs target the native input and no extra submission bridge is added.
+- **MUST:** Optional Indicator is decorative measured selection, not a radio or label. Keep it inside Root; style its geometry variables in the styled layer and provide selected-item fallback paint until data-ready. Root ownership must not depend on data-slot spelling.
 - **MUST:** Give Root an accessible name with native ARIA or an inherited Fieldset Legend and give every Radio an accessible option name.
 - **MUST:** Use value with onValueChange for controlled state or defaultValue for uncontrolled state, and provide stable unique Radio values.
 - **MUST:** Preserve the selected or first enabled Radio as the single Tab stop, skip disabled Radios, and use Root orientation and direction for Arrow, Home, and End focus and selection behavior.

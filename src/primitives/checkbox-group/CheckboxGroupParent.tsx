@@ -54,7 +54,8 @@ export const CheckboxGroupParent = forwardRef<
       ref={ref}
       checked={checked}
       onCheckedChange={(nextChecked) => {
-        context.toggleAll(nextChecked === true);
+        const atLimit = context.maxSelectedValues !== undefined && new Set(context.groupValues).size >= context.maxSelectedValues;
+        context.toggleAll(nextChecked === true && !(someChecked && atLimit));
       }}
       disabled={disabled || context.disabled}
       readOnly={readOnly || context.readOnly}

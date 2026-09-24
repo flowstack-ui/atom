@@ -12,8 +12,47 @@ import {
   Input,
   InputClear,
   InputRoot,
-  useControllableState,
 } from "../../dist/index.js";
+import { JSDOM } from "jsdom";
+import { createRoot } from "react-dom/client";
+import { act } from "react";
+
+test("uncontrolled Input preserves ref registration, rerenders and cancelled reset", async () => {
+  const dom = new JSDOM('<div id="root"></div>', { url: "https://example.test" });
+  const previous = Object.fromEntries(["window", "document", "IS_REACT_ACT_ENVIRONMENT"].map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
+  Object.assign(globalThis, { window: dom.window, document: dom.window.document, IS_REACT_ACT_ENVIRONMENT: true });
+  const root = createRoot(dom.window.document.getElementById("root"));
+  const changes = [];
+  const register = element => { if (element) element.value = "Registered"; };
+  try {
+    const render = async (extra = {}) => act(() => root.render(React.createElement("form", null,
+      React.createElement(Input.Root, { defaultValue: "Original", ref: register, onValueChange: value => changes.push(value), ...extra }, React.createElement(Input.Clear, null, "Clear")))));
+    await render();
+    const input = dom.window.document.querySelector("input");
+    const form = input.form;
+    assert.equal(input.value, "Registered");
+    assert.equal(input.hasAttribute("data-filled"), true);
+    assert.deepEqual(changes, []);
+    input.value = "External update";
+    await render({ title: "Updated" });
+    assert.equal(input.value, "External update");
+    const cancel = event => event.preventDefault();
+    form.addEventListener("reset", cancel);
+    await act(async () => { form.reset(); });
+    assert.equal(input.value, "External update");
+    assert.deepEqual(changes, []);
+    form.removeEventListener("reset", cancel);
+    await act(async () => { form.reset(); });
+    assert.equal(input.value, "Original");
+    assert.deepEqual(changes, ["Original"]);
+  } finally {
+    await act(() => root.unmount()); dom.window.close();
+    for (const [key, descriptor] of Object.entries(previous)) {
+      if (descriptor) Object.defineProperty(globalThis, key, descriptor);
+      else delete globalThis[key];
+    }
+  }
+});
 
 test("InputRoot renders native input props and Field-owned state", () => {
   const html = renderToStaticMarkup(
@@ -108,7 +147,7 @@ test("Input source wires value changes and clear refocus behavior", async () => 
     "utf8",
   );
 
-  assert.match(rootSource, /useControllableState<string>/);
+  assert.match(rootSource, /value === undefined \? \{ defaultValue \} : \{ value \}/);
   assert.match(rootSource, /setResolvedValue\(event\.currentTarget\.value\)/);
   assert.match(rootSource, /fieldCtx\?\.controlId/);
   assert.match(rootSource, /fieldCtx\?\.describedBy/);

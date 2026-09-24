@@ -1,5 +1,13 @@
 # Editable
 
+## Structural composition
+
+Root, RootProvider, Area, Control and Preview accept `asChild` for one host.
+Input, Textarea and Label remain native. Custom preview content should read
+`Context`'s `valueText`, not duplicate the default value. Do not nest interactive
+descendants in Preview. Projection retains events, state, focus and refs; it does
+not turn plain-text editing into a rich-text editor.
+
 Headless inline editing with a captured cancellation baseline. Use Input or
 Textarea instead when a form field should stay visible permanently.
 

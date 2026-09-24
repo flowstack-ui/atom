@@ -2,10 +2,12 @@
 
 import {
   forwardRef,
+  cloneElement,
+  isValidElement,
   type CSSProperties,
-  type ForwardedRef,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   type MouseEventHandler,
   type ReactNode,
@@ -14,6 +16,7 @@ import type { NativeButtonProps } from "../../utils/dom.js";
 import {
   cloneAndMerge,
   composeEventHandlers,
+  composeRefs,
   renderElement,
   type RenderProp,
 } from "../../utils/slot.js";
@@ -34,28 +37,6 @@ const hiddenInputStyle: CSSProperties = {
   whiteSpace: "nowrap",
   borderWidth: 0,
 };
-
-function isRegisteredRadioDisabled(element: HTMLElement): boolean {
-  return (
-    ("disabled" in element && element.disabled === true) ||
-    element.getAttribute("aria-disabled") === "true" ||
-    element.hasAttribute("data-disabled")
-  );
-}
-
-function assignForwardedRadioRef(
-  ref: ForwardedRef<HTMLButtonElement>,
-  node: HTMLElement | null,
-) {
-  if (typeof ref === "function") {
-    ref(node as HTMLButtonElement | null);
-    return;
-  }
-
-  if (ref) {
-    ref.current = node as HTMLButtonElement | null;
-  }
-}
 
 export interface RadioRootProps extends RadioRootNativeProps {
   /** Radio value, unique within the group. */
@@ -90,18 +71,20 @@ export const RadioRoot = forwardRef<HTMLButtonElement, RadioRootProps>(
     ref,
   ) {
     const context = useRadioGroupContext();
+    const host = asChild ? children : render;
+    const hostProps = isValidElement<Record<string, unknown>>(host) ? host.props : {};
+    const cleanHost = isValidElement<Record<string, unknown>>(host) ? cloneElement(host, { onClick: undefined }) : host;
     const internalRef = useRef<HTMLElement | null>(null);
     const registeredValueRef = useRef<string | null>(null);
     const registeredNodeRef = useRef<HTMLElement | null>(null);
 
     const isChecked = context.activeValue === value;
-    const isDisabled = disabled || context.disabled;
+    const isDisabled = disabled || context.disabled || Boolean(hostProps.disabled || hostProps["aria-disabled"] === true || hostProps["aria-disabled"] === "true");
     const isInvalid = context.invalid;
 
     const setRadioRef = useCallback(
       (node: HTMLElement | null) => {
         internalRef.current = node;
-        assignForwardedRadioRef(ref, node);
 
         if (!node) return;
 
@@ -120,8 +103,9 @@ export const RadioRoot = forwardRef<HTMLButtonElement, RadioRootProps>(
         registeredValueRef.current = value;
         registeredNodeRef.current = node;
       },
-      [context.registerRadio, context.unregisterRadio, ref, value],
+      [context.registerRadio, context.unregisterRadio, value],
     );
+    const mergedRef = useMemo(() => composeRefs(setRadioRef, ref), [setRadioRef, ref]);
 
     useEffect(() => {
       return () => {
@@ -133,15 +117,7 @@ export const RadioRoot = forwardRef<HTMLButtonElement, RadioRootProps>(
       };
     }, [context.unregisterRadio]);
 
-    const values = context.getRadioValues();
-    const isFirstFocusable =
-      !context.activeValue &&
-      values.length > 0 &&
-      values.find((registeredValue) => {
-        const element = context.getRadioElement(registeredValue);
-        return element && !isRegisteredRadioDisabled(element);
-      }) === value;
-    const tabIndex = isChecked || isFirstFocusable ? 0 : -1;
+    const tabIndex = !isDisabled && (context.entryValue === value || (context.entryValue === undefined && isChecked)) ? 0 : -1;
 
     const select: MouseEventHandler<HTMLButtonElement> = () => {
       if (!isDisabled && !context.readOnly) {
@@ -152,7 +128,7 @@ export const RadioRoot = forwardRef<HTMLButtonElement, RadioRootProps>(
     // Native button props pass through first; group state and roving focus stay authoritative.
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
-      ref: setRadioRef,
+      ref: mergedRef,
       type: "button",
       role: "radio",
       "aria-checked": isChecked,
@@ -167,12 +143,12 @@ export const RadioRoot = forwardRef<HTMLButtonElement, RadioRootProps>(
       ...(context.readOnly && { "data-readonly": "" }),
       ...(isInvalid && { "data-invalid": "" }),
       className,
-      onClick: composeEventHandlers(onClick, select),
+      onClick: composeEventHandlers(onClick, composeEventHandlers(hostProps.onClick as MouseEventHandler<HTMLButtonElement> | undefined, select)),
     };
 
     const radioElement = asChild
-      ? cloneAndMerge(children, behaviorProps)
-      : renderElement(render, "button", { ...behaviorProps, children });
+      ? cloneAndMerge(cleanHost as ReactNode, behaviorProps)
+      : renderElement(cleanHost as RenderProp | undefined, "button", { ...behaviorProps, children });
 
     return (
       <>

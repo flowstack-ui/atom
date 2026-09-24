@@ -6,7 +6,20 @@ import {
   ColorPickerRoot,
   normalizeColorPickerValue,
   parseColorPickerValue,
+  useColorPicker,
 } from "../../dist/index.js";
+
+test("ColorPicker external provider preserves SSR IDs and lazy mounting", () => {
+  function Example(){
+    const controller=useColorPicker({defaultValue:"#ff0000",ids:{input:"explicit-color"},lazyMount:true});
+    return React.createElement(ColorPicker.RootProvider,{value:controller,"data-test":"provider"},
+      React.createElement(ColorPicker.Input),React.createElement(ColorPicker.Content,null,"Lazy content"));
+  }
+  const html=renderToStaticMarkup(React.createElement(Example));
+  assert.match(html,/id="explicit-color"/);
+  assert.match(html,/data-test="provider"/);
+  assert.doesNotMatch(html,/Lazy content/);
+});
 
 test("ColorPicker exposes the complete color anatomy and one successful form control", () => {
   const html = renderToStaticMarkup(
@@ -383,6 +396,7 @@ test("ColorPicker opens, closes, restores focus, and can close after swatch sele
       await flush(20);
     });
     assert.equal(trigger.getAttribute("aria-expanded"), "false");
+    await React.act(async () => { await flush(30); });
     assert.equal(content.hidden, true);
     assert.deepEqual(openChanges, [true, false]);
   } finally {

@@ -2,6 +2,9 @@
 
 import {
   createContext,
+  createElement,
+  isValidElement,
+  type Ref,
   forwardRef,
   useContext,
   useEffect,
@@ -28,6 +31,21 @@ import {
 import { useFieldContext } from "../field/context.js";
 import { useDirection } from "../direction/index.js";
 import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
+
+type EditableProjection = { asChild?: boolean };
+// Structural projection keeps the same behavior on one consumer-provided host.
+// Editors deliberately retain their native input/textarea hosts.
+const EditablePart = forwardRef<HTMLElement, HTMLAttributes<HTMLElement> & EditableProjection & { tag: "div" | "span" }>(
+  function EditablePart({ tag, asChild, children, ...props }, ref) {
+    // React 18 stores refs on the element; avoid React 19's deprecated getter.
+    const legacyRef = isValidElement(children)
+      ? Object.getOwnPropertyDescriptor(children, "ref")?.value as Ref<unknown> | undefined
+      : undefined;
+    return asChild
+      ? cloneAndMerge(children, { ...props, ref: composeRefs(legacyRef, ref) })
+      : createElement(tag, { ...props, ref }, children);
+  },
+);
 
 export type EditableActivationMode = "focus" | "click" | "dblclick" | "none";
 export type EditableSubmitMode = "enter" | "blur" | "both" | "none";
@@ -364,8 +382,9 @@ export type EditableRootProps = Omit<
   HTMLAttributes<HTMLDivElement>,
   "defaultValue" | "onChange" | "dir"
 > &
-  EditableOptions & { "data-slot"?: string };
+  EditableOptions & EditableProjection & { "data-slot"?: string };
 export type EditableRootProviderProps = HTMLAttributes<HTMLDivElement> & {
+  asChild?: boolean;
   value: EditableController;
   "data-slot"?: string;
 };
@@ -395,7 +414,7 @@ export const EditableRootProvider = forwardRef<
   });
   return (
     <Context.Provider value={value}>
-      <div
+      <EditablePart tag="div"
         {...props}
         ref={composeRefs(internal.root, ref)}
         id={props.id ?? internal.id("root")}
@@ -429,11 +448,11 @@ export function EditableContext({
 }
 export const EditableArea = forwardRef<
   HTMLDivElement,
-  HTMLAttributes<HTMLDivElement>
+  HTMLAttributes<HTMLDivElement> & EditableProjection
 >(function EditableArea({ style, ...props }, ref) {
   const { options, id } = useStore();
   return (
-    <div
+    <EditablePart tag="div"
       {...props}
       id={props.id ?? id("area")}
       ref={ref}
@@ -449,10 +468,10 @@ export const EditableArea = forwardRef<
 });
 export const EditableControl = forwardRef<
   HTMLDivElement,
-  HTMLAttributes<HTMLDivElement>
+  HTMLAttributes<HTMLDivElement> & EditableProjection
 >(function EditableControl(props, ref) {
   return (
-    <div
+    <EditablePart tag="div"
       {...props}
       id={props.id ?? useStore().id("control")}
       ref={ref}
@@ -480,7 +499,7 @@ export const EditableLabel = forwardRef<
 });
 export const EditablePreview = forwardRef<
   HTMLSpanElement,
-  HTMLAttributes<HTMLSpanElement>
+  HTMLAttributes<HTMLSpanElement> & EditableProjection
 >(function EditablePreview(
   { onClick, onDoubleClick, onFocus, onKeyDown, children, style, ...props },
   ref,
@@ -492,7 +511,7 @@ export const EditablePreview = forwardRef<
       controller.edit();
   };
   return (
-    <span
+    <EditablePart tag="span"
       {...props}
       ref={composeRefs(preview, ref)}
       id={props.id ?? id("preview")}
@@ -530,7 +549,7 @@ export const EditablePreview = forwardRef<
       })}
     >
       {children ?? controller.valueText}
-    </span>
+    </EditablePart>
   );
 });
 

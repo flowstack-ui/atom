@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Added the Rating controller, RootProvider, Label, Control, HiddenInput and
+  root/item context render parts with independent hover preview.
+- Corrected disabled tab order and Fieldset inheritance, primary-pointer
+  filtering, canceled reset handling and finite numeric normalization.
+- Preserved the single-slider model and automatic form submission; added
+  explicit manual input composition without duplicate named controls.
+
 ## 0.24.0
 
 - Added public Agent Knowledge for component selection, required composition,

@@ -19,6 +19,7 @@ Own collection and draft transactions, token navigation, acceptance, announcemen
 
 ## Rules
 
+- **MUST:** Use ItemContext for item state and ids.item, ids.itemInput and ids.itemDeleteTrigger callbacks for indexed IDs. asChild/render must preserve native input/label/button hosts and forward owner props and refs. Composed interactive descendants retain their own activation; do not duplicate value or focus owners.
 - **MUST:** Update controlled collection and draft independently. Preserve Item index/value order, including duplicate occurrences.
 - **MUST:** Use one HiddenInput for the JSON-serialized committed collection; never name the visible draft or add a duplicate named proxy.
 - **MUST:** Use useTagsInputCombobox bindings for nested Combobox suggestions, with TagsInput Control/Input and standard Combobox popup parts.

@@ -261,6 +261,9 @@ complete. A parent refusing a controlled change cannot submit. `autoSubmit`
 uses native requestSubmit after hidden value and validity updates; it is an
 explicit product action. Uncontrolled native reset restores the initial value
 even without a name, supports external `form`, and respects prevented reset.
+The reset binding follows RootProvider when it mounts after its controller.
+Queued resets are cancelled on unmount or reassociation with another form;
+controlled values remain application-owned.
 
 ## Migration from OTPField
 

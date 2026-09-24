@@ -18,6 +18,9 @@ Coordinate native file picking, optional drag and drop, client-side acceptance f
 
 ## Rules
 
+- **MUST:** Use useFileUpload with RootProvider value for externally coordinated selection; Context and useFileUploadContext expose files, rejectedFiles, remainingFiles, maxFilesReached, transforming and transformError. Keep network uploads application-owned.
+- **MUST:** Use transformFiles for asynchronous preprocessing and present transformError and rejection feedback. New selection, clear, removal, reset, disabled/readOnly and unmount invalidate pending results. Directory traversal preserves webkitRelativePath; capture depends on device/browser support.
+- **MUST:** Use ItemPreviewImage for automatically revoked owner-window object URLs; use ClearTrigger, FileText, Label, rejected ItemGroup and translations for composed selection interfaces. A clickable Dropzone excludes nested interactive targets; disableClick=true opts out and allowDrop=false disables drop intake.
 - **MUST:** Render HiddenInput when Trigger, native picker, required validity, name, form, accept, or multiple file semantics are needed; keep it aligned with the visible Trigger.
 - **MUST:** Always provide a visible accessible Trigger for keyboard, touch, and single-pointer selection; Dropzone alone is not an equivalent accessible picker.
 - **MUST:** Use accept, maxFiles, maxSize, and validateFile only for immediate client feedback and validate file type, size, content, authorization, and storage policy again on the server.

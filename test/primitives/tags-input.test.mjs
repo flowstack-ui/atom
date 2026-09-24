@@ -4,6 +4,32 @@ import { TagsInput, useTagsInput } from "../../dist/tags-input.js";
 import { acceptTagsInputValues } from "../../dist/_internal/primitives/tags-input/controller.js";
 const h = React.createElement;
 
+test("TagsInput composes one host per part, exposes item state and resolves indexed IDs", () => {
+  const html = renderToStaticMarkup(h(TagsInput.Root, {
+    asChild: true, id: "topics", defaultValue: ["React"],
+    ids: { item: i => `tag-${i}`, itemInput: i => `edit-${i}`, itemDeleteTrigger: i => `remove-${i}`, clearTrigger: "clear-topics" },
+  }, h("section", { "data-custom-root": "" },
+    h(TagsInput.Label, { asChild: true }, h("label", null, "Topics")),
+    h(TagsInput.Control, { asChild: true }, h("div", { "data-custom-control": "" },
+      h(TagsInput.Item, { index: 0, value: "React", asChild: true }, h("article", null,
+        h(TagsInput.ItemPreview, { asChild: true }, h("span", null,
+          h(TagsInput.ItemText, { asChild: true }, h("strong", null, "React")),
+          h(TagsInput.ItemDeleteTrigger, { asChild: true }, h("button", null, "Remove")))),
+        h(TagsInput.ItemInput, { asChild: true }, h("input")),
+        h(TagsInput.ItemContext, null, state => h("output", null, `${state.index}:${state.value}:${state.id}:${state.disabled}`)))),
+      h(TagsInput.Input, { asChild: true }, h("input", { "data-draft": "" })),
+      h(TagsInput.ClearTrigger, null, "Clear"))),
+    h(TagsInput.HiddenInput))));
+  const doc = new JSDOM(html).window.document;
+  assert.equal(doc.querySelectorAll("section").length, 1);
+  assert.equal(doc.querySelectorAll("article").length, 1);
+  assert.equal(doc.querySelector("label").htmlFor, doc.querySelector("[data-draft]").id);
+  assert.equal(doc.querySelector("output").textContent, "0:React:tag-0:false");
+  for (const id of ["tag-0", "edit-0", "remove-0", "clear-topics"]) assert.ok(doc.getElementById(id));
+  assert.equal(doc.querySelectorAll("button button").length, 0);
+  assert.doesNotMatch(html, /asChild=|render=/);
+});
+
 for (const [name, current, input, options, reason] of [
   ["empty", [], ["  "], {}, "empty"],
   [
@@ -119,12 +145,13 @@ async function mounted(run) {
               TagsInput.ItemPreview,
               null,
               h(TagsInput.ItemText),
+              h("a", { href: "#details", "data-item-link": "" }, "Details"),
               h(TagsInput.ItemDeleteTrigger, null, "Remove"),
             ),
-            h(TagsInput.ItemInput),
+            h(TagsInput.ItemInput, { asChild: true }, h("input")),
           ),
         ),
-        h(TagsInput.Input),
+        h(TagsInput.Input, { render: props => h("input", props) }),
         h(TagsInput.ClearTrigger, null, "Clear"),
       ),
       h(TagsInput.HiddenInput),
@@ -153,6 +180,27 @@ test("TagsInput rejected creation retains draft", async () =>
     await React.act(async () => assert.equal(c.api.addValue("two"), false));
     assert.deepEqual(c.api.value, ["one"]);
     assert.equal(c.api.inputValue, "two");
+  }));
+test("TagsInput composed input focus, indexed IDs and interactive descendant activation", async () =>
+  mounted(async c => {
+    await c.render({ defaultValue: ["one", "two"], editable: true, ids: { item: i => `item-${i}`, itemInput: i => `editor-${i}`, itemDeleteTrigger: i => `delete-${i}` } });
+    await React.act(async () => c.api.focus());
+    assert.equal(document.activeElement.dataset.slot, "tags-input-input");
+    const link = document.querySelector("[data-item-link]");
+    const pointer = new c.dom.window.MouseEvent("pointerdown", { bubbles: true, cancelable: true, button: 0 });
+    await React.act(async () => link.dispatchEvent(pointer));
+    assert.equal(pointer.defaultPrevented, false);
+    assert.equal(c.api.highlightedIndex, null);
+    await React.act(async () => link.dispatchEvent(new c.dom.window.MouseEvent("dblclick", { bubbles: true })));
+    assert.equal(c.api.editingIndex, null);
+    await React.act(async () => c.api.startEdit(1));
+    assert.equal(document.activeElement.id, "editor-1");
+    await React.act(async () => c.api.cancelEdit());
+    await React.act(async () => c.api.clearValue(0));
+    assert.equal(document.getElementById("item-0").textContent.includes("two"), true);
+    assert.equal(document.getElementById("delete-1"), null);
+    await c.render({ value: ["two"], readOnly: true, placeholder: "Add a tag" });
+    assert.equal(document.querySelector('[data-slot="tags-input-input"]').hasAttribute("placeholder"), false);
   }));
 test("TagsInput sequential controller additions preserve every accepted value", async () =>
   mounted(async (c) => {

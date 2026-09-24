@@ -3,6 +3,16 @@ import { assert, test, React, renderToStaticMarkup } from "../test-utils.mjs";
 import { Editable, useEditable } from "../../dist/editable.js";
 const h=React.createElement;
 
+test("Editable projects structural hosts and live preview content",()=>{
+  const html=renderToStaticMarkup(h(Editable.Root,{asChild:true,defaultValue:"Live title"},
+    h("section",null,h(Editable.Area,{asChild:true},h("div",null,
+      h(Editable.Context,null,({valueText})=>h(Editable.Preview,{asChild:true},h("span",{className:"custom"},valueText))),
+      h(Editable.Input,{"aria-label":"Title"}))),h(Editable.Control,{asChild:true},h("nav",null,h(Editable.EditTrigger,null,"Edit"))))));
+  assert.match(html,/<section/);assert.match(html,/<nav/);assert.match(html,/class="custom"/);
+  assert.match(html,/Live title/);assert.doesNotMatch(html,/asChild/);
+  assert.equal((html.match(/data-slot="editable-preview"/g)??[]).length,1);
+});
+
 test("Editable SSR has native anatomy, one form value and no leaked options",()=>{
   const html=renderToStaticMarkup(h(Editable.Root,{defaultValue:"Notes",name:"title",activationMode:"dblclick"},h(Editable.Label,null,"Title"),h(Editable.Area,null,h(Editable.Preview),h(Editable.Input)),h(Editable.EditTrigger,null,"Edit")));
   assert.equal((html.match(/<input/g)??[]).length,1);assert.match(html,/name="title"/);assert.match(html,/value="Notes"/);

@@ -1,8 +1,8 @@
 function countDecimals(value: number): number {
   if (Math.floor(value) === value) return 0;
-  const text = value.toString();
-  const dotIndex = text.indexOf(".");
-  return dotIndex === -1 ? 0 : text.length - dotIndex - 1;
+  const [coefficient, exponent = "0"] = value.toString().split("e");
+  const fraction = coefficient!.split(".")[1]?.length ?? 0;
+  return Math.min(100, Math.max(0, fraction - Number(exponent)));
 }
 
 export function clampNumberValue(
@@ -54,5 +54,5 @@ export function formatNumber(
   }
 
   const stepDecimals = countDecimals(step);
-  return stepDecimals > 0 ? value.toFixed(stepDecimals) : String(value);
+  return stepDecimals > 0 ? value.toFixed(Math.max(stepDecimals, countDecimals(value))) : String(value);
 }

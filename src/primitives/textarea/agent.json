@@ -11,9 +11,11 @@
   "composition": ["Place Textarea.Root inside one Field.Root with Field.Label and an optional description or character guidance."],
   "rules": [
     { "id": "textarea-labeled", "level": "must", "statement": "Give every Textarea an accessible name, normally through Field.Label." },
-    { "id": "textarea-name", "level": "must", "statement": "Provide a stable name when the value participates in submission." }
+    { "id": "textarea-name", "level": "must", "statement": "Provide a stable name when the value participates in submission." },
+    { "id": "textarea-sizing-ownership", "level": "must", "statement": "Treat autoResize as opt-in dimension ownership. Keep manual/native sizing separate, preserve authored minimum and maximum constraints, and expect current authored dimensions to be restored when autoResize is disabled." },
+    { "id": "textarea-row-bounds", "level": "should", "statement": "Use minRows and maxRows for content-driven bounds; explicit rows only selects the native row attribute and does not replace active measurement." }
   ],
   "commonMistakes": [{ "mistake": "Replacing Textarea with a contenteditable div for ordinary text entry.", "correction": "Use native Textarea unless rich-text behavior is genuinely required." }],
-  "validation": ["Inspect the label and description relationships.", "Test multi-line keyboard entry, resizing policy, and submitted value."],
+  "validation": ["Inspect the label and description relationships.", "Test multi-line keyboard entry, resizing policy, and submitted value.", "Test auto-resize growth and shrink after width, reveal, typography, font, value, and form-reset changes."],
   "related": ["field", "form", "input"]
 }

@@ -20,6 +20,13 @@ import {
   getToggleGroupNavigationDirection,
 } from "../../dist/_internal/primitives/toggle-group/ToggleGroupRoot.js";
 
+test("selected disabled items cannot own the group tab stop", () => {
+  const element = () => ({dataset:{}});
+  assert.equal(getToggleGroupTabStopValue(["a","b"], ["a"], element, value => value === "a"), "b");
+  assert.equal(getToggleGroupTabStopValue(["a","b"], ["a","b"], element, value => value === "a"), "b");
+  assert.equal(getToggleGroupTabStopValue(["a"], ["a"], element, () => true), undefined);
+});
+
 test("ToggleGroupRoot renders group attributes", () => {
   const html = renderToStaticMarkup(
     React.createElement(

@@ -13,7 +13,7 @@ import {
   renderElement,
   type RenderProp,
 } from "../../utils/slot.js";
-import { useRatingContext } from "./context.js";
+import { useRatingContext, RatingItemContextProvider } from "./context.js";
 import { snapRatingPointerValue } from "./utils.js";
 
 type RatingItemNativeProps = NativeSpanProps<
@@ -105,6 +105,8 @@ export const RatingItem = forwardRef<HTMLSpanElement, RatingItemProps>(
       movePointerInteraction,
       readOnly,
       step,
+      rootRef,
+      setHoveredValue,
     } = useRatingContext();
     const state = getItemState(value);
 
@@ -129,21 +131,28 @@ export const RatingItem = forwardRef<HTMLSpanElement, RatingItemProps>(
 
     const handlePointerDown = useCallback<PointerEventHandler<HTMLSpanElement>>(
       (event) => {
-        if (disabled || readOnly) return;
+        if (disabled || readOnly || event.button !== 0 || event.isPrimary === false) return;
         const pointerValue = getPointerValue(event);
         if (!beginPointerInteraction(event.pointerId, pointerValue)) return;
         event.preventDefault();
+        setHoveredValue(null);
+        rootRef.current?.focus({ preventScroll: true });
         event.currentTarget.setPointerCapture?.(event.pointerId);
       },
-      [beginPointerInteraction, disabled, getPointerValue, readOnly],
+      [beginPointerInteraction, disabled, getPointerValue, readOnly, rootRef, setHoveredValue],
     );
 
     const handlePointerMove = useCallback<PointerEventHandler<HTMLSpanElement>>(
       (event) => {
-        if (disabled || readOnly || event.buttons !== 1) return;
+        if (disabled || readOnly || event.isPrimary === false) return;
+        if (event.buttons === 0 && event.pointerType !== "touch") {
+          setHoveredValue(getPointerValue(event));
+          return;
+        }
+        if (event.buttons !== 1) return;
         movePointerInteraction(event.pointerId, getPointerValue(event));
       },
-      [disabled, getPointerValue, movePointerInteraction, readOnly],
+      [disabled, getPointerValue, movePointerInteraction, readOnly, setHoveredValue],
     );
 
     const handlePointerUp = useCallback<PointerEventHandler<HTMLSpanElement>>(
@@ -170,6 +179,7 @@ export const RatingItem = forwardRef<HTMLSpanElement, RatingItemProps>(
       "data-value": value,
       "data-fill": state.fill,
       "data-state": state.dataState,
+      dir,
       ...(disabled && { "data-disabled": "" }),
       ...(readOnly && { "data-readonly": "" }),
       ...(invalid && { "data-invalid": "" }),
@@ -187,13 +197,10 @@ export const RatingItem = forwardRef<HTMLSpanElement, RatingItemProps>(
       ),
     };
 
-    if (asChild) {
-      return cloneAndMerge(children, behaviorProps);
-    }
-
-    return renderElement(render, "span", {
+    const element = asChild ? cloneAndMerge(children, behaviorProps) : renderElement(render, "span", {
       ...behaviorProps,
       children,
     });
+    return <RatingItemContextProvider value={{ ...state, value }}>{element}</RatingItemContextProvider>;
   },
 );

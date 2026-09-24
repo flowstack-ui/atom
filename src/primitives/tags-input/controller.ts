@@ -12,6 +12,7 @@ import {
 import { useControllableState } from "../../hooks/useControllableState.js";
 import { useFieldContext } from "../field/context.js";
 import { useDirection } from "../direction/index.js";
+const useSafeLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 export type TagsInputInvalidReason =
   "empty" | "duplicate" | "invalidTag" | "rangeOverflow" | "maxLength";
@@ -84,7 +85,7 @@ export interface TagsInputOptions {
       "root" | "label" | "control" | "input" | "hiddenInput" | "clearTrigger",
       string
     >
-  >;
+  > & Partial<Record<"item" | "itemInput" | "itemDeleteTrigger", (index: number) => string>>;
   translations?: TagsInputTranslations;
   onFocusOutside?: (event: TagsInputOutsideEvent) => void;
   onPointerDownOutside?: (event: TagsInputOutsideEvent) => void;
@@ -135,7 +136,7 @@ export interface TagsInputStore {
   announcement: { key: number; text: string };
   externalInvalid: boolean | undefined;
   setValidationInvalid(value: boolean): void;
-  id(part: keyof NonNullable<TagsInputOptions["ids"]>): string;
+  id(part: keyof NonNullable<TagsInputOptions["ids"]>, index?: number): string;
 }
 const stores = new WeakMap<TagsInputController, TagsInputStore>();
 export const TagsInputContext = createContext<TagsInputStore | null>(null);
@@ -255,8 +256,13 @@ export function useTagsInput(
   const editBaseline = useRef(""),
     lastValue = useRef(JSON.stringify(value));
   const interactive = !options.disabled && !options.readOnly;
-  const id = (part: keyof NonNullable<TagsInputOptions["ids"]>) =>
-    options.ids?.[part] ?? `${options.id ?? generated}-${part}`;
+  const id = (part: keyof NonNullable<TagsInputOptions["ids"]>, index?: number): string => {
+    const authoredId = options.ids?.[part];
+    if (typeof authoredId === "function") return authoredId(index ?? 0);
+    if (authoredId !== undefined) return authoredId;
+    if (index !== undefined) return `${options.ids?.root ?? `${options.id ?? generated}-root`}-${part}-${index}`;
+    return `${options.id ?? generated}-${part}`;
+  };
   const announce = (text: string) =>
     setAnnouncement((previous) => ({ key: previous.key + 1, text }));
   const focus = () => {
@@ -374,7 +380,7 @@ export function useTagsInput(
     focus();
     return true;
   };
-  useLayoutEffect(() => {
+  useSafeLayoutEffect(() => {
     const serialized = JSON.stringify(value);
     if (serialized !== lastValue.current) {
       lastValue.current = serialized;
@@ -385,8 +391,11 @@ export function useTagsInput(
       setHighlighted(null);
     }
   }, [value, editing]);
-  useLayoutEffect(() => {
-    if (editing !== null) itemInput.current?.select();
+  useSafeLayoutEffect(() => {
+    if (editing !== null) {
+      itemInput.current?.focus();
+      itemInput.current?.select();
+    }
   }, [editing]);
   useEffect(() => {
     if (options.autoFocus && !options.disabled) input.current?.focus();
@@ -481,7 +490,7 @@ export function useTagsInput(
     cancelEdit,
     getItemState({ index, disabled }) {
       return {
-        id: `${id("root")}-item-${index}`,
+        id: id("item", index),
         disabled: !!disabled || isDisabled(index),
         editing: editing === index,
         highlighted: highlighted === index,

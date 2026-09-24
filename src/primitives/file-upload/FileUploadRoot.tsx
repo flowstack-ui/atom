@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
   type ReactNode,
+  type RefObject,
 } from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
@@ -24,6 +25,9 @@ import {
 } from "./context.js";
 import {
   validateFileUploadFiles,
+  normalizeFileAccept,
+  type FileUploadValidationOptions,
+  type FileUploadValidationResult,
   type FileUploadRejectedFile,
 } from "./utils.js";
 
@@ -35,12 +39,22 @@ export interface FileUploadRootProps extends FileUploadRootNativeProps {
   defaultFiles?: File[];
   onFilesChange?: (files: File[]) => void;
   onRejectedFilesChange?: (files: FileUploadRejectedFile[]) => void;
-  accept?: string;
+  accept?: FileUploadValidationOptions["accept"];
   multiple?: boolean;
   appendFiles?: boolean;
   maxFiles?: number;
   maxSize?: number;
-  validateFile?: (file: File) => string | null | undefined | false;
+  minSize?: number;
+  validateFile?: FileUploadValidationOptions["validateFile"];
+  onFileAccept?: (details: { files: File[] }) => void;
+  onFileReject?: (details: { files: FileUploadRejectedFile[] }) => void;
+  onFileChange?: (details: FileUploadValidationResult) => void;
+  transformFiles?: (files: File[]) => File[] | Promise<File[]>;
+  onTransformError?: (error: unknown) => void;
+  directory?: boolean;
+  capture?: boolean | "user" | "environment";
+  allowDrop?: boolean;
+  translations?: { clear?: string; removeFile?: (name: string) => string; fileCount?: (count: number) => string };
   preventDocumentDrop?: boolean;
   name?: string;
   form?: string;
@@ -54,8 +68,7 @@ export interface FileUploadRootProps extends FileUploadRootNativeProps {
   "data-slot"?: string;
 }
 
-export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
-  function FileUploadRoot(
+export function useFileUpload(
     {
       children,
       files,
@@ -63,11 +76,21 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
       onFilesChange,
       onRejectedFilesChange,
       accept,
-      multiple = false,
+      multiple: providedMultiple,
       appendFiles,
       maxFiles,
       maxSize,
+      minSize,
       validateFile,
+      onFileAccept,
+      onFileReject,
+      onFileChange,
+      transformFiles,
+      onTransformError,
+      directory = false,
+      capture,
+      allowDrop = true,
+      translations = {},
       preventDocumentDrop = true,
       name,
       form,
@@ -82,9 +105,9 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
       "aria-describedby": ariaDescribedBy,
       "data-slot": dataSlot = "file-upload",
       ...restProps
-    },
-    ref,
-  ) {
+    }: FileUploadRootProps = {},
+  ): FileUploadController {
+    const multiple = providedMultiple ?? (maxFiles !== undefined && maxFiles > 1);
     const fieldCtx = useFieldContext();
     const formContext = useOptionalFormContext();
     const validationId = useId();
@@ -92,6 +115,10 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
     const inputRef = useRef<HTMLInputElement | null>(null);
     const triggerRef = useRef<HTMLElement | null>(null);
     const rootRef = useRef<HTMLDivElement | null>(null);
+    const generation = useRef(0);
+    const [transforming, setTransforming] = useState(false);
+    const [transformError, setTransformError] = useState<unknown>(null);
+    useEffect(() => () => { generation.current += 1; }, []);
     const [rejectedFiles, setRejectedFiles] = useState<FileUploadRejectedFile[]>([]);
     const [dragState, setDragState] = useState<FileUploadDragState>("idle");
     const [resolvedFiles, setResolvedFiles] = useControllableState<File[]>({
@@ -102,6 +129,9 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
     const isDisabled = disabled ?? fieldCtx?.disabled ?? false;
     const isRequired = required ?? fieldCtx?.required ?? false;
     const isReadOnly = readOnly ?? fieldCtx?.readOnly ?? false;
+    useEffect(() => {
+      if (isDisabled || isReadOnly) { generation.current += 1; setTransforming(false); }
+    }, [isDisabled, isReadOnly]);
     const [invalidControlIds, setInvalidControlIds] = useState<Set<string>>(
       () => new Set(),
     );
@@ -167,19 +197,22 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
       }
     }, []);
     const reset = useCallback(() => {
+      generation.current += 1;
+      setTransforming(false);
       if (files === undefined) setResolvedFiles(defaultFiles);
       setRejectedFiles([]);
       setDragState("idle");
       resetNativeInput();
     }, [defaultFiles, files, resetNativeInput, setResolvedFiles]);
-    useFormReset(inputRef, form, files !== undefined, reset);
+    useFormReset(inputRef, form, false, reset);
 
     useEffect(() => {
       const input = inputRef.current;
-      if (!input || typeof DataTransfer === "undefined") return;
+      const Transfer = input?.ownerDocument.defaultView?.DataTransfer;
+      if (!input || !Transfer) return;
 
       try {
-        const transfer = new DataTransfer();
+        const transfer = new Transfer();
         resolvedFiles.forEach((file) => transfer.items.add(file));
         input.files = transfer.files;
       } catch {
@@ -188,11 +221,13 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
     }, [resolvedFiles]);
 
     const setFilesFromList = useCallback(
-      (nextFiles: FileList | File[]) => {
+      (nextFiles: FileList | File[] | Promise<File[]>, options?: { append?: boolean }) => {
         if (isDisabled || isReadOnly) return;
-
-        const incomingFiles = Array.from(nextFiles);
-        const shouldAppendFiles = multiple && (appendFiles ?? true);
+        const request = ++generation.current;
+        setTransformError(null);
+        const commit = (incomingFiles: File[]) => {
+        if (request !== generation.current) return;
+        const shouldAppendFiles = multiple && (options?.append ?? appendFiles ?? true);
         const candidates = multiple
           ? (shouldAppendFiles ? [...resolvedFiles, ...incomingFiles] : incomingFiles)
           : incomingFiles.slice(0, 1);
@@ -200,11 +235,24 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
           accept,
           maxFiles: multiple ? maxFiles : 1,
           maxSize,
+          minSize,
           validateFile,
         });
 
         setResolvedFiles(validation.acceptedFiles);
         setRejected(validation.rejectedFiles);
+        onFileChange?.(validation);
+        if (validation.acceptedFiles.length) onFileAccept?.({ files: validation.acceptedFiles });
+        if (validation.rejectedFiles.length) onFileReject?.({ files: validation.rejectedFiles });
+        };
+        const pending = "then" in nextFiles;
+        if (!transformFiles && !pending) { setTransforming(false); commit(Array.from(nextFiles)); return; }
+        setTransforming(true);
+        void Promise.resolve(nextFiles).then((incoming) => transformFiles ? transformFiles(Array.from(incoming)) : Array.from(incoming)).then(commit).catch((error: unknown) => {
+          if (request === generation.current) { setTransformError(error); onTransformError?.(error); }
+        }).finally(() => {
+          if (request === generation.current) setTransforming(false);
+        });
       },
       [
         accept,
@@ -213,6 +261,12 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
         isReadOnly,
         maxFiles,
         maxSize,
+        minSize,
+        transformFiles,
+        onTransformError,
+        onFileAccept,
+        onFileReject,
+        onFileChange,
         multiple,
         resolvedFiles,
         setRejected,
@@ -231,24 +285,30 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
           accept,
           maxFiles: multiple ? maxFiles : 1,
           maxSize,
+          minSize,
           validateFile,
         });
         return validation.rejectedFiles.length > 0 ? "reject" : "accept";
       },
-      [accept, appendFiles, maxFiles, maxSize, multiple, resolvedFiles, validateFile],
+      [accept, appendFiles, maxFiles, maxSize, minSize, multiple, resolvedFiles, validateFile],
     );
 
     const removeFile = useCallback(
       (file: File) => {
         if (isDisabled || isReadOnly) return;
+        generation.current += 1;
+        setTransforming(false);
         setResolvedFiles(resolvedFiles.filter((currentFile) => currentFile !== file));
+        setRejected(rejectedFiles.filter((entry) => entry.file !== file));
         resetNativeInput();
       },
-      [isDisabled, isReadOnly, resetNativeInput, resolvedFiles, setResolvedFiles],
+      [isDisabled, isReadOnly, resetNativeInput, resolvedFiles, setResolvedFiles, rejectedFiles, setRejected],
     );
 
     const clearFiles = useCallback(() => {
       if (isDisabled || isReadOnly) return;
+      generation.current += 1;
+      setTransforming(false);
       setResolvedFiles([]);
       setRejected([]);
       resetNativeInput();
@@ -264,6 +324,7 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
         files: resolvedFiles,
         rejectedFiles,
         setFilesFromList,
+        setFiles: (files: File[]) => setFilesFromList(files, { append: false }),
         removeFile,
         clearFiles,
         openFilePicker,
@@ -274,7 +335,17 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
         required: isRequired,
         invalid: isInvalid,
         multiple,
-        accept,
+        accept: normalizeFileAccept(accept),
+        directory,
+        capture,
+        allowDrop,
+        translations,
+        transforming,
+        transformError,
+        remainingFiles: Math.max(0, (multiple ? maxFiles ?? Infinity : 1) - resolvedFiles.length),
+        maxFilesReached: resolvedFiles.length >= (multiple ? maxFiles ?? Infinity : 1),
+        clearRejectedFiles: () => setRejected([]),
+        setClipboardFiles: (data: DataTransfer) => setFilesFromList(Array.from(data.files)),
         name,
         form,
         controlId,
@@ -289,6 +360,14 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
       }),
       [
         accept,
+        directory,
+        capture,
+        allowDrop,
+        translations,
+        transforming,
+        transformError,
+        maxFiles,
+        setRejected,
         clearFiles,
         controlId,
         describedBy,
@@ -313,19 +392,34 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
       ],
     );
 
-    const behaviorProps: Record<string, unknown> = {
-      ...restProps,
-      ref: composeRefs(rootRef, ref),
-      id: providedId,
-      "data-slot": dataSlot,
-      "data-state": resolvedFiles.length > 0 ? "filled" : "empty",
-      "data-drag": dragState,
-      ...(resolvedFiles.length > 0 && { "data-filled": "" }),
-      ...(rejectedFiles.length > 0 && { "data-rejected": "" }),
-      ...(isDisabled && { "data-disabled": "" }),
-      ...(isReadOnly && { "data-readonly": "" }),
-      ...(isRequired && { "data-required": "" }),
-      ...(isInvalid && { "data-invalid": "" }),
+    return { ...contextValue, rootRef, rootProps: { ...restProps, id: providedId, asChild, render, "data-slot": dataSlot } };
+}
+
+export interface FileUploadController extends FileUploadContextValue {
+  rootRef: RefObject<HTMLDivElement | null>;
+  rootProps: FileUploadRootNativeProps & Pick<FileUploadRootProps, "asChild" | "render" | "data-slot">;
+}
+export interface FileUploadRootProviderProps extends FileUploadRootNativeProps {
+  value: FileUploadController;
+  children?: ReactNode;
+  asChild?: boolean;
+  render?: RenderProp;
+  "data-slot"?: string;
+}
+export const FileUploadRootProvider = forwardRef<HTMLDivElement, FileUploadRootProviderProps>(
+  function FileUploadRootProvider({ value, children, ...props }, ref) {
+    const { asChild, render, ...restProps } = { ...value.rootProps, ...props };
+    const behaviorProps = {
+      ...restProps, ref: composeRefs(value.rootRef, ref),
+      "data-state": value.files.length ? "filled" : "empty",
+      "data-drag": value.dragState,
+      "data-filled": value.files.length ? "" : undefined,
+      "data-rejected": value.rejectedFiles.length ? "" : undefined,
+      "data-disabled": value.disabled ? "" : undefined,
+      "data-readonly": value.readOnly ? "" : undefined,
+      "data-required": value.required ? "" : undefined,
+      "data-invalid": value.invalid ? "" : undefined,
+      "data-transforming": value.transforming ? "" : undefined,
     };
 
     const element = asChild
@@ -336,9 +430,14 @@ export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(
         });
 
     return (
-      <FileUploadContextProvider value={contextValue}>
+      <FileUploadContextProvider value={value}>
         {element}
       </FileUploadContextProvider>
     );
   },
 );
+
+export const FileUploadRoot = forwardRef<HTMLDivElement, FileUploadRootProps>(function FileUploadRoot({ children, ...props }, ref) {
+  const value = useFileUpload(props);
+  return <FileUploadRootProvider value={value} ref={ref}>{children}</FileUploadRootProvider>;
+});

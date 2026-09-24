@@ -115,3 +115,14 @@ IME/device checks must be recorded independently.
 ## Changelog
 
 See [CHANGELOG.md](./CHANGELOG.md).
+# Composition and indexed IDs
+
+Root, RootProvider, Label, Control, Input, Item, ItemPreview, ItemText and
+ItemInput support `asChild` and `render`, alongside the action triggers. Supply
+one host for `asChild` and forward props/ref from custom components. Inputs must
+remain native inputs, labels native labels, and actions native buttons.
+
+`ItemContext` renders current `{ index, value, id, editing, highlighted, disabled }`
+inside its Item. Customize IDs with `ids.item(index)`, `ids.itemInput(index)` and
+`ids.itemDeleteTrigger(index)`; existing root IDs and generated defaults remain.
+Do not use a value alone as identity when duplicate occurrences are enabled.

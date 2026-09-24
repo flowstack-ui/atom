@@ -14,6 +14,9 @@
     "Give Root an accessible group name and compose uniquely valued Radio parts with visible or native accessible names. Use name and form for native submission and a Fieldset Legend when the option set needs a visible legend."
   ],
   "rules": [
+    { "id": "radio-group-recovery", "level": "must", "statement": "Recover the first enabled Tab entry when selection is absent or disabled without rewriting controlled state. Required validity needs a registered eligible selection." },
+    { "id": "radio-group-open", "level": "must", "statement": "Use ItemRoot with exactly one ItemHiddenInput, ItemText and optional ItemDescription for open composition. Links must not be nested in the closed Radio button. RootProvider consumes useRadioGroup; input refs target the native input and no extra submission bridge is added." },
+    { "id": "radio-group-indicator", "level": "must", "statement": "Optional Indicator is decorative measured selection, not a radio or label. Keep it inside Root; style its geometry variables in the styled layer and provide selected-item fallback paint until data-ready. Root ownership must not depend on data-slot spelling." },
     { "id": "radio-group-name", "level": "must", "statement": "Give Root an accessible name with native ARIA or an inherited Fieldset Legend and give every Radio an accessible option name." },
     { "id": "radio-group-state", "level": "must", "statement": "Use value with onValueChange for controlled state or defaultValue for uncontrolled state, and provide stable unique Radio values." },
     { "id": "radio-group-roving", "level": "must", "statement": "Preserve the selected or first enabled Radio as the single Tab stop, skip disabled Radios, and use Root orientation and direction for Arrow, Home, and End focus and selection behavior." },

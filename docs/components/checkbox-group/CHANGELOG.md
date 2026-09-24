@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Preserve sequential controller updates and selection limits within one event.
+
+- Add shared controller/provider and ordinary Checkbox item binding helpers.
+- Add maximum selection limits and eligible select-all/clear behavior.
+- Validate required groups against mounted, enabled selected inputs; preserve
+  inherited availability and custom-host event cancellation.
+- Use the owning document's Node constructor for iframe blur containment.
+
 ## 0.24.0
 
 - Added public Agent Knowledge for component selection, required composition,

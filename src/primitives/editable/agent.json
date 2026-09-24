@@ -5,6 +5,7 @@
   "avoidWhen":[{"condition":"A value is permanently shown as a form field.","useInstead":"Input or Textarea"}],
   "composition":["Use Root or RootProvider with Area, Preview and exactly one Input or Textarea. Provide Label or another accessible name; explicit controls are optional."],
   "rules":[
+    {"id":"editable-projection","level":"must","statement":"Root, RootProvider, Area, Control and Preview support one-child asChild projection. Preserve native Input/Textarea/Label hosts. Keep preview children synchronized through Context valueText; do not nest interactive descendants inside a preview."},
     {"id":"editable-transaction","level":"must","statement":"Treat onValueChange as draft changes and onValueCommit as a commit request; persistence belongs to the application."},
     {"id":"editable-control","level":"must","statement":"Update controlled value/edit in their callbacks; refused edit transitions do not commit or revert."},
     {"id":"editable-fields","level":"must","statement":"Use one named input or textarea; do not render both or add a duplicate hidden form value."}
