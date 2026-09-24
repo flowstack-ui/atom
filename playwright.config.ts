@@ -8,7 +8,9 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
-  outputDir: artifacts ? resolve(artifacts, "results") : undefined,
+  // Playwright clears outputDir before each run. Keep ordinary runs out of
+  // the parent that also holds immutable release evidence and archives.
+  outputDir: artifacts ? resolve(artifacts, "results") : resolve("test-results", "browser"),
   reporter: artifacts
     ? [[process.env.CI ? "github" : "list"], ["json", { outputFile: resolve(artifacts, "report.json") }]]
     : process.env.CI ? "github" : "list",

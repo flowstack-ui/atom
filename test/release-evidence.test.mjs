@@ -6,6 +6,11 @@ import { join } from "node:path";
 import test from "node:test";
 import { browserArguments, runEvidenceStep, sourceIdentity } from "../scripts/release-evidence.mjs";
 
+test("ordinary browser runs cannot clear the release evidence parent", () => {
+  const config = readFileSync(new URL("../playwright.config.ts", import.meta.url), "utf8");
+  assert.match(config, /outputDir: artifacts \? resolve\(artifacts, "results"\) : resolve\("test-results", "browser"\)/);
+});
+
 test("worker override preserves the browser lane and rejects invalid concurrency", () => {
   assert.deepEqual(browserArguments(undefined), ["run", "test:browser:built"]);
   assert.deepEqual(browserArguments("1"), ["run", "test:browser:built", "--", "--workers=1"]);

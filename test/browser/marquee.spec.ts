@@ -5,10 +5,30 @@ const state = async (page: import("@playwright/test").Page, name: string) => JSO
 test("Marquee measures speed, inert copies and physical directions", async ({ page }) => {
   const root = page.getByRole("region", { name: "Continuous content", exact: true });
   await expect(root).toHaveAttribute("data-state", "playing");
-  const before = await root.locator("[data-original]").evaluate(n => new DOMMatrix(getComputedStyle(n).transform).m41);
-  await page.waitForTimeout(150);
-  const after = await root.locator("[data-original]").evaluate(n => new DOMMatrix(getComputedStyle(n).transform).m41);
-  expect(Math.abs(after - before)).toBeGreaterThan(10); expect(Math.abs(after - before)).toBeLessThan(35);
+  // Measure in one browser turn sequence: driver round trips are not part of
+  // the animation's elapsed time, especially on slower WebKit CI workers.
+  const motion = await root.locator("[data-original]").evaluate(async node => {
+    const animation = node.getAnimations()[0];
+    await animation.ready;
+    const sample = () => ({
+      time: Number(animation.currentTime),
+      x: new DOMMatrix(getComputedStyle(node).transform).m41,
+    });
+    await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+    const before = sample();
+    let after = before;
+    while (after.time - before.time < 150) {
+      await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+      after = sample();
+    }
+    const distance = parseFloat(getComputedStyle(node).getPropertyValue("--atom-marquee-distance"));
+    const duration = Number(animation.effect!.getComputedTiming().duration);
+    const loops = Math.floor(after.time / duration) - Math.floor(before.time / duration);
+    return { elapsed: after.time - before.time, travelled: before.x - after.x + loops * distance };
+  });
+  expect(motion.elapsed).toBeGreaterThanOrEqual(150);
+  expect(motion.travelled).toBeGreaterThan(10);
+  expect(Math.abs(motion.travelled - 120 * motion.elapsed / 1000)).toBeLessThan(2);
   await expect(root.locator("[data-replica]").first()).toHaveAttribute("inert", "");
   await expect(root.locator("[data-replica] a")).toHaveCount(0);
   for (const name of ["Right", "RTL", "Down", "Reverse"]) await expect(page.getByRole("region", { name: `${name} content`, exact: true })).toHaveAttribute("data-reversed", "");

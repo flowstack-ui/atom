@@ -133,8 +133,9 @@ It emits the Root attributes and geometry variables described above.
 ### useMarquee
 
 Accepts the Root behavior options and returns its controller for RootProvider.
-restart clears completion/iteration and delay while retaining user pause. Size
-changes commit at loop boundaries without resetting completed iteration count.
+restart clears completion/iteration and delay while retaining user pause. Viewport
+coverage updates immediately; changes to measured travel distance restart the
+current cycle without resetting completed iteration count or requested pause.
 Content changes restart the run. Root/Viewport/Content use ownerDocument and its
 window for observation, animation frames and motion preference listeners.
 
