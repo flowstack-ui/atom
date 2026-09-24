@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Keep the shared Dialog.Positioner on its modal overlay layer when another overlay, such as ActionBar, remains mounted.
 
 ## 0.24.0

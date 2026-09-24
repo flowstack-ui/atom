@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Target now defaults to a neutral div. Use asChild with main to retain an explicitly owned landmark.
 - Resolve focus destinations in the link's owner document; preserve modified clicks, downloads, and alternate browsing targets.
 

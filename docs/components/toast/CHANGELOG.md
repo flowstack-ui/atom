@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Add scoped stores, scoped helpers, tracked promises and lifecycle events.
 - Preserve exit on external dismissal, queued reading time and independent pause reasons.
 - Observe the portal owner document for visibility and keyboard access.

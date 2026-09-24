@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Preserve inherited disabled state, child cancellation and React 19 callback
   ref cleanup in closed Radio composition.
 

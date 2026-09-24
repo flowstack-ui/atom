@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Added a shared `useTooltip` controller and `RootProvider`, configurable click,
   pointer-down, scroll and Escape dismissal, and explicit hover retention.
 - Suppressed disabled controlled/default-open content and cancelled pending

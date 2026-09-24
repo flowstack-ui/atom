@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Preserve disabled custom Control hosts instead of re-enabling them during
   composition; disabled hosts cannot activate through click or keyboard.
 

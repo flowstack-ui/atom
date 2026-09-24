@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Preserve cell callback-ref cleanup and stable host registration on rerender.
 
 - Bind form reset after a late RootProvider mount and cancel queued resets when

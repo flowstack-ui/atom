@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Cancel deferred close-focus restoration on reopen or unmount, and preserve a
   newer focus handoff instead of reclaiming focus from another control.
 

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Preserve preview-image callback-ref cleanup and share complete root/subpath anatomy.
 
 - Add controller/provider composition, clear/file-text/label and preview parts, capacity state, directory/capture and clipboard intake, structured validation and cancel-safe file transforms.

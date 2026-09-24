@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Refresh viewport coverage immediately, including while paused. New visual
   replicas synchronize with the original track's CSS animation phase.
 - Restart the current cycle when measured travel distance changes, retaining

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Do not automatically highlight a command on pointer opening or adjacent pointer handoff; preserve keyboard and assistive activation entry.
 
 - Preserve adjacent-trigger pointer handoff without treating focus inside the owning strip as outside interaction.

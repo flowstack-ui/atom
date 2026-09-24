@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Add shared valued triggers, controller/provider and Context, positioning and
   presence options, stable IDs and preventable outside notifications.
 - Default opening delay is 600ms. Cancel disabled pending opens and position

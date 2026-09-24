@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Added explicit option records, external controller/provider composition and IDs.
 - Added retained-content lifecycle, exit completion and cancellable dismissal.
 - Preserved selected form values before popup mount and owner-document portals.

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Preserve native and composed landmark names; support native aria-label in types.
 - Document and verify real linked current-page composition.
 

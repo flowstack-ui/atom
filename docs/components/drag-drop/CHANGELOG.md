@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Added configurable gesture activation, edge scrolling and linear-gap targeting.
 - Cancel interrupted drags and expose native disabled handle state consistently.
 

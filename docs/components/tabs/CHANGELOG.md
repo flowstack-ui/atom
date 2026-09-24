@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Register dynamic triggers before indicator layout measurement to avoid
   resetting an already measured indicator when adding and selecting a tab.
 

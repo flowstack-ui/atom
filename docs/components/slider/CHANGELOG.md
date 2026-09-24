@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Keep Root and Control composed refs stable during value updates, preserving
   active pointer sessions and cancellation rollback.
 - Distinguish real controlled-value replacements from focus-only rerenders and

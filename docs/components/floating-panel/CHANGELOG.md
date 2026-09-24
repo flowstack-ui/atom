@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Forward shared handle props from ResizeTriggers; individual handles retain
   individual refs. Show restore only while minimized or maximized.
 - Make Content keyboard-reachable and pointer resize handles named groups outside

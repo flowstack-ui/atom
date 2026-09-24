@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Added independent Trigger, shared ColumnResizeHandle interaction, page movement,
   range/select-all and opt-in interactive cell/header controls with F2/Escape.
 - Establish an eligible cell on focus and recover disabled or removed active

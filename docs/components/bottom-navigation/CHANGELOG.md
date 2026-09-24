@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Preserve native and composed landmark names, including `aria-labelledby`.
 - Apply safe button defaults and disabled-link behavior to composed native hosts.
 - Preserve current-document selection during modified, download and new-tab link activation.

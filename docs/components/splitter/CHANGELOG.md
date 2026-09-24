@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Fix keyboard collapse thresholds, trailing-panel focus recovery and pointer
   focus scrolling. Preserve focus when removing the focused panel.
 - Add measured CSS units, cascading resizing, single-panel layouts, external

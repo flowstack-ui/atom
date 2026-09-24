@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Preserve the accepted submit callback's form target after asynchronous
   validation without mutating React's dispatched event.
 

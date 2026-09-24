@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Add useColorPicker and RootProvider using the original color controller.
 - Add part IDs and configurable Content mounting, retention and exit callbacks.
 

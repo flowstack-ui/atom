@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Add useAccordion, RootProvider, Context, ItemContext and decorative Indicator.
 - Add custom relationship IDs, independent mounting flags, Activity fallback,
   focus notifications and per-item exit callbacks while retaining value defaults.

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Added inert pointer preview and measured reorder layout deltas.
 - Added activation configuration and ancestor edge scrolling; linear gaps
   resolve to insertion targets without mutating controlled order during drag.

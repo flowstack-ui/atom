@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Add one-child structural projection for Root, RootProvider, Area, Control and
   Preview, preserving behavior, state and composed refs.
 

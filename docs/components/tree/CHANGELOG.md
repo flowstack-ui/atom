@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Change multiple-selection pointer behavior: ordinary click replaces selection,
   Ctrl/Command-click toggles, and Shift-click extends the visible range. This
   changes the previous additive ordinary-click behavior.

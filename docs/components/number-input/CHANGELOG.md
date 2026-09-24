@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Expose Scrubber active drag state and clean interrupted pointer sessions without leaving capture active.
 
 - Add opt-in localized string editing, controller/provider composition, Label,

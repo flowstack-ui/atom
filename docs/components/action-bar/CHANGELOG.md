@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Add an external useActionBar controller and controller-backed RootProvider,
   retaining legacy provider props; support Positioner host composition.
 - Forward detached root outside-focus callbacks, honor deferred presence and

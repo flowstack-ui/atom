@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Synchronize current state with aria-current, remove disabled composed destinations, and use shared section presence with closed inertness and focus recovery.
 
 - Added public Agent Knowledge for component selection, required composition,

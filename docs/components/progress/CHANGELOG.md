@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Preserve sequential uncontrolled controller requests and clear stale numeric
   attributes from indeterminate composed hosts.
 - Added useProgress, RootProvider and render Context for shared controlled or

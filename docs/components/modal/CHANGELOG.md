@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Add root onExitComplete after all owned surfaces finish a committed close;
   reopening cancels stale completion. Escape eligibility follows the rendering document.
 

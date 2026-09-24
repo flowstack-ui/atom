@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 ### Added
 
 - Image Root accepts SSR-known `srcSet` candidates while retaining Content overrides.

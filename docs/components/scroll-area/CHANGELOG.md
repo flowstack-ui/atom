@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Name the engine context for React DevTools diagnostics.
 
 - Added measured custom scrollbar anatomy and controller commands while preserving

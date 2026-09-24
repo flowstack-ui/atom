@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Preserve browser DOMRect geometry when positioning against a virtual anchor.
 
 - Add controller/provider, shared triggers, state/indicator, positioning options,

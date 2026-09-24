@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Preserve consumer-authored dimensions while auto-resize is inactive, combine row bounds with CSS constraints while active, restore current authored dimensions when disabled, and recalculate for width, reveal, typography, and font changes.
 
 ## 0.6.16

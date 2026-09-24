@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Add measured page selection, grouped/fractional/variable layouts, vertical
   geometry, mouse drag, visible-peer semantics and the shared controller/provider.
 - Keep cyclic positioning and native scroll changes in one frame; suspend snap

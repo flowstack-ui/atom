@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Added the Rating controller, RootProvider, Label, Control, HiddenInput and
   root/item context render parts with independent hover preview.
 - Corrected disabled tab order and Fieldset inheritance, primary-pointer

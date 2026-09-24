@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Settle and remove instances closed before their first open commit, including
   suspended content, without bypassing exit callbacks for committed overlays.
 

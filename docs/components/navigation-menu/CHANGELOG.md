@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Preserve inline panel mouse entry/leave timers and cancellation policies.
 - Refresh collision placement on document and nested scroll events with
   frame-coalesced measurement and cleanup.

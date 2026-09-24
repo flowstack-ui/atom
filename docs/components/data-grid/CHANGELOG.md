@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Establish a primary mouse target before native grid focus initializes, avoiding a transient first-cell highlight. Preserve keyboard entry, embedded controls, canceled events, and click-only header actions.
 
 - Added entry/removal/disable focus recovery, normalized page navigation,

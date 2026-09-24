@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Preserve sequential controller updates and selection limits within one event.
 
 - Add shared controller/provider and ordinary Checkbox item binding helpers.

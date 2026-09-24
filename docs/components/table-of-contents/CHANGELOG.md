@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Preserve navigation callback-ref cleanup without needless host reattachment.
 
 - Add explicit same-document target navigation, controlled current state,

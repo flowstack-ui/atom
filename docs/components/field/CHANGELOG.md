@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Root accepts ids.control, ids.label, ids.description and ids.error. Use ids.control when supplying an authored control ID, or match Label.htmlFor explicitly. For a compound entry, place each control in Field.Item with a unique value and set Root.target to the label's intended item. Give secondary controls accessible names. Context and useFieldContext expose the resolved state and relationships. Fieldset aggregate errors do not mark each independent Field invalid.
 
 ## 0.19.0

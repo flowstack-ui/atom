@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
 - Added a shared controller, RootProvider and Context, side thresholds,
   bounded resistance, recent-velocity reveal, dismissal and settlement hooks.
 - Restricted full swipe to deliberate pointer release. Repeated Arrow keys
