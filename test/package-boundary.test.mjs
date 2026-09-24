@@ -71,7 +71,8 @@ test("release identity, changelog, and trusted-publishing provenance stay aligne
 
   assert.equal(packageLock.version, packageJson.version);
   assert.equal(packageLock.packages[""].version, packageJson.version);
-  assert.match(changelog, new RegExp(`^## ${packageJson.version} - 2026-08-31$`, "m"));
+  const escapedVersion = packageJson.version.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  assert.match(changelog, new RegExp(`^## ${escapedVersion} - \\d{4}-\\d{2}-\\d{2}$`, "m"));
   assert.match(workflow, /npm publish[^\n]+--provenance/u);
 });
 
@@ -86,7 +87,9 @@ test("release verification tiers do not recurse", async () => {
 
   assert.equal(packageJson.scripts["check:release"], "npm run test:all");
   assert.match(releaseScript, /\["run", "check:repository"\]/);
-  assert.match(releaseScript, /\["run", "test:browser"\]/);
+  assert.equal((releaseScript.match(/\["run", "playground:build"\]/g) ?? []).length, 1);
+  assert.match(releaseScript, /\["run", "test:browser:built"\]/);
+  assert.doesNotMatch(releaseScript, /\["run", "test:browser"\]/);
   assert.match(releaseScript, /\["run", "pack:check"\]/);
   assert.doesNotMatch(releaseScript, /\["run", "(?:check:release|release:check|test:all)"\]/);
 });

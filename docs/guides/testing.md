@@ -30,3 +30,18 @@ Use `npm run dev:playground`, `npm run dev:playground:network`, or
 CI runs each desktop and mobile browser profile on a clean parallel runner.
 The nightly workflow repeats complete release qualification. Physical-device
 and human accessibility review remain manual evidence.
+
+## Retained release evidence
+
+`check:release` creates a unique ignored `test-results/release-*` directory.
+Its `summary.json` records the revision, a content fingerprint including dirty
+and untracked input files, Node version, each phase's duration/status/log,
+browser report metadata, and the exact verified archive SHA-256. The archive,
+phase logs, browser JSON and failure traces remain available after success or
+failure. Remove a specific evidence directory only after its records are no
+longer needed; it is not published as package content.
+
+Do not edit the repository during a qualification run. The runner compares
+source identity again at the end and fails if it changed. An interrupted run
+may remain `running`; it is never valid release evidence. A successful focused
+or repository command does not replace a completed release report.

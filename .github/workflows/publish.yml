@@ -122,6 +122,8 @@ jobs:
         include:
           - project: desktop-chromium
             engine: chromium
+          - project: desktop-firefox
+            engine: firefox
           - project: desktop-webkit
             engine: webkit
           - project: mobile-android-chromium
@@ -147,6 +149,16 @@ jobs:
           path: playground/dist
       - run: npx playwright install --with-deps ${{ matrix.engine }}
       - run: npm run test:browser:project:built -- --project=${{ matrix.project }}
+        env:
+          FLOWSTACK_TEST_ARTIFACT_DIR: test-results/release-browser
+      - name: Preserve browser qualification evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: atom-release-browser-${{ matrix.project }}
+          path: test-results/release-browser/
+          if-no-files-found: error
+          retention-days: 14
 
   consumer:
     needs: archive
