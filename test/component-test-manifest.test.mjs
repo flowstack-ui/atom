@@ -29,6 +29,7 @@ test("focused suite mappings exist and never execute a file twice", async () => 
 
 test("focused owners retain cross-owner form and disclosure regressions", async () => {
   for (const [owner, expected] of [
+    ["action-delegate", "selection-ref-cleanup"],
     ["accordion", "disclosure-measurement"],
     ["date-input", "date-form"],
     ["date-picker", "date-form"],

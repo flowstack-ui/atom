@@ -1487,3 +1487,7 @@ export { FieldItem, FieldContext } from "./primitives/field/index.js";
 export type { FieldItemProps, FieldContextProps } from "./primitives/field/index.js";
 export { FieldsetContext } from "./primitives/fieldset/index.js";
 export type { FieldsetContextProps } from "./primitives/fieldset/index.js";
+export { useSelection, useSelectionCheckbox } from "./selection.js";
+export { ActionDelegate } from "./action-delegate.js";
+export type { ActionDelegateProps } from "./action-delegate.js";
+export type { SelectionMode, SelectionOptions, SelectionState, SelectionCheckboxOptions, SelectionCheckboxProps } from "./selection.js";

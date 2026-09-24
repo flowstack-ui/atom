@@ -8,6 +8,12 @@
   ],
   "classifications": [
     {
+      "surface": "./selection",
+      "classification": "utility",
+      "documentation": "docs/components/selection/README.md",
+      "reason": "Record selection state and Checkbox binding supply no DOM or visual component."
+    },
+    {
       "surface": "./date-value",
       "classification": "utility",
       "documentation": "docs/components/date-value/README.md",

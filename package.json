@@ -401,6 +401,14 @@
     "./visually-hidden": {
       "types": "./dist/visually-hidden.d.ts",
       "default": "./dist/visually-hidden.js"
+    },
+    "./selection": {
+      "types": "./dist/selection.d.ts",
+      "default": "./dist/selection.js"
+    },
+    "./action-delegate": {
+      "types": "./dist/action-delegate.d.ts",
+      "default": "./dist/action-delegate.js"
     }
   },
   "files": [

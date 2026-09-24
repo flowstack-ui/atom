@@ -39,6 +39,7 @@ const additionalUnitTests = {
 // Keep the exercised owners explicit so a focused green result includes their
 // shared form, reset, validation, and disclosure contracts.
 const sharedUnitOwners = {
+  "selection-ref-cleanup": ["action-delegate", "selection"],
   "disclosure-measurement": ["accordion", "collapsible"],
   "date-form": ["date-input", "date-picker", "field"],
   "form-family-lifecycle": ["form", "field", "fieldset", "input"],

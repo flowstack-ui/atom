@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add record-ID Selection state and Checkbox range bindings, plus native-host
+  ActionDelegate activation that preserves independent controls and refs.
+
 - Add Progress controllers and providers with finite numeric normalization;
   preserve batched requests and clear indeterminate composed-host values.
 

@@ -1,0 +1,22 @@
+import { test, expect } from "@playwright/test";
+test("primary, secondary and portal actions remain independent", async ({ page }) => {
+  await page.goto('/__tests/record-selection');
+  await page.getByTestId('space-alpha').click();
+  await expect(page.getByLabel('Opened',{exact:true})).toHaveText('1');
+  await expect(page.getByLabel('Selected',{exact:true})).toHaveText('none');
+  await page.getByRole('button',{name:'Receipt alpha',exact:true}).click();
+  await expect(page.getByLabel('Actions',{exact:true})).toHaveText('1');
+  await expect(page.getByLabel('Opened',{exact:true})).toHaveText('1');
+  await page.getByRole('button',{name:'Menu alpha',exact:true}).click();
+  await page.getByRole('button',{name:'Portal receipt',exact:true}).click();
+  await expect(page.getByLabel('Actions',{exact:true})).toHaveText('2');
+  await expect(page.getByLabel('Opened',{exact:true})).toHaveText('1');
+  await page.getByRole('button',{name:'Open alpha',exact:true}).focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByLabel('Opened',{exact:true})).toHaveText('2');
+  await page.getByTestId('space-alpha').click({modifiers:['Control']});
+  await expect(page.getByLabel('Opened',{exact:true})).toHaveText('2');
+  await page.getByTestId('space-alpha').evaluate(el=>{const r=document.createRange();r.selectNodeContents(el);window.getSelection()!.removeAllRanges();window.getSelection()!.addRange(r);});
+  await page.getByTestId('space-alpha').dispatchEvent('click',{button:0});
+  await expect(page.getByLabel('Opened',{exact:true})).toHaveText('2');
+});
