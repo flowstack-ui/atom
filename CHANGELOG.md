@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Avoid retained Menu server-render layout-effect warnings while preserving
+  pre-paint focus, modal isolation, scroll locking, and portal setup on hydration.
+
 - Add TableOfContents with scoped section tracking, native/managed fragment
   navigation, controlled current state and optional rail geometry.
 

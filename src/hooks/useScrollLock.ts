@@ -1,6 +1,7 @@
 "use client";
 
-import { useLayoutEffect, useRef, type RefObject } from "react";
+import { useRef, type RefObject } from "react";
+import { useIsomorphicLayoutEffect as useLayoutEffect } from "./useIsomorphicLayoutEffect.js";
 
 interface ScrollLockRegistration {
   allowRef?: RefObject<HTMLElement | null>;

@@ -5,12 +5,12 @@ import {
   createElement,
   useContext,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   type ReactNode,
   type RefObject,
 } from "react";
+import { useIsomorphicLayoutEffect as useLayoutEffect } from "./useIsomorphicLayoutEffect.js";
 
 export const FOCUSABLE_SELECTOR = [
   "a[href]",
