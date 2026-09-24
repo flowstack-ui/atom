@@ -9,6 +9,17 @@ import {
 } from "react";
 export { composeEventHandlers } from "./dom.js";
 
+/** React 18 stores refs on the element; React 19 stores them in props. Avoid
+ * either version's warning getter and preserve both caller and owner refs. */
+function elementPropsWithRef(element: ReactElement): Record<string, unknown> {
+  const props = element.props as Record<string, unknown>;
+  const propRef = Object.getOwnPropertyDescriptor(props, "ref");
+  const legacyRef = Object.getOwnPropertyDescriptor(element, "ref");
+  const ref = propRef && "value" in propRef ? propRef.value
+    : legacyRef && "value" in legacyRef ? legacyRef.value : undefined;
+  return { ...props, ...(ref !== undefined ? { ref } : {}) };
+}
+
 /** Accepted values for the `render` prop. */
 export type RenderProp =
   | string
@@ -74,15 +85,20 @@ export function mergeProps(
 
 export function composeRefs(
   ...refs: (Ref<unknown> | undefined)[]
-): (node: unknown) => void {
+): (node: unknown) => void | (() => void) {
   return (node: unknown) => {
-    for (const ref of refs) {
-      if (!ref) continue;
-      if (typeof ref === "function") {
-        ref(node);
-      } else {
-        (ref as { current: unknown }).current = node;
-      }
+    const cleanups = refs.map((ref) => {
+      if (typeof ref === "function") return ref(node);
+      if (ref) (ref as { current: unknown }).current = node;
+    });
+    // React 18 uses the null callback path. React 19 may return cleanup.
+    if (cleanups.some((cleanup) => typeof cleanup === "function")) {
+      return () => refs.forEach((ref, index) => {
+        const cleanup = cleanups[index];
+        if (typeof cleanup === "function") cleanup();
+        else if (typeof ref === "function") ref(null);
+        else if (ref) (ref as { current: unknown }).current = null;
+      });
     }
   };
 }
@@ -109,7 +125,7 @@ export function renderElement(
   if (isValidElement(render)) {
     return cloneElement(
       render,
-      mergeProps(render.props as Record<string, unknown>, props),
+      mergeProps(elementPropsWithRef(render), props),
     );
   }
 
@@ -124,6 +140,6 @@ export function cloneAndMerge(
   const child = Children.only(children) as ReactElement;
   return cloneElement(
     child,
-    mergeProps(child.props as Record<string, unknown>, props),
+    mergeProps(elementPropsWithRef(child), props),
   );
 }

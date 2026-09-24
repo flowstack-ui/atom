@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Preserve child refs through element composition without React ref-access
+  warnings, and retain cleanup-returning refs alongside ordinary null-detach refs.
+
 - Avoid retained Menu server-render layout-effect warnings while preserving
   pre-paint focus, modal isolation, scroll locking, and portal setup on hydration.
 
