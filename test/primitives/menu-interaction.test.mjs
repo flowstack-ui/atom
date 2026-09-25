@@ -33,6 +33,19 @@ test("closing menu cannot reclaim focus after a newer focus handoff or reopen", 
     await flush();
     assert.equal(document.activeElement, next, "a later focus owner wins over delayed close restoration");
 
+    await React.act(async () => root.render(render(true)));
+    await React.act(async () => root.render(render(false)));
+    next.blur();
+    await flush();
+    assert.equal(document.activeElement, container.querySelector("[data-slot=dropdown-menu-trigger]"), "browser blur to body does not suppress restoration");
+
+    await React.act(async () => root.render(render(true)));
+    await React.act(async () => root.render(render(false)));
+    next.focus();
+    next.blur();
+    await flush();
+    assert.equal(document.activeElement, document.body, "a newer handoff still wins when its destination subsequently blurs");
+
     next.blur();
     await React.act(async () => root.render(render(true)));
     await React.act(async () => root.render(render(false)));

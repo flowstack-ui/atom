@@ -92,7 +92,9 @@ Portals and positions the focus-managed `menu` surface. Focus moves to real
 non-modal outside interaction keeps its destination.
 
 Deferred close-focus restoration yields to a newer focus handoff and is
-cancelled if the menu reopens or unmounts.
+cancelled if the menu reopens or unmounts. A browser blur to the document body
+when closing content becomes inert does not suppress restoration. A newer
+intentional focus handoff still wins even if its destination subsequently blurs.
 
 Reopening retained Content or SubContent recalculates placement, including when
 exit motion is interrupted. Consumers do not need to dispatch resize events or

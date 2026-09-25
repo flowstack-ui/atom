@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- No unreleased changes.
+- Restore focus after native inert/removal blurs closing content to the body;
+  preserve newer intentional handoffs even when their destination later blurs.
 
 ## 0.27.1
 

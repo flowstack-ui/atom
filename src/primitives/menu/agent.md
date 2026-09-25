@@ -29,7 +29,7 @@ Provide the shared command and settings menu engine with real item focus, select
 - **MUST:** Give standalone or context-driven Content an accessible name with ariaLabel; trigger-based compositions may use the generated trigger relationship.
 - **MUST:** Use Item, CheckboxItem, and RadioItem for their matching menuitem roles, provide unique values within each item registry, and provide textValue when rendered children do not expose searchable text.
 - **MUST:** Preserve Menu's real DOM item focus, disabled-item navigation without activation, typeahead, owner-aware Tab exit, Escape stack, and reason-aware focus restoration.
-- **MUST:** Let newer focus handoffs win over deferred close restoration; reopening or unmounting cancels obsolete restoration.
+- **MUST:** Let newer focus handoffs win over deferred close restoration, including when their destination subsequently blurs. Native inert/removal fallback to the document body is not a new focus owner. Reopening or unmounting cancels obsolete restoration; do not add consumer restoration workarounds.
 - **MUST:** Choose closeOnSelect by interaction: commands normally close, while checkbox and radio settings normally remain open; do not close the tree with competing item handlers.
 - **MUST:** Keep SubTrigger and SubContent within one Sub, preserve direction-aware open and close keys, and do not silently replace the cascade with a viewport-inferred drill-in model.
 - **MUST:** Use the preventable onInteractOutside contract instead of document listeners so only completed top-layer activations dismiss the correct submenu or complete tree.

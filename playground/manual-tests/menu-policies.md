@@ -75,5 +75,12 @@ the Owner selector switches between the five public contracts.
 
 ## Human qualification remaining
 
+### Automated retained-exit regression
+
+DropdownMenu's independent Exit actions fixture uses default modal behavior.
+With consumer-authored exit motion, open by pointer and press Escape. Focus
+must return to Exit actions while the retained closed content remains inert.
+This is automated browser evidence, not a screen-reader or device pass.
+
 Run the owning protocol with a screen reader, physical touch/pen devices, and
 actual 200%/400% browser zoom. Record real results before marking Tested=yes.

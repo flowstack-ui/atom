@@ -209,13 +209,22 @@ export function useMenu({
         const doc = destination.ownerDocument;
         const view = doc.defaultView;
         const activeAtClose = doc.activeElement;
+        let focusHandedOff = false;
+        const onFocusIn = () => { focusHandedOff = true; };
+        doc.addEventListener("focusin", onFocusIn, true);
         const frame = view?.requestAnimationFrame(() => {
+          doc.removeEventListener("focusin", onFocusIn, true);
+          const active = doc.activeElement;
+          // Native inert/removal may blur the closing surface to BODY without
+          // a focusin event. That fallback is not an intentional focus handoff.
+          const browserFallback = active === doc.body || active === doc.documentElement;
           // A newer focus handoff owns focus, even if closing was deferred.
-          if (destination.isConnected && doc.activeElement === activeAtClose) {
+          if (!focusHandedOff && destination.isConnected && (active === activeAtClose || browserFallback)) {
             destination.focus({ preventScroll: true });
           }
         });
         cancelRestore = () => {
+          doc.removeEventListener("focusin", onFocusIn, true);
           if (frame !== undefined) view?.cancelAnimationFrame(frame);
         };
       }

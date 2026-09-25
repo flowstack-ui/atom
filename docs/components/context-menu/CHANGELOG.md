@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- No unreleased changes.
+- Inherit Menu's close-focus correction for native inert/removal body fallback
+  without overriding a newer intentional focus handoff.
 
 ## 0.27.1
 

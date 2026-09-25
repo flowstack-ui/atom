@@ -1,5 +1,20 @@
 import { expect, test } from "@playwright/test";
 
+test("DropdownMenu restores its trigger after native inert blurs retained exit content", async ({ page }) => {
+  await page.goto("/__tests/menu-policies?owner=DropdownMenu");
+  await page.addStyleTag({ content: `
+    [data-slot="menu-content"] { overflow: hidden auto; max-height: 300px; translate: 0 0; transition: opacity 5s linear, translate 5s linear; }
+    [data-slot="menu-content"][data-state="closed"] { opacity: 0; pointer-events: none; }
+  ` });
+  const trigger = page.getByRole("button", { name: "Exit actions" });
+  await trigger.click();
+  const menu = page.getByRole("menu", { name: "Exit commands" });
+  await expect(menu).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(trigger).toBeFocused();
+  await expect(page.locator('[data-slot="menu-content"][data-state="closed"]')).toHaveAttribute("inert", "");
+});
+
 test("Menubar repositions when reopening retained exit content after adjacent handoff", async ({ page }) => {
   await page.goto("/__tests/menu-policies?owner=Menubar");
   // Consumer-authored exit motion keeps the same floating host mounted.
