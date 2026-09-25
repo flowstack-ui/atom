@@ -6,6 +6,9 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Bound release WebKit process lifetimes through test-inventory shards; retain
+  complete profile accounting and fail on missing results, failures or flakes.
+
 - Add an independent modal DropdownMenu exit-focus fixture and cross-browser
   Escape checks while consumer-authored closing motion retains inert content.
 
