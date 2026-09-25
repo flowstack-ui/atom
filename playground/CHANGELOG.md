@@ -6,6 +6,9 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Add an independent modal DropdownMenu exit-focus fixture and cross-browser
+  Escape checks while consumer-authored closing motion retains inert content.
+
 - Add root-menu and submenu interrupted-exit positioning regressions, including
   Menubar adjacent handoff followed by reopening without a viewport resize.
 
