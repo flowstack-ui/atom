@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.1 - 2026-09-24
+
 - Recalculate menu and submenu placement when reopening retained content or
   interrupting exit motion, so an open popup does not remain hidden until resize.
 
