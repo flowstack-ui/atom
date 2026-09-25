@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.27.2 - 2026-09-25
+
+- Restore menu focus when native inert/removal blurs closing content to the
+  document body, while preserving newer intentional focus handoffs.
+
 ## 0.27.1 - 2026-09-24
 
 - Recalculate menu and submenu placement when reopening retained content or

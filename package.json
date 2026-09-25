@@ -1,6 +1,6 @@
 {
   "name": "@flowstack-ui/atom",
-  "version": "0.27.1",
+  "version": "0.27.2",
   "browserslist": [
     "baseline 2023 with downstream"
   ],
@@ -446,6 +446,7 @@
     "test:component:browser": "node scripts/test-component.mjs browser",
     "test:browser": "npm run playground:build && npm run test:browser:built",
     "test:browser:built": "npm run test:processes && playwright test",
+    "test:browser:release": "npm run test:processes && node scripts/release-browsers.mjs",
     "test:browser:project:built": "npm run test:processes && playwright test",
     "test:processes": "node scripts/check-test-ports.mjs",
     "pack:check": "npm_config_cache=/tmp/atom-ui-npm-cache npm pack --dry-run",

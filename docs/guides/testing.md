@@ -47,6 +47,12 @@ may remain `running`; it is never valid release evidence. A successful focused
 or repository command does not replace a completed release report.
 
 On a constrained or busy host, run `FLOWSTACK_TEST_WORKERS=1 npm run check:release`
-to reduce concurrent browser load without changing the matrix, retries or
-timeouts. The value must be a positive integer; omit it for Playwright's existing
-default. The effective count is retained in the browser report.
+to reduce concurrent Chromium/Firefox browser load without changing the matrix
+or timeouts. The release default is two workers. WebKit runs use one worker and
+inventory-derived test-level shards capped at 40 desktop or 24 mobile tests per
+process, avoiding long-lived browser context exhaustion. No tests are removed.
+Each shard is inventoried before execution; missing results, failures and flakes
+fail the gate. Release runs disable retries, retain every shard report/trace,
+and aggregate all five profiles in the parent browser report. The effective
+worker count is recorded per run. Ordinary diagnostic browser commands retain
+their normal Playwright configuration.

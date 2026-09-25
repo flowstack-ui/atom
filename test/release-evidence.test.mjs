@@ -12,8 +12,8 @@ test("ordinary browser runs cannot clear the release evidence parent", () => {
 });
 
 test("worker override preserves the browser lane and rejects invalid concurrency", () => {
-  assert.deepEqual(browserArguments(undefined), ["run", "test:browser:built"]);
-  assert.deepEqual(browserArguments("1"), ["run", "test:browser:built", "--", "--workers=1"]);
+  assert.deepEqual(browserArguments(undefined), ["run", "test:browser:release"]);
+  assert.deepEqual(browserArguments("1"), ["run", "test:browser:release", "--", "--workers=1"]);
   for (const value of ["", "0", "-1", "1.5", "50%", "Infinity", "9007199254740992"]) {
     assert.throws(() => browserArguments(value), /positive integer/);
   }

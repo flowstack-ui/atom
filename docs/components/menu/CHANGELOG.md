@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.27.2
+
+- Restore focus after native inert/removal blurs closing content to the body;
+  preserve newer intentional handoffs even when their destination later blurs.
+
 ## 0.27.1
 
 - Recalculate menu and submenu placement when reopening retained content or

@@ -132,6 +132,13 @@ function ActionPolicies({ owner }: { owner: string }) {
     </fieldset>
     <div style={{ display: "flex", gap: 12 }}><button onClick={open}>Controller open</button><button onClick={close}>Controller close</button><button onClick={() => { controller.setHighlightedValue("beta"); setHighlight("beta"); }}>Highlight Beta</button><button onClick={() => controller.reposition()}>Reposition</button></div>
     <section aria-label="Live policy example" style={{ minHeight: 280 }}>{demo}</section>
+    {owner === "DropdownMenu" && <DropdownMenu.Root>
+      <DropdownMenu.Trigger>Exit actions</DropdownMenu.Trigger>
+      <DropdownMenu.Content ariaLabel="Exit commands" style={panel}>
+        <DropdownMenu.Item value="copy">Copy</DropdownMenu.Item>
+        <DropdownMenu.Item value="delete">Delete</DropdownMenu.Item>
+      </DropdownMenu.Content>
+    </DropdownMenu.Root>}
     <output aria-label="Event log">{log.join(" | ")}</output><button onClick={() => setLog([])}>Clear log</button>
     <p id="guide">Native/router link destination. Modified clicks remain native.</p>
   </>;

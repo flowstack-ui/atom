@@ -4,7 +4,7 @@ import { closeSync, lstatSync, openSync, readFileSync, readlinkSync, renameSync,
 import { resolve } from "node:path";
 
 export function browserArguments(workers) {
-  const args = ["run", "test:browser:built"];
+  const args = ["run", "test:browser:release"];
   if (workers === undefined) return args;
   if (!/^[1-9]\d*$/.test(workers) || !Number.isSafeInteger(Number(workers))) {
     throw new Error("FLOWSTACK_TEST_WORKERS must be a positive integer");

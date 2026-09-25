@@ -77,7 +77,7 @@
     {
       "id": "menu-close-focus-handoff",
       "level": "must",
-      "statement": "Let newer focus handoffs win over deferred close restoration; reopening or unmounting cancels obsolete restoration."
+      "statement": "Let newer focus handoffs win over deferred close restoration, including when their destination subsequently blurs. Native inert/removal fallback to the document body is not a new focus owner. Reopening or unmounting cancels obsolete restoration; do not add consumer restoration workarounds."
     },
     {
       "id": "menu-selection-close",
