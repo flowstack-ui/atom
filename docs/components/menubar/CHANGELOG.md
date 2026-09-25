@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.27.1
+
+- Recalculate menu and submenu placement when reopening retained content or
+  interrupting exit motion, so an open popup does not remain hidden until resize.
+
 ## 0.27.0
 
 - Do not automatically highlight a command on pointer opening or adjacent pointer handoff; preserve keyboard and assistive activation entry.

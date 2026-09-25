@@ -6,6 +6,9 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Add root-menu and submenu interrupted-exit positioning regressions, including
+  Menubar adjacent handoff followed by reopening without a viewport resize.
+
 - Make interrupted-exit browser checks independent of driver round-trip speed
   and wait for measured navigation geometry before asserting exact alignment.
 

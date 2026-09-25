@@ -229,6 +229,11 @@ function MenuContent(
     },
     open: isOpen,
   });
+  useEffect(() => {
+    // Closing resets Floating UI's positioned state even when exit motion or
+    // unmountOnExit retains the host. Reopening does not remount autoUpdate.
+    if (isOpen && isPresent) update();
+  }, [isOpen, isPresent, update]);
   useEffect(() => { if (ctx.updateRef) ctx.updateRef.current = update; return () => { if (ctx.updateRef?.current === update) ctx.updateRef.current = null; }; }, [ctx.updateRef, update]);
   useEffect(() => { p?.onPositioned?.({ placed: isPositioned }); }, [isPositioned, p?.onPositioned]);
   useEffect(() => () => clearTimeout(typeaheadTimeout.current), []);
