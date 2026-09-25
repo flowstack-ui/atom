@@ -13,6 +13,9 @@ import {
 
 export {
   addToast,
+  createToastApi,
+  createToastStore,
+  defaultToastStore,
   dismissToast,
   getDefaultToastDuration,
   getToastAriaLive,
@@ -43,6 +46,10 @@ export {
   useToastStore,
 } from "./primitives/toast/index.js";
 export type {
+  ToastStore,
+  ToastStoreOptions,
+  ToastStatus,
+  ToastStatusChangeDetails,
   ToastActionData,
   ToastActionProps,
   ToastCancelProps,

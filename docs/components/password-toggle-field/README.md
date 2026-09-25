@@ -5,7 +5,7 @@ Password input with controlled visibility state and a keyboard-accessible show/h
 ## When to Use
 
 Use PasswordToggleField when a password input needs a button that lets people
-check what they typed. Use Input for ordinary text and OTPField for a short
+check what they typed. Use Input for ordinary text and PinInput for a short
 one-time verification code. Only add the visibility toggle when revealing the
 password is acceptable for the product's security and privacy needs.
 
@@ -42,87 +42,89 @@ import { PasswordToggleField } from "@flowstack-ui/atom";
 Provides visibility and field state to its compound parts without rendering a
 DOM element.
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `children` | `ReactNode` | required |
-| `visible` | `boolean` | - |
-| `defaultVisible` | `boolean` | `false` |
-| `onVisibleChange` | `(visible: boolean) => void` | - |
-| `disabled` | `boolean` | `false` |
-| `readOnly` | `boolean` | `false` |
-| `required` | `boolean` | `false` |
-| `invalid` | `boolean` | `false` |
-| `validationBehavior` | `"inline" \| "native"` | Field/Form value or `"native"` |
-| `showLabel` | `string` | `"Show password"` |
-| `hideLabel` | `string` | `"Hide password"` |
+| Prop                 | Type                         | Default                        |
+| -------------------- | ---------------------------- | ------------------------------ |
+| `children`           | `ReactNode`                  | required                       |
+| `visible`            | `boolean`                    | -                              |
+| `defaultVisible`     | `boolean`                    | `false`                        |
+| `onVisibleChange`    | `(visible: boolean) => void` | -                              |
+| `disabled`           | `boolean`                    | `false`                        |
+| `readOnly`           | `boolean`                    | `false`                        |
+| `required`           | `boolean`                    | `false`                        |
+| `invalid`            | `boolean`                    | `false`                        |
+| `validationBehavior` | `"inline" \| "native"`       | Field/Form value or `"native"` |
+| `showLabel`          | `string`                     | `"Show password"`              |
+| `hideLabel`          | `string`                     | `"Hide password"`              |
 
 ### Input
 
 Renders the native input and changes its owned `type` between `password` and
 `text` as visibility changes. Other native input props pass through.
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `children` | `ReactNode` | - |
-| `asChild` | `boolean` | `false` |
-| `render` | `RenderProp` | - |
+| Prop       | Type         | Default |
+| ---------- | ------------ | ------- |
+| `children` | `ReactNode`  | -       |
+| `asChild`  | `boolean`    | `false` |
+| `render`   | `RenderProp` | -       |
 
-| ARIA attribute | Values |
-| --- | --- |
-| `aria-invalid` | Present when invalid |
+| ARIA attribute  | Values                 |
+| --------------- | ---------------------- |
+| `aria-invalid`  | Present when invalid   |
 | `aria-readonly` | Present when read only |
-| `aria-required` | Present when required |
+| `aria-required` | Present when required  |
 
-| Data attribute | Values |
-| --- | --- |
-| `[data-slot]` | `"password-toggle-field-input"` |
-| `[data-state]` | `"visible" \| "hidden"` |
-| `[data-disabled]` | Present when disabled |
-| `[data-readonly]` | Present when read-only |
-| `[data-required]` | Present when required |
-| `[data-invalid]` | Present when invalid |
+| Data attribute    | Values                          |
+| ----------------- | ------------------------------- |
+| `[data-slot]`     | `"password-toggle-field-input"` |
+| `[data-state]`    | `"visible" \| "hidden"`         |
+| `[data-disabled]` | Present when disabled           |
+| `[data-readonly]` | Present when read-only          |
+| `[data-required]` | Present when required           |
+| `[data-invalid]`  | Present when invalid            |
 
 ### Toggle
 
 Renders the button that changes visibility. Pointer down is prevented so
-clicking it does not move focus away from the password input.
+clicking it does not move focus away from the password input. When the focused
+input has a selection, pointer activation restores that range after the native
+type switch. Keyboard users can still Tab to the Toggle normally.
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `children` | `ReactNode` | - |
-| `asChild` | `boolean` | `false` |
-| `render` | `RenderProp` | - |
+| Prop       | Type         | Default |
+| ---------- | ------------ | ------- |
+| `children` | `ReactNode`  | -       |
+| `asChild`  | `boolean`    | `false` |
+| `render`   | `RenderProp` | -       |
 
-| ARIA attribute | Values |
-| --- | --- |
-| `aria-label` | `"Show password"` or `"Hide password"` by default |
+| ARIA attribute | Values                                            |
+| -------------- | ------------------------------------------------- |
+| `aria-label`   | `"Show password"` or `"Hide password"` by default |
 
-| Data attribute | Values |
-| --- | --- |
-| `[data-slot]` | `"password-toggle-field-toggle"` |
-| `[data-state]` | `"visible" \| "hidden"` |
-| `[data-disabled]` | Present when disabled |
-| `[data-readonly]` | Present when read-only |
-| `[data-required]` | Present when required |
-| `[data-invalid]` | Present when invalid |
+| Data attribute    | Values                           |
+| ----------------- | -------------------------------- |
+| `[data-slot]`     | `"password-toggle-field-toggle"` |
+| `[data-state]`    | `"visible" \| "hidden"`          |
+| `[data-disabled]` | Present when disabled            |
+| `[data-readonly]` | Present when read-only           |
+| `[data-required]` | Present when required            |
+| `[data-invalid]`  | Present when invalid             |
 
 ### Icon
 
 Decorative icon slot that renders `visible` or `hidden` content.
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `visible` | `ReactNode` | - |
-| `hidden` | `ReactNode` | - |
+| Prop      | Type        | Default |
+| --------- | ----------- | ------- |
+| `visible` | `ReactNode` | -       |
+| `hidden`  | `ReactNode` | -       |
 
 | ARIA attribute | Values |
-| --- | --- |
-| `aria-hidden` | `true` |
+| -------------- | ------ |
+| `aria-hidden`  | `true` |
 
-| Data attribute | Values |
-| --- | --- |
-| `[data-slot]` | `"password-toggle-field-icon"` |
-| `[data-state]` | `"visible" \| "hidden"` |
+| Data attribute | Values                         |
+| -------------- | ------------------------------ |
+| `[data-slot]`  | `"password-toggle-field-icon"` |
+| `[data-state]` | `"visible" \| "hidden"`        |
 
 Advanced compound parts can use `usePasswordToggleFieldContext`; its provider
 and context value type are also public exports.
@@ -181,16 +183,19 @@ suppresses the browser bubble while keeping constraint validation active.
 The toggle remains keyboard reachable. Its accessible label changes between “Show password” and “Hide password”; `aria-pressed` is intentionally not used because the label already communicates the action.
 
 Root's `showLabel` and `hideLabel` localize those state-aware actions. Native
-form reset restores uncontrolled visibility to `defaultVisible`. Native form
-submission restores the input element to `type="password"` before submission.
-The changing action label communicates the state change; Atom does not add a
-separate live-region announcement.
+form reset restores uncontrolled visibility to `defaultVisible`; a cancelled
+reset preserves value and visibility. Native form submission exposes
+`type="password"` to submit handlers. When a handler cancels submission, Atom
+restores the DOM type to the committed visibility state in a microtask so the
+input, icon, and action name remain coherent. This behavior also follows an
+explicit external `form` association. The changing action label communicates
+the state change; Atom does not add a separate live-region announcement.
 
-| Key | Description |
-| --- | --- |
-| `Tab` | Moves focus between the input, toggle, and surrounding controls. |
-| `Enter` | Activates the focused toggle. |
-| `Space` | Activates the focused toggle. |
+| Key     | Description                                                      |
+| ------- | ---------------------------------------------------------------- |
+| `Tab`   | Moves focus between the input, toggle, and surrounding controls. |
+| `Enter` | Activates the focused toggle.                                    |
+| `Space` | Activates the focused toggle.                                    |
 
 ## Changelog
 

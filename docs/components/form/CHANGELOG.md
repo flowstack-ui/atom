@@ -1,5 +1,19 @@
 # Form Changelog
 
+## Unreleased
+
+- No unreleased changes.
+
+## 0.27.0
+
+- Preserve the accepted submit callback's form target after asynchronous
+  validation without mutating React's dispatched event.
+
+- Cancel queued uncontrolled reset callbacks on unmount or form reassociation,
+  while keeping the latest callback during ordinary rerenders.
+
+- Callback state is owned by the latest submission attempt. Reset or unmount invalidates earlier pending completions; requests themselves remain application-owned. React function-action pending state remains React-owned.
+
 ## 0.6.17
 
 - Kept explicit inline validation focus scrolling safe in non-browser DOM

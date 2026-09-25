@@ -19,6 +19,7 @@ import {
   type RenderProp,
 } from "../../utils/slot.js";
 import { useToolbarItem } from "./useToolbarItem.js";
+import { useToolbarContext } from "./context.js";
 
 type ToolbarLinkNativeProps = NativeAnchorProps<"children" | "href">;
 
@@ -60,7 +61,7 @@ export const ToolbarLink = forwardRef<HTMLAnchorElement, ToolbarLinkProps>(
       download,
       ping,
       referrerPolicy,
-      disabled = false,
+      disabled: ownDisabled = false,
       className,
       ariaLabel,
       render,
@@ -72,22 +73,22 @@ export const ToolbarLink = forwardRef<HTMLAnchorElement, ToolbarLinkProps>(
     },
     ref,
   ) {
-    const { itemRef, tabIndex, handleFocus } = useToolbarItem(disabled);
-    const composedRef = useMemo(() => composeRefs(itemRef, ref), [itemRef, ref]);
     const compositionProps = asChild
       ? getElementProps(children)
       : getElementProps(render);
+    const toolbar = useToolbarContext();
+    const disabled = ownDisabled || toolbar.disabled || Boolean(compositionProps.disabled || compositionProps["aria-disabled"] === true || compositionProps["aria-disabled"] === "true");
+    const { itemRef, tabIndex, handleFocus } = useToolbarItem(disabled);
+    const composedRef = useMemo(() => composeRefs(itemRef, ref), [itemRef, ref]);
     const composedOnClick = compositionProps.onClick;
 
     const handleClick = useCallback((event: MouseEvent<HTMLAnchorElement>) => {
-      onClick?.(event);
-
       if (disabled) {
         event.preventDefault();
         return;
       }
-
-      if (typeof composedOnClick === "function") {
+      onClick?.(event);
+      if (!event.defaultPrevented && typeof composedOnClick === "function") {
         composedOnClick(event);
       }
     }, [composedOnClick, disabled, onClick]);

@@ -4,6 +4,7 @@ import {
   forwardRef,
   useCallback,
   useMemo,
+  useId,
   type KeyboardEventHandler,
   type MouseEventHandler,
   type PointerEventHandler,
@@ -26,6 +27,8 @@ import {
 type PopoverTriggerNativeProps = NativeButtonProps<"children" | "disabled" | "type">;
 
 export interface PopoverTriggerProps extends PopoverTriggerNativeProps {
+  value?: string;
+  disabled?: boolean;
   children: ReactNode;
   asChild?: boolean;
   className?: string;
@@ -34,7 +37,7 @@ export interface PopoverTriggerProps extends PopoverTriggerNativeProps {
 }
 
 function isNativeKeyboardClickable(element: EventTarget | null): boolean {
-  return element instanceof HTMLElement &&
+  return element != null && "ownerDocument" in element && element instanceof (element as HTMLElement).ownerDocument.defaultView!.HTMLElement &&
     (element.tagName === "BUTTON" ||
       element.tagName === "A" ||
       element.tagName === "INPUT" ||
@@ -46,6 +49,8 @@ export const PopoverTrigger = forwardRef<HTMLElement, PopoverTriggerProps>(
 function PopoverTrigger(
   {
     children,
+    value: suppliedValue,
+    disabled: locallyDisabled = false,
     asChild = false,
     className,
     render,
@@ -67,22 +72,31 @@ function PopoverTrigger(
     onClose,
     popoverId,
     triggerRef,
-    disabled,
+    disabled: rootDisabled,
+    triggerValue,
+    activateTrigger,
+    registerTrigger,
+    ids,
     triggerMode,
     recordInteraction,
     consumeInteraction,
     clearInteraction,
   } = usePopoverContext();
+  const generatedValue = useId();
+  const value = suppliedValue ?? generatedValue;
+  const disabled = rootDisabled || locallyDisabled;
+  const active = triggerValue === undefined || triggerValue === value;
+  const registrationRef = useCallback((node: HTMLElement | null) => registerTrigger(value, node), [registerTrigger, value]);
   const composedRef = useMemo(
-    () => composeRefs(triggerRef, ref),
-    [ref, triggerRef],
+    () => composeRefs(registrationRef, ref),
+    [ref, registrationRef],
   );
 
   const handleClick: MouseEventHandler<HTMLElement> = useCallback((event) => {
     (onClick as MouseEventHandler<HTMLElement> | undefined)?.(event);
     const interactionType = consumeInteraction(event.currentTarget);
-    if (!event.defaultPrevented && !disabled) onToggle(interactionType);
-  }, [consumeInteraction, disabled, onClick, onToggle]);
+    if (!event.defaultPrevented && !disabled) activateTrigger(value, event.currentTarget, interactionType);
+  }, [consumeInteraction, disabled, onClick, activateTrigger, value]);
 
   const handlePointerDown: PointerEventHandler<HTMLElement> = useCallback(
     (event) => {
@@ -110,9 +124,9 @@ function PopoverTrigger(
         return;
       }
       event.preventDefault();
-      onToggle("keyboard");
+      activateTrigger(value, event.currentTarget, "keyboard");
     },
-    [disabled, onToggle, recordInteraction],
+    [disabled, activateTrigger, value, recordInteraction],
   );
 
   const handleMouseEnter: MouseEventHandler<HTMLElement> = useCallback(() => {
@@ -127,14 +141,16 @@ function PopoverTrigger(
 
   const triggerProps = {
     ...restProps,
+    id: restProps.id ?? (typeof ids.trigger === "function" ? ids.trigger(suppliedValue) : ids.trigger) ?? `${popoverId}-trigger-${value}`,
     ref: composedRef,
     "data-slot": dataSlot,
-    "data-state": isOpen ? "open" : "closed",
+    "data-state": isOpen && active ? "open" : "closed",
+    "data-value": suppliedValue,
     "data-trigger-mode": triggerMode,
     ...(disabled && { "data-disabled": "" }),
     "aria-haspopup": "dialog",
-    "aria-expanded": isOpen,
-    "aria-controls": isOpen ? popoverId : undefined,
+    "aria-expanded": isOpen && active,
+    "aria-controls": isOpen && active ? popoverId : undefined,
     "aria-disabled": disabled || undefined,
     disabled: disabled || undefined,
     role: asChild || render ? "button" : undefined,

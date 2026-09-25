@@ -19,3 +19,7 @@ export { FieldRoot } from "./FieldRoot.js";
 export type { FieldRootProps } from "./FieldRoot.js";
 export { markFieldPart } from "./parts.js";
 export type { FieldPartKind } from "./parts.js";
+export { FieldItem } from "./FieldItem.js";
+export type { FieldItemProps } from "./FieldItem.js";
+export { FieldContext } from "./FieldContext.js";
+export type { FieldContextProps } from "./FieldContext.js";

@@ -10,6 +10,7 @@ const POINTER_MOVEMENT_THRESHOLD = 8;
 
 type OutsideInteractionLayer = {
   id: number;
+  pointerDownRef: MutableRefObject<((event: OutsideInteractionEvent) => void) | undefined>;
   refsRef: MutableRefObject<RefObject<HTMLElement | null>[]>;
   ignoreRef: MutableRefObject<((target: Node) => boolean) | undefined>;
   onInteractOutsideRef: MutableRefObject<
@@ -34,6 +35,10 @@ type CompletedPointerSession = {
   eligible: boolean;
 };
 
+const registries = new WeakMap<Document, ReturnType<typeof createRegistry>>();
+
+function createRegistry(document: Document) {
+const window = document.defaultView;
 const layers: OutsideInteractionLayer[] = [];
 let nextLayerId = 0;
 let activePointer: PointerSession | null = null;
@@ -82,11 +87,13 @@ function handlePointerDown(event: PointerEvent): void {
     return;
   }
 
+  const notification = createOutsideInteractionEvent(event, getPointerType(event.pointerType));
+  if (isOutside(layer, event.target as Node)) layer.pointerDownRef.current?.(notification);
   activePointer = {
     id: event.pointerId,
     layerId: layer.id,
     pointerType: getPointerType(event.pointerType),
-    startedOutside: isOutside(layer, event.target as Node),
+    startedOutside: !notification.defaultPrevented && isOutside(layer, event.target as Node),
     x: event.clientX,
     y: event.clientY,
     moved: false,
@@ -194,7 +201,7 @@ function addDocumentListeners(): void {
   document.addEventListener("pointercancel", cancelPointerSession, true);
   document.addEventListener("click", handleClick, true);
   document.addEventListener("scroll", cancelPointerSession, true);
-  window.addEventListener("scroll", cancelPointerSession, true);
+  window?.addEventListener("scroll", cancelPointerSession, true);
 }
 
 function removeDocumentListeners(): void {
@@ -205,13 +212,29 @@ function removeDocumentListeners(): void {
   document.removeEventListener("pointercancel", cancelPointerSession, true);
   document.removeEventListener("click", handleClick, true);
   document.removeEventListener("scroll", cancelPointerSession, true);
-  window.removeEventListener("scroll", cancelPointerSession, true);
+  window?.removeEventListener("scroll", cancelPointerSession, true);
   clearPointerSession();
   suppressClickUntil = 0;
 }
 
+return {
+  register(layer: Omit<OutsideInteractionLayer, "id">) {
+    const entry = { ...layer, id: nextLayerId++ };
+    layers.push(entry);
+    addDocumentListeners();
+    return () => {
+      const index = layers.indexOf(entry);
+      if (index !== -1) layers.splice(index, 1);
+      if (activePointer?.layerId === entry.id || completedPointer?.layerId === entry.id) clearPointerSession();
+      removeDocumentListeners();
+    };
+  },
+};
+}
+
 export interface UseOutsideInteractionOptions {
   refs: RefObject<HTMLElement | null>[];
+  onPointerDownOutside?: (event: OutsideInteractionEvent) => void;
   onInteractOutside: (event: OutsideInteractionEvent) => void;
   enabled?: boolean;
   ignore?: (target: Node) => boolean;
@@ -220,9 +243,12 @@ export interface UseOutsideInteractionOptions {
 export function useOutsideInteraction({
   refs,
   onInteractOutside,
+  onPointerDownOutside,
   enabled = false,
   ignore,
 }: UseOutsideInteractionOptions): void {
+  const pointerDownRef = useRef(onPointerDownOutside);
+  pointerDownRef.current = onPointerDownOutside;
   const refsRef = useRef(refs);
   refsRef.current = refs;
   const onInteractOutsideRef = useRef(onInteractOutside);
@@ -233,21 +259,10 @@ export function useOutsideInteraction({
   useEffect(() => {
     if (!enabled) return undefined;
 
-    const layer: OutsideInteractionLayer = {
-      id: nextLayerId++,
-      refsRef,
-      ignoreRef,
-      onInteractOutsideRef,
-    };
-    layers.push(layer);
-    addDocumentListeners();
-
-    return () => {
-      const index = layers.findIndex((item) => item.id === layer.id);
-      if (index !== -1) layers.splice(index, 1);
-      if (activePointer?.layerId === layer.id) clearPointerSession();
-      if (completedPointer?.layerId === layer.id) clearPointerSession();
-      removeDocumentListeners();
-    };
+    const doc = refsRef.current.find(ref => ref.current)?.current?.ownerDocument ?? globalThis.document;
+    if (!doc) return;
+    let registry = registries.get(doc);
+    if (!registry) { registry = createRegistry(doc); registries.set(doc, registry); }
+    return registry.register({ refsRef, ignoreRef, onInteractOutsideRef, pointerDownRef });
   }, [enabled]);
 }

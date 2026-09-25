@@ -11,20 +11,22 @@ Provide a flat ARIA grid with one Root focus target, active-descendant cell navi
 ## Choose something else when
 
 - People only read and compare tabular values without composite cell navigation or row selection. Use Table.
-- Rows expand into a parent-child hierarchy, or the application expects Atom to own sorting, editing, filtering, resizing, or virtualization. Use TreeGrid or an application composition around DataGrid and the relevant utility.
+- Rows expand into a parent-child hierarchy, or the application expects Atom to own sorting/filter algorithms, editing transactions, persisted widths, or virtualizer geometry. Use TreeGrid or an application composition around DataGrid and the relevant utility.
 
 ## Required composition
 
-- Give Root an accessible name and accurate total counts, then compose Caption when useful, Header and Body rowgroups, uniquely valued and accurately indexed Rows, indexed ColumnHeader and Cell parts, and Footer only for summaries. Configure selection and controlled active-cell state deliberately.
+- Give Root an accessible name and accurate total counts, optionally place native ColumnGroup and Column sizing hints before Header, then compose Caption when useful, Header and Body rowgroups, uniquely valued and accurately indexed Rows, indexed ColumnHeader and Cell parts, and Footer only for summaries. Configure selection and controlled active-cell state deliberately.
 
 ## Rules
 
 - **MUST:** Give Root an accessible name and provide stable one-based row and column indexes plus accurate rowCount and columnCount, including the logical full collection when rows are paged or virtualized.
-- **MUST:** Keep DOM focus on Root and preserve aria-activedescendant, Arrow movement, Home and End, whole-grid movement, disabled-cell skipping, RTL mirroring, loop, and wrapRows policy.
+- **MUST:** Keep DOM focus on Root in navigation mode. Entry establishes an enabled cell; PageUp/PageDown traverse pageSize mounted enabled rows (default 10). Interactive Cell uses Enter/F2 to focus child controls and Escape to restore navigation; child handlers may prevent default. Keep ColumnHeader interactive children at tabIndex=-1. Preserve Arrow/Home/End, disabled skipping, RTL, loop and wrapRows.
+- **MUST:** Use RowHeader for row labels. Name ColumnResizeHandle, apply its controlled width to the column, and preserve bounds, RTL keyboard/pointer operation and cancellation. Ctrl/Meta+A toggles mounted selectable rows only; Shift selection extends from the selection anchor. Applications own full-dataset scope, validation and persistence.
 - **MUST:** Align scalar, array, or null state with selectionMode; give selectable rows stable unique values; and use selectable=false for header or summary rows that remain navigable but cannot be selected.
 - **MUST:** Preserve controlled or uncontrolled active-cell and selection state, disabled behavior, and read-only navigation without selection mutation.
 - **MUST:** Use ColumnHeader onAction for equivalent pointer and active-header Enter activation, keep sortDirection truthful, and leave sorting and data reordering to the application.
 - **MUST:** When windowing, preserve logical indexes and totals and keep the active descendant mounted or move active state before its cell leaves the DOM; Virtualizer supplies geometry, not grid semantics or focus management.
+- **MUST:** Treat Column.htmlWidth as a native CSS-pixel number or percentage sizing hint only; do not pass CSS-unit values, and do not use it to define column indexes, columnCount, hierarchy, navigation, or resizing behavior.
 
 ## Common mistakes
 

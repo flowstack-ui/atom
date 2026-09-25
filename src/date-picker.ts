@@ -1,0 +1,5 @@
+"use client";
+export * from "./primitives/date-picker/DatePicker.js";
+export type { DatePickerTextCodec, DatePickerSelectionTextCodec, DatePickerCodecContext } from "./primitives/date-picker/text-codec.js";
+import { DatePickerRoot, DatePickerRootProvider, DatePickerTextInput, DatePickerIndicatorGroup, DatePickerPresetTrigger, DatePickerLabel, DatePickerControl, DatePickerInput, DatePickerTrigger, DatePickerPortal, DatePickerContent, DatePickerCalendar, DatePickerClearTrigger, DatePickerContext, DatePickerValueText, DatePickerHiddenInput } from "./primitives/date-picker/DatePicker.js";
+export const DatePicker = { Root: DatePickerRoot, RootProvider: DatePickerRootProvider, TextInput: DatePickerTextInput, IndicatorGroup: DatePickerIndicatorGroup, PresetTrigger: DatePickerPresetTrigger, Label: DatePickerLabel, Control: DatePickerControl, Input: DatePickerInput, Trigger: DatePickerTrigger, Portal: DatePickerPortal, Content: DatePickerContent, Calendar: DatePickerCalendar, ClearTrigger: DatePickerClearTrigger, Context: DatePickerContext, ValueText: DatePickerValueText, HiddenInput: DatePickerHiddenInput } as const;

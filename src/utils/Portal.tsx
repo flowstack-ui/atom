@@ -1,7 +1,9 @@
 "use client";
 
-import { useLayoutEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+
+import { useIsomorphicLayoutEffect as useLayoutEffect } from "../hooks/useIsomorphicLayoutEffect.js";
 
 export interface PortalProps {
   /** Content to render inside the portal. */

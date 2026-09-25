@@ -23,7 +23,7 @@ Let keyboard and assistive-technology users bypass repeated page navigation and 
 
 ## Common mistakes
 
-- **Avoid:** Linking to a missing id or adding a second main landmark around Target. **Instead:** Use one matching Target as the page's main landmark.
+- **Avoid:** Linking to a missing id or assuming Target creates a landmark. **Instead:** Target defaults to div; place it inside main or use Target asChild on the existing main. Set href on Root, including with asChild. Custom destinations must accept focus. focusTarget=false preserves native hash navigation; the default explicitly focuses without updating the hash.
 
 ## Validation checklist
 

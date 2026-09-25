@@ -5,6 +5,8 @@ import {
   useCallback,
   useMemo,
   useRef,
+  useEffect,
+  useState,
   type KeyboardEventHandler,
   type ReactNode,
 } from "react";
@@ -98,9 +100,43 @@ export interface RadioGroupRootProps extends RadioGroupRootNativeProps {
   "data-slot"?: string;
 }
 
-export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
-  function RadioGroupRoot(
-    {
+export interface RadioGroupController {
+  value: string;
+  setValue: (value: string) => void;
+  reset: () => void;
+  options: RadioGroupRootProps;
+}
+
+const controllerGuards = new WeakMap<RadioGroupController, Set<() => boolean>>();
+
+export function useRadioGroup(options: RadioGroupRootProps = {}): RadioGroupController {
+  const guards = useRef(new Set<() => boolean>());
+  const [value, setValue] = useControllableState({ value: options.value, defaultValue: options.defaultValue ?? "", onChange: options.onValueChange });
+  const update = useCallback((next: string) => {
+    if (!options.disabled && !options.readOnly && [...guards.current].every(guard => guard())) setValue(next);
+  }, [options.disabled, options.readOnly, setValue]);
+  const reset = useCallback(() => setValue(options.defaultValue ?? ""), [options.defaultValue, setValue]);
+  const controller = { value, setValue: update, reset, options };
+  controllerGuards.set(controller, guards.current);
+  return controller;
+}
+
+export interface RadioGroupRootProviderProps extends Omit<RadioGroupRootProps, "value" | "defaultValue" | "onValueChange"> {
+  controller: RadioGroupController;
+}
+
+export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(function RadioGroupRoot(props, ref) {
+  const controller = useRadioGroup(props);
+  return <RadioGroupRootProvider {...props} controller={controller} ref={ref} />;
+});
+
+export const RadioGroupRootProvider = forwardRef<HTMLDivElement, RadioGroupRootProviderProps>(
+  function RadioGroupRootProvider(
+    providerProps,
+    ref,
+  ) {
+    const { controller } = providerProps;
+    const {
       value,
       defaultValue = "",
       onValueChange,
@@ -120,23 +156,40 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
       className,
       "data-slot": dataSlot = "radio-group",
       onKeyDown,
+      controller: _controller,
       ...restProps
-    },
-    ref,
-  ) {
+    } = { ...controller.options, ...providerProps };
     const fieldset = useFieldsetContext();
-    const isDisabled = disabled ?? fieldset?.disabled ?? false;
+    const isDisabled = Boolean(disabled || fieldset?.disabled);
+    useEffect(() => {
+      const guards = controllerGuards.get(controller);
+      const guard = () => !isDisabled && !readOnly;
+      guards?.add(guard);
+      return () => { guards?.delete(guard); };
+    }, [controller, isDisabled, readOnly]);
     const isRequired = required ?? fieldset?.required ?? false;
     const rootRef = useRef<HTMLDivElement>(null);
+    const lastFocusedRadio = useRef<HTMLElement | null>(null);
+    const getRootElement = useCallback(() => rootRef.current, []);
     const validationInputRef = useRef<HTMLInputElement>(null);
     const contextDir = useDirection();
     const dir = dirProp ?? contextDir;
-    const [activeValue, setActiveValue] = useControllableState({
-      value,
-      defaultValue,
-      onChange: onValueChange,
-    });
-    const reset = useCallback(() => setActiveValue(defaultValue), [defaultValue, setActiveValue]);
+    const activeValue = controller.value;
+    const setActiveValue = useCallback((next: string) => {
+      if (!isDisabled && !readOnly) controller.setValue(next);
+    }, [controller.setValue, isDisabled, readOnly]);
+    const reset = controller.reset;
+    const [availabilityVersion, refreshAvailability] = useState(0);
+    const [labelId, setLabelId] = useState<string>();
+    useEffect(() => {
+      const root = rootRef.current;
+      const Observer = root?.ownerDocument.defaultView?.MutationObserver;
+      if (!root || !Observer) return;
+      const observer = new Observer(() => refreshAvailability(version => version + 1));
+      observer.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ["disabled", "aria-disabled", "data-disabled"] });
+      refreshAvailability(version => version + 1);
+      return () => observer.disconnect();
+    }, []);
     useFormReset(rootRef, form, value !== undefined, reset);
     const {
       version: registryVersion,
@@ -168,6 +221,25 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
     const firstEnabledRadio = getRadioValues()
       .map(getRadioElement)
       .find((element) => element && !isRadioElementDisabled(element)) ?? null;
+    const selectedRadio = getRadioElement(activeValue);
+    const selectedEligible = !!selectedRadio && !isRadioElementDisabled(selectedRadio);
+    const entryValue = selectedEligible ? activeValue : firstEnabledRadio?.dataset.value;
+    useEffect(() => {
+      const previous = lastFocusedRadio.current;
+      const root = rootRef.current;
+      if (!previous || !root || (previous.isConnected && !isRadioElementDisabled(previous))) return;
+      const active = root.ownerDocument.activeElement;
+      // Only recover focus lost by a removed/disabled local item. Never steal it
+      // from another control, another group, or an application action.
+      if (active !== previous && active !== root.ownerDocument.body) {
+        lastFocusedRadio.current = null;
+        return;
+      }
+      if (!isDisabled && firstEnabledRadio) {
+        lastFocusedRadio.current = firstEnabledRadio;
+        firstEnabledRadio.focus({ preventScroll: true });
+      }
+    }, [registryVersion, availabilityVersion, firstEnabledRadio, isDisabled]);
     useFormControlProxy(validationInputRef, { current: firstEnabledRadio });
     const validation = useFormValidation({
       validityRef: validationInputRef,
@@ -208,10 +280,12 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
     );
 
     const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = (event) => {
+      if (isDisabled) return;
       const values = getRadioValues();
       if (values.length === 0) return;
 
-      const focusedElement = document.activeElement as HTMLElement | null;
+      const focusedElement = rootRef.current?.ownerDocument.activeElement as HTMLElement | null;
+      if (!getRadioValues().some(value => getRadioElement(value) === focusedElement)) return;
       const currentValue = focusedElement?.dataset.value;
       const currentIndex = currentValue
         ? values.indexOf(currentValue)
@@ -260,7 +334,11 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
 
     const contextValue: RadioGroupContextValue = useMemo(
       () => ({
+        getRootElement,
         activeValue,
+        entryValue,
+        labelId,
+        setLabelId,
         setActiveValue,
         name,
         form,
@@ -276,7 +354,11 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
         getRadioValues,
       }),
       [
+        getRootElement,
         activeValue,
+        entryValue,
+        labelId,
+        availabilityVersion,
         isDisabled,
         readOnly,
         form,
@@ -300,8 +382,8 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
       ref: composeRefs(rootRef, ref),
       role: "radiogroup",
       "aria-labelledby": restProps["aria-labelledby"] ??
-        (restProps["aria-label"] === undefined && fieldset?.hasLegend
-          ? fieldset.legendId
+        (restProps["aria-label"] === undefined
+          ? (fieldset?.hasLegend ? fieldset.legendId : labelId)
           : undefined),
       "aria-describedby": Object.prototype.hasOwnProperty.call(restProps, "aria-describedby")
         ? restProps["aria-describedby"]
@@ -319,6 +401,13 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
       ...(isRequired && { "data-required": "" }),
       className,
       onKeyDown: composeEventHandlers(onKeyDown, handleKeyDown),
+      onFocusCapture: composeEventHandlers(restProps.onFocusCapture, event => {
+        const target = event.target as HTMLElement;
+        lastFocusedRadio.current = getRadioValues().some(value => getRadioElement(value) === target) ? target : null;
+      }),
+      onBlurCapture: composeEventHandlers(restProps.onBlurCapture, event => {
+        if (event.relatedTarget && !rootRef.current?.contains(event.relatedTarget as Node)) lastFocusedRadio.current = null;
+      }),
     };
 
     const element = asChild
@@ -331,7 +420,7 @@ export const RadioGroupRoot = forwardRef<HTMLDivElement, RadioGroupRootProps>(
           <input
             ref={validationInputRef}
             type="checkbox"
-            checked={activeValue !== ""}
+            checked={selectedEligible}
             required
             disabled={isDisabled}
             form={form}

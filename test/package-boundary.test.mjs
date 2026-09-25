@@ -29,13 +29,17 @@ test("package boundary keeps only approved headless runtime dependencies", async
     await readFile(new URL("package.json", packageRoot), "utf8"),
   );
 
-  assert.equal(packageJson.version, "0.26.1");
   assert.equal(packageJson.repository.url, "git+https://github.com/flowstack-ui/atom.git");
   assert.deepEqual(packageJson.publishConfig, { access: "public" });
   assert.deepEqual(packageJson.dependencies ?? {}, {
     "@floating-ui/react": "^0.27.19",
+    "@internationalized/date": "3.12.4",
+    "@internationalized/number": "3.6.8",
     "@zag-js/color-picker": "1.43.3",
+    "@zag-js/date-input": "1.43.3",
+    "@zag-js/date-picker": "1.43.3",
     "@zag-js/react": "1.43.3",
+    "uqr": "0.1.3",
   });
   assert.deepEqual(packageJson.peerDependencies, {
     react: ">=18",
@@ -49,6 +53,8 @@ test("package boundary keeps only approved headless runtime dependencies", async
       "./agents/manifest.json",
       "./agents/*.json",
       "./agents/*.md",
+      "./date-value",
+      "./compose-host",
       ...publicSubpaths.map((subpath) => `./${subpath}`),
     ].sort(),
   );
@@ -64,9 +70,11 @@ test("release identity, changelog, and trusted-publishing provenance stay aligne
   const packageJson = JSON.parse(packageJsonSource);
   const packageLock = JSON.parse(lockSource);
 
+  assert.match(packageJson.version, /^\d+\.\d+\.\d+$/);
   assert.equal(packageLock.version, packageJson.version);
   assert.equal(packageLock.packages[""].version, packageJson.version);
-  assert.match(changelog, new RegExp(`^## ${packageJson.version} - 2026-08-31$`, "m"));
+  const escapedVersion = packageJson.version.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  assert.match(changelog, new RegExp(`^## ${escapedVersion} - \\d{4}-\\d{2}-\\d{2}$`, "m"));
   assert.match(workflow, /npm publish[^\n]+--provenance/u);
 });
 
@@ -81,7 +89,10 @@ test("release verification tiers do not recurse", async () => {
 
   assert.equal(packageJson.scripts["check:release"], "npm run test:all");
   assert.match(releaseScript, /\["run", "check:repository"\]/);
-  assert.match(releaseScript, /\["run", "test:browser"\]/);
+  assert.equal((releaseScript.match(/\["run", "playground:build"\]/g) ?? []).length, 1);
+  assert.match(releaseScript, /browserArguments\(process\.env\.FLOWSTACK_TEST_WORKERS\)/);
+  assert.match(releaseScript, /run\("browser", browserArgs\)/);
+  assert.doesNotMatch(releaseScript, /\["run", "test:browser"\]/);
   assert.match(releaseScript, /\["run", "pack:check"\]/);
   assert.doesNotMatch(releaseScript, /\["run", "(?:check:release|release:check|test:all)"\]/);
 });
@@ -226,6 +237,14 @@ test("public component docs and changelogs cover component-style subpaths", asyn
     );
     assert.match(changelog, new RegExp(`# ${namespace} Changelog`));
     assert.match(changelog, /## (?:Unreleased|\d+\.\d+\.\d+)/);
+    const sections = [...changelog.matchAll(/^## (.+)$/gm)];
+    const pending = sections.filter(section => section[1].startsWith("Unreleased"));
+    assert.ok(pending.length <= 1, `${namespace} has duplicate Unreleased sections`);
+    if (pending.length) {
+      assert.equal(sections[0], pending[0], `${namespace} Unreleased must precede published history`);
+      const body = changelog.slice(pending[0].index + pending[0][0].length, sections[1]?.index ?? changelog.length).trim();
+      assert.ok(body, `${namespace} Unreleased must describe changes or explicitly say none`);
+    }
   }
 });
 
@@ -366,11 +385,14 @@ test("source exposes refs and client boundaries on public wrappers", async () =>
   assert.match(modalTitleSource, /forwardRef<\s*HTMLHeadingElement,\s*ModalTitleProps\s*>/);
   assert.match(modalDescriptionSource, /forwardRef<\s*HTMLParagraphElement,\s*ModalDescriptionProps\s*>/);
   assert.match(contextMenuTriggerSource, /forwardRef<\s*HTMLElement,\s*ContextMenuTriggerProps\s*>/);
-  assert.match(contextMenuTriggerSource, /composeRefs\(triggerRef, ctx\.triggerRef, ref\)/);
+  assert.match(contextMenuTriggerSource, /composeRefs\(triggerRef, register, ref\)/);
+  assert.match(contextMenuTriggerSource, /ctx\.registerTrigger\(value, node\)/);
   assert.match(menuContentSource, /forwardRef<\s*HTMLDivElement,\s*MenuContentProps\s*>/);
-  assert.match(menuContentSource, /composeRefs\(refs\.setFloating, internalRef, contentRef, presenceRef, ref\)/);
+  assert.match(menuContentSource, /composeRefs\(internalRef, contentRef, presenceRef, ref, contentLayerRef\)/);
+  assert.match(menuContentSource, /composeRefs\(refs\.setFloating, setPositioner, layerHostRef\)/);
   assert.match(menuSubContentSource, /forwardRef<\s*HTMLDivElement,\s*MenuSubContentProps\s*>/);
-  assert.match(menuSubContentSource, /composeRefs\(refs\.setFloating, internalRef, presenceRef, ref\)/);
+  assert.match(menuSubContentSource, /composeRefs\(internalRef, presenceRef, ref, contentLayerRef\)/);
+  assert.match(menuSubContentSource, /composeRefs\(refs\.setFloating, setPositioner, positionerLayerRef\)/);
   assert.match(menubarRootSource, /forwardRef<\s*HTMLElement,\s*MenubarRootProps\s*>/);
   assert.match(menubarRootSource, /cloneAndMerge\(children, behaviorProps\)/);
   assert.match(menubarRootSource, /renderElement\(render, "div"/);
@@ -385,7 +407,7 @@ test("source exposes refs and client boundaries on public wrappers", async () =>
 test("context sources set display names for debugging", async () => {
   const files = await listSourceFiles(new URL("src/primitives/", packageRoot));
 
-  for (const file of files.filter((entry) => entry.pathname.endsWith("/context.ts"))) {
+  for (const file of files) {
     const source = await readFile(file, "utf8");
     const relativePath = path.relative(packageRoot.pathname, file.pathname);
     const contextNames = [...source.matchAll(/const (\w+) = createContext/g)].map(
@@ -395,7 +417,7 @@ test("context sources set display names for debugging", async () => {
     for (const contextName of contextNames) {
       assert.match(
         source,
-        new RegExp(`${contextName}\\.displayName = "${contextName}"`),
+        new RegExp(`${contextName}\\.displayName\\s*=\\s*["'][^"']+["']`),
         `${relativePath} is missing ${contextName}.displayName`,
       );
     }

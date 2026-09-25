@@ -40,7 +40,9 @@ export function getToggleGroupTabStopValue(
   isItemDisabled: (value: string) => boolean = () => false,
 ): string | undefined {
   const firstPressedValue = registeredValues.find((registeredValue) =>
-    selectedValues.includes(registeredValue),
+    selectedValues.includes(registeredValue) &&
+    Boolean(getItemElement(registeredValue)) &&
+    !isItemDisabled(registeredValue),
   );
 
   return firstPressedValue ?? registeredValues.find((registeredValue) => {

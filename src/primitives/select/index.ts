@@ -18,6 +18,10 @@ export type {
   SelectItemEntry,
 } from "./context.js";
 export { SelectRoot } from "./SelectRoot.js";
+export { useSelect, SelectRootProvider } from "./SelectRoot.js";
+export type { UseSelectReturn, SelectRootProviderProps } from "./SelectRoot.js";
+export type { SelectOption, SelectIds, SelectLifecycleOptions, SelectOutsideEvents } from "../../utils/selectOptions.js";
+export { SelectClearTrigger, type SelectClearTriggerProps } from "./SelectClearTrigger.js";
 export type { SelectRootProps } from "./SelectRoot.js";
 export { SelectTrigger } from "./SelectTrigger.js";
 export type { SelectTriggerProps } from "./SelectTrigger.js";

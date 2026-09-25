@@ -5,25 +5,21 @@
   "package": "@flowstack-ui/atom",
   "layer": "atom",
   "kind": "component",
-  "purpose": "Coordinate one-active-slide content rotation, optional automatic playback, direct selection, native swipe scrolling, and accessible inactive-slide semantics.",
+  "purpose": "Present measured carousel pages with accessible navigation, multiple visible items, optional autoplay and native scroll motion.",
   "useWhen": [
-    "A small sequence of authored content should occupy one viewport and support previous, next, direct, touch, or optional timed selection."
+    "Peer content benefits from one or several visible slides with optional navigation, touch scrolling and mouse drag."
   ],
   "avoidWhen": [
     {
-      "condition": "All items should remain visible, named document panels are selected, or a row reveals actions.",
-      "useInstead": "ordinary layout or scrolling, Tabs, or SwipeableItem"
+      "condition": "Every item must be visible at once for comparison.",
+      "useInstead": "Grid, Stack or List"
     }
   ],
   "composition": [
-    "Compose Root, Viewport, Track, and uniquely valued Slide parts; add Previous, Next, Picker with PickerItem, and RotationControl only when the experience needs those controls."
+    "Compose Root, Viewport, Track and uniquely valued Slide parts. Add the controls appropriate to the content.",
+    "Use useCarousel and RootProvider for one externally accessible controller. Choose value-based or page-based control, not both."
   ],
   "rules": [
-    {
-      "id": "carousel-initial-value",
-      "level": "must",
-      "statement": "Provide value or defaultValue matching one Slide and give every Slide a short unique accessible label."
-    },
     {
       "id": "carousel-autoplay-controls",
       "level": "must",
@@ -35,24 +31,39 @@
       "statement": "Keep grouped PickerItem controls to a small set because each native picker button is a tab stop."
     },
     {
-      "id": "carousel-layout-owner",
-      "level": "must",
-      "statement": "Supply viewport overflow, one-slide track geometry, and scroll snap in the styled layer; do not replace Atom selection, pause, or inactive semantics."
-    },
-    {
       "id": "carousel-initial-motion-gate",
       "level": "must",
       "statement": "Keep styled viewport motion instant until Root exposes data-initialized, then enable the ordinary motion recipe so SSR hydration cannot start a competing native snap animation."
     },
     {
-      "id": "carousel-directional-loop-layout",
-      "level": "must",
-      "statement": "Style carousel-loop-boundary spacers and data-loop-position Slides as one-viewport boundary positions so Next and Previous preserve their requested direction; never clone authored slide content."
-    },
-    {
       "id": "carousel-content-access",
       "level": "must",
       "statement": "Do not place essential content only in a slide that users cannot reach without waiting for automatic rotation."
+    },
+    {
+      "id": "carousel-pages",
+      "level": "must",
+      "statement": "Derive automatic indicators and progress from pageSnapPoints, not raw item count. Several visible items can share one snap page."
+    },
+    {
+      "id": "carousel-visible-items",
+      "level": "must",
+      "statement": "Visible peer slides remain interactive; do not add application inert or aria-hidden rules based solely on the selected value."
+    },
+    {
+      "id": "carousel-loop-measurement",
+      "level": "must",
+      "statement": "Never clone authored slides. Short-content loops may settle instantly when smooth cyclic placement would require duplication."
+    },
+    {
+      "id": "carousel-controlled-mode",
+      "level": "must",
+      "statement": "Use value/defaultValue or page/defaultPage exclusively. Keep stable Slide values and supply index for server-known page visibility."
+    },
+    {
+      "id": "carousel-snap-transport",
+      "level": "must",
+      "statement": "Custom viewport CSS disables scroll snapping during data-programmatic and data-dragging; slides apply the measured --atom-carousel-shift translation."
     }
   ],
   "commonMistakes": [

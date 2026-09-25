@@ -20,7 +20,9 @@ Communicate determinate or indeterminate completion of ongoing work with progres
 
 - **MUST:** Give Root an accessible name that identifies the ongoing task, through visible labeling or native ARIA.
 - **MUST:** Use a current numeric value only when progress is measurable; omit it or pass null when indeterminate so aria-valuenow is absent.
-- **MUST:** Supply truthful min and max values and understand that Atom clamps the value and normalizes an invalid max to min plus 100 before exposing ARIA and percent state.
+- **MUST:** Supply truthful ranges. NaN value is indeterminate; infinite values clamp. Non-finite min falls back to zero; invalid max uses min plus 100, or 0–100 when that cannot form a finite range. Numeric helpers remain finite.
+- **MUST:** Use useProgress and RootProvider for an external controller, or Root value/defaultValue for local state. Keep controlled value authoritative. Sequential uncontrolled requests use the latest requested value; normalized no-ops do not notify. Context exposes read state and an optional setter; raw legacy providers may contain state only. Keep application timing outside Atom.
+- **MUST:** Connect authored labels through aria-labelledby using explicit IDs or controller ids.label. Generated IDs do not invent an accessible name. Keep interactive help outside the semantic Root.
 - **SHOULD:** Provide concise human-readable value text when the numeric range alone does not communicate meaningful completion.
 - **MUST:** Keep Indicator presentation-only and aria-hidden because Root is the sole semantic value owner; do not create a duplicate progressbar or live announcement path.
 - **MUST:** Do not make Progress interactive or keyboard adjustable; use Slider or another input when users control the value.

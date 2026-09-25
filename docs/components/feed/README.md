@@ -84,6 +84,13 @@ converted to one-based. A local `setSize` overrides Root.
 
 Item defaults `tabIndex` to `0`; a native `tabIndex` override is preserved.
 
+Navigation skips hidden, inert, disabled and CSS-hidden articles and outside
+targets. An Item with `tabIndex={-1}` remains a programmatic navigation target.
+Native editors and composite widgets retain their own shortcuts; nested feeds
+handle their own events. Consumer `preventDefault()` still cancels Feed handling.
+Focus and nearest scrolling use the feed's document. Applications must preserve
+or deliberately restore focus before removing a focused article.
+
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"feed-item"` |

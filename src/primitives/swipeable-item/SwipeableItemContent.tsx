@@ -3,6 +3,8 @@
 import {
   forwardRef,
   useCallback,
+  useEffect,
+  useMemo,
   useRef,
   type KeyboardEventHandler,
   type PointerEventHandler,
@@ -11,10 +13,12 @@ import {
 import type { NativeDivProps } from "../../utils/dom.js";
 import {
   cloneAndMerge,
+  composeRefs,
   renderElement,
   type RenderProp,
 } from "../../utils/slot.js";
 import { useSwipeableItemContext } from "./context.js";
+import { useSwipeableItemMotion } from "./useSwipeableItemMotion.js";
 import {
   clampSwipeableItemOffset,
   getSwipeableItemSideFromKey,
@@ -62,9 +66,12 @@ interface PointerState {
   currentOffset: number;
   contentWidth: number;
   dragging: boolean;
+  element: HTMLElement;
+  sampleX: number;
+  sampleTime: number;
+  velocity: number;
+  lastMoveTime: number;
 }
-
-const horizontalIntentDistance = 8;
 
 export const SwipeableItemContent = forwardRef<HTMLElement, SwipeableItemContentProps>(
   function SwipeableItemContent(
@@ -80,11 +87,14 @@ export const SwipeableItemContent = forwardRef<HTMLElement, SwipeableItemContent
       children,
       style,
       tabIndex,
+      onClickCapture,
       "data-slot": dataSlot = "swipeable-item-content",
       ...restProps
     },
     ref,
   ) {
+    const context = useSwipeableItemContext();
+    useSwipeableItemMotion(context);
     const {
       clampOffset,
       close,
@@ -104,16 +114,32 @@ export const SwipeableItemContent = forwardRef<HTMLElement, SwipeableItemContent
       setOpenSide,
       startSize,
       threshold,
-    } = useSwipeableItemContext();
+      thresholds, activationDistance, velocityThreshold, resistance, fullSwipeSides,
+      contentRef, getOffset, setArmedSide, resetKey, closeOnContentClick,
+    } = context;
+    const composedRef = useMemo(() => composeRefs(contentRef, ref), [contentRef, ref]);
     const pointerStateRef = useRef<PointerState | null>(null);
+    const suppressClickRef = useRef(false);
+    useEffect(() => () => {
+      const session = pointerStateRef.current;
+      pointerStateRef.current = null;
+      if (session?.element.hasPointerCapture?.(session.pointerId)) {
+        session.element.releasePointerCapture(session.pointerId);
+      }
+      setDragging(false);
+      setArmedSide(null);
+    }, [disabled, readOnly, dir, resetKey, openSide, startSize, endSize, setDragging, setArmedSide]);
     const state = openSide ? "open" : "closed";
 
     const clampDragOffset = useCallback((nextOffset: number, contentWidth: number) => {
-      if (contentWidth <= 0) return clampOffset(nextOffset);
-
       const side = getSideForOffset(nextOffset);
       const actionSize = getSwipeableItemSizeForSide(side, startSize, endSize);
       if (!side || actionSize <= 0) return clampOffset(nextOffset);
+      if (!onFullSwipe || contentWidth <= 0 || (fullSwipeSides && !fullSwipeSides.includes(side))) {
+        const clamped = clampOffset(nextOffset);
+        const excess = nextOffset - clamped;
+        return clamped + Math.sign(excess) * Math.min(Math.abs(excess) * resistance, actionSize * 0.25);
+      }
 
       const fullStartSize = side === "start" ? Math.max(startSize, contentWidth) : startSize;
       const fullEndSize = side === "end" ? Math.max(endSize, contentWidth) : endSize;
@@ -125,19 +151,23 @@ export const SwipeableItemContent = forwardRef<HTMLElement, SwipeableItemContent
       getSideForOffset,
       onFullSwipe,
       startSize,
+      fullSwipeSides, resistance,
     ]);
 
-    const settleOffset = useCallback((nextOffset: number, contentWidth: number) => {
+    const settleOffset = useCallback((nextOffset: number, contentWidth: number, allowFullSwipe = true, velocity = 0, travel = 0) => {
       const side = getSideForOffset(nextOffset);
       const size = getSwipeableItemSizeForSide(side, startSize, endSize);
       const shouldFullSwipe =
-        Boolean(onFullSwipe) &&
+        allowFullSwipe && Boolean(onFullSwipe) &&
         side !== null &&
+        (!fullSwipeSides || fullSwipeSides.includes(side)) &&
         size > 0 &&
         contentWidth > 0 &&
+        travel >= 32 &&
         Math.abs(nextOffset) >= contentWidth * fullSwipeThreshold;
 
       if (shouldFullSwipe && side) {
+        setArmedSide(null);
         setOpenSide(null);
         setOffset(0);
         setDragging(false);
@@ -145,10 +175,14 @@ export const SwipeableItemContent = forwardRef<HTMLElement, SwipeableItemContent
         return;
       }
 
-      const shouldOpen = side !== null && size > 0 && Math.abs(nextOffset) >= size * threshold;
+      const candidateThreshold = side ? thresholds?.[side] : undefined;
+      const sideThreshold = candidateThreshold !== undefined && Number.isFinite(candidateThreshold)
+        ? Math.max(0, Math.min(1, candidateThreshold)) : threshold;
+      const projectedOffset = nextOffset + (Math.abs(velocity) >= velocityThreshold ? Math.max(-size, Math.min(size, velocity * 120)) : 0);
+      const shouldOpen = side !== null && size > 0 && getSideForOffset(projectedOffset) === side && Math.abs(projectedOffset) >= size * sideThreshold;
       setOpenSide(shouldOpen ? side : null);
-      setOffset(getOffsetForSide(shouldOpen ? side : null));
       setDragging(false);
+      setArmedSide(null);
     }, [
       endSize,
       getOffsetForSide,
@@ -160,11 +194,13 @@ export const SwipeableItemContent = forwardRef<HTMLElement, SwipeableItemContent
       setOpenSide,
       startSize,
       threshold,
+      thresholds, fullSwipeSides, velocityThreshold, setArmedSide,
     ]);
 
     const handleKeyDown = useCallback<KeyboardEventHandler<HTMLElement>>((event) => {
       onKeyDown?.(event);
       if (event.defaultPrevented || disabled || readOnly) return;
+      if (event.target !== event.currentTarget) return;
 
       if (event.key === "Escape") {
         if (!openSide) return;
@@ -182,13 +218,6 @@ export const SwipeableItemContent = forwardRef<HTMLElement, SwipeableItemContent
 
       event.preventDefault();
       if (openSide) {
-        if (openSide === side && onFullSwipe) {
-          setOpenSide(null);
-          setOffset(0);
-          onFullSwipe(side);
-          return;
-        }
-
         close();
         return;
       }
@@ -212,21 +241,29 @@ export const SwipeableItemContent = forwardRef<HTMLElement, SwipeableItemContent
       onPointerDown?.(event);
       if (event.defaultPrevented || disabled || readOnly || event.button !== 0) return;
       if (pointerStateRef.current !== null) return;
+      suppressClickRef.current = false;
+      const target = event.target as HTMLElement;
+      if (target.closest?.('input, textarea, select, [contenteditable="true"], [data-swipeable-ignore]')) return;
 
       pointerStateRef.current = {
         pointerId: event.pointerId,
         startX: event.clientX,
         startY: event.clientY,
-        baseOffset: offset,
-        currentOffset: offset,
+        baseOffset: getOffset(),
+        currentOffset: getOffset(),
         contentWidth: event.currentTarget.getBoundingClientRect().width,
         dragging: false,
+        element: event.currentTarget,
+        sampleX: event.clientX,
+        sampleTime: event.timeStamp,
+        lastMoveTime: event.timeStamp,
+        velocity: 0,
       };
-    }, [disabled, offset, onPointerDown, readOnly]);
+    }, [disabled, getOffset, onPointerDown, readOnly]);
 
     const handlePointerMove = useCallback<PointerEventHandler<HTMLElement>>((event) => {
       onPointerMove?.(event);
-      if (event.defaultPrevented) return;
+      if (event.defaultPrevented || disabled || readOnly) return;
 
       const pointerState = pointerStateRef.current;
       if (!pointerState || pointerState.pointerId !== event.pointerId) return;
@@ -236,13 +273,19 @@ export const SwipeableItemContent = forwardRef<HTMLElement, SwipeableItemContent
 
       if (!pointerState.dragging) {
         const horizontalDistance = Math.abs(deltaX);
-        if (horizontalDistance < horizontalIntentDistance || horizontalDistance <= Math.abs(deltaY)) {
+        if (Math.abs(deltaY) >= activationDistance && Math.abs(deltaY) >= horizontalDistance) {
+          pointerStateRef.current = null;
+          return;
+        }
+        if (horizontalDistance < activationDistance || horizontalDistance <= Math.abs(deltaY)) {
           return;
         }
 
         pointerState.dragging = true;
+        pointerState.baseOffset = getOffset();
+        suppressClickRef.current = true;
         setDragging(true);
-        event.currentTarget.setPointerCapture(event.pointerId);
+        try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* Synthetic or already-canceled pointer. */ }
       }
 
       event.preventDefault();
@@ -251,8 +294,17 @@ export const SwipeableItemContent = forwardRef<HTMLElement, SwipeableItemContent
         pointerState.contentWidth,
       );
       pointerState.currentOffset = nextOffset;
+      const elapsed = event.timeStamp - pointerState.sampleTime;
+      if (elapsed > 0) {
+        pointerState.velocity = elapsed <= 80 ? (event.clientX - pointerState.sampleX) / elapsed : 0;
+        pointerState.sampleX = event.clientX;
+        pointerState.sampleTime = event.timeStamp;
+      }
+      pointerState.lastMoveTime = event.timeStamp;
+      const side = getSideForOffset(nextOffset);
+      setArmedSide(side && onFullSwipe && (!fullSwipeSides || fullSwipeSides.includes(side)) && Math.abs(deltaX) >= 32 && Math.abs(nextOffset) >= pointerState.contentWidth * fullSwipeThreshold ? side : null);
       setOffset(nextOffset);
-    }, [clampDragOffset, onPointerMove, setDragging, setOffset]);
+    }, [clampDragOffset, disabled, readOnly, onPointerMove, setDragging, setOffset, activationDistance, getOffset, getSideForOffset, setArmedSide, onFullSwipe, fullSwipeSides, fullSwipeThreshold]);
 
     const handlePointerUp = useCallback<PointerEventHandler<HTMLElement>>((event) => {
       onPointerUp?.(event);
@@ -265,8 +317,17 @@ export const SwipeableItemContent = forwardRef<HTMLElement, SwipeableItemContent
       }
 
       if (!pointerState.dragging) return;
-      settleOffset(pointerState.currentOffset, pointerState.contentWidth);
-    }, [onPointerUp, settleOffset]);
+      if (disabled || readOnly || event.defaultPrevented) {
+        setDragging(false);
+        setOffset(getOffsetForSide(openSide));
+        return;
+      }
+      const releaseOffset = clampDragOffset(pointerState.baseOffset + event.clientX - pointerState.startX, pointerState.contentWidth);
+      settleOffset(releaseOffset, pointerState.contentWidth, true,
+        event.timeStamp - pointerState.lastMoveTime > 80 ? 0 : pointerState.velocity,
+        Math.abs(event.clientX - pointerState.startX));
+      setArmedSide(null);
+    }, [disabled, readOnly, getOffsetForSide, openSide, onPointerUp, setDragging, setOffset, settleOffset, setArmedSide, clampDragOffset]);
 
     const handlePointerCancel = useCallback<PointerEventHandler<HTMLElement>>((event) => {
       onPointerCancel?.(event);
@@ -279,7 +340,8 @@ export const SwipeableItemContent = forwardRef<HTMLElement, SwipeableItemContent
       }
       setDragging(false);
       setOffset(pointerState.baseOffset);
-    }, [onPointerCancel, setDragging, setOffset]);
+      setArmedSide(null);
+    }, [onPointerCancel, setDragging, setOffset, setArmedSide]);
 
     const handleLostPointerCapture = useCallback<PointerEventHandler<HTMLElement>>((event) => {
       onLostPointerCapture?.(event);
@@ -291,14 +353,18 @@ export const SwipeableItemContent = forwardRef<HTMLElement, SwipeableItemContent
         setDragging(false);
         return;
       }
-      settleOffset(pointerState.currentOffset, pointerState.contentWidth);
-    }, [onLostPointerCapture, setDragging, settleOffset]);
+      if (disabled || readOnly) {
+        setDragging(false);
+        return;
+      }
+      settleOffset(pointerState.currentOffset, pointerState.contentWidth, false);
+    }, [disabled, readOnly, onLostPointerCapture, setDragging, settleOffset]);
 
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
-      ref,
+      ref: composedRef,
       style: { touchAction: "pan-y", ...style },
-      tabIndex: tabIndex ?? 0,
+      tabIndex: disabled ? -1 : tabIndex ?? 0,
       "data-slot": dataSlot,
       "data-state": state,
       ...(openSide && { "data-side": openSide }),
@@ -307,6 +373,17 @@ export const SwipeableItemContent = forwardRef<HTMLElement, SwipeableItemContent
       ...(readOnly && { "data-readonly": "" }),
       "aria-disabled": disabled || undefined,
       onKeyDown: handleKeyDown,
+      onClickCapture: (event: import("react").MouseEvent<HTMLElement>) => {
+        onClickCapture?.(event as import("react").MouseEvent<HTMLDivElement>);
+        if (event.defaultPrevented) return;
+        const suppressDrag = suppressClickRef.current && event.detail !== 0;
+        const dismiss = closeOnContentClick && openSide && !disabled && !readOnly;
+        if (!suppressDrag && !dismiss) return;
+        suppressClickRef.current = false;
+        event.preventDefault();
+        event.stopPropagation();
+        if (dismiss && !suppressDrag) close();
+      },
       onLostPointerCapture: handleLostPointerCapture,
       onPointerCancel: handlePointerCancel,
       onPointerDown: handlePointerDown,

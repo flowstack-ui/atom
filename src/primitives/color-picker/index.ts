@@ -1,5 +1,5 @@
-export { ColorPickerRoot } from "./ColorPickerRoot.js";
-export type { ColorPickerRootProps } from "./ColorPickerRoot.js";
+export { ColorPickerRoot, ColorPickerRootProvider, useColorPicker } from "./ColorPickerRoot.js";
+export type { ColorPickerRootProps, ColorPickerRootProviderProps, UseColorPickerOptions, UseColorPickerReturn } from "./ColorPickerRoot.js";
 export {
   ColorPickerArea,
   ColorPickerAreaBackground,

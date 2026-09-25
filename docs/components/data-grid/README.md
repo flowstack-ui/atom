@@ -1,5 +1,23 @@
 # DataGrid
 
+## Interactive cells and sizing
+
+Navigation keeps focus on Root and establishes an enabled cell on entry.
+PageUp/PageDown traverse `pageSize` mounted enabled rows (default 10).
+Use `Cell interactive` to enter child controls with Enter/F2; Escape returns
+to navigation unless a child consumes it first. Keep application edit state,
+validation and commit/cancel behavior on the field. Do not let grid keyboard
+handling replace a nested field's arrows. Child clicks do not toggle row selection.
+
+Use `RowHeader` for row labels. Place a named `ColumnResizeHandle` in an
+`interactive` ColumnHeader, apply its width to Column, and use `min`/`max`/`step`
+to constrain it. Header children use `tabIndex={-1}`. The handle supports
+logical left/right arrows, Home/End, pointer capture and cancellation.
+
+Ctrl/Meta+A toggles mounted enabled selectable rows, preserving off-window
+selection. Shift+click or Shift+Space extends an anchored row range. These
+shortcuts do not imply selection of unloaded server results.
+
 Headless ARIA grid primitives for two-dimensional cell navigation and optional
 row selection.
 
@@ -8,9 +26,9 @@ row selection.
 Use DataGrid when users must move through rows and columns with the keyboard or
 select rows in an interactive table. Use a native `table` when people only need
 to read data; native tables are simpler and already accessible. Use TreeGrid
-when rows expand into a hierarchy. DataGrid does not provide sorting logic,
-editing, resizing, filtering, or virtualization—it exposes the states needed
-to connect those application features.
+when rows expand into a hierarchy. DataGrid owns cell-control entry/exit and
+bounded column resize interaction. Sorting/filter algorithms, editing transactions,
+stored column widths and virtualization remain application-owned.
 
 ## Features
 
@@ -21,6 +39,7 @@ to connect those application features.
 - Supports row/column counts, looping, row wrapping, and row-click selection.
 - Gives actionable column headers equivalent pointer and Enter activation.
 - Mirrors horizontal arrows in RTL.
+- Provides optional native column-group and column sizing hints.
 - Supports native table rendering plus `asChild` and `render` composition.
 
 ## Import
@@ -34,6 +53,9 @@ import { DataGrid } from "@flowstack-ui/atom";
 ```tsx
 <DataGrid.Root>
   <DataGrid.Caption />
+  <DataGrid.ColumnGroup>
+    <DataGrid.Column />
+  </DataGrid.ColumnGroup>
   <DataGrid.Header>
     <DataGrid.Row>
       <DataGrid.ColumnHeader />
@@ -114,6 +136,38 @@ Renders the native `caption` that names or summarizes the grid for table users.
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"data-grid-caption"` |
+
+### ColumnGroup
+
+Renders a native `colgroup` before Header for optional column sizing hints.
+It does not define grid coordinates, totals, keyboard behavior, or resizing.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"data-grid-column-group"` |
+
+### Column
+
+Renders a native `col` inside ColumnGroup. `htmlWidth` is only a native
+presentational width hint expressed as a CSS-pixel number or percentage; CSS
+units such as `rem` are not valid for this HTML attribute. Keep `columnIndex`
+and `columnCount` explicit.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `htmlWidth` | `number \| \`${number}%\`` | - |
+| `span` | `number` | - |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"data-grid-column"` |
 
 ### Header
 

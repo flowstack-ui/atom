@@ -14,11 +14,21 @@ export interface ComboboxItemData extends Record<string, unknown> {
 }
 
 export interface ComboboxContextValue {
+  inputBehavior: "none" | "autohighlight" | "autocomplete";
+  openOnKeyPress: boolean;
+  completeOption: (value: string) => void;
   isOpen: boolean;
   onOpen: () => void;
   onClose: () => void;
   onToggle: () => void;
   value: string | null;
+  multiple: boolean;
+  values: string[];
+  onValuesChange: (values: string[]) => void;
+  openOnClick: boolean;
+  openOnChange: boolean | ((details: { inputValue: string }) => boolean);
+  loopFocus: boolean;
+  scrollToIndexFn?: (details: { index: number; value: string }) => void;
   onValueChange: (value: string | null) => void;
   inputValue: string;
   onInputValueChange: (value: string) => void;
@@ -65,6 +75,11 @@ const ComboboxContext = createContext<ComboboxContextValue | null>(null);
 ComboboxContext.displayName = "ComboboxContext";
 
 export const ComboboxContextProvider = ComboboxContext.Provider;
+
+/** Internal composite-field integration; public callers use the required hook. */
+export function useOptionalComboboxContext(): ComboboxContextValue | null {
+  return useContext(ComboboxContext);
+}
 
 export interface ComboboxGroupContextValue {
   labelId: string;

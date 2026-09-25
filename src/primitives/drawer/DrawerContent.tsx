@@ -73,31 +73,12 @@ export const DrawerContent = forwardRef<HTMLDivElement, DrawerContentProps>(
 
     const contentRef = composeRefs(presenceRef, ref);
 
-    if (isHidden) {
-      return (
-        <div hidden aria-hidden="true">
-          <div
-            {...restProps}
-            ref={contentRef}
-            {...contentProps}
-            data-slot={dataSlot}
-            data-state="closed"
-            data-placement={placement}
-            className={className}
-          >
-            <FocusScopeProvider scope={focusScope}>
-              {children}
-            </FocusScopeProvider>
-          </div>
-        </div>
-      );
-    }
-
     return (
       <div
         {...restProps}
         ref={contentRef}
         {...contentProps}
+        hidden={isHidden || undefined}
         data-slot={dataSlot}
         data-state={dataState}
         data-placement={placement}

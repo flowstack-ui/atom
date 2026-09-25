@@ -1,6 +1,8 @@
 "use client";
 
-import { CheckboxIndicator, CheckboxRoot } from "./primitives/checkbox/index.js";
+import { CheckboxIndicator, CheckboxRoot, CheckboxRootProvider } from "./primitives/checkbox/index.js";
+export { useCheckbox, CheckboxRootProvider } from "./primitives/checkbox/index.js";
+export type { UseCheckboxProps, CheckboxController, CheckboxRootProviderProps } from "./primitives/checkbox/index.js";
 
 export {
   CheckboxContextProvider,
@@ -18,5 +20,6 @@ export type {
 
 export const Checkbox = {
   Root: CheckboxRoot,
+  RootProvider: CheckboxRootProvider,
   Indicator: CheckboxIndicator,
 } as const;

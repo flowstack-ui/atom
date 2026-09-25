@@ -14,6 +14,7 @@ Reveal supplemental, nonessential preview content from mouse-capable hover or fo
 
 ## Required composition
 
+- Use valued Trigger parts with one Root and Context for a shared moving preview. For external control pass the unchanged useHoverCard result to RootProvider. Positioning belongs to Root; Content already owns its positioned host.
 - Compose Root with Trigger and Content; preserve the Trigger's native semantic element with asChild when it owns an action. Add Portal only when Content must leave its DOM location and Arrow only when the styled preview needs a pointer.
 
 ## Rules
@@ -23,6 +24,7 @@ Reveal supplemental, nonessential preview content from mouse-capable hover or fo
 - **MUST:** Preserve Trigger's native action and tab order through asChild, and do not add aria-expanded, aria-controls, or dialog semantics to this preview pattern.
 - **MUST:** Preserve mouse-capable hover, focus-visible opening, touch and compatibility-event suppression, delays, the safe pointer corridor, and top-layer Escape behavior.
 - **SHOULD:** Style from resolved side and measured available-size data rather than assuming the requested placement remains unchanged after collision handling.
+- **MUST:** With an Arrow mounted, positioning gutter/sideOffset measures the gap to the arrow tip; without an Arrow the gap is to content. Explicit positioning.offset remains a raw offset. Arrow layout-size changes are observed in the owner document when positioning listeners are enabled. Do not compensate for Arrow depth with an additional caller gutter.
 
 ## Common mistakes
 
@@ -30,6 +32,7 @@ Reveal supplemental, nonessential preview content from mouse-capable hover or fo
 
 ## Validation checklist
 
+- Verify valued trigger switching/removal, controller identity, retained mounting, exit completion, outside-event prevention, owner-document portals and nested Dialog containment. Defaults remain lazyMount and unmountOnExit true; opening delay is 600ms. Activity uses display-none fallback when React does not supply Activity.
 - Verify controlled state, disabled state, mouse hover and focus-visible opening, ordinary focus behavior, delays, Trigger-to-Content pointer corridor, Escape, exit presence, and that touch taps and long presses preserve the native Trigger action without opening.
 - Verify no essential or interactive content is hidden in the preview, no popup ARIA is introduced, asChild semantics, portals, explicit and inherited direction, collision placement, available-size properties, and optional Arrow geometry.
 

@@ -52,7 +52,7 @@ focus to the matching Target so keyboard navigation continues from there.
 
 ### Target
 
-Renders the destination, a `main` landmark by default, and makes it
+Renders the destination, a neutral `div` by default, and makes it
 programmatically focusable without adding it to the normal Tab order.
 
 | Prop | Type | Default |
@@ -62,8 +62,17 @@ programmatically focusable without adding it to the normal Tab order.
 | `id` | `string` | `"main-content"` |
 | `tabIndex` | `number` | `-1` |
 
-**ARIA:** Target uses native `<main>` landmark semantics by default and adds no
-ARIA attributes.
+**ARIA:** Target adds no landmark or ARIA attributes. Applications own `main`.
+
+### Migrating the default target
+
+Target previously rendered `main`. To retain that landmark, use
+`<SkipLink.Target asChild><main>Content</main></SkipLink.Target>`.
+Otherwise place the default div inside your existing main. Keep exactly one main.
+Set the matching href on Root, including when using asChild.
+The default explicit focus mode does not update URL hash/history; use
+`focusTarget={false}` for native fragment navigation. Modified activation,
+downloads and alternate browsing targets preserve native link behavior.
 
 | Data attribute | Values |
 | --- | --- |
@@ -81,8 +90,8 @@ export default function DashboardPage() {
     <>
       <SkipLink.Root href="#main-content">Skip to content</SkipLink.Root>
       <nav aria-label="Primary">Navigation</nav>
-      <SkipLink.Target id="main-content">
-        <h1>Dashboard</h1>
+      <SkipLink.Target id="main-content" asChild>
+        <main><h1>Dashboard</h1></main>
       </SkipLink.Target>
     </>
   );

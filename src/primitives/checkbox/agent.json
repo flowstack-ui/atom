@@ -10,6 +10,7 @@
   "avoidWhen": [{ "condition": "Exactly one option must be selected from a set.", "useInstead": "RadioGroup" }],
   "composition": ["Compose Checkbox.Root with Checkbox.Indicator and a visible associated label, usually inside Field."],
   "rules": [
+    { "id": "checkbox-controller", "level": "must", "statement": "Use useCheckbox with RootProvider for external state access. Keep form integration on the rendered Root; inputRef and inputProps target its single automatic native input. Do not add a second hidden input. Inherited Field disabled/readOnly cannot be overridden with false." },
     { "id": "checkbox-visible-label", "level": "must", "statement": "Provide a visible label for each checkbox unless the visual context is truly redundant and an accessible name remains." },
     { "id": "checkbox-independent-choice", "level": "must", "statement": "Use checkbox semantics only for independently selectable values or a documented aggregate mixed state." }
   ],

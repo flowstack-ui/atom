@@ -1841,9 +1841,9 @@ test("closing Content is inaccessible during exit presence and abrupt unmount re
     query("exit-inside").focus();
     assert.equal(isEffectivelyInert(query("exit-background")), true);
 
-    const originalGetComputedStyle = globalThis.getComputedStyle;
-    globalThis.getComputedStyle = (element) => {
-      const styles = originalGetComputedStyle(element);
+    const originalGetComputedStyle = dom.window.getComputedStyle;
+    dom.window.getComputedStyle = (element) => {
+      const styles = originalGetComputedStyle.call(dom.window, element);
       if (!element.matches?.("[data-slot=dialog-content]")) return styles;
 
       return new Proxy(styles, {
@@ -1887,6 +1887,7 @@ test("closing Content is inaccessible during exit presence and abrupt unmount re
     assert.equal(dom.window.document.activeElement, query("exit-final"));
 
     await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 1000));
       exitingContent.dispatchEvent(new dom.window.Event("animationend", { bubbles: true }));
       await Promise.resolve();
     });
@@ -1918,7 +1919,7 @@ test("closing Content is inaccessible during exit presence and abrupt unmount re
     assert.equal(dom.window.document.body.style.overflow, "");
     assert.equal(dom.window.document.documentElement.style.overflow, "");
     assert.equal(dom.window.document.activeElement, query("exit-final"));
-    globalThis.getComputedStyle = originalGetComputedStyle;
+    dom.window.getComputedStyle = originalGetComputedStyle;
   });
 });
 

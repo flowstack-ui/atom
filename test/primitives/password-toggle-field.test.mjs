@@ -6,6 +6,8 @@ import {
   renderToStaticMarkup,
   packageRoot,
 } from "../test-utils.mjs";
+import { JSDOM } from "jsdom";
+import { createRoot } from "react-dom/client";
 
 import {
   Input,
@@ -18,12 +20,76 @@ import {
   useControllableState,
 } from "../../dist/index.js";
 
+const h = React.createElement;
+
+async function mountedPassword(run) {
+  const dom = new JSDOM(
+    '<form id="external-password-form"></form><div id="root"></div>',
+    { pretendToBeVisual: true, url: "https://example.test" },
+  );
+  dom.window.HTMLElement.prototype.attachEvent = () => {};
+  dom.window.HTMLElement.prototype.detachEvent = () => {};
+  const keys = [
+    "window",
+    "document",
+    "navigator",
+    "HTMLElement",
+    "Element",
+    "Node",
+    "IS_REACT_ACT_ENVIRONMENT",
+  ];
+  const descriptors = keys.map((key) => [
+    key,
+    Object.getOwnPropertyDescriptor(globalThis, key),
+  ]);
+  for (const key of keys) {
+    Object.defineProperty(globalThis, key, {
+      configurable: true,
+      writable: true,
+      value: key === "IS_REACT_ACT_ENVIRONMENT" ? true : dom.window[key],
+    });
+  }
+  const root = createRoot(document.getElementById("root"));
+  try {
+    await React.act(async () => {
+      root.render(
+        h(
+          PasswordToggleField.Root,
+          null,
+          h(PasswordToggleField.Input, {
+            "aria-label": "Password",
+            defaultValue: "synthetic password value",
+            form: "external-password-form",
+            name: "password",
+          }),
+          h(PasswordToggleField.Toggle),
+        ),
+      );
+    });
+    await run(
+      document.querySelector("input"),
+      document.querySelector("button"),
+      document.querySelector("form"),
+      dom.window,
+    );
+  } finally {
+    await React.act(async () => root.unmount());
+    for (const [key, descriptor] of descriptors) {
+      if (descriptor) Object.defineProperty(globalThis, key, descriptor);
+      else delete globalThis[key];
+    }
+    dom.window.close();
+  }
+}
+
 test("PasswordToggleField switches input type and icon state", () => {
   const html = renderToStaticMarkup(
     React.createElement(
       PasswordToggleField.Root,
       { visible: true, invalid: true, required: true, readOnly: true },
-      React.createElement(PasswordToggleField.Input, { "aria-label": "Password" }),
+      React.createElement(PasswordToggleField.Input, {
+        "aria-label": "Password",
+      }),
       React.createElement(
         PasswordToggleField.Toggle,
         null,
@@ -68,7 +134,11 @@ test("PasswordToggleField inherits Field relationships", () => {
         React.createElement(PasswordToggleField.Input),
         React.createElement(PasswordToggleField.Toggle),
       ),
-      React.createElement(Field.Description, null, "Use at least twelve characters."),
+      React.createElement(
+        Field.Description,
+        null,
+        "Use at least twelve characters.",
+      ),
       React.createElement(Field.Error, null, "Password is required."),
     ),
   );
@@ -117,15 +187,23 @@ test("PasswordToggleField localizes state-aware toggle labels", () => {
     React.createElement(
       PasswordToggleField.Root,
       { showLabel: "Mostrar contraseña", hideLabel: "Ocultar contraseña" },
-      React.createElement(PasswordToggleField.Input, { "aria-label": "Contraseña" }),
+      React.createElement(PasswordToggleField.Input, {
+        "aria-label": "Contraseña",
+      }),
       React.createElement(PasswordToggleField.Toggle),
     ),
   );
   const visible = renderToStaticMarkup(
     React.createElement(
       PasswordToggleField.Root,
-      { visible: true, showLabel: "Mostrar contraseña", hideLabel: "Ocultar contraseña" },
-      React.createElement(PasswordToggleField.Input, { "aria-label": "Contraseña" }),
+      {
+        visible: true,
+        showLabel: "Mostrar contraseña",
+        hideLabel: "Ocultar contraseña",
+      },
+      React.createElement(PasswordToggleField.Input, {
+        "aria-label": "Contraseña",
+      }),
       React.createElement(PasswordToggleField.Toggle),
     ),
   );
@@ -134,17 +212,75 @@ test("PasswordToggleField localizes state-aware toggle labels", () => {
   assert.match(visible, /aria-label="Ocultar contraseña"/);
 });
 
+test("PasswordToggleField retains focused selection across pointer visibility changes", async () =>
+  mountedPassword(async (input, toggle, form, win) => {
+    input.focus();
+    input.setSelectionRange(2, 8);
+    await React.act(async () => {
+      toggle.dispatchEvent(
+        new win.MouseEvent("pointerdown", {
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+      toggle.click();
+      await new Promise((resolve) => win.requestAnimationFrame(resolve));
+    });
+    assert.equal(document.activeElement, input);
+    assert.equal(input.type, "text");
+    assert.equal(input.selectionStart, 2);
+    assert.equal(input.selectionEnd, 8);
+  }));
+
+test("PasswordToggleField keeps prevented external submit and reset coherent", async () =>
+  mountedPassword(async (input, toggle, form, win) => {
+    await React.act(async () => toggle.click());
+    assert.equal(input.type, "text");
+    const observedTypes = [];
+    form.addEventListener("submit", (event) => {
+      observedTypes.push(input.type);
+      event.preventDefault();
+    });
+    for (let count = 0; count < 2; count += 1) {
+      await React.act(async () => {
+        form.requestSubmit();
+        await new Promise((resolve) => win.setTimeout(resolve, 0));
+      });
+      assert.equal(input.type, "text");
+      assert.equal(toggle.getAttribute("aria-label"), "Hide password");
+    }
+    assert.deepEqual(observedTypes, ["password", "password"]);
+
+    form.addEventListener("reset", (event) => event.preventDefault());
+    await React.act(async () => {
+      form.reset();
+      await new Promise((resolve) => win.setTimeout(resolve, 0));
+    });
+    assert.equal(input.value, "synthetic password value");
+    assert.equal(input.type, "text");
+    assert.equal(toggle.getAttribute("aria-label"), "Hide password");
+  }));
+
 test("PasswordToggleField source keeps functional toggle and validation state wiring", async () => {
   const rootSource = await readFile(
-    new URL("src/primitives/password-toggle-field/PasswordToggleFieldRoot.tsx", packageRoot),
+    new URL(
+      "src/primitives/password-toggle-field/PasswordToggleFieldRoot.tsx",
+      packageRoot,
+    ),
     "utf8",
   );
   const inputSource = await readFile(
-    new URL("src/primitives/password-toggle-field/PasswordToggleFieldInput.tsx", packageRoot),
+    new URL(
+      "src/primitives/password-toggle-field/PasswordToggleFieldInput.tsx",
+      packageRoot,
+    ),
     "utf8",
   );
   const toggleSource = await readFile(
-    new URL("src/primitives/password-toggle-field/PasswordToggleFieldToggle.tsx", packageRoot),
+    new URL(
+      "src/primitives/password-toggle-field/PasswordToggleFieldToggle.tsx",
+      packageRoot,
+    ),
     "utf8",
   );
   const hookSource = await readFile(
@@ -153,14 +289,35 @@ test("PasswordToggleField source keeps functional toggle and validation state wi
   );
 
   assert.match(hookSource, /SetStateAction/);
-  assert.match(rootSource, /setResolvedVisible\(\(currentVisible\) => !currentVisible\)/);
-  assert.match(inputSource, /"aria-invalid": validation\.invalid \|\| undefined/);
+  assert.match(
+    rootSource,
+    /setResolvedVisible\(\(currentVisible\) => !currentVisible\)/,
+  );
+  assert.match(
+    inputSource,
+    /"aria-invalid": validation\.invalid \|\| undefined/,
+  );
   assert.match(inputSource, /useFormValidation\(/);
   assert.match(inputSource, /useFormReset\(/);
-  assert.match(inputSource, /form\.addEventListener\("submit", restorePasswordType\)/);
+  assert.match(
+    inputSource,
+    /form\.addEventListener\("submit", restorePasswordType\)/,
+  );
+  assert.match(inputSource, /event\.defaultPrevented/);
+  assert.match(inputSource, /restoreInputSelection/);
   assert.match(inputSource, /"aria-required": ctx\.required \|\| undefined/);
-  assert.match(toggleSource, /const \{ onToggle \} = ctx/);
-  assert.match(toggleSource, /"data-readonly": ctx\.readOnly \? "" : undefined/);
+  assert.match(
+    toggleSource,
+    /const \{ captureInputSelection, onToggle \} = ctx/,
+  );
+  assert.match(toggleSource, /captureInputSelection/);
+  assert.match(
+    toggleSource,
+    /"data-readonly": ctx\.readOnly \? "" : undefined/,
+  );
   assert.match(toggleSource, /"data-invalid": ctx\.invalid \? "" : undefined/);
-  assert.match(toggleSource, /"data-required": ctx\.required \? "" : undefined/);
+  assert.match(
+    toggleSource,
+    /"data-required": ctx\.required \? "" : undefined/,
+  );
 });

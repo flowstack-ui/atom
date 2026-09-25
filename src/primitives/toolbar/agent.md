@@ -18,6 +18,7 @@ Group related commands in one ARIA toolbar with orientation-aware roving keyboar
 
 ## Rules
 
+- **MUST:** Use Group for named subgroups without a second roving scope. Input participates in the same toolbar; keep one input last in horizontal toolbars so native editing arrows remain available and Tab exits. Root disabled overrides descendants; focusableWhenDisabled on Button preserves discovery without activation.
 - **MUST:** Give the toolbar and icon-only controls useful accessible names.
 - **MUST:** Let Toolbar own item registration and arrow-key focus rather than adding competing tabIndex or key handlers.
 
@@ -27,8 +28,8 @@ Group related commands in one ARIA toolbar with orientation-aware roving keyboar
 
 ## Validation checklist
 
-- Test orientation, arrows, Home/End if supported, disabled items, toggle state, links, Tab entry/exit, and RTL.
-- Confirm separators and controls expose correct semantics.
+- Test orientation, arrows, Home/End, root disabled, focusableWhenDisabled buttons, toggle state, links, native input editing, Tab entry/exit, cancellation, iframe ownership and RTL.
+- Confirm Group naming and separator orientation/decorative semantics and forwarded refs.
 
 ## Related guidance
 

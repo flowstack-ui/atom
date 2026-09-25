@@ -1,5 +1,13 @@
 # Fieldset Changelog
 
+## Unreleased
+
+- No unreleased changes.
+
+## 0.27.0
+
+- Fieldset.Context and useFieldsetContext expose group state. Fieldset aggregates child validity without feeding its aggregate invalidity back into independently labelled Fields; mark each invalid Field explicitly when needed.
+
 ## 0.6.13
 
 - Added validation behavior inheritance and group-level native-invalid/Error

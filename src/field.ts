@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  FieldItem,
+  FieldContext,
   FieldDescription,
   FieldError,
   FieldLabel,
@@ -31,9 +33,13 @@ export type {
 } from "./primitives/field/index.js";
 
 export const Field = {
+  Context: FieldContext,
+  Item: FieldItem,
   Root: FieldRoot,
   Label: FieldLabel,
   Description: FieldDescription,
   Error: FieldError,
   RequiredIndicator: FieldRequiredIndicator,
 } as const;
+export { FieldItem, FieldContext } from "./primitives/field/index.js";
+export type { FieldItemProps, FieldContextProps } from "./primitives/field/index.js";

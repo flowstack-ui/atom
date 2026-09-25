@@ -1,6 +1,7 @@
 "use client";
 
-import { forwardRef, type ReactNode, type SVGProps } from "react";
+import { forwardRef, useLayoutEffect, type ReactNode, type SVGProps } from "react";
+import { createPortal } from "react-dom";
 import { FloatingArrow, type RenderProp } from "../../utils/floatingArrow.js";
 import { useMenuContentContext } from "./context.js";
 
@@ -18,8 +19,9 @@ export const MenuArrow = forwardRef<SVGSVGElement, MenuArrowProps>(function Menu
   { children, asChild = false, width = 10, height = 5, render, "data-slot": dataSlot = "menu-arrow", style, viewBox, ...restProps },
   ref,
 ) {
-  const { arrowRef, arrowX, arrowY, side } = useMenuContentContext();
-  return (
+  const { arrowRef, arrowX, arrowY, side, arrowHost, arrowVisible, updatePosition } = useMenuContentContext();
+  useLayoutEffect(() => { if (arrowHost) updatePosition?.(); }, [arrowHost, width, height, updatePosition]);
+  const arrow = (
     <FloatingArrow
       {...restProps}
       ref={ref}
@@ -31,9 +33,10 @@ export const MenuArrow = forwardRef<SVGSVGElement, MenuArrowProps>(function Menu
       height={height}
       render={render}
       side={side}
-      style={style}
+      style={{ ...style, pointerEvents: "none", ...(arrowVisible === false ? { visibility: "hidden" } : {}) }}
       viewBox={viewBox}
       width={width}
     >{children}</FloatingArrow>
   );
+  return arrowHost ? createPortal(arrow, arrowHost) : null;
 });

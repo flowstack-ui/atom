@@ -59,10 +59,12 @@ application.
 | `showLabels` | `boolean` | Deprecated compatibility alias |
 | `position` | `"static" \| "sticky" \| "absolute" \| "fixed"` | `"static"` |
 | `ariaLabel` | `string` | `"Bottom navigation"` |
+| `aria-label` | `string` | Overrides the alias |
+| `aria-labelledby` | `string` | Uses an authored heading; suppresses the fallback label |
 
 | ARIA attribute | Values |
 | --- | --- |
-| `aria-label` | Value from `ariaLabel` |
+| `aria-label` | Explicit native name, otherwise alias/default when not labelled by another element |
 
 | Data attribute | Values |
 | --- | --- |
@@ -84,7 +86,16 @@ omit `href` and leave the tab order.
 | `href` | `string` | - |
 | `target` | `string` | - |
 | `rel` | `string` | - |
+| `download` | `string \| boolean` | - |
+| `type` | `"button" \| "submit" \| "reset"` | `"button"` for native buttons |
 | `disabled` | `boolean` | `false` |
+
+Native button and anchor composition keeps these same defaults. Custom render
+adapters must forward behavior props and own native semantics when their final
+host cannot be inspected. Consumer click handlers can cancel selection with
+`preventDefault()`. Modified clicks, download links and non-self targets retain
+native behavior without changing the current destination. For routes, control
+`value` from the application's actual location.
 
 | ARIA attribute | Values |
 | --- | --- |

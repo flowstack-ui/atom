@@ -6,7 +6,10 @@ import {
   CheckboxGroupItemLabel,
   CheckboxGroupParent,
   CheckboxGroupRoot,
+  CheckboxGroupRootProvider,
 } from "./primitives/checkbox-group/index.js";
+export { useCheckboxGroup, useCheckboxGroupItem, CheckboxGroupRootProvider } from "./primitives/checkbox-group/index.js";
+export type { UseCheckboxGroupProps, CheckboxGroupController, CheckboxGroupRootProviderProps, UseCheckboxGroupItemProps } from "./primitives/checkbox-group/index.js";
 
 export {
   CheckboxGroupItem,
@@ -35,6 +38,7 @@ export type {
 
 export const CheckboxGroup = {
   Root: CheckboxGroupRoot,
+  RootProvider: CheckboxGroupRootProvider,
   Item: CheckboxGroupItem,
   ItemLabel: CheckboxGroupItemLabel,
   ItemDescription: CheckboxGroupItemDescription,

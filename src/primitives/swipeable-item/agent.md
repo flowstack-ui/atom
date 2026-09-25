@@ -21,9 +21,12 @@ Enhance a list-like row with direction-aware start or end action panels revealed
 - **MUST:** Treat swipe as enhancement only; keyboard reveal does not replace the required obvious tap or click alternative for important actions.
 - **MUST:** Give every Actions panel an accessible group name and its child controls complete semantics; keep closed panels inert and accessibility-hidden.
 - **MUST:** Preserve vertical pan, horizontal intent detection, pointer capture, cancellation rollback, measured side sizes, threshold settlement, and one owned pointer interaction rather than blocking page scrolling.
-- **MUST:** Keep Content focusable and preserve direction-aware Arrow reveal, opposite-Arrow close, same-Arrow full swipe, and Escape close only when Content itself owns the key; descendant controls retain their keys.
+- **MUST:** Keep Content focusable and preserve direction-aware Arrow reveal, Arrow close and Escape close only when Content itself owns the key; descendant controls retain their keys.
 - **MUST:** Enable onFullSwipe only for an action safe to invoke from a threshold gesture and retain an explicit equivalent control; choose thresholds deliberately.
 - **MUST:** Use openSide with onOpenSideChange for controlled state or defaultOpenSide for uncontrolled state and preserve disabled versus focusable read-only behavior and logical LTR/RTL sides.
+- **MUST:** Use useSwipeableItem with RootProvider value for external open/close/reset controls, or Context for descendants. onOpenSideChange requests a side; onSettle reports the accepted destination's completion. getOffset/getProgress sample presentation without per-frame React renders. Do not add application gesture math or a second animation driver.
+- **MUST:** Choose fullSwipeSides explicitly and pair onFullSwipe with a visible equivalent action. Atom preserves legacy callback-only opt-in when fullSwipeSides is omitted; an empty array disables full swipe. Only deliberate pointer release executes; cancel, lost capture and keyboard never do. The application owns async work, confirmation and undo.
+- **MUST:** Native editable controls and data-swipeable-ignore retain gestures. The styled consumer owns accessible action target sizes; Actions measures its panel and does not resize child controls. Use closeOnClick=false for async policy; prevented action events and padding clicks do not close.
 
 ## Common mistakes
 
@@ -32,7 +35,7 @@ Enhance a list-like row with direction-aware start or end action panels revealed
 ## Validation checklist
 
 - Verify controlled/uncontrolled start/end/null state, LTR and RTL logical side mapping, measured widths and offsets, pointer down/move/up settlement, threshold boundaries, cancellation rollback, capture, vertical pan, disabled/read-only state, and action closeOnClick.
-- Verify Content focus, Arrow reveal and close, same-Arrow full swipe, Escape, descendant keyboard isolation, hidden/inert closed panels, accessible action group and controls, obvious pointer fallback, full-swipe equivalent action, asChild/render composition, and real-browser mouse/touch scrolling behavior.
+- Verify Content focus, Arrow reveal and close, pointer-release-only full swipe, Escape, descendant keyboard isolation, hidden/inert closed panels, accessible action group and controls, obvious pointer fallback, full-swipe equivalent action, asChild/render composition, and real-browser mouse/touch scrolling behavior.
 
 ## Related guidance
 

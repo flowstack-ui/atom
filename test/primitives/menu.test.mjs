@@ -22,6 +22,13 @@ import {
   MenuSubContent,
 } from "../../dist/index.js";
 
+test("exiting menu content is inert before presence unmounts", async () => {
+  for (const part of ["MenuContent", "MenuSubContent"]) {
+    const source = await readFile(new URL(`src/primitives/menu/${part}.tsx`, packageRoot), "utf8");
+    assert.match(source, /inert:\s*menuInertValue\(!isOpen\)/);
+  }
+});
+
 test("Menu primitives render item roles and selection state", () => {
   const html = renderToStaticMarkup(
     React.createElement(
@@ -180,7 +187,7 @@ test("Menu source keeps selection and submenu close behavior stable", async () =
   assert.match(subContentSource, /resolveFloatingDirection\(\s*dirProp,\s*subTriggerRef\.current,\s*contextDir,\s*\)/);
   assert.match(subContentSource, /<DirectionProvider dir=\{dir\}>/);
   assert.match(subContentSource, /getFloatingFallbackPlacements\(preferredSide, "start"\)/);
-  assert.match(subContentSource, /shift\(\{ padding: 8, crossAxis: true \}\)/);
+  assert.match(subContentSource, /shift\(\{ \.\.\.collision, crossAxis: p\?\.overlap \?\? true \}\)/);
   assert.match(subContentSource, /--atom-menu-available-height/);
   assert.match(outsideInteractionSource, /const layers: OutsideInteractionLayer\[\] = \[\]/);
   assert.match(outsideInteractionSource, /document\.addEventListener\("click", handleClick, true\)/);

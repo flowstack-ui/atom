@@ -55,7 +55,7 @@ Run the playground check:
 npm ci
 npm ci --prefix playground
 npm run ci:playground
-npx playwright install chromium webkit
+npx playwright install chromium firefox webkit
 npm run test:browser
 ```
 
@@ -88,6 +88,9 @@ a registry or advisory-service outage does not block an unrelated change.
 `.github/workflows/nightly.yml` runs the complete release qualification on a
 clean remote runner. This catches cross-profile and archive drift without
 requiring local browser processes to remain active.
+It retains successful and failed release evidence, including the qualified archive
+and source fingerprint. The primary PR matrix remains four profiles; nightly and
+tagged publication additionally require desktop Firefox.
 
 Dependabot checks the pinned GitHub Action revisions weekly. npm dependency
 updates remain a deliberate maintainer task.
@@ -99,6 +102,8 @@ updates remain a deliberate maintainer task.
 checks across clean jobs, creates one package archive, and publishes that exact
 verified file through npm trusted publishing and GitHub OIDC. It has no
 manual-dispatch or branch-push trigger and stores no npm write token.
+The publication browser matrix includes all five configured profiles and retains
+each profile's JSON report and failure traces as a separate artifact.
 
 The job rejects mismatched tag/package versions, tagged commits outside
 `main`, incorrect repository metadata, and versions already present on npm.

@@ -6,6 +6,7 @@ import {
   HoverCardPortal,
   HoverCardRoot,
   HoverCardTrigger,
+  HoverCardRootProvider, HoverCardContext,
 } from "./primitives/hover-card/index.js";
 
 export {
@@ -19,6 +20,7 @@ export {
   HoverCardTrigger,
   useHoverCardContentContext,
   useHoverCardContext,
+  useHoverCard, HoverCardRootProvider, HoverCardContext,
 } from "./primitives/hover-card/index.js";
 export type {
   HoverCardAlign,
@@ -31,10 +33,14 @@ export type {
   HoverCardRootProps,
   HoverCardSide,
   HoverCardTriggerProps,
+  HoverCardRootProviderProps, HoverCardContextProps, UseHoverCardOptions, UseHoverCardReturn,
+  HoverCardIds, HoverCardLifecycleOptions, HoverCardOutsideEvents, HoverCardPositioningOptions,
 } from "./primitives/hover-card/index.js";
 
 export const HoverCard = {
   Root: HoverCardRoot,
+  RootProvider: HoverCardRootProvider,
+  Context: HoverCardContext,
   Trigger: HoverCardTrigger,
   Portal: HoverCardPortal,
   Content: HoverCardContent,

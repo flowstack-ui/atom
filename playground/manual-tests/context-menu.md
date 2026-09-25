@@ -1,5 +1,8 @@
 # Context Menu Manual Test Protocol
 
+Also run the [shared controller and policy workbench](menu-policies.md) for this owner.
+Its automated results do not mark this manual protocol complete.
+
 ## Step 0: Playground Smoke Check
 
 Setup

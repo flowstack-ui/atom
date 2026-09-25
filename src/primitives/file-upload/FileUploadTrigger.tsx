@@ -13,6 +13,7 @@ import {
   childIsNativeButton,
   renderHasNativeButtonSemantics,
   renderIsNativeButton,
+  hasNativeButtonKeyboardActivation,
 } from "../../utils/native-semantics.js";
 import {
   cloneAndMerge,
@@ -21,6 +22,7 @@ import {
   type RenderProp,
 } from "../../utils/slot.js";
 import { useFileUploadContext } from "./context.js";
+import { fileUploadActionHost } from "./action-host.js";
 
 type FileUploadTriggerNativeProps = NativeButtonProps<
   "children" | "disabled" | "onClick" | "onKeyDown" | "type"
@@ -54,15 +56,16 @@ export const FileUploadTrigger = forwardRef<HTMLElement, FileUploadTriggerProps>
       openFilePicker,
       readOnly,
     } = ctx;
-    const isInactive = disabled || readOnly;
+    const host = fileUploadActionHost(children, render, asChild, true);
+    const isInactive = disabled || readOnly || host.inactive;
     const isDefaultButton = !asChild && render === undefined;
     const hasNativeSemantics = isDefaultButton ||
       (asChild ? childHasNativeButtonSemantics(children) : renderHasNativeButtonSemantics(render));
     const isNativeButton = isDefaultButton ||
       (asChild ? childIsNativeButton(children) : renderIsNativeButton(render));
-    const triggerId = restProps.id ?? ctx.triggerId;
-    const ariaLabel = restProps["aria-label"];
-    const ariaLabelledBy = restProps["aria-labelledby"] ??
+    const triggerId = restProps.id ?? host.id ?? ctx.triggerId;
+    const ariaLabel = restProps["aria-label"] ?? host.label;
+    const ariaLabelledBy = restProps["aria-labelledby"] ?? host.labelledBy ??
       (ariaLabel ? undefined : ctx.labelId ? `${ctx.labelId} ${triggerId}` : undefined);
 
     const handleClick = useCallback<MouseEventHandler<HTMLElement>>(
@@ -73,11 +76,13 @@ export const FileUploadTrigger = forwardRef<HTMLElement, FileUploadTriggerProps>
         }
 
         onClick?.(event);
+        if (!event.defaultPrevented) host.onClick?.(event);
+        if (!event.defaultPrevented) host.onPress?.(event);
         if (event.defaultPrevented) return;
 
         openFilePicker();
       },
-      [isInactive, onClick, openFilePicker],
+      [isInactive, onClick, openFilePicker, host.onClick, host.onPress],
     );
 
     const handleKeyDown = useCallback<KeyboardEventHandler<HTMLElement>>(
@@ -89,18 +94,19 @@ export const FileUploadTrigger = forwardRef<HTMLElement, FileUploadTriggerProps>
           return;
         }
 
-        if (hasNativeSemantics || (event.key !== " " && event.key !== "Enter")) {
+        if (hasNativeSemantics || hasNativeButtonKeyboardActivation(event.currentTarget, event.key) || (event.key !== " " && event.key !== "Enter")) {
           onKeyDown?.(event);
+          if (!event.defaultPrevented) host.onKeyDown?.(event);
           return;
         }
 
-        event.preventDefault();
         onKeyDown?.(event);
+        if (!event.defaultPrevented) host.onKeyDown?.(event);
         if (event.defaultPrevented) return;
-
+        event.preventDefault();
         openFilePicker();
       },
-      [hasNativeSemantics, isInactive, onKeyDown, openFilePicker],
+      [hasNativeSemantics, isInactive, onKeyDown, openFilePicker, host.onKeyDown],
     );
 
     const behaviorProps: Record<string, unknown> = {
@@ -112,7 +118,7 @@ export const FileUploadTrigger = forwardRef<HTMLElement, FileUploadTriggerProps>
         : { role: "button", tabIndex: 0, "aria-disabled": isInactive || undefined }),
       "data-slot": dataSlot,
       "aria-labelledby": ariaLabelledBy,
-      "aria-describedby": restProps["aria-describedby"] ?? ctx.describedBy,
+      "aria-describedby": restProps["aria-describedby"] ?? host.describedBy ?? ctx.describedBy,
       "aria-invalid": ctx.invalid || undefined,
       ...(disabled && { "data-disabled": "" }),
       ...(readOnly && { "data-readonly": "" }),
@@ -123,10 +129,10 @@ export const FileUploadTrigger = forwardRef<HTMLElement, FileUploadTriggerProps>
     };
 
     if (asChild) {
-      return cloneAndMerge(children, behaviorProps);
+      return cloneAndMerge(host.children, behaviorProps);
     }
 
-    return renderElement(render, "button", {
+    return renderElement(host.render, "button", {
       ...behaviorProps,
       children,
     });

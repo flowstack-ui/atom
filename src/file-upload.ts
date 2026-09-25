@@ -10,7 +10,17 @@ import {
   FileUploadItemSize,
   FileUploadRoot,
   FileUploadTrigger,
+  FileUploadRootProvider,
+  FileUploadContext,
+  FileUploadClearTrigger,
+  FileUploadFileText,
+  FileUploadLabel,
+  FileUploadItemPreview,
+  FileUploadItemPreviewImage,
 } from "./primitives/file-upload/index.js";
+
+export { FileUploadRootProvider, useFileUpload, FileUploadContext, FileUploadClearTrigger, FileUploadFileText, FileUploadLabel, FileUploadItemPreview, FileUploadItemPreviewImage, normalizeFileAccept } from "./primitives/file-upload/index.js";
+export type { FileUploadRootProviderProps, FileUploadController, FileUploadAccept, FileUploadError, FileUploadClearTriggerProps, FileUploadFileTextProps, FileUploadItemPreviewProps, FileUploadItemPreviewImageProps } from "./primitives/file-upload/index.js";
 
 export {
   FileUploadContextProvider,
@@ -49,6 +59,13 @@ export type {
 
 export const FileUpload = {
   Root: FileUploadRoot,
+  RootProvider: FileUploadRootProvider,
+  Context: FileUploadContext,
+  ClearTrigger: FileUploadClearTrigger,
+  FileText: FileUploadFileText,
+  Label: FileUploadLabel,
+  ItemPreview: FileUploadItemPreview,
+  ItemPreviewImage: FileUploadItemPreviewImage,
   HiddenInput: FileUploadHiddenInput,
   Trigger: FileUploadTrigger,
   Dropzone: FileUploadDropzone,

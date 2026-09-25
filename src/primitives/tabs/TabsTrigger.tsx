@@ -2,7 +2,10 @@
 
 import {
   forwardRef,
+  cloneElement,
+  type ReactElement,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   type MouseEventHandler,
@@ -17,23 +20,41 @@ import {
   type RenderProp,
 } from "../../utils/slot.js";
 import { useTabsContext } from "./context.js";
+import { isTabDisabled } from "./controller.js";
 
-type TabsTriggerNativeProps = NativeButtonProps<"children" | "disabled" | "role" | "type" | "value">;
+const useSafeLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
-type TabsTriggerFocusableElement = Pick<HTMLButtonElement, "disabled">;
+type TabsTriggerNativeProps = NativeButtonProps<
+  "children" | "disabled" | "role" | "type" | "value"
+>;
+
+type TabsTriggerFocusableElement = Pick<HTMLButtonElement, "disabled"> &
+  Partial<Pick<HTMLElement, "getAttribute">>;
 
 export function getTabsTriggerTabStopValue(
   registeredValues: string[],
   activeValue: string,
   getTriggerElement: (value: string) => TabsTriggerFocusableElement | null,
 ): string | undefined {
-  if (activeValue) {
+  if (
+    activeValue &&
+    (registeredValues.length === 0 ||
+      (registeredValues.includes(activeValue) &&
+        !getTriggerElement(activeValue)?.disabled &&
+        getTriggerElement(activeValue)?.getAttribute?.("aria-disabled") !==
+          "true"))
+  ) {
     return activeValue;
   }
 
   return registeredValues.find((registeredValue) => {
     const element = getTriggerElement(registeredValue);
-    return element && !element.disabled;
+    return (
+      element &&
+      !element.disabled &&
+      element.getAttribute?.("aria-disabled") !== "true"
+    );
   });
 }
 
@@ -72,18 +93,18 @@ export const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(
     const {
       activeValue,
       registeredValues,
-      setActiveValue,
-      idPrefix,
+      select,
+      getId,
+      setFocusedValue,
+      hasNavigate,
+      activationMode,
       orientation,
       registerTrigger,
       unregisterTrigger,
       getTriggerElement,
     } = useTabsContext();
     const internalRef = useRef<HTMLButtonElement>(null);
-    const composedRef = useMemo(
-      () => composeRefs(internalRef, ref),
-      [ref],
-    );
+    const composedRef = useMemo(() => composeRefs(internalRef, ref), [ref]);
     const isActive = activeValue === value;
     const tabStopValue = getTabsTriggerTabStopValue(
       registeredValues,
@@ -91,7 +112,9 @@ export const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(
       getTriggerElement,
     );
 
-    useEffect(() => {
+    // Register before the indicator's layout measurement. A newly selected
+    // dynamic tab must not briefly look absent and reset indicator geometry.
+    useSafeLayoutEffect(() => {
       const element = internalRef.current;
       if (!element) return undefined;
 
@@ -99,25 +122,42 @@ export const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(
       return () => {
         unregisterTrigger(value);
       };
-    }, [registerTrigger, unregisterTrigger, value]);
+    }, [registerTrigger, unregisterTrigger, value, disabled]);
 
-    const activate: MouseEventHandler<HTMLButtonElement> = () => {
-      if (!disabled) {
-        setActiveValue(value);
+    const activate: MouseEventHandler<HTMLButtonElement> = (event) => {
+      const node = event.currentTarget;
+      if (disabled || isTabDisabled(node)) {
+        event.preventDefault();
+        return;
       }
+      if (node.tagName === "A") {
+        if (
+          event.button !== 0 ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.altKey ||
+          event.shiftKey ||
+          node.hasAttribute("download") ||
+          (node.getAttribute("target") &&
+            node.getAttribute("target")?.toLowerCase() !== "_self")
+        )
+          return;
+        if (hasNavigate) event.preventDefault();
+      }
+      setFocusedValue(value);
+      select(value, node);
     };
 
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref: composedRef,
       role: "tab",
-      type: "button",
-      id: `${idPrefix}-trigger-${value}`,
+      id: getId("trigger", value),
       "aria-selected": isActive,
-      "aria-controls": `${idPrefix}-panel-${value}`,
+      "aria-controls": getId("content", value),
       "aria-disabled": disabled || undefined,
-      tabIndex: value === tabStopValue ? 0 : -1,
-      disabled: disabled || undefined,
+      tabIndex: !disabled && value === tabStopValue ? 0 : -1,
+      ...(disabled ? { href: null } : {}),
       "data-slot": dataSlot,
       "data-state": isActive ? "active" : "inactive",
       ...(disabled && { "data-disabled": "" }),
@@ -125,12 +165,38 @@ export const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(
       "data-value": value,
       className,
       onClick: composeEventHandlers(onClick, activate),
+      onKeyDown: composeEventHandlers(restProps.onKeyDown, (event) => {
+        if (
+          activationMode === "automatic" &&
+          event.key === " " &&
+          event.currentTarget.tagName === "A"
+        ) {
+          event.preventDefault();
+          if (!disabled && !isTabDisabled(event.currentTarget))
+            event.currentTarget.click();
+        }
+      }),
+      onFocus: composeEventHandlers(restProps.onFocus, () => {
+        if (!disabled) setFocusedValue(value);
+      }),
     };
 
-    if (asChild) {
-      return cloneAndMerge(children, behaviorProps);
-    }
-
-    return renderElement(render, "button", { ...behaviorProps, children });
+    const element = asChild
+      ? cloneAndMerge(children, behaviorProps)
+      : renderElement(render, "button", { ...behaviorProps, children });
+    const native =
+      element.type === "button"
+        ? {
+            type: "button",
+            disabled:
+              disabled ||
+              (element.props as { disabled?: boolean }).disabled ||
+              undefined,
+          }
+        : {};
+    return cloneElement(
+      element as ReactElement<Record<string, unknown>>,
+      native,
+    );
   },
 );

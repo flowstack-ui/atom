@@ -94,7 +94,7 @@ export const FieldLabel = forwardRef<HTMLLabelElement, FieldLabelProps>(
       ...restProps,
       ref,
       id: ctx?.labelId ?? restProps.id,
-      htmlFor: htmlFor ?? ctx?.controlId,
+      htmlFor: htmlFor ?? ctx?.targetId ?? ctx?.controlId,
       "data-slot": dataSlot,
       ...(isDisabled && { "data-disabled": "" }),
       ...(isInvalid && { "data-invalid": "" }),

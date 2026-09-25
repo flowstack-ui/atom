@@ -1,5 +1,26 @@
 # Pagination Manual Test Protocol
 
+## Count/controller expansion qualification
+
+The original scenarios below remain regression evidence, not evidence that the
+new controller surface has received a manual pass. The count/controller source
+tests are in `test/primitives/pagination.test.mjs`. Run and record these additional
+compositions before marking the new workbook rows covered:
+
+- Count 23, page size 10: move between pages and check ranges 0–10, 10–20, 20–23.
+- Change page size while on a later page; preserve the first visible record
+  where possible and clamp after the count shrinks.
+- Supply a controller through RootProvider and read it through Context;
+  compare two independent providers and confirm no state crosses between them.
+- Compose First/Last and generated custom items both inside List and directly
+  in a group. Confirm exactly one interactive host and list items only in List.
+- Verify explicit part IDs, custom labels, cancelled activation, native hrefs,
+  disabled boundaries, modified clicks and real control refs.
+- Repeat new compositions with a screen reader and physical touch device.
+  Automated browser/device emulation does not complete those manual gates.
+
+Status: added for the current unpublished candidate; manual checks unperformed.
+
 ## URL-backed qualification
 
 Use a specimen with controlled `page` derived from `location.search` and Root

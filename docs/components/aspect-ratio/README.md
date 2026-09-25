@@ -41,6 +41,14 @@ authoritative.
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 | `ratio` | `number` | `16 / 9` |
+| `ratioVariable` | CSS custom-property name, e.g. `--media-ratio` | - |
+
+`ratioVariable` lets a styled layer provide CSS-responsive geometry without
+moving breakpoint policy into Atom. Root emits `aspect-ratio: var(name, ratio)`;
+the normalized numeric ratio is the missing-variable fallback. The variable
+must contain a valid CSS aspect ratio. Invalid property names are ignored.
+Without this prop the numeric inline output is unchanged. Child sizing and
+media fitting remain the styled layer's responsibility.
 
 | Data attribute | Values |
 | --- | --- |

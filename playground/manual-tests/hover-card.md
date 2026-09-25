@@ -108,7 +108,7 @@ Set `Open delay: Default`, hover the trigger, then wait for the card to open.
 
 Verify
 
-□ Root `Open delay` is `700`  
+□ Root `Open delay` is `600`
 □ Content opens only after the configured delay  
 □ Footer changes to `Open | Uncontrolled`
 
@@ -407,7 +407,7 @@ Verify
 □ Source includes `<HoverCard.Content`  
 □ Source includes `ariaLabel="Contributor preview"`  
 □ Source includes `<HoverCard.Arrow />`  
-□ Source does not include `openDelay={700}`  
+□ Source does not include `openDelay={600}`
 □ Source does not include `closeDelay={300}`  
 □ Source does not include `side="bottom"`  
 □ Source does not include `align="center"`  
@@ -630,7 +630,7 @@ Verify after workbook update
 □ Portal DOM identity/native prop/ref rows are removed because Portal is wrapper behavior  
 □ Trigger click, Enter, and Space activation rows are removed because HoverCard opens from hover and focus-visible  
 □ Focus rows say keyboard Tab focus-visible, not `Focus Canvas`  
-□ Root rows keep `defaultOpen`, controlled `open`, `onOpenChange`, `openDelay=700`, `closeDelay=300`, and `disabled` state  
+□ Root rows keep `defaultOpen`, controlled `open`, `onOpenChange`, `openDelay=600`, `closeDelay=300`, and `disabled` state
 □ Portal rows keep body/container/disabled behavior verified through Anatomy and Inspector  
 □ Content rows keep `ariaLabel`, `side`, `align`, `sideOffset`, `data-state`, `data-side`, and `data-positioned`  
 □ Arrow rows keep `svg`, `aria-hidden`, `data-slot`, `data-side`, `width=10`, `height=5`, and wide override `width=18`, `height=9`  

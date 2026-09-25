@@ -73,6 +73,8 @@ export const FileUploadHiddenInput = forwardRef<
       name={ctx.name}
       form={ctx.form}
       accept={ctx.accept}
+      capture={restProps.capture ?? ctx.capture}
+      {...(ctx.directory && { webkitdirectory: "", directory: "" })}
       multiple={ctx.multiple || undefined}
       disabled={ctx.disabled || undefined}
       required={ctx.required || undefined}

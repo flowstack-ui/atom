@@ -14,7 +14,7 @@ Provide an owned scroll viewport and synchronized scrollbar anatomy without repl
 
 ## Required composition
 
-- Compose Viewport and the required Scrollbar/Thumb parts inside Root, adding Corner when both axes are present.
+- Native mode needs Root and Viewport only. Custom mode needs one Content inside Viewport and one Scrollbar/Thumb pair per enabled axis, adding Corner for both axes. RootProvider takes the controller from useScrollArea; Context exposes subscribed state. The legacy orientation provider does not supply custom behavior.
 
 ## Rules
 
@@ -29,6 +29,8 @@ Provide an owned scroll viewport and synchronized scrollbar anatomy without repl
 
 - Test mouse, trackpad, touch, keyboard, zoom, nested scrolling, both axes, and RTL.
 - Confirm focusability and accessible naming are intentional.
+- Only hide native scrollbars after data-custom-ready; restore them in forced colors. Verify dynamic content, resize, minimum thumb geometry, pointer cancellation and reduced motion.
+- Keep virtualization and bottom-follow policy in application examples. Use native negative left coordinates in RTL, logical x progress, and physical left/right edge commands.
 
 ## Related guidance
 

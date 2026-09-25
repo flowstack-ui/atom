@@ -32,7 +32,6 @@ type ButtonRootNativeProps = NativeButtonProps<
   | "onKeyDown"
   | "type"
   | "aria-busy"
-  | "aria-disabled"
 >;
 
 export interface ButtonRootProps extends ButtonRootNativeProps {
@@ -85,6 +84,7 @@ export const ButtonRoot = forwardRef<HTMLElement, ButtonRootProps>(
       rel,
       disabled = false,
       loading = false,
+      "aria-disabled": ariaDisabled,
       onPress,
       onClick,
       onKeyDown,
@@ -96,7 +96,8 @@ export const ButtonRoot = forwardRef<HTMLElement, ButtonRootProps>(
     },
     ref,
   ) {
-    const isInactive = disabled || loading;
+    const isAriaDisabled = ariaDisabled === true || ariaDisabled === "true";
+    const isInactive = disabled || loading || isAriaDisabled;
     const defaultTag = href !== undefined ? "a" : "button";
     const compositionProps = asChild
       ? getElementProps(children)
@@ -185,10 +186,10 @@ export const ButtonRoot = forwardRef<HTMLElement, ButtonRootProps>(
       ...(isNativeButton ? { type, disabled: disabled || undefined } : {}),
       ...(isLink && isInactive ? { role: "link", tabIndex: 0 } : {}),
       ...(needsButtonSemantics ? { role: "button", tabIndex: 0 } : {}),
-      "aria-disabled": !isNativeButton && isInactive ? true : undefined,
+      "aria-disabled": isAriaDisabled || (!isNativeButton && isInactive) ? true : undefined,
       "aria-busy": loading || undefined,
       "data-slot": dataSlot,
-      ...(disabled && { "data-disabled": "" }),
+      ...((disabled || isAriaDisabled) && { "data-disabled": "" }),
       ...(loading && { "data-loading": "" }),
       onClick: handleClick,
       onKeyDown: handleKeyDown,

@@ -1,64 +1,96 @@
 "use client";
-
 import { forwardRef, useMemo, type ReactNode } from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
-import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
+import {
+  cloneAndMerge,
+  composeRefs,
+  renderElement,
+  type RenderProp,
+} from "../../utils/slot.js";
 import {
   ScrollAreaContextProvider,
-  type ScrollAreaContextValue,
+  ScrollAreaEngineProvider,
   type ScrollAreaOrientation,
 } from "./context.js";
-
-type ScrollAreaRootNativeProps = NativeDivProps<"children">;
-
-export interface ScrollAreaRootProps extends ScrollAreaRootNativeProps {
-  /** Scroll direction for the area. */
+import { getScrollAreaEngine, useScrollAreaInternal } from "./useScrollArea.js";
+import type { ScrollAreaController, ScrollAreaIds } from "./types.js";
+export interface ScrollAreaRootProps extends NativeDivProps<"children"> {
   orientation?: ScrollAreaOrientation;
-  /** Override the rendered root element. */
+  ids?: ScrollAreaIds;
   render?: RenderProp;
-  /** Merge behavior props onto a single child element. */
   asChild?: boolean;
-  /** Children rendered inside the scroll area root. */
   children?: ReactNode;
-  /** Data slot identifier. */
   "data-slot"?: string;
 }
-
+export interface ScrollAreaRootProviderProps
+  extends Omit<ScrollAreaRootProps, "orientation" | "ids"> {
+  value: ScrollAreaController;
+}
+export const ScrollAreaRootProvider = forwardRef<
+  HTMLDivElement,
+  ScrollAreaRootProviderProps
+>(function ScrollAreaRootProvider(
+  {
+    value,
+    asChild,
+    render,
+    children,
+    onPointerEnter,
+    onPointerLeave,
+    "data-slot": slot = "scroll-area",
+    ...rest
+  },
+  ref,
+) {
+  const engine = getScrollAreaEngine(value);
+  const mergedRef = useMemo(
+    () =>
+      composeRefs(
+        (node: HTMLElement | null) => engine.register("root", node),
+        ref,
+      ),
+    [engine, ref],
+  );
+  const context = useMemo(
+    () => ({ orientation: value.orientation }),
+    [value.orientation],
+  );
+  const props = {
+    ...rest,
+    id: rest.id ?? engine.id("root"),
+    ref: mergedRef,
+    "data-slot": slot,
+    "data-orientation": value.orientation,
+    onPointerEnter: (event: React.PointerEvent<HTMLDivElement>) => {
+      onPointerEnter?.(event);
+      if (!event.defaultPrevented) engine.hover(true);
+    },
+    onPointerLeave: (event: React.PointerEvent<HTMLDivElement>) => {
+      onPointerLeave?.(event);
+      if (!event.defaultPrevented) engine.hover(false);
+    },
+  };
+  return (
+    <ScrollAreaEngineProvider value={engine}>
+      <ScrollAreaContextProvider value={context}>
+        {asChild
+          ? cloneAndMerge(children, props)
+          : renderElement(render, "div", { ...props, children })}
+      </ScrollAreaContextProvider>
+    </ScrollAreaEngineProvider>
+  );
+});
 export const ScrollAreaRoot = forwardRef<HTMLDivElement, ScrollAreaRootProps>(
   function ScrollAreaRoot(
-    {
-      orientation = "vertical",
-      render,
-      asChild,
-      children,
-      "data-slot": dataSlot = "scroll-area",
-      ...restProps
-    },
+    { orientation = "vertical", ids, id, ...props },
     ref,
   ) {
-    const contextValue = useMemo<ScrollAreaContextValue>(
-      () => ({ orientation }),
-      [orientation],
+    const value = useScrollAreaInternal(
+      { orientation, ids: { ...ids, root: id ?? ids?.root } },
+      false,
     );
-
-    const behaviorProps: Record<string, unknown> = {
-      ...restProps,
-      ref,
-      "data-slot": dataSlot,
-      "data-orientation": orientation,
-    };
-
-    const root = asChild
-      ? cloneAndMerge(children, behaviorProps)
-      : renderElement(render, "div", {
-        ...behaviorProps,
-        children,
-      });
-
     return (
-      <ScrollAreaContextProvider value={contextValue}>
-        {root}
-      </ScrollAreaContextProvider>
+      <ScrollAreaRootProvider {...props} id={id} ref={ref} value={value} />
     );
   },
 );

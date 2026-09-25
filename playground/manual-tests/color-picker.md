@@ -1,5 +1,10 @@
 # Color Picker Manual Test Protocol
 
+Verify external controller changes, explicit input labels, lazy mounting, and
+retained closed content that is hidden and inert. Verify nested overlay dismissal
+closes only the topmost picker and restores focus to its trigger. Record manual
+screen-reader and physical-device results separately from automated evidence.
+
 Use the `/__tests/color-picker` browser harness after the automated focused
 tests pass. Record browser, engine/version, operating system, input method,
 viewport, zoom, appearance, direction, and assistive technology before claiming

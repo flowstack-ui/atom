@@ -209,7 +209,8 @@ for (const [subpath, target] of Object.entries(packedPackage.exports)) {
     if (!entrySet.has(packedTarget)) fail(`${subpath} is missing target ${packedTarget}`);
     continue;
   }
-  for (const field of ["default", "types"]) {
+  // ESM-only owners may declare import instead of a default condition.
+  for (const field of [target.default === undefined ? "import" : "default", "types"]) {
     const relativeTarget = target[field];
     if (typeof relativeTarget !== "string" || !relativeTarget.startsWith("./dist/")) {
       fail(`${subpath} has an invalid ${field} export`);

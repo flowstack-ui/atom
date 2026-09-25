@@ -107,7 +107,7 @@ test("NumberInputRoot accepts null as an empty controlled value", () => {
 
 test("NumberInputRoot synchronizes controlled display state outside render", async () => {
   const source = await readFile(
-    new URL("src/primitives/number-input/NumberInputRoot.tsx", packageRoot),
+    new URL("src/primitives/number-input/useNumberInput.ts", packageRoot),
     "utf8",
   );
   const renderSyncPattern =
@@ -115,5 +115,31 @@ test("NumberInputRoot synchronizes controlled display state outside render", asy
 
   assert.doesNotMatch(source, renderSyncPattern);
   assert.match(source, /useEffect\(\(\) => \{/);
-  assert.match(source, /setDisplayValue\(toDisplayString\(controlledValue \?\? null\)\)/);
+  assert.match(source, /setDraft\(canonical\)/);
+});
+
+test("NumberInput submits a locale-independent value for localized string editing", () => {
+  const html = renderToStaticMarkup(React.createElement(NumberInputRoot, {
+    valueMode: "string", value: "1.234,5", locale: "de-DE", name: "amount",
+  }));
+  assert.match(html, /aria-valuenow="1234.5"/);
+  assert.match(html, /value="1.234,5"/);
+  assert.match(html, /type="hidden"[^>]*value="1234.5"/);
+});
+
+test("NumberInput preserves hidden submission when composing its root", () => {
+  const html = renderToStaticMarkup(React.createElement(NumberInputRoot, {
+    asChild: true, value: 7, name: "amount",
+  }, React.createElement("section", null, React.createElement(NumberInputInput))));
+  assert.match(html, /^<section/);
+  assert.match(html, /type="hidden"[^>]*name="amount"[^>]*value="7"/);
+});
+
+test("NumberInput exposes input pattern and direction", () => {
+  const html = renderToStaticMarkup(React.createElement(NumberInputRoot, {
+    pattern: "[0-9]*", inputMode: "numeric", dir: "rtl",
+  }));
+  assert.match(html, /pattern="\[0-9\]\*"/);
+  assert.match(html, /inputMode="numeric"/);
+  assert.match(html, /dir="rtl"/);
 });

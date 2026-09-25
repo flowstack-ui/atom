@@ -1,11 +1,19 @@
 import { defineConfig, devices } from "@playwright/test";
+import { resolve } from "node:path";
+
+const artifacts = process.env.FLOWSTACK_TEST_ARTIFACT_DIR;
 
 export default defineConfig({
   testDir: "./test/browser",
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
-  reporter: process.env.CI ? "github" : "list",
+  // Playwright clears outputDir before each run. Keep ordinary runs out of
+  // the parent that also holds immutable release evidence and archives.
+  outputDir: artifacts ? resolve(artifacts, "results") : resolve("test-results", "browser"),
+  reporter: artifacts
+    ? [[process.env.CI ? "github" : "list"], ["json", { outputFile: resolve(artifacts, "report.json") }]]
+    : process.env.CI ? "github" : "list",
   use: {
     baseURL: "http://127.0.0.1:4000",
     trace: "retain-on-failure",

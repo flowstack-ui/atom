@@ -101,8 +101,10 @@ function maxAnimationTime(styles: CSSStyleDeclaration): number {
   return Math.max(0, max);
 }
 
-function getMotionTimeout(node: HTMLElement): number {
-  const styles = getComputedStyle(node);
+export function getMotionTimeout(node: HTMLElement): number {
+  const view = node.ownerDocument.defaultView;
+  if (!view) return 0;
+  const styles = view.getComputedStyle(node);
   return Math.max(
     maxTransitionTime(styles),
     maxAnimationTime(styles),
@@ -132,33 +134,52 @@ export function usePresence({
     isExitingRef.current = true;
     const node = nodeRef.current;
 
+    const view = node?.ownerDocument.defaultView ?? window;
     const motionTimeout = node ? getMotionTimeout(node) : 0;
 
     if (!node || motionTimeout === 0) {
-      const frame = requestAnimationFrame(() => {
+      const schedule = view.requestAnimationFrame?.bind(view) ?? ((fn: FrameRequestCallback) => view.setTimeout(() => fn(Date.now()), 0));
+      const cancel = view.cancelAnimationFrame?.bind(view) ?? view.clearTimeout.bind(view);
+      const frame = schedule(() => {
         setIsPresent(false);
         onExitCompleteRef.current?.();
       });
-      return () => cancelAnimationFrame(frame);
+      return () => { cancel(frame); isExitingRef.current = false; };
     }
 
     let done = false;
+    const started = Date.now();
     const handleEnd = (event?: Event) => {
       if (event && event.target !== node) return;
+      // One element may run multiple animations. The first end is not the
+      // end of the owned exit; retain until the longest effect has completed.
+      if (event && Date.now() - started + 16 < motionTimeout) return;
       if (done) return;
       done = true;
       setIsPresent(false);
       onExitCompleteRef.current?.();
     };
-    const fallback = window.setTimeout(handleEnd, motionTimeout + 50);
+    const fallback = view.setTimeout(handleEnd, motionTimeout + 50);
 
-    node.addEventListener("transitionend", handleEnd, { once: true });
-    node.addEventListener("animationend", handleEnd, { once: true });
+    node.addEventListener("transitionend", handleEnd);
+    node.addEventListener("animationend", handleEnd);
+    const handleCancel = (event: Event) => {
+      if (event.target !== node) return;
+      // A cancelled effect cannot produce its end event. Wait for other live
+      // effects when the rendering engine can enumerate them.
+      if (node.getAnimations?.().some(animation => animation.playState === "running" || animation.pending)) return;
+      handleEnd();
+    };
+    node.addEventListener("transitioncancel", handleCancel);
+    node.addEventListener("animationcancel", handleCancel);
 
     return () => {
-      window.clearTimeout(fallback);
+      view.clearTimeout(fallback);
+      isExitingRef.current = false;
       node.removeEventListener("transitionend", handleEnd);
       node.removeEventListener("animationend", handleEnd);
+      node.removeEventListener("transitioncancel", handleCancel);
+      node.removeEventListener("animationcancel", handleCancel);
     };
   }, [isPresent, present]);
 

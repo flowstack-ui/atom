@@ -1,5 +1,25 @@
 # RadioGroup
 
+## Open composition and controller
+
+`useRadioGroup(options)` supplies `value`, `setValue`, and `reset` to
+`RadioGroup.RootProvider controller={controller}`. Root uses the same controller
+internally. Values remain strings; empty string means no selection. Disabled and
+read-only block selection updates; reset restores the initial value.
+
+Use `ItemRoot` with one `ItemHiddenInput`, `ItemControl > ItemIndicator`,
+`ItemText`, and optional `ItemDescription` for native input refs and rich labels.
+ItemRoot is a noninteractive div; ItemText is an associated label. Put independent
+links beside the control, never inside the closed `Radio` button. Control and
+Indicator are decorative and do not add a second radio or Tab stop. Label clicks
+and circle clicks activate the native input. `Label` names the group;
+`Context`, `ItemContext`, and `useRadioGroupItemContext` expose current state.
+
+Root still accepts the existing button-backed Radio and measured group Indicator.
+When a selected value is missing or disabled, the first enabled option is the Tab
+entry without rewriting the selected value. Required validity needs an eligible
+registered option. Open items submit their own input, never a duplicate proxy.
+
 Headless single-selection radio group with roving focus.
 
 ## When to Use
@@ -10,6 +30,13 @@ choices may be selected, or `Select` when the list is long and should stay
 compact.
 
 ## Features
+
+- Optional `RadioGroup.Indicator` measures the selected radio relative to the
+  owned Root, including resize, reordered items and owner-window changes.
+  It is an aria-hidden span with a forwarded ref. `data-ready` signals valid
+  geometry; `--radio-group-indicator-x`, `-y`, `-width`, and `-height` are CSS
+  pixel lengths. The styled layer owns position, animation and fallback paint.
+  It never renders a second input or changes selection.
 
 - Manages one selected value.
 - Can be controlled or uncontrolled.
@@ -135,6 +162,11 @@ export default () => (
 ```
 
 ## Accessibility
+
+Inherited Fieldset disabled state cannot be overridden with `disabled={false}`.
+Closed Radio custom-host click handlers run before selection and may cancel it
+with `preventDefault()`. Forwarded refs retain their React 18 detach and React 19
+cleanup contracts.
 
 Missing required selection is one group-level invalid state. A validation
 attempt marks Root and Fieldset invalid and focuses the first enabled Radio.

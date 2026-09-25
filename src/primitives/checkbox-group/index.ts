@@ -24,3 +24,9 @@ export {
   markCheckboxGroupItemPart,
 } from "./parts.js";
 export type { CheckboxGroupItemPartPresence } from "./parts.js";
+export { useCheckboxGroup } from "./useCheckboxGroup.js";
+export type { UseCheckboxGroupProps, CheckboxGroupController } from "./useCheckboxGroup.js";
+export { CheckboxGroupRootProvider } from "./CheckboxGroupRootProvider.js";
+export type { CheckboxGroupRootProviderProps } from "./CheckboxGroupRootProvider.js";
+export { useCheckboxGroupItem } from "./useCheckboxGroupItem.js";
+export type { UseCheckboxGroupItemProps } from "./useCheckboxGroupItem.js";

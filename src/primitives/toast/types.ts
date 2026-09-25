@@ -26,6 +26,8 @@ export type ToastSwipeDirection = "left" | "right" | "up" | "down";
 export type ToastSwipeState = "start" | "move" | "cancel" | "end";
 
 export type ToastState = "entering" | "visible" | "exiting";
+export type ToastStatus = "queued" | "visible" | "dismissing" | "unmounted";
+export interface ToastStatusChangeDetails { id: ToastId; status: ToastStatus; }
 
 export interface ToastAction {
   label: string;
@@ -46,6 +48,9 @@ export interface ToastOptions {
   onDismiss?: (id: ToastId) => void;
   onAutoClose?: (id: ToastId) => void;
   className?: string;
+  removeDelay?: number;
+  onStatusChange?: (details: ToastStatusChangeDetails) => void;
+  meta?: Record<string, unknown>;
 }
 
 export interface ToastData {
@@ -65,6 +70,11 @@ export interface ToastData {
   createdAt: number;
   paused: boolean;
   remainingDuration: number;
+  status?: ToastStatus;
+  height?: number;
+  removeDelay?: number;
+  onStatusChange?: (details: ToastStatusChangeDetails) => void;
+  meta?: Record<string, unknown>;
 }
 
 export interface ToastPromiseOptions<T> {

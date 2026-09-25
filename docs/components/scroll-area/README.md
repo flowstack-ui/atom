@@ -11,7 +11,10 @@ custom scrollbars; it keeps the browser's scrolling behavior intact.
 
 ## Features
 
-- Provides root and viewport parts.
+- Provides Root, Viewport, Content, Scrollbar, Thumb, Corner, RootProvider and Context parts.
+- Measures custom thumb geometry, both-axis overflow and physical edge state.
+- Supports pointer capture for thumb dragging and track clicks without replacing native input.
+- Exposes `useScrollArea` for scroll commands, logical progress and state.
 - Supports vertical, horizontal, and both-axis orientation metadata.
 - Keeps the viewport out of the Tab order by default.
 - Adds `role="region"` only when the viewport has an accessible name.
@@ -79,6 +82,56 @@ stop when keyboard users need to focus it for native scrolling.
 Advanced compound parts can read the orientation with
 `useScrollAreaContext`; `ScrollAreaContextProvider` and the context value type
 are also public for low-level composition.
+
+### Custom anatomy
+
+```tsx
+<ScrollArea.Root orientation="both">
+  <ScrollArea.Viewport focusable aria-label="Records">
+    <ScrollArea.Content>{records}</ScrollArea.Content>
+  </ScrollArea.Viewport>
+  <ScrollArea.Scrollbar><ScrollArea.Thumb /></ScrollArea.Scrollbar>
+  <ScrollArea.Scrollbar orientation="horizontal"><ScrollArea.Thumb /></ScrollArea.Scrollbar>
+  <ScrollArea.Corner />
+</ScrollArea.Root>
+```
+
+Supply one viewport, one content and one track/thumb pair per enabled axis. Atom
+owns measurement and pointer behavior; consumer CSS owns overflow, size, positioning,
+visibility, colors and minimum thumb length. Never hide native scrollbars until
+`data-custom-ready` is present, and restore native bars in forced colors.
+Content, Scrollbar, Thumb and Corner support native div props, refs, `asChild` and
+`render`. Scrollbar orientation defaults to vertical; Thumb inherits its track.
+Scrollbar/Thumb IDs provided through `ids` receive an axis suffix to stay unique.
+These pointer affordances are not sliders or extra Tab stops: the viewport remains
+the keyboard scrolling target. Do not add interactive children to a thumb.
+
+### Controller
+
+`useScrollArea({ orientation?, ids? })` returns a stable controller. Pass it to
+`<ScrollArea.RootProvider value={controller}>` instead of Root. The hook and
+`<ScrollArea.Context>{controller => ...}</ScrollArea.Context>` subscribe to state.
+The legacy orientation context is not a replacement for RootProvider.
+
+- `hasOverflowX`, `hasOverflowY`, `isAtTop`, `isAtBottom`, `isAtLeft`, `isAtRight`:
+  measured booleans. Left/right always mean physical edges.
+- `getScrollProgress()`: clamped `{ x, y }` fractions; x starts at inline-start
+  even in RTL. No overflow returns zero progress.
+- `scrollTo({ top?, left?, behavior?, duration?, easing? })`: native coordinates
+  (negative left in RTL); optional duration in milliseconds and easing from 0–1.
+- `scrollToEdge({ edge, ...options })`: top/right/bottom/left physical edge.
+- `getScrollbarState({ orientation? })`: hidden, hovering, scrolling and dragging.
+- `viewportRef` and `contentRef`: callbacks for advanced single-owner composition.
+  The standard parts already register these; do not register duplicate owners.
+
+Calls before mounting safely do nothing. Reduced motion makes commands instant.
+New commands, wheel, touch, keyboard input and unmount cancel programmatic motion.
+Observers update for resizes, content changes, image loads and fonts. Geometry is
+clamped during rubber-band overscroll. Data overflow, scrolling, dragging, hover,
+edge and readiness attributes support presentation without React event loops.
+Native-only Root does not install observers unless measured parts are composed;
+the explicit controller opts into measurement. SSR performs no DOM measurement.
+Virtualization, data loading and sticky-bottom policy belong to the application.
 
 ## Examples
 

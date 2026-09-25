@@ -122,9 +122,10 @@ export const TreeGridRow = forwardRef<HTMLTableRowElement, TreeGridRowProps>(
       updateRow(value, rowData, isDisabled);
     }, [isDisabled, resolvedRowIndex, rowData, updateRow, value]);
 
-    const handleClick = useCallback<MouseEventHandler<HTMLTableRowElement>>(() => {
+    const handleClick = useCallback<MouseEventHandler<HTMLTableRowElement>>((event) => {
       if (isDisabled) return;
-      if (selectOnRowClick) selectRow(value);
+      if ((event.target as Element).closest('button, input, select, textarea, a[href], [contenteditable="true"]')) return;
+      if (selectOnRowClick) selectRow(value, event.shiftKey);
     }, [isDisabled, selectOnRowClick, selectRow, value]);
 
     const rowContext = useMemo<TreeGridRowContextValue>(

@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import {
   assert,
   test,
@@ -6,6 +7,18 @@ import {
   publicSubpaths,
   namespaceNameForSubpath,
 } from "./test-utils.mjs";
+
+test("controller declarations retain peer-compatible native prop aliases", () => {
+  for (const [path, alias] of [
+    ["calendar/Calendar", "HTMLAttributes<HTMLDivElement>"],
+    ["date-input/DateInput", "HTMLAttributes<HTMLDivElement>"],
+    ["tree/useTreeController", "TreeRootProps"],
+  ]) {
+    const declaration = readFileSync(new URL(`../dist/_internal/primitives/${path}.d.ts`, import.meta.url), "utf8");
+    assert.ok(declaration.includes(alias));
+    assert.doesNotMatch(declaration, /SubmitEventHandler|ToggleEventHandler|ChangeEventHandler<[^>]+,/);
+  }
+});
 
 import {
   AlertDialog,
@@ -36,6 +49,8 @@ import {
   DataGridBody,
   DataGridCaption,
   DataGridCell,
+  DataGridColumn,
+  DataGridColumnGroup,
   DataGridColumnHeader,
   DataGridFooter,
   DataGridHeader,
@@ -104,6 +119,8 @@ import {
   TableBody,
   TableCaption,
   TableCell,
+  TableColumn,
+  TableColumnGroup,
   TableFooter,
   TableHead,
   TableHeader,
@@ -121,6 +138,8 @@ import {
   TreeGridBody,
   TreeGridCaption,
   TreeGridCell,
+  TreeGridColumn,
+  TreeGridColumnGroup,
   TreeGridColumnHeader,
   TreeGridHeader,
   TreeGridRoot,
@@ -156,10 +175,10 @@ import {
   NavigationMenuIndicator,
   NavigationMenuRoot,
   NavigationMenuSub,
-  OTPField,
-  OTPFieldInput,
-  OTPFieldRoot,
-  OTPFieldSeparator,
+  PinInput,
+  PinInputInput,
+  PinInputRoot,
+  PinInputSeparator,
   Pagination,
   PaginationEllipsis,
   PaginationItem,
@@ -198,8 +217,15 @@ import {
   SidebarRoot,
   SidebarTrigger,
   Switch,
+  SwitchControl,
+  SwitchField,
+  SwitchHiddenInput,
+  SwitchIndicator,
+  SwitchLabel,
   SwitchRoot,
+  SwitchRootProvider,
   SwitchThumb,
+  SwitchThumbIndicator,
   SwipeableItem,
   SwipeableItemActions,
   SwipeableItemContent,
@@ -219,8 +245,8 @@ import {
   getPaginationRange,
   getProgressState,
   formatFileSize,
-  filterOTPFieldValue,
-  isOTPFieldCharAccepted,
+  filterPinInputValue,
+  isPinInputCharAccepted,
   getVirtualItems,
   getVirtualTotalSize,
   getNavigationMenuGeometry,
@@ -232,10 +258,22 @@ import {
 test("package subpath exports can be imported through package self-reference", async () => {
   const rootModule = await import("@flowstack-ui/atom");
   assert.ok(rootModule.Switch.Root);
+  assert.ok(rootModule.Switch.Field);
+  assert.ok(rootModule.Switch.Control);
+  assert.ok(rootModule.Switch.HiddenInput);
   assert.ok(rootModule.Switch.Thumb);
 
   for (const subpath of publicSubpaths) {
     const mod = await import(`@flowstack-ui/atom/${subpath}`);
+    if (subpath === "action-delegate") {
+      assert.equal(mod.ActionDelegate, rootModule.ActionDelegate);
+      continue;
+    }
+    if (subpath === "selection") {
+      assert.equal(typeof mod.useSelection, "function");
+      assert.equal(typeof mod.useSelectionCheckbox, "function");
+      continue;
+    }
 
     if (subpath === "hooks") {
       assert.equal(typeof mod.useControllableState, "function");
@@ -268,6 +306,8 @@ test("package subpath exports can be imported through package self-reference", a
 
     if (subpath === "data-grid") {
       assert.equal(mod.DataGrid.Root, mod.DataGridRoot);
+      assert.equal(mod.DataGrid.ColumnGroup, mod.DataGridColumnGroup);
+      assert.equal(mod.DataGrid.Column, mod.DataGridColumn);
       assert.equal(mod.DataGrid.Header, mod.DataGridHeader);
       assert.equal(mod.DataGrid.Body, mod.DataGridBody);
       assert.equal(mod.DataGrid.Footer, mod.DataGridFooter);
@@ -287,7 +327,14 @@ test("package subpath exports can be imported through package self-reference", a
 
     if (subpath === "switch") {
       assert.equal(mod.Switch.Root, mod.SwitchRoot);
+      assert.equal(mod.Switch.Field, mod.SwitchField);
+      assert.equal(mod.Switch.Control, mod.SwitchControl);
+      assert.equal(mod.Switch.Label, mod.SwitchLabel);
+      assert.equal(mod.Switch.HiddenInput, mod.SwitchHiddenInput);
       assert.equal(mod.Switch.Thumb, mod.SwitchThumb);
+      assert.equal(mod.Switch.Indicator, mod.SwitchIndicator);
+      assert.equal(mod.Switch.ThumbIndicator, mod.SwitchThumbIndicator);
+      assert.equal(mod.Switch.RootProvider, mod.SwitchRootProvider);
     }
 
     if (subpath === "checkbox") {
@@ -388,6 +435,8 @@ test("package subpath exports can be imported through package self-reference", a
 
     if (subpath === "tree-grid") {
       assert.equal(mod.TreeGrid.Root, mod.TreeGridRoot);
+      assert.equal(mod.TreeGrid.ColumnGroup, mod.TreeGridColumnGroup);
+      assert.equal(mod.TreeGrid.Column, mod.TreeGridColumn);
       assert.equal(mod.TreeGrid.Header, mod.TreeGridHeader);
       assert.equal(mod.TreeGrid.Body, mod.TreeGridBody);
       assert.equal(mod.TreeGrid.Row, mod.TreeGridRow);
@@ -456,6 +505,9 @@ test("package subpath exports can be imported through package self-reference", a
 
     if (subpath === "progress") {
       assert.equal(mod.Progress.Root, mod.ProgressRoot);
+      assert.equal(mod.Progress.RootProvider, mod.ProgressRootProvider);
+      assert.equal(mod.Progress.Context, mod.ProgressContextView);
+      assert.equal(typeof mod.useProgress, "function");
       assert.equal(mod.Progress.Indicator, mod.ProgressIndicator);
       assert.equal(typeof mod.getProgressState, "function");
     }
@@ -484,6 +536,8 @@ test("package subpath exports can be imported through package self-reference", a
 
     if (subpath === "table") {
       assert.equal(mod.Table.Root, mod.TableRoot);
+      assert.equal(mod.Table.ColumnGroup, mod.TableColumnGroup);
+      assert.equal(mod.Table.Column, mod.TableColumn);
       assert.equal(mod.Table.Header, mod.TableHeader);
       assert.equal(mod.Table.Body, mod.TableBody);
       assert.equal(mod.Table.Footer, mod.TableFooter);
@@ -506,12 +560,12 @@ test("package subpath exports can be imported through package self-reference", a
       assert.equal(typeof mod.toast.success, "function");
     }
 
-    if (subpath === "otp-field") {
-      assert.equal(mod.OTPField.Root, mod.OTPFieldRoot);
-      assert.equal(mod.OTPField.Input, mod.OTPFieldInput);
-      assert.equal(mod.OTPField.Separator, mod.OTPFieldSeparator);
-      assert.equal(typeof mod.filterOTPFieldValue, "function");
-      assert.equal(typeof mod.isOTPFieldCharAccepted, "function");
+    if (subpath === "pin-input") {
+      assert.equal(mod.PinInput.Root, mod.PinInputRoot);
+      assert.equal(mod.PinInput.Input, mod.PinInputInput);
+      assert.equal(mod.PinInput.Separator, mod.PinInputSeparator);
+      assert.equal(typeof mod.filterPinInputValue, "function");
+      assert.equal(typeof mod.isPinInputCharAccepted, "function");
     }
 
     if (subpath === "password-toggle-field") {
@@ -538,6 +592,10 @@ test("package subpath exports can be imported through package self-reference", a
       assert.equal(typeof mod.visuallyHiddenStyle, "object");
     }
 
+    if (subpath === "overlay-manager") {
+      assert.equal(typeof mod.createOverlay, "function");
+      continue;
+    }
     const namespaceName = namespaceNameForSubpath(subpath);
     assert.equal(typeof mod[namespaceName], "object", `${subpath} namespace export is missing`);
     assert.ok(mod[namespaceName].Root ?? mod[namespaceName].Provider);

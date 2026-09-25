@@ -1,5 +1,41 @@
 # NavigationMenu Changelog
 
+## Unreleased
+
+- No unreleased changes.
+
+## 0.27.0
+
+- Preserve inline panel mouse entry/leave timers and cancellation policies.
+- Refresh collision placement on document and nested scroll events with
+  frame-coalesced measurement and cleanup.
+- Retain Indicator presence and last geometry through styled exit and reopen.
+
+- Expose shared viewport layout edges on Indicator and observe position changes
+  so styled arrows can remain inside aligned or collision-shifted panels.
+
+- Cancel pending pointer open/close timers when keyboard interaction takes over
+  a trigger, preserving the panel and focus after keyboard entry.
+
+- Expose paired incoming/outgoing panel motion, including external controlled
+  value changes. Measure fractional layout sizes and viewport borders without
+  including animated transforms.
+- Add Viewport anchor=trigger/navigation while preserving collision handling.
+
+- Constrain vertical panels to their available side and flip near visible
+  edges while keeping the moving indicator connected in LTR and RTL.
+- Preserve native field and nested-widget Home/End/arrow-key handling inside
+  inline and shared panels while retaining Escape dismissal.
+
+- Explicit mounting policy takes precedence over Viewport forceMount; the public
+  context hook returns only NavigationMenuApi state and actions.
+- Added independent opening/closing delays and pointer policies, explicit inline
+  disclosure mode, retained-panel lifecycle, real Content refs, cancelable
+  selection/dismissal, logical viewport alignment, public controller/provider
+  and context access, and headless per-item indicator anatomy.
+- Preserved shared-viewport defaults, delayDuration compatibility, native
+  navigation semantics and independent nested scopes.
+
 ## 0.21.0
 
 - Added collision-aware, active-trigger-centered horizontal Viewport geometry.

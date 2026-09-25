@@ -1,5 +1,7 @@
 "use client";
 
+import { arrowOffset, autoUpdateWithArrow } from "../../utils/floatingArrowPositioning.js";
+
 import {
   forwardRef,
   useCallback,
@@ -10,14 +12,16 @@ import {
   type MouseEventHandler,
   type ReactNode,
 } from "react";
+import * as React from "react";
 import {
   arrow as floatingArrow,
-  autoUpdate,
   offset,
+  flip, shift, size, hide,
   useFloating,
   type Placement,
 } from "@floating-ui/react";
-import { usePresence } from "../../hooks/usePresence.js";
+import { useOverlayPresence } from "../../hooks/useOverlayPresence.js";
+import { useFocusScopeContainer } from "../../hooks/focus.js";
 import { useDirection } from "../direction/index.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import {
@@ -25,7 +29,7 @@ import {
   getFloatingVisibilityMiddleware,
   resolveFloatingDirection,
 } from "../../utils/floatingPlacement.js";
-import { composeEventHandlers, composeRefs } from "../../utils/slot.js";
+import { cloneAndMerge, renderElement, composeRefs, type RenderProp } from "../../utils/slot.js";
 import {
   HoverCardContentContextProvider,
   useHoverCardContext,
@@ -39,6 +43,8 @@ type HoverCardContentNativeProps = NativeDivProps<"children">;
 
 export interface HoverCardContentProps extends HoverCardContentNativeProps {
   children: ReactNode;
+  asChild?: boolean;
+  render?: RenderProp;
   side?: HoverCardSide;
   align?: HoverCardAlign;
   sideOffset?: number;
@@ -62,6 +68,7 @@ export const HoverCardContent = forwardRef<HTMLDivElement, HoverCardContentProps
 function HoverCardContent(
   {
     children,
+    asChild = false, render,
     side = "bottom",
     align = "center",
     sideOffset = 8,
@@ -83,45 +90,62 @@ function HoverCardContent(
     setContentElement,
     floatingRootContext,
     getFloatingProps,
+    lifecycle, positioning: p, triggerElement: referenceElement, updateRef,
   } = useHoverCardContext();
   const contextDir = useDirection();
   const arrowRef = useRef<SVGSVGElement>(null);
-  const { isPresent, ref: presenceRef } = usePresence({ present: isOpen });
-  const [isPositioned, setIsPositioned] = useState(false);
-  const [referenceElement, setReferenceElement] = useState<HTMLElement | null>(null);
-
-  useEffect(() => {
-    if (!isPresent) return undefined;
-    setIsPositioned(false);
-    const raf = requestAnimationFrame(() => setIsPositioned(true));
-    return () => cancelAnimationFrame(raf);
-  }, [isPresent]);
-
-  useEffect(() => {
-    setReferenceElement(triggerRef.current);
-  }, [isOpen, triggerRef]);
-
-  const middleware = useMemo(
-    () => [
-      offset(sideOffset),
-      ...getFloatingVisibilityMiddleware(side, align),
-      getFloatingAvailableSizeMiddleware(),
-      floatingArrow({ element: arrowRef, padding: 8 }),
-    ],
-    [align, side, sideOffset],
-  );
-
-  const { refs, floatingStyles, placement, middlewareData } = useFloating({
-    rootContext: floatingRootContext,
-    elements: { reference: referenceElement },
-    placement: toPlacement(side, align),
-    middleware,
-    whileElementsMounted: autoUpdate,
+  const presence = useOverlayPresence({ open: isOpen, ...lifecycle });
+  const presenceRef = presence.ref;
+  useFocusScopeContainer(presence.node, presence.visible, undefined, {
+    focusContainment: "owned", tabParticipation: "delegate", scrollParticipation: "allowed", isolation: "owned",
   });
 
+  const middleware = useMemo(
+    () => {
+      const collision = { boundary: typeof p?.boundary === "function" ? p.boundary() : p?.boundary, padding: p?.overflowPadding ?? 8 };
+      return [
+      p?.offset !== undefined ? offset(p.offset) : arrowOffset(arrowRef, p?.gutter ?? sideOffset, p?.shift ?? 0),
+        ...(p ? [p.flip !== false && flip({ ...collision, fallbackPlacements: Array.isArray(p.flip) ? p.flip : undefined }), p.slide !== false && shift({ ...collision, crossAxis: p.overlap })] : getFloatingVisibilityMiddleware(side, align)),
+        p?.sizeMiddleware !== false && getFloatingAvailableSizeMiddleware(),
+        (p?.sameWidth || p?.fitViewport) && size({ ...collision, apply({ rects, availableWidth, availableHeight, elements }) {
+          elements.floating.style.setProperty("--atom-hover-card-reference-width", `${rects.reference.width}px`);
+          elements.floating.style.setProperty("--atom-hover-card-available-width", `${Math.max(0, availableWidth)}px`);
+          elements.floating.style.setProperty("--atom-hover-card-available-height", `${Math.max(0, availableHeight)}px`);
+        } }),
+        p?.hideWhenDetached && hide(collision),
+        floatingArrow({ element: arrowRef, padding: p?.arrowPadding ?? 8 }),
+      ];
+    },
+    [p, align, side, sideOffset],
+  );
+
+  const { refs, floatingStyles, placement, middlewareData, isPositioned, update } = useFloating({
+    rootContext: floatingRootContext,
+    elements: { reference: referenceElement },
+    placement: p?.placement ?? toPlacement(side, align),
+    strategy: p?.strategy ?? "absolute",
+    transform: false,
+    middleware,
+    whileElementsMounted: (reference, floating, update) => {
+      if (p?.listeners === false) { update(); return () => {}; }
+      return autoUpdateWithArrow(arrowRef)(reference, floating, update, { ...(typeof p?.listeners === "object" ? p.listeners : {}), ...(p?.animationFrame === undefined ? {} : { animationFrame: p.animationFrame }) });
+    },
+  });
+  useEffect(() => {
+    refs.setPositionReference(p?.getAnchorElement?.() ?? (p?.getAnchorRect ? {
+      contextElement: referenceElement ?? undefined,
+      getBoundingClientRect: () => {
+        const rect = p.getAnchorRect?.() ?? referenceElement?.getBoundingClientRect() ?? { x: 0, y: 0, width: 0, height: 0 };
+        return { ...rect, top: rect.y, left: rect.x, right: rect.x + rect.width, bottom: rect.y + rect.height };
+      },
+    } : referenceElement));
+  }, [p, referenceElement, refs.setPositionReference]);
+  useEffect(() => { updateRef.current = update; return () => { updateRef.current = null; }; }, [update, updateRef]);
+  useEffect(() => { p?.onPositioned?.({ placed: isPositioned }); }, [isPositioned, p?.onPositioned]);
+
   const composedRef = useMemo(
-    () => composeRefs(refs.setFloating, setContentElement, presenceRef, ref),
-    [presenceRef, ref, refs.setFloating, setContentElement],
+    () => composeRefs(refs.setFloating, setContentElement, presenceRef, presence.node, ref),
+    [presenceRef, presence.node, ref, refs.setFloating, setContentElement],
   );
 
   const setFloatingRef = useCallback(
@@ -148,28 +172,31 @@ function HoverCardContent(
     [actualSide, arrowData?.x, arrowData?.y],
   );
 
-  if (!isPresent) return null;
+  if (!presence.mounted) return null;
+
+  const attributes = {
+    ...getFloatingProps({ ...restProps, onMouseEnter, onMouseLeave }),
+    ref: setFloatingRef, id: restProps.id ?? hoverCardId,
+    "data-slot": dataSlot, "data-state": isOpen ? "open" : "closed",
+    "data-side": actualSide, "data-placement": placement,
+    "data-positioned": isPositioned ? "" : undefined,
+    "data-initial-open": presence.skipEntry ? "" : undefined,
+    hidden: !presence.visible || restProps.hidden,
+    "aria-hidden": !presence.interactive ? true : undefined,
+    dir: dirProp ?? resolvedDir, "aria-label": ariaLabel, className,
+    style: { ...style, ...floatingStyles,
+      ...(p?.sameWidth ? { width: "var(--atom-hover-card-reference-width)" } : {}),
+      ...(p?.fitViewport ? { maxWidth: "var(--atom-hover-card-available-width)", maxHeight: "var(--atom-hover-card-available-height)" } : {}),
+      ...(!isPositioned || middlewareData.hide?.referenceHidden ? { visibility: "hidden" as const } : {}),
+      ...(!presence.visible ? { display: "none" } : {}),
+    },
+  };
+  const panel = asChild ? cloneAndMerge(children, attributes) : renderElement(render, "div", { ...attributes, children });
+  const Activity = (React as unknown as { Activity?: React.ComponentType<{ mode: "visible" | "hidden"; children: ReactNode }> }).Activity;
 
   return (
     <HoverCardContentContextProvider value={contentContextValue}>
-      <div
-        {...getFloatingProps({ ...restProps, onMouseEnter, onMouseLeave })}
-        ref={setFloatingRef}
-        id={hoverCardId}
-        data-slot={dataSlot}
-        data-state={isOpen ? "open" : "closed"}
-        data-side={actualSide}
-        dir={dirProp ?? resolvedDir}
-        {...(isPositioned ? { "data-positioned": "" } : {})}
-        aria-label={ariaLabel}
-        className={className}
-        style={{
-          ...style,
-          ...floatingStyles,
-        }}
-      >
-        {children}
-      </div>
+      {Activity && lifecycle.hideMode === "activity" ? <Activity mode={presence.visible ? "visible" : "hidden"}>{panel}</Activity> : panel}
     </HoverCardContentContextProvider>
   );
 });

@@ -168,6 +168,8 @@ test("Menubar source keeps keyboard open and focus behavior stable", async () =>
   );
 
   assert.match(triggerSource, /event\.key === "ArrowUp" \? "last" : "first"/);
+  assert.match(triggerSource, /openMenu\(event.detail === 0 \? "first" : null\)/);
+  assert.match(triggerSource, /openMenu\(null\)/);
   assert.match(triggerSource, /menuCtx\.onHighlight\(null\)/);
   assert.match(triggerSource, /const useSafeLayoutEffect =/);
   assert.match(triggerSource, /barCtx\.registerTrigger\(menuValue, element\)/);
@@ -179,6 +181,8 @@ test("Menubar source keeps keyboard open and focus behavior stable", async () =>
   assert.match(triggerSource, /"data-slot": dataSlot = "menubar-trigger"/);
   assert.match(triggerSource, /"data-slot": dataSlot/);
   assert.match(menuSource, /closeOnSelect = true/);
+  assert.match(menuSource, /\(\) => barCtx.rootRef.current, \.\.\.\(persistentElements \?\? \[\]\)/);
+  assert.match(menuSource, /persistentElements=\{menuPersistentElements\}/);
   assert.match(menuSource, /loop = true/);
   assert.match(menuSource, /closeOnEscape = true/);
   assert.match(menuSource, /closeOnSelect=\{closeOnSelect\}/);

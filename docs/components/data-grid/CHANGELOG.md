@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
+- Establish a primary mouse target before native grid focus initializes, avoiding a transient first-cell highlight. Preserve keyboard entry, embedded controls, canceled events, and click-only header actions.
+
+- Added entry/removal/disable focus recovery, normalized page navigation,
+  mounted-row select-all and anchored range selection, and disabled action guards.
+- Added interactive cell entry/exit, child-control click isolation, RowHeader,
+  and bounded logical-direction ColumnResizeHandle with pointer cancellation.
+
+- Added optional native `ColumnGroup` and `Column` parts for table-layout
+  sizing hints without changing indexed grid semantics or keyboard behavior.
+
 ## 0.24.0
 
 - Added source-led Agent Knowledge for grid selection, indexed semantics,

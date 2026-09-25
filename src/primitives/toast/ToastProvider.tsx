@@ -14,6 +14,7 @@ export interface ToastProviderProps extends Partial<ToastProviderContextValue> {
 
 export function ToastProvider({
   children,
+  store = toastProviderDefaults.store,
   maxVisible = toastProviderDefaults.maxVisible,
   expandOnHover = toastProviderDefaults.expandOnHover,
   closeButton = toastProviderDefaults.closeButton,
@@ -27,6 +28,7 @@ export function ToastProvider({
 }: ToastProviderProps) {
   const value = useMemo<ToastProviderContextValue>(
     () => ({
+      store,
       maxVisible: normalizeMaxVisible(maxVisible),
       expandOnHover,
       closeButton,
@@ -38,7 +40,7 @@ export function ToastProvider({
       swipeDirection,
       swipeThreshold: Number.isFinite(swipeThreshold) && swipeThreshold > 0 ? swipeThreshold : 50,
     }),
-    [closeButton, expandOnHover, hotkey, label, maxVisible, pauseOnFocus, pauseOnFocusLoss, pauseOnHover, swipeDirection, swipeThreshold],
+    [store, closeButton, expandOnHover, hotkey, label, maxVisible, pauseOnFocus, pauseOnFocusLoss, pauseOnHover, swipeDirection, swipeThreshold],
   );
 
   return <ToastProviderContextProvider value={value}>{children}</ToastProviderContextProvider>;

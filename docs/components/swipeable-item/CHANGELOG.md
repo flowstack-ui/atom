@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
+- Added a shared controller, RootProvider and Context, side thresholds,
+  bounded resistance, recent-velocity reveal, dismissal and settlement hooks.
+- Restricted full swipe to deliberate pointer release. Repeated Arrow keys
+  and lost pointer capture no longer execute commands.
+- Clamped reveal-only travel, preserved nested input/vertical gesture ownership,
+  suppressed post-drag clicks, and invalidated disabled/read-only gestures.
+- Added presentation-aware interruption, owner-document measurement and
+  focus return when action panels close.
+
 ## 0.24.0
 
 - Added source-led Agent Knowledge for gesture-enhanced row actions, required

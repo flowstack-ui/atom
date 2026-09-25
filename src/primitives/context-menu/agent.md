@@ -18,6 +18,10 @@ Open the shared Menu command model at the invocation point of a secondary-click,
 
 ## Rules
 
+- **MUST:** Use useMenu/useDropdownMenu/useContextMenu with the matching RootProvider; pass the unchanged controller. Menubar uses its own useMenubar coordinator. Root and RootProvider are alternatives, not nested state owners.
+- **MUST:** Use highlightedValue with onHighlightChange for controlled highlight. Repeated radio values require { value, groupId } and a stable RadioGroup id. A rejected controlled update must not move DOM focus independently.
+- **MUST:** Use Item onSelect and root onSelect as one cancellable transaction. preventDefault prevents choice mutation and menu closing. Use asChild native links and navigate only for normal router navigation; preserve modified clicks, download and target behavior.
+- **MUST:** Use positioning and presence options instead of document positioning or focus workarounds. Content keeps the semantic scroll/ref target; Arrow is hosted outside its clipping region. Retained closed content stays hidden/inert and cannot receive focus.
 - **MUST:** Provide another visible or keyboard-discoverable route to every important action; ContextMenu must remain an enhancement rather than the only access path.
 - **MUST:** Keep Trigger as a behavior wrapper without invented button semantics and preserve the wrapped target's native semantics and actions through asChild or render composition.
 - **MUST:** Preserve secondary-click coordinates, keyboard anchor behavior, cross-trigger handoff, and the cancel-safe 700 ms touch and pen long press with its movement, scroll, multi-pointer, and native-event cancellation.

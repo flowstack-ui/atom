@@ -13,17 +13,19 @@ export interface RatingItemState {
 }
 
 export function normalizeRatingRange(min = 0, max = 5): RatingRange {
+  min = Number.isFinite(min) ? min : 0;
+  max = Number.isFinite(max) ? max : min + 5;
   if (max > min) return { min, max };
   return { min, max: min + 5 };
 }
 
 export function clampRatingValue(value: number, min = 0, max = 5): number {
   const range = normalizeRatingRange(min, max);
-  return Math.min(Math.max(value, range.min), range.max);
+  return Math.min(Math.max(Number.isFinite(value) ? value : range.min, range.min), range.max);
 }
 
 export function snapRatingValue(value: number, step = 1, min = 0): number {
-  const safeStep = step > 0 ? step : 1;
+  const safeStep = Number.isFinite(step) && step > 0 ? step : 1;
   const offset = value - min;
   const snapped = Math.round(offset / safeStep) * safeStep + min;
   const decimals = countDecimals(safeStep);
@@ -31,7 +33,7 @@ export function snapRatingValue(value: number, step = 1, min = 0): number {
 }
 
 export function snapRatingPointerValue(value: number, step = 1, min = 0): number {
-  const safeStep = step > 0 ? step : 1;
+  const safeStep = Number.isFinite(step) && step > 0 ? step : 1;
   const offset = value - min;
   if (offset <= 0) return min;
   const snapped = Math.ceil(offset / safeStep) * safeStep + min;
@@ -66,7 +68,7 @@ function countDecimals(value: number): number {
   const text = String(value);
   if (text.includes("e-")) {
     const [, exponent] = text.split("e-");
-    return Number.parseInt(exponent ?? "0", 10);
+    return Math.min(100, Number.parseInt(exponent ?? "0", 10));
   }
   const dotIndex = text.indexOf(".");
   return dotIndex === -1 ? 0 : text.length - dotIndex - 1;

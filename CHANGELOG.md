@@ -1,5 +1,176 @@
 # Atom Changelog
 
+## Unreleased
+
+- No unreleased changes.
+
+## 0.27.0 - 2026-09-24
+
+- Share compound namespace definitions between root and focused imports; restore
+  missing controller and composition parts for Accordion, Collapsible, Combobox,
+  FileUpload, RadioGroup, Rating, Select, MultiSelect, Tabs and Toolbar.
+- Preserve React 19 callback-ref cleanup in PinInput cells, RadioGroup parts,
+  FileUpload preview images and TableOfContents navigation.
+
+- Fix batched uncontrolled functional state requests so they compose before the
+  next render; keep controlled state authoritative. CheckboxGroup applies the
+  same sequencing to additions, toggles and maximum-selection guards.
+
+### Added
+
+- Add CheckboxCard and RadioCard for native rich-option selection, including
+  controllers, group composition, accessible labels and native form behavior.
+- Add record-ID Selection utilities and ActionDelegate for independent record
+  selection and primary-pointer activation without replacing native semantics.
+- Expand Menu-family and NavigationMenu controller/provider, positioning,
+  presence and custom-host composition; retain separate command and navigation
+  contracts.
+- Expand Select/MultiSelect option records, controlled highlighting, clear
+  controls and retained popup lifecycle; expand FileUpload preprocessing,
+  directory intake, previews and selection controls.
+- Add Accordion, Collapsible, Tabs, Pagination and Rating controller composition
+  and their documented state/lifecycle parts; extend Field relationship IDs and
+  compound item targeting.
+- Expand NumberInput localized editing and scrubber interaction, Slider geometry
+  and manual form composition, and Reorder's row-major grid/layout projection.
+- Expand Toast scoped stores and lifecycle tracking, ScrollArea measured
+  scrollbar controls, and SwipeableItem controller/motion and safe gesture APIs.
+
+- Carousel adds a measured page controller and RootProvider, grouped and variable
+  geometry, vertical movement, mouse drag and visible-peer accessibility.
+
+- Image Root accepts SSR-known `srcSet` candidates while retaining Content overrides.
+
+- Add Switch compound composition, explicit native input ownership,
+  controller/provider access, decorative state artwork, stable associations,
+  and cross-document custom-host activation while preserving legacy Root.
+
+- Add Checkbox and CheckboxGroup controllers/providers, native input refs and
+  group item bindings. Enforce group limits and eligible required selections;
+  preserve composed-host cancellation and iframe focus containment.
+
+- Extend Toolbar with named Group and native Input parts, root disabled state,
+  discoverable disabled buttons, typed selection modes and forwarded part refs.
+  Preserve native labels, owner-document keyboard navigation and child event
+  cancellation; block disabled custom-host activation.
+
+- Add shared Progress controller, RootProvider, Context, initial values and IDs;
+  normalize invalid numeric inputs and overflowing ranges without invalid ARIA.
+
+- Add optional RadioGroup.Indicator with owned-host, owner-window measurement,
+  dynamic layout tracking and deterministic SSR readiness. Use the root's owner
+  document for radio keyboard focus lookup.
+
+- Add server-safe composeHost for one-host prop composition, preserving child
+  handlers and React 18/19 refs, including callback-ref cleanup.
+
+- Add ColorPicker controller/provider composition, explicit part IDs and popup
+  lifecycle controls; coordinate dismissal and focus with nested overlays.
+
+- Add TableOfContents with scoped section tracking, native/managed fragment
+  navigation, controlled current state and optional rail geometry.
+
+- AspectRatio adds an optional CSS custom-property ratio bridge with numeric fallback for styled-layer responsive geometry.
+
+- Add QrCode encoding, accessible SVG anatomy, controlled state and portable
+  image export through DownloadTrigger using the pinned local uqr encoder.
+
+- Add NativeSelect, Editable and TagsInput with native form integration and
+  separately owned selection, editing and collection-entry behavior.
+
+- Add `Marquee` with measured repetition, explicit inert replicas, independent
+  pause reasons, stationary focus/reduced-motion fallbacks and finite lifecycle.
+
+- Add `FloatingPanel` for nonmodal movable/resizable tools and `OverlayManager`
+  for keyed imperative overlays, typed results and exit settlement.
+
+- Add root-owned exit completion to Modal and Popover; order registered overlay
+  hosts per rendering document with portal ancestry and modal barriers.
+
+- Add an unstyled ActionBar Positioner host for shared layer registration.
+
+- Add initial Calendar, DateInput, DatePicker and date-value entrypoints with
+  civil-date values, segmented entry, shared popup selection and canonical form
+  serialization. Full date-family qualification remains in progress.
+
+- Add `DownloadTrigger` for lazy local file downloads with pending, cancellation,
+  error and object-URL lifecycle ownership.
+
+- Add `Splitter` for constrained adjacent-panel resizing and accessible separators.
+
+- Added Steps for headless ordered workflow progression, guarded navigation,
+  completion content and native list/button semantics.
+
+- Added optional native `ColumnGroup` and `Column` anatomy to Table, DataGrid,
+  and TreeGrid for semantic column sizing hints while preserving each
+  primitive's existing behavior and accessibility ownership.
+
+### Changed — migration required
+
+- Tree multiple selection now replaces on ordinary click and toggles with
+  Ctrl/Command-click. Update interaction instructions and pointer tests that
+  assumed additive ordinary clicks; independent checking remains separate.
+
+- SkipLink.Target defaults to div instead of main. SkipLink activation resolves the owning document and preserves modified clicks, downloads, and alternate browsing targets.
+
+- Replace OTPField with PinInput (no legacy export). Use explicit `otp` for
+  verification-code autocomplete. Values are positional string arrays; general
+  PIN entry supports character modes, masking, controllers and native forms.
+
+### Fixed
+
+- Preserve batched Progress controller updates and remove stale numeric state
+  from indeterminate composed hosts.
+
+- Preserve child refs through element composition without React ref-access
+  warnings, and retain cleanup-returning refs alongside ordinary null-detach refs.
+
+- Restore PinInput reset after a late RootProvider mount and cancel obsolete
+  queued resets during form reassociation or unmount.
+
+- Avoid retained Menu server-render layout-effect warnings while preserving
+  pre-paint focus, modal isolation, scroll locking, and portal setup on hydration.
+
+- Preserve Slider pointer cancellation through controlled focus rerenders and
+  stable composed refs; commit only accepted controlled pointer values.
+
+- Clear DatePicker's own validation report after valid edits without feeding
+  Field's aggregate invalid state back into native validity.
+
+- Cancel queued uncontrolled form resets on unmount or form reassociation.
+
+- Feed skips unavailable article/exit targets, preserves native editing shortcuts
+  and nested feed ownership, and scrolls only successfully focused targets.
+
+- Image returns to idle when the last source is cleared and detects cached broken images even when `currentSrc` is empty. Custom native source changes synchronize without detached requests.
+
+- PasswordToggleField preserves focused selection across pointer reveal,
+  respects cancelled resets, and restores committed visibility after cancelled
+  submissions while submit handlers still observe `type="password"`.
+
+- Input preserves native uncontrolled values for ref-based integrations and respects cancelled resets.
+
+- Preserve composed Button aria-disabled state and prevent activation without forcing native disabled, for discoverable inactive controls.
+
+- Preserve NavigationMenu keyboard entry when a pointer open/close timer is
+  pending; keyboard trigger interaction cancels stale pointer intent.
+
+- Preserve BottomNavigation native landmark naming and composed native button/link
+  semantics, including disabled destinations and modified-click selection policy.
+
+- Preserve native and composed Breadcrumb landmark names, with native aria-label
+  typing and a fallback only when no label is supplied.
+
+- Synchronize NavList current styling hooks with aria-current, remove disabled
+  composed-link destinations, and use shared disclosure presence with inertness
+  and contained-focus recovery.
+
+- Account for popup arrow depth in gutter positioning and observe arrow resizing,
+  mounting and removal in the owner document. Keep explicit offsets unchanged.
+
+- Keep exiting Menu and submenu content inert so closed command surfaces cannot
+  receive pointer focus or activation during another overlay's focus return.
+
 ## 0.26.1 - 2026-08-31
 
 - Disabled `ColorPicker.EyeDropperTrigger` and exposed `data-unsupported` when

@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
+- Added explicit option records, external controller/provider composition and IDs.
+- Added retained-content lifecycle, exit completion and cancellable dismissal.
+- Preserved selected form values before popup mount and owner-document portals.
+
+- Add configurable close policy, keyboard looping, controlled highlight, native
+  autocomplete and popup positioning.
+- Add ClearTrigger with disabled/read-only protection and focus return.
+- Reveal highlighted options only within the positioned popup.
+
 ## 0.24.0
 
 - Added public Agent Knowledge for component selection, required composition,

@@ -1,6 +1,8 @@
 "use client";
 
 import { createContext, useContext, type RefObject } from "react";
+import type { SelectPositioningOptions } from "../../utils/selectPositioning.js";
+import type { SelectLifecycleOptions, SelectOutsideEvents } from "../../utils/selectOptions.js";
 
 export interface SelectItemEntry {
   id: string;
@@ -15,6 +17,12 @@ export interface SelectItemData extends Record<string, unknown> {
 }
 
 export interface SelectContextValue {
+  scrollToIndexFn?: (details: { index: number; value: string }) => void;
+  lifecycle: SelectLifecycleOptions;
+  outsideEvents: SelectOutsideEvents;
+  loopFocus: boolean;
+  clearValue: () => void;
+  positioning?: SelectPositioningOptions;
   isOpen: boolean;
   onOpen: (highlightIntent?: SelectOpenHighlightIntent) => void;
   onClose: () => void;

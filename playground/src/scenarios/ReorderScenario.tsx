@@ -39,6 +39,7 @@ function nowTime() {
 export function useReorderScenario() {
   const [items, setItems] = useState(initialItems);
   const [orientation, setOrientation] = useState<Orientation>("vertical");
+  const [layout, setLayout] = useState<"linear" | "grid">("linear");
   const [dir, setDir] = useState<TextDirection>("ltr");
   const [disabled, setDisabled] = useState(false);
   const [readOnly, setReadOnly] = useState(false);
@@ -58,9 +59,10 @@ export function useReorderScenario() {
   };
 
   return {
-    state: { items, orientation, dir, disabled, readOnly, approvalDisabled, log },
+    state: { items, layout, orientation, dir, disabled, readOnly, approvalDisabled, log },
     actions: {
       setOrientation,
+      setLayout,
       setDir,
       setDisabled,
       setReadOnly,
@@ -86,6 +88,7 @@ export function ReorderScenarioToolbar({ scenario }: { scenario: ReorderScenario
         <MenuCheckboxControl checked={scenario.state.approvalDisabled} label="Disable Request approval" value="approval-disabled" onChange={scenario.actions.setApprovalDisabled} />
       </ToolbarGroup>
       <ToolbarGroup title="Layout" value="layout">
+        <MenuRadioControl label="Arrangement" options={["linear", "grid"]} value={scenario.state.layout} onChange={(value) => scenario.actions.setLayout(value as "linear" | "grid")} />
         <MenuRadioControl label="Orientation" options={["vertical", "horizontal"]} value={scenario.state.orientation} onChange={(value) => scenario.actions.setOrientation(value as Orientation)} />
         <MenuRadioControl label="Direction" options={["ltr", "rtl"]} value={scenario.state.dir} onChange={(value) => scenario.actions.setDir(value as TextDirection)} />
       </ToolbarGroup>
@@ -104,6 +107,8 @@ export function ReorderScenarioCanvas({ scenario }: { scenario: ReorderScenario 
           data-playground-reorder-root=""
           disabled={state.disabled}
           getItemLabel={(value) => itemLabels[value] ?? value}
+          layout={state.layout}
+          style={state.layout === "grid" ? { display: "grid", alignItems: "start", gridTemplateColumns: "repeat(2, minmax(0, 1fr))" } : undefined}
           items={state.items}
           onItemsChange={scenario.actions.handleItemsChange}
           orientation={state.orientation}

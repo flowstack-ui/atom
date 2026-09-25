@@ -18,6 +18,8 @@ Manage a named set of independent checkbox choices with multi-value state, group
 
 ## Rules
 
+- **MUST:** For links in labels use useCheckboxGroupItem to bind a normal Checkbox.Root beside a Field.Label, not an interactive descendant inside Item. Forward the returned ref so required validation and Parent eligibility can observe the control.
+- **MUST:** maxSelectedValues bounds additions, never removes controlled values. At the limit selected items remain removable. Parent adds in allValues order up to capacity, and a mixed Parent at capacity clears its eligible declared selections. useCheckboxGroup and RootProvider expose controlled state; applications own resetting externally controlled values.
 - **MUST:** Give Root a concise accessible name with native ARIA or an inherited Fieldset Legend; do not use unsupported aria-required on role=group.
 - **MUST:** Give every Item a stable unique value and keep controlled value arrays synchronized through onValueChange; use name and form when the checked values must submit.
 - **MUST:** Render Parent only when Root allValues explicitly names the complete currently selectable set; omit disabled values while disabled and preserve selected values outside that declared set.

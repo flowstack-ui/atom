@@ -10,6 +10,16 @@ pages, and use separate Buttons when the commands are not one logical group.
 
 ## Features
 
+- Root `disabled` propagates to actions and Input. Button
+  `focusableWhenDisabled` keeps a disabled action discoverable without activation.
+- `Group` names related controls without adding another keyboard scope.
+- `Input` joins roving focus while keeping native editing keys. Use one final
+  input in a horizontal toolbar; Tab exits it. Avoid number/text-area editing
+  controls competing for the navigation axis in vertical toolbars.
+- Separator derives the perpendicular orientation from Root; an explicit
+  `orientation` overrides it and `decorative` hides it from accessibility APIs.
+- Native `aria-label` is preserved; `ariaLabel` takes precedence when supplied.
+
 - Renders `role="toolbar"` with orientation.
 - Supports horizontal and vertical arrow-key navigation.
 - Supports left-to-right and right-to-left direction.
@@ -48,6 +58,7 @@ control group.
 | `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` |
 | `dir` | `"ltr" \| "rtl"` | `Direction.Provider` |
 | `loop` | `boolean` | `true` |
+| `disabled` | `boolean` | `false` |
 | `ariaLabel` | `string` | - |
 | `render` | `RenderProp` | - |
 | `asChild` | `boolean` | `false` |
@@ -70,6 +81,7 @@ Renders a command button and registers it in the toolbar's roving focus order.
 | Prop | Type | Default |
 | --- | --- | --- |
 | `disabled` | `boolean` | `false` |
+| `focusableWhenDisabled` | `boolean` | `false` |
 | `ariaLabel` | `string` | - |
 | `render` | `RenderProp` | - |
 | `asChild` | `boolean` | `false` |
@@ -121,6 +133,24 @@ prevents click navigation. A strict router component that requires a live
 destination must be adapted to render a destination-free anchor while
 disabled.
 
+### Group
+
+Groups related controls under `role="group"` without another roving-focus scope.
+Accepts native div props, `ariaLabel` (or native `aria-label`), `asChild`, `render`
+and a forwarded ref. Provide an accessible name when the grouping conveys meaning.
+
+### Input
+
+A native input participating in Toolbar's single roving-focus scope. Accepts
+native input props, `render` and a forwarded input ref. Root `disabled` dominates
+the input's own state. Supply a label through native HTML labeling or `aria-label`.
+
+Horizontal inputs keep arrow keys and Home/End for text editing. Place one input
+last so Tab exits naturally. In vertical toolbars ordinary text inputs use
+Up/Down for toolbar navigation; number inputs and multiline/contenteditable
+hosts keep their native editing keys instead. Do not compose another keyboard
+composite into Input or use Toolbar to intercept its editing commands.
+
 ### Separator
 
 Renders a semantic separator between control groups. Its orientation describes
@@ -128,13 +158,14 @@ the separator line, not the Toolbar direction.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `orientation` | `"horizontal" \| "vertical"` | `"vertical"` |
+| `orientation` | `"horizontal" \| "vertical"` | Perpendicular to Root |
+| `decorative` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 | `asChild` | `boolean` | `false` |
 
 | ARIA attribute | Values |
 | --- | --- |
-| `role` | `"separator"` |
+| `role` | `"separator"`, or `"presentation"` when decorative |
 | `aria-orientation` | Separator orientation |
 
 | Data attribute | Values |
@@ -146,6 +177,9 @@ the separator line, not the Toolbar direction.
 
 Owns single or multiple pressed values for related ToggleItem parts without
 creating another Tab stop outside the Toolbar's roving focus model.
+
+Single mode accepts string values and returns a string. Multiple mode requires
+`type="multiple"`, accepts arrays, and returns an array. Ref targets the group host.
 
 | Prop | Type | Default |
 | --- | --- | --- |

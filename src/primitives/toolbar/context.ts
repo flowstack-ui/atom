@@ -7,6 +7,7 @@ export type ToolbarOrientation = "horizontal" | "vertical";
 export type ToolbarDirection = DirectionValue;
 
 export interface ToolbarContextValue {
+  disabled: boolean;
   /** Toolbar layout direction. */
   orientation: ToolbarOrientation;
   /** Text direction for arrow key mapping. */

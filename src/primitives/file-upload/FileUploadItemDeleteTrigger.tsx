@@ -7,6 +7,7 @@ import {
   type ReactNode,
 } from "react";
 import type { NativeButtonProps } from "../../utils/dom.js";
+import { fileUploadActionHost } from "./action-host.js";
 import {
   cloneAndMerge,
   renderElement,
@@ -52,7 +53,8 @@ export const FileUploadItemDeleteTrigger = forwardRef<
     removeFile,
   } = ctx;
   const { file } = itemCtx;
-  const isInactive = disabled || readOnly;
+  const host = fileUploadActionHost(children, render, asChild);
+  const isInactive = disabled || readOnly || host.inactive;
 
   const handleClick = useCallback<MouseEventHandler<HTMLButtonElement>>(
     (event) => {
@@ -62,11 +64,13 @@ export const FileUploadItemDeleteTrigger = forwardRef<
       }
 
       onClick?.(event);
+      if (!event.defaultPrevented) host.onClick?.(event);
+      if (!event.defaultPrevented) host.onPress?.(event);
       if (event.defaultPrevented) return;
 
       removeFile(file);
     },
-    [file, isInactive, onClick, removeFile],
+    [file, isInactive, onClick, removeFile, host.onClick, host.onPress],
   );
 
   const behaviorProps: Record<string, unknown> = {
@@ -74,7 +78,7 @@ export const FileUploadItemDeleteTrigger = forwardRef<
     ref,
     type: "button",
     disabled: isInactive || undefined,
-    "aria-label": ariaLabel ?? `Remove ${file.name}`,
+    "aria-label": ariaLabel ?? host.label ?? ctx.translations.removeFile?.(file.name) ?? `Remove ${file.name}`,
     "data-slot": dataSlot,
     ...(disabled && { "data-disabled": "" }),
     ...(readOnly && { "data-readonly": "" }),
@@ -82,10 +86,10 @@ export const FileUploadItemDeleteTrigger = forwardRef<
   };
 
   if (asChild) {
-    return cloneAndMerge(children, behaviorProps);
+    return cloneAndMerge(host.children, behaviorProps);
   }
 
-  return renderElement(render, "button", {
+  return renderElement(host.render, "button", {
     ...behaviorProps,
     children,
   });

@@ -42,6 +42,7 @@ export const DrawerOverlay = forwardRef<HTMLDivElement, DrawerOverlayProps>(
       isOpen,
       onClose,
       closeOnBackdropClick,
+      onInteractOutside,
       recordInteraction,
       consumeInteraction,
       clearInteraction,
@@ -98,7 +99,7 @@ export const DrawerOverlay = forwardRef<HTMLDivElement, DrawerOverlayProps>(
         className={className}
         onPointerDown={(event) => {
           onPointerDown?.(event);
-          if (event.defaultPrevented) return;
+          if (!isOpen || !isTopLayer || event.defaultPrevented) return;
           if (event.target !== event.currentTarget) return;
           recordInteraction(
             getModalPointerInteractionType(event.pointerType),
@@ -118,6 +119,8 @@ export const DrawerOverlay = forwardRef<HTMLDivElement, DrawerOverlayProps>(
           }
           const interactionType = consumeInteraction(event.currentTarget);
           if (event.defaultPrevented) return;
+          onInteractOutside?.(event.nativeEvent);
+          if (event.nativeEvent.defaultPrevented) return;
           if (isTopLayer && !disabled && closeOnBackdropClick) {
             onClose("backdropClick", interactionType);
           }

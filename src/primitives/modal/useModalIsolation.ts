@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect } from "react";
+import { useIsomorphicLayoutEffect as useLayoutEffect } from "../../hooks/useIsomorphicLayoutEffect.js";
 import type { FocusScope } from "../../hooks/focus.js";
 import type { ModalLayer } from "./layer.js";
 import { registerModalIsolation } from "./isolation.js";

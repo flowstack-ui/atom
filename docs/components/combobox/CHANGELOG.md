@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
+- Preserve Control refs and state through asChild/render, including Tags Input composition.
+
 ## 0.24.0
 
 - Added public Agent Knowledge for component selection, required composition,

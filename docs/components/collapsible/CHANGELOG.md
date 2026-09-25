@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
+- Fall back to ordinary hidden retained content when React does not export Activity.
+
+- Add controller/provider/context and state-aware Indicator, custom IDs,
+  independent mounting, partial previews and Activity hiding.
+- Reuse shared exit presence and keep closed content inert; preserve legacy
+  keepMounted and boolean state callbacks.
+
 ## 0.24.0
 
 - Added source-led Agent Knowledge for single-disclosure selection, trigger

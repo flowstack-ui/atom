@@ -22,7 +22,7 @@ function installDom() {
   );
   const keys = [
     "window", "document", "HTMLElement", "Element", "Node", "Event",
-    "KeyboardEvent", "IS_REACT_ACT_ENVIRONMENT",
+    "KeyboardEvent", "getComputedStyle", "IS_REACT_ACT_ENVIRONMENT",
   ];
   const previous = Object.fromEntries(keys.map((key) => [key, globalThis[key]]));
   Object.assign(globalThis, {
@@ -33,10 +33,15 @@ function installDom() {
     Node: dom.window.Node,
     Event: dom.window.Event,
     KeyboardEvent: dom.window.KeyboardEvent,
+    getComputedStyle: dom.window.getComputedStyle.bind(dom.window),
     IS_REACT_ACT_ENVIRONMENT: true,
   });
 
   const scrollCalls = [];
+  // React was imported before a browser existed, so its legacy input-event
+  // detection is active in this isolated SSR/JSDOM harness.
+  dom.window.HTMLElement.prototype.attachEvent = function () {};
+  dom.window.HTMLElement.prototype.detachEvent = function () {};
   dom.window.HTMLElement.prototype.scrollIntoView = function scrollIntoView(options) {
     scrollCalls.push({ element: this, options });
   };
@@ -67,6 +72,40 @@ async function press(target, key, options = {}) {
   });
   return event;
 }
+
+test("Feed skips unavailable articles and exit targets and preserves editor shortcuts", async () => {
+  const dom = installDom();
+  const root = createRoot(dom.container);
+  try {
+    await React.act(async () => root.render(React.createElement(React.Fragment, null,
+      React.createElement(Feed.Root, { "aria-label": "Updates" },
+        React.createElement(Feed.Item, { id: "first" }, React.createElement("textarea", { id: "editor" })),
+        React.createElement(Feed.Item, { hidden: true }, "Hidden"),
+        React.createElement(Feed.Item, { inert: true }, "Inert"),
+        React.createElement(Feed.Item, { style: { display: "none" } }, "Not displayed"),
+        React.createElement(Feed.Item, { id: "last", tabIndex: -1 }, "Last")),
+      React.createElement("button", { hidden: true }, "Hidden exit"),
+      React.createElement("button", { disabled: true }, "Disabled exit"),
+      React.createElement("button", { id: "exit" }, "Exit"))));
+    const first = document.getElementById("first");
+    const last = document.getElementById("last");
+    first.focus();
+    await press(first, "PageDown");
+    assert.equal(document.activeElement, last);
+    await press(last, "End", { ctrlKey: true });
+    assert.equal(document.activeElement, document.getElementById("exit"));
+    const editor = document.getElementById("editor");
+    editor.focus();
+    for (const key of ["Home", "End", "PageDown", "PageUp"]) {
+      const event = await press(editor, key, { ctrlKey: true });
+      assert.equal(event.defaultPrevented, false);
+      assert.equal(document.activeElement, editor);
+    }
+  } finally {
+    await React.act(async () => root.unmount());
+    dom.cleanup();
+  }
+});
 
 test("Feed compound parts render WAI-ARIA feed anatomy", () => {
   const html = renderToStaticMarkup(

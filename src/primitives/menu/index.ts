@@ -27,8 +27,11 @@ export type {
   MenuItemStateContextValue,
   MenuSubContextValue,
 } from "./context.js";
-export { MenuRoot } from "./MenuRoot.js";
-export type { MenuRootProps } from "./MenuRoot.js";
+export { MenuRoot, MenuRootProvider, useMenu } from "./MenuRoot.js";
+export type { MenuRootProps, MenuRootProviderProps, UseMenuOptions, UseMenuReturn } from "./MenuRoot.js";
+export type { MenuPositioningOptions, MenuLifecycleOptions, MenuOutsideEvents, MenuHighlightTarget, MenuHighlightChangeDetails, MenuSelectionEvent, MenuNavigateDetails } from "./options.js";
+export { MenuContext, useMenuState } from "./MenuState.js";
+export type { MenuContextProps, MenuState } from "./MenuState.js";
 export { MenuContent } from "./MenuContent.js";
 export type {
   MenuAlign,

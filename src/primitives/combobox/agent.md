@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Provide editable option filtering and single-value selection with independent committed value, input text, and popup state, plus listbox focus, positioning, dismissal, and form validation.
+Provide editable option filtering and single or multiple selection with independent committed value, input text, and popup state, plus listbox focus, positioning, dismissal, and form validation.
 
 ## Use when
 
@@ -10,7 +10,7 @@ Provide editable option filtering and single-value selection with independent co
 
 ## Choose something else when
 
-- Typing is unnecessary, choices should remain visible, several values are selected, or arbitrary input is not valid. Use Select, Listbox, MultiSelect, or Combobox without freeSolo.
+- Typing is unnecessary, choices should remain visible, or arbitrary input is not valid. Use Select, Listbox, or Combobox without freeSolo.
 
 ## Required composition
 
@@ -18,6 +18,8 @@ Provide editable option filtering and single-value selection with independent co
 
 ## Rules
 
+- **MUST:** Choose inputBehavior deliberately: none preserves manual highlight, autohighlight targets the first filtered match, and autocomplete updates single selection during keyboard navigation. selectionBehavior controls committed text (replace, clear, or preserve); multiple always clears. openOnKeyPress can disable arrow-key opening. Test controlled and reset paths separately.
+- **MUST:** Use multiple with values/defaultValues/onValuesChange for collection selection; scalar value remains the single-mode API. Multiple selection clears input text and stays open unless closeOnSelect is set. Keep controller setters paired through RootProvider. Use Content placement/strategy/hideWhenDetached for geometry; scrollToIndexFn delegates virtual item scrolling to the application.
 - **MUST:** Treat committed value, editable inputValue, and open state as independent controllable contracts and route each controlled prop through its matching callback.
 - **MUST:** Give Root the complete stable option data and render matching uniquely valued Items for filtered options; mark disabled options and keep labels consistent with filtering and display.
 - **MUST:** Enable freeSolo only when arbitrary typed values are valid domain values, and choose clearOnSelect deliberately for both option and free-form commits.

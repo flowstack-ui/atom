@@ -7,7 +7,7 @@ import ReactDOMClient from "react-dom/client";
 import ReactDOMServer from "react-dom/server";
 import jsdom from "jsdom";
 
-import { DropdownMenu, Popover } from "../../dist/index.js";
+import { DropdownMenu, Popover, usePopover } from "../../dist/index.js";
 
 const { act, useRef, useState } = React;
 const { hydrateRoot } = ReactDOMClient;
@@ -88,9 +88,133 @@ function dispatchPointerActivation(element, pointerType) {
   ));
 }
 
+test("Popover switches shared triggers without closing and restores the active trigger", async () => {
+  const events = [];
+  await withHydratedDom(React.createElement(Popover.Root, { onOpenChange: open => events.push(open) },
+    React.createElement(Popover.Trigger, { value: "a" }, "A"),
+    React.createElement(Popover.Trigger, { value: "b" }, "B"),
+    React.createElement(Popover.Content, { "aria-label": "Shared" }, React.createElement(Popover.Close, null, "Done"))), async dom => {
+    const [a, b] = dom.window.document.querySelectorAll("[data-slot=popover-trigger]");
+    await act(async () => { a.focus(); dispatchPointerActivation(a, "mouse"); });
+    await act(async () => { b.focus(); dispatchPointerActivation(b, "mouse"); });
+    assert.equal(a.getAttribute("aria-expanded"), "false");
+    assert.equal(b.getAttribute("aria-expanded"), "true");
+    assert.deepEqual(events, [true]);
+    await act(async () => { dom.window.document.querySelector("[data-slot=popover-close]").click(); });
+    assert.equal(dom.window.document.activeElement, b);
+  });
+});
+
+test("Popover outside focus is observable but does not close when disabled by policy", async () => {
+  const events = [];
+  await withHydratedDom(React.createElement(Popover.Root, { defaultOpen: true, closeOnInteractOutside: false, onFocusOutside: () => events.push("focus") },
+    React.createElement(Popover.Trigger, null, "Open"),
+    React.createElement(Popover.Content, { "aria-label": "Policy" }, React.createElement("input"))), async dom => {
+    await act(async () => { dom.window.document.getElementById("outside").focus(); });
+    assert.ok(dom.window.document.querySelector("[data-state=open][role=dialog]"));
+    assert.deepEqual(events, ["focus"]);
+  });
+});
+
+test("Popover external controller retains form state while hidden", async () => {
+  function Fixture() {
+    const api = usePopover({ lazyMount: false, unmountOnExit: false });
+    return React.createElement(Popover.RootProvider, { value: api },
+      React.createElement("button", { onClick: () => api.setOpen(!api.open), id: "external" }, "Toggle"),
+      React.createElement(Popover.Content, { "aria-label": "Retained" }, React.createElement("input", { defaultValue: "Keep" })));
+  }
+  await withHydratedDom(React.createElement(Fixture), async dom => {
+    const panel = dom.window.document.querySelector("[role=dialog]");
+    assert.equal(panel.hidden, true);
+    await act(async () => dom.window.document.getElementById("external").click());
+    assert.equal(panel.hidden, false);
+    panel.querySelector("input").value = "Edited";
+    await act(async () => dom.window.document.getElementById("external").click());
+    await act(async () => new Promise(resolve => setTimeout(resolve, 40)));
+    assert.equal(panel.hidden, true);
+    assert.equal(panel.querySelector("input").value, "Edited");
+    assert.equal(dom.window.document.querySelectorAll("[data-slot=popover-focus-guard]").length, 0);
+  });
+});
+
+test("Popover outside pointer listeners belong to the iframe document", async () => {
+  await withHydratedDom(React.createElement("div"), async dom => {
+    const frame = dom.window.document.createElement("iframe");
+    dom.window.document.body.append(frame);
+    const doc = frame.contentDocument;
+    const root = ReactDOMClient.createRoot(doc.body);
+    try {
+      await act(async () => root.render(React.createElement(React.Fragment, null,
+        React.createElement("button", { id: "frame-outside" }, "Outside frame panel"),
+        React.createElement(Popover.Root, null,
+          React.createElement(Popover.Trigger, null, "Frame trigger"),
+          React.createElement(Popover.Content, { "aria-label": "Frame panel", initialFocus: false }, "Frame content")))));
+      await act(async () => dispatchPointerActivation(doc.querySelector("[data-slot=popover-trigger]"), "mouse"));
+      assert.ok(doc.querySelector("[role=dialog][data-state=open]"));
+      await act(async () => dispatchPointerActivation(doc.getElementById("frame-outside"), "mouse"));
+      await act(async () => new Promise(resolve => setTimeout(resolve, 40)));
+      assert.equal(doc.querySelector("[role=dialog]"), null);
+    } finally {
+      await act(async () => root.unmount());
+      frame.remove();
+    }
+  });
+});
+test("Popover pointer-down callback can veto completed outside dismissal", async () => {
+  await withHydratedDom(React.createElement(Popover.Root, { defaultOpen: true, onPointerDownOutside: event => event.preventDefault() },
+    React.createElement(Popover.Trigger, null, "Open"),
+    React.createElement(Popover.Content, { "aria-label": "Veto", initialFocus: false }, "Content")), async dom => {
+    const outside = dom.window.document.getElementById("outside");
+    await act(async () => {
+      dispatchPointerEvent(outside, "pointerdown");
+      dispatchPointerEvent(outside, "pointerup");
+      outside.click();
+    });
+    assert.ok(dom.window.document.querySelector("[role=dialog][data-state=open]"));
+  });
+});
+
 function dispatchPointerDown(element, pointerType = "mouse") {
   dispatchPointerEvent(element, "pointerdown", pointerType);
 }
+
+test("Popover requests dismissal when a retained ancestor closes", async () => {
+  let closeParent;
+  const notifications = [];
+  function Fixture() {
+    const [open, setOpen] = useState(true);
+    closeParent = () => setOpen(false);
+    return React.createElement(Popover.Root, { open, onOpenChange: setOpen, unmountOnExit: false },
+      React.createElement(Popover.Trigger, null, "Parent"),
+      React.createElement(Popover.Content, { "aria-label": "Parent", initialFocus: false },
+        React.createElement(Popover.Root, { defaultOpen: true, onRequestDismiss: event => notifications.push(event.type) },
+          React.createElement(Popover.Trigger, null, "Child"),
+          React.createElement(Popover.Content, { "aria-label": "Child", initialFocus: false }, "Retained child"))));
+  }
+  await withHydratedDom(React.createElement(Fixture), async dom => {
+    await act(async () => { closeParent(); });
+    await act(async () => new Promise(resolve => setTimeout(resolve, 40)));
+    assert.deepEqual(notifications, ["ancestor-dismiss"]);
+    assert.equal(dom.window.document.querySelector('[aria-label="Child"][data-state="open"]'), null);
+  });
+});
+
+test("Popover closes when its active trigger is removed without focusing a detached node", async () => {
+  let remove;
+  function Fixture() {
+    const [shown, setShown] = useState(true);
+    remove = () => setShown(false);
+    return React.createElement(Popover.Root, null,
+      shown && React.createElement(Popover.Trigger, { value: "active" }, "Active"),
+      React.createElement(Popover.Content, { "aria-label": "Removable" }, "Content"));
+  }
+  await withHydratedDom(React.createElement(Fixture), async dom => {
+    await act(async () => dispatchPointerActivation(dom.window.document.querySelector('[data-slot="popover-trigger"]'), "mouse"));
+    await act(async () => remove());
+    await act(async () => new Promise(resolve => setTimeout(resolve, 40)));
+    assert.equal(dom.window.document.querySelector('[aria-label="Removable"][data-state="open"]'), null);
+  });
+});
 
 function dispatchPointerEvent(
   element,
@@ -273,6 +397,7 @@ test("Popover remains open while focus moves into a portalled descendant menu", 
       assert.equal(
         menuContent.contains(dom.window.document.activeElement),
         true,
+        `Focus destination: ${dom.window.document.activeElement?.outerHTML}; menu connected: ${menuContent.isConnected}`,
       );
       assert.ok(dom.window.document.querySelector("[data-slot=popover-content]"));
     },

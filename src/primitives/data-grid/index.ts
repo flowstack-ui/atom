@@ -14,6 +14,8 @@ export type {
   DataGridSortDirection,
 } from "./context.js";
 export { DataGridRoot } from "./DataGridRoot.js";
+export { DataGridColumnResizeHandle } from "./DataGridColumnResizeHandle.js";
+export type { DataGridColumnResizeHandleProps } from "./DataGridColumnResizeHandle.js";
 export type { DataGridRootProps } from "./DataGridRoot.js";
 export { DataGridHeader } from "./DataGridHeader.js";
 export type { DataGridHeaderProps } from "./DataGridHeader.js";
@@ -26,6 +28,12 @@ export type { DataGridRowProps } from "./DataGridRow.js";
 export { DataGridColumnHeader } from "./DataGridColumnHeader.js";
 export type { DataGridColumnHeaderProps } from "./DataGridColumnHeader.js";
 export { DataGridCell } from "./DataGridCell.js";
+export { DataGridRowHeader } from "./DataGridRowHeader.js";
+export type { DataGridRowHeaderProps } from "./DataGridRowHeader.js";
 export type { DataGridCellProps } from "./DataGridCell.js";
 export { DataGridCaption } from "./DataGridCaption.js";
 export type { DataGridCaptionProps } from "./DataGridCaption.js";
+export { DataGridColumnGroup } from "./DataGridColumnGroup.js";
+export type { DataGridColumnGroupProps } from "./DataGridColumnGroup.js";
+export { DataGridColumn } from "./DataGridColumn.js";
+export type { DataGridColumnProps } from "./DataGridColumn.js";

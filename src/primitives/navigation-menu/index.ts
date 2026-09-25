@@ -1,7 +1,6 @@
 export {
   NavigationMenuContextProvider,
   NavigationMenuItemContextProvider,
-  useNavigationMenuContext,
   useNavigationMenuItemContext,
 } from "./context.js";
 export type {
@@ -25,6 +24,10 @@ export type {
   NavigationMenuViewportPositionOptions,
 } from "./geometry.js";
 export { NavigationMenuRoot } from "./NavigationMenuRoot.js";
+export { useNavigationMenu, useNavigationMenuContext, NavigationMenuRootProvider, NavigationMenuContext } from "./NavigationMenuController.js";
+export type { UseNavigationMenuOptions, UseNavigationMenuReturn, NavigationMenuApi, NavigationMenuRootProviderProps } from "./NavigationMenuController.js";
+export { NavigationMenuItemIndicator } from "./NavigationMenuItemIndicator.js";
+export type { NavigationMenuItemIndicatorProps } from "./NavigationMenuItemIndicator.js";
 export type { NavigationMenuRootProps } from "./NavigationMenuRoot.js";
 export { NavigationMenuSub } from "./NavigationMenuSub.js";
 export type { NavigationMenuSubProps } from "./NavigationMenuSub.js";

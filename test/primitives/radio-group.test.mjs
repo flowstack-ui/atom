@@ -12,7 +12,50 @@ import {
 import {
   RadioGroupRoot,
   RadioRoot,
+  RadioGroupIndicator,
+  RadioGroupItemRoot, RadioGroupItemHiddenInput, RadioGroupItemText, RadioGroupItemDescription,
+  RadioGroupRootProvider, useRadioGroup,
+  Fieldset,
 } from "../../dist/index.js";
+
+test("RadioGroup cannot re-enable an inherited disabled fieldset", () => {
+  const html = renderToStaticMarkup(React.createElement(Fieldset.Root, { disabled: true },
+    React.createElement(RadioGroupRoot, { disabled: false }, React.createElement(RadioRoot, { value: "a" }, "A"))));
+  assert.match(html, /role="radio"[^>]*aria-disabled="true"/);
+});
+
+test("RadioRoot honors child cancellation and callback ref cleanup", async () => {
+  const dom = installDom();
+  const root = createRoot(dom.container);
+  let attached = 0, detached = 0;
+  const changes = [];
+  try {
+    await React.act(async () => root.render(React.createElement(RadioGroupRoot, { onValueChange: value => changes.push(value) },
+      React.createElement(RadioRoot, { value: "a", asChild: true, ref: node => {
+        if (!node) return;
+        attached++;
+        return () => { detached++; };
+      } }, React.createElement("button", { onClick: event => event.preventDefault() }, "A")))));
+    await React.act(async () => dom.container.querySelector("button").click());
+    assert.deepEqual(changes, []);
+  } finally {
+    await React.act(async () => root.unmount());
+    dom.cleanup();
+  }
+  assert.ok(attached > 0);
+  assert.equal(detached, attached);
+});
+
+test("RadioGroup Indicator keeps deterministic decorative SSR and named input anatomy", () => {
+  const html = renderToStaticMarkup(React.createElement(RadioGroupRoot, { name: "view", defaultValue: "a", "data-slot": "custom-root" },
+    React.createElement(RadioGroupIndicator),
+    React.createElement(RadioRoot, { value: "a" }, "A"),
+    React.createElement(RadioRoot, { value: "b" }, "B")));
+  assert.match(html, /data-slot="radio-group-indicator"/);
+  assert.doesNotMatch(html, /data-ready/);
+  assert.equal((html.match(/type="radio"/g) ?? []).length, 2);
+  assert.match(html, /aria-checked="true"/);
+});
 
 import {
   getRadioGroupNavigationDirection,
@@ -51,6 +94,148 @@ function installDom() {
     },
   };
 }
+
+test("unavailable selected values retain one enabled Tab entry and fail required validity", async () => {
+  const dom = installDom();
+  const root = createRoot(dom.container);
+  const changes = [];
+  try {
+    for (const [value, disabled] of [["missing", false], ["a", true], ["a", false]]) {
+      await React.act(async () => root.render(React.createElement(RadioGroupRoot, { value, required: true, onValueChange: next => changes.push(next) },
+        React.createElement(RadioRoot, { value: "a", disabled }, "A"),
+        React.createElement(RadioRoot, { value: "b" }, "B"))));
+      const eligible = [...dom.container.querySelectorAll('[role="radio"]')].filter(node => !node.disabled && node.tabIndex === 0);
+      assert.equal(eligible.length, 1);
+      assert.equal(eligible[0].textContent, disabled ? "B" : "A");
+      assert.equal(dom.container.querySelector('input[type="checkbox"]').checked, value === "a" && !disabled);
+    }
+    assert.deepEqual(changes, []);
+  } finally {
+    await React.act(async () => root.unmount());
+    dom.cleanup();
+  }
+});
+
+test("open native items share controller state, names, refs and one submitted value", async () => {
+  const dom = installDom();
+  const root = createRoot(dom.container);
+  const inputRef = React.createRef();
+  const changes = [];
+  let controller;
+  function Example() {
+    controller = useRadioGroup({ defaultValue: "a", name: "choice", form: "settings", onValueChange: next => changes.push(next) });
+    return React.createElement(RadioGroupRootProvider, { controller }, ...["a", "b"].map(value => React.createElement(RadioGroupItemRoot, { key: value, value },
+      React.createElement(RadioGroupItemHiddenInput, { ref: value === "b" ? inputRef : undefined }),
+      React.createElement(RadioGroupItemText, {}, value.toUpperCase()),
+      React.createElement(RadioGroupItemDescription, {}, `Details ${value}`))));
+  }
+  try {
+    await React.act(async () => root.render(React.createElement(Example)));
+    assert.equal(dom.container.querySelectorAll('input[type="radio"]').length, 2);
+    assert.equal(dom.container.querySelectorAll('[role="radio"]').length, 0);
+    const input = inputRef.current;
+    assert.equal(document.getElementById(input.getAttribute("aria-labelledby")).textContent, "B");
+    assert.equal(document.getElementById(input.getAttribute("aria-describedby")).textContent, "Details b");
+    await React.act(async () => input.click());
+    assert.deepEqual(changes, ["b"]);
+    assert.deepEqual(new FormData(document.getElementById("settings")).getAll("choice"), ["b"]);
+    await React.act(async () => controller.reset());
+    assert.equal(controller.value, "a");
+  } finally { await React.act(async () => root.unmount()); dom.cleanup(); }
+});
+
+test("dynamic availability recovers focus locally without rewriting selection", async () => {
+  const dom = installDom();
+  const root = createRoot(dom.container);
+  const changes = [];
+  function Demo({ values, disabled = [] }) {
+    return React.createElement(React.Fragment, {},
+      React.createElement("button", { id: "outside" }, "Outside"),
+      React.createElement(RadioGroupRoot, { value: "a", required: true, onValueChange: value => changes.push(value) },
+        ...values.map(value => React.createElement(RadioRoot, { key: value, value, disabled: disabled.includes(value) }, value))));
+  }
+  try {
+    await React.act(async () => root.render(React.createElement(Demo, { values: ["a", "b", "c"] })));
+    dom.container.querySelector('[role="radio"][data-value="a"]').focus();
+    await React.act(async () => root.render(React.createElement(Demo, { values: ["b", "c"] })));
+    assert.equal(document.activeElement.dataset.value, "b");
+    assert.equal(dom.container.querySelectorAll('[role="radio"][tabindex="0"]').length, 1);
+    assert.equal(dom.container.querySelector('input[type="checkbox"]').checked, false);
+    document.getElementById("outside").focus();
+    await React.act(async () => root.render(React.createElement(Demo, { values: ["c", "a"], disabled: ["a"] })));
+    assert.equal(document.activeElement.id, "outside");
+    assert.equal(dom.container.querySelector('[role="radio"][tabindex="0"]').dataset.value, "c");
+    await React.act(async () => root.render(React.createElement(Demo, { values: ["c", "a"] })));
+    assert.equal(dom.container.querySelector('[role="radio"][tabindex="0"]').dataset.value, "a");
+    await React.act(async () => root.render(React.createElement(Demo, { values: ["c", "a"], disabled: ["a", "c"] })));
+    assert.equal(dom.container.querySelectorAll('[role="radio"][tabindex="0"]').length, 0);
+    assert.deepEqual(changes, []);
+  } finally { await React.act(async () => root.unmount()); dom.cleanup(); }
+});
+
+test("provider locks guard external controller changes and native item cancellation", async () => {
+  const dom = installDom();
+  const root = createRoot(dom.container);
+  let controller;
+  const changes = [];
+  function Demo({ disabled = false, readOnly = false, cancel = false }) {
+    controller = useRadioGroup({ defaultValue: "a", onValueChange: value => changes.push(value) });
+    return React.createElement(RadioGroupRootProvider, { controller, disabled, readOnly },
+      ...["a","b"].map(value => React.createElement(RadioGroupItemRoot, { value, key:value },
+        React.createElement(RadioGroupItemHiddenInput, { onChange: event => { if (cancel) event.preventDefault(); } }),
+        React.createElement(RadioGroupItemText, {}, value))));
+  }
+  try {
+    for (const locked of [{disabled:true},{readOnly:true}]) {
+      await React.act(async () => root.render(React.createElement(Demo, locked)));
+      await React.act(async () => controller.setValue("b"));
+      assert.equal(controller.value, "a");
+      await React.act(async () => dom.container.querySelector('input[value="b"]').click());
+      assert.equal(controller.value, "a");
+    }
+    await React.act(async () => root.render(React.createElement(Demo, {cancel:true})));
+    await React.act(async () => dom.container.querySelector('input[value="b"]').click());
+    assert.equal(controller.value, "a");
+    assert.equal(dom.container.querySelector('input[value="a"]').checked, true);
+    assert.deepEqual(changes, []);
+    await React.act(async () => root.render(React.createElement(Demo)));
+    await React.act(async () => controller.setValue("b"));
+    assert.equal(controller.value, "b");
+  } finally { await React.act(async () => root.unmount()); dom.cleanup(); }
+});
+
+test("Indicator retains measured coordinates through selection commits", async () => {
+  const dom = installDom();
+  const root = createRoot(dom.container);
+  const snapshots = [];
+  const rect = { x: 0, y: 0, left: 0, top: 0, right: 100, bottom: 40, width: 100, height: 40, toJSON() {} };
+  const prototype = window.HTMLElement.prototype;
+  prototype.getClientRects = () => [rect];
+  prototype.getBoundingClientRect = function () {
+    return { ...rect, left: this.textContent === "B" ? 100 : 0 };
+  };
+  function Example({ value }) {
+    React.useLayoutEffect(() => {
+      const indicator = dom.container.querySelector('[data-slot="radio-group-indicator"]');
+      snapshots.push({ value, ready: indicator.hasAttribute("data-ready"), x: indicator.style.getPropertyValue("--radio-group-indicator-x") });
+    }, [value]);
+    return React.createElement(RadioGroupRoot, { value },
+      React.createElement(RadioGroupIndicator),
+      React.createElement(RadioRoot, { value: "a" }, "A"),
+      React.createElement(RadioRoot, { value: "b" }, "B"));
+  }
+  try {
+    await React.act(async () => root.render(React.createElement(Example, { value: "a" })));
+    await React.act(async () => root.render(React.createElement(Example, { value: "b" })));
+    assert.deepEqual(snapshots.at(-1), { value: "b", ready: true, x: "0px" });
+    assert.equal(dom.container.querySelector('[data-slot="radio-group-indicator"]').style.getPropertyValue("--radio-group-indicator-x"), "100px");
+    await React.act(async () => root.render(React.createElement(Example, { value: "" })));
+    assert.equal(dom.container.querySelector('[data-slot="radio-group-indicator"]').hasAttribute("data-ready"), false);
+  } finally {
+    await React.act(async () => root.unmount());
+    dom.cleanup();
+  }
+});
 
 test("RadioGroupRoot renders WAI-ARIA radiogroup attributes", () => {
   const html = renderToStaticMarkup(
@@ -133,7 +318,7 @@ test("RadioRoot renders selected and unselected radio items inside group", () =>
   assert.match(html, /aria-disabled="true"/);
   assert.match(html, /aria-invalid="true"/);
   assert.match(html, /aria-label="Email"/);
-  assert.match(html, /tabindex="0"/);
+  assert.doesNotMatch(html, /tabindex="0"/);
   assert.match(html, /data-state="checked"/);
   assert.match(html, /data-disabled=""/);
   assert.match(html, /data-invalid=""/);

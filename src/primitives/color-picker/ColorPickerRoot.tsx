@@ -45,6 +45,11 @@ export interface ColorPickerRootProps extends RootNativeProps {
   form?: string;
   inputId?: string;
   dir?: DirectionValue;
+  ids?: zagColorPicker.Props["ids"];
+  lazyMount?: boolean;
+  unmountOnExit?: boolean;
+  present?: boolean;
+  onExitComplete?: () => void;
   "data-slot"?: string;
 }
 
@@ -57,10 +62,8 @@ function resolveColor(
   return parseColorPickerValue(value) ?? fallback;
 }
 
-export const ColorPickerRoot = forwardRef<HTMLDivElement, ColorPickerRootProps>(
-  function ColorPickerRoot(
+export function useColorPicker(
     {
-      children,
       value,
       defaultValue = COLOR_PICKER_DEFAULT_VALUE,
       onValueChange,
@@ -86,12 +89,16 @@ export const ColorPickerRoot = forwardRef<HTMLDivElement, ColorPickerRootProps>(
       name,
       form,
       inputId,
+      ids,
+      lazyMount = false,
+      unmountOnExit = false,
+      present,
+      onExitComplete,
       dir: dirProp,
       id: idProp,
       "data-slot": dataSlot = "color-picker",
       ...restProps
-    },
-    ref,
+    }: Omit<ColorPickerRootProps, "children"> = {},
   ) {
     const field = useFieldContext();
     const contextDir = useDirection();
@@ -104,9 +111,7 @@ export const ColorPickerRoot = forwardRef<HTMLDivElement, ColorPickerRootProps>(
     const parsedValue = resolveColor(value, fallback);
     const machine = useMachine(zagColorPicker.machine, {
       id: idProp ?? generatedId,
-      ids: inputId ?? field?.controlId
-        ? { input: inputId ?? field?.controlId }
-        : undefined,
+      ids: { ...ids, ...(inputId ?? field?.controlId ? { input: inputId ?? field?.controlId } : {}) },
       dir: dirProp ?? contextDir,
       value: parsedValue,
       defaultValue: parsedDefaultValue,
@@ -137,17 +142,31 @@ export const ColorPickerRoot = forwardRef<HTMLDivElement, ColorPickerRootProps>(
       api.getRootProps() as Record<string, unknown>,
       { ...restProps, "data-slot": dataSlot } as Record<string, unknown>,
     ) as ComponentPropsWithoutRef<"div"> & { "data-slot": string };
-    const contextValue = useMemo(
-      () => ({ api, form, onValueChangeEnd }),
-      [api, form, onValueChangeEnd],
-    );
+    return { api, form, inputId: inputId ?? field?.controlId ?? ids?.input, onValueChangeEnd, rootProps: mergedProps,
+      lifecycle: { lazyMount, unmountOnExit, present, onExitComplete } };
+}
+
+export type UseColorPickerReturn = ReturnType<typeof useColorPicker>;
+export type UseColorPickerOptions = Omit<ColorPickerRootProps, "children">;
+export type ColorPickerRootProviderProps = NativeDivProps<never> & {
+  value: UseColorPickerReturn;
+};
+export const ColorPickerRootProvider = forwardRef<HTMLDivElement, ColorPickerRootProviderProps>(
+  function ColorPickerRootProvider({ value, children, ...props }, ref) {
 
     return (
-      <ColorPickerContextProvider value={contextValue}>
-        <div {...mergedProps} ref={ref}>
+      <ColorPickerContextProvider value={value}>
+        <div {...mergeProps(value.rootProps, props)} ref={ref}>
           {children}
         </div>
       </ColorPickerContextProvider>
     );
+  },
+);
+
+export const ColorPickerRoot = forwardRef<HTMLDivElement, ColorPickerRootProps>(
+  function ColorPickerRoot({children, ...props}, ref) {
+    const value = useColorPicker(props);
+    return <ColorPickerRootProvider value={value} ref={ref}>{children}</ColorPickerRootProvider>;
   },
 );

@@ -14,7 +14,37 @@ import {
   AccordionRoot,
   AccordionTrigger,
   Direction,
+  AccordionRootProvider,
+  AccordionIndicator,
+  AccordionItemContext,
+  useAccordion,
 } from "../../dist/index.js";
+
+test("Accordion controller, coordinated IDs and nearest item indicator are public", () => {
+  function Fixture() {
+    const api = useAccordion({ defaultValue: "one", ids: { root: "faq", item: v => `item-${v}`, itemTrigger: v => `trigger-${v}`, itemContent: v => `content-${v}` } });
+    return React.createElement(AccordionRootProvider, { value: api }, React.createElement(AccordionItem, {value:"one"},
+      React.createElement(AccordionHeader, null, React.createElement(AccordionTrigger, null, "Question", React.createElement(AccordionIndicator, null, "icon"))),
+      React.createElement(AccordionContent, null, React.createElement(AccordionItemContext, null, item => item.isOpen ? "Expanded answer" : "Closed answer"))));
+  }
+  const html = renderToStaticMarkup(React.createElement(Fixture));
+  assert.match(html, /id="faq"/);
+  assert.match(html, /id="item-one"/);
+  assert.match(html, /aria-controls="content-one"/);
+  assert.match(html, /aria-labelledby="trigger-one"/);
+  assert.match(html, /aria-hidden="true"[^>]*data-slot="accordion-indicator"[^>]*data-state="open"/);
+  assert.match(html, /Expanded answer/);
+});
+
+test("Accordion eager retained closed panels are inert and lifecycle props do not leak", () => {
+  const html = renderToStaticMarkup(React.createElement(AccordionRoot, {lazyMount:false,unmountOnExit:false},
+    React.createElement(AccordionItem,{value:"one"},React.createElement(AccordionContent,null,"retained"))));
+  assert.match(html,/retained/);
+  assert.match(html,/aria-hidden="true"/);
+  assert.match(html,/inert=""/);
+  assert.match(html,/hidden=""/);
+  assert.doesNotMatch(html,/lazyMount=|unmountOnExit=/);
+});
 
 test("Accordion primitives render linked trigger and panel", () => {
   const html = renderToStaticMarkup(
@@ -284,7 +314,7 @@ test("AccordionContent measures an entering panel before its first painted frame
 
   assert.match(
     contentSource,
-    /useMeasuredContentHeight\(contentRef, isMounted \|\| isOpen, children\)/,
+    /useMeasuredContentHeight\(localRef, mounted \|\| isOpen, children\)/,
   );
   assert.match(measurementSource, /useSafeLayoutEffect\(\(\) => \{\s*measure\(\)/);
 });

@@ -121,7 +121,7 @@ test("modal focus hooks guard against stale targets and outside focus traps", as
   assert.match(focusSource, /frame = requestAnimationFrame\(focusWhenMounted\)/);
   assert.match(modalRootSource, /useCreateFocusScope\(\)/);
   assert.match(modalContentSource, /modalContentFocusMetadata/);
-  assert.match(modalContentSource, /useFocusTrap\(wrapperRef, isOpen && isTopLayer, \{ scope: focusScope \}\)/);
+  assert.match(modalContentSource, /useFocusTrap\(wrapperRef, isOpen && isTopLayer && trapFocus, \{ scope: focusScope \}\)/);
   assert.match(modalContentSource, /focusFirstDescendant\(container\)/);
   assert.doesNotMatch(modalContentSource, /FOCUSABLE_SELECTOR/);
   assert.match(selectListboxSource, /selectFocusScopeMetadata/);

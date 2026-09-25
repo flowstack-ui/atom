@@ -46,8 +46,8 @@ export const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
     const disabled = group.disabled || itemDisabled;
     const isOpen = group.value.includes(value);
     const idPrefix = useId();
-    const contentId = `${idPrefix}-content`;
-    const triggerId = `${idPrefix}-trigger`;
+    const contentId = group.ids?.itemContent?.(value) ?? `${idPrefix}-content`;
+    const triggerId = group.ids?.itemTrigger?.(value) ?? `${idPrefix}-trigger`;
 
     const onToggle = useCallback(() => {
       if (!disabled) group.onToggle(value);
@@ -64,6 +64,7 @@ export const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
 
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
+      id: restProps.id ?? group.ids?.item?.(value),
       ref,
       "data-slot": dataSlot,
       "data-state": isOpen ? "open" : "closed",

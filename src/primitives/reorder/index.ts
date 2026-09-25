@@ -1,4 +1,6 @@
 export { ReorderRoot } from "./ReorderRoot.js";
+export { ReorderPreview } from "./ReorderPreview.js";
+export type { ReorderPreviewProps } from "./ReorderPreview.js";
 export type { ReorderRootProps } from "./ReorderRoot.js";
 export { ReorderItem } from "./ReorderItem.js";
 export type { ReorderItemProps } from "./ReorderItem.js";

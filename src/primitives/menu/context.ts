@@ -8,6 +8,7 @@ import {
 import type { DirectionValue } from "../direction/index.js";
 import type { FocusScope } from "../../hooks/focus.js";
 import type { ModalLayer } from "../modal/layer.js";
+import type { MenuHighlightTarget, MenuLifecycleOptions, MenuNavigateDetails, MenuOutsideEvents, MenuPositioningOptions, MenuSelectionEvent } from "./options.js";
 
 export type MenuInitialHighlight = "first" | "last" | null;
 export type MenuCloseReason =
@@ -18,6 +19,9 @@ export type MenuCloseReason =
   | "programmatic";
 
 export interface MenuContentContextValue {
+  arrowHost?: HTMLElement | null;
+  arrowVisible?: boolean;
+  updatePosition?: () => void;
   arrowRef: RefObject<SVGSVGElement | null>;
   side: "top" | "right" | "bottom" | "left";
   align: "start" | "center" | "end";
@@ -54,6 +58,22 @@ export function getMenuSubmenuCloseKey(dir: DirectionValue): "ArrowLeft" | "Arro
 }
 
 export interface MenuContextValue {
+  typeahead?: boolean;
+  positioning?: MenuPositioningOptions;
+  lifecycle?: MenuLifecycleOptions;
+  outsideEvents?: MenuOutsideEvents;
+  publicHighlightedValue?: MenuHighlightTarget;
+  controlledHighlight?: boolean;
+  triggerValue?: string;
+  setTriggerValue?: (value: string | undefined) => void;
+  registerTrigger?: (value: string, node: HTMLElement | null) => void;
+  activateTrigger?: (value: string, node: HTMLElement) => void;
+  isTriggerTarget?: (node: Node) => boolean;
+  updateRef?: RefObject<(() => void) | null>;
+  anchorPoint?: { x: number; y: number } | null;
+  setAnchorPoint?: (point: { x: number; y: number } | null) => void;
+  dispatchSelect?: (event: MenuSelectionEvent) => void;
+  navigate?: (details: MenuNavigateDetails) => void;
   isOpen: boolean;
   onOpen: () => void;
   onClose: (reason?: MenuCloseReason, finalFocus?: HTMLElement | null) => void;
@@ -136,6 +156,8 @@ export function useOptionalMenuRadioGroupContext(): MenuRadioGroupContextValue |
 }
 
 export interface MenuSubContextValue {
+  positioning?: MenuPositioningOptions;
+  lifecycle?: MenuLifecycleOptions;
   isOpen: boolean;
   onOpen: () => void;
   onClose: () => void;

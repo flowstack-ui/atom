@@ -1,5 +1,18 @@
 # Carousel Changelog
 
+## Unreleased
+
+- No unreleased changes.
+
+## 0.27.0
+
+- Add measured page selection, grouped/fractional/variable layouts, vertical
+  geometry, mouse drag, visible-peer semantics and the shared controller/provider.
+- Keep cyclic positioning and native scroll changes in one frame; suspend snap
+  during transport and remeasure when a deferred viewport becomes visible.
+- Preserve value selection and authored content identity. Short loops use an
+  instant boundary reset; collections without overflow disable movement.
+
 ## 0.22.5
 
 - Scoped programmatic alignment to the Carousel viewport so hydration and

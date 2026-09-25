@@ -12,6 +12,7 @@ import {
   useMenuContext,
   type MenuAlign,
   type MenuSide,
+  type MenuContentProps,
 } from "../menu/index.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import type { RenderProp } from "../../utils/slot.js";
@@ -19,7 +20,7 @@ import { useMenubarContext, useMenubarMenuContext } from "./context.js";
 
 type MenubarContentNativeProps = NativeDivProps<"children" | "role">;
 
-export interface MenubarContentProps extends MenubarContentNativeProps {
+export interface MenubarContentProps extends MenuContentProps {
   children: ReactNode;
   asChild?: boolean;
   render?: RenderProp;
@@ -39,9 +40,9 @@ function MenubarContent(
     children,
     asChild = false,
     render,
-    side = "bottom",
-    align = "start",
-    sideOffset = 4,
+    side,
+    align,
+    sideOffset,
     loop,
     ariaLabel,
     className,

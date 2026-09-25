@@ -67,6 +67,8 @@ export interface DataGridRootProps extends DataGridRootNativeProps {
   wrapRows?: boolean;
   rowCount?: number;
   columnCount?: number;
+  /** Number of mounted enabled rows traversed by PageUp/PageDown. */
+  pageSize?: number;
   selectOnRowClick?: boolean;
   render?: RenderProp;
   asChild?: boolean;
@@ -146,6 +148,7 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
       wrapRows = false,
       rowCount,
       columnCount,
+      pageSize = 10,
       selectOnRowClick = false,
       render,
       asChild,
@@ -162,9 +165,11 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
     const gridId = restProps.id ?? `data-grid-${generatedId}`;
     const gridRef = useRef<HTMLElement | null>(null);
     const [focused, setFocused] = useState(false);
+    const [interacting, setInteracting] = useState(false);
     const composedRef = useMemo(() => composeRefs(gridRef, ref), [ref]);
     const {
       getItem: getRow,
+      getItems: getRows,
       registerItem: registerCollectionRow,
       updateItem: updateCollectionRow,
       unregisterItem: unregisterCollectionRow,
@@ -192,16 +197,39 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
     );
     const resolvedColumnCount = normalizeDataGridCount(columnCount);
     const resolvedRowCount = normalizeDataGridCount(rowCount);
+    const resolvedPageSize = normalizeDataGridCount(pageSize) ?? 10;
+    const recoveryRequest = useRef<string | null>(null);
+    const selectionAnchor = useRef<string | undefined>(undefined);
+
+    // Collections may change after sorting, filtering or disabling a cell.
+    // Recover only while this grid owns focus, and never repeatedly request a
+    // controlled value which the caller deliberately declines to adopt.
+    useEffect(() => {
+      if (!focused || disabled) return;
+      const current = activeCell && getItem(getDataGridCellValue(activeCell.rowIndex, activeCell.columnIndex));
+      if (current && !current.disabled) { recoveryRequest.current = null; return; }
+      const cells = getItems().filter(item => !item.disabled).sort((a, b) =>
+        a.data.rowIndex - b.data.rowIndex || a.data.columnIndex - b.data.columnIndex);
+      const next = cells.find(item => item.data.rowIndex >= (activeCell?.rowIndex ?? 1)) ?? cells[cells.length - 1];
+      const key = next?.value ?? "empty";
+      if (recoveryRequest.current === key) return;
+      recoveryRequest.current = key;
+      setResolvedActiveCell(next ? { rowIndex: next.data.rowIndex, columnIndex: next.data.columnIndex } : null);
+    }, [activeCell, disabled, focused, getItem, getItems, setResolvedActiveCell]);
 
     useEffect(() => {
       const grid = gridRef.current;
       if (!grid) return undefined;
 
-      const handleFocusIn = () => setFocused(true);
+      const handleFocusIn = (event: FocusEvent) => {
+        setFocused(true);
+        setInteracting(event.target !== grid);
+      };
       const handleFocusOut = (event: FocusEvent) => {
         const nextTarget = event.relatedTarget;
         if (nextTarget instanceof Node && grid.contains(nextTarget)) return;
         setFocused(false);
+        setInteracting(false);
       };
 
       grid.addEventListener("focusin", handleFocusIn);
@@ -285,11 +313,12 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
         const nextValue = getDataGridCellValue(rowIndex, columnIndex);
         const item = getItem(nextValue);
         if (!item || item.disabled) return;
-        setResolvedActiveCell({ rowIndex, columnIndex });
+        if (activeCell?.rowIndex !== rowIndex || activeCell.columnIndex !== columnIndex)
+          setResolvedActiveCell({ rowIndex, columnIndex });
         gridRef.current?.focus({ preventScroll: true });
         item.element.scrollIntoView({ block: "nearest", inline: "nearest" });
       },
-      [getItem, setResolvedActiveCell],
+      [activeCell, getItem, setResolvedActiveCell],
     );
 
     const getCellId = useCallback(
@@ -305,7 +334,7 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
     );
 
     const selectRow = useCallback(
-      (rowValue: string | undefined) => {
+      (rowValue: string | undefined, extend = false) => {
         if (
           !rowValue ||
           disabled ||
@@ -315,9 +344,21 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
           return;
         }
         const row = getRow(rowValue);
-        if (row && !row.data.selectable) return;
+        if (!row || row.disabled || !row.data.selectable) return;
 
         if (selectionMode === "multiple") {
+          if (extend && selectionAnchor.current) {
+            const rows = getRows().filter(item => !item.disabled && item.data.selectable)
+              .sort((a, b) => a.data.rowIndex - b.data.rowIndex);
+            const start = rows.findIndex(item => item.value === selectionAnchor.current);
+            const end = rows.findIndex(item => item.value === rowValue);
+            if (start >= 0 && end >= 0) {
+              const range = rows.slice(Math.min(start, end), Math.max(start, end) + 1).map(item => item.value);
+              setSelectedValue(current => [...new Set([...normalizeDataGridSelectionValue(current), ...range])]);
+              return;
+            }
+          }
+          selectionAnchor.current = rowValue;
           setSelectedValue((currentValue) => {
             const currentValues = normalizeDataGridSelectionValue(currentValue);
             if (currentValues.includes(rowValue)) {
@@ -330,11 +371,11 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
 
         setSelectedValue(rowValue);
       },
-      [disabled, getRow, readOnly, selectionMode, setSelectedValue],
+      [disabled, getRow, getRows, readOnly, selectionMode, setSelectedValue],
     );
 
     const moveActiveCell = useCallback(
-      (direction: "up" | "down" | "left" | "right" | "row-start" | "row-end" | "grid-start" | "grid-end") => {
+      (direction: "up" | "down" | "left" | "right" | "row-start" | "row-end" | "grid-start" | "grid-end" | "page-up" | "page-down") => {
         const enabledCells = getItems().filter((item) => !item.disabled);
         if (enabledCells.length === 0) return;
 
@@ -362,6 +403,14 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
         }
 
         const currentRow = rows.get(current.rowIndex) ?? [];
+        if (direction === "page-up" || direction === "page-down") {
+          const index = Math.max(0, rowIndexes.indexOf(current.rowIndex));
+          const nextIndex = Math.max(0, Math.min(rowIndexes.length - 1,
+            index + (direction === "page-down" ? resolvedPageSize : -resolvedPageSize)));
+          const target = getClosestColumnCell(rows.get(rowIndexes[nextIndex]) ?? [], current.columnIndex);
+          if (target) focusCell(target.data.rowIndex, target.data.columnIndex);
+          return;
+        }
         const currentCellIndex = currentRow.findIndex(
           (item) => item.data.columnIndex === current.columnIndex,
         );
@@ -419,12 +468,26 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
 
         if (target) focusCell(target.data.rowIndex, target.data.columnIndex);
       },
-      [activeCell, focusCell, getItems, loop, wrapRows],
+      [activeCell, focusCell, getItems, loop, resolvedPageSize, wrapRows],
     );
 
     const handleKeyDown = useCallback<KeyboardEventHandler<HTMLElement>>(
       (event) => {
         if (disabled) return;
+        // Embedded widgets own their key events. Their cell handles Escape
+        // after consumer handlers and after any innermost overlay dismisses.
+        if (event.target !== event.currentTarget || event.nativeEvent.isComposing) return;
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "a" && selectionMode === "multiple" && !readOnly) {
+          event.preventDefault();
+          const values = getRows().filter(row => !row.disabled && row.data.selectable).map(row => row.value);
+          setSelectedValue(current => {
+            const existing = normalizeDataGridSelectionValue(current);
+            return values.every(value => existing.includes(value))
+              ? existing.filter(value => !values.includes(value))
+              : [...new Set([...existing, ...values])];
+          });
+          return;
+        }
 
         const navigationDirection = getDataGridNavigationDirection(event.key, dir);
         if (navigationDirection) {
@@ -434,6 +497,11 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
         }
 
         switch (event.key) {
+          case "PageUp":
+          case "PageDown":
+            event.preventDefault();
+            moveActiveCell(event.key === "PageDown" ? "page-down" : "page-up");
+            return;
           case "Home":
             event.preventDefault();
             moveActiveCell(event.ctrlKey || event.metaKey ? "grid-start" : "row-start");
@@ -442,10 +510,17 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
             event.preventDefault();
             moveActiveCell(event.ctrlKey || event.metaKey ? "grid-end" : "row-end");
             return;
+          case "F2":
           case "Enter":
           case " ": {
             if (!activeCell) return;
             const item = getItem(getDataGridCellValue(activeCell.rowIndex, activeCell.columnIndex));
+            if (!item || item.disabled) return;
+            if ((event.key === "Enter" || event.key === "F2") && item.data.enterInteraction?.()) {
+              event.preventDefault();
+              return;
+            }
+            if (event.key === "F2") return;
             if (event.key === "Enter" && item?.data.onAction) {
               event.preventDefault();
               item.data.onAction();
@@ -453,14 +528,14 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
             }
             if (!item?.data.rowValue) return;
             event.preventDefault();
-            selectRow(item.data.rowValue);
+            selectRow(item.data.rowValue, event.shiftKey);
             return;
           }
           default:
             break;
         }
       },
-      [activeCell, dir, disabled, getItem, moveActiveCell, selectRow],
+      [activeCell, dir, disabled, getItem, getRows, moveActiveCell, readOnly, selectionMode, selectRow, setSelectedValue],
     );
 
     const activeCellId = activeCell
@@ -469,6 +544,7 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
 
     const contextValue = useMemo<DataGridContextValue>(
       () => ({
+        dir,
         gridId,
         gridRef,
         disabled,
@@ -496,6 +572,7 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
         activeCellId,
         disabled,
         focusCell,
+        dir,
         focused,
         getCellId,
         gridId,
@@ -522,7 +599,8 @@ export const DataGridRoot = forwardRef<HTMLElement, DataGridRootProps>(
       dir,
       role: "grid",
       tabIndex: tabIndex ?? 0,
-      "aria-activedescendant": activeCellId,
+      "aria-activedescendant": interacting ? undefined : activeCellId,
+      "data-interacting": interacting ? "" : undefined,
       "aria-colcount": resolvedColumnCount ?? -1,
       "aria-disabled": disabled || undefined,
       "aria-multiselectable": selectionMode === "multiple" || undefined,

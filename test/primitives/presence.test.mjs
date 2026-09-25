@@ -60,10 +60,19 @@ async function wait(milliseconds) {
   });
 }
 
-function SearchDialog({ open }) {
+function installClock(context) {
+  context.mock.timers.enable({ apis: ["setTimeout", "Date"], now: 1000 });
+  // JSDOM does not run CSS animations. Advance only the fallback scheduling
+  // contract here; native animation ordering remains browser-tested.
+  window.requestAnimationFrame = callback => setTimeout(() => callback(Date.now()), 16);
+  window.cancelAnimationFrame = handle => clearTimeout(handle);
+  return milliseconds => React.act(async () => context.mock.timers.tick(milliseconds));
+}
+
+function SearchDialog({ open, onExitComplete }) {
   return React.createElement(
     Dialog.Root,
-    { open, onOpenChange: () => {} },
+    { open, onOpenChange: () => {}, onExitComplete },
     React.createElement(Dialog.Trigger, null, "Search"),
     React.createElement(
       Dialog.Portal,
@@ -110,8 +119,44 @@ test("presence exits when global transition CSS does not emit an end event", asy
   }
 });
 
-test("presence respects repeated animation duration before using its fallback", async () => {
+test("one root exit waits for both surfaces and cancels stale reopening work", async (context) => {
   const { container, cleanup } = installDom();
+  const wait = installClock(context);
+  const root = createRoot(container);
+  let completions = 0;
+  const onExitComplete = () => { completions++; };
+  const render = open => React.act(async () => root.render(React.createElement(SearchDialog, { open, onExitComplete })));
+  try {
+    document.head.appendChild(document.createElement("style")).textContent = `
+      .search-overlay { transition-property: opacity; transition-duration: 80ms; }
+      .search-dialog { transition-property: opacity; transition-duration: 5ms; }
+    `;
+    await render(true); await render(false);
+    await wait(40); assert.equal(completions, 0);
+    await render(true); await wait(150); assert.equal(completions, 0);
+    await render(false); await wait(40); assert.equal(completions, 0);
+    await wait(150); assert.equal(completions, 1);
+    await wait(50); assert.equal(completions, 1);
+  } finally { await React.act(async () => root.unmount()); cleanup(); }
+});
+
+test("root exit without animated parts completes exactly once", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  let completions = 0;
+  const onExitComplete = () => { completions++; };
+  try {
+    await React.act(async () => root.render(React.createElement(Dialog.Root, { open: true, onExitComplete })));
+    await React.act(async () => root.render(React.createElement(Dialog.Root, { open: false, onExitComplete })));
+    await wait(50); assert.equal(completions, 1);
+    await React.act(async () => root.render(React.createElement(Dialog.Root, { open: false, onExitComplete })));
+    await wait(50); assert.equal(completions, 1);
+  } finally { await React.act(async () => root.unmount()); cleanup(); }
+});
+
+test("presence respects repeated animation duration before using its fallback", async (context) => {
+  const { container, cleanup } = installDom();
+  const wait = installClock(context);
   const root = createRoot(container);
   try {
     document.head.appendChild(document.createElement("style")).textContent = `
@@ -145,8 +190,9 @@ test("presence respects repeated animation duration before using its fallback", 
   }
 });
 
-test("presence repeats transition timing lists and ignores descendant end events", async () => {
+test("presence repeats transition timing lists and ignores descendant end events", async (context) => {
   const { container, cleanup } = installDom();
+  const wait = installClock(context);
   const root = createRoot(container);
   try {
     document.head.appendChild(document.createElement("style")).textContent = `

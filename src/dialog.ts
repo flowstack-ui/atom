@@ -2,6 +2,7 @@
 
 import {
   DialogClose,
+  DialogPositioner,
   DialogContent,
   DialogDescription,
   DialogOverlay,
@@ -14,6 +15,7 @@ import {
 } from "./primitives/modal/index.js";
 
 export {
+  DialogPositioner,
   DialogClose,
   DialogContent,
   DialogDescription,
@@ -23,6 +25,7 @@ export {
   DialogTrigger,
 } from "./primitives/dialog/index.js";
 export type {
+  DialogPositionerProps,
   DialogCloseProps,
   DialogContentProps,
   DialogDescriptionProps,
@@ -63,6 +66,7 @@ export type {
 
 export const Dialog = {
   Root: ModalRoot,
+  Positioner: DialogPositioner,
   Trigger: DialogTrigger,
   Portal: DialogPortal,
   Overlay: DialogOverlay,

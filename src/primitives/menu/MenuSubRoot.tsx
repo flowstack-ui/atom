@@ -1,13 +1,15 @@
 "use client";
 
-import { useCallback, useId, useRef, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useRef, type ReactNode } from "react";
+import type { MenuLifecycleOptions, MenuPositioningOptions } from "./options.js";
 import {
   MenuSubContextProvider,
   useMenuContext,
   type MenuSubContextValue,
 } from "./context.js";
 
-export interface MenuSubRootProps {
+export interface MenuSubRootProps extends MenuLifecycleOptions {
+  positioning?: MenuPositioningOptions;
   children: ReactNode;
   open?: boolean;
   defaultOpen?: boolean;
@@ -19,6 +21,8 @@ export function MenuSubRoot({
   open: controlledOpen,
   defaultOpen = false,
   onOpenChange,
+  positioning,
+  ...lifecycle
 }: MenuSubRootProps) {
   const parentMenuContext = useMenuContext();
   const subMenuId = useId();
@@ -30,13 +34,13 @@ export function MenuSubRoot({
     : parentMenuContext.openSubMenuId === subMenuId;
 
   const onOpen = useCallback(() => {
-    if (isControlled) onOpenChange?.(true);
-    else parentMenuContext.onSubMenuOpen(subMenuId);
+    if (!isControlled) parentMenuContext.onSubMenuOpen(subMenuId);
+    onOpenChange?.(true);
   }, [isControlled, onOpenChange, parentMenuContext, subMenuId]);
 
   const onClose = useCallback(() => {
-    if (isControlled) onOpenChange?.(false);
-    else parentMenuContext.onSubMenuClose();
+    if (!isControlled) parentMenuContext.onSubMenuClose();
+    onOpenChange?.(false);
   }, [isControlled, onOpenChange, parentMenuContext]);
 
   const onToggle = useCallback(() => {
@@ -45,14 +49,16 @@ export function MenuSubRoot({
   }, [isOpen, onClose, onOpen]);
 
   const hasInitialized = useRef(false);
-  if (!hasInitialized.current && defaultOpen && !isControlled) {
+  useEffect(() => {
+    if (hasInitialized.current) return;
     hasInitialized.current = true;
-    queueMicrotask(() => parentMenuContext.onSubMenuOpen(subMenuId));
-  }
-  if (!hasInitialized.current) hasInitialized.current = true;
+    if (defaultOpen && !isControlled) parentMenuContext.onSubMenuOpen(subMenuId);
+  }, [defaultOpen, isControlled, parentMenuContext, subMenuId]);
 
   const contextValue: MenuSubContextValue = {
-    isOpen,
+    isOpen: isOpen && parentMenuContext.isOpen,
+    positioning,
+    lifecycle: { ...parentMenuContext.lifecycle, onExitComplete: undefined, ...lifecycle },
     onOpen,
     onClose,
     onToggle,

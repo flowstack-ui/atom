@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
+import type { ScrollAreaEngine } from "./controller.js";
 
 export type ScrollAreaOrientation = "vertical" | "horizontal" | "both";
 
@@ -8,6 +9,12 @@ export interface ScrollAreaContextValue {
   /** Scroll direction exposed to compound parts through data attributes. */
   orientation: ScrollAreaOrientation;
 }
+
+// Kept separate from the public, backwards-compatible orientation context.
+const ScrollAreaEngineContext = createContext<ScrollAreaEngine | null>(null);
+ScrollAreaEngineContext.displayName = "ScrollAreaEngineContext";
+export const ScrollAreaEngineProvider = ScrollAreaEngineContext.Provider;
+export const useScrollAreaEngine = () => useContext(ScrollAreaEngineContext);
 
 const ScrollAreaContext = createContext<ScrollAreaContextValue | null>(null);
 ScrollAreaContext.displayName = "ScrollAreaContext";

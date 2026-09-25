@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, type ReactNode } from "react";
+import { forwardRef, useMemo, type ReactNode } from "react";
 import type { NativeInputProps } from "../../utils/dom.js";
 import { cloneAndMerge, composeEventHandlers, composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
 import { useNumberInputContext } from "./context.js";
@@ -20,11 +20,14 @@ export const NumberInputInput = forwardRef<HTMLInputElement, NumberInputInputPro
     ref,
   ) {
     const context = useNumberInputContext();
+    const inputRef = useMemo(() => composeRefs(context.inputRef, context.registerInput, ref), [context.inputRef, context.registerInput, ref]);
     const behaviorProps = {
       ...restProps,
-      ref: composeRefs(context.inputRef, ref),
+      ref: inputRef,
       type: "text",
-      inputMode: context.inputMode,
+      inputMode: restProps.inputMode ?? context.inputMode,
+      pattern: restProps.pattern ?? context.pattern,
+      dir: restProps.dir ?? context.dir,
       role: "spinbutton",
       id: restProps.id ?? context.inputId,
       value: context.displayValue,
@@ -45,6 +48,9 @@ export const NumberInputInput = forwardRef<HTMLInputElement, NumberInputInputPro
       "aria-describedby": restProps["aria-describedby"] ?? context.ariaDescribedBy,
       autoComplete: restProps.autoComplete ?? "off",
       "data-slot": dataSlot,
+      "data-disabled": context.disabled ? "" : undefined,
+      "data-readonly": context.readOnly ? "" : undefined,
+      "data-invalid": context.invalid ? "" : undefined,
       "data-atom-validation-owner": "",
       "data-atom-validation-behavior": context.validationBehavior,
       onChange: composeEventHandlers(onChange, context.handleChange),

@@ -2,6 +2,7 @@
 
 import { DropdownMenuTrigger } from "./primitives/dropdown-menu/index.js";
 import {
+  MenuRootProvider, MenuContext,
   MenuCheckboxItem,
   MenuArrow,
   MenuContent,
@@ -22,6 +23,7 @@ import {
 export { DropdownMenuTrigger } from "./primitives/dropdown-menu/index.js";
 export type { DropdownMenuTriggerProps } from "./primitives/dropdown-menu/index.js";
 export {
+  MenuRootProvider, MenuContext, useMenu, useMenu as useDropdownMenu, useMenuState,
   MenuContextProvider,
   MenuCheckboxItem,
   MenuArrow,
@@ -45,6 +47,8 @@ export {
   useMenuSubContext,
 } from "./primitives/menu/index.js";
 export type {
+  MenuRootProviderProps, UseMenuOptions, UseMenuReturn, MenuContextProps, MenuState,
+  MenuPositioningOptions, MenuLifecycleOptions, MenuOutsideEvents, MenuHighlightTarget, MenuHighlightChangeDetails, MenuSelectionEvent, MenuNavigateDetails,
   MenuAlign,
   MenuCloseReason,
   MenuContextValue,
@@ -76,6 +80,8 @@ export type {
 } from "./utils/interactions.js";
 
 export const DropdownMenu = {
+  RootProvider: MenuRootProvider,
+  Context: MenuContext,
   Root: MenuRoot,
   Trigger: DropdownMenuTrigger,
   Portal: MenuPortal,

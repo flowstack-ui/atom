@@ -18,6 +18,7 @@ Reserve stable width-to-height geometry for media, embeds, and placeholders whil
 
 ## Rules
 
+- **MUST:** Use ratioVariable only as a CSS custom-property name for styled-layer geometry; Atom supplies the normalized numeric fallback and does not own breakpoints or child sizing.
 - **MUST:** Treat Root as geometry only; do not assign it media roles, accessible names, loading state, or interaction that belongs to its child.
 - **MUST:** Express ratio as width divided by height and provide a finite positive number; invalid values normalize to 16/9.
 - **MUST:** Give contained images suitable alt text, iframes descriptive titles, and interactive media its native keyboard and focus behavior.

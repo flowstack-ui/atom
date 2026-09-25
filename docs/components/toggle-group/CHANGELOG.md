@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
+- Skip disabled selected items when choosing the group's entry tab stop.
+
 ## 0.24.0
 
 - Added public Agent Knowledge for component selection, required composition,

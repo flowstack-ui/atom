@@ -47,6 +47,7 @@ export const ComboboxInput = forwardRef<HTMLInputElement, ComboboxInputProps>(
       onChange,
       onFocus,
       onKeyDown,
+      onClick,
       autoComplete = "off",
       ...restProps
     },
@@ -89,9 +90,11 @@ export const ComboboxInput = forwardRef<HTMLInputElement, ComboboxInputProps>(
     const handleChange: ChangeEventHandler<HTMLInputElement> = useCallback(
       (event) => {
         onInputValueChange(event.target.value);
-        onOpen();
+        const shouldOpen = typeof ctx.openOnChange === "function" ? ctx.openOnChange({ inputValue: event.target.value }) : ctx.openOnChange;
+        if (shouldOpen) onOpen();
+        else onClose();
       },
-      [onInputValueChange, onOpen],
+      [onInputValueChange, onOpen, onClose, ctx.openOnChange],
     );
 
     const handleFocus: FocusEventHandler<HTMLInputElement> = useCallback(() => {
@@ -117,48 +120,56 @@ export const ComboboxInput = forwardRef<HTMLInputElement, ComboboxInputProps>(
 
     const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = useCallback(
       (event) => {
-        if (disabled || readOnly) return;
+        if (disabled || readOnly || event.nativeEvent.isComposing || event.keyCode === 229) return;
 
         const values = getEnabledItemValues();
         const currentValue = highlightedValue;
+        const highlight = (next: string | null) => {
+          onHighlight(next);
+          if (next !== null && ctx.inputBehavior === "autocomplete") ctx.completeOption(next);
+        };
 
         switch (event.key) {
           case "ArrowDown": {
+            if (!isOpen && !ctx.openOnKeyPress) return;
             event.preventDefault();
             if (!isOpen) onOpen();
-            onHighlight(getNextComboboxValue(values, currentValue, "next"));
+            highlight(getNextComboboxValue(values, currentValue, "next", ctx.loopFocus));
             break;
           }
           case "ArrowUp": {
+            if (!isOpen && !ctx.openOnKeyPress) return;
             event.preventDefault();
             if (!isOpen) onOpen();
-            onHighlight(getNextComboboxValue(values, currentValue, "previous"));
+            highlight(getNextComboboxValue(values, currentValue, "previous", ctx.loopFocus));
             break;
           }
           case "Home": {
+            if (!isOpen) return;
             if (event.altKey || event.metaKey || event.ctrlKey) return;
             event.preventDefault();
             if (!isOpen) onOpen();
-            onHighlight(values[0] ?? null);
+            highlight(values[0] ?? null);
             break;
           }
           case "End": {
+            if (!isOpen) return;
             if (event.altKey || event.metaKey || event.ctrlKey) return;
             event.preventDefault();
             if (!isOpen) onOpen();
-            onHighlight(values[values.length - 1] ?? null);
+            highlight(values[values.length - 1] ?? null);
             break;
           }
           case "Enter": {
             if (!isOpen) return;
             event.preventDefault();
-            if (highlightedValue) {
+            if (highlightedValue !== null) {
               const option = getOption(highlightedValue);
-              if (option) selectOption(option);
+              const element = ctx.getItemElement(highlightedValue);
+              if (element?.tagName === "A") element.click();
+              else if (option) selectOption(option);
             } else if (freeSolo && inputValue) {
-              onValueChange(inputValue);
-              onInputValueChange(clearOnSelect ? "" : inputValue);
-              onClose();
+              selectOption({ value: inputValue, label: inputValue });
             }
             break;
           }
@@ -195,10 +206,15 @@ export const ComboboxInput = forwardRef<HTMLInputElement, ComboboxInputProps>(
         readOnly,
         selectOption,
         value,
+        ctx.loopFocus,
+        ctx.inputBehavior,
+        ctx.openOnKeyPress,
+        ctx.completeOption,
+        ctx.getItemElement,
       ],
     );
 
-    const activeDescendant = highlightedValue
+    const activeDescendant = highlightedValue !== null
       ? getItemId(highlightedValue)
       : undefined;
 
@@ -219,7 +235,7 @@ export const ComboboxInput = forwardRef<HTMLInputElement, ComboboxInputProps>(
       "aria-activedescendant": isOpen ? activeDescendant : undefined,
       "aria-autocomplete": "list",
       "aria-invalid": invalid || undefined,
-      "aria-required": required || undefined,
+      "aria-required": restProps["aria-required"] ?? (required || undefined),
       "aria-labelledby": restProps["aria-labelledby"] ??
         (restProps["aria-label"] === undefined ? fieldLabelId : undefined),
       "aria-describedby": Object.prototype.hasOwnProperty.call(restProps, "aria-describedby")
@@ -233,6 +249,7 @@ export const ComboboxInput = forwardRef<HTMLInputElement, ComboboxInputProps>(
       onChange: composeEventHandlers(onChange, handleChange),
       onFocus: composeEventHandlers(onFocus, handleFocus),
       onKeyDown: composeEventHandlers(onKeyDown, handleKeyDown),
+      onClick: composeEventHandlers(onClick, () => { if (ctx.openOnClick) onOpen(); }),
     };
 
     if (asChild) return cloneAndMerge(children, inputProps);

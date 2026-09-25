@@ -30,7 +30,8 @@ export const MenuRadioGroup = forwardRef<HTMLElement, MenuRadioGroupProps>(funct
   "data-slot": dataSlot = "menu-radio-group",
   ...restProps
 }: MenuRadioGroupProps, ref) {
-  const groupId = useId();
+  const generatedGroupId = useId();
+  const groupId = restProps.id ?? generatedGroupId;
   const labelId = useId();
   const hasLabel = hasMenuLabelPart(children);
   const handleValueChange = useCallback(

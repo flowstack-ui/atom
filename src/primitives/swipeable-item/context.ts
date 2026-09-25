@@ -33,6 +33,25 @@ export interface SwipeableItemContextValue {
   getSideForOffset: (offset: number) => SwipeableItemOpenSide;
   clampOffset: (offset: number) => number;
   close: () => void;
+  open: (side: SwipeableItemSide) => void;
+  reset: () => void;
+  getOffset: () => number;
+  getProgress: () => number;
+  settling: boolean;
+  setSettling: (value: boolean) => void;
+  armedSide: SwipeableItemOpenSide;
+  setArmedSide: (side: SwipeableItemOpenSide) => void;
+  resetKey: number;
+  rootRef: RefObject<HTMLElement | null>;
+  contentRef: RefObject<HTMLElement | null>;
+  thresholds: Partial<Record<SwipeableItemSide, number>> | undefined;
+  activationDistance: number;
+  velocityThreshold: number;
+  resistance: number;
+  fullSwipeSides: readonly SwipeableItemSide[] | undefined;
+  closeOnContentClick: boolean;
+  motion: "default" | "none";
+  onSettle: ((details: { openSide: SwipeableItemOpenSide; offset: number }) => void) | undefined;
 }
 
 const SwipeableItemContext = createContext<SwipeableItemContextValue | null>(null);

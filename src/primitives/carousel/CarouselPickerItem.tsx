@@ -11,58 +11,79 @@ import {
 import { useCarouselContext } from "./context.js";
 import { getCarouselSlideId } from "./utils.js";
 
-type CarouselPickerItemNativeProps = NativeButtonProps<"children" | "type" | "value">;
+type CarouselPickerItemNativeProps = NativeButtonProps<
+  "children" | "type" | "value"
+>;
 
-export interface CarouselPickerItemProps extends CarouselPickerItemNativeProps {
-  value: string;
-  children?: ReactNode;
-  render?: RenderProp;
-  asChild?: boolean;
-  "data-slot"?: string;
-}
+export type CarouselPickerItemProps = CarouselPickerItemNativeProps &
+  ({ value: string; page?: never } | { page: number; value?: never }) & {
+    children?: ReactNode;
+    render?: RenderProp;
+    asChild?: boolean;
+    "data-slot"?: string;
+  };
 
-export const CarouselPickerItem = forwardRef<HTMLButtonElement, CarouselPickerItemProps>(
-  function CarouselPickerItem(
-    {
-      value,
-      children,
-      render,
-      asChild,
-      className,
-      disabled,
-      "aria-label": ariaLabel,
-      "data-slot": dataSlot = "carousel-picker-item",
-      onClick,
-      ...restProps
-    },
-    ref,
-  ) {
-    const context = useCarouselContext();
-    const isActive = context.activeValue === value;
-    const slideData = context.getSlideData(value);
-    const isUnavailable = !context.getSlideElement(value);
-    const isDisabled = disabled || isUnavailable;
-    const handleClick: MouseEventHandler<HTMLButtonElement> = () => {
-      if (!isDisabled && !isActive) context.selectValue(value, "picker");
-    };
-    const behaviorProps: Record<string, unknown> = {
-      ...restProps,
-      ref,
-      type: "button",
-      disabled: isDisabled || undefined,
-      "aria-label": ariaLabel ?? slideData?.label ?? `Show ${value}`,
-      "aria-controls": getCarouselSlideId(context.idPrefix, value),
-      "aria-disabled": isActive ? true : undefined,
-      "data-slot": dataSlot,
-      "data-state": isActive ? "active" : "inactive",
-      "data-value": value,
-      ...(isDisabled ? { "data-disabled": "" } : {}),
-      className,
-      onClick: composeEventHandlers(onClick, handleClick),
-    };
-
-    if (asChild) return cloneAndMerge(children, behaviorProps);
-    return renderElement(render, "button", { ...behaviorProps, children });
+export const CarouselPickerItem = forwardRef<
+  HTMLButtonElement,
+  CarouselPickerItemProps
+>(function CarouselPickerItem(
+  {
+    value,
+    page,
+    children,
+    render,
+    asChild,
+    className,
+    disabled,
+    "aria-label": ariaLabel,
+    "data-slot": dataSlot = "carousel-picker-item",
+    onClick,
+    ...restProps
   },
-);
+  ref,
+) {
+  const context = useCarouselContext();
+  const targetValue =
+    page !== undefined
+      ? (context.pageSnapPoints[page]?.value ?? "")
+      : (value ?? "");
+  const isActive =
+    page !== undefined
+      ? context.page === page
+      : context.activeValue === targetValue;
+  const slideData = context.getSlideData(targetValue);
+  const isUnavailable = !context.getSlideElement(targetValue);
+  const isDisabled = disabled || isUnavailable;
+  const handleClick: MouseEventHandler<HTMLButtonElement> = () => {
+    if (!isDisabled && !isActive) {
+      if (page !== undefined) context.selectPage(page, "picker");
+      else context.selectValue(targetValue, "picker");
+    }
+  };
+  const behaviorProps: Record<string, unknown> = {
+    ...restProps,
+    ref,
+    type: "button",
+    disabled: isDisabled || undefined,
+    "aria-label":
+      ariaLabel ??
+      (page !== undefined
+        ? (context.translations?.indicator?.(page) ?? `Go to page ${page + 1}`)
+        : (slideData?.label ?? `Show ${targetValue}`)),
+    "aria-controls":
+      context.getSlideElement(targetValue)?.id ??
+      context.ids?.item?.(targetValue) ??
+      getCarouselSlideId(context.idPrefix, targetValue),
+    "aria-current": isActive ? "true" : undefined,
+    "aria-disabled": isActive ? true : undefined,
+    "data-slot": dataSlot,
+    "data-state": isActive ? "active" : "inactive",
+    "data-value": targetValue,
+    ...(isDisabled ? { "data-disabled": "" } : {}),
+    className,
+    onClick: composeEventHandlers(onClick, handleClick),
+  };
 
+  if (asChild) return cloneAndMerge(children, behaviorProps);
+  return renderElement(render, "button", { ...behaviorProps, children });
+});

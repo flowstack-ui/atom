@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
+- Add public controllers, RootProvider and Context composition, controlled/scoped highlight, typeahead control, cancellable selection, and native/router link navigation.
+- Add shared positioning, preventable outside events, persistent elements, and configurable retained presence. Content remains the semantic scroll/ref owner while Arrow renders outside its clipping region.
+- Preserve pointer container focus, keyboard first/last entry, active trigger identity, and menu-local item reveal.
+
 ## 0.24.0
 
 - Added public Agent Knowledge for component selection, required composition,

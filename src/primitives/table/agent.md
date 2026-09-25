@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Render native tabular structure for read-oriented row and column relationships, with caption, section, header, cell, and sort metadata anatomy.
+Render native tabular structure for read-oriented row and column relationships, with caption, column-group, section, header, cell, and sort metadata anatomy.
 
 ## Use when
 
@@ -15,11 +15,12 @@ Render native tabular structure for read-oriented row and column relationships, 
 
 ## Required composition
 
-- Compose Root with a naming Caption or equivalent accessible name, Header and Body section groups, Row, correctly scoped Head cells, and Cell parts; add Footer only for genuine summary rows and put an interactive control inside Head only when sorting is application-controlled.
+- Compose Root with a naming Caption or equivalent accessible name, optional ColumnGroup and Column sizing hints, Header and Body section groups, Row, correctly scoped Head cells, and Cell parts; add Footer only for genuine summary rows and put an interactive control inside Head only when sorting is application-controlled.
 
 ## Rules
 
 - **MUST:** Preserve native table, caption, section, row, th, and td semantics and valid table nesting; do not add an ARIA grid interaction model to read-only data.
+- **MUST:** Place Column only inside ColumnGroup and ColumnGroup directly inside Root before row groups; use htmlWidth only as a native CSS-pixel number or percentage sizing hint rather than a CSS-unit value, generated schema, or measurement engine.
 - **MUST:** Give the table an accessible name or useful caption when surrounding context does not already identify it.
 - **MUST:** Use Head for actual headers and choose scope or explicit native header relationships that accurately associate headers with data cells.
 - **MUST:** Treat sortDirection as metadata only; place a labelled interactive control inside a sortable Head and keep sorting, data order, and state application-owned.

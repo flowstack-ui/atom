@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useMemo, type ReactNode } from "react";
+import { forwardRef, useCallback, useMemo, type ReactNode } from "react";
+import { useToolbarContext } from "./context.js";
 import { useControllableState } from "../../hooks/useControllableState.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import {
@@ -11,20 +12,11 @@ import {
 import {
   ToolbarToggleContextProvider,
   type ToolbarToggleContextValue,
-  type ToolbarToggleType,
 } from "./toggleContext.js";
 
 type ToolbarToggleGroupNativeProps = NativeDivProps<"children" | "defaultValue" | "onChange" | "role">;
 
-export interface ToolbarToggleGroupProps extends ToolbarToggleGroupNativeProps {
-  /** Selection mode. */
-  type?: ToolbarToggleType;
-  /** Controlled selected values. */
-  value?: string | string[];
-  /** Uncontrolled initial selected values. */
-  defaultValue?: string | string[];
-  /** Fires when selection changes. */
-  onValueChange?: (value: string | string[]) => void;
+interface ToolbarToggleGroupBaseProps extends ToolbarToggleGroupNativeProps {
   /** Disables all toggle items. */
   disabled?: boolean;
   /** Override the rendered element. */
@@ -41,17 +33,22 @@ export interface ToolbarToggleGroupProps extends ToolbarToggleGroupNativeProps {
   "data-slot"?: string;
 }
 
+export type ToolbarToggleGroupProps = ToolbarToggleGroupBaseProps & (
+  | { type?: "single"; value?: string; defaultValue?: string; onValueChange?: (value: string) => void }
+  | { type: "multiple"; value?: string[]; defaultValue?: string[]; onValueChange?: (value: string[]) => void }
+);
+
 function normalizeValue(value: string | string[] | undefined): string[] {
   if (value === undefined) return [];
   return Array.isArray(value) ? value : [value];
 }
 
-export function ToolbarToggleGroup({
+export const ToolbarToggleGroup = forwardRef<HTMLDivElement, ToolbarToggleGroupProps>(function ToolbarToggleGroup({
   type = "single",
   value: controlledValue,
   defaultValue,
   onValueChange,
-  disabled = false,
+  disabled: ownDisabled = false,
   render,
   asChild,
   className,
@@ -59,12 +56,15 @@ export function ToolbarToggleGroup({
   ariaLabel,
   "data-slot": dataSlot = "toolbar-toggle-group",
   ...restProps
-}: ToolbarToggleGroupProps) {
+}: ToolbarToggleGroupProps, ref) {
+  const toolbar = useToolbarContext();
+  const disabled = ownDisabled || toolbar.disabled;
   const [value, setValue] = useControllableState<string[]>({
     value: controlledValue === undefined ? undefined : normalizeValue(controlledValue),
     defaultValue: normalizeValue(defaultValue),
     onChange: (nextValue) => {
-      onValueChange?.(type === "single" ? nextValue[0] ?? "" : nextValue);
+      if (type === "single") (onValueChange as ((value: string) => void) | undefined)?.(nextValue[0] ?? "");
+      else (onValueChange as ((value: string[]) => void) | undefined)?.(nextValue);
     },
   });
 
@@ -95,6 +95,7 @@ export function ToolbarToggleGroup({
 
   const behaviorProps: Record<string, unknown> = {
     ...restProps,
+    ref,
     role: "group",
     ...(ariaLabel !== undefined && { "aria-label": ariaLabel }),
     "data-slot": dataSlot,
@@ -111,4 +112,4 @@ export function ToolbarToggleGroup({
       {element}
     </ToolbarToggleContextProvider>
   );
-}
+});

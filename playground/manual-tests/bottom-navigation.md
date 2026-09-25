@@ -1,5 +1,10 @@
 # Bottom Navigation Manual Test Protocol
 
+September additions (manual results not yet recorded): verify native and composed
+landmark naming, disabled composed anchors, default button type without form
+submission, explicit submit preservation, cancelled activation and modified,
+download/non-self link activation without current-document selection changes.
+
 ## Step 0: Playground Smoke Check
 
 Setup

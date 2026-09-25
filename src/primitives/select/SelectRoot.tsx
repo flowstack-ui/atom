@@ -25,9 +25,17 @@ import {
 } from "../../hooks/useFormControlProxy.js";
 import { useFieldContext } from "../field/context.js";
 import type { ValidationBehavior } from "../form/validation.js";
+import type { SelectPositioningOptions } from "../../utils/selectPositioning.js";
+import type { SelectOption, SelectIds, SelectLifecycleOptions, SelectOutsideEvents } from "../../utils/selectOptions.js";
 import { SelectItemText } from "./SelectItemText.js";
 
-export interface SelectRootProps {
+export interface SelectRootProps extends SelectLifecycleOptions, SelectOutsideEvents {
+  /** Data records for opaque/async children and server-rendered form options. */
+  items?: readonly SelectOption[];
+  ids?: SelectIds;
+  /** Observe option activation separately from value changes. */
+  onSelect?: (value: string) => void;
+  scrollToIndexFn?: (details: { index: number; value: string }) => void;
   children: ReactNode;
   value?: string;
   defaultValue?: string;
@@ -42,9 +50,21 @@ export interface SelectRootProps {
   name?: string;
   form?: string;
   validationBehavior?: ValidationBehavior;
+  /** Close the popup after choosing a value. */
+  closeOnSelect?: boolean;
+  /** Wrap keyboard navigation at the first and last enabled option. */
+  loopFocus?: boolean;
+  positioning?: SelectPositioningOptions;
+  highlightedValue?: string | null;
+  defaultHighlightedValue?: string | null;
+  onHighlightChange?: (value: string | null) => void;
+  /** Choosing the selected option clears it. */
+  deselectable?: boolean;
+  /** Browser autofill hint for the native form proxy. */
+  autoComplete?: string;
 }
 
-export function SelectRoot({
+export function useSelect({
   children,
   value: controlledValue,
   defaultValue,
@@ -59,7 +79,26 @@ export function SelectRoot({
   name,
   form,
   validationBehavior,
-}: SelectRootProps) {
+  closeOnSelect = true,
+  deselectable = false,
+  autoComplete,
+  loopFocus = true,
+  positioning,
+  highlightedValue: controlledHighlight,
+  defaultHighlightedValue = null,
+  onHighlightChange,
+  onSelect,
+  scrollToIndexFn,
+  items,
+  ids,
+  lazyMount = true,
+  unmountOnExit = true,
+  present,
+  onExitComplete,
+  onFocusOutside,
+  onPointerDownOutside,
+  onEscapeKeyDown,
+}: Omit<SelectRootProps, "children"> & { children?: ReactNode } = {}) {
   const fieldCtx = useFieldContext();
   const isDisabled = disabled ?? fieldCtx?.disabled ?? false;
   const isReadOnly = readOnly ?? fieldCtx?.readOnly ?? false;
@@ -76,7 +115,12 @@ export function SelectRoot({
     [isOpenControlled, onOpenChange],
   );
 
-  const [highlightedValue, setHighlightedValue] = useState<string | null>(null);
+  const [internalHighlight, setInternalHighlight] = useState<string | null>(defaultHighlightedValue);
+  const highlightedValue = controlledHighlight !== undefined ? controlledHighlight : internalHighlight;
+  const setHighlightedValue = useCallback((next: string | null) => {
+    if (controlledHighlight === undefined) setInternalHighlight(next);
+    if (next !== highlightedValue) onHighlightChange?.(next);
+  }, [controlledHighlight, highlightedValue, onHighlightChange]);
   const [openHighlightIntent, setOpenHighlightIntent] =
     useState<SelectContextValue["openHighlightIntent"]>(null);
 
@@ -91,7 +135,7 @@ export function SelectRoot({
     setOpen(false);
     setHighlightedValue(null);
     setOpenHighlightIntent(null);
-  }, [setOpen]);
+  }, [setOpen, setHighlightedValue]);
 
   const onToggle = useCallback(() => {
     if (isDisabled || isReadOnly) return;
@@ -109,20 +153,29 @@ export function SelectRoot({
   const handleValueChange = useCallback(
     (next: string) => {
       if (isDisabled || isReadOnly) return;
-      if (!isValueControlled) setInternalValue(next);
-      onValueChange?.(next);
-      setOpen(false);
-      setHighlightedValue(null);
+      onSelect?.(next);
+      const nextValue = deselectable && next === value ? "" : next;
+      if (!isValueControlled) setInternalValue(nextValue);
+      onValueChange?.(nextValue);
+      if (closeOnSelect) {
+        setOpen(false);
+        setHighlightedValue(null);
+      }
     },
-    [isDisabled, isReadOnly, isValueControlled, onValueChange, setOpen],
+    [isDisabled, isReadOnly, isValueControlled, onSelect, onValueChange, setOpen, closeOnSelect, deselectable, value, setHighlightedValue],
   );
 
   const [isInsidePortal, setInsidePortal] = useState(false);
+  const clearValue = useCallback(() => {
+    if (isDisabled || isReadOnly) return;
+    if (!isValueControlled) setInternalValue("");
+    onValueChange?.("");
+  }, [isDisabled, isReadOnly, isValueControlled, onValueChange]);
 
   const idPrefix = useId();
-  const selectId = `select-${idPrefix}`;
-  const triggerId = `select-trigger-${idPrefix}`;
-  const listboxId = `select-listbox-${idPrefix}`;
+  const selectId = ids?.root ?? `select-${idPrefix}`;
+  const triggerId = ids?.trigger ?? `select-trigger-${idPrefix}`;
+  const listboxId = ids?.content ?? `select-listbox-${idPrefix}`;
 
   const triggerRef = useRef<HTMLButtonElement>(null);
   const selectRef = useRef<HTMLSelectElement>(null);
@@ -141,13 +194,15 @@ export function SelectRoot({
   const reset = useCallback(() => {
     if (!isValueControlled) setInternalValue(defaultValue);
     if (!isOpenControlled) setInternalOpen(defaultOpen);
-    setHighlightedValue(null);
-  }, [defaultOpen, defaultValue, isOpenControlled, isValueControlled]);
+    if (controlledHighlight === undefined) setInternalHighlight(defaultHighlightedValue);
+  }, [defaultOpen, defaultValue, isOpenControlled, isValueControlled, controlledHighlight, defaultHighlightedValue]);
   useFormReset(triggerRef, form, false, reset);
   const listboxRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const labelMapRef = useRef<Map<string, string>>(new Map());
-  const staticItems = useMemo(() => collectStaticSelectItems(children), [children]);
+  const staticItems = useMemo(() => items
+    ? new Map(items.map(item => [item.value, { text: item.label, disabled: item.disabled === true }]))
+    : collectStaticSelectItems(children), [children, items]);
   const {
     version: registryVersion,
     registerItem: registerCollectionItem,
@@ -198,8 +253,8 @@ export function SelectRoot({
 
   const getLabel = useCallback((itemValue: string) => {
     return (
-      labelMapRef.current.get(itemValue) ??
       staticItems.get(itemValue)?.text ??
+      labelMapRef.current.get(itemValue) ??
       getCollectionItem(itemValue)?.data.textValue
     );
   }, [getCollectionItem, staticItems]);
@@ -224,11 +279,17 @@ export function SelectRoot({
   const ctx: SelectContextValue = useMemo(
     () => ({
       isOpen,
+      scrollToIndexFn,
+      lifecycle: { lazyMount, unmountOnExit, present, onExitComplete },
+      outsideEvents: { onFocusOutside, onPointerDownOutside, onEscapeKeyDown },
+      loopFocus,
+      positioning,
       onOpen,
       onClose,
       onToggle,
       value,
       onValueChange: handleValueChange,
+      clearValue,
       highlightedValue,
       onHighlight: setHighlightedValue,
       selectId,
@@ -261,6 +322,8 @@ export function SelectRoot({
       clearOpenHighlightIntent: () => setOpenHighlightIntent(null),
     }),
     [
+      scrollToIndexFn,
+      lazyMount, unmountOnExit, present, onExitComplete, onFocusOutside, onPointerDownOutside, onEscapeKeyDown,
       fieldCtx?.controlId,
       fieldCtx?.describedBy,
       fieldCtx?.labelId,
@@ -270,10 +333,14 @@ export function SelectRoot({
       getItemValues,
       getLabel,
       handleValueChange,
+      clearValue,
       highlightedValue,
+      setHighlightedValue,
       isInsidePortal,
       isOpen,
       isDisabled,
+      loopFocus,
+      positioning,
       isInvalid,
       isReadOnly,
       isRequired,
@@ -295,33 +362,58 @@ export function SelectRoot({
     ],
   );
 
-  return (
-    <SelectContextProvider value={ctx}>
-      {name !== undefined || isRequired ? (
+  return {
+    context: ctx,
+    nativeControl: name !== undefined || isRequired ? (
         <select
           ref={selectRef}
           name={name}
+          autoComplete={autoComplete}
           value={value ?? ""}
           form={form}
           disabled={isDisabled}
           required={isRequired}
           aria-hidden="true"
           tabIndex={-1}
-          onFocus={() => triggerRef.current?.focus()}
+          onFocus={() => triggerRef.current?.focus({ preventScroll: true })}
           {...validation.validationProps}
+          onChange={(event) => {
+            validation.validationProps.onChange();
+            if (isDisabled || isReadOnly) return;
+            const next = event.currentTarget.value;
+            if (!isValueControlled) setInternalValue(next);
+            onValueChange?.(next);
+          }}
           style={formControlProxyStyle}
         >
           <option value="" />
-          {Array.from(staticItems.keys()).map((itemValue) => (
-            <option key={itemValue} value={itemValue}>
+          {Array.from(new Set([...staticItems.keys(), ...(value ? [value] : [])])).map((itemValue) => (
+            <option key={itemValue} value={itemValue} disabled={staticItems.get(itemValue)?.disabled}>
               {getLabel(itemValue) ?? itemValue}
             </option>
           ))}
         </select>
-      ) : null}
-      {children}
-    </SelectContextProvider>
-  );
+      ) : null,
+  };
+}
+
+export type UseSelectReturn = ReturnType<typeof useSelect>;
+
+export interface SelectRootProviderProps {
+  value: UseSelectReturn;
+  children?: ReactNode;
+}
+
+export function SelectRootProvider({ value, children }: SelectRootProviderProps) {
+  return <SelectContextProvider value={value.context}>
+    {value.nativeControl}
+    {children}
+  </SelectContextProvider>;
+}
+
+export function SelectRoot(props: SelectRootProps) {
+  const controller = useSelect(props);
+  return <SelectRootProvider value={controller}>{props.children}</SelectRootProvider>;
 }
 
 type StaticSelectElementProps = {

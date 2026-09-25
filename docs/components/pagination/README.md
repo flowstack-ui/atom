@@ -2,6 +2,28 @@
 
 Headless pagination primitives with stable page range calculation.
 
+## Count, controller and composition
+
+Use exactly one of `totalPages` or `count`. Count mode accepts `pageSize`,
+`defaultPageSize` (10), and numeric `onPageSizeChange`. `usePagination` exposes
+the same state for `Pagination.RootProvider value={controller}`; `Context`
+and `usePaginationContext` read it inside the root.
+
+The controller includes `page`, `totalPages`, `items`, `pageRange` (zero-based
+start, exclusive end), `setPage`, `setPageSize`, `slice`, and
+`goToFirstPage`, `goToPreviousPage`, `goToNextPage`, `goToLastPage`.
+Record ranges and page size are undefined in totalPages mode; `slice` and
+`setPageSize` require count mode. Changing size preserves the first visible
+record where possible. Totals clamp displayed pages without callbacks during
+render. Controlled values remain parent-owned.
+
+`List` supplies ordered-list semantics; parts rendered directly inside Root
+have no list-item wrapper, allowing ordinary control-group composition.
+`Items render={({ page, isCurrent }) => <button>{page}</button>}` merges Item
+behavior onto your host. `ellipsis` changes decorative gap content.
+`First` and `Last` are optional boundary controls with localized label props.
+Counts and page sizes must be safe integers (count >= 0, size >= 1).
+
 ## When to Use
 
 Use Pagination when a large result set is divided into numbered pages and
@@ -46,13 +68,17 @@ import { Pagination } from "@flowstack-ui/atom";
 
 ### Root
 
-Contains pagination state. Renders a `nav` by default. If `totalPages` is `0`
-or negative, `Root` returns `null` and no pagination DOM is rendered.
+Contains pagination state. Renders a `nav` by default. Zero computed pages
+render no navigation. Negative or noninteger totals are rejected.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `children` | `ReactNode` | required |
-| `totalPages` | `number` | required |
+| `totalPages` | `number` | alternative to count |
+| `count` | `number` | alternative to totalPages |
+| `pageSize` / `defaultPageSize` | `number` | `10` in count mode |
+| `onPageSizeChange` | `(pageSize: number) => void` | - |
+| `ids` | `PaginationIds` | native part IDs, item(page), ellipsis(rangeIndex) |
 | `page` | `number` | - |
 | `defaultPage` | `number` | `1` |
 | `onPageChange` | `(page: number) => void` | - |
@@ -61,6 +87,8 @@ or negative, `Root` returns `null` and no pagination DOM is rendered.
 | `disabled` | `boolean` | `false` |
 | `previousAriaLabel` | `string` | `"Previous page"` |
 | `nextAriaLabel` | `string` | `"Next page"` |
+| `firstAriaLabel` | `string` | `"First page"` |
+| `lastAriaLabel` | `string` | `"Last page"` |
 | `getItemAriaLabel` | `(details: PaginationItemLabelDetails) => string` | generated English label |
 | `getPageHref` | `(details: PaginationPageHrefDetails) => string` | - |
 | `asChild` | `boolean` | `false` |

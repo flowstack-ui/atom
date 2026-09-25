@@ -18,7 +18,7 @@ Wire one form control to its label, description, error, and shared required, dis
 
 ## Rules
 
-- **MUST:** Associate one Field with one owned control.
+- **MUST:** Use one control per Field, or named Field.Item controls with a Root target; keep item values unique and supply secondary accessible names.
 - **MUST:** Field.Label already renders the default required marker; do not add Field.RequiredIndicator inside it unless the default indicator is disabled.
 - **SHOULD:** Make error text explain how to correct the value.
 

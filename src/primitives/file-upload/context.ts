@@ -9,7 +9,8 @@ export type FileUploadDragState = "idle" | "accept" | "reject";
 export interface FileUploadContextValue {
   files: File[];
   rejectedFiles: FileUploadRejectedFile[];
-  setFilesFromList: (files: FileList | File[]) => void;
+  setFilesFromList: (files: FileList | File[] | Promise<File[]>) => void;
+  setFiles: (files: File[]) => void;
   removeFile: (file: File) => void;
   clearFiles: () => void;
   openFilePicker: () => void;
@@ -20,6 +21,16 @@ export interface FileUploadContextValue {
   required: boolean;
   invalid: boolean;
   multiple: boolean;
+  directory: boolean;
+  capture: boolean | "user" | "environment" | undefined;
+  allowDrop: boolean;
+  transforming: boolean;
+  transformError: unknown;
+  remainingFiles: number;
+  maxFilesReached: boolean;
+  clearRejectedFiles: () => void;
+  setClipboardFiles: (data: DataTransfer) => void;
+  translations: { clear?: string; removeFile?: (name: string) => string; fileCount?: (count: number) => string };
   accept: string | undefined;
   name: string | undefined;
   form: string | undefined;

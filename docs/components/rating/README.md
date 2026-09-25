@@ -41,6 +41,48 @@ import { Rating } from "@flowstack-ui/atom";
 
 ## API Reference
 
+### Controller and compound parts
+
+`useRating(options)` owns the same numeric model used by Root. Pass its result as
+`controller` to `Rating.RootProvider`. Its `value`, `setValue`, `clearValue`,
+`reset`, `min`, `max`, `step`, `items`, `getItemState`, `hoveredValue`,
+`previewValue`, `setHoveredValue`, `disabled` and `readOnly` support custom views.
+Configure value/range options on the hook. RootProvider attaches DOM, Field and
+native-form behavior. A controller represents one mounted control.
+
+`Label` renders a span, names Root, and focuses it when activated. `Control`
+renders a nonfocusable div for Items. Both support native props, ref, asChild and
+render. Root is still the only slider, not a radio group. Label can be replaced
+by Field.Label or explicit ARIA naming. `ids` supports root/label/control/input.
+
+`Context` and `ItemContext` accept a render function; their hook equivalents are
+`useRatingContext` and `useRatingItemContext`. Item context exposes value, fill
+and dataState. Hover changes artwork preview only; `onHoverChange(number|null)`
+does not change form submission, aria-valuenow or onValueChange.
+
+Automatic form submission is the default. For explicit composition set
+`inputMode="manual"` and include exactly one `HiddenInput` (input ref and native
+input attributes). Do not add a named input yourself. The required validation
+proxy is unnamed and remains Root-owned in both modes. Automatic HiddenInput
+misuse and directly authored duplicate inputs throw; wrapped duplicate parts
+are also checked on mount. `autoFocus` focuses once on mount when enabled.
+
+```tsx
+<Rating.Root name="score" defaultValue={3} step={0.5} inputMode="manual">
+  <Rating.Label>Your rating</Rating.Label>
+  <Rating.Control>
+    {[1, 2, 3, 4, 5].map(value => <Rating.Item key={value} value={value}>★</Rating.Item>)}
+  </Rating.Control>
+  <Rating.HiddenInput />
+</Rating.Root>
+```
+
+Disabled controls leave the tab sequence even with an authored tabIndex.
+Read-only controls remain focusable. Native disabled fieldsets (including their
+first-legend exception) are observed for changes. Only a primary left pointer
+can commit a value; touch does not leave a hover preview. Prevented form resets
+retain value and validation. Controlled values always remain caller-owned.
+
 ### Root
 
 Owns the numeric rating, form value, and slider semantics. It is the single

@@ -10,7 +10,7 @@ Provide a native password input with controlled or uncontrolled reveal state, an
 
 ## Choose something else when
 
-- The value is ordinary text, a one-time verification code, or policy forbids revealing the secret. Use Input, OTPField, or a password Input without a reveal control.
+- The value is ordinary text, a one-time verification code, or policy forbids revealing the secret. Use Input, PinInput, or a password Input without a reveal control.
 
 ## Required composition
 
@@ -21,8 +21,8 @@ Provide a native password input with controlled or uncontrolled reveal state, an
 - **MUST:** Include the visibility action only when revealing the password is acceptable for the product's security, privacy, observation, and shared-device context.
 - **MUST:** Keep Input as the native value, naming, autocomplete, validity, and submission owner while Atom changes only its owned type between password and text.
 - **MUST:** Give Toggle localized state-aware Show and Hide action labels; do not add aria-pressed because the changing action label communicates the available action.
-- **MUST:** Preserve Input focus on Toggle pointer down while keeping Toggle keyboard reachable by Tab, Enter, and Space.
-- **MUST:** Route controlled visible through onVisibleChange or use defaultVisible, preserve disabled/read-only/required/invalid Field behavior, restore uncontrolled visibility on reset, and restore type=password before native submission.
+- **MUST:** Preserve Input focus and its selection on Toggle pointer down while keeping Toggle keyboard reachable by Tab, Enter, and Space.
+- **MUST:** Route controlled visible through onVisibleChange or use defaultVisible, preserve disabled/read-only/required/invalid Field behavior, restore uncontrolled visibility on an accepted reset, and preserve value/visibility on a cancelled reset. Submit handlers observe type=password; after cancelled submission, restore the committed visibility type so Input, Icon and Toggle label remain coherent.
 
 ## Common mistakes
 
@@ -30,12 +30,12 @@ Provide a native password input with controlled or uncontrolled reveal state, an
 
 ## Validation checklist
 
-- Verify Input label, autocomplete and native props, controlled/uncontrolled visibility, password/text switching, localized Show/Hide Toggle labels, decorative Icon state, pointer focus preservation, keyboard Tab/Enter/Space, disabled and read-only behavior, and asChild/render Toggle composition.
-- Verify Field ID, label, description and error inheritance with native overrides, required/invalid inline and native validation, reset to defaultVisible, type=password restoration before form submission, external form association, and no unintended live-region or aria-pressed semantics.
+- Verify Input label, autocomplete and native props, controlled/uncontrolled visibility, password/text switching, localized Show/Hide Toggle labels, decorative Icon state, pointer focus and selection preservation, keyboard Tab/Enter/Space, disabled and read-only behavior, and asChild/render Toggle composition.
+- Verify Field ID, label, description and error inheritance with native overrides, required/invalid inline and native validation, accepted and cancelled reset behavior, type=password observation before form submission, cancelled-submit coherence, external form association, and no unintended live-region or aria-pressed semantics.
 
 ## Related guidance
 
 - `input`
-- `otp-field`
+- `pin-input`
 - `field`
 - `form`

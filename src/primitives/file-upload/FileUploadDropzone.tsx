@@ -14,6 +14,7 @@ import {
   type RenderProp,
 } from "../../utils/slot.js";
 import { useFileUploadContext } from "./context.js";
+import { getDroppedFiles } from "./directory.js";
 
 function getDraggedFiles(dataTransfer: DataTransfer): File[] {
   const files = Array.from(dataTransfer.files ?? []);
@@ -32,6 +33,8 @@ function hasDraggedFiles(dataTransfer: DataTransfer): boolean {
 type FileUploadDropzoneNativeProps = NativeDivProps<"children">;
 
 export interface FileUploadDropzoneProps extends FileUploadDropzoneNativeProps {
+  disableClick?: boolean;
+  onDirectoryError?: (error: unknown) => void;
   children?: ReactNode;
   render?: RenderProp;
   asChild?: boolean;
@@ -44,6 +47,10 @@ export const FileUploadDropzone = forwardRef<HTMLDivElement, FileUploadDropzoneP
       children,
       render,
       asChild,
+      disableClick = false,
+      onDirectoryError,
+      onClick,
+      onKeyDown,
       onDragEnter,
       onDragLeave,
       onDragOver,
@@ -66,18 +73,18 @@ export const FileUploadDropzone = forwardRef<HTMLDivElement, FileUploadDropzoneP
 
     const handleDragEnter = useCallback<DragEventHandler<HTMLDivElement>>(
       (event) => {
-        if (isInactive) return;
+        if (isInactive || !ctx.allowDrop) return;
         if (!hasDraggedFiles(event.dataTransfer)) return;
         event.preventDefault();
         const files = getDraggedFiles(event.dataTransfer);
         setDragState(files.length > 0 ? getDragState(files) : "accept");
       },
-      [getDragState, isInactive, setDragState],
+      [getDragState, isInactive, setDragState, ctx.allowDrop],
     );
 
     const handleDragOver = useCallback<DragEventHandler<HTMLDivElement>>(
       (event) => {
-        if (isInactive) return;
+        if (isInactive || !ctx.allowDrop) return;
         if (!hasDraggedFiles(event.dataTransfer)) return;
         event.preventDefault();
         const files = getDraggedFiles(event.dataTransfer);
@@ -85,32 +92,50 @@ export const FileUploadDropzone = forwardRef<HTMLDivElement, FileUploadDropzoneP
         event.dataTransfer.dropEffect = nextDragState === "accept" ? "copy" : "none";
         setDragState(nextDragState);
       },
-      [getDragState, isInactive, setDragState],
+      [getDragState, isInactive, setDragState, ctx.allowDrop],
     );
 
     const handleDragLeave = useCallback<DragEventHandler<HTMLDivElement>>(
       (event) => {
-        if (isInactive) return;
+        if (isInactive || !ctx.allowDrop) return;
         if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
         setDragState("idle");
       },
-      [isInactive, setDragState],
+      [isInactive, setDragState, ctx.allowDrop],
     );
 
     const handleDrop = useCallback<DragEventHandler<HTMLDivElement>>(
       (event) => {
-        if (isInactive) return;
+        if (isInactive || !ctx.allowDrop) return;
         if (!hasDraggedFiles(event.dataTransfer)) return;
         event.preventDefault();
         setDragState("idle");
-        setFilesFromList(event.dataTransfer.files);
+        if (ctx.directory) {
+          const files = getDroppedFiles(event.dataTransfer, true);
+          if (onDirectoryError) void files.catch(onDirectoryError);
+          setFilesFromList(files);
+        } else setFilesFromList(event.dataTransfer.files);
       },
-      [isInactive, setDragState, setFilesFromList],
+      [isInactive, setDragState, setFilesFromList, ctx.allowDrop, ctx.directory, onDirectoryError],
     );
 
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref,
+      role: restProps.role ?? "group",
+      tabIndex: restProps.tabIndex ?? (disableClick || isInactive ? undefined : 0),
+      "aria-disabled": isInactive || undefined,
+      onClick: composeEventHandlers(onClick, (event) => {
+        if (disableClick || isInactive) return;
+        const target = event.target as Element;
+        const interactive = target.closest?.("button,a,input,select,textarea,label,[role=button],[contenteditable=true]");
+        if (interactive && interactive !== event.currentTarget) return;
+        ctx.openFilePicker();
+      }),
+      onKeyDown: composeEventHandlers(onKeyDown, (event) => {
+        if (disableClick || isInactive || event.target !== event.currentTarget) return;
+        if (event.key === "Enter" || event.key === " ") { event.preventDefault(); ctx.openFilePicker(); }
+      }),
       "data-slot": dataSlot,
       "data-drag": dragState,
       ...(dragState === "accept" && { "data-dragging": "", "data-accepted": "" }),

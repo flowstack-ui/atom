@@ -21,6 +21,48 @@ import {
   getTooltipArrowGeometry,
 } from "../../dist/_internal/primitives/tooltip/TooltipArrow.js";
 
+test("Tooltip supports explicit IDs, retained hidden content and Content composition", () => {
+  const html = renderToStaticMarkup(React.createElement(Tooltip.Root,
+    { lazyMount: false, unmountOnExit: false, ids: { content: "hint", trigger: "target" }, "aria-label": "Alternative hint" },
+    React.createElement(Tooltip.Trigger, null, "Trigger"),
+    React.createElement(Tooltip.Content, { asChild: true }, React.createElement("section", null, "Hint"))));
+  assert.match(html, /id="target"/);
+  assert.match(html, /<section[^>]*id="hint"/);
+  assert.match(html, /aria-label="Alternative hint"/);
+  assert.match(html, /hidden=""/);
+  assert.match(html, /aria-hidden="true"/);
+});
+
+test("Tooltip disabled suppresses controlled and default-open content and description", () => {
+  for (const state of [{ open: true }, { defaultOpen: true }]) {
+    const html = renderToStaticMarkup(React.createElement(TooltipRoot,
+      { ...state, disabled: true },
+      React.createElement(TooltipTrigger, { "aria-describedby": "help" }, "Trigger"),
+      React.createElement(TooltipContent, null, "Hidden tooltip"),
+    ));
+    assert.match(html, /aria-describedby="help"/);
+    assert.doesNotMatch(html, /role="tooltip"/);
+  }
+});
+
+test("Tooltip visibility uses computed positioning, not an elapsed frame", async () => {
+  const source = await readFile(new URL("src/primitives/tooltip/TooltipContent.tsx", packageRoot), "utf8");
+  assert.match(source, /middlewareData, isPositioned.*useFloating/);
+  assert.doesNotMatch(source, /setIsPositioned/);
+});
+
+test("Tooltip preserves and deduplicates descriptions on composed triggers", () => {
+  for (const open of [false, true]) {
+    const html = renderToStaticMarkup(React.createElement(TooltipRoot, { open },
+      React.createElement(TooltipTrigger, { asChild: true, "aria-describedby": "shared parent" },
+        React.createElement("button", { "aria-describedby": "child shared" }, "Trigger")),
+    ));
+    const ids = html.match(/aria-describedby="([^"]+)"/)[1].split(" ");
+    assert.deepEqual(ids.slice(0, 3), ["child", "shared", "parent"]);
+    assert.equal(ids.length, open ? 4 : 3);
+  }
+});
+
 test("Tooltip primitives render provider, root, and trigger attributes", () => {
   const html = renderToStaticMarkup(
     React.createElement(

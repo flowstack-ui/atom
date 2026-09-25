@@ -8,6 +8,24 @@
   ],
   "classifications": [
     {
+      "surface": "./compose-host",
+      "classification": "utility",
+      "documentation": "docs/components/compose-host/README.md",
+      "reason": "Server-safe one-host prop, event and ref composition without a DOM wrapper."
+    },
+    {
+      "surface": "./selection",
+      "classification": "utility",
+      "documentation": "docs/components/selection/README.md",
+      "reason": "Record selection state and Checkbox binding supply no DOM or visual component."
+    },
+    {
+      "surface": "./date-value",
+      "classification": "utility",
+      "documentation": "docs/components/date-value/README.md",
+      "reason": "Immutable date values and explicit parsing/conversion helpers are shared non-rendering date infrastructure."
+    },
+    {
       "surface": ".#OutsideInteractionEvent",
       "classification": "utility",
       "documentation": "docs/guides/public-api.md#subpath-exports",

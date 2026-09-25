@@ -171,6 +171,20 @@ export function BrandColor() {
 
 ## Accessibility
 
+### External controller and content lifecycle
+
+`useColorPicker(options)` returns a controller for `RootProvider value={controller}`.
+Call it inside the same Field context that would contain Root; do not share one
+controller across multiple rendered pickers. `controller.api` is the original
+color API, including `setValue`, `setOpen` and channel access. Root remains the
+convenience form using the same hook. Both support machine `ids`; `inputId` and
+the enclosing Field control ID take precedence over `ids.input`.
+
+Content defaults to eagerly mounted and retained. `lazyMount` defers its first
+mount; `unmountOnExit` removes it after exit. `present` may coordinate visual exit
+presence, but closed content remains inert and inaccessible. `onExitComplete`
+runs after presence finishes. All defaults preserve the existing Root behavior.
+
 Render a persistent `Label` or provide explicit accessible names. The area
 thumb uses an ARIA 2D-slider description and supports arrow and page keys.
 Channel thumbs expose their range, orientation, channel, value, Home/End,

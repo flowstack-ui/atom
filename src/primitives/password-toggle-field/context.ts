@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, type RefObject } from "react";
 import type { ValidationBehavior } from "../form/validation.js";
 
 export interface PasswordToggleFieldContextValue {
@@ -19,13 +19,17 @@ export interface PasswordToggleFieldContextValue {
   validationBehavior: ValidationBehavior | undefined;
   reportControlValidity: (id: string, invalid: boolean) => void;
   resetVisibility: () => void;
+  inputRef: RefObject<HTMLInputElement | null>;
+  captureInputSelection: () => void;
+  restoreInputSelection: () => void;
 }
 
 const PasswordToggleFieldContext =
   createContext<PasswordToggleFieldContextValue | null>(null);
 PasswordToggleFieldContext.displayName = "PasswordToggleFieldContext";
 
-export const PasswordToggleFieldContextProvider = PasswordToggleFieldContext.Provider;
+export const PasswordToggleFieldContextProvider =
+  PasswordToggleFieldContext.Provider;
 
 export function usePasswordToggleFieldContext(): PasswordToggleFieldContextValue {
   const ctx = useContext(PasswordToggleFieldContext);

@@ -6,6 +6,7 @@ import {
   CarouselPickerItem,
   CarouselPrevious,
   CarouselRoot,
+  CarouselRootProvider,
   CarouselRotationControl,
   CarouselSlide,
   CarouselTrack,
@@ -16,6 +17,7 @@ export * from "./primitives/carousel/index.js";
 
 export const Carousel = {
   Root: CarouselRoot,
+  RootProvider: CarouselRootProvider,
   Viewport: CarouselViewport,
   Track: CarouselTrack,
   Slide: CarouselSlide,
@@ -25,4 +27,3 @@ export const Carousel = {
   PickerItem: CarouselPickerItem,
   RotationControl: CarouselRotationControl,
 } as const;
-

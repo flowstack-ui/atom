@@ -1,6 +1,10 @@
 "use client";
 
 import {
+  AccordionRootProvider,
+  AccordionContext,
+  AccordionItemContext,
+  AccordionIndicator,
   AccordionContent,
   AccordionHeader,
   AccordionItem,
@@ -9,6 +13,11 @@ import {
 } from "./primitives/accordion/index.js";
 
 export {
+  AccordionRootProvider,
+  AccordionContext,
+  AccordionItemContext,
+  AccordionIndicator,
+  useAccordion,
   AccordionContent,
   AccordionContextProvider,
   AccordionHeader,
@@ -20,6 +29,10 @@ export {
   useAccordionItemContext,
 } from "./primitives/accordion/index.js";
 export type {
+  AccordionRootProviderProps,
+  AccordionIndicatorProps,
+  UseAccordionOptions,
+  UseAccordionReturn,
   AccordionContentProps,
   AccordionContextValue,
   AccordionHeaderLevel,
@@ -33,6 +46,10 @@ export type {
 } from "./primitives/accordion/index.js";
 
 export const Accordion = {
+  RootProvider: AccordionRootProvider,
+  Context: AccordionContext,
+  ItemContext: AccordionItemContext,
+  Indicator: AccordionIndicator,
   Root: AccordionRoot,
   Item: AccordionItem,
   Header: AccordionHeader,

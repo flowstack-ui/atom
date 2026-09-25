@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  MultiSelectClearTrigger,
   MultiSelectArrow,
   MultiSelectContent,
   MultiSelectGroup,
@@ -11,6 +12,7 @@ import {
   MultiSelectLabel,
   MultiSelectListbox,
   MultiSelectPortal,
+  MultiSelectRootProvider,
   MultiSelectRoot,
   MultiSelectScrollDownButton,
   MultiSelectScrollUpButton,
@@ -21,6 +23,7 @@ import {
 } from "./primitives/multi-select/index.js";
 
 export {
+  MultiSelectClearTrigger,
   MultiSelectArrow,
   MultiSelectContent,
   MultiSelectContextProvider,
@@ -46,6 +49,7 @@ export {
   useMultiSelectItemContext,
 } from "./primitives/multi-select/index.js";
 export type {
+  MultiSelectClearTriggerProps,
   MultiSelectArrowProps,
   MultiSelectContentProps,
   MultiSelectContextValue,
@@ -74,7 +78,9 @@ export type {
 } from "./utils/interactions.js";
 
 export const MultiSelect = {
+  ClearTrigger: MultiSelectClearTrigger,
   Root: MultiSelectRoot,
+  RootProvider: MultiSelectRootProvider,
   Trigger: MultiSelectTrigger,
   Value: MultiSelectValue,
   Icon: MultiSelectIcon,
@@ -92,3 +98,6 @@ export const MultiSelect = {
   Separator: MultiSelectSeparator,
   Arrow: MultiSelectArrow,
 } as const;
+
+export { useMultiSelect, MultiSelectRootProvider } from "./primitives/multi-select/index.js";
+export type { UseMultiSelectReturn, MultiSelectRootProviderProps, SelectOption, SelectIds, SelectLifecycleOptions, SelectOutsideEvents } from "./primitives/multi-select/index.js";

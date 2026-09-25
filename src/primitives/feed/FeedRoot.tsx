@@ -8,7 +8,7 @@ import {
   type KeyboardEventHandler,
   type ReactNode,
 } from "react";
-import { FOCUSABLE_SELECTOR } from "../../hooks/focus.js";
+import { getTabbableOutsideBoundary, isAvailableFocusTarget } from "../../hooks/focus.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import {
   cloneAndMerge,
@@ -71,7 +71,8 @@ export const FeedRoot = forwardRef<HTMLElement, FeedRootProps>(
 
       return Array.from(feed.children).filter(
         (element): element is HTMLElement =>
-          element instanceof HTMLElement && element.getAttribute("role") === "article",
+          element instanceof (feed.ownerDocument.defaultView?.HTMLElement ?? HTMLElement) &&
+          element.getAttribute("role") === "article" && isAvailableFocusTarget(element),
       );
     }, []);
 
@@ -79,34 +80,25 @@ export const FeedRoot = forwardRef<HTMLElement, FeedRootProps>(
       if (!article) return;
 
       article.focus({ preventScroll: true });
-      article.scrollIntoView({ block: "nearest", inline: "nearest" });
+      if (article.ownerDocument.activeElement === article) {
+        article.scrollIntoView({ block: "nearest", inline: "nearest" });
+      }
     }, []);
 
     const focusOutsideFeed = useCallback((direction: "before" | "after") => {
       const feed = feedRef.current;
       if (!feed) return;
 
-      const focusableElements = Array.from(
-        document.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
-      ).filter((element) => !feed.contains(element));
-
-      if (direction === "before") {
-        const previousElements = focusableElements.filter((element) =>
-          Boolean(element.compareDocumentPosition(feed) & Node.DOCUMENT_POSITION_FOLLOWING),
-        );
-        const previousElement = previousElements[previousElements.length - 1];
-        focusArticle(previousElement);
-        return;
-      }
-
-      const nextElement = focusableElements.find((element) =>
-        Boolean(feed.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_FOLLOWING),
-      );
-      focusArticle(nextElement);
+      focusArticle(getTabbableOutsideBoundary(feed, direction) ?? undefined);
     }, [focusArticle]);
 
     const handleKeyDown = useCallback<KeyboardEventHandler<HTMLElement>>(
       (event) => {
+        const feed = feedRef.current;
+        const target = event.target as Element;
+        if (!feed || target.closest('[role="feed"]') !== feed) return;
+        // Native editing and composite controls own their navigation shortcuts.
+        if (target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="combobox"], [role="spinbutton"], [role="slider"], [role="grid"], [role="tree"]')) return;
         const articles = getArticles();
         if (articles.length === 0) return;
 
@@ -124,7 +116,7 @@ export const FeedRoot = forwardRef<HTMLElement, FeedRootProps>(
 
         if (event.key !== "PageDown" && event.key !== "PageUp") return;
 
-        const activeElement = document.activeElement;
+        const activeElement = feed.ownerDocument.activeElement;
         const currentIndex = articles.findIndex(
           (article) => article === activeElement || article.contains(activeElement),
         );

@@ -27,6 +27,25 @@ change. Track changes under `Unreleased` until the next publish is prepared.
 Use patch versions for compatible bug fixes and behavior corrections. Use minor
 versions for new public APIs or materially expanded component capability.
 
+## Complete qualification command
+
+Run `npm run check:release` against an unchanged working tree. It performs the
+repository build/tests and Agent Knowledge checks, one playground build, the
+full browser matrix, package verification and clean React 18/19 consumers.
+Retain its `test-results/release-*/summary.json`, phase logs, browser report and
+verified archive. Do not infer readiness from an interrupted or failed report.
+
+For 0.27.0, review the [public API migration notes](public-api.md#migrating-from-0261-to-0270).
+A source version is not proof of publication or archive identity. Qualify the
+release commit and its exact archive; never republish an existing version or
+silently install a different same-version candidate.
+
+## Individual diagnostic checks
+
+These commands are useful to investigate a failed phase. They do not replace
+the complete release command, and do not need to be repeated after a successful
+unchanged complete run.
+
 1. Run tests.
 
    ```bash
@@ -55,8 +74,9 @@ versions for new public APIs or materially expanded component capability.
 
 4. Verify public export targets.
 
-   Each export in `package.json` must resolve to a built
-   `.js` file and a `.d.ts` file.
+   Run `npm run verify:pack -- <archive-or-directory>`. It verifies conditional
+   JavaScript/declaration exports and Agent Knowledge JSON/Markdown wildcards;
+   not every export is a JavaScript entrypoint.
 
 5. Verify package boundaries.
 
@@ -79,9 +99,10 @@ versions for new public APIs or materially expanded component capability.
    Verify the supported React peer range, including React 18 and the current
    React 19 line, before publishing.
 
-## Last Dry Run
+## Historical Dry Run
 
-Last verified: 2026-07-30
+Historical baseline: 2026-07-30. These counts do not describe the unreleased
+candidate. Use that candidate's retained release report for current evidence.
 
 - `npm run test`
 - `npm run build`

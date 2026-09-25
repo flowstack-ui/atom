@@ -13,6 +13,20 @@ import {
   AvatarRoot,
 } from "../../dist/index.js";
 
+test("Avatar preserves SSR image discovery and native request attributes", () => {
+  const html = renderToStaticMarkup(React.createElement(AvatarRoot, { src: "/ada.png" },
+    React.createElement(AvatarImage, { alt: "Ada", loading: "lazy", srcSet: "/ada-2x.png 2x", sizes: "40px", referrerPolicy: "no-referrer", fetchPriority: "low" }),
+    React.createElement(AvatarFallback, null, "AL")));
+  assert.match(html, /<img/);
+  assert.match(html, /src="\/ada.png"/);
+  assert.match(html, /loading="lazy"/);
+  assert.match(html, /srcSet="\/ada-2x.png 2x"/);
+  assert.match(html, /sizes="40px"/);
+  assert.match(html, /referrerPolicy="no-referrer"/);
+  assert.match(html, /aria-hidden="true"/);
+  assert.match(html, />AL<\/span>/);
+});
+
 test("Avatar primitives render fallback when no image source is available", () => {
   const html = renderToStaticMarkup(
     React.createElement(

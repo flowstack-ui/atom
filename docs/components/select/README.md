@@ -1,5 +1,23 @@
 # Select
 
+## Selection policy and popup positioning
+
+`closeOnSelect` controls whether choosing an option closes the popup (Select:
+true; MultiSelect: false). `loopFocus` defaults true for compatibility; false
+stops Arrow navigation at the first/last enabled item. Control highlight with
+`highlightedValue` and `onHighlightChange`, or initialize it with
+`defaultHighlightedValue`. A controlled null means no highlighted option.
+
+`positioning` accepts placement, strategy, gutter, flip, slide, overflowPadding,
+sameWidth and hideWhenDetached. Highlight reveal remains within the positioned
+popup; it never scrolls the document. `autoComplete` reaches the native form
+proxy. Disabled options retain their native disabled state.
+
+`Select.ClearTrigger` renders beside Trigger, never inside its button.
+Supply an accessible localized name. Clearing respects disabled/read-only state,
+closes the popup and returns focus without scrolling. Single Select additionally
+accepts `deselectable` (false by default) to clear when choosing its current value.
+
 Single-value select with a combobox trigger, popup listbox, option collection,
 scroll controls, portal, and a visually hidden native form control.
 
@@ -504,3 +522,32 @@ buffers match exact prefixes.
 ## Changelog
 
 See [CHANGELOG.md](./CHANGELOG.md).
+# Data, controllers and lifecycle
+
+Pass `items={[{ value: "a", label: "Alpha", disabled: false }]}` when options
+are rendered through opaque components or loaded asynchronously. These records
+provide labels and native form options before the popup mounts. Keep rendered
+Item values synchronized with the records. Selected values still submit when
+their presentation is unmounted. Explicit records take precedence over cached
+mounted labels.
+
+`useSelect(options)` returns the original controller for
+`Select.RootProvider value={controller}`. Supply records to an external
+controller. Its `context` exposes current value, isOpen, highlightedValue and
+the same open/close/highlight/selection/clear actions used by the parts; do not
+copy the controller or nest a second Root. The provider owns the native form
+proxy. Controlled props remain authoritative.
+
+Root supports `ids={{root, trigger, content}}`, `lazyMount` and
+`unmountOnExit` (both true by default), `present`, and `onExitComplete`.
+Retained closed content is hidden and inert. Exit timing follows authored CSS;
+no animation is required. Presence does not change the open state.
+
+`onPointerDownOutside`, `onFocusOutside` and `onEscapeKeyDown` can prevent
+their respective dismissal. Content also supports `onInteractOutside`.
+Portals default to the trigger's owner document, including iframe documents.
+
+`onSelect(value)` observes option activation separately from value changes.
+`scrollToIndexFn({ index, value })` delegates reveal to an application-owned
+scroller. It does not add virtualization: keyboard registration still requires
+mounted options. Omit it to use the popup-local reveal behavior.

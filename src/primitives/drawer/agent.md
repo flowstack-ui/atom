@@ -10,11 +10,11 @@ Provide modal side-sheet behavior, focus management, dismissal, portal compositi
 
 ## Choose something else when
 
-- The panel is centered, non-modal, or permanently part of page layout. Use Dialog or an inline panel.
+- The panel is centered or permanently part of page layout. Use Dialog or an inline panel.
 
 ## Required composition
 
-- Compose Trigger and Portal containing Overlay and Content; place Title, Description, and Close inside Content and supply the labeling parts the content requires.
+- Compose Trigger and Portal containing sibling Overlay and Positioner; Content goes inside Positioner. Context exposes open and setOpen without a second state owner. For nonmodal use modal=false, omit Overlay, and keep the positioner pointer-transparent; trapFocus and preventScroll default to modal. Retained Content keeps the same host and child state. Escape and outside notifications can prevent default dismissal.
 
 ## Rules
 
@@ -23,7 +23,7 @@ Provide modal side-sheet behavior, focus management, dismissal, portal compositi
 
 ## Common mistakes
 
-- **Avoid:** Using Drawer only for its edge appearance while leaving background controls interactive. **Instead:** Use Drawer for modal behavior or use a normal inline region when interaction should remain available.
+- **Avoid:** Removing modal paint while retaining isolation accidentally. **Instead:** Choose modal=false explicitly for a temporary nonmodal panel, or use an inline region for persistent layout.
 
 ## Validation checklist
 

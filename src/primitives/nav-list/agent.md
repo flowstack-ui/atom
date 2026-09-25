@@ -18,9 +18,9 @@ Structure persistent, optionally grouped and collapsible navigation lists with c
 
 ## Rules
 
-- **MUST:** Use Link parts for destinations and expose the current destination through the component contract.
+- **MUST:** Use Link parts for destinations. Resolved aria-current (explicit override, otherwise active/current) owns current state. Disabled composed anchors must not retain href.
 - **MUST:** Use a SectionTrigger only when it controls the associated SectionContent.
-- **MUST:** Style collapsible SectionContent from its data-state and measured content-size hooks; Atom keeps exit content mounted through the animation lifecycle.
+- **MUST:** Style collapsible SectionContent from its data-state and measured size hooks. Shared presence retains exit content; closed content is inert and aria-hidden, and contained focus returns to its trigger. forceMount retains hidden content.
 
 ## Common mistakes
 

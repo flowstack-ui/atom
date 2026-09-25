@@ -17,6 +17,10 @@ import {
   CheckboxGroupRoot,
   markCheckboxGroupItemPart,
   useCheckboxGroupContext,
+  useCheckboxGroup,
+  useCheckboxGroupItem,
+  useCheckbox,
+  Field,
 } from "../../dist/index.js";
 
 function installDom() {
@@ -498,7 +502,7 @@ test("CheckboxGroupItem renders group-owned checked state and indicator", () => 
   assert.match(html, /checked=""/);
 });
 
-test("CheckboxGroupItem inherits disabled readonly invalid and required state", () => {
+test("CheckboxGroupItem inherits availability but not the group's at-least-one requirement", () => {
   const html = renderToStaticMarkup(
     React.createElement(
       CheckboxGroupRoot,
@@ -520,10 +524,10 @@ test("CheckboxGroupItem inherits disabled readonly invalid and required state", 
   assert.match(html, /aria-disabled="true"/);
   assert.match(html, /aria-readonly="true"/);
   assert.match(html, /aria-invalid="true"/);
-  assert.match(html, /aria-required="true"/);
+  assert.doesNotMatch(html, /aria-required="true"/);
   assert.match(
     html,
-    /<button id="[^"]+" type="button" role="checkbox" aria-checked="false" aria-disabled="true" aria-required="true" aria-readonly="true" aria-invalid="true" disabled=""/,
+    /<button id="[^"]+" type="button" role="checkbox" aria-checked="false" aria-disabled="true" aria-readonly="true" aria-invalid="true" disabled=""/,
   );
   assert.match(html, /data-disabled=""/);
   assert.match(html, /data-readonly=""/);
@@ -555,4 +559,135 @@ test("CheckboxGroupRoot provides selected values through context", () => {
   );
 
   assert.match(html, /<output>cheese\|checked\|horizontal<\/output>/);
+});
+
+test("CheckboxGroup selection limit preserves deselection and bounds Parent additions", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  try {
+    await React.act(async () => root.render(React.createElement(
+      CheckboxGroup.Root, { maxSelectedValues: 1, allValues: ["a", "b"] },
+      React.createElement(CheckboxGroup.Parent, null, "All"),
+      React.createElement(CheckboxGroup.Item, { value: "a" }, "A"),
+      React.createElement(CheckboxGroup.Item, { value: "b" }, "B"),
+    )));
+    const [parent, a, b] = container.querySelectorAll('[role="checkbox"]');
+    await click(parent);
+    assert.equal(a.getAttribute("aria-checked"), "true");
+    assert.equal(a.disabled, false);
+    assert.equal(b.disabled, true);
+    assert.equal(parent.getAttribute("aria-checked"), "mixed");
+    await click(parent);
+    assert.equal(a.getAttribute("aria-checked"), "false");
+    assert.equal(b.disabled, false);
+    await click(b);
+    await click(b);
+    assert.equal(b.getAttribute("aria-checked"), "false");
+  } finally {
+    await React.act(async () => root.unmount());
+    cleanup();
+  }
+});
+
+test("CheckboxGroup rejects invalid selection limits", () => {
+  for (const maxSelectedValues of [-1, 1.5, NaN, Infinity]) {
+    assert.throws(() => renderToStaticMarkup(React.createElement(CheckboxGroup.Root, { maxSelectedValues })), /maxSelectedValues/);
+  }
+});
+
+test("required group ignores disabled and unmounted selections", async () => {
+  const {container, cleanup} = installDom();
+  const root = createRoot(container);
+  const render = (disabled, mounted = true) => React.createElement(CheckboxGroup.Root,
+    {required:true, name:"choices", value:["a"], "aria-label":"Choices"},
+    mounted && React.createElement(CheckboxGroup.Item,{value:"a",disabled},"A"));
+  try {
+    await React.act(async () => root.render(render(true)));
+    assert.equal(container.querySelector('input[required]').checked, false);
+    await React.act(async () => root.render(render(false)));
+    assert.equal(container.querySelector('input[required]').checked, true);
+    await React.act(async () => root.render(render(false,false)));
+    assert.equal(container.querySelector('input[required]').checked, false);
+  } finally { await React.act(async () => root.unmount()); cleanup(); }
+});
+
+test("iframe group blur distinguishes internal focus from leaving the group", async () => {
+  const { container, cleanup } = installDom();
+  const frame = document.createElement('iframe');
+  container.append(frame);
+  const doc = frame.contentDocument;
+  const host = doc.createElement('div');
+  doc.body.append(host);
+  const root = createRoot(host);
+  try {
+    await React.act(async () => root.render(React.createElement(CheckboxGroup.Root,
+      { required:true, validationBehavior:'inline', 'aria-label':'Frame choices' },
+      React.createElement(CheckboxGroup.Item,{value:'a'},'A'),
+      React.createElement(CheckboxGroup.Item,{value:'b'},'B'))));
+    const [a,b] = host.querySelectorAll('[role="checkbox"]');
+    assert.equal(b instanceof window.Node, false);
+    await React.act(async () => a.dispatchEvent(new frame.contentWindow.FocusEvent('focusout',{bubbles:true,relatedTarget:b})));
+    assert.equal(host.querySelector('[role="group"]').hasAttribute('data-invalid'),false);
+    await React.act(async () => b.dispatchEvent(new frame.contentWindow.FocusEvent('focusout',{bubbles:true,relatedTarget:doc.body})));
+    assert.equal(host.querySelector('[role="group"]').hasAttribute('data-invalid'),true);
+  } finally { await React.act(async () => root.unmount()); cleanup(); }
+});
+
+test("Checkbox controllers preserve sibling links, single inputs and independent refs", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  const inputRef = React.createRef();
+  function LinkedChoice() {
+    const props = useCheckboxGroupItem({ value: "terms" });
+    return React.createElement(Field.Root, null,
+      React.createElement(Checkbox.Root, { ...props, inputRef }),
+      React.createElement(Field.Label, null, "Accept ", React.createElement("a", { href: "#terms" }, "terms")),
+    );
+  }
+  function Example() {
+    const group = useCheckboxGroup({ maxSelectedValues: 1 });
+    const checkbox = useCheckbox();
+    return React.createElement("form", null,
+      React.createElement(CheckboxGroup.RootProvider, { value: group, name: "choices", required: true }, React.createElement(LinkedChoice)),
+      React.createElement(Checkbox.RootProvider, { value: checkbox, name: "single", inputValue: "yes" }, "Single"),
+    );
+  }
+  try {
+    await React.act(async () => root.render(React.createElement(Example)));
+    assert.equal(container.querySelector('[role="checkbox"] a'), null);
+    assert.equal(inputRef.current.tagName, "INPUT");
+    assert.equal(container.querySelectorAll('input[name="choices"]').length, 1);
+    const first = container.querySelector('[role="checkbox"]');
+    await click(container.querySelector("a"));
+    assert.equal(first.getAttribute("aria-checked"), "false");
+    await click(first);
+    assert.equal(first.getAttribute("aria-checked"), "true");
+    assert.equal(container.querySelector('input[required]').checked, true);
+    assert.deepEqual(new window.FormData(container.querySelector("form")).getAll("choices"), ["terms"]);
+  } finally {
+    await React.act(async () => root.unmount());
+    cleanup();
+  }
+});
+
+test("Checkbox inherits Field availability and respects composed-host cancellation", async () => {
+  const { container, cleanup } = installDom();
+  const root = createRoot(container);
+  try {
+    await React.act(async () => root.render(React.createElement("div", null,
+      React.createElement(Field.Root, { disabled: true }, React.createElement(Checkbox.Root, { disabled: false }, "Disabled")),
+      React.createElement(Field.Root, { readOnly: true }, React.createElement(Checkbox.Root, { readOnly: false }, "Read only")),
+      React.createElement(Checkbox.Root, { asChild: true }, React.createElement("button", { onClick: (event) => event.preventDefault() }, "Cancelled")),
+      React.createElement(CheckboxGroup.Root, null, React.createElement(CheckboxGroup.Item, { value: "cancelled", asChild: true }, React.createElement("button", { onClick: (event) => event.preventDefault() }, "Group cancelled"))),
+    )));
+    const [disabled, readOnly, cancelled, groupCancelled] = container.querySelectorAll('[role="checkbox"]');
+    assert.equal(disabled.disabled, true);
+    for (const item of [readOnly, cancelled, groupCancelled]) {
+      await React.act(async () => item.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true })));
+      assert.equal(item.getAttribute("aria-checked"), "false");
+    }
+  } finally {
+    await React.act(async () => root.unmount());
+    cleanup();
+  }
 });

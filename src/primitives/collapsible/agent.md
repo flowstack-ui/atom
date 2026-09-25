@@ -14,14 +14,15 @@ Show or hide one related block with disclosure-button semantics, linked region s
 
 ## Required composition
 
-- Compose Root with one clearly named Trigger and its related Content. Use keepMounted only when retained closed DOM is required for state or exit animation, and choose orientation to describe the intended expansion axis to the styled layer.
+- Compose Root or RootProvider with one clearly named Trigger and related Content. Use Root lazyMount/unmountOnExit for mounting policy and keep Trigger outside Content, including partial previews. Legacy Content keepMounted is retained only for migration. Indicator reads its own nearest disclosure state.
 
 ## Rules
 
 - **MUST:** Use one Root for one Trigger and related Content; use Accordion when several named sections need shared coordination.
 - **MUST:** Give Trigger clear text or an accessible name describing the content it reveals and preserve its button, aria-expanded, aria-controls, disabled, Enter, and Space behavior.
 - **MUST:** Preserve Content's region role, Trigger label relationship, open/closed visibility, and generated IDs rather than recreating disclosure ARIA.
-- **MUST:** Leave keepMounted false unless retained DOM or exit animation is required; when true, preserve the closed hidden state and do not expose its descendants to interaction.
+- **MUST:** Choose Root lazyMount and unmountOnExit independently; both default true. Do not combine legacy Content keepMounted with Root policies. Closed and partial Content stays inert and aria-hidden. Nonzero collapsed dimensions retain the preview; keep Trigger outside Content. Activity pauses effects on React 19.2+ and falls back to ordinary hidden content on older React.
+- **MUST:** Use useCollapsible with RootProvider or Root's built-in controller, never duplicated state. Context exposes open, visible, setOpen and measureSize. IDs and Indicator state belong to the nearest owner; preserve merged events and refs.
 - **SHOULD:** Use orientation, data-initial-open, and live content size variables for styled motion while keeping visual animation policy outside Atom.
 
 ## Common mistakes

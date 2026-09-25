@@ -1,5 +1,17 @@
 # DragDrop
 
+## Activation and scrolling
+
+Root accepts `activation` with `distance` (6 CSS pixels), `touchDelay` (220ms)
+and `touchTolerance` (8 CSS pixels). Values must be finite and non-negative.
+`autoScroll` defaults to true and scrolls eligible ancestors at their visible
+edges. `targetStrategy="pointer"` requires target containment; `"closest"`
+also accepts gaps within the combined bounds of a linear collection.
+Lost capture, Escape, window blur, source removal and disabled/read-only
+interruptions cancel rather than committing. The handle exposes native
+`disabled` and `data-disabled` together. Preview and reorder geometry are owned
+by the Reorder adapter; applications must not copy pointer handlers.
+
 Headless same-document drag-and-drop primitives that own pointer and keyboard
 input, source and target registration, cancellation, and accessible
 announcements. `DragDrop` is a behavioral foundation for component authors; it
@@ -179,3 +191,5 @@ target cancel the movement.
 ## Changelog
 
 See [CHANGELOG.md](./CHANGELOG.md).
+
+Active draggable items and handles expose `data-drag-input="pointer"` or `"keyboard"` alongside `data-dragging`; the input attribute is absent when idle. Styled owners can distinguish pointer-only feedback from keyboard movement without owning another drag lifecycle.

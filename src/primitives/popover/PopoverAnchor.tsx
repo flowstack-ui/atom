@@ -35,13 +35,14 @@ function PopoverAnchor(
   },
   ref,
 ) {
-  const { anchorRef } = usePopoverContext();
+  const { anchorRef, ids } = usePopoverContext();
   const composedRef = useMemo(
     () => composeRefs(anchorRef, ref),
     [anchorRef, ref],
   );
   const anchorProps = {
     ...restProps,
+    id: restProps.id ?? ids.anchor,
     ref: composedRef,
     "data-slot": dataSlot,
     style: asChild || render ? style : { ...style, display: "contents" },

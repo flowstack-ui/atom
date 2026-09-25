@@ -10,7 +10,7 @@ import {
   type FocusEventHandler,
   type ReactNode,
 } from "react";
-import { useControllableState } from "../../hooks/useControllableState.js";
+import { useCheckboxGroup } from "./useCheckboxGroup.js";
 import { useFormReset } from "../../hooks/useFormReset.js";
 import { useFormValidation } from "../../hooks/useFormValidation.js";
 import { formControlProxyStyle, useFormControlProxy } from "../../hooks/useFormControlProxy.js";
@@ -42,6 +42,8 @@ export interface CheckboxGroupRootProps extends CheckboxGroupRootNativeProps {
   onValueChange?: (values: string[]) => void;
   /** Complete selectable value set used by deterministic aggregate controls. */
   allValues?: string[];
+  /** Maximum selections; selected choices remain removable at the limit. */
+  maxSelectedValues?: number;
   /** Form field name shared across checkboxes. */
   name?: string;
   /** Associates item hidden inputs with a form by ID. */
@@ -77,6 +79,7 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
       defaultValue = [],
       onValueChange,
       allValues,
+      maxSelectedValues,
       name,
       form,
       disabled,
@@ -96,20 +99,24 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
     ref,
   ) {
     const fieldset = useFieldsetContext();
-    const isDisabled = disabled ?? fieldset?.disabled ?? false;
+    const isDisabled = Boolean(disabled || fieldset?.disabled);
     const isRequired = required ?? fieldset?.required ?? false;
     const isReadOnly = readOnly ?? false;
     const rootRef = useRef<HTMLDivElement>(null);
     const validationInputRef = useRef<HTMLInputElement>(null);
     const interactedRef = useRef(false);
-    const [activeValues, setActiveValues] = useControllableState({
+    const controller = useCheckboxGroup({
       value,
       defaultValue,
-      onChange: onValueChange,
+      onValueChange,
+      disabled: isDisabled,
+      readOnly: isReadOnly,
+      maxSelectedValues,
     });
-    const itemElementsRef = useRef<Map<string, HTMLButtonElement>>(new Map());
+    const { value: activeValues, setValue: setActiveValues } = controller;
+    const itemElementsRef = useRef<Map<string, HTMLButtonElement | HTMLInputElement>>(new Map());
     const [allItemValues, setAllItemValues] = useState<string[]>([]);
-    const [firstEnabledItem, setFirstEnabledItem] = useState<HTMLButtonElement | null>(null);
+    const [firstEnabledItem, setFirstEnabledItem] = useState<HTMLButtonElement | HTMLInputElement | null>(null);
     useFormControlProxy(validationInputRef, { current: firstEnabledItem });
     const validation = useFormValidation({
       validityRef: validationInputRef,
@@ -144,7 +151,7 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
       );
     }, []);
 
-    const registerItem = useCallback((value: string, element: HTMLButtonElement) => {
+    const registerItem = useCallback((value: string, element: HTMLButtonElement | HTMLInputElement) => {
       itemElementsRef.current.set(value, element);
       updateItemState();
     }, [updateItemState]);
@@ -160,13 +167,9 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
 
         interactedRef.current = true;
 
-        setActiveValues((currentValues) =>
-          currentValues.includes(value)
-            ? currentValues.filter((itemValue) => itemValue !== value)
-            : [...currentValues, value],
-        );
+        controller.toggleValue(value);
       },
-      [isDisabled, isReadOnly, setActiveValues],
+      [isDisabled, isReadOnly, controller.toggleValue],
     );
 
     const toggleAll = useCallback(
@@ -175,24 +178,28 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
 
         interactedRef.current = true;
 
-        const targetValues = normalizedAllValues ?? Array.from(itemElementsRef.current.keys());
+        const targetValues = (normalizedAllValues ?? Array.from(itemElementsRef.current.keys())).filter((value) => {
+          const item = itemElementsRef.current.get(value);
+          return !item || ((!item.disabled || item.hasAttribute("data-limit-disabled")) && !item.hasAttribute("data-readonly"));
+        });
         const targetSet = new Set(targetValues);
         setActiveValues((currentValues) =>
           checked
             ? [
                 ...currentValues,
-                ...targetValues.filter((itemValue) => !currentValues.includes(itemValue)),
+                ...targetValues.filter((itemValue) => !currentValues.includes(itemValue)).slice(0, maxSelectedValues === undefined ? undefined : Math.max(0, maxSelectedValues - new Set(currentValues).size)),
               ]
             : currentValues.filter((itemValue) => !targetSet.has(itemValue)),
         );
       },
-      [isDisabled, isReadOnly, normalizedAllValues, setActiveValues],
+      [isDisabled, isReadOnly, normalizedAllValues, setActiveValues, maxSelectedValues],
     );
 
     const handleBlur = useCallback<FocusEventHandler<HTMLDivElement>>(
       (event) => {
         const nextTarget = event.relatedTarget;
-        if (nextTarget instanceof Node && event.currentTarget.contains(nextTarget)) return;
+        const NodeClass = event.currentTarget.ownerDocument.defaultView?.Node;
+        if (NodeClass && nextTarget instanceof NodeClass && event.currentTarget.contains(nextTarget)) return;
         validation.revealNativeInvalid();
       },
       [validation.revealNativeInvalid],
@@ -220,6 +227,7 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
         readOnly: isReadOnly,
         invalid: isInvalid,
         orientation,
+        maxSelectedValues,
       }),
       [
         activeValues,
@@ -237,6 +245,7 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
         toggleAll,
         toggleItem,
         unregisterItem,
+        maxSelectedValues,
       ],
     );
 
@@ -275,7 +284,10 @@ export const CheckboxGroupRoot = forwardRef<HTMLDivElement, CheckboxGroupRootPro
             aria-hidden="true"
             tabIndex={-1}
             form={form}
-            checked={activeValues.length > 0}
+            checked={activeValues.some((value) => {
+              const item = itemElementsRef.current.get(value);
+              return item !== undefined && !item.disabled;
+            })}
             required
             disabled={isDisabled}
             onFocus={() => firstEnabledItem?.focus()}

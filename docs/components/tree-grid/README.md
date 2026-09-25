@@ -20,7 +20,9 @@ than parent and child nodes.
 - Moves an active descendant cell to its collapsed ancestor's tree-column cell
   when controlled or uncontrolled expansion hides that descendant.
 - Gives actionable column headers equivalent pointer and Enter activation.
-- Keeps sorting, filtering, resizing, editing, and virtualization outside the primitive.
+- Provides optional native column-group and column sizing hints.
+- Keeps sorting, filtering, column width application, editing persistence and
+  virtualization application-owned; supplies headless column resize interaction.
 
 ## Import
 
@@ -33,6 +35,9 @@ import { TreeGrid } from "@flowstack-ui/atom";
 ```tsx
 <TreeGrid.Root>
   <TreeGrid.Caption />
+  <TreeGrid.ColumnGroup>
+    <TreeGrid.Column />
+  </TreeGrid.ColumnGroup>
   <TreeGrid.Header>
     <TreeGrid.Row>
       <TreeGrid.ColumnHeader />
@@ -72,6 +77,7 @@ expansion, direction, and the single focus target for the entire grid.
 | `disabled` | `boolean` | `false` |
 | `readOnly` | `boolean` | `false` |
 | `loop` | `boolean` | `false` |
+| `pageSize` | `number` | `10` visible rows |
 | `dir` | `"ltr" \| "rtl"` | `Direction.Provider` |
 | `rowCount` | `number` | - |
 | `columnCount` | `number` | - |
@@ -113,6 +119,38 @@ Provides a visible accessible name or description for the treegrid.
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"tree-grid-caption"` |
+
+### ColumnGroup
+
+Renders a native `colgroup` before Header for optional column sizing hints.
+It does not define grid coordinates, hierarchy, keyboard behavior, or resizing.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"tree-grid-column-group"` |
+
+### Column
+
+Renders a native `col` inside ColumnGroup. `htmlWidth` is only a native
+presentational width hint expressed as a CSS-pixel number or percentage; CSS
+units such as `rem` are not valid for this HTML attribute. Keep `columnIndex`,
+`columnCount`, and hierarchy metadata explicit.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `htmlWidth` | `number \| \`${number}%\`` | - |
+| `span` | `number` | - |
+| `asChild` | `boolean` | `false` |
+| `render` | `RenderProp` | - |
+
+| Data attribute | Values |
+| --- | --- |
+| `[data-slot]` | `"tree-grid-column"` |
 
 ### Header
 
@@ -308,6 +346,36 @@ Groups optional summary Rows after Body.
 Advanced compound parts can use `useTreeGridContext` and
 `useTreeGridRowContext` with their matching public providers.
 
+### Interactive cells and independent disclosure
+
+`Cell`, `RowHeader` and `ColumnHeader` accept `interactive={true}`. F2 enters an
+eligible native control; Escape returns to grid navigation. Enter also enters
+controls unless a ColumnHeader has `onAction`, in which case Enter keeps its
+sort/action meaning. Native controls keep their own keyboard events; pointer
+activation does not also select or expand the row. Root suppresses
+`aria-activedescendant` while DOM focus is inside a child control.
+
+`RowHeader.expandOnClick` defaults to `true`. Set it to `false` and compose
+`TreeGrid.Trigger` inside the tree cell for independent disclosure. Trigger
+accepts native button props, `asChild` and `render`; it does not select the row.
+
+### ColumnResizeHandle
+
+Compose `TreeGrid.ColumnResizeHandle` inside an interactive indexed header.
+It reuses the headless DataGrid width interaction, with TreeGrid disabled,
+read-only and direction state. Name it with `aria-label`. Supported props:
+`value` / `defaultValue` (default 160), `min` (40), `max` (1200), `step` (10),
+`onValueChange`, `onValueCommit`, `disabled`, `dir` and native div props.
+Values are CSS pixels; the application applies the width to the column.
+Arrow keys resize with RTL direction, Shift multiplies the step by ten,
+Home/End reach bounds, and Escape/pointer cancellation restores the starting
+width. Keep the default `tabIndex={-1}` for F2 entry through its header.
+
+Sorting must sort siblings recursively and flatten preorder. Never reverse or
+sort the complete flat row list independently: that separates parents from
+their children. Recompute truthful one-based logical row coordinates after a
+data reorder, including any indexed header row.
+
 ## Examples
 
 ### Expandable Rows
@@ -358,6 +426,14 @@ Caption, `aria-label`, or `aria-labelledby`.
 | `Ctrl+Home` / `Ctrl+End` | Moves to first or last visible cell |
 | `Enter` | Calls `onAction` for an actionable active ColumnHeader; otherwise toggles an expandable tree-column row or selects the active row. |
 | `Space` | Selects the active row when selection is enabled. |
+| `PageUp` / `PageDown` | Moves by `pageSize` visible rows, retaining the column when eligible. |
+| `Ctrl/Cmd+A` | Toggles all enabled selectable visible rows in multiple mode. |
+| `Shift+click` / `Shift+Space` | Extends selection from the selection anchor in multiple mode. |
+| `F2` / `Escape` | Enters interactive cell controls / returns to grid navigation. |
+
+Focus entry establishes the first eligible cell when there is no active cell.
+Disabling or removing the active cell requests an eligible replacement; a
+controlled parent may decline that request without an update loop.
 
 ## Changelog
 

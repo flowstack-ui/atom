@@ -1,6 +1,12 @@
 "use client";
 
-import { forwardRef, useCallback, type MouseEventHandler, type ReactNode } from "react";
+import {
+  forwardRef,
+  useCallback,
+  type MouseEventHandler,
+  type PointerEventHandler,
+  type ReactNode,
+} from "react";
 import type { NativeButtonProps } from "../../utils/dom.js";
 import {
   cloneAndMerge,
@@ -14,8 +20,7 @@ type PasswordToggleFieldToggleNativeProps = NativeButtonProps<
   "children" | "disabled" | "type"
 >;
 
-export interface PasswordToggleFieldToggleProps
-  extends PasswordToggleFieldToggleNativeProps {
+export interface PasswordToggleFieldToggleProps extends PasswordToggleFieldToggleNativeProps {
   children?: ReactNode;
   asChild?: boolean;
   render?: RenderProp;
@@ -33,16 +38,28 @@ export const PasswordToggleFieldToggle = forwardRef<
     "data-slot": dataSlot = "password-toggle-field-toggle",
     onClick,
     onMouseDown,
+    onPointerDown,
     ...restProps
   },
   ref,
 ) {
   const ctx = usePasswordToggleFieldContext();
-  const { onToggle } = ctx;
+  const { captureInputSelection, onToggle } = ctx;
 
-  const handleMouseDown: MouseEventHandler<HTMLButtonElement> = useCallback((event) => {
-    event.preventDefault();
-  }, []);
+  const handleMouseDown: MouseEventHandler<HTMLButtonElement> = useCallback(
+    (event) => {
+      event.preventDefault();
+    },
+    [],
+  );
+
+  const handlePointerDown: PointerEventHandler<HTMLButtonElement> = useCallback(
+    (event) => {
+      captureInputSelection();
+      event.preventDefault();
+    },
+    [captureInputSelection],
+  );
 
   const handleClick: MouseEventHandler<HTMLButtonElement> = useCallback(() => {
     onToggle();
@@ -63,6 +80,7 @@ export const PasswordToggleFieldToggle = forwardRef<
     "data-required": ctx.required ? "" : undefined,
     onClick: composeEventHandlers(onClick, handleClick),
     onMouseDown: composeEventHandlers(onMouseDown, handleMouseDown),
+    onPointerDown: composeEventHandlers(onPointerDown, handlePointerDown),
   };
 
   if (asChild) return cloneAndMerge(children, toggleProps);

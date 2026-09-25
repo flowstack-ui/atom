@@ -1,6 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useId, useMemo, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { useControllableState } from "../../hooks/useControllableState.js";
 import { useFieldContext } from "../field/context.js";
 import { useOptionalFormContext } from "../form/context.js";
@@ -42,6 +50,12 @@ export function PasswordToggleFieldRoot({
   const field = useFieldContext();
   const formContext = useOptionalFormContext();
   const validationId = useId();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const inputSelectionRef = useRef<{
+    start: number;
+    end: number;
+    direction: "forward" | "backward" | "none";
+  } | null>(null);
   const isDisabled = disabled ?? field?.disabled ?? false;
   const isReadOnly = readOnly ?? field?.readOnly ?? false;
   const isRequired = required ?? field?.required ?? false;
@@ -51,7 +65,9 @@ export function PasswordToggleFieldRoot({
   const locallyInvalid = Boolean(invalid) || invalidControlIds.size > 0;
   const isInvalid = locallyInvalid || (field?.invalid ?? false);
   const resolvedValidationBehavior =
-    validationBehavior ?? field?.validationBehavior ?? formContext?.validationBehavior;
+    validationBehavior ??
+    field?.validationBehavior ??
+    formContext?.validationBehavior;
   const [visible, setResolvedVisible] = useControllableState<boolean>({
     value: controlledVisible,
     defaultValue: defaultVisible,
@@ -60,6 +76,37 @@ export function PasswordToggleFieldRoot({
   const resetVisibility = useCallback(() => {
     if (controlledVisible === undefined) setResolvedVisible(defaultVisible);
   }, [controlledVisible, defaultVisible, setResolvedVisible]);
+
+  const captureInputSelection = useCallback(() => {
+    const input = inputRef.current;
+    if (
+      !input ||
+      input.ownerDocument.activeElement !== input ||
+      input.selectionStart === null ||
+      input.selectionEnd === null
+    ) {
+      inputSelectionRef.current = null;
+      return;
+    }
+    inputSelectionRef.current = {
+      start: input.selectionStart,
+      end: input.selectionEnd,
+      direction: input.selectionDirection ?? "none",
+    };
+  }, []);
+
+  const restoreInputSelection = useCallback(() => {
+    const input = inputRef.current;
+    const selection = inputSelectionRef.current;
+    inputSelectionRef.current = null;
+    if (!input || !selection || input.ownerDocument.activeElement !== input)
+      return;
+    input.setSelectionRange(
+      selection.start,
+      selection.end,
+      selection.direction,
+    );
+  }, []);
 
   const setVisible = useCallback(
     (next: boolean) => {
@@ -74,16 +121,20 @@ export function PasswordToggleFieldRoot({
     setResolvedVisible((currentVisible) => !currentVisible);
   }, [isDisabled, setResolvedVisible]);
 
-  const reportControlValidity = useCallback((id: string, nextInvalid: boolean) => {
-    setInvalidControlIds((current) => {
-      const next = new Set(current);
-      if (nextInvalid) next.add(id);
-      else next.delete(id);
-      return next.size === current.size && [...next].every((value) => current.has(value))
-        ? current
-        : next;
-    });
-  }, []);
+  const reportControlValidity = useCallback(
+    (id: string, nextInvalid: boolean) => {
+      setInvalidControlIds((current) => {
+        const next = new Set(current);
+        if (nextInvalid) next.add(id);
+        else next.delete(id);
+        return next.size === current.size &&
+          [...next].every((value) => current.has(value))
+          ? current
+          : next;
+      });
+    },
+    [],
+  );
   const parentReportValidity =
     field?.reportControlValidity ?? formContext?.reportControlValidity;
 
@@ -109,6 +160,9 @@ export function PasswordToggleFieldRoot({
       validationBehavior: resolvedValidationBehavior,
       reportControlValidity,
       resetVisibility,
+      inputRef,
+      captureInputSelection,
+      restoreInputSelection,
     }),
     [
       isDisabled,
@@ -119,8 +173,10 @@ export function PasswordToggleFieldRoot({
       field?.describedBy,
       field?.labelId,
       hideLabel,
+      captureInputSelection,
       onToggle,
       reportControlValidity,
+      restoreInputSelection,
       resetVisibility,
       resolvedValidationBehavior,
       setVisible,

@@ -9,20 +9,22 @@ test("Image exports one namespace from root and subpath", () => {
   assert.equal(Image.Fallback, ImageFallback);
 });
 
-test("Image Root exposes loading state and default fallback during SSR", () => {
+test("Image Root preserves native image discovery without a loading cover during SSR", () => {
   const html = renderToStaticMarkup(React.createElement(ImageRoot, { src: "/media.jpg", id: "media", className: "root" },
-    React.createElement(ImageContent, { alt: "Workspace", width: 800, height: 450 }),
+    React.createElement(ImageContent, { alt: "Workspace", width: 800, height: 450, loading: "lazy", fetchPriority: "high" }),
     React.createElement(ImageFallback, null, "Loading media"),
   ));
   assert.match(html, /^<div/);
   assert.match(html, /data-slot="image"/);
   assert.match(html, /data-state="loading"/);
-  assert.match(html, /data-slot="image-fallback"/);
+  assert.doesNotMatch(html, /data-slot="image-fallback"/);
   assert.match(html, /data-state="loading"/);
-  assert.doesNotMatch(html, /<img/);
+  assert.match(html, /<img/);
+  assert.match(html, /loading="lazy"/);
+  assert.match(html, /fetchPriority="high"/);
 });
 
-test("Image Content forwards native image props only when loaded", () => {
+test("Image Content forwards native image delivery props", () => {
   const html = renderToStaticMarkup(React.createElement(ImageContext.Provider, { value: { src: "/media.jpg", status: "loaded" } },
     React.createElement(ImageContent, { alt: "Workspace", width: 800, height: 450, loading: "lazy", decoding: "async", srcSet: "/media-2x.jpg 2x", sizes: "50vw", className: "content" }),
   ));
@@ -38,7 +40,7 @@ test("Image Content forwards native image props only when loaded", () => {
 
 test("Image Fallback selects idle, loading, and error states explicitly", () => {
   for (const status of ["idle", "loading", "error"]) {
-    const html = renderToStaticMarkup(React.createElement(ImageContext.Provider, { value: { status } }, React.createElement(ImageFallback, null, status)));
+    const html = renderToStaticMarkup(React.createElement(ImageContext.Provider, { value: { status } }, React.createElement(ImageFallback, { when: ["idle", "loading", "error"] }, status)));
     assert.match(html, new RegExp(`data-state="${status}"`));
   }
   const hidden = renderToStaticMarkup(React.createElement(ImageContext.Provider, { value: { status: "loading" } }, React.createElement(ImageFallback, { when: "error" }, "Error")));
@@ -58,4 +60,15 @@ test("Image parts support composed hosts and authoritative state", () => {
 
 test("Image parts reject use outside Root", () => {
   assert.throws(() => renderToStaticMarkup(React.createElement(ImageFallback, null, "Nope")), /within Image.Root/);
+});
+
+test("Image Root srcSet is SSR-known, stays off the container, and Content can override it", () => {
+  const markup = (content = {}) => renderToStaticMarkup(React.createElement(Image.Root, { srcSet: "/small.png 400w, /large.png 1200w" },
+    React.createElement(Image.Content, { alt: "Landscape", loading: "lazy", ...content }),
+    React.createElement(Image.Fallback, null, "Unavailable")));
+  const html = markup();
+  assert.match(html, /^<div data-slot="image" data-state="loading">/);
+  assert.match(html, /<img[^>]+srcSet="\/small.png 400w, \/large.png 1200w"/);
+  assert.doesNotMatch(html, /Unavailable/);
+  assert.match(markup({ srcSet: "/override.png 2x" }), /srcSet="\/override.png 2x"/);
 });

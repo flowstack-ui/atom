@@ -1,162 +1,58 @@
 "use client";
-
-import {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-  type ReactNode,
-} from "react";
+import * as React from "react";
+import { forwardRef, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
-import {
-  cloneAndMerge,
-  composeEventHandlers,
-  composeRefs,
-  renderElement,
-  type RenderProp,
-} from "../../utils/slot.js";
+import { cloneAndMerge, composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
+import { usePresence } from "../../hooks/usePresence.js";
 import { useMeasuredContentHeight } from "../../utils/useMeasuredContentHeight.js";
 import { useAccordionContext, useAccordionItemContext } from "./context.js";
 
-type AccordionContentNativeProps = NativeDivProps<"children" | "role">;
-
-export interface AccordionContentProps extends AccordionContentNativeProps {
-  /** Panel content. */
+export interface AccordionContentProps extends NativeDivProps<"children" | "role"> {
   children?: ReactNode;
-  /** Keep content in DOM when closed. */
+  /** Compatibility override; prefer Root lazyMount/unmountOnExit. */
   keepMounted?: boolean;
-  /** Render Content as a labelled region landmark. */
   landmark?: boolean;
-  /** Override the rendered element. */
   render?: RenderProp;
-  /** Merge behavior props onto a single child element. */
   asChild?: boolean;
-  /** CSS class name supplied by the styled layer or consumer. */
-  className?: string;
-  /** Data slot identifier. */
   "data-slot"?: string;
 }
-
-export const AccordionContent = forwardRef<HTMLDivElement, AccordionContentProps>(
-  function AccordionContent(
-    {
-      children,
-      keepMounted = false,
-      landmark = true,
-      render,
-      asChild,
-      className,
-      "data-slot": dataSlot = "accordion-content",
-      onAnimationEnd,
-      style: styleProp,
-      ...restProps
-    },
-    ref,
-  ) {
-    const { isOpen, contentId, triggerId } = useAccordionItemContext();
-    const { orientation } = useAccordionContext();
-    const contentRef = useRef<HTMLDivElement>(null);
-    const composedRef = useMemo(
-      () => composeRefs(contentRef, ref),
-      [ref],
-    );
-    const [isMounted, setIsMounted] = useState(isOpen || keepMounted);
-    const [isAnimating, setIsAnimating] = useState(false);
-    const initialOpenRef = useRef(isOpen);
-    const hasTransitionedRef = useRef(false);
-
-    if (initialOpenRef.current !== isOpen) {
-      hasTransitionedRef.current = true;
-    }
-
-    const suppressAnimation =
-      initialOpenRef.current && !hasTransitionedRef.current;
-
-    const hasActiveCssAnimation = useCallback((element: HTMLDivElement): boolean => {
-      const computed = window.getComputedStyle(element);
-
-      const toMs = (value: string): number => {
-        const token = value.trim();
-        if (token.endsWith("ms")) return Number.parseFloat(token);
-        if (token.endsWith("s")) return Number.parseFloat(token) * 1000;
-        const parsed = Number.parseFloat(token);
-        return Number.isFinite(parsed) ? parsed : 0;
-      };
-
-      const animationNames = computed.animationName
-        .split(",")
-        .map((name) => name.trim());
-      const animationDurations = computed.animationDuration
-        .split(",")
-        .map(toMs);
-
-      return (
-        animationNames.some((name) => name !== "none") &&
-        animationDurations.some((duration) => duration > 0)
-      );
-    }, []);
-
-    useEffect(() => {
-      if (isOpen || keepMounted) setIsMounted(true);
-    }, [isOpen, keepMounted]);
-
-    useMeasuredContentHeight(contentRef, isMounted || isOpen, children);
-
-    const handleAnimationEnd = useCallback(() => {
-      setIsAnimating(false);
-      if (!isOpen && !keepMounted) {
-        setIsMounted(false);
-      }
-    }, [isOpen, keepMounted]);
-
-    useEffect(() => {
-      if (!isMounted || suppressAnimation) return undefined;
-
-      setIsAnimating(true);
-
-      const frame = requestAnimationFrame(() => {
-        const element = contentRef.current;
-        if (!element || hasActiveCssAnimation(element)) return;
-
-        setIsAnimating(false);
-        if (!isOpen && !keepMounted) {
-          setIsMounted(false);
-        }
-      });
-
-      return () => cancelAnimationFrame(frame);
-    }, [hasActiveCssAnimation, isMounted, isOpen, keepMounted, suppressAnimation]);
-
-    if (!isMounted && !isOpen) return null;
-
-    const dataState = isOpen ? "open" : "closed";
-    const style: CSSProperties = {
-      ...styleProp,
-    };
-
-    const behaviorProps: Record<string, unknown> = {
-      ...restProps,
-      ref: composedRef,
-      id: contentId,
-      "data-slot": dataSlot,
-      "data-state": dataState,
-      ...(suppressAnimation ? { "data-initial-open": "" } : {}),
-      "data-orientation": orientation,
-      role: landmark ? "region" : undefined,
-      "aria-labelledby": landmark ? triggerId : undefined,
-      className,
-      hidden: keepMounted && !isOpen && !isAnimating ? true : undefined,
-      onAnimationEnd: composeEventHandlers(onAnimationEnd, handleAnimationEnd),
-      style,
-    };
-
-    if (asChild) {
-      return cloneAndMerge(children, behaviorProps);
-    }
-
-    return renderElement(render, "div", { ...behaviorProps, children });
-  },
-);
+const useSafeLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
+export const AccordionContent = forwardRef<HTMLDivElement, AccordionContentProps>(function AccordionContent(
+  { children, keepMounted, landmark = true, render, asChild, "data-slot": slot = "accordion-content", ...props }, ref,
+) {
+  const item = useAccordionItemContext();
+  const group = useAccordionContext();
+  const { isOpen } = item;
+  const localRef = useRef<HTMLDivElement | null>(null);
+  const presence = usePresence({ present: isOpen, onExitComplete: () => group.onExitComplete?.(item.value) });
+  const composedRef = useMemo(() => composeRefs(localRef, presence.ref, ref), [presence.ref, ref]);
+  const [everOpened, setEverOpened] = useState(isOpen);
+  const initiallyOpen = useRef(isOpen);
+  const transitioned = useRef(false);
+  if (initiallyOpen.current !== isOpen) transitioned.current = true;
+  const lazy = keepMounted === undefined ? group.lazyMount : !keepMounted;
+  const unmount = keepMounted === undefined ? group.unmountOnExit : !keepMounted;
+  const visible = isOpen || presence.isPresent;
+  const mounted = visible || (!unmount && everOpened) || (!lazy && !everOpened);
+  useEffect(() => { if (isOpen) setEverOpened(true); }, [isOpen]);
+  useSafeLayoutEffect(() => {
+    const node = localRef.current;
+    if (!isOpen && node?.contains(node.ownerDocument.activeElement)) group.getTriggerElement(item.value)?.focus({ preventScroll: true });
+  }, [isOpen, group.getTriggerElement, item.value]);
+  useMeasuredContentHeight(localRef, mounted || isOpen, children);
+  if (!mounted) return null;
+  const behavior: Record<string, unknown> = {
+    ...props, ref: composedRef, id: item.contentId,
+    "data-slot": slot, "data-state": isOpen ? "open" : "closed",
+    "data-orientation": group.orientation,
+    "data-initial-open": initiallyOpen.current && !transitioned.current ? "" : undefined,
+    role: landmark ? "region" : undefined,
+    "aria-labelledby": landmark && !props["aria-label"] ? item.triggerId : props["aria-labelledby"],
+    "aria-hidden": !isOpen || undefined,
+    inert: !isOpen ? (Number.parseInt(React.version, 10) >= 19 ? true : "") : undefined,
+    hidden: !visible || undefined,
+  };
+  const output = asChild ? cloneAndMerge(children, behavior) : renderElement(render, "div", { ...behavior, children });
+  const Activity = (React as typeof React & { Activity?: React.ElementType }).Activity;
+  return group.hideMode === "activity" && Activity ? <Activity mode={visible ? "visible" : "hidden"}>{output}</Activity> : output;
+});

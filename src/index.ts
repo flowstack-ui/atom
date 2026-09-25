@@ -1,4 +1,16 @@
 "use client";
+export * from "./editable.js";
+export * from "./tags-input.js";
+export * from "./native-select.js";
+export * from "./marquee.js";
+export * from "./overlay-manager.js";
+export * from "./calendar.js";
+export * from "./date-input.js";
+export * from "./date-picker.js";
+export * from "./date-value.js";
+
+export * from "./steps.js";
+export * from "./splitter.js";
 
 export {
   Accordion,
@@ -45,7 +57,7 @@ export {
   NavigationMenu,
   NavList,
   NumberInput,
-  OTPField,
+  PinInput,
   PasswordToggleField,
   Pagination,
   Popover,
@@ -81,6 +93,11 @@ export * from "./primitives/reorder/index.js";
 
 export {
   AccordionContent,
+  AccordionRootProvider,
+  AccordionContext,
+  AccordionItemContext,
+  AccordionIndicator,
+  useAccordion,
   AccordionContextProvider,
   AccordionHeader,
   AccordionItem,
@@ -167,6 +184,8 @@ export {
   ComboboxLoading,
   ComboboxPortal,
   ComboboxRoot,
+  ComboboxRootProvider,
+  useCombobox,
   ComboboxTrigger,
   filterComboboxOptions,
   getComboboxOptionLabel,
@@ -192,10 +211,17 @@ export type {
   ComboboxOptionGroup,
   ComboboxPortalProps,
   ComboboxRootProps,
+  ComboboxRootProviderProps,
+  UseComboboxProps,
+  ComboboxController,
   ComboboxTriggerProps,
 } from "./primitives/combobox/index.js";
 export type {
   AccordionContentProps,
+  AccordionRootProviderProps,
+  AccordionIndicatorProps,
+  UseAccordionOptions,
+  UseAccordionReturn,
   AccordionContextValue,
   AccordionHeaderLevel,
   AccordionHeaderProps,
@@ -242,6 +268,11 @@ export { LinkRoot } from "./primitives/link/index.js";
 export type { LinkRootProps } from "./primitives/link/index.js";
 export {
   CarouselContextProvider,
+  CarouselRootProvider,
+  useCarousel,
+  getCarouselSnapPages,
+  closestCarouselPage,
+  positiveCarouselNumber,
   CarouselNext,
   CarouselPicker,
   CarouselPickerItem,
@@ -261,6 +292,12 @@ export {
 export type {
   CarouselChangeReason,
   CarouselContextValue,
+  CarouselRootProviderProps,
+  UseCarouselProps,
+  CarouselPageChangeDetails,
+  CarouselTranslations,
+  CarouselSnapPage,
+  CarouselItemMeasurement,
   CarouselNextProps,
   CarouselPickerItemProps,
   CarouselPickerProps,
@@ -346,6 +383,10 @@ export type {
 export {
   CollapsibleContent,
   CollapsibleContextProvider,
+  CollapsibleContext,
+  CollapsibleRootProvider,
+  CollapsibleIndicator,
+  useCollapsible,
   CollapsibleRoot,
   CollapsibleTrigger,
   useCollapsibleContext,
@@ -353,6 +394,10 @@ export {
 export type {
   CollapsibleContentProps,
   CollapsibleContextValue,
+  CollapsibleRootProviderProps,
+  CollapsibleIndicatorProps,
+  UseCollapsibleOptions,
+  UseCollapsibleReturn,
   CollapsibleRootProps,
   CollapsibleTriggerProps,
 } from "./primitives/collapsible/index.js";
@@ -386,6 +431,7 @@ export type {
 } from "./primitives/direction/index.js";
 export {
   ContextMenuContextProvider,
+  ContextMenuRootProvider, useContextMenu,
   ContextMenuContent,
   ContextMenuRoot,
   ContextMenuTrigger,
@@ -394,14 +440,19 @@ export {
 export type {
   ContextMenuAnchorPoint,
   ContextMenuContextValue,
+  ContextMenuRootProviderProps, UseContextMenuOptions, UseContextMenuReturn,
   ContextMenuContentProps,
   ContextMenuRootProps,
   ContextMenuTriggerProps,
 } from "./primitives/context-menu/index.js";
 export {
   DataGridBody,
+  DataGridRowHeader,
+  DataGridColumnResizeHandle,
   DataGridCaption,
   DataGridCell,
+  DataGridColumn,
+  DataGridColumnGroup,
   DataGridColumnHeader,
   DataGridContextProvider,
   DataGridFooter,
@@ -414,10 +465,14 @@ export {
 } from "./primitives/data-grid/index.js";
 export type {
   DataGridBodyProps,
+  DataGridRowHeaderProps,
+  DataGridColumnResizeHandleProps,
   DataGridCaptionProps,
   DataGridCellCoordinates,
   DataGridCellData,
   DataGridCellProps,
+  DataGridColumnGroupProps,
+  DataGridColumnProps,
   DataGridColumnHeaderProps,
   DataGridContextValue,
   DataGridFooterProps,
@@ -431,6 +486,7 @@ export type {
 } from "./primitives/data-grid/index.js";
 export {
   DialogClose,
+  DialogPositioner,
   DialogContent,
   DialogDescription,
   DialogOverlay,
@@ -440,6 +496,7 @@ export {
 } from "./primitives/dialog/index.js";
 export type {
   DialogCloseProps,
+  DialogPositionerProps,
   DialogContentProps,
   DialogDescriptionProps,
   DialogHeadingLevel,
@@ -450,6 +507,8 @@ export type {
 } from "./primitives/dialog/index.js";
 export {
   DrawerClose,
+  DrawerContext,
+  DrawerPositioner,
   DrawerContent,
   DrawerDescription,
   DrawerOverlay,
@@ -459,6 +518,9 @@ export {
 } from "./primitives/drawer/index.js";
 export type {
   DrawerCloseProps,
+  DrawerContextProps,
+  DrawerContextValue,
+  DrawerPositionerProps,
   DrawerContentProps,
   DrawerDescriptionProps,
   DrawerHeadingLevel,
@@ -468,6 +530,7 @@ export type {
   DrawerTriggerProps,
 } from "./primitives/drawer/index.js";
 export { DropdownMenuTrigger } from "./primitives/dropdown-menu/index.js";
+export { useMenu as useDropdownMenu } from "./primitives/menu/MenuRoot.js";
 export type { DropdownMenuTriggerProps } from "./primitives/dropdown-menu/index.js";
 export {
   getHoverCardArrowGeometry,
@@ -480,6 +543,7 @@ export {
   HoverCardTrigger,
   useHoverCardContentContext,
   useHoverCardContext,
+  useHoverCard, HoverCardRootProvider, HoverCardContext,
 } from "./primitives/hover-card/index.js";
 export type {
   HoverCardAlign,
@@ -492,6 +556,8 @@ export type {
   HoverCardRootProps,
   HoverCardSide,
   HoverCardTriggerProps,
+  HoverCardRootProviderProps, HoverCardContextProps, UseHoverCardOptions, UseHoverCardReturn,
+  HoverCardIds, HoverCardLifecycleOptions, HoverCardOutsideEvents, HoverCardPositioningOptions,
 } from "./primitives/hover-card/index.js";
 export {
   InputClear,
@@ -556,6 +622,7 @@ export type {
   FeedSetSize,
 } from "./primitives/feed/index.js";
 export {
+  FileUploadRootProvider, useFileUpload, FileUploadContext, FileUploadClearTrigger, FileUploadFileText, FileUploadLabel, FileUploadItemPreview, FileUploadItemPreviewImage, normalizeFileAccept,
   FileUploadContextProvider,
   FileUploadDropzone,
   FileUploadHiddenInput,
@@ -575,6 +642,7 @@ export {
 } from "./primitives/file-upload/index.js";
 export type {
   FileUploadContextValue,
+  FileUploadRootProviderProps, FileUploadController, FileUploadAccept, FileUploadError, FileUploadClearTriggerProps, FileUploadFileTextProps, FileUploadItemPreviewProps, FileUploadItemPreviewImageProps,
   FileUploadDragState,
   FileUploadDropzoneProps,
   FileUploadHiddenInputProps,
@@ -664,16 +732,37 @@ export type {
 export {
   RadioGroupContextProvider,
   RadioGroupRoot,
+  RadioGroupRootProvider,
+  useRadioGroup,
+  RadioGroupLabel,
+  RadioGroupItemRoot,
+  RadioGroupItemHiddenInput,
+  RadioGroupItemText,
+  RadioGroupItemControl,
+  RadioGroupItemIndicator,
+  RadioGroupItemDescription,
+  RadioGroupContext,
+  RadioGroupItemContext,
+  useRadioGroupItemContext,
+  RadioGroupIndicator,
   RadioRoot,
   useRadioGroupContext,
 } from "./primitives/radio-group/index.js";
 export type {
   RadioGroupContextValue,
   RadioGroupRootProps,
+  RadioGroupRootProviderProps,
+  RadioGroupController,
+  RadioGroupPartProps,
+  RadioGroupItemRootProps,
+  RadioGroupItemTextProps,
+  RadioGroupItemHiddenInputProps,
+  RadioGroupIndicatorProps,
   RadioRootProps,
 } from "./primitives/radio-group/index.js";
 export {
   RatingContextProvider,
+  RatingRootProvider, RatingLabel, RatingControl, RatingHiddenInput, RatingContext, RatingItemContext, useRating, useRatingItemContext,
   RatingItem,
   RatingRoot,
   clampRatingValue,
@@ -685,6 +774,7 @@ export {
 } from "./primitives/rating/index.js";
 export type {
   RatingContextValue,
+  RatingRootProviderProps, RatingLabelProps, RatingControlProps, RatingHiddenInputProps, RatingController, UseRatingProps, RatingItemContextValue,
   RatingItemDataState,
   RatingItemProps,
   RatingItemState,
@@ -695,6 +785,13 @@ export {
   ScrollAreaContextProvider,
   ScrollAreaRoot,
   ScrollAreaViewport,
+  ScrollAreaRootProvider,
+  ScrollAreaContent,
+  ScrollAreaScrollbar,
+  ScrollAreaThumb,
+  ScrollAreaCorner,
+  ScrollAreaContext,
+  useScrollArea,
   useScrollAreaContext,
 } from "./primitives/scroll-area/index.js";
 export type {
@@ -702,6 +799,20 @@ export type {
   ScrollAreaOrientation,
   ScrollAreaRootProps,
   ScrollAreaViewportProps,
+  ScrollAreaRootProviderProps,
+  ScrollAreaContentProps,
+  ScrollAreaScrollbarProps,
+  ScrollAreaThumbProps,
+  ScrollAreaCornerProps,
+  ScrollAreaController,
+  UseScrollAreaProps,
+  ScrollAreaIds,
+  ScrollAreaAxis,
+  ScrollAreaEdge,
+  ScrollAreaState,
+  ScrollAreaScrollToDetails,
+  ScrollAreaScrollToEdgeDetails,
+  ScrollAreaScrollbarState,
 } from "./primitives/scroll-area/index.js";
 export {
   SkipLinkRoot,
@@ -711,6 +822,8 @@ export type {
   SkipLinkRootProps,
   SkipLinkTargetProps,
 } from "./primitives/skip-link/index.js";
+export { NumberInputRootProvider, NumberInputLabel, NumberInputValueText, NumberInputContext, NumberInputScrubber, useNumberInput } from "./number-input.js";
+export type { NumberInputRootProviderProps, NumberInputLabelProps, NumberInputValueTextProps, NumberInputContextProps, NumberInputScrubberProps, UseNumberInputOptions, NumberInputIds, NumberInputTranslations, NumberInputValueChangeDetails, NumberInputValueInvalidDetails, NumberInputFocusChangeDetails } from "./number-input.js";
 export {
   NumberInputContextProvider,
   NumberInputDecrement,
@@ -734,17 +847,22 @@ export type {
   NumberInputRootProps,
 } from "./primitives/number-input/index.js";
 export {
-  filterOTPFieldValue,
-  getOTPFieldChars,
-  getOTPFieldDisplayChar,
-  getOTPFieldPattern,
-  isOTPFieldCharAccepted,
-  OTPFieldContextProvider,
-  OTPFieldInput,
-  OTPFieldRoot,
-  OTPFieldSeparator,
-  useOTPFieldContext,
-} from "./primitives/otp-field/index.js";
+  filterPinInputValue,
+  usePinInput,
+  PinInputRootProvider,
+  PinInputContext,
+  PinInputLabel,
+  PinInputControl,
+  getPinInputChars,
+  getPinInputDisplayChar,
+  getPinInputPattern,
+  isPinInputCharAccepted,
+  PinInputContextProvider,
+  PinInputInput,
+  PinInputRoot,
+  PinInputSeparator,
+  usePinInputContext,
+} from "./primitives/pin-input/index.js";
 export {
   PasswordToggleFieldContextProvider,
   PasswordToggleFieldIcon,
@@ -762,6 +880,11 @@ export type {
 } from "./primitives/password-toggle-field/index.js";
 export {
   PaginationContextProvider,
+  PaginationFirst,
+  PaginationLast,
+  PaginationContextConsumer,
+  PaginationRootProvider,
+  usePagination,
   PaginationEllipsis,
   PaginationItem,
   PaginationItems,
@@ -776,6 +899,7 @@ export {
 } from "./primitives/pagination/index.js";
 export type {
   PaginationContextValue,
+  PaginationIds,
   PaginationControlProps,
   PaginationEllipsisProps,
   PaginationItemProps,
@@ -786,16 +910,31 @@ export type {
   PaginationRangeItem,
   PaginationRangeOptions,
   PaginationRootProps,
+  PaginationRootProviderProps,
+  UsePaginationProps,
+  UsePaginationReturn,
 } from "./primitives/pagination/index.js";
 export type {
-  OTPFieldContextValue,
-  OTPFieldInputProps,
-  OTPFieldRootProps,
-  OTPFieldSeparatorProps,
-  OTPFieldType,
-} from "./primitives/otp-field/index.js";
+  PinInputContextValue,
+  PinInputOptions,
+  PinInputController,
+  PinInputValueChangeDetails,
+  PinInputInvalidDetails,
+  PinInputRootProviderProps,
+  PinInputContextProps,
+  PinInputLabelProps,
+  PinInputControlProps,
+  PinInputInputProps,
+  PinInputRootProps,
+  PinInputSeparatorProps,
+  PinInputType,
+} from "./primitives/pin-input/index.js";
 export {
   NavigationMenuContent,
+  NavigationMenuRootProvider,
+  NavigationMenuContext,
+  NavigationMenuItemIndicator,
+  useNavigationMenu,
   NavigationMenuContextProvider,
   NavigationMenuIndicator,
   NavigationMenuItem,
@@ -816,6 +955,11 @@ export {
 } from "./primitives/navigation-menu/index.js";
 export type {
   ContentNodeEntry,
+  UseNavigationMenuOptions,
+  UseNavigationMenuReturn,
+  NavigationMenuApi,
+  NavigationMenuRootProviderProps,
+  NavigationMenuItemIndicatorProps,
   NavigationMenuContentProps,
   NavigationMenuContextValue,
   NavigationMenuGeometry,
@@ -895,6 +1039,7 @@ export type {
 } from "./primitives/modal/index.js";
 export {
   MenuContextProvider,
+  MenuRootProvider, MenuContext, useMenu, useMenuState,
   MenuArrow,
   MenuCheckboxItem,
   MenuContent,
@@ -918,6 +1063,8 @@ export {
 } from "./primitives/menu/index.js";
 export type {
   MenuContextValue,
+  MenuRootProviderProps, UseMenuOptions, UseMenuReturn, MenuContextProps, MenuState,
+  MenuPositioningOptions, MenuLifecycleOptions, MenuOutsideEvents, MenuHighlightTarget, MenuHighlightChangeDetails, MenuSelectionEvent, MenuNavigateDetails,
   MenuCloseReason,
   MenuAlign,
   MenuArrowProps,
@@ -945,6 +1092,7 @@ export {
   MenubarContent,
   MenubarMenu,
   MenubarMenuContextProvider,
+  MenubarRootProvider, MenubarContext, useMenubar, useMenubarState,
   MenubarRoot,
   MenubarTrigger,
   useMenubarContext,
@@ -955,6 +1103,7 @@ export type {
   MenubarContextValue,
   MenubarMenuProps,
   MenubarMenuContextValue,
+  UseMenubarOptions, UseMenubarReturn, MenubarRootProviderProps, MenubarContextProps,
   MenubarRootProps,
   MenubarTriggerProps,
 } from "./primitives/menubar/index.js";
@@ -998,10 +1147,19 @@ export type {
   PopoverTriggerProps,
   PopoverTitleProps,
 } from "./primitives/popover/index.js";
+export { useSelection, useSelectionCheckbox } from "./selection.js";
+export { usePopover, usePopoverState, PopoverRootProvider, PopoverState, PopoverIndicator, markPopoverPart } from "./primitives/popover/index.js";
+export type { UsePopoverOptions, UsePopoverReturn, PopoverRootProviderProps, PopoverStateProps, PopoverIndicatorProps, PopoverPositioningOptions, PopoverIds, PopoverLifecycleOptions, PopoverOutsideEvents } from "./primitives/popover/index.js";
+export { ActionDelegate } from "./action-delegate.js";
+export type { ActionDelegateProps } from "./action-delegate.js";
+export type { SelectionMode, SelectionOptions, SelectionState, SelectionCheckboxOptions, SelectionCheckboxProps } from "./selection.js";
 export { PressableRoot } from "./primitives/pressable/index.js";
 export type { PressableRootProps } from "./primitives/pressable/index.js";
 export {
   ProgressContextProvider,
+  ProgressContextView,
+  ProgressRootProvider,
+  useProgress,
   ProgressIndicator,
   ProgressRoot,
   clampProgressValue,
@@ -1011,6 +1169,11 @@ export {
 } from "./primitives/progress/index.js";
 export type {
   ProgressContextValue,
+  ProgressContextProps,
+  ProgressController,
+  ProgressIds,
+  UseProgressProps,
+  ProgressRootProviderProps,
   ProgressDataState,
   ProgressIndicatorProps,
   ProgressRootProps,
@@ -1019,30 +1182,63 @@ export type {
 } from "./primitives/progress/index.js";
 export {
   SliderContextProvider,
+  SliderContext,
+  SliderControl,
+  SliderDraggingIndicator,
+  SliderHiddenInput,
+  SliderLabel,
+  SliderMarker,
+  SliderMarkerGroup,
+  SliderMarkerIndicator,
+  SliderMarkerLabel,
   SliderRange,
   SliderRoot,
+  SliderRootProvider,
   SliderThumb,
   SliderTrack,
+  SliderValueText,
+  applySliderCollision,
   clampSliderValue,
   getClosestThumbIndex,
   getSliderRangeOffsetStyle,
   getSliderThumbOffsetStyle,
+  normalizeSliderConfig,
+  normalizeSliderValues,
   percentToValue,
   snapToStep,
   useSliderContext,
+  useSlider,
   valueToPercent,
 } from "./primitives/slider/index.js";
 export type {
+  SliderCollisionBehavior,
+  SliderController,
+  SliderContextProps,
   SliderContextValue,
+  SliderControlProps,
+  SliderDraggingIndicatorDetails,
+  SliderDraggingIndicatorProps,
+  SliderHiddenInputMode,
+  SliderHiddenInputProps,
+  SliderLabelProps,
+  SliderMarkerGroupProps,
+  SliderMarkerProps,
   SliderOrientation,
+  SliderOrigin,
   SliderRangeProps,
   SliderRangeState,
   SliderRootProps,
+  SliderRootProviderProps,
+  SliderThumbAlignment,
   SliderThumbBehaviorProps,
   SliderThumbProps,
   SliderThumbState,
+  SliderThumbSize,
   SliderTrackProps,
   SliderValue,
+  SliderValueTextDetails,
+  SliderValueTextProps,
+  UseSliderProps,
 } from "./primitives/slider/index.js";
 export {
   SelectArrow,
@@ -1059,6 +1255,9 @@ export {
   SelectListbox,
   SelectPortal,
   SelectRoot,
+  SelectClearTrigger,
+  useSelect,
+  SelectRootProvider,
   SelectScrollDownButton,
   SelectScrollUpButton,
   SelectSeparator,
@@ -1084,6 +1283,9 @@ export type {
   SelectListboxProps,
   SelectPortalProps,
   SelectRootProps,
+  SelectClearTriggerProps,
+  UseSelectReturn,
+  SelectRootProviderProps,
   SelectScrollDownButtonProps,
   SelectScrollUpButtonProps,
   SelectSeparatorProps,
@@ -1110,21 +1312,41 @@ export type {
   SidebarTriggerProps,
 } from "./primitives/sidebar/index.js";
 export {
+  SwitchControl,
   SwitchContextProvider,
+  SwitchField,
+  SwitchHiddenInput,
+  SwitchIndicator,
+  SwitchLabel,
   SwitchRoot,
+  SwitchRootProvider,
   SwitchThumb,
+  SwitchThumbIndicator,
+  useSwitch,
   useSwitchContext,
 } from "./primitives/switch/index.js";
 export type {
+  SwitchController,
+  SwitchControlProps,
   SwitchContextValue,
+  SwitchFieldProps,
+  SwitchHiddenInputProps,
+  SwitchIndicatorProps,
+  SwitchLabelProps,
   SwitchRootProps,
+  SwitchRootProviderProps,
   SwitchThumbProps,
+  SwitchThumbIndicatorProps,
+  UseSwitchProps,
 } from "./primitives/switch/index.js";
 export {
   SwipeableItemActions,
   SwipeableItemContent,
   SwipeableItemContextProvider,
   SwipeableItemRoot,
+  SwipeableItemRootProvider,
+  SwipeableItemContext,
+  useSwipeableItem,
   clampSwipeableItemOffset,
   getSwipeableItemOffsetForSide,
   getSwipeableItemSideForOffset,
@@ -1138,6 +1360,9 @@ export type {
   SwipeableItemContextValue,
   SwipeableItemOpenSide,
   SwipeableItemRootProps,
+  SwipeableItemRootProviderProps,
+  SwipeableItemController,
+  UseSwipeableItemProps,
   SwipeableItemSide,
 } from "./primitives/swipeable-item/index.js";
 export { ToggleRoot } from "./primitives/toggle/ToggleRoot.js";
@@ -1145,6 +1370,9 @@ export type { ToggleRootProps } from "./primitives/toggle/ToggleRoot.js";
 export {
   TabsContent,
   TabsContextProvider,
+  TabsContext,
+  TabsRootProvider,
+  useTabs,
   TabsIndicator,
   TabsList,
   TabsRoot,
@@ -1155,6 +1383,10 @@ export type {
   TabsActivationMode,
   TabsContentProps,
   TabsContextValue,
+  TabsIds,
+  UseTabsProps,
+  UseTabsReturn,
+  TabsRootProviderProps,
   TabsIndicatorProps,
   TabsListProps,
   TabsOrientation,
@@ -1165,6 +1397,8 @@ export {
   TableBody,
   TableCaption,
   TableCell,
+  TableColumn,
+  TableColumnGroup,
   TableFooter,
   TableHead,
   TableHeader,
@@ -1175,6 +1409,8 @@ export type {
   TableBodyProps,
   TableCaptionProps,
   TableCellProps,
+  TableColumnGroupProps,
+  TableColumnProps,
   TableFooterProps,
   TableHeadProps,
   TableHeaderProps,
@@ -1190,6 +1426,11 @@ export {
   TreeItemContextProvider,
   TreeItemText,
   TreeRoot,
+  TreeRootProvider,
+  TreeTrigger,
+  TreeCheckbox,
+  createTreeCollection,
+  useTreeController,
   useTreeBranchContext,
   useTreeContext,
   useTreeItemContext,
@@ -1205,12 +1446,23 @@ export type {
   TreeItemTextProps,
   TreeOrientation,
   TreeRootProps,
+  TreeRootProviderProps,
+  TreeTriggerProps,
+  TreeCheckboxProps,
+  TreeNode,
+  TreeNodeEntry,
+  TreeCollection,
+  UseTreeControllerOptions,
   TreeSelectionValue,
 } from "./primitives/tree/index.js";
 export {
   TreeGridBody,
+  TreeGridTrigger,
+  TreeGridColumnResizeHandle,
   TreeGridCaption,
   TreeGridCell,
+  TreeGridColumn,
+  TreeGridColumnGroup,
   TreeGridColumnHeader,
   TreeGridContextProvider,
   TreeGridFooter,
@@ -1224,10 +1476,14 @@ export {
 } from "./primitives/tree-grid/index.js";
 export type {
   TreeGridBodyProps,
+  TreeGridTriggerProps,
+  TreeGridColumnResizeHandleProps,
   TreeGridCaptionProps,
   TreeGridCellCoordinates,
   TreeGridCellData,
   TreeGridCellProps,
+  TreeGridColumnGroupProps,
+  TreeGridColumnProps,
   TreeGridColumnHeaderProps,
   TreeGridContextValue,
   TreeGridFooterProps,
@@ -1255,6 +1511,9 @@ export type {
 } from "./primitives/textarea/index.js";
 export {
   addToast,
+  createToastApi,
+  createToastStore,
+  defaultToastStore,
   dismissToast,
   getDefaultToastDuration,
   getToastAriaLive,
@@ -1300,6 +1559,10 @@ export type {
   ToastRootContextValue,
   ToastRootProps,
   ToastState,
+  ToastStore,
+  ToastStoreOptions,
+  ToastStatus,
+  ToastStatusChangeDetails,
   ToastTitleProps,
   ToastType,
   ToastViewportProps,
@@ -1311,6 +1574,7 @@ export type {
 } from "./primitives/toast/index.js";
 export {
   getTooltipArrowGeometry,
+  TooltipContext,
   TooltipArrow,
   TooltipContent,
   TooltipContentContextProvider,
@@ -1320,12 +1584,15 @@ export {
   TooltipProviderContextProvider,
   useTooltipContentContext,
   TooltipRoot,
+  TooltipRootProvider,
+  useTooltip,
   TooltipTrigger,
   useTooltipContext,
   useTooltipProviderContext,
 } from "./primitives/tooltip/index.js";
 export type {
   TooltipAlign,
+  TooltipState, TooltipStateProps, TooltipPositioningOptions, TooltipIds, TooltipLifecycleOptions,
   TooltipArrowGeometry,
   TooltipArrowProps,
   TooltipContentContextValue,
@@ -1335,6 +1602,9 @@ export type {
   TooltipProviderContextValue,
   TooltipProviderProps,
   TooltipRootProps,
+  TooltipRootProviderProps,
+  UseTooltipOptions,
+  UseTooltipReturn,
   TooltipSide,
   TooltipTriggerProps,
 } from "./primitives/tooltip/index.js";
@@ -1345,6 +1615,8 @@ export {
 export type { VisuallyHiddenRootProps } from "./primitives/visually-hidden/index.js";
 export {
   ToolbarButton,
+  ToolbarGroup,
+  ToolbarInput,
   ToolbarContextProvider,
   ToolbarLink,
   ToolbarRoot,
@@ -1358,6 +1630,8 @@ export {
 } from "./primitives/toolbar/index.js";
 export type {
   ToolbarButtonProps,
+  ToolbarGroupProps,
+  ToolbarInputProps,
   ToolbarContextValue,
   ToolbarDirection,
   ToolbarLinkProps,
@@ -1415,3 +1689,22 @@ export { Portal } from "./utils/Portal.js";
 export type { PortalProps } from "./utils/Portal.js";
 
 export * from "./primitives/multi-select/index.js";
+export { DownloadTrigger, DownloadTriggerRoot, type DownloadTriggerRootProps, type DownloadableData, type DownloadDetails } from "./primitives/download-trigger/index.js";
+export { useDownload, type UseDownloadProps, type UseDownloadReturn } from "./primitives/download-trigger/index.js";
+export * from "./action-bar.js";
+export * from "./floating-panel.js";
+export * from "./qr-code.js";
+export * from "./table-of-contents.js";
+export { createFilter } from "./utils/createFilter.js";
+export type { FilterOptions, LocaleFilter } from "./utils/createFilter.js";
+export { composeHost } from "./compose-host.js";
+export * from "./checkbox-card.js";
+export * from "./radio-card.js";
+export { useCheckbox, CheckboxRootProvider } from "./primitives/checkbox/index.js";
+export type { UseCheckboxProps, CheckboxController, CheckboxRootProviderProps } from "./primitives/checkbox/index.js";
+export { useCheckboxGroup, useCheckboxGroupItem, CheckboxGroupRootProvider } from "./primitives/checkbox-group/index.js";
+export type { UseCheckboxGroupProps, CheckboxGroupController, CheckboxGroupRootProviderProps, UseCheckboxGroupItemProps } from "./primitives/checkbox-group/index.js";
+export { FieldItem, FieldContext } from "./primitives/field/index.js";
+export type { FieldItemProps, FieldContextProps } from "./primitives/field/index.js";
+export { FieldsetContext } from "./primitives/fieldset/index.js";
+export type { FieldsetContextProps } from "./primitives/fieldset/index.js";

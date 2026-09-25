@@ -18,7 +18,7 @@ Dialog, Drawer, or grouped list with explicit depth and back controls.
 ## Features
 
 - Supports controlled state, modal behavior, looping, and dismissal options.
-- Opens from pointer or keyboard with real focus on the expected first/last item.
+- Pointer opening focuses Content; keyboard opening focuses the first/last item.
 - Includes actions, checkbox/radio choices, groups, separators, and submenus.
 - Provides typeahead, focus restoration, collision-aware positioning, and RTL submenus.
 - Registers portalled content with parent modal focus scopes.
@@ -152,7 +152,7 @@ not a plain string.
 | --- | --- | --- |
 | `value` | `string` | required |
 | `textValue` | `string` | Text child or value |
-| `onSelect` | `() => void` | - |
+| `onSelect` | `(event: MenuSelectionEvent) => void` | - |
 | `disabled` | `boolean` | `false` |
 | `closeOnSelect` | `boolean` | Root setting |
 | `asChild` | `boolean` | `false` |
@@ -321,6 +321,116 @@ parts. Prefer the namespaced parts for the complete behavior above.
 All retained DOM parts accept refs, native props, `asChild`, and `render`.
 Content and SubContent expose the `--atom-menu-available-*`,
 `--atom-menu-trigger-*`, and `--atom-menu-transform-origin` variables.
+
+### RootProvider
+
+Use `useDropdownMenu(options)` with
+`DropdownMenu.RootProvider value={controller}`.
+Pass the unchanged controller; do not spread or recreate it. Hook options
+match Root behavior options without children. The controller exposes
+`open`, `highlightedValue`, `triggerValue`, `setOpen`,
+`setHighlightedValue`, `setTriggerValue`, `setAnchorPoint` and
+`reposition`. Root and RootProvider are alternative state owners.
+
+### Context
+
+The namespaced `Context` accepts a render-function child receiving public
+menu state; `useMenuState()` reads the same state beneath the root.
+DropdownMenu and ContextMenu Trigger accept `value` (default
+`"default"`); assign unique values when one menu serves multiple targets.
+The active trigger supplies the anchor, accessible relationship and focus
+return. Pointer invocation focuses the container; keyboard invocation enters
+the first/last item. An explicitly supplied highlight remains authoritative.
+
+### Shared menu state and events
+
+Root (Menubar: the Menu part) accepts these additional behavior options.
+Menubar remains non-modal; its Root coordinates the active top-level menu.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `highlightedValue` | `MenuHighlightTarget` | uncontrolled |
+| `defaultHighlightedValue` | `MenuHighlightTarget` | `null` |
+| `onHighlightChange` | `({ highlightedValue }) => void` | - |
+| `typeahead` | `boolean` | `true` |
+| `onSelect` | `(event: MenuSelectionEvent) => void` | - |
+| `navigate` | `(details: MenuNavigateDetails) => void` | native navigation |
+| `positioning` | `MenuPositioningOptions` | inherited geometry defaults |
+| `triggerValue` | `string` | uncontrolled |
+| `defaultTriggerValue` | `string` | - |
+| `onTriggerValueChange` | `(value: string \| undefined) => void` | - |
+| `onEscapeKeyDown` | `(event: KeyboardEvent) => void` | - |
+| `onPointerDownOutside` | `(event: OutsideInteractionEvent) => void` | - |
+| `onFocusOutside` | `(event: FocusEvent) => void` | - |
+| `onInteractOutside` | `(event: OutsideInteractionEvent \| FocusEvent) => void` | - |
+| `onRequestDismiss` | `(event: Event) => void` | - |
+| `persistentElements` | `Array<() => HTMLElement \| null>` | - |
+
+A highlight target is a unique string, `null`, or
+`{ value, groupId }`. For repeated radio values, assign a stable native
+`id` to RadioGroup and use that ID as `groupId`. Controlled highlight is
+authoritative: declining an update does not independently move item focus.
+
+Item, CheckboxItem and RadioItem accept `onSelect(event)`. The event exposes
+`value`, optional `groupId`, `node`, `originalEvent`,
+`defaultPrevented` and `preventDefault()`. Item then root callbacks observe
+one transaction before checked/radio state and closing are applied.
+Cancelling it prevents those changes. Native `asChild` links preserve
+modified clicks, downloads and alternate targets; `navigate` handles only
+ordinary router navigation.
+
+### Positioning options
+
+Root geometry is overridden by Content or SubContent `positioning`, then
+existing explicit Content `side`, `align` and `sideOffset` shorthand.
+Sub may own independent `positioning`. Available fields are:
+
+| Option | Type / responsibility |
+| --- | --- |
+| `placement` | Floating UI physical side with optional logical start/end |
+| `strategy` | `absolute \| fixed` |
+| `gutter`, `shift` | Main-axis and cross-axis offsets |
+| `offset` | `{ mainAxis?, crossAxis? }` |
+| `flip` | Boolean or fallback placement list |
+| `slide`, `overlap` | Collision shift policy |
+| `boundary` | Element boundary or callback |
+| `overflowPadding` | Collision padding |
+| `sameWidth`, `fitViewport` | Anchor width and available viewport containment |
+| `hideWhenDetached` | Hide when the reference is clipped |
+| `listeners` | Boolean or Floating UI auto-update options |
+| `animationFrame` | Animation-frame geometry updates |
+| `sizeMiddleware` | Available-size middleware policy |
+| `arrowPadding` | Arrow collision inset |
+| `getAnchorRect`, `getAnchorElement` | Virtual or element anchor |
+| `onPositioned` | `({ placed: boolean }) => void` |
+
+Content still owns the native menu element, scrolling, event handlers and
+forwarded ref. A non-semantic positioner hosts it and an optional Arrow
+outside the scroll clipping region. Preserve the emitted geometry styles.
+Portal supports `container` and `disabled` (default false).
+
+### Presence options
+
+Root and Sub accept these fields. Sub inherits the root policy except that
+its exit callback is independent.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `lazyMount` | `boolean` | `true` |
+| `unmountOnExit` | `boolean` | `true` |
+| `present` | `boolean` | follows open |
+| `immediate` | `boolean` | `true` |
+| `skipAnimationOnMount` | `boolean` | `false` |
+| `hideMode` | `display-none \| activity` | `display-none` |
+| `onExitComplete` | `() => void` | - |
+
+Closed retained parts are inert and cannot reclaim focus. Activity mode uses
+React Activity where available and a hidden retained fallback otherwise.
+Default open state is not a change event; Sub initializes `defaultOpen`
+after commit and notifies uncontrolled `onOpenChange` for open/close requests.
+
+
+
 
 ## Examples
 

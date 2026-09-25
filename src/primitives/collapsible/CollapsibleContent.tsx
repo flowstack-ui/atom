@@ -1,9 +1,9 @@
 "use client";
-
+import * as React from "react";
 import {
   forwardRef,
-  useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -13,148 +13,139 @@ import {
 import type { NativeDivProps } from "../../utils/dom.js";
 import {
   cloneAndMerge,
-  composeEventHandlers,
   composeRefs,
   renderElement,
   type RenderProp,
 } from "../../utils/slot.js";
 import { useMeasuredContentHeight } from "../../utils/useMeasuredContentHeight.js";
 import { useCollapsibleContext } from "./context.js";
-
-type CollapsibleContentNativeProps = NativeDivProps<"children" | "role">;
-
-export interface CollapsibleContentProps extends CollapsibleContentNativeProps {
-  /** Panel content. */
+const useSafeLayoutEffect =
+  typeof window === "undefined" ? useEffect : useLayoutEffect;
+export interface CollapsibleContentProps
+  extends NativeDivProps<"children" | "role"> {
   children?: ReactNode;
-  /** Keep content in DOM when closed. */
+  /** @deprecated Use Root lazyMount and unmountOnExit. */
   keepMounted?: boolean;
-  /** Override the rendered element. */
   render?: RenderProp;
-  /** Merge behavior props onto a single child element. */
   asChild?: boolean;
-  /** CSS class name supplied by the styled layer or consumer. */
-  className?: string;
-  /** Data slot identifier. */
   "data-slot"?: string;
 }
-
-export const CollapsibleContent = forwardRef<HTMLDivElement, CollapsibleContentProps>(
-  function CollapsibleContent(
-    {
-      children,
-      keepMounted = false,
-      render,
-      asChild,
-      className,
-      "data-slot": dataSlot = "collapsible-content",
-      onAnimationEnd,
-      style: styleProp,
-      ...restProps
-    },
-    ref,
-  ) {
-    const { isOpen, contentId, triggerId, orientation } = useCollapsibleContext();
-    const contentRef = useRef<HTMLDivElement>(null);
-    const composedRef = useMemo(
-      () => composeRefs(contentRef, ref),
-      [ref],
-    );
-    const [isMounted, setIsMounted] = useState(isOpen || keepMounted);
-    const [isAnimating, setIsAnimating] = useState(false);
-    const initialOpenRef = useRef(isOpen);
-    const hasTransitionedRef = useRef(false);
-
-    if (initialOpenRef.current !== isOpen) {
-      hasTransitionedRef.current = true;
-    }
-
-    const suppressAnimation =
-      initialOpenRef.current && !hasTransitionedRef.current;
-
-    const hasActiveCssAnimation = useCallback((element: HTMLDivElement): boolean => {
-      const computed = window.getComputedStyle(element);
-
-      const toMs = (value: string): number => {
-        const token = value.trim();
-        if (token.endsWith("ms")) return Number.parseFloat(token);
-        if (token.endsWith("s")) return Number.parseFloat(token) * 1000;
-        const parsed = Number.parseFloat(token);
-        return Number.isFinite(parsed) ? parsed : 0;
-      };
-
-      const animationNames = computed.animationName
-        .split(",")
-        .map((name) => name.trim());
-      const animationDurations = computed.animationDuration
-        .split(",")
-        .map(toMs);
-
-      return (
-        animationNames.some((name) => name !== "none") &&
-        animationDurations.some((duration) => duration > 0)
-      );
-    }, []);
-
-    useEffect(() => {
-      if (isOpen || keepMounted) {
-        setIsMounted(true);
-      }
-    }, [isOpen, keepMounted]);
-
-    useMeasuredContentHeight(contentRef, isMounted || isOpen, children);
-
-    const handleAnimationEnd = useCallback(() => {
-      setIsAnimating(false);
-      if (!isOpen && !keepMounted) {
-        setIsMounted(false);
-      }
-    }, [isOpen, keepMounted]);
-
-    useEffect(() => {
-      if (!isMounted || suppressAnimation) return undefined;
-
-      setIsAnimating(true);
-
-      const frame = requestAnimationFrame(() => {
-        const element = contentRef.current;
-        if (!element || hasActiveCssAnimation(element)) return;
-
-        setIsAnimating(false);
-        if (!isOpen && !keepMounted) {
-          setIsMounted(false);
-        }
-      });
-
-      return () => cancelAnimationFrame(frame);
-    }, [hasActiveCssAnimation, isMounted, isOpen, keepMounted, suppressAnimation]);
-
-    if (!isMounted && !isOpen) return null;
-
-    const dataState = isOpen ? "open" : "closed";
-    const style: CSSProperties = {
-      ...styleProp,
-    };
-
-    const behaviorProps: Record<string, unknown> = {
-      ...restProps,
-      ref: composedRef,
-      id: contentId,
-      "data-slot": dataSlot,
-      "data-state": dataState,
-      ...(suppressAnimation ? { "data-initial-open": "" } : {}),
-      "data-orientation": orientation,
-      role: "region",
-      "aria-labelledby": triggerId,
-      className,
-      hidden: keepMounted && !isOpen && !isAnimating ? true : undefined,
-      onAnimationEnd: composeEventHandlers(onAnimationEnd, handleAnimationEnd),
-      style,
-    };
-
-    if (asChild) {
-      return cloneAndMerge(children, behaviorProps);
-    }
-
-    return renderElement(render, "div", { ...behaviorProps, children });
+export const CollapsibleContent = forwardRef<
+  HTMLDivElement,
+  CollapsibleContentProps
+>(function CollapsibleContent(
+  {
+    children,
+    keepMounted,
+    render,
+    asChild,
+    "data-slot": slot = "collapsible-content",
+    style,
+    ...props
   },
-);
+  ref,
+) {
+  const api = useCollapsibleContext();
+  const {
+    open: isOpen,
+    visible,
+    contentRef,
+    registerContent,
+    collapsedHeight,
+    collapsedWidth,
+  } = api;
+  const [everOpened, setEverOpened] = useState(isOpen);
+  const initialOpen = useRef(isOpen);
+  const transitioned = useRef(false);
+  if (isOpen !== initialOpen.current) transitioned.current = true;
+  const initial = initialOpen.current && !transitioned.current;
+  const partial = [collapsedHeight, collapsedWidth].some(
+    (value) => value !== undefined && parseFloat(value) > 0,
+  );
+  const lazy = keepMounted === undefined ? api.lazyMount : !keepMounted;
+  const unmount = keepMounted === undefined ? api.unmountOnExit : !keepMounted;
+  const isMounted =
+    partial || visible || (!unmount && everOpened) || (!lazy && !everOpened);
+  const composedRef = useMemo(
+    () => composeRefs(registerContent, ref),
+    [registerContent, ref],
+  );
+  useEffect(() => {
+    if (isOpen) setEverOpened(true);
+  }, [isOpen]);
+  useEffect(() => {
+    if (keepMounted !== undefined && api.lifecycleExplicit)
+      console.warn(
+        "Collapsible: do not combine Content keepMounted with Root lifecycle options. Legacy keepMounted takes precedence.",
+      );
+  }, [keepMounted, api.lifecycleExplicit]);
+  useSafeLayoutEffect(() => {
+    const node = contentRef.current;
+    if (!isOpen && node?.contains(node.ownerDocument.activeElement))
+      api.triggerRef.current?.focus({ preventScroll: true });
+  }, [isOpen, contentRef, api.triggerRef]);
+  useMeasuredContentHeight(contentRef, isMounted || isOpen, children);
+  const Activity = (
+    React as unknown as {
+      Activity?: React.ComponentType<{
+        mode: "visible" | "hidden";
+        children: ReactNode;
+      }>;
+    }
+  ).Activity;
+  // Older runtimes retain hidden state without Activity effect pausing.
+  if (!isMounted) return null;
+  const variables = {
+    "--collapsed-height": collapsedHeight ?? "0px",
+    "--collapsed-width": collapsedWidth ?? "0px",
+  } as CSSProperties;
+  const attributes = {
+    ...props,
+    ref: composedRef,
+    id: api.contentId,
+    "data-slot": slot,
+    "data-state": isOpen ? "open" : "closed",
+    "data-orientation": api.orientation,
+    "data-disabled": api.disabled ? "" : undefined,
+    "data-initial-open": initial ? "" : undefined,
+    "data-has-collapsed-size": partial ? "" : undefined,
+    role: "region",
+    "aria-labelledby": props["aria-label"]
+      ? undefined
+      : (props["aria-labelledby"] ?? api.triggerId),
+    "aria-hidden": !isOpen ? true : undefined,
+      // React 18 forwards unknown attributes as strings; React 19 owns inert
+      // as a boolean. Preserve the same SSR attribute on both peer versions.
+      inert: !isOpen ? (Number.parseInt(React.version, 10) >= 19 ? true : "") : undefined,
+    hidden: !visible && !partial ? true : props.hidden,
+    style: {
+      ...style,
+      ...variables,
+      ...(!visible && partial
+        ? {
+            overflow: "hidden",
+            ...(collapsedHeight !== undefined
+              ? {
+                  height: `min(var(--content-height, ${collapsedHeight}), ${collapsedHeight})`,
+                }
+              : {}),
+            ...(collapsedWidth !== undefined
+              ? {
+                  width: `min(var(--content-width, ${collapsedWidth}), ${collapsedWidth})`,
+                }
+              : {}),
+          }
+        : {}),
+    },
+  };
+  const output = asChild
+    ? cloneAndMerge(children, attributes)
+    : renderElement(render, "div", { ...attributes, children });
+  return api.hideMode === "activity" && Activity ? (
+    <Activity mode={visible || partial ? "visible" : "hidden"}>
+      {output}
+    </Activity>
+  ) : (
+    output
+  );
+});

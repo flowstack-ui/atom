@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
+- Expose Scrubber active drag state and clean interrupted pointer sessions without leaving capture active.
+
+- Add opt-in localized string editing, controller/provider composition, Label,
+  ValueText, Context and Scrubber parts, modifier stepping, optional wheel
+  stepping, press-and-hold, and commit/focus/range callbacks.
+- Preserve hidden numeric submission with root composition and fractional
+  display when stepping by smaller increments.
+
 ## 0.24.0
 
 - Added public Agent Knowledge for component selection, required composition,

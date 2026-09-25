@@ -1,9 +1,11 @@
 "use client";
 
 import { createContext, useContext } from "react";
+import { defaultToastStore, type ToastStore } from "./store.js";
 import type { ToastData, ToastState, ToastSwipeDirection, ToastType } from "./types.js";
 
 export interface ToastProviderContextValue {
+  store: ToastStore;
   maxVisible: number;
   expandOnHover: boolean;
   closeButton: boolean;
@@ -26,6 +28,7 @@ export interface ToastRootContextValue {
 }
 
 export const toastProviderDefaults: ToastProviderContextValue = {
+  store: defaultToastStore,
   maxVisible: 3,
   expandOnHover: true,
   closeButton: false,

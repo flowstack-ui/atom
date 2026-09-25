@@ -37,6 +37,43 @@ import { NumberInput } from "@flowstack-ui/atom";
 
 ## API Reference
 
+### Localized editing and controller composition
+
+Numeric mode remains the default: `value` is a number or null and
+`onValueChange` receives a number or null. With `valueMode="string"`, values
+are strings and the callback receives `{ value, valueAsNumber }`. Empty or
+unparseable editing text produces `NaN` in those details, but never submits
+`NaN`: the hidden field submits an empty value instead.
+
+Use `locale` (default `en-US`) and `formatOptions` for localized decimal,
+currency or percent display and parsing. Do not combine `formatOptions` with
+custom `parser`/`formatter` callbacks. Named inputs always submit the parsed
+numeric value, not a localized string.
+
+`useNumberInput(options)` exposes the shared controller. Supply it to
+`NumberInput.RootProvider` instead of Root; the provider accepts native host
+props and composition props, not another set of behavior options.
+`Label` associates with the Input, `ValueText` projects the editing text, and
+`Context` renders a callback without adding an element. `Scrubber` adds a
+horizontal pointer stepping target (mirrored in RTL); retain Input for keyboard
+access. Explicit `ids` can identify the root, input, label, step buttons and
+scrubber. `translations` supplies step labels and value text.
+
+Scrubber exposes `[data-scrubbing]` only during an active pointer session.
+Styled consumers can use it to preserve drag cursor feedback beyond the host.
+Release, cancellation, capture loss, window blur, document visibility loss,
+Escape, disabled/read-only changes and unmount end the session. Atom does not
+inject cursor artwork, styles, or pointer lock. Keep typed keyboard entry available.
+
+Shift+Arrow uses `largeStep`, Alt+Arrow uses `smallStep` (default `step / 10`).
+Enter and blur commit and normalize according to `clampOnBlur`; Enter does
+not prevent native form submission. `onValueCommit`, `onFocusChange` and
+`onValueInvalid` expose commit, focus and range details. `allowOverflow`
+defaults to true while editing; false clamps range excursions immediately.
+`allowMouseWheel` defaults to false and only consumes wheel events when the
+Input is focused. `spinOnPress` defaults to true. `focusInputOnChange` defaults
+to true for stepping. `inputMode` defaults to decimal and `pattern` is optional.
+
 ### Root
 
 Renders the root container, inner spinbutton input, and optional hidden form

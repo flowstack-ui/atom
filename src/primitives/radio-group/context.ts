@@ -3,8 +3,14 @@
 import { createContext, useContext } from "react";
 
 export interface RadioGroupContextValue {
+  /** Owned positioning host, independent of public data-slot overrides. */
+  getRootElement?: () => HTMLElement | null;
   /** Currently selected value. */
   activeValue: string;
+  /** Enabled keyboard entry, independent of the selected application value. */
+  entryValue?: string;
+  labelId?: string;
+  setLabelId?: (id: string | undefined) => void;
   /** Set the active value. */
   setActiveValue: (value: string) => void;
   /** Form field name shared across radio items. */

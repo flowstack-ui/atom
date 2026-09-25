@@ -1,5 +1,12 @@
 # Avatar
 
+Image remains server-rendered while loading. It inherits Root's `src` when
+omitted and forwards native `srcSet`, `sizes`, `loading`, `fetchPriority`,
+`crossOrigin` and `referrerPolicy`. Status follows the rendered image's native
+events and cached completion, never a separate preload. Loading image semantics
+are hidden while Fallback provides identity; failed images remain hidden so
+the same node can recover when its source changes.
+
 Image, loading fallback, and grouping primitives for representing a person or
 other named entity.
 

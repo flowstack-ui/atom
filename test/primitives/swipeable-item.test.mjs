@@ -91,7 +91,7 @@ test("SwipeableItem source handles pointer capture and keyboard close", async ()
   );
 
   assert.match(rootSource, /onFullSwipe/);
-  assert.match(rootSource, /fullSwipeThreshold = 0\.6/);
+  assert.match(rootSource, /useSwipeableItem/);
   assert.match(contentSource, /setPointerCapture\(event\.pointerId\)/);
   assert.match(contentSource, /style: \{ touchAction: "pan-y", \.\.\.style \}/);
   assert.match(contentSource, /event\.target !== event\.currentTarget/);
@@ -104,7 +104,10 @@ test("SwipeableItem source handles pointer capture and keyboard close", async ()
   assert.match(contentSource, /const handleLostPointerCapture = useCallback/);
   assert.match(contentSource, /event\.key === "Escape"/);
   assert.match(contentSource, /getSwipeableItemSideFromKey\(event\.key, dir\)/);
-  assert.match(contentSource, /openSide === side && onFullSwipe/);
+  assert.doesNotMatch(contentSource, /openSide === side && onFullSwipe/);
+  assert.match(contentSource, /!onFullSwipe \|\| contentWidth <= 0/);
+  assert.match(contentSource, /settleOffset\(pointerState.currentOffset, pointerState.contentWidth, false\)/);
+  assert.match(contentSource, /tabIndex: disabled \? -1/);
   assert.doesNotMatch(contentSource, /\[ctx\]/);
   assert.match(actionsSource, /ResizeObserver/);
   assert.match(actionsSource, /const \[actionsElement, setActionsElement\] = useState/);
@@ -112,5 +115,5 @@ test("SwipeableItem source handles pointer capture and keyboard close", async ()
   assert.match(actionsSource, /closeOnClick = true/);
   assert.match(actionsSource, /if \(event\.defaultPrevented \|\| !closeOnClick\) return/);
   assert.match(actionsSource, /close\(\)/);
-  assert.match(actionsSource, /inert: isOpen \? undefined : true/);
+  assert.match(actionsSource, /inert: isOpen \? undefined : \(Number\.parseInt\(version, 10\) >= 19 \? true : ""\)/);
 });

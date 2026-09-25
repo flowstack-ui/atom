@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
+- Added a shared `useTooltip` controller and `RootProvider`, configurable click,
+  pointer-down, scroll and Escape dismissal, and explicit hover retention.
+- Suppressed disabled controlled/default-open content and cancelled pending
+  opens when disabled. Preserved composed trigger description IDs.
+- Waited for the positioning engine before marking content positioned.
+
 ## 0.24.0
 
 - Added public Agent Knowledge for component selection, required composition,

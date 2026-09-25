@@ -1,5 +1,82 @@
 # NavigationMenu
 
+### Shared viewport motion and anchoring
+
+`Viewport anchor="trigger"` (default) aligns against the active trigger.
+`anchor="navigation"` instead aligns against the Root rectangle, for a stable
+shared navigation panel. Both honor `align` and `collisionPadding`; Indicator
+continues to track the active trigger.
+
+During a panel exchange, Content exposes `data-motion="from-start" | "from-end"`
+on the incoming panel and `"to-start" | "to-end"` on the outgoing panel. The
+styled layer should layer these panels, interpret start/end logically and
+respect reduced motion. Closed content is inert during its exit. Viewport size
+variables describe the measured content plus viewport borders; use border-box
+sizing when consuming them. Atom does not supply animation CSS.
+
+## Interaction, lifecycle and state access
+
+`Root` accepts `openDelay` and `closeDelay` (200ms defaults). Each explicit
+delay overrides the legacy `delayDuration` fallback independently.
+`skipDelayDuration` remains 300ms. Negative delays clamp to zero; nonfinite
+delays fall back to the default. Nested Sub scopes inherit these policies
+unless locally overridden.
+
+`disableClickTrigger`, `disableHoverTrigger` and `disablePointerLeaveClose`
+default false. They govern pointer policy, not keyboard accessibility:
+Enter/Space remain available. Pointer-leave persistence does not disable
+Escape, focus-out or outside interaction.
+
+Keyboard interaction with a trigger cancels pending pointer open/close timers,
+so delayed pointer intent cannot dismiss a newly keyboard-entered panel.
+
+`lazyMount` and `unmountOnExit` default true for compatibility. Persistent
+closed content is hidden, inert and excluded from the accessibility tree.
+Exit presence keeps geometry until completion. `hideMode="activity"` uses
+React Activity and requires React 19.2+; `display-none` is the portable default.
+Vertical viewports constrain content to the connected side and flip to the
+opposite side when it offers more room. Viewport and Indicator expose the same
+physical `data-side` (`left` or `right`), including RTL. Styled layers consume
+the measured left/available-width variables and may set
+`--atom-navigation-menu-viewport-side-offset` in px, rem or em (headless default 0).
+
+Viewport `forceMount` retains the viewport shell, not interactive hidden content.
+Explicit Root/Sub `lazyMount` or `unmountOnExit` takes precedence over this
+compatibility option; omitted lifecycle settings preserve its behavior.
+
+Existing shared-viewport composition remains the default. Set
+`Root viewport={false}` and omit Viewport for inline disclosure panels. This
+explicit choice preserves deterministic server output without inspecting
+children or moving an already mounted host after hydration. Content forwards
+its ref to the actual rendered panel in either mode.
+
+`Viewport align="center|start|end"` defaults center. Logical alignment is
+resolved against the active trigger before collision shifting; collisionPadding
+remains available. Geometry uses the host's owner document.
+
+Link retains `active` for current-page semantics and adds `closeOnClick`
+(default true). `onSelect` receives a cancelable Event; preventing it stops
+Atom's close action, not browser navigation. Prevent navigation through the
+native onClick event. A prevented onClick skips selection and closure.
+
+Native fields and nested widgets inside either panel mode keep their own
+Home/End/arrow-key handling. Escape still dismisses the navigation layer.
+
+Content exposes `onEscapeKeyDown`, `onPointerDownOutside`, `onFocusOutside`
+and `onInteractOutside`; preventing the notification cancels dismissal.
+Pointer callbacks use Atom OutsideInteractionEvent, while focus notification
+is a cancelable FocusEvent rather than the noncancelable native focusin.
+
+Use `useNavigationMenu(options)` with `RootProvider value={controller}` for
+external state access. Controller exposes value/open/orientation/setValue,
+getViewportNode, isViewportRendered and reposition. `Context` accepts a render
+callback with the same public state/actions; no router or application store
+is bundled. Set state in handlers/effects, not during render.
+
+`ItemIndicator` is a decorative, state-aware slot scoped to Item. It supplies
+no glyph or styling. It differs from the moving Indicator that exposes active
+trigger geometry. Styled wrappers own their default artwork and replacement.
+
 Headless navigation disclosure primitives with trigger-driven panels, indicator geometry, and a shared viewport.
 
 ## When to Use
@@ -71,6 +148,11 @@ delays, direction, orientation, and top-level keyboard navigation.
 | `defaultValue` | `string` | - |
 | `onValueChange` | `(value: string \| null) => void` | - |
 | `delayDuration` | `number` | `200` |
+| `openDelay` / `closeDelay` | `number` | `delayDuration` |
+| `disableClickTrigger` / `disableHoverTrigger` / `disablePointerLeaveClose` | `boolean` | `false` |
+| `lazyMount` / `unmountOnExit` | `boolean` | `true` |
+| `hideMode` | `"display-none" \| "activity"` | `"display-none"` |
+| `viewport` | `boolean` | `true` |
 | `skipDelayDuration` | `number` | `300` |
 | `loop` | `boolean` | `true` |
 | `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` |
@@ -145,20 +227,25 @@ top-level keyboard navigation.
 
 Registers panel content for the shared viewport.
 
-`Content` does not render at its declaration site. Its `asChild` and `render`
-customize the content wrapper rendered by `Viewport`.
+By default, `Content` does not render at its declaration site. Its `asChild`,
+`render`, and forwarded ref target the real panel inside `Viewport`. With
+`Root viewport={false}`, the same panel renders at its declaration site instead.
 
 | Prop | Type | Default |
 | --- | --- | --- |
 | `children` | `ReactNode` | required |
 | `asChild` | `boolean` | `false` |
 | `loop` | `boolean` | Root value |
+| `onEscapeKeyDown` | `(event: KeyboardEvent) => void` | - |
+| `onPointerDownOutside` | `(event: OutsideInteractionEvent) => void` | - |
+| `onFocusOutside` | `(event: FocusEvent) => void` | - |
+| `onInteractOutside` | `(event: OutsideInteractionEvent \| FocusEvent) => void` | - |
 | `render` | `RenderProp` | - |
 
 | Data attribute | Values |
 | --- | --- |
 | `[data-slot]` | `"navigation-menu-content"` |
-| `[data-state]` | `"open"` |
+| `[data-state]` | `"open" \| "closed"` |
 | `[data-motion]` | `"from-start" \| "from-end"` |
 
 ### Link
@@ -170,7 +257,8 @@ Renders a navigation link.
 | `children` | `ReactNode` | required |
 | `active` | `boolean` | `false` |
 | `href` | `string` | - |
-| `onSelect` | `() => void` | - |
+| `onSelect` | `(event: Event) => void` | - |
+| `closeOnClick` | `boolean` | `true` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -185,7 +273,17 @@ Renders a navigation link.
 
 ### Indicator
 
+The indicator retains its last geometry through CSS exit motion. `forceMount`
+keeps the host after exit, hidden until the next opening. Its motion duration
+is authored by the styled layer; coordinate it with Viewport's exit duration.
+
 Renders an optional active trigger indicator.
+
+Indicator also exposes `--atom-navigation-menu-viewport-start` and
+`--atom-navigation-menu-viewport-end` as physical horizontal layout edges of the
+shared viewport in its positioning coordinate space. Styled arrow artwork can
+clamp its base inside these bounds. Layout edges exclude animated transforms
+and update with viewport sizing/position changes.
 
 | Prop | Type | Default |
 | --- | --- | --- |
@@ -222,6 +320,8 @@ Renders the active content panel.
 | --- | --- | --- |
 | `children` | `ReactNode` | - |
 | `forceMount` | `boolean` | `false` |
+| `align` | `"start" \| "center" \| "end"` | `"center"` |
+| `collisionPadding` | `number` | `8` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -263,9 +363,10 @@ Creates a nested navigation menu scope.
 | `[data-slot]` | `"navigation-menu-sub"` |
 | `[data-orientation]` | `"horizontal" \| "vertical"` |
 
-Advanced compound components can use `useNavigationMenuContext` and
-`useNavigationMenuItemContext`; the matching providers and context value types
-are also public exports.
+`useNavigationMenuContext` returns the same `NavigationMenuApi` state and
+actions as `NavigationMenu.Context`, without internal collection registries.
+Advanced compound integrations retain the separate item context hook and
+legacy provider/type exports; ordinary applications should use RootProvider.
 
 ## Examples
 

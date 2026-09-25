@@ -30,6 +30,9 @@ export function useControllableState<T>({
           : nextValue;
 
       if (!isControlled) {
+        // Requests in one event must compose before React commits a render.
+        // Controlled requests still resolve against the owner's accepted value.
+        resolvedValueRef.current = resolvedNextValue;
         setInternalValue(resolvedNextValue);
       }
 

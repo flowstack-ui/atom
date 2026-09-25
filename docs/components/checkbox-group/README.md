@@ -101,7 +101,7 @@ form submission.
 | `name` | `string` | Root `name` |
 | `form` | `string` | Root `form` |
 | `disabled` | `boolean` | Root state |
-| `required` | `boolean` | Root state |
+| `required` | `boolean` | Item-local ARIA state; group validity is separate |
 | `readOnly` | `boolean` | Root state |
 | `invalid` | `boolean` | Root state |
 | `asChild` | `boolean` | `false` |
@@ -135,7 +135,8 @@ that visible checkbox. Read-only
 behavior belongs to the visible semantic controls and does not bar the hidden
 inputs from validation. Root does not emit `aria-required` because ARIA does
 not permit that property on `role="group"`; required state remains exposed on
-the checkbox items, through `[data-required]`, and through native form validity.
+the Root's `[data-required]` and through native form validity. Set Item `required`
+only when intentionally describing that individual choice as required.
 
 Plain Item children provide the accessible name from button content. For a
 structured choice, nest ItemLabel and ItemDescription. Item then receives
@@ -281,3 +282,10 @@ children remain appropriate for concise options.
 ## Changelog
 
 See [CHANGELOG.md](./CHANGELOG.md).
+## Controller and composition additions
+
+`useCheckboxGroup` exposes value/setValue, isChecked/isDisabled, setChecked/toggleValue and getItemProps. Pass the controller to `CheckboxGroup.RootProvider`. Applications reset externally controlled values explicitly. Sequential uncontrolled requests compose within one interaction, including selection-limit checks; controlled requests remain based on the owner's accepted value.
+
+Root accepts `maxSelectedValues`, a finite nonnegative integer. Unchecked items are disabled at capacity; checked items remain removable. Controlled values are never silently truncated. Parent adds eligible allValues in declared order up to capacity; a mixed Parent at capacity clears eligible declared values. Outside selections count toward capacity and are preserved by Parent.
+
+For linked labels, call `useCheckboxGroupItem({ value })` inside the group, spread its props (including ref) onto a normal Checkbox.Root, and place that control beside Field.Label inside Field.Root. Do not nest links inside Item/ItemLabel. Required is a group-level at-least-one rule, not aria-required on every Item. Validation considers mounted enabled selections, including read-only selected items.

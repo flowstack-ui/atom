@@ -6,6 +6,17 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Make interrupted-exit browser checks independent of driver round-trip speed
+  and wait for measured navigation geometry before asserting exact alignment.
+
+- Align desktop qualification with Chromium, Firefox and WebKit, retain
+  successful browser reports, and update the 0.27.0 manual candidate protocol.
+- Correct ScrollArea coverage records that counted automated evidence as manual
+  passes; preserve the owner-deferred physical-device and assistive checks.
+
+- Added the Marquee Data workbench with controller options, replica safety,
+  composition and props controls, live Anatomy, matching Source and callback logs.
+
 - Added a Carousel workbench with optional navigation and picker controls,
   controlled state, loop and direction variants, automatic-rotation evidence,
   native scroll selection, public anatomy, Source, logs, and desktop/mobile

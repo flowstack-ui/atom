@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
+- Preserve inherited disabled state, child cancellation and React 19 callback
+  ref cleanup in closed Radio composition.
+
+- Add controller/provider and native open-item composition with text,
+  descriptions, input refs and decorative control/indicator parts.
+- Restore enabled keyboard entry for unavailable selections and require an
+  eligible registered selection for required validity.
+
+- Preserve Indicator geometry while measuring a new selection so styled sliding
+  transitions do not reset or flicker.
+- Add decorative Indicator geometry and readiness; preserve native named inputs,
+  custom root slots and owner-document keyboard focus.
+
 ## 0.24.0
 
 - Added public Agent Knowledge for component selection, required composition,

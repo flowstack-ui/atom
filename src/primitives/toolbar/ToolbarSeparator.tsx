@@ -1,15 +1,17 @@
-import { type ReactNode } from "react";
+"use client";
+import { forwardRef, type ReactNode } from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
 import {
   cloneAndMerge,
   renderElement,
   type RenderProp,
 } from "../../utils/slot.js";
-import type { ToolbarOrientation } from "./context.js";
+import { useToolbarContext, type ToolbarOrientation } from "./context.js";
 
 type ToolbarSeparatorNativeProps = NativeDivProps<"children" | "role">;
 
 export interface ToolbarSeparatorProps extends ToolbarSeparatorNativeProps {
+  decorative?: boolean;
   /** Separator orientation. */
   orientation?: ToolbarOrientation;
   /** Override the rendered element. */
@@ -24,19 +26,24 @@ export interface ToolbarSeparatorProps extends ToolbarSeparatorNativeProps {
   "data-slot"?: string;
 }
 
-export function ToolbarSeparator({
-  orientation = "vertical",
+export const ToolbarSeparator = forwardRef<HTMLDivElement, ToolbarSeparatorProps>(function ToolbarSeparator({
+  orientation: ownOrientation,
+  decorative = false,
   render,
   asChild,
   className,
   children,
   "data-slot": dataSlot = "toolbar-separator",
   ...restProps
-}: ToolbarSeparatorProps) {
+}: ToolbarSeparatorProps, ref) {
+  const ctx = useToolbarContext();
+  const orientation = ownOrientation ?? (ctx.orientation === "horizontal" ? "vertical" : "horizontal");
   const behaviorProps: Record<string, unknown> = {
     ...restProps,
-    role: "separator",
-    "aria-orientation": orientation,
+    ref,
+    role: decorative ? "presentation" : "separator",
+    "aria-hidden": decorative || undefined,
+    "aria-orientation": decorative ? undefined : orientation,
     "data-slot": dataSlot,
     "data-orientation": orientation,
     className,
@@ -47,4 +54,4 @@ export function ToolbarSeparator({
   }
 
   return renderElement(render, "div", { ...behaviorProps, children });
-}
+});

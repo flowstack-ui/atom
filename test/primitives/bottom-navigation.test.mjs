@@ -4,6 +4,8 @@ import {
   React,
   renderToStaticMarkup,
 } from "../test-utils.mjs";
+import { JSDOM } from "jsdom";
+import { createRoot } from "react-dom/client";
 
 import {
   BottomNavigation,
@@ -175,4 +177,77 @@ test("BottomNavigationItem asChild omits native button-only props", () => {
 test("BottomNavigation namespace exposes Root and Item parts", () => {
   assert.equal(BottomNavigation.Root, BottomNavigationRoot);
   assert.equal(BottomNavigation.Item, BottomNavigationItem);
+});
+
+test("BottomNavigation preserves native and composed landmark naming", () => {
+  const child = React.createElement(BottomNavigationItem, { value: "home" }, "Home");
+  for (const props of [{ "aria-label": "Primary", ariaLabel: "Alias" }, { asChild: true }]) {
+    const html = renderToStaticMarkup(React.createElement(BottomNavigationRoot, props,
+      props.asChild ? React.createElement("nav", { "aria-label": "Primary" }, child) : child));
+    assert.match(html, /aria-label="Primary"/);
+  }
+  const html = renderToStaticMarkup(React.createElement(BottomNavigationRoot,
+    { "aria-labelledby": "navigation-heading", ariaLabel: "Alias" }, child));
+  assert.match(html, /aria-labelledby="navigation-heading"/);
+  assert.doesNotMatch(html, /aria-label=/);
+});
+
+test("BottomNavigation normalizes native hosts after composition", () => {
+  for (const mode of ["asChild", "render"]) {
+    for (const tag of ["a", "button"]) {
+      const element = React.createElement(tag, tag === "a" ? { href: "/private" } : {}, "Destination");
+      const props = { value: "destination", disabled: true,
+        ...(mode === "asChild" ? { asChild: true } : { render: element }) };
+      const html = renderToStaticMarkup(React.createElement(BottomNavigationRoot, null,
+        React.createElement(BottomNavigationItem, props, mode === "asChild" ? element : "Destination")));
+      assert.doesNotMatch(html, /href=/);
+      assert.match(html, /aria-disabled="true"/);
+      if (tag === "button") {
+        assert.match(html, /type="button"/);
+        assert.match(html, / disabled=""/);
+      }
+    }
+  }
+  const html = renderToStaticMarkup(React.createElement(BottomNavigationRoot, null,
+    React.createElement(BottomNavigationItem, { value: "submit", render: React.createElement("button", { type: "submit" }) }, "Submit")));
+  assert.match(html, /type="submit"/);
+});
+
+test("BottomNavigation preserves native link activation, cancellation and composed refs", async () => {
+  const dom = new JSDOM("<div id='root'></div>", { url: "https://example.test/" });
+  const saved = new Map();
+  for (const [key, value] of Object.entries({ window: dom.window, document: dom.window.document,
+    navigator: dom.window.navigator, HTMLElement: dom.window.HTMLElement, IS_REACT_ACT_ENVIRONMENT: true })) {
+    saved.set(key, Object.getOwnPropertyDescriptor(globalThis, key));
+    Object.defineProperty(globalThis, key, { configurable: true, writable: true, value });
+  }
+  const root = createRoot(document.getElementById("root"));
+  const ref = React.createRef();
+  let calls = 0;
+  try {
+    const mount = async (childProps = {}, itemProps = {}) => {
+      await React.act(async () => root.render(React.createElement(BottomNavigationRoot, { onChange: () => calls++ },
+        React.createElement(BottomNavigationItem, { asChild: true, value: "home", ref, ...itemProps },
+          React.createElement("a", { href: "#home", ...childProps }, "Home")))));
+      return document.querySelector("a");
+    };
+    const click = async (node, options = {}) => {
+      const event = new dom.window.MouseEvent("click", { bubbles: true, cancelable: true, ...options });
+      await React.act(async () => node.dispatchEvent(event));
+    };
+    let link = await mount();
+    assert.equal(ref.current, link);
+    for (const flag of ["ctrlKey", "metaKey", "shiftKey", "altKey"]) await click(link, { [flag]: true });
+    assert.equal(calls, 0);
+    link = await mount({ target: "_blank" }); await click(link); assert.equal(calls, 0);
+    link = await mount({ download: "report" }); await click(link); assert.equal(calls, 0);
+    link = await mount({ onClick: event => event.preventDefault() }); await click(link); assert.equal(calls, 0);
+    link = await mount({}, { disabled: true }); await click(link); assert.equal(calls, 0);
+    assert.equal(link.hasAttribute("href"), false);
+    link = await mount(); await click(link); assert.equal(calls, 1);
+  } finally {
+    await React.act(async () => root.unmount());
+    dom.window.close();
+    for (const [key, descriptor] of saved) descriptor ? Object.defineProperty(globalThis, key, descriptor) : delete globalThis[key];
+  }
 });

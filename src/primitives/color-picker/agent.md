@@ -19,6 +19,8 @@ Provide complete headless color selection with one shared color model, accessibl
 - For an inline picker set inline and compose Area plus channel controls directly; for a popup compose Trigger, Positioner, and Content.
 - Build each ChannelSlider from Track and Thumb; optional Label and ValueText inherit the parent channel.
 - Build presets from SwatchGroup, SwatchTrigger, Swatch, and optional SwatchIndicator; Brick owns the visible checkmark.
+- Use useColorPicker and RootProvider for an external controller; configure behavior on the hook and use one controller per rendered picker.
+- Root supports full machine ids and lazyMount/unmountOnExit/present/onExitComplete. Content defaults to eager and retained; closed content stays inert.
 
 ## Rules
 

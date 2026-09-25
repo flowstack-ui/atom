@@ -21,6 +21,8 @@ import {
 } from "./context.js";
 import { getModalPartPresence, type ModalPartKind } from "./parts.js";
 import { useCreateFocusScope } from "../../hooks/focus.js";
+import { useOverlayExit } from "../../hooks/useOverlayExit.js";
+import { OverlayScopeProvider, useCreateOverlayScope } from "../../hooks/overlayScope.js";
 import {
   activateModalLayer,
   createModalLayer,
@@ -30,6 +32,18 @@ import {
 } from "./layer.js";
 
 export interface ModalRootProps {
+  /** Isolate background interaction. Defaults to true. */
+  modal?: boolean;
+  /** Contain keyboard focus. Defaults to modal. */
+  trapFocus?: boolean;
+  /** Lock document scrolling. Defaults to modal. */
+  preventScroll?: boolean;
+  /** Cancelable Escape notification before default dismissal. */
+  onEscapeKeyDown?: (event: KeyboardEvent) => void;
+  /** Cancelable outside-pointer notification before default dismissal. */
+  onInteractOutside?: (event: Event) => void;
+  /** Called once after all owned surfaces finish a committed close. */
+  onExitComplete?: () => void;
   /** Compound children. */
   children: ReactNode;
   /** Controlled open state. */
@@ -49,6 +63,11 @@ export interface ModalRootProps {
 }
 
 export function ModalRoot({
+  modal = true,
+  trapFocus = modal,
+  preventScroll = modal,
+  onEscapeKeyDown,
+  onInteractOutside,
   children,
   open: controlledOpen,
   defaultOpen = false,
@@ -57,6 +76,7 @@ export function ModalRoot({
   closeOnBackdropClick = true,
   disabled = false,
   keepMounted = false,
+  onExitComplete,
 }: ModalRootProps) {
   const parentModal = useOptionalModalContext();
   const isControlled = controlledOpen !== undefined;
@@ -92,6 +112,7 @@ export function ModalRoot({
     () => createModalLayer(parentModal?.layer ?? null),
     [parentModal?.layer],
   );
+  useOverlayExit(isOpen, () => [layer.content, layer.overlay], onExitComplete);
   const [, setLayerRevision] = useState(0);
 
   useLayoutEffect(
@@ -231,6 +252,7 @@ export function ModalRoot({
 
   const contextValue: ModalContextValue = useMemo(
     () => ({
+      modal, trapFocus, preventScroll, onEscapeKeyDown, onInteractOutside,
       isOpen,
       onOpen,
       onClose,
@@ -259,6 +281,7 @@ export function ModalRoot({
       keepMounted,
     }),
     [
+      modal, trapFocus, preventScroll, onEscapeKeyDown, onInteractOutside,
       isOpen,
       onOpen,
       onClose,
@@ -288,9 +311,12 @@ export function ModalRoot({
     ],
   );
 
+  const overlayScope = useCreateOverlayScope(modal);
   return (
+    <OverlayScopeProvider value={overlayScope}>
     <ModalContextProvider value={contextValue}>
       {children}
     </ModalContextProvider>
+    </OverlayScopeProvider>
   );
 }

@@ -1,8 +1,43 @@
 # Menu Manual Test Protocol
 
+Also run the [shared controller and policy workbench](../manual-tests/menu-policies.md) for this owner.
+Its automated results do not mark this manual protocol complete.
+
+## Added controller and lifecycle qualification (draft, manual execution pending)
+
+Setup: use a public Menu.RootProvider fixture with external open/highlight controls,
+two valued DropdownMenu triggers, retained Content, and a cancellable CheckboxItem.
+
+- Action: pointer-open each trigger. Verify: the menu container receives focus,
+  its label references the active trigger, and Escape restores that same trigger.
+- Action: open with ArrowUp. Verify: the last item receives real focus without
+  moving the surrounding page.
+- Action: reject an onHighlightChange proposal in controlled mode. Verify:
+  highlight and DOM focus both remain on the accepted value.
+- Action: prevent the checkbox selection event. Verify: item then root callbacks
+  run once, checked state is unchanged, and the menu remains open.
+- Action: close retained Content, then reopen before the exit animation ends.
+  Verify: closed content is inert, reopened content is usable, and no stale exit
+  callback closes it.
+- Action: activate ordinary and modified native links. Verify: the router hook
+  handles only ordinary navigation; modified clicks preserve browser behavior.
+- Action: open Sub with defaultOpen, then close/reopen with the keyboard.
+  Verify: initialization emits no change event, and subsequent false/true
+  requests each notify once.
+- Action: scroll root/submenu with Arrow present. Verify: Arrow remains outside
+  Content clipping, forwarded Content ref is the role=menu scroll owner, and
+  explicit content custom-property overrides reach Arrow.
+
+Physical touch, assistive technology, and actual browser zoom remain unperformed.
+
 Use the Menu route with its default controls unless a step says otherwise. After each reset, close every submenu.
 
 ## 1. Open, focus, and close
+
+At `/__tests/menu-scroll`, open Account near the bottom edge, navigate with
+Home/End, open More, navigate its long submenu, and close/reopen. Repeat in RTL.
+The page and surrounding panel must not move; only the owning menu scrolls.
+Automated coverage: `test/browser/menu-scroll.spec.ts` (three desktop engines).
 
 1. Place keyboard focus on the control before the Menu canvas, open Menu, and inspect the first row.
    - Expect: Content opens and the first item has real browser focus.

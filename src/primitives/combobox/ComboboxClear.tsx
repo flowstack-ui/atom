@@ -33,7 +33,7 @@ export const ComboboxClear = forwardRef<HTMLButtonElement, ComboboxClearProps>(
     ref,
   ) {
     const ctx = useComboboxContext();
-    const hidden = !ctx.value || ctx.disabled || ctx.readOnly;
+    const hidden = (!(ctx.multiple ? ctx.values.length : ctx.value !== null) && !ctx.inputValue) || ctx.disabled || ctx.readOnly;
     const { clearSelection } = ctx;
 
     const handleMouseDown: MouseEventHandler<HTMLButtonElement> = useCallback((event) => {

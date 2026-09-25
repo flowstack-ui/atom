@@ -18,6 +18,7 @@ Queue, display, announce, pause, act on, and dismiss short non-blocking updates 
 
 ## Rules
 
+- **MUST:** Mount a dialog-scoped Provider and Viewport within the dialog React tree so the portalled viewport and announcers join its focus/isolation scope. Use one Viewport per store. Bind createToastApi(store) and Toast.Provider store to the same instance. Dismiss preserves exit; remove is immediate. Queued time is not reading time and manual, hover, focus and page pauses must compose. Use track for loading identity; late promise settlement must not resurrect removed records.
 - **MUST:** Do not place essential, sole, or response-required information only in Toast because it is transient and never moves focus on appearance.
 - **MUST:** Keep Viewport's persistent polite and assertive announcers as the sole live path; do not add role=status, role=alert, or aria-live to visible store-rendered Root cards.
 - **MUST:** Choose toast type by announcement priority, keep Title and Description concise, and update content only when a meaningful new announcement is intended.

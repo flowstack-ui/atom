@@ -25,6 +25,15 @@ import {
   getPopoverArrowGeometry,
 } from "../../dist/_internal/primitives/popover/PopoverArrow.js";
 
+test("disabled Popover suppresses default-open content and expanded state", () => {
+  const html = renderToStaticMarkup(React.createElement(Popover.Root,
+    { defaultOpen: true, disabled: true },
+    React.createElement(Popover.Trigger, null, "Open"),
+    React.createElement(Popover.Content, { "aria-label": "Disabled" }, "Content")));
+  assert.doesNotMatch(html, /role="dialog"/);
+  assert.match(html, /aria-expanded="false"/);
+});
+
 test("Popover primitives render trigger and optional anchor attributes", () => {
   const html = renderToStaticMarkup(
     React.createElement(
@@ -82,9 +91,9 @@ test("PopoverContent resolves a display contents anchor to its child reference",
 
   assert.match(source, /function getPopoverReferenceElement/);
   assert.match(source, /anchorStyle\.display === "contents"/);
-  assert.match(source, /child instanceof HTMLElement/);
+  assert.match(source, /child\?\.nodeType === 1/);
   assert.match(source, /return child/);
-  assert.match(source, /refs\.setReference\(getPopoverReferenceElement\(anchorRef\.current, triggerRef\.current\)\)/);
+  assert.match(source, /refs\.setPositionReference/);
   assert.match(source, /getFloatingVisibilityMiddleware\(side, align\)/);
 });
 
@@ -103,8 +112,8 @@ test("PopoverContent treats portalled descendant controlled layers as inside", a
   assert.match(source, /!isInsideNestedControlledLayer\(relatedTarget, content\)/);
   assert.match(source, /if \(hasOpenNestedControlledLayer\(content\)\) return/);
   assert.match(source, /if \(!content \|\| !trigger\) return;\s+if \(hasOpenNestedControlledLayer\(content\)\) return/);
-  assert.match(source, /relatedTarget === document\.body/);
-  assert.match(source, /relatedTarget === document\.documentElement/);
+  assert.match(source, /relatedTarget === doc\.body/);
+  assert.match(source, /relatedTarget === doc\.documentElement/);
 });
 
 test("Popover trigger supports asChild and exposes portal arrow and close parts", () => {
@@ -128,7 +137,7 @@ test("Popover trigger supports asChild and exposes portal arrow and close parts"
   );
 
   assert.equal(typeof PopoverPortal, "function");
-  assert.match(html, /<span data-slot="popover-trigger" data-state="open"/);
+  assert.match(html, /<span[^>]*data-slot="popover-trigger" data-state="open"/);
   assert.match(html, /role="button"/);
   assert.match(html, /tabindex="0"/);
   assert.match(html, /data-slot="popover-content"/);

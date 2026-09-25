@@ -1,19 +1,19 @@
 "use client";
 
+import { arrowOffset, autoUpdateWithArrow } from "../../utils/floatingArrowPositioning.js";
+
 import {
   forwardRef,
   useCallback,
   useEffect,
   useMemo,
   useRef,
-  useState,
   type ReactNode,
 } from "react";
 import {
   arrow as floatingArrow,
-  autoUpdate,
   flip,
-  offset,
+  hide,
   shift,
   size as sizeMiddleware,
   useFloating,
@@ -26,6 +26,8 @@ import type { OutsideInteractionEvent } from "../../utils/interactions.js";
 import { Portal } from "../../utils/Portal.js";
 import type { NativeDivProps } from "../../utils/dom.js";
 import { composeRefs } from "../../utils/slot.js";
+import { useSelectPresence } from "../../hooks/useSelectPresence.js";
+import { revealWithin } from "../../utils/revealWithin.js";
 import {
   SelectContentContextProvider,
   useSelectContext,
@@ -78,6 +80,7 @@ function SelectListbox(
   ref,
 ) {
   const ctx = useSelectContext();
+  const presence = useSelectPresence(ctx.isOpen, ctx.lifecycle);
   const contextDir = useDirection();
   const resolvedDir = resolveFloatingDirection(
     dirProp,
@@ -86,7 +89,6 @@ function SelectListbox(
   );
   const internalRef = useRef<HTMLDivElement>(null);
   const arrowRef = useRef<HTMLSpanElement>(null);
-  const [isPositioned, setIsPositioned] = useState(false);
   useFocusScopeContainer(
     internalRef,
     ctx.isOpen,
@@ -95,22 +97,34 @@ function SelectListbox(
   );
   useDismissableLayer({
     enabled: ctx.isOpen,
-    onEscapeKeyDown: () => {
+    ownerDocument: ctx.listboxRef.current?.ownerDocument,
+    elements: [ctx.listboxRef.current],
+    onEscapeKeyDown: (event) => {
+      ctx.outsideEvents.onEscapeKeyDown?.(event);
+      if (event.defaultPrevented) return;
+      event.preventDefault();
       ctx.onClose();
-      ctx.triggerRef.current?.focus();
+      ctx.triggerRef.current?.focus({ preventScroll: true });
     },
   });
 
-  useEffect(() => {
-    if (!ctx.isOpen) {
-      setIsPositioned(false);
-      return undefined;
-    }
 
-    setIsPositioned(false);
-    const raf = requestAnimationFrame(() => setIsPositioned(true));
-    return () => cancelAnimationFrame(raf);
-  }, [ctx.isOpen]);
+  useEffect(() => {
+    if (!ctx.isOpen) return;
+    const doc = ctx.triggerRef.current?.ownerDocument;
+    const win = doc?.defaultView;
+    if (!doc || !win) return;
+    const onFocus = (event: FocusEvent) => {
+      const target = event.target as Node | null;
+      if (!target || ctx.triggerRef.current?.contains(target) || internalRef.current?.contains(target)) return;
+      const notification = new win.FocusEvent("focusoutside", { cancelable: true });
+      Object.defineProperty(notification, "target", { value: target });
+      ctx.outsideEvents.onFocusOutside?.(notification);
+      if (!notification.defaultPrevented) ctx.onClose();
+    };
+    doc.addEventListener("focusin", onFocus);
+    return () => doc.removeEventListener("focusin", onFocus);
+  }, [ctx.isOpen, ctx.onClose, ctx.outsideEvents.onFocusOutside, ctx.triggerRef]);
 
   const clickAwayRefs = useMemo(
     () => [internalRef, ctx.triggerRef],
@@ -118,6 +132,7 @@ function SelectListbox(
   );
   useOutsideInteraction({
     refs: clickAwayRefs,
+    onPointerDownOutside: ctx.outsideEvents.onPointerDownOutside,
     onInteractOutside: (event) => {
       onInteractOutside?.(event);
       if (!event.defaultPrevented) ctx.onClose();
@@ -125,11 +140,6 @@ function SelectListbox(
     enabled: ctx.isOpen,
   });
 
-  useEffect(() => {
-    if (!ctx.isOpen || !ctx.highlightedValue) return;
-    const el = ctx.getItemElement(ctx.highlightedValue);
-    el?.scrollIntoView({ block: "nearest" });
-  }, [ctx.isOpen, ctx.highlightedValue, ctx.getItemElement]);
 
   useEffect(() => {
     if (!ctx.isOpen || !ctx.openHighlightIntent || ctx.highlightedValue) return;
@@ -158,28 +168,41 @@ function SelectListbox(
     ctx.value,
   ]);
 
-  const { refs, floatingStyles, placement, middlewareData } = useFloating({
+  const { refs, floatingStyles, placement, middlewareData, isPositioned } = useFloating({
     elements: { reference: ctx.triggerRef.current },
-    placement: "bottom-start",
+    placement: ctx.positioning?.placement ?? "bottom-start",
+    strategy: ctx.positioning?.strategy ?? "absolute",
     middleware: [
-      offset(4),
-      flip({ padding: 8 }),
-      shift({ padding: 8 }),
+      arrowOffset(arrowRef, ctx.positioning?.gutter ?? 4),
+      ctx.positioning?.flip !== false && flip({ padding: ctx.positioning?.overflowPadding ?? 8 }),
+      ctx.positioning?.slide !== false && shift({ padding: ctx.positioning?.overflowPadding ?? 8 }),
+      ctx.positioning?.hideWhenDetached && hide({ strategy: "referenceHidden" }),
       sizeMiddleware({
-        apply({ rects, elements }) {
+        apply({ rects, elements, availableHeight, availableWidth }) {
           Object.assign(elements.floating.style, {
-            minWidth: `${rects.reference.width}px`,
+            minWidth: ctx.positioning?.sameWidth === false ? "" : `${rects.reference.width}px`,
+            "--anchor-width": `${rects.reference.width}px`,
+            "--available-height": `${Math.max(0, availableHeight)}px`,
+            "--available-width": `${Math.max(0, availableWidth)}px`,
           });
         },
       }),
       floatingArrow({ element: arrowRef, padding: 8 }),
     ],
-    whileElementsMounted: autoUpdate,
+    whileElementsMounted: autoUpdateWithArrow(arrowRef),
     open: ctx.isOpen,
   });
+  useEffect(() => {
+    if (!ctx.isOpen || !isPositioned || ctx.highlightedValue === null) return;
+    if (ctx.scrollToIndexFn) {
+      ctx.scrollToIndexFn({ index: ctx.getItemValues().indexOf(ctx.highlightedValue), value: ctx.highlightedValue });
+    } else {
+      revealWithin(ctx.getItemElement(ctx.highlightedValue), ctx.listboxRef.current);
+    }
+  }, [ctx.isOpen, isPositioned, ctx.highlightedValue, ctx.getItemElement, ctx.listboxRef, ctx.scrollToIndexFn, ctx.getItemValues]);
   const composedRef = useMemo(
-    () => composeRefs(refs.setFloating, internalRef, ctx.listboxRef, ref),
-    [ctx.listboxRef, ref, refs.setFloating],
+    () => composeRefs(refs.setFloating, internalRef, ctx.listboxRef, presence.ref, ref),
+    [ctx.listboxRef, presence.ref, ref, refs.setFloating],
   );
   const actualSide = sideFromPlacement(placement);
   const actualAlign = alignFromPlacement(placement);
@@ -195,7 +218,7 @@ function SelectListbox(
     [actualAlign, actualSide, arrowData?.x, arrowData?.y],
   );
 
-  if (!ctx.isOpen) return null;
+  if (!presence.mounted) return null;
 
   const content = (
     <SelectContentContextProvider value={contentContextValue}>
@@ -207,7 +230,9 @@ function SelectListbox(
         dir={resolvedDir}
         tabIndex={-1}
         data-slot={dataSlot}
-        data-state="open"
+        data-state={ctx.isOpen ? "open" : "closed"}
+        hidden={presence.hidden}
+        aria-hidden={!ctx.isOpen || undefined}
         data-side={actualSide}
         data-align={actualAlign}
         {...(isPositioned ? { "data-positioned": "" } : {})}
@@ -215,6 +240,7 @@ function SelectListbox(
         style={{
           ...style,
           ...floatingStyles,
+          visibility: middlewareData.hide?.referenceHidden ? "hidden" : style?.visibility,
         }}
       >
         {children}
@@ -222,7 +248,7 @@ function SelectListbox(
     </SelectContentContextProvider>
   );
   return (
-    <Portal container={container} disabled={disablePortal || ctx.isInsidePortal}>
+    <Portal container={container ?? ctx.triggerRef.current?.ownerDocument.body} disabled={disablePortal || ctx.isInsidePortal}>
       {content}
     </Portal>
   );

@@ -4,6 +4,10 @@ Use this as a quick orientation map before editing playground scenarios.
 
 ## App Shell
 
+- `src/scenarios/MarqueeScenario.tsx` supplies the Data Marquee workbench through
+  `DataPrimitiveScenarios.tsx`: controller options, safe-copy examples, shared
+  toolbar controls, live anatomy selectors, callback logs and matching Source.
+
 - `src/main.tsx` mounts the React app.
 - `src/App.tsx` owns the main workbench shell, top navigation, scenario
   registry, Anatomy/Canvas/Inspector layout, and scenario selection.

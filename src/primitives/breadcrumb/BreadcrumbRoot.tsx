@@ -1,10 +1,10 @@
 "use client";
 
-import { forwardRef, type ReactNode } from "react";
+import { cloneElement, forwardRef, type ReactElement, type ReactNode } from "react";
 import type { NativeNavProps } from "../../utils/dom.js";
 import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
 
-type BreadcrumbRootNativeProps = NativeNavProps<"children" | "aria-label">;
+type BreadcrumbRootNativeProps = NativeNavProps<"children">;
 
 export interface BreadcrumbRootProps extends BreadcrumbRootNativeProps {
   /** Breadcrumb list content. */
@@ -26,7 +26,8 @@ export const BreadcrumbRoot = forwardRef<HTMLElement, BreadcrumbRootProps>(
       render,
       asChild,
       "data-slot": dataSlot = "breadcrumb",
-      ariaLabel = "Breadcrumb",
+      ariaLabel,
+      "aria-label": nativeLabel,
       ...restProps
     },
     ref,
@@ -34,17 +35,17 @@ export const BreadcrumbRoot = forwardRef<HTMLElement, BreadcrumbRootProps>(
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref,
-      "aria-label": ariaLabel,
+      "aria-label": nativeLabel ?? ariaLabel,
       "data-slot": dataSlot,
     };
 
-    if (asChild) {
-      return cloneAndMerge(children, behaviorProps);
-    }
-
-    return renderElement(render, "nav", {
-      ...behaviorProps,
-      children,
-    });
+    const element = asChild
+      ? cloneAndMerge(children, behaviorProps)
+      : renderElement(render, "nav", { ...behaviorProps, children });
+    const labels = element.props as Record<string, unknown>;
+    // Apply the fallback after composition so a child-owned label survives.
+    return labels["aria-label"] !== undefined || labels["aria-labelledby"] !== undefined
+      ? element
+      : cloneElement(element as ReactElement<Record<string, unknown>>, { "aria-label": "Breadcrumb" });
   },
 );

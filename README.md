@@ -4,6 +4,12 @@
 
 Headless accessible React primitives.
 
+Local QR generation: [QrCode](docs/components/qr-code/README.md).
+
+Live document navigation: [TableOfContents](docs/components/table-of-contents/README.md).
+
+Continuous passive content: [Marquee](docs/components/marquee/README.md).
+
 `@flowstack-ui/atom` owns behavior, semantic DOM, ARIA attributes, keyboard
 interaction, focus management, controlled/uncontrolled state, compound context,
 and portals. It does not ship CSS, visual themes, icons, app templates, routing
@@ -59,8 +65,13 @@ Atom intentionally keeps runtime dependencies narrow.
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.19",
+    "@internationalized/date": "3.12.4",
+    "@internationalized/number": "3.6.8",
     "@zag-js/color-picker": "1.43.3",
-    "@zag-js/react": "1.43.3"
+    "@zag-js/date-input": "1.43.3",
+    "@zag-js/date-picker": "1.43.3",
+    "@zag-js/react": "1.43.3",
+    "uqr": "0.1.3"
   }
 }
 ```
@@ -71,6 +82,10 @@ primitives such as menus, popovers, tooltips, hover cards, and select listboxes.
 The exact Zag packages provide Color Picker's color-space model, accessible
 area/channel state machine, form behavior, and React adapter. Atom exposes its
 own public compound API and does not re-export Ark UI or Chakra components.
+The exact date/number packages provide locale-aware values and number parsing;
+the date Zag runtimes provide segmented date and calendar state machines.
+`uqr` provides local QR encoding. These are headless runtime dependencies, not
+visual recipes or application engines.
 
 ## Public API
 
@@ -231,6 +246,7 @@ Use the primitive that matches the interaction model:
 - `NavList` for native link navigation.
 - `NavigationMenu` for navigation disclosure panels.
 - `Tabs` for tab panels.
+- [`Steps`](docs/components/steps/README.md) for ordered workflow progress and validation gates.
 - `Menu`, `DropdownMenu`, `ContextMenu`, and `Menubar` for command menus.
 - `Tree` for hierarchical one-dimensional navigation or selection.
 
@@ -266,6 +282,9 @@ Higher-level sorting, filtering, editing, column models, and data fetching are
 intentionally outside Atom.
 
 ## Documentation
+
+- [OverlayManager](https://github.com/flowstack-ui/atom/blob/main/docs/components/overlay-manager/README.md) for imperative overlay instances.
+- [FloatingPanel](https://github.com/flowstack-ui/atom/blob/main/docs/components/floating-panel/README.md) for movable/resizable nonmodal tools.
 
 - [Getting started](docs/guides/getting-started.md)
 - [Imports](docs/guides/imports.md)

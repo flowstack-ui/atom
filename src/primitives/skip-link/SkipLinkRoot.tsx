@@ -49,7 +49,11 @@ export const SkipLinkRoot = forwardRef<HTMLAnchorElement, SkipLinkRootProps>(
   ) {
     const handleClick = useCallback<MouseEventHandler<HTMLAnchorElement>>(
       (event) => {
-        if (!focusTarget) return;
+        if (!focusTarget || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
+        const anchor = event.currentTarget;
+        const ownerDocument = anchor.ownerDocument;
+        const browsingTarget = anchor.getAttribute("target") ?? ownerDocument.querySelector("base[target]")?.getAttribute("target");
+        if (anchor.hasAttribute("download") || (browsingTarget && browsingTarget.toLowerCase() !== "_self")) return;
         const targetId = href.slice(1);
         if (!targetId) return;
 
@@ -60,7 +64,7 @@ export const SkipLinkRoot = forwardRef<HTMLAnchorElement, SkipLinkRootProps>(
           decodedId = targetId;
         }
 
-        const target = document.getElementById(decodedId);
+        const target = ownerDocument.getElementById(decodedId);
         if (!target) return;
 
         event.preventDefault();

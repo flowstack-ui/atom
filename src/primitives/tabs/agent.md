@@ -10,11 +10,12 @@ Switch among related panels in one page with linked tab semantics, selection sta
 
 ## Choose something else when
 
-- Choices navigate to destinations or multiple sections may remain open. Use Link or Accordion.
+- Choices are general site navigation rather than URL-backed peer panels, or multiple sections may remain open. Use Link or Accordion.
 
 ## Required composition
 
 - Compose Trigger and optional Indicator inside List, with one matching Content value for each Trigger inside Root.
+- Preserve nearest-edge scroll reveal for keyboard-focused triggers, including manual activation and partially clipped edge tabs.
 
 ## Rules
 
@@ -23,7 +24,8 @@ Switch among related panels in one page with linked tab semantics, selection sta
 
 ## Common mistakes
 
-- **Avoid:** Using Tabs as route navigation or placing unmatched panels outside Root. **Instead:** Use links for routes and keep paired Trigger and Content parts in one Tabs context.
+- **Avoid:** Using Tabs as general site navigation or placing unmatched panels outside the provider. **Instead:** Use links for site navigation; URL-backed peer panels may compose Trigger asChild with navigate. Keep paired Trigger and Content parts in one Root or RootProvider context.
+- **Avoid:** Assuming keepMounted and lazyMount mean the same thing. **Instead:** Use explicit lazyMount and unmountOnExit independently; without explicit lifecycle flags the legacy inactive-unmount default is preserved. Activity falls back to display-none on React versions without Activity.
 
 ## Validation checklist
 

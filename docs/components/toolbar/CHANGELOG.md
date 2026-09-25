@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
+- Add named Group and native Input parts, root disabled state, discoverable
+  disabled buttons, typed selection modes and forwarded part refs.
+- Preserve native labels, owner-document keyboard navigation and composed-child
+  cancellation; prevent disabled custom-host activation.
+
 - Added public Agent Knowledge for component selection, required composition,
   recurring mistakes, and validation.
 

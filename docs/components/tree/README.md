@@ -18,6 +18,8 @@ content instead of selectable items.
 - Supports typeahead, roving active item, disabled items, Field context, and form submission.
 - Supports nested groups with automatic levels.
 - Supports RTL-aware arrow-key navigation through `dir` and `Direction.Provider`.
+- Supports optional selection, controlled focus, independent disclosure and checking,
+  immutable logical collections, lazy loading and opt-in interactive item controls.
 
 ## Import
 
@@ -58,6 +60,17 @@ the single focus target that points to the active Item.
 | `onFocus` | `FocusEventHandler<HTMLElement>` | - |
 | `onKeyDown` | `KeyboardEventHandler<HTMLElement>` | - |
 | `multiple` | `boolean` | `false` |
+| `selectionMode` | `"none" \| "single" \| "multiple"` | derived from `multiple` |
+| `focusedValue` / `defaultFocusedValue` | `string \| null` | first eligible item |
+| `onFocusedValueChange` | `(value: string \| null) => void` | - |
+| `expandOnClick` | `boolean` | `true` |
+| `collection` | `TreeCollection` | mounted items only |
+| `checkable` | `boolean` | `false` |
+| `checkedValue` / `defaultCheckedValue` | `string[]` | `[]` |
+| `onCheckedValueChange` | `(values: string[]) => void` | - |
+| `checkPropagation` | `"none" \| "descendants"` | `"none"` |
+| `loadChildren` | `(value, { signal }) => Promise<void>` | - |
+| `onLoadError` | `(value, error) => void` | - |
 | `disabled` | `boolean` | Field value |
 | `readOnly` | `boolean` | Field value |
 | `required` | `boolean` | Field value |
@@ -103,6 +116,7 @@ state. It receives pointer selection while Root keeps DOM focus.
 | `label` | `string` | - |
 | `disabled` | `boolean` | `false` |
 | `expandable` | `boolean` | `false` |
+| `interactive` | `boolean` | `false` |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -150,6 +164,8 @@ Item's expansion state.
 | Prop | Type | Default |
 | --- | --- | --- |
 | `forceMount` | `boolean` | `false` |
+| `animate` | `boolean` | `false` |
+| `onExitComplete` | `() => void` | - |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
 
@@ -165,6 +181,53 @@ Item's expansion state.
 
 Advanced compound parts can use the public Tree, Item, and Branch context hooks
 and providers.
+
+### Trigger and Checkbox
+
+`Tree.Trigger` is an independent disclosure button inside an expandable Item.
+Set Root `expandOnClick={false}` when only this control should expand on pointer
+activation. It does not select or check the item. Native button props, `asChild`
+and `render` are supported; supply a localized accessible label when needed.
+
+`Tree.Checkbox` is a button with checkbox semantics inside an Item. Enable Root
+`checkable`. Checking uses `checkedValue`, not selection `value`. With
+`checkPropagation="descendants"`, checked values contain enabled leaf identities
+and parents derive mixed state. Supply the complete logical `collection` to
+include descendants that are not mounted. Disabled branches are excluded.
+The Root `name` submits selection only; submit checked values explicitly if needed.
+
+### Collection, controller and loading
+
+`createTreeCollection(nodes)` validates unique nonempty values and provides
+preorder `entries`, `find`, `visible(expandedValues)`, ancestor-preserving
+`filter(predicate)`, and immutable `remove(value)` / `update(value, updater)`.
+Nodes have `value`, `label`, optional `disabled`, `expandable` and `children`.
+`children: undefined` on an expandable node means it may be loaded;
+`children: []` means loaded and empty. Render the collection yourself: it does
+not create DOM or virtualize items.
+
+`useTreeController({ collection, ...rootOptions })` returns controlled Root
+props, selection/expansion/focus values and setters, plus `expandAll()` and
+`collapseAll()`. Spread `controller.rootProps` onto Root. Expand-all operates on
+known enabled branches, not an unbounded remote hierarchy.
+
+Root deduplicates `loadChildren` requests, supplies an AbortSignal, and exposes
+`loadingValues`, `loadErrors` and `retryLoad(value)` through `useTreeContext`.
+The application loads and inserts children into its collection; honor the signal
+before publishing results. Requests abort on unmount or logical node removal.
+Errors do not automatically retry. Render busy, error and retry UI explicitly.
+
+### Interactive content and motion
+
+Use Item `interactive` for links, rename inputs and actions. Enter/F2 enters an
+eligible child control; Escape returns to Root. Controls retain their own keys,
+and native controls do not trigger row selection or expansion. Keep ItemText
+separate from action labels for predictable naming and typeahead.
+
+Group `animate` retains exiting content for authored CSS motion; closing content
+becomes inert and hidden from accessibility immediately. Use `data-state` and
+the measured `--content-height` variable for motion and honor reduced motion.
+No appearance or duration is supplied by Atom.
 
 ## Examples
 
@@ -207,6 +270,28 @@ multi-character buffers match exact prefixes.
 | `Home` / `End` | Moves to first or last visible item |
 | `Enter` / `Space` | Selects the item and toggles expansion when expandable |
 | Printable character | Typeahead search |
+| `Ctrl/Cmd+A` | Toggles all enabled visible items in multiple-selection mode |
+| `Shift+click` / `Shift+Space` / `Shift+navigation` | Extends selection from the selection anchor in multiple mode |
+| `F2` / `Escape` | Enters interactive item controls / returns to Root |
+
+In multiple mode, ordinary click replaces selection; Ctrl/Command-click toggles
+one item without clearing the others. Space toggles the active item. Shift with
+the movement arrows or Home/End selects the eligible visible range.
+When checking is enabled, Space checks the active item instead of selecting it.
+In `selectionMode="none"`, items omit `aria-selected`. Pointer hover never moves
+the active keyboard item. Home/End skip disabled nodes; removing, disabling or
+collapsing the active item requests recovery to an eligible visible item.
+
+### Controller composition
+
+`useTreeController({ collection, ...props })` returns controlled `rootProps`,
+`value`, `expandedValue`, `focusedValue`, `checkedValue`, their setters,
+`getNodeState(value)`, and `expandAll`/`collapseAll`. Render
+`<Tree.RootProvider value={controller}>` or spread `controller.rootProps` on
+`Tree.Root`. Node-state queries report explicit checked values; aggregated mixed
+state is available from `useTreeContext().getCheckedState` inside the tree.
+`Item.selectable={false}` keeps a node navigable and expandable while excluding
+it from pointer, keyboard, range and select-all selection.
 
 ## Changelog
 

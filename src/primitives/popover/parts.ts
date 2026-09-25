@@ -24,7 +24,7 @@ export function isPopoverPart(node: ReactNode, kind: MarkedPopoverPartKind): boo
     (node.type as MarkedPopoverPart)[POPOVER_PART] === kind;
 }
 
-/** @internal Marks a semantic Popover part for deterministic server inspection. */
+/** Presentation adapters preserve Popover anatomy during deterministic server inspection. */
 export function markPopoverPart(
   component: object,
   kind: MarkedPopoverPartKind,

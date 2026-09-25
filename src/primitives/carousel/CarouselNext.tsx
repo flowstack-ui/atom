@@ -59,4 +59,3 @@ export const CarouselNext = forwardRef<HTMLButtonElement, CarouselNextProps>(
     });
   },
 );
-

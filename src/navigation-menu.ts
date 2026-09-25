@@ -2,6 +2,9 @@
 
 import {
   NavigationMenuContent,
+  NavigationMenuRootProvider,
+  NavigationMenuContext,
+  NavigationMenuItemIndicator,
   NavigationMenuIndicator,
   NavigationMenuItem,
   NavigationMenuLink,
@@ -14,6 +17,10 @@ import {
 
 export {
   NavigationMenuContent,
+  NavigationMenuRootProvider,
+  NavigationMenuContext,
+  NavigationMenuItemIndicator,
+  useNavigationMenu,
   NavigationMenuContextProvider,
   NavigationMenuIndicator,
   NavigationMenuItem,
@@ -33,6 +40,11 @@ export {
   useNavigationMenuItemContext,
 } from "./primitives/navigation-menu/index.js";
 export type {
+  UseNavigationMenuOptions,
+  UseNavigationMenuReturn,
+  NavigationMenuApi,
+  NavigationMenuRootProviderProps,
+  NavigationMenuItemIndicatorProps,
   ContentNodeEntry,
   NavigationMenuContentProps,
   NavigationMenuContextValue,
@@ -55,6 +67,9 @@ export type {
 
 export const NavigationMenu = {
   Root: NavigationMenuRoot,
+  RootProvider: NavigationMenuRootProvider,
+  Context: NavigationMenuContext,
+  ItemIndicator: NavigationMenuItemIndicator,
   Sub: NavigationMenuSub,
   List: NavigationMenuList,
   Item: NavigationMenuItem,

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  MenubarRootProvider, MenubarContext,
   MenubarContent,
   MenubarMenu,
   MenubarRoot,
@@ -23,6 +24,7 @@ import {
 } from "./primitives/menu/index.js";
 
 export {
+  MenubarRootProvider, MenubarContext, useMenubar, useMenubarState,
   MenubarContextProvider,
   MenubarContent,
   MenubarMenu,
@@ -33,6 +35,7 @@ export {
   useMenubarMenuContext,
 } from "./primitives/menubar/index.js";
 export type {
+  UseMenubarOptions, UseMenubarReturn, MenubarRootProviderProps, MenubarContextProps,
   MenubarContentProps,
   MenubarContextValue,
   MenubarMenuProps,
@@ -57,6 +60,8 @@ export {
 } from "./primitives/menu/index.js";
 export type {
   MenuArrowProps,
+  MenuState, MenuPositioningOptions, MenuLifecycleOptions, MenuOutsideEvents,
+  MenuHighlightTarget, MenuHighlightChangeDetails, MenuSelectionEvent, MenuNavigateDetails,
   MenuCloseReason,
   MenuCheckboxItemProps,
   MenuGroupProps,
@@ -79,6 +84,8 @@ export type {
 } from "./utils/interactions.js";
 
 export const Menubar = {
+  RootProvider: MenubarRootProvider,
+  Context: MenubarContext,
   Root: MenubarRoot,
   Menu: MenubarMenu,
   Trigger: MenubarTrigger,

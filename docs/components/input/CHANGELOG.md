@@ -1,5 +1,13 @@
 # Input Changelog
 
+## Unreleased
+
+- No unreleased changes.
+
+## 0.27.0
+
+- Preserve native uncontrolled value ownership for ref-based registration and formatting integrations; mirror compound state without overwriting the DOM. Respect cancelled form resets.
+
 ## 0.6.16
 
 - Explicitly scrolled inline validation-directed focus into view.

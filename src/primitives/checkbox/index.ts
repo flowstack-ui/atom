@@ -11,3 +11,7 @@ export { CheckboxIndicator } from "./CheckboxIndicator.js";
 export type { CheckboxIndicatorProps } from "./CheckboxIndicator.js";
 export { CheckboxRoot } from "./CheckboxRoot.js";
 export type { CheckboxRootProps } from "./CheckboxRoot.js";
+export { useCheckbox } from "./useCheckbox.js";
+export type { UseCheckboxProps, CheckboxController } from "./useCheckbox.js";
+export { CheckboxRootProvider } from "./CheckboxRootProvider.js";
+export type { CheckboxRootProviderProps } from "./CheckboxRootProvider.js";

@@ -12,6 +12,11 @@ label, description, error, or shared validation state.
 
 ## Features
 
+Without `value`, the native input owns its value; `defaultValue` initializes it.
+Atom mirrors that value for compound parts without writing over ref-based form
+registration. Supply `value` for React-controlled entry. Preserve third-party
+refs and handlers, and qualify each integration's formatting and reset behavior.
+
 - Supports controlled and uncontrolled string values.
 - Preserves native input types, attributes, and event handlers.
 - Inherits IDs, descriptions, and state from Field unless locally overridden.

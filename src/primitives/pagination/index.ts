@@ -1,7 +1,9 @@
 export {
   PaginationContextProvider,
+  PaginationContextConsumer,
   usePaginationContext,
   type PaginationContextValue,
+  type PaginationIds,
   type PaginationItemLabel,
   type PaginationItemLabelDetails,
   type PaginationPageHref,
@@ -25,11 +27,15 @@ export {
 } from "./PaginationList.js";
 export {
   PaginationNext,
+  PaginationFirst,
+  PaginationLast,
   PaginationPrevious,
   type PaginationControlProps,
 } from "./PaginationControl.js";
 export {
   PaginationRoot,
+  PaginationRootProvider,
+  type PaginationRootProviderProps,
   type PaginationRootProps,
 } from "./PaginationRoot.js";
 export {
@@ -39,3 +45,4 @@ export {
   type PaginationRangeOptions,
 } from "./utils.js";
 export { usePaginationRange } from "./usePaginationRange.js";
+export { usePagination, type UsePaginationProps, type UsePaginationReturn, type PaginationCountOptions, type PaginationStateOptions } from "./usePagination.js";

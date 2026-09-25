@@ -66,6 +66,8 @@ export interface TreeGridRootProps extends TreeGridRootNativeProps {
   disabled?: boolean;
   readOnly?: boolean;
   loop?: boolean;
+  /** Number of visible mounted rows moved by Page Up/Down. */
+  pageSize?: number;
   /** Text direction used for horizontal cell and expand/collapse arrow-key navigation. Defaults to Direction.Provider. */
   dir?: DirectionValue;
   rowCount?: number;
@@ -148,6 +150,7 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
       disabled = false,
       readOnly = false,
       loop = false,
+      pageSize = 10,
       dir: dirProp,
       rowCount,
       columnCount,
@@ -168,7 +171,11 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
     const treeGridRef = useRef<HTMLElement | null>(null);
     const composedRef = useMemo(() => composeRefs(treeGridRef, ref), [ref]);
     const [focused, setFocused] = useState(false);
+    const [interacting, setInteracting] = useState(false);
+    const selectionAnchor = useRef<string | null>(null);
+    const resolvedPageSize = normalizeTreeGridCount(pageSize) ?? 10;
     const {
+      version: rowVersion,
       getItem: getRow,
       getItems: getRows,
       registerItem: registerCollectionRow,
@@ -176,6 +183,7 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
       unregisterItem: unregisterCollectionRow,
     } = useCollection<string, HTMLElement, TreeGridRowData>();
     const {
+      version: cellVersion,
       getItem: getCell,
       getItems: getCells,
       registerItem: registerCollectionCell,
@@ -210,11 +218,12 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
       const treeGrid = treeGridRef.current;
       if (!treeGrid) return undefined;
 
-      const handleFocusIn = () => setFocused(true);
+      const handleFocusIn = (event: FocusEvent) => { setFocused(true); setInteracting(event.target !== treeGrid); };
       const handleFocusOut = (event: FocusEvent) => {
         const nextTarget = event.relatedTarget;
         if (nextTarget instanceof Node && treeGrid.contains(nextTarget)) return;
         setFocused(false);
+        setInteracting(false);
       };
 
       treeGrid.addEventListener("focusin", handleFocusIn);
@@ -304,11 +313,12 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
         if (!item || item.disabled) return;
         if (item.data.rowValue && !isRowVisible(item.data.rowValue)) return;
 
-        setResolvedActiveCell({ rowIndex, columnIndex });
+        if (activeCell?.rowIndex !== rowIndex || activeCell.columnIndex !== columnIndex)
+          setResolvedActiveCell({ rowIndex, columnIndex });
         treeGridRef.current?.focus({ preventScroll: true });
         item.element.scrollIntoView({ block: "nearest", inline: "nearest" });
       },
-      [getCell, isRowVisible, setResolvedActiveCell],
+      [activeCell, getCell, isRowVisible, setResolvedActiveCell],
     );
 
     const isRowSelected = useCallback(
@@ -324,12 +334,20 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
     );
 
     const selectRow = useCallback(
-      (rowValue: string | undefined) => {
+      (rowValue: string | undefined, range = false) => {
         if (!rowValue || disabled || readOnly || selectionMode === "none") return;
         const row = getRow(rowValue);
-        if (row && !row.data.selectable) return;
+        if (!row || row.disabled || !row.data.selectable || !isRowVisible(rowValue)) return;
 
         if (selectionMode === "multiple") {
+          const rows = getRows().filter(item => !item.disabled && item.data.selectable && isRowVisible(item.value));
+          const from = rows.findIndex(item => item.value === selectionAnchor.current);
+          const to = rows.findIndex(item => item.value === rowValue);
+          if (range && from >= 0 && to >= 0) {
+            setSelectedValue(rows.slice(Math.min(from, to), Math.max(from, to) + 1).map(item => item.value));
+            return;
+          }
+          selectionAnchor.current = rowValue;
           setSelectedValue((currentValue) => {
             const currentValues = normalizeTreeGridSelectionValue(currentValue);
             if (currentValues.includes(rowValue)) {
@@ -342,51 +360,66 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
 
         setSelectedValue(rowValue);
       },
-      [disabled, getRow, readOnly, selectionMode, setSelectedValue],
+      [disabled, getRow, getRows, isRowVisible, readOnly, selectionMode, setSelectedValue],
     );
 
+    const recoveryRequest = useRef<string | null>(null);
     useEffect(() => {
-      if (!activeCell) return;
-      const activeItem = getCell(getTreeGridCellValue(activeCell.rowIndex, activeCell.columnIndex));
+      if (disabled || (!activeCell && !focused)) return;
+      const activeItem = activeCell && getCell(getTreeGridCellValue(activeCell.rowIndex, activeCell.columnIndex));
       const activeRowValue = activeItem?.data.rowValue;
-      if (!activeRowValue || isRowVisible(activeRowValue)) return;
+      if (activeItem && !activeItem.disabled && (!activeRowValue || isRowVisible(activeRowValue))) {
+        recoveryRequest.current = null;
+        return;
+      }
 
-      let parentValue = getRow(activeRowValue)?.data.parentValue ?? null;
+      const request = (next: TreeGridCellCoordinates | null) => {
+        const key = `${activeCell?.rowIndex}:${activeCell?.columnIndex}->${next?.rowIndex}:${next?.columnIndex}`;
+        if (key === recoveryRequest.current) return;
+        recoveryRequest.current = key;
+        setResolvedActiveCell(next);
+      };
+
+      let parentValue = activeRowValue ? getRow(activeRowValue)?.data.parentValue ?? null : null;
       const seenValues = new Set<string>();
       while (parentValue && !seenValues.has(parentValue)) {
         seenValues.add(parentValue);
         const parentRow = getRow(parentValue);
-        if (!parentRow) return;
-        if (isRowVisible(parentValue) && !expandedValues.includes(parentValue)) {
-          setResolvedActiveCell({ rowIndex: parentRow.data.rowIndex, columnIndex: 1 });
+        if (!parentRow) break;
+        if (!parentRow.disabled && isRowVisible(parentValue) && !expandedValues.includes(parentValue)) {
+          request({ rowIndex: parentRow.data.rowIndex, columnIndex: 1 });
           return;
         }
         parentValue = parentRow.data.parentValue;
       }
-    }, [activeCell, expandedValues, getCell, getRow, isRowVisible, setResolvedActiveCell]);
+      const cells = getVisibleCells().filter(item => !item.disabled).sort((a, b) =>
+        a.data.rowIndex - b.data.rowIndex || a.data.columnIndex - b.data.columnIndex);
+      const next = cells.find(item => item.data.rowIndex >= (activeCell?.rowIndex ?? 1)) ?? cells[cells.length - 1];
+      request(next ? { rowIndex: next.data.rowIndex, columnIndex: next.data.columnIndex } : null);
+    }, [activeCell, cellVersion, rowVersion, disabled, focused, expandedValues, getCell, getRow, getVisibleCells, isRowVisible, setResolvedActiveCell]);
 
     const expandRow = useCallback(
       (rowValue: string | undefined) => {
-        if (!rowValue || disabled) return;
+        if (!rowValue || disabled || getRow(rowValue)?.disabled || !getRow(rowValue)?.data.expandable) return;
         setExpandedValues((currentValues) => {
           if (currentValues.includes(rowValue)) return currentValues;
           return [...currentValues, rowValue];
         });
       },
-      [disabled, setExpandedValues],
+      [disabled, getRow, setExpandedValues],
     );
 
     const collapseRow = useCallback(
       (rowValue: string | undefined) => {
-        if (!rowValue || disabled) return;
+        if (!rowValue || disabled || getRow(rowValue)?.disabled || !getRow(rowValue)?.data.expandable) return;
         setExpandedValues((currentValues) => currentValues.filter((itemValue) => itemValue !== rowValue));
       },
-      [disabled, setExpandedValues],
+      [disabled, getRow, setExpandedValues],
     );
 
     const toggleExpandedRow = useCallback(
       (rowValue: string | undefined) => {
-        if (!rowValue || disabled) return;
+        if (!rowValue || disabled || getRow(rowValue)?.disabled || !getRow(rowValue)?.data.expandable) return;
         setExpandedValues((currentValues) => {
           if (currentValues.includes(rowValue)) {
             return currentValues.filter((itemValue) => itemValue !== rowValue);
@@ -394,11 +427,11 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
           return [...currentValues, rowValue];
         });
       },
-      [disabled, setExpandedValues],
+      [disabled, getRow, setExpandedValues],
     );
 
     const moveActiveCell = useCallback(
-      (direction: "up" | "down" | "left" | "right" | "row-start" | "row-end" | "grid-start" | "grid-end") => {
+      (direction: "up" | "down" | "left" | "right" | "row-start" | "row-end" | "grid-start" | "grid-end" | "page-up" | "page-down") => {
         const enabledCells = getVisibleCells().filter((item) => !item.disabled);
         if (enabledCells.length === 0) return;
 
@@ -410,6 +443,10 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
             : enabledCells[0]?.data
         ) ?? null;
         if (!current) return;
+        if (!activeCell) {
+          focusCell(current.rowIndex, current.columnIndex);
+          return;
+        }
 
         if (direction === "grid-start") {
           const firstRow = rows.get(rowIndexes[0]);
@@ -426,6 +463,14 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
         }
 
         const currentRow = rows.get(current.rowIndex) ?? [];
+        if (direction === "page-up" || direction === "page-down") {
+          const index = Math.max(0, rowIndexes.indexOf(current.rowIndex));
+          const nextIndex = Math.max(0, Math.min(rowIndexes.length - 1,
+            index + (direction === "page-down" ? resolvedPageSize : -resolvedPageSize)));
+          const target = getClosestColumnCell(rows.get(rowIndexes[nextIndex]) ?? [], current.columnIndex);
+          if (target) focusCell(target.data.rowIndex, target.data.columnIndex);
+          return;
+        }
         const currentCellIndex = currentRow.findIndex(
           (item) => item.data.columnIndex === current.columnIndex,
         );
@@ -454,12 +499,23 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
         const target = targetRow ? getClosestColumnCell(targetRow, current.columnIndex) : null;
         if (target) focusCell(target.data.rowIndex, target.data.columnIndex);
       },
-      [activeCell, focusCell, getVisibleCells, loop],
+      [activeCell, focusCell, getVisibleCells, loop, resolvedPageSize],
     );
 
     const handleKeyDown = useCallback<KeyboardEventHandler<HTMLElement>>(
       (event) => {
-        if (disabled) return;
+        if (disabled || event.nativeEvent.isComposing || event.target !== event.currentTarget) return;
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "a" && selectionMode === "multiple" && !readOnly) {
+          event.preventDefault();
+          const values = getRows().filter(row => !row.disabled && row.data.selectable && isRowVisible(row.value)).map(row => row.value);
+          setSelectedValue(current => {
+            const existing = normalizeTreeGridSelectionValue(current);
+            return values.every(value => existing.includes(value))
+              ? existing.filter(value => !values.includes(value))
+              : [...new Set([...existing, ...values])];
+          });
+          return;
+        }
 
         const activeItem = activeCell
           ? getCell(getTreeGridCellValue(activeCell.rowIndex, activeCell.columnIndex))
@@ -511,6 +567,11 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
         }
 
         switch (event.key) {
+          case "PageUp":
+          case "PageDown":
+            event.preventDefault();
+            moveActiveCell(event.key === "PageDown" ? "page-down" : "page-up");
+            return;
           case "Home":
             event.preventDefault();
             moveActiveCell(event.ctrlKey || event.metaKey ? "grid-start" : "row-start");
@@ -519,7 +580,16 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
             event.preventDefault();
             moveActiveCell(event.ctrlKey || event.metaKey ? "grid-end" : "row-end");
             return;
+          case "F2":
           case "Enter":
+            if (!activeItem || activeItem.disabled || activeRow?.disabled) return;
+            if (event.key === "Enter" && activeItem.data.onAction) {
+              event.preventDefault();
+              activeItem.data.onAction();
+              return;
+            }
+            if (activeItem.data.enterInteraction?.()) { event.preventDefault(); return; }
+            if (event.key === "F2") return;
             if (activeItem?.data.onAction) {
               event.preventDefault();
               activeItem.data.onAction();
@@ -531,12 +601,12 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
               toggleExpandedRow(activeRow.value);
               return;
             }
-            selectRow(activeRow.value);
+            selectRow(activeRow.value, event.shiftKey);
             return;
           case " ": {
-            if (!activeRow) return;
+            if (!activeItem || activeItem.disabled || !activeRow || activeRow.disabled) return;
             event.preventDefault();
-            selectRow(activeRow.value);
+            selectRow(activeRow.value, event.shiftKey);
             return;
           }
           default:
@@ -553,6 +623,11 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
         focusCell,
         getCell,
         getRow,
+        getRows,
+        isRowVisible,
+        readOnly,
+        selectionMode,
+        setSelectedValue,
         moveActiveCell,
         selectRow,
         toggleExpandedRow,
@@ -565,8 +640,10 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
 
     const contextValue = useMemo<TreeGridContextValue>(
       () => ({
+        dir,
         treeGridId,
         treeGridRef,
+        setActiveCell: setResolvedActiveCell,
         disabled,
         readOnly,
         focused,
@@ -596,6 +673,7 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
         activeCell,
         activeCellId,
         collapseRow,
+        dir,
         disabled,
         expandRow,
         expandedValues,
@@ -614,6 +692,7 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
         selectionMode,
         toggleExpandedRow,
         treeGridId,
+        setResolvedActiveCell,
         unregisterCell,
         unregisterRow,
         updateCell,
@@ -628,7 +707,8 @@ export const TreeGridRoot = forwardRef<HTMLElement, TreeGridRootProps>(
       dir,
       role: "treegrid",
       tabIndex: tabIndex ?? 0,
-      "aria-activedescendant": activeCellId,
+      "aria-activedescendant": interacting ? undefined : activeCellId,
+      "data-interacting": interacting ? "" : undefined,
       "aria-colcount": resolvedColumnCount ?? -1,
       "aria-disabled": disabled || undefined,
       "aria-multiselectable": selectionMode === "multiple" || undefined,

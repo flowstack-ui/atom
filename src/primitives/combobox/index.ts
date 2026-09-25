@@ -1,3 +1,4 @@
+export { useCombobox, ComboboxRootProvider, type UseComboboxProps, type ComboboxController, type ComboboxRootProviderProps } from "./useCombobox.js";
 export {
   ComboboxControl,
   type ComboboxControlProps,

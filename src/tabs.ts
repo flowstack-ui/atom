@@ -5,6 +5,8 @@ import {
   TabsIndicator,
   TabsList,
   TabsRoot,
+  TabsRootProvider,
+  TabsContext,
   TabsTrigger,
 } from "./primitives/tabs/index.js";
 
@@ -16,6 +18,9 @@ export {
   TabsRoot,
   TabsTrigger,
   useTabsContext,
+  useTabs,
+  TabsContext,
+  TabsRootProvider,
 } from "./primitives/tabs/index.js";
 export type {
   TabsActivationMode,
@@ -26,10 +31,16 @@ export type {
   TabsOrientation,
   TabsRootProps,
   TabsTriggerProps,
+  TabsRootProviderProps,
+  UseTabsProps,
+  UseTabsReturn,
+  TabsIds,
 } from "./primitives/tabs/index.js";
 
 export const Tabs = {
   Root: TabsRoot,
+  RootProvider: TabsRootProvider,
+  Context: TabsContext,
   List: TabsList,
   Trigger: TabsTrigger,
   Content: TabsContent,

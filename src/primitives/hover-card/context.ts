@@ -3,6 +3,7 @@
 import { createContext, useContext, type RefObject } from "react";
 import type { FloatingRootContext, UseInteractionsReturn } from "@floating-ui/react";
 import type { HoverCardSide } from "./HoverCardContent.js";
+import type { HoverCardIds, HoverCardLifecycleOptions, HoverCardPositioningOptions } from "./options.js";
 
 export interface HoverCardContextValue {
   isOpen: boolean;
@@ -18,6 +19,15 @@ export interface HoverCardContextValue {
   markTouchInteraction: () => void;
   hasRecentTouchInteraction: () => boolean;
   disabled: boolean;
+  hoverInputAvailable: boolean;
+  ids?: HoverCardIds;
+  positioning?: HoverCardPositioningOptions;
+  lifecycle: HoverCardLifecycleOptions;
+  triggerValue?: string;
+  triggerElement: HTMLElement | null;
+  registerTrigger: (value: string, node: HTMLElement | null) => void;
+  activateTrigger: (value: string, node: HTMLElement) => void;
+  updateRef: RefObject<(() => void) | null>;
 }
 
 const HoverCardContext = createContext<HoverCardContextValue | null>(null);

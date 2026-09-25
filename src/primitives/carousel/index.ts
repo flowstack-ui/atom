@@ -7,8 +7,12 @@ export {
 export { CarouselPrevious, type CarouselPreviousProps } from "./CarouselPrevious.js";
 export {
   CarouselRoot,
+  CarouselRootProvider,
+  type CarouselRootProviderProps,
   type CarouselRootProps,
 } from "./CarouselRoot.js";
+export { useCarousel, type UseCarouselProps, type CarouselPageChangeDetails, type CarouselTranslations } from "./useCarousel.js";
+export { getCarouselSnapPages, closestCarouselPage, positiveCarouselNumber, type CarouselSnapPage, type CarouselItemMeasurement } from "./geometry.js";
 export {
   CarouselRotationControl,
   type CarouselRotationControlProps,
@@ -33,4 +37,3 @@ export {
   minimumCarouselInterval,
   normalizeCarouselInterval,
 } from "./utils.js";
-

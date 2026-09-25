@@ -4,13 +4,17 @@ import {
   Children,
   forwardRef,
   useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
   type ReactElement,
   type ReactNode,
 } from "react";
 import type { NativeSpanProps } from "../../utils/dom.js";
 import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
 import { AvatarContext, type AvatarContextValue } from "./context.js";
-import { useImageLoadingStatus, type ImageLoadingStatus } from "./useImageLoadingStatus.js";
+import { type ImageLoadingStatus } from "./useImageLoadingStatus.js";
 
 type AvatarRootNativeProps = NativeSpanProps<"children">;
 
@@ -42,14 +46,22 @@ export const AvatarRoot = forwardRef<HTMLSpanElement, AvatarRootProps>(
     },
     ref,
   ) {
-    const status = useImageLoadingStatus(src, onLoadingStatusChange);
+    const [record, setRecord] = useState<{ src?: string; status: ImageLoadingStatus }>(() => ({ src, status: src ? "loading" : "idle" }));
+    const status = record.src === src ? record.status : src ? "loading" : "idle";
+    const callback = useRef(onLoadingStatusChange);
+    callback.current = onLoadingStatusChange;
+    const reportStatus = useCallback((next: ImageLoadingStatus) => {
+      setRecord(previous => previous.src === src && previous.status === next ? previous : { src, status: next });
+    }, [src]);
+    useEffect(() => { callback.current?.(status); }, [src, status]);
 
-    const contextValue = useMemo<AvatarContextValue>(() => ({ status }), [status]);
+    const contextValue = useMemo<AvatarContextValue>(() => ({ src, status, reportStatus }), [src, status, reportStatus]);
 
     const behaviorProps: Record<string, unknown> = {
       ...rest,
       ref,
       "data-slot": dataSlot,
+      "data-state": status,
     };
 
     if (asChild) {

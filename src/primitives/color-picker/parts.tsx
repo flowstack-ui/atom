@@ -34,6 +34,9 @@ import type {
 } from "../../utils/dom.js";
 import { composeEventHandlers } from "../../utils/dom.js";
 import { composeRefs } from "../../utils/slot.js";
+import { usePresence } from "../../hooks/usePresence.js";
+import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
+import { OverlayScopeProvider, useCreateOverlayScope } from "../../hooks/overlayScope.js";
 import {
   useColorPickerContext,
   useColorPickerRootContext,
@@ -60,7 +63,8 @@ export type ColorPickerLabelProps = NativeLabelProps<never> & { "data-slot"?: st
 export const ColorPickerLabel = forwardRef<HTMLLabelElement, ColorPickerLabelProps>(
   function ColorPickerLabel({ "data-slot": dataSlot = "color-picker-label", ...props }, ref) {
     const api = useColorPickerContext();
-    return <label {...mergeProps(api.getLabelProps(), withSlot(props, dataSlot))} ref={ref} />;
+    const {inputId}=useColorPickerRootContext();
+    return <label {...mergeProps(api.getLabelProps(), withSlot(props, dataSlot))} {...(inputId ? {htmlFor: props.htmlFor ?? inputId} : {})} ref={ref} />;
   },
 );
 
@@ -123,7 +127,8 @@ export const ColorPickerChannelInput = forwardRef<HTMLInputElement, ColorPickerC
 export type ColorPickerInputProps = Omit<ColorPickerChannelInputProps, "channel">;
 export const ColorPickerInput = forwardRef<HTMLInputElement, ColorPickerInputProps>(
   function ColorPickerInput({ "data-slot": dataSlot = "color-picker-input", ...props }, ref) {
-    return <ColorPickerChannelInput {...props} ref={ref} channel="hex" data-slot={dataSlot} />;
+    const {inputId}=useColorPickerRootContext();
+    return <ColorPickerChannelInput id={inputId} {...props} ref={ref} channel="hex" data-slot={dataSlot} />;
   },
 );
 
@@ -214,11 +219,43 @@ export type ColorPickerContentProps = NativeDivProps<never> & { "data-slot"?: st
 export const ColorPickerContent = forwardRef<HTMLDivElement, ColorPickerContentProps>(
   function ColorPickerContent({ "data-slot": dataSlot = "color-picker-content", ...props }, ref) {
     const api = useColorPickerContext();
+    const { lifecycle } = useColorPickerRootContext();
+    const desired = lifecycle.present ?? (api.open || api.inline);
+    const opened = useRef(desired);
+    if (desired) opened.current = true;
+    const presence = usePresence({present: desired, onExitComplete: lifecycle.onExitComplete});
+    const internalRef = useRef<HTMLDivElement | null>(null);
+    const escapeTrigger = useRef<HTMLElement | null>(null);
+    const scope = useCreateOverlayScope();
+    useEffect(() => {
+      if (!api.open && escapeTrigger.current) {
+        escapeTrigger.current.focus({preventScroll:true});
+        escapeTrigger.current = null;
+      }
+    }, [api.open]);
+    useDismissableLayer({
+      enabled: api.open && !api.inline,
+      scope,
+      ownerDocument: internalRef.current?.ownerDocument,
+      getElements: () => [internalRef.current, internalRef.current?.parentElement],
+      onEscapeKeyDown: event => {
+        event.preventDefault();
+        event.stopPropagation();
+        const triggerId = api.getTriggerProps().id;
+        escapeTrigger.current = triggerId ? internalRef.current?.ownerDocument.getElementById(triggerId) ?? null : null;
+        api.setOpen(false);
+      },
+      onRequestDismiss: () => api.setOpen(false),
+    });
+    useEffect(() => { internalRef.current?.toggleAttribute("inert", !(api.open || api.inline)); });
+    const mounted = presence.isPresent || desired || (opened.current ? !lifecycle.unmountOnExit : !lifecycle.lazyMount);
+    if (!mounted) return null;
     const mergedProps = mergeProps(api.getContentProps(), withSlot(props, dataSlot));
-    const style = mergedProps.hidden
+    const hidden = !desired && !presence.isPresent;
+    const style = hidden
       ? { ...mergedProps.style, display: "none" }
       : mergedProps.style;
-    return <div {...mergedProps} style={style} ref={ref} />;
+    return <OverlayScopeProvider value={scope}><div {...mergedProps} hidden={hidden} aria-hidden={!(api.open || api.inline) || undefined} style={style} ref={composeRefs(ref, internalRef, presence.ref)} /></OverlayScopeProvider>;
   },
 );
 
@@ -238,6 +275,7 @@ export const ColorPickerValueText = forwardRef<HTMLSpanElement, ColorPickerValue
 );
 
 const AreaPropsContext = createContext<ZagAreaProps>({});
+AreaPropsContext.displayName = "ColorPickerAreaPropsContext";
 
 export interface ColorPickerAreaProps extends NativeDivProps<never>, ZagAreaProps {
   "data-slot"?: string;
@@ -295,6 +333,7 @@ export const ColorPickerAreaThumb = forwardRef<HTMLDivElement, ColorPickerAreaTh
 );
 
 const ChannelPropsContext = createContext<ZagChannelSliderProps | null>(null);
+ChannelPropsContext.displayName = "ColorPickerChannelPropsContext";
 
 export interface ColorPickerChannelSliderProps
   extends NativeDivProps<never>,
@@ -501,6 +540,7 @@ export const ColorPickerSwatchGroup = forwardRef<HTMLDivElement, ColorPickerSwat
 );
 
 const SwatchPropsContext = createContext<ZagSwatchProps | null>(null);
+SwatchPropsContext.displayName = "ColorPickerSwatchPropsContext";
 
 type SwatchTriggerNativeProps = NativeButtonProps<"value">;
 export interface ColorPickerSwatchTriggerProps

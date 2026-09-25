@@ -6,6 +6,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  version,
   type MouseEventHandler,
   type ReactNode,
 } from "react";
@@ -64,9 +65,16 @@ export const SwipeableItemActions = forwardRef<HTMLElement, SwipeableItemActions
       setActionSize,
       startActionsRef,
     } = ctx;
-    const isOpen = openSide === side;
+    const isOpen = !ctx.disabled && !ctx.readOnly && openSide === side;
     const state = isOpen ? "open" : "closed";
     const internalRef = side === "start" ? startActionsRef : endActionsRef;
+
+    useEffect(() => {
+      if (isOpen || !actionsElement) return;
+      if (actionsElement.contains(actionsElement.ownerDocument.activeElement)) {
+        ctx.contentRef.current?.focus({ preventScroll: true });
+      }
+    }, [isOpen, actionsElement, ctx.contentRef]);
 
     const setActionsRef = useCallback((node: unknown) => {
       const element = node as HTMLElement | null;
@@ -91,9 +99,10 @@ export const SwipeableItemActions = forwardRef<HTMLElement, SwipeableItemActions
 
       updateSize();
 
-      if (typeof ResizeObserver === "undefined") return undefined;
+      const Observer = actionsElement.ownerDocument.defaultView?.ResizeObserver;
+      if (!Observer) return undefined;
 
-      const observer = new ResizeObserver(updateSize);
+      const observer = new Observer(updateSize);
       observer.observe(actionsElement);
       return () => observer.disconnect();
     }, [actionsElement, setActionSize, side]);
@@ -101,6 +110,9 @@ export const SwipeableItemActions = forwardRef<HTMLElement, SwipeableItemActions
     const handleClick = useCallback<MouseEventHandler<HTMLElement>>((event) => {
       onClick?.(event);
       if (event.defaultPrevented || !closeOnClick) return;
+      const target = event.target as HTMLElement;
+      const action = target.closest?.('button, a[href], [role="button"], [role="menuitem"]');
+      if (!action || !event.currentTarget.contains(action)) return;
 
       close();
     }, [close, closeOnClick, onClick]);
@@ -115,7 +127,7 @@ export const SwipeableItemActions = forwardRef<HTMLElement, SwipeableItemActions
       role: "group",
       "aria-label": ariaLabel ?? `${side} actions`,
       "aria-hidden": isOpen ? undefined : true,
-      inert: isOpen ? undefined : true,
+      inert: isOpen ? undefined : (Number.parseInt(version, 10) >= 19 ? true : ""),
     };
 
     if (asChild) return cloneAndMerge(children, behaviorProps);

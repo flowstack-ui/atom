@@ -22,6 +22,8 @@ Coordinate a group of related disclosure sections with linked headings, triggers
 
 ## Rules
 
+- **MUST:** Use Root lazyMount and unmountOnExit independently; both default true. Content keepMounted explicitly overrides both for compatibility. Closed panels are inert and aria-hidden during exit. Activity pauses effects on React 19.2+ and falls back to ordinary hidden content on older React.
+- **MUST:** Use useAccordion with RootProvider for external control; setValue accepts an array in the controller while Root retains its discriminated single/multiple value API. Use ids for linked IDs and Context/ItemContext or their hooks for nearest-owner state. Indicator is decorative and reads its nearest Item.
 - **MUST:** Keep each Trigger and Content inside one Item so Atom can own their IDs, expanded state, labeling, and focus navigation.
 - **MUST:** Set Header to the heading level required by the host document; do not rely on the default when it would skip or duplicate the page outline.
 - **MUST:** Use Root controlled or uncontrolled props for expanded state instead of adding competing click handlers or manual ARIA attributes.

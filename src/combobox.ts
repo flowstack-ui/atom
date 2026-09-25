@@ -13,6 +13,7 @@ import {
   ComboboxLoading,
   ComboboxPortal,
   ComboboxRoot,
+  ComboboxRootProvider,
   ComboboxTrigger,
 } from "./primitives/combobox/index.js";
 
@@ -30,6 +31,8 @@ export {
   ComboboxLoading,
   ComboboxPortal,
   ComboboxRoot,
+  ComboboxRootProvider,
+  useCombobox,
   ComboboxTrigger,
   filterComboboxOptions,
   getComboboxOptionLabel,
@@ -55,6 +58,9 @@ export type {
   ComboboxOptionGroup,
   ComboboxPortalProps,
   ComboboxRootProps,
+  ComboboxRootProviderProps,
+  ComboboxController,
+  UseComboboxProps,
   ComboboxTriggerProps,
 } from "./primitives/combobox/index.js";
 
@@ -65,6 +71,7 @@ export type {
 
 export const Combobox = {
   Root: ComboboxRoot,
+  RootProvider: ComboboxRootProvider,
   Control: ComboboxControl,
   Input: ComboboxInput,
   Clear: ComboboxClear,

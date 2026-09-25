@@ -1,6 +1,13 @@
 "use client";
 
-import { forwardRef, useEffect, useMemo, useRef, type ReactNode } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  type ReactNode,
+} from "react";
 import { useFormReset } from "../../hooks/useFormReset.js";
 import { useFormValidation } from "../../hooks/useFormValidation.js";
 import type { NativeInputProps } from "../../utils/dom.js";
@@ -11,6 +18,9 @@ import {
   type RenderProp,
 } from "../../utils/slot.js";
 import { usePasswordToggleFieldContext } from "./context.js";
+
+const useSafeLayoutEffect =
+  typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 type PasswordToggleFieldInputNativeProps = NativeInputProps<
   | "children"
@@ -23,8 +33,7 @@ type PasswordToggleFieldInputNativeProps = NativeInputProps<
   | "aria-required"
 >;
 
-export interface PasswordToggleFieldInputProps
-  extends PasswordToggleFieldInputNativeProps {
+export interface PasswordToggleFieldInputProps extends PasswordToggleFieldInputNativeProps {
   children?: ReactNode;
   asChild?: boolean;
   render?: RenderProp;
@@ -45,21 +54,60 @@ export const PasswordToggleFieldInput = forwardRef<
   ref,
 ) {
   const ctx = usePasswordToggleFieldContext();
-  const inputRef = useRef<HTMLInputElement>(null);
-  const composedRef = useMemo(() => composeRefs(inputRef, ref), [ref]);
+  const inputRef = ctx.inputRef;
+  const visibleRef = useRef(ctx.visible);
+  visibleRef.current = ctx.visible;
+  const composedRef = useMemo(
+    () => composeRefs(inputRef, ref),
+    [inputRef, ref],
+  );
   useFormReset(inputRef, restProps.form, false, ctx.resetVisibility);
+  useSafeLayoutEffect(() => {
+    const input = inputRef.current;
+    const ownerWindow = input?.ownerDocument.defaultView;
+    if (!ownerWindow) {
+      ctx.restoreInputSelection();
+      return undefined;
+    }
+    const frame = ownerWindow.requestAnimationFrame(() => {
+      ctx.restoreInputSelection();
+    });
+    return () => ownerWindow.cancelAnimationFrame(frame);
+  }, [ctx.restoreInputSelection, ctx.visible]);
   useEffect(() => {
     const input = inputRef.current;
     const form = restProps.form
       ? input?.ownerDocument.getElementById(restProps.form)
       : input?.form;
     if (!form || form.tagName !== "FORM") return undefined;
-    const restorePasswordType = () => {
-      if (input) input.type = "password";
+    const restorePasswordType = (event: Event) => {
+      if (!input) return;
+      const selection =
+        input.ownerDocument.activeElement === input &&
+        input.selectionStart !== null &&
+        input.selectionEnd !== null
+          ? {
+              start: input.selectionStart,
+              end: input.selectionEnd,
+              direction: input.selectionDirection ?? "none",
+            }
+          : null;
+      input.type = "password";
+      input.ownerDocument.defaultView?.setTimeout(() => {
+        if (!event.defaultPrevented || !input.isConnected) return;
+        input.type = visibleRef.current ? "text" : "password";
+        if (selection && input.ownerDocument.activeElement === input) {
+          input.setSelectionRange(
+            selection.start,
+            selection.end,
+            selection.direction,
+          );
+        }
+      }, 0);
     };
     form.addEventListener("submit", restorePasswordType);
     return () => form.removeEventListener("submit", restorePasswordType);
-  }, [restProps.form]);
+  }, [inputRef, restProps.form]);
   const validation = useFormValidation({
     validityRef: inputRef,
     ownerRef: inputRef,

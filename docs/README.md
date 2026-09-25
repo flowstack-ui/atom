@@ -5,6 +5,15 @@ contribution guidance lives in [`CONTRIBUTING.md`](../CONTRIBUTING.md).
 
 ## Start Here
 
+- [composeHost](components/compose-host/README.md) — server-safe host prop and ref composition.
+
+- [TableOfContents](components/table-of-contents/README.md) — same-document navigation and scoped current-location tracking.
+- [QrCode](components/qr-code/README.md) — local encoding, accessible graphics and image export.
+
+- [Marquee](components/marquee/README.md) — measured passive motion and safe replicas.
+
+- [DownloadTrigger](components/download-trigger/README.md) - generated file activation and lifecycle.
+
 - [Package README](../README.md) - package overview, installation, boundary,
   and API examples.
 - [Getting Started](guides/getting-started.md) - install and basic usage.
@@ -30,6 +39,14 @@ contribution guidance lives in [`CONTRIBUTING.md`](../CONTRIBUTING.md).
   clean-build, package, consumer, and release-metadata verification.
 
 ## Components
+
+- [OverlayManager](components/overlay-manager/README.md) - keyed overlay instances and typed result/exit promises.
+- [FloatingPanel](components/floating-panel/README.md) - movable and resizable nonmodal application tools.
+
+- [Calendar](components/calendar/README.md) - inline date selection (unreleased).
+- [DateInput](components/date-input/README.md) - segmented date entry (unreleased).
+- [DatePicker](components/date-picker/README.md) - coordinated entry and popup calendar (unreleased).
+- [Date values](components/date-value/README.md) - immutable date types and conversions.
 
 - [Component Docs](components/README.md) - index of component anatomy, behavior,
   accessibility notes, and component changelogs.

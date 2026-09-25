@@ -30,6 +30,7 @@ import {
   type CheckboxGroupItemPartKind,
 } from "./context.js";
 import { getCheckboxGroupItemPartPresence } from "./parts.js";
+import { checkboxComposedHost } from "../checkbox/composedHost.js";
 
 type CheckboxGroupItemNativeProps = NativeButtonProps<
   | "children"
@@ -103,6 +104,7 @@ export const CheckboxGroupItem = forwardRef<HTMLButtonElement, CheckboxGroupItem
     ref,
   ) {
     const context = useCheckboxGroupContext();
+    const host = checkboxComposedHost(children, render, asChild);
     const itemRef = useRef<HTMLButtonElement>(null);
     const autoId = useId();
     const providedId = restProps.id;
@@ -136,10 +138,11 @@ export const CheckboxGroupItem = forwardRef<HTMLButtonElement, CheckboxGroupItem
       };
     }, []);
     const isChecked = context.isItemChecked(value);
-    const isDisabled = disabled || context.disabled;
+    const limitDisabled = !isChecked && context.maxSelectedValues !== undefined && new Set(context.groupValues).size >= context.maxSelectedValues;
+    const isDisabled = disabled || host.disabled || context.disabled || limitDisabled;
     const isReadOnly = readOnly || context.readOnly;
     const isInvalid = invalid || context.invalid;
-    const isRequired = required || context.required;
+    const isRequired = required;
     const inputName = name ?? context.name;
     const inputForm = form ?? context.form;
     const dataState: CheckboxDataState = isChecked ? "checked" : "unchecked";
@@ -160,7 +163,7 @@ export const CheckboxGroupItem = forwardRef<HTMLButtonElement, CheckboxGroupItem
       return () => {
         context.unregisterItem(value);
       };
-    }, [context.registerItem, context.unregisterItem, isDisabled, value]);
+    }, [context.registerItem, context.unregisterItem, isDisabled, isReadOnly, value]);
 
     const toggle = () => {
       if (isDisabled || isReadOnly) return;
@@ -202,16 +205,17 @@ export const CheckboxGroupItem = forwardRef<HTMLButtonElement, CheckboxGroupItem
       "data-slot": dataSlot,
       "data-value": value,
       ...(isDisabled && { "data-disabled": "" }),
+      ...(limitDisabled && !disabled && !host.disabled && !context.disabled && { "data-limit-disabled": "" }),
       ...(isReadOnly && { "data-readonly": "" }),
       ...(isInvalid && { "data-invalid": "" }),
       className,
-      onClick: composeEventHandlers(onClick, handleClick),
-      onKeyDown: composeEventHandlers(onKeyDown, handleKeyDown),
+      onClick: composeEventHandlers(onClick, composeEventHandlers(host.onClick, handleClick)),
+      onKeyDown: composeEventHandlers(onKeyDown, composeEventHandlers(host.onKeyDown, handleKeyDown)),
     };
 
     const itemElement = asChild
-      ? cloneAndMerge(children, behaviorProps)
-      : renderElement(render, "button", { ...behaviorProps, children });
+      ? cloneAndMerge(host.children, behaviorProps)
+      : renderElement(host.render, "button", { ...behaviorProps, children });
 
     return (
       <CheckboxGroupItemContextProvider value={itemContextValue}>

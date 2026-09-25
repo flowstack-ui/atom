@@ -12,6 +12,8 @@ import {
   TableBody,
   TableCaption,
   TableCell,
+  TableColumn,
+  TableColumnGroup,
   TableFooter,
   TableHead,
   TableHeader,
@@ -28,6 +30,12 @@ test("Table compound parts render native table anatomy", () => {
         "data-testid": "table-root",
       },
       React.createElement(Table.Caption, null, "Revenue"),
+      React.createElement(
+        Table.ColumnGroup,
+        { span: 2 },
+        React.createElement(Table.Column, { htmlWidth: "40%" }),
+        React.createElement(Table.Column, null),
+      ),
       React.createElement(
         Table.Header,
         null,
@@ -65,6 +73,8 @@ test("Table compound parts render native table anatomy", () => {
   assert.match(html, /data-testid="table-root"/);
   assert.match(html, /data-slot="table"/);
   assert.match(html, /<caption data-slot="table-caption">Revenue<\/caption>/);
+  assert.match(html, /<colgroup span="2" data-slot="table-column-group">/);
+  assert.match(html, /<col data-slot="table-column" width="40%"\/>/);
   assert.match(html, /<thead data-slot="table-header">/);
   assert.match(html, /<tbody data-slot="table-body">/);
   assert.match(html, /<tfoot data-slot="table-footer">/);
@@ -73,6 +83,8 @@ test("Table compound parts render native table anatomy", () => {
   assert.match(html, /<th(?=[^>]*scope="row")(?=[^>]*data-slot="table-head")[^>]*>January<\/th>/);
   assert.match(html, /<td colSpan="2" data-slot="table-cell">\$100<\/td>/);
   assert.equal(Table.Root, TableRoot);
+  assert.equal(Table.ColumnGroup, TableColumnGroup);
+  assert.equal(Table.Column, TableColumn);
   assert.equal(Table.Header, TableHeader);
   assert.equal(Table.Body, TableBody);
   assert.equal(Table.Footer, TableFooter);

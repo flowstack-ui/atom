@@ -3,7 +3,7 @@
 import { forwardRef, type CSSProperties, type ReactNode } from "react";
 import type { NativeSpanProps } from "../../utils/dom.js";
 import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
-import { getSliderRangeOffsetStyle, useSliderContext } from "./context.js";
+import { useSliderContext } from "./context.js";
 
 type SliderRangeNativeProps = NativeSpanProps<"children">;
 
@@ -33,10 +33,7 @@ export const SliderRange = forwardRef<HTMLSpanElement, SliderRangeProps>(
   ) {
     const context = useSliderContext();
     const rangeState = context.getRangeState();
-    const offsetStyle = getSliderRangeOffsetStyle(
-      context.orientation,
-      rangeState,
-    );
+    const offsetStyle = context.getRangeOffsetStyle();
 
     // The offsets are behavior-derived geometry; visual styling stays external.
     const behaviorProps: Record<string, unknown> = {

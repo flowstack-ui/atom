@@ -10,6 +10,8 @@ export {
 export type { ToastProviderContextValue, ToastRootContextValue, ToastViewportContextValue } from "./context.js";
 export {
   addToast,
+  createToastStore,
+  defaultToastStore,
   dismissToast,
   getDefaultToastDuration,
   getToastAriaLive,
@@ -22,7 +24,9 @@ export {
   subscribeToasts,
   updateToast,
 } from "./store.js";
-export { toast } from "./toast.js";
+export type { ToastStore, ToastStoreOptions } from "./store.js";
+export type { ToastStatus, ToastStatusChangeDetails } from "./types.js";
+export { toast, createToastApi } from "./toast.js";
 export { ToastAction } from "./ToastAction.js";
 export type { ToastActionProps } from "./ToastAction.js";
 export { ToastCancel } from "./ToastCancel.js";

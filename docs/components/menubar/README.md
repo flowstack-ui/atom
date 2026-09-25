@@ -177,7 +177,7 @@ Renders an actionable menu item with `role="menuitem"` and `tabIndex={-1}`.
 | `children` | `ReactNode` | required |
 | `value` | `string` | required |
 | `textValue` | `string` | children text or `value` |
-| `onSelect` | `() => void` | - |
+| `onSelect` | `(event: MenuSelectionEvent) => void` | - |
 | `disabled` | `boolean` | `false` |
 | `closeOnSelect` | `boolean` | menu value |
 | `asChild` | `boolean` | `false` |
@@ -369,6 +369,109 @@ Advanced top-level parts can use `useMenubarContext` and
 `useMenubarMenuContext`; the matching providers and context value types are
 also public exports. Shared item parts use the Menu contexts documented above.
 
+### RootProvider
+
+Use `useMenubar({ value?, defaultValue?, onValueChange? })` with
+`Menubar.RootProvider value={controller}`. The controller exposes
+`value` and `setValue(value | null)`; the provider retains Root host,
+ref, naming and orientation props. It coordinates the bar rather than
+creating independent dropdown controllers.
+
+### Context
+
+`Menubar.Context` accepts a render-function child receiving that public
+state. `useMenubarState()` reads it beneath the root.
+
+### Shared menu state and events
+
+Root (Menubar: the Menu part) accepts these additional behavior options.
+Menubar remains non-modal; its Root coordinates the active top-level menu.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `highlightedValue` | `MenuHighlightTarget` | uncontrolled |
+| `defaultHighlightedValue` | `MenuHighlightTarget` | `null` |
+| `onHighlightChange` | `({ highlightedValue }) => void` | - |
+| `typeahead` | `boolean` | `true` |
+| `onSelect` | `(event: MenuSelectionEvent) => void` | - |
+| `navigate` | `(details: MenuNavigateDetails) => void` | native navigation |
+| `positioning` | `MenuPositioningOptions` | inherited geometry defaults |
+| `triggerValue` | `string` | uncontrolled |
+| `defaultTriggerValue` | `string` | - |
+| `onTriggerValueChange` | `(value: string \| undefined) => void` | - |
+| `onEscapeKeyDown` | `(event: KeyboardEvent) => void` | - |
+| `onPointerDownOutside` | `(event: OutsideInteractionEvent) => void` | - |
+| `onFocusOutside` | `(event: FocusEvent) => void` | - |
+| `onInteractOutside` | `(event: OutsideInteractionEvent \| FocusEvent) => void` | - |
+| `onRequestDismiss` | `(event: Event) => void` | - |
+| `persistentElements` | `Array<() => HTMLElement \| null>` | - |
+
+A highlight target is a unique string, `null`, or
+`{ value, groupId }`. For repeated radio values, assign a stable native
+`id` to RadioGroup and use that ID as `groupId`. Controlled highlight is
+authoritative: declining an update does not independently move item focus.
+
+Item, CheckboxItem and RadioItem accept `onSelect(event)`. The event exposes
+`value`, optional `groupId`, `node`, `originalEvent`,
+`defaultPrevented` and `preventDefault()`. Item then root callbacks observe
+one transaction before checked/radio state and closing are applied.
+Cancelling it prevents those changes. Native `asChild` links preserve
+modified clicks, downloads and alternate targets; `navigate` handles only
+ordinary router navigation.
+
+### Positioning options
+
+Root geometry is overridden by Content or SubContent `positioning`, then
+existing explicit Content `side`, `align` and `sideOffset` shorthand.
+Sub may own independent `positioning`. Available fields are:
+
+| Option | Type / responsibility |
+| --- | --- |
+| `placement` | Floating UI physical side with optional logical start/end |
+| `strategy` | `absolute \| fixed` |
+| `gutter`, `shift` | Main-axis and cross-axis offsets |
+| `offset` | `{ mainAxis?, crossAxis? }` |
+| `flip` | Boolean or fallback placement list |
+| `slide`, `overlap` | Collision shift policy |
+| `boundary` | Element boundary or callback |
+| `overflowPadding` | Collision padding |
+| `sameWidth`, `fitViewport` | Anchor width and available viewport containment |
+| `hideWhenDetached` | Hide when the reference is clipped |
+| `listeners` | Boolean or Floating UI auto-update options |
+| `animationFrame` | Animation-frame geometry updates |
+| `sizeMiddleware` | Available-size middleware policy |
+| `arrowPadding` | Arrow collision inset |
+| `getAnchorRect`, `getAnchorElement` | Virtual or element anchor |
+| `onPositioned` | `({ placed: boolean }) => void` |
+
+Content still owns the native menu element, scrolling, event handlers and
+forwarded ref. A non-semantic positioner hosts it and an optional Arrow
+outside the scroll clipping region. Preserve the emitted geometry styles.
+Portal supports `container` and `disabled` (default false).
+
+### Presence options
+
+Root and Sub accept these fields. Sub inherits the root policy except that
+its exit callback is independent.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `lazyMount` | `boolean` | `true` |
+| `unmountOnExit` | `boolean` | `true` |
+| `present` | `boolean` | follows open |
+| `immediate` | `boolean` | `true` |
+| `skipAnimationOnMount` | `boolean` | `false` |
+| `hideMode` | `display-none \| activity` | `display-none` |
+| `onExitComplete` | `() => void` | - |
+
+Closed retained parts are inert and cannot reclaim focus. Activity mode uses
+React Activity where available and a hidden retained fallback otherwise.
+Default open state is not a change event; Sub initializes `defaultOpen`
+after commit and notifies uncontrolled `onOpenChange` for open/close requests.
+
+
+
+
 ## Examples
 
 ### Application Menu
@@ -456,7 +559,13 @@ mirror in RTL when `dir="rtl"` is set on `Menubar.Root` or inherited from
 focus remains owned by the active trigger so `Enter`, `Space`, and `Escape`
 target the active menu.
 
-Pointer/tap-opened menus focus the first item; ArrowDown and ArrowUp seed the
+The owning strip remains inside each popup's interaction boundary, so moving
+focus to an adjacent trigger does not dismiss the newly requested menu.
+Consumer `persistentElements` are preserved alongside that boundary.
+
+Pointer/tap-opened menus and adjacent pointer handoffs focus the content without
+automatically highlighting an item. Keyboard/assistive activation enters the
+first item; ArrowDown and ArrowUp seed the
 first and last item for keyboard opening. Portalled menu
 content registers with a parent modal focus scope when opened inside Dialog,
 Drawer, or another modal primitive. Menubar menu content inherits Menu

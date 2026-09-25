@@ -2,8 +2,12 @@
 
 import {
   TreeGridBody,
+  TreeGridTrigger,
+  TreeGridColumnResizeHandle,
   TreeGridCaption,
   TreeGridCell,
+  TreeGridColumn,
+  TreeGridColumnGroup,
   TreeGridColumnHeader,
   TreeGridFooter,
   TreeGridHeader,
@@ -13,9 +17,13 @@ import {
 } from "./primitives/tree-grid/index.js";
 
 export {
+  TreeGridColumnResizeHandle,
+  TreeGridTrigger,
   TreeGridBody,
   TreeGridCaption,
   TreeGridCell,
+  TreeGridColumn,
+  TreeGridColumnGroup,
   TreeGridColumnHeader,
   TreeGridContextProvider,
   TreeGridFooter,
@@ -28,11 +36,15 @@ export {
   useTreeGridRowContext,
 } from "./primitives/tree-grid/index.js";
 export type {
+  TreeGridColumnResizeHandleProps,
+  TreeGridTriggerProps,
   TreeGridBodyProps,
   TreeGridCaptionProps,
   TreeGridCellCoordinates,
   TreeGridCellData,
   TreeGridCellProps,
+  TreeGridColumnGroupProps,
+  TreeGridColumnProps,
   TreeGridColumnHeaderProps,
   TreeGridContextValue,
   TreeGridFooterProps,
@@ -49,7 +61,11 @@ export type {
 } from "./primitives/tree-grid/index.js";
 
 export const TreeGrid = {
+  ColumnResizeHandle: TreeGridColumnResizeHandle,
+  Trigger: TreeGridTrigger,
   Root: TreeGridRoot,
+  ColumnGroup: TreeGridColumnGroup,
+  Column: TreeGridColumn,
   Header: TreeGridHeader,
   Body: TreeGridBody,
   Footer: TreeGridFooter,

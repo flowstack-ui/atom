@@ -1,130 +1,41 @@
 "use client";
 
-import {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-  type ReactNode,
-} from "react";
+import { forwardRef, useEffect, useLayoutEffect, useMemo, useRef, version, type ReactNode } from "react";
+import { usePresence } from "../../hooks/usePresence.js";
 import type { NativeDivProps } from "../../utils/dom.js";
-import {
-  cloneAndMerge,
-  composeEventHandlers,
-  composeRefs,
-  renderElement,
-  type RenderProp,
-} from "../../utils/slot.js";
+import { cloneAndMerge, composeRefs, renderElement, type RenderProp } from "../../utils/slot.js";
 import { useMeasuredContentHeight } from "../../utils/useMeasuredContentHeight.js";
 import { useNavListContext, useNavListSectionContext } from "./context.js";
 
-type NavListSectionContentNativeProps = NativeDivProps<"children" | "hidden">;
-
-export interface NavListSectionContentProps extends NavListSectionContentNativeProps {
-  /** Section content. */
+const useSafeLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
+export interface NavListSectionContentProps extends NativeDivProps<"children" | "hidden"> {
   children?: ReactNode;
-  /** Keep content mounted while the section is closed. */
+  /** Keep closed content mounted, hidden and inert. */
   forceMount?: boolean;
-  /** Override the rendered content element. */
   render?: RenderProp;
-  /** Merge behavior props onto a single child element. */
   asChild?: boolean;
-  /** Data slot identifier. */
   "data-slot"?: string;
 }
 
 export const NavListSectionContent = forwardRef<HTMLDivElement, NavListSectionContentProps>(
-  function NavListSectionContent(
-    {
-      children,
-      forceMount = false,
-      render,
-      asChild,
-      "data-slot": dataSlot = "nav-list-section-content",
-      onAnimationEnd,
-      style: styleProp,
-      ...restProps
-    },
-    ref,
-  ) {
+  function NavListSectionContent({ children, forceMount = false, render, asChild, "data-slot": dataSlot = "nav-list-section-content", ...restProps }, ref) {
     const { orientation } = useNavListContext();
-    const { isOpen, collapsible, contentId, hasLabel, labelId, triggerId } =
-      useNavListSectionContext();
+    const { isOpen, collapsible, contentId, hasLabel, labelId, triggerId } = useNavListSectionContext();
     const contentRef = useRef<HTMLDivElement>(null);
-    const composedRef = useMemo(() => composeRefs(contentRef, ref), [ref]);
-    const [isMounted, setIsMounted] = useState(isOpen || forceMount);
-    const [isAnimating, setIsAnimating] = useState(false);
-    const initialOpenRef = useRef(isOpen);
-    const hasTransitionedRef = useRef(false);
-
-    if (initialOpenRef.current !== isOpen) {
-      hasTransitionedRef.current = true;
-    }
-
-    const suppressAnimation = !hasTransitionedRef.current;
-
-    const hasActiveCssAnimation = useCallback((element: HTMLDivElement): boolean => {
-      const computed = window.getComputedStyle(element);
-
-      const toMs = (value: string): number => {
-        const token = value.trim();
-        if (token.endsWith("ms")) return Number.parseFloat(token);
-        if (token.endsWith("s")) return Number.parseFloat(token) * 1000;
-        const parsed = Number.parseFloat(token);
-        return Number.isFinite(parsed) ? parsed : 0;
-      };
-
-      const animationNames = computed.animationName.split(",").map((name) => name.trim());
-      const animationDurations = computed.animationDuration.split(",").map(toMs);
-
-      return (
-        animationNames.some((name) => name !== "none") &&
-        animationDurations.some((duration) => duration > 0)
-      );
-    }, []);
-
-    useEffect(() => {
-      if (isOpen || forceMount) {
-        setIsMounted(true);
-      }
-    }, [forceMount, isOpen]);
-
+    const presence = usePresence({ present: isOpen });
+    const composedRef = useMemo(() => composeRefs(contentRef, presence.ref, ref), [presence.ref, ref]);
+    const initialOpen = useRef(isOpen);
+    const transitioned = useRef(false);
+    if (initialOpen.current !== isOpen) transitioned.current = true;
+    const isMounted = forceMount || isOpen || presence.isPresent;
     useMeasuredContentHeight(contentRef, isMounted || isOpen, children);
-
-    const handleAnimationEnd = useCallback(() => {
-      setIsAnimating(false);
-      if (!isOpen && !forceMount) {
-        setIsMounted(false);
+    useSafeLayoutEffect(() => {
+      const node = contentRef.current;
+      if (!isOpen && node?.contains(node.ownerDocument.activeElement)) {
+        node.ownerDocument.getElementById(triggerId)?.focus({ preventScroll: true });
       }
-    }, [forceMount, isOpen]);
-
-    useEffect(() => {
-      if (!isMounted || suppressAnimation) return undefined;
-
-      setIsAnimating(true);
-
-      const frame = requestAnimationFrame(() => {
-        const element = contentRef.current;
-        if (!element || hasActiveCssAnimation(element)) return;
-
-        setIsAnimating(false);
-        if (!isOpen && !forceMount) {
-          setIsMounted(false);
-        }
-      });
-
-      return () => cancelAnimationFrame(frame);
-    }, [forceMount, hasActiveCssAnimation, isMounted, isOpen, suppressAnimation]);
-
-    if (!isMounted && !isOpen) return null;
-
-    const style: CSSProperties = {
-      ...styleProp,
-    };
-
+    }, [isOpen, triggerId]);
+    if (!isMounted) return null;
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref: composedRef,
@@ -132,21 +43,13 @@ export const NavListSectionContent = forwardRef<HTMLDivElement, NavListSectionCo
       "data-slot": dataSlot,
       "data-orientation": orientation,
       "data-state": isOpen ? "open" : "closed",
-      ...(initialOpenRef.current && suppressAnimation ? { "data-initial-open": "" } : {}),
+      ...(initialOpen.current && !transitioned.current ? { "data-initial-open": "" } : {}),
       ...(collapsible ? { "data-collapsible": "" } : {}),
       "aria-labelledby": hasLabel ? labelId : collapsible ? triggerId : undefined,
-      hidden: forceMount && !isOpen && !isAnimating ? true : undefined,
-      onAnimationEnd: composeEventHandlers(onAnimationEnd, handleAnimationEnd),
-      style,
+      "aria-hidden": !isOpen ? true : undefined,
+      inert: !isOpen ? (Number.parseInt(version, 10) >= 19 ? true : "") : undefined,
+      hidden: !isOpen && !presence.isPresent ? true : undefined,
     };
-
-    if (asChild) {
-      return cloneAndMerge(children, behaviorProps);
-    }
-
-    return renderElement(render, "div", {
-      ...behaviorProps,
-      children,
-    });
+    return asChild ? cloneAndMerge(children, behaviorProps) : renderElement(render, "div", { ...behaviorProps, children });
   },
 );

@@ -17,3 +17,7 @@ export { TableCell } from "./TableCell.js";
 export type { TableCellProps } from "./TableCell.js";
 export { TableCaption } from "./TableCaption.js";
 export type { TableCaptionProps } from "./TableCaption.js";
+export { TableColumnGroup } from "./TableColumnGroup.js";
+export type { TableColumnGroupProps } from "./TableColumnGroup.js";
+export { TableColumn } from "./TableColumn.js";
+export type { TableColumnProps } from "./TableColumn.js";

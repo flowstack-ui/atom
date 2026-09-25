@@ -1,6 +1,26 @@
 # Reorder
 
-Headless primitives for manually arranging one controlled linear collection.
+## Drag feedback and activation
+
+Root accepts `activation={{ distance: 6, touchDelay: 220, touchTolerance: 8 }}`
+and `autoScroll` (default true). Values are finite non-negative CSS pixels or
+milliseconds. Edge scrolling stays within eligible ancestors; list gaps resolve
+to the nearest insertion target, while release outside the collection cancels.
+
+Add `Reorder.Preview` inside Root, with passive children or a `(value) => ReactNode`
+render function. It portals to the source document body by default; `container`
+may select another same-document host. It is inert, aria-hidden and ignores
+pointer events. The real Item remains mounted and retains keyboard focus.
+Do not render a second Item/Handle tree in the preview. A preview inside a
+modal/top-layer or transformed host requires qualified portal placement.
+
+Reorder items expose measured `--atom-reorder-x`/`--atom-reorder-y` deltas;
+the styled layer may apply these with CSS translate and its own motion policy.
+`data-reorder-measuring` marks the non-animated measurement phase. Atom does not
+choose animation duration, easing, colors or elevation. A source with an active
+preview exposes `data-previewing`; keep its layout box and focus owner intact.
+
+Headless primitives for manually arranging one controlled ordered collection.
 `Reorder` composes `DragDrop` with ordered-list semantics, identity-array
 updates, keyboard movement, and direct single-activation movement controls.
 
@@ -54,6 +74,8 @@ Owns the controlled identity order and renders an `ol` by default.
 | `onItemsChange` | `(items, details) => void` | required |
 | `getItemLabel` | `(value) => string` | required |
 | `orientation` | `"vertical" \| "horizontal"` | `"vertical"` |
+| `layout` | `"linear" \| "grid"` | `"linear"` |
+| `displacement` | `"auto" \| "none"` | `"auto"` |
 | `disabled` | `boolean` | `false` |
 | `readOnly` | `boolean` | `false` |
 | `instructions` | `string` | English keyboard instructions |
@@ -209,3 +231,11 @@ control. Applications own persistence, Undo, failures, and conflicts.
 ## Changelog
 
 See [CHANGELOG.md](./CHANGELOG.md).
+
+## Wrapping layouts
+
+Set `layout="grid"` for row-major CSS Grid or wrapping Flex layouts. `orientation` applies to linear layouts only. Grid pickup uses all four arrow keys spatially, with Home/End selecting the collection boundaries. The native ordered list semantics and controlled identity order remain unchanged.
+
+Automatic displacement measures both axes without moving DOM nodes during hover. Item sizes must follow item identity, not nth-child or other index-dependent rules. Use `displacement="none"` for index-dependent sizing or unsupported layouts; the insertion indicator and committed order still work. Dense grids, spans, masonry, reverse/author CSS order, virtualized collections, scaled ancestors and vertical writing modes are outside automatic projection. Resize is remeasured; reduced motion is a presentation responsibility.
+
+Active draggable items and handles expose `data-drag-input="pointer"` or `"keyboard"` alongside `data-dragging`; the input attribute is absent when idle. Styled owners can distinguish pointer-only feedback from keyboard movement without owning another drag lifecycle.

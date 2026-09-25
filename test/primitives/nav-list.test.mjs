@@ -202,6 +202,14 @@ test("NavList section content exposes measured disclosure lifecycle hooks", asyn
 
   assert.match(contentSource, /useMeasuredContentHeight\(contentRef, isMounted \|\| isOpen, children\)/);
   assert.match(contentSource, /data-initial-open/);
-  assert.match(contentSource, /onAnimationEnd: composeEventHandlers/);
-  assert.match(contentSource, /if \(!isOpen && !forceMount\) \{\s*setIsMounted\(false\)/);
+  assert.match(contentSource, /usePresence\(\{ present: isOpen \}\)/);
+  assert.match(contentSource, /inert: !isOpen/);
+});
+
+test("NavList resolves current semantics and removes disabled composed destinations", () => {
+  const wrap = (props, child = "Destination") => renderToStaticMarkup(React.createElement(NavList.Root, null, React.createElement(NavList.Link, props, child)));
+  assert.match(wrap({ href: "/current", "aria-current": "page" }), /data-current=""/);
+  assert.doesNotMatch(wrap({ active: true, "aria-current": false }), /data-current/);
+  assert.doesNotMatch(wrap({ disabled: true, asChild: true }, React.createElement("a", { href: "/disabled" }, "Disabled")), /href=/);
+  assert.doesNotMatch(wrap({ disabled: true, render: React.createElement("a", { href: "/disabled" }) }), /href=/);
 });

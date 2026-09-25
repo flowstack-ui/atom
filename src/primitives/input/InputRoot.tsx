@@ -3,6 +3,7 @@
 import {
   forwardRef,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -10,8 +11,6 @@ import {
   type FocusEventHandler,
   type ReactNode,
 } from "react";
-import { useControllableState } from "../../hooks/useControllableState.js";
-import { useFormReset } from "../../hooks/useFormReset.js";
 import { useFormValidation } from "../../hooks/useFormValidation.js";
 import { useFieldContext } from "../field/context.js";
 import type { ValidationBehavior } from "../form/validation.js";
@@ -74,15 +73,44 @@ export const InputRoot = forwardRef<HTMLInputElement, InputRootProps>(
   ) {
     const fieldCtx = useFieldContext();
     const inputRef = useRef<HTMLInputElement | null>(null);
+    const handledInputEvents = useRef(new WeakSet<Event>());
     const composedRef = useMemo(() => composeRefs(inputRef, ref), [ref]);
     const [focused, setFocused] = useState(false);
-    const [resolvedValue, setResolvedValue] = useControllableState<string>({
-      value,
-      defaultValue,
-      onChange: onValueChange,
+    // An uncontrolled native input must stay DOM-owned. A controlled React
+    // value would overwrite ref-based registration, autofill and input masks.
+    // This snapshot feeds compound parts without writing it back to the DOM.
+    const [nativeValue, setNativeValue] = useState(defaultValue);
+    const resolvedValue = value ?? nativeValue;
+    const lastNotifiedValue = useRef(resolvedValue);
+    const setResolvedValue = useCallback((next: string) => {
+      if (value === undefined) setNativeValue(next);
+      if (lastNotifiedValue.current !== next) {
+        lastNotifiedValue.current = next;
+        onValueChange?.(next);
+      }
+    }, [value, onValueChange]);
+    useEffect(() => {
+      if (value === undefined && inputRef.current) {
+        lastNotifiedValue.current = inputRef.current.value;
+        setNativeValue(inputRef.current.value);
+      } else if (value !== undefined) {
+        lastNotifiedValue.current = value;
+      }
     });
-    const reset = useCallback(() => setResolvedValue(defaultValue), [defaultValue, setResolvedValue]);
-    useFormReset(inputRef, restProps.form, value !== undefined, reset);
+    useEffect(() => {
+      if (value !== undefined) return;
+      const input = inputRef.current;
+      const form = input?.form;
+      if (!input || !form) return;
+      let active = true;
+      const reset = (event: Event) => {
+        queueMicrotask(() => {
+          if (active && !event.defaultPrevented) setResolvedValue(input.value);
+        });
+      };
+      form.addEventListener("reset", reset);
+      return () => { active = false; form.removeEventListener("reset", reset); };
+    }, [value, restProps.form, setResolvedValue]);
     const isDisabled = disabled ?? fieldCtx?.disabled ?? false;
     const isRequired = required ?? fieldCtx?.required ?? false;
     const isReadOnly = readOnly ?? fieldCtx?.readOnly ?? false;
@@ -119,14 +147,20 @@ export const InputRoot = forwardRef<HTMLInputElement, InputRootProps>(
 
     const clearValue = useCallback(() => {
       if (isDisabled || isReadOnly) return;
+      if (value === undefined && inputRef.current) inputRef.current.value = "";
       setResolvedValue("");
       inputRef.current?.focus({ preventScroll: true });
-    }, [isDisabled, isReadOnly, setResolvedValue]);
+    }, [isDisabled, isReadOnly, setResolvedValue, value]);
+
+    const setValue = useCallback((next: string) => {
+      if (value === undefined && inputRef.current) inputRef.current.value = next;
+      setResolvedValue(next);
+    }, [value, setResolvedValue]);
 
     const contextValue = useMemo<InputContextValue>(
       () => ({
         value: resolvedValue,
-        setValue: setResolvedValue,
+        setValue,
         clearValue,
         inputRef,
         disabled: isDisabled,
@@ -143,17 +177,18 @@ export const InputRoot = forwardRef<HTMLInputElement, InputRootProps>(
         isReadOnly,
         isRequired,
         resolvedValue,
-        setResolvedValue,
+        setValue,
       ],
     );
 
     const consumerOnInvalid = restProps.onInvalid;
     const consumerOnInput = restProps.onInput;
+    const consumerOnInputCapture = restProps.onInputCapture;
     const behaviorProps = {
       ...restProps,
       ref: composedRef,
       id: controlId,
-      value: resolvedValue,
+      ...(value === undefined ? { defaultValue } : { value }),
       disabled: isDisabled || undefined,
       readOnly: isReadOnly || undefined,
       required: isRequired || undefined,
@@ -176,9 +211,23 @@ export const InputRoot = forwardRef<HTMLInputElement, InputRootProps>(
       },
       onInput: (event: React.InputEvent<HTMLInputElement>) => {
         consumerOnInput?.(event);
+        if (consumerOnInput && event.defaultPrevented) handledInputEvents.current.add(event.nativeEvent);
         validation.validationProps.onInput();
       },
+      onInputCapture: (event: React.InputEvent<HTMLInputElement>) => {
+        consumerOnInputCapture?.(event);
+        if (consumerOnInputCapture && event.defaultPrevented) handledInputEvents.current.add(event.nativeEvent);
+        const input = event.currentTarget;
+        // Formatting integrations may consume the bubbling event. Read after
+        // their target handlers finish instead of mirroring an intermediate value.
+        queueMicrotask(() => {
+          if (value === undefined && inputRef.current === input && !handledInputEvents.current.has(event.nativeEvent)) {
+            setResolvedValue(input.value);
+          }
+        });
+      },
       onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (!event.defaultPrevented) handledInputEvents.current.add(event.nativeEvent);
         composeEventHandlers(onChange, handleChange)(event);
         validation.validationProps.onChange();
       },

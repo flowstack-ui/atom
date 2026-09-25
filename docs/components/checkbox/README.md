@@ -178,3 +178,8 @@ read-only Root remains focusable so its value can still be inspected.
 ## Changelog
 
 See [CHANGELOG.md](./CHANGELOG.md).
+## Controller and composition additions
+
+`useCheckbox` returns checked state, setChecked, toggle, disabled and readOnly. Pass the controller as `value` to `Checkbox.RootProvider`; use `inputValue` for its submitted string value. The provider renders the same button host as Root. Controlled state (including a controller provider) is reset by the application, not implicitly by form reset.
+
+Root accepts `inputRef` and `inputProps` for its one managed native input. Do not add another hidden input. Atom retains state, form ownership, proxy visibility and validation. Field disabled/readOnly/required flags cannot be cleared by a child false. Links belong in a sibling Field.Label, never inside the checkbox button.

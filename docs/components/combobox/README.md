@@ -1,5 +1,33 @@
 # Combobox
 
+## Extended selection and popup controls
+
+`inputBehavior` accepts `none` (default), `autohighlight`, or `autocomplete`.
+Autocomplete changes the single selection during arrow navigation without closing
+the popup or replacing the filtered collection with a single result.
+`selectionBehavior` accepts `replace`, `clear`, or `preserve`; the existing
+`clearOnSelect` prop defaults it to `clear`, and multiple mode always clears.
+`openOnKeyPress` defaults to true. `defaultHighlightedValue` seeds uncontrolled
+highlight; `onSelect` observes each committed selection. `onFormReset` allows the
+controller to coordinate native reset without a second form listener.
+
+Use `multiple` with `values/defaultValues/onValuesChange` without changing the
+existing scalar `value/defaultValue/onValueChange` single-selection API. Multiple
+selection clears search text, stays open by default and submits repeated named
+values. `closeOnSelect` overrides the closing policy. Required validity follows
+committed values, not the search string.
+
+`useCombobox` and RootProvider provide external state ownership. Root supports
+`openOnClick`, `openOnFocus`, boolean/predicate `openOnChange`, controlled highlight,
+`loopFocus` and `scrollToIndexFn`. Virtualizers own rendering and scrolling;
+Atom retains active-descendant keyboard navigation. Item supports asChild/render
+and honors disabled option metadata even when not repeated on Item.
+
+Content supports placement, absolute/fixed strategy, sameWidth, hideWhenDetached,
+forceMount and onExitComplete. Exit content is inert; consumers supply motion.
+Single selected labels initialize from controlled values and can rehydrate when
+options arrive later. Keep remote fetching and new-item creation application-owned.
+
 Headless editable combobox primitives for filtering suggestions and selecting a
 value from a listbox.
 
@@ -433,3 +461,8 @@ disabled options marked with `disabled`.
 ## Changelog
 
 See [CHANGELOG.md](./CHANGELOG.md).
+# Control host composition
+
+`Combobox.Control` supports `asChild` and `render`. Preserve its reference ref,
+state attributes and child input when supplying a custom noninteractive host.
+This also preserves composed TagsInput.Control behavior in shared suggestions.

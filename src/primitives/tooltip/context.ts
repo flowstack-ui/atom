@@ -2,6 +2,7 @@
 
 import { createContext, useContext, type RefObject } from "react";
 import type { TooltipSide } from "./TooltipContent.js";
+import type { TooltipIds, TooltipLifecycleOptions, TooltipPositioningOptions } from "./options.js";
 
 export interface TooltipProviderContextValue {
   openDelay: number;
@@ -21,6 +22,18 @@ export function useTooltipProviderContext(): TooltipProviderContextValue | null 
 }
 
 export interface TooltipContextValue {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  triggerValue: string | undefined;
+  setTriggerValue: (value: string | undefined) => void;
+  registerTrigger: (value: string | undefined, node: HTMLElement | null) => void;
+  registerContent: (node: HTMLElement | null) => void;
+  activateTrigger: (value: string | undefined, node: HTMLElement) => void;
+  ids: TooltipIds;
+  rootId: string;
+  positioning?: TooltipPositioningOptions;
+  lifecycle: TooltipLifecycleOptions;
+  ariaLabel?: string;
   isOpen: boolean;
   onOpen: () => void;
   onClose: () => void;

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
+- Skip unavailable article and exit targets, preserve native editor shortcuts
+  and nested feed ownership, and scroll only successfully focused targets.
+
 ## 0.24.0
 
 - Added source-led Agent Knowledge for article-stream selection, logical

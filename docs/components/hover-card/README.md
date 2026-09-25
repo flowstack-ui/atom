@@ -60,9 +60,41 @@ Owns delayed open state and renders no wrapper.
 | `open` | `boolean` | - |
 | `defaultOpen` | `boolean` | `false` |
 | `onOpenChange` | `(open: boolean) => void` | - |
-| `openDelay` | `number` | `700` |
+| `openDelay` | `number` | `600` |
 | `closeDelay` | `number` | `300` |
 | `disabled` | `boolean` | `false` |
+| `triggerValue` / `defaultTriggerValue` | `string` | - |
+| `onTriggerValueChange` | `(value: string \| undefined) => void` | - |
+| `id` / `ids` | `string` / `HoverCardIds` | Generated |
+| `positioning` | `HoverCardPositioningOptions` | Bottom, absolute, 8px gutter |
+| `lazyMount` / `unmountOnExit` | `boolean` | `true` |
+| `present` | `boolean` | Open state |
+| `immediate` | `boolean` | `true` |
+| `skipAnimationOnMount` | `boolean` | `false` |
+| `hideMode` | `"display-none" \| "activity"` | `"display-none"` |
+| `onExitComplete` | `() => void` | - |
+| `onPointerDownOutside` / `onInteractOutside` / `onFocusOutside` / `onEscapeKeyDown` / `onRequestDismiss` | Preventable event callback | - |
+| `persistentElements` | `Array<() => HTMLElement \| null>` | - |
+
+`positioning` supports placement, strategy, gutter, offset, shift, flip, slide,
+overlap, overflowPadding, boundary, sameWidth, fitViewport, hideWhenDetached,
+listeners, sizeMiddleware, animationFrame, arrowPadding, getAnchorRect,
+getAnchorElement and onPositioned. Placement overrides Content side/align;
+gutter/offset override sideOffset. IDs cover content, arrow and a string or
+value-aware function for triggers. Disabled cancels pending opening and closes
+the preview without disabling a native link's destination.
+
+### Controller, RootProvider and Context
+
+`useHoverCard(options)` accepts Root options without children and returns
+`open`, `triggerValue`, `setOpen`, `setTriggerValue` and `reposition`. Pass the
+unchanged result as RootProvider `value`. Context takes a render function
+receiving `{ open, triggerValue }`. Use unique Trigger values under one Root to
+move one preview between subjects. Removing its active trigger closes it.
+
+Retained Content is hidden after exit; Activity pauses effects on supporting
+React versions and falls back to display-none on older versions. Neither mode
+changes disclosure semantics or makes essential content hover-only.
 
 ### Trigger
 
@@ -74,6 +106,7 @@ tab order and native touch behavior.
 | --- | --- | --- |
 | `asChild` | `boolean` | `false` |
 | `render` | `RenderProp` | - |
+| `value` | `string` | Generated |
 
 | Data attribute | Values |
 | --- | --- |
@@ -82,15 +115,16 @@ tab order and native touch behavior.
 
 Trigger emits no `aria-expanded`, `aria-controls`, or dialog/popover role.
 Disabled Root prevents opening and removes the default Trigger from the Tab
-order, but Trigger emits no disabled ARIA or data attribute.
+order. Trigger exposes data-disabled, data-value and data-current without
+disabling its native link or adding popup ARIA.
 
 ### Portal
 
-Moves Content to `document.body` by default without a wrapper.
+Moves Content to its trigger's document body by default without a wrapper.
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `container` | `Element \| DocumentFragment \| null` | `document.body` |
+| `container` | `HTMLElement \| null` | Trigger owner document's body |
 | `disabled` | `boolean` | `false` |
 
 ### Content
@@ -108,6 +142,7 @@ from Trigger and then `Direction.Provider`.
 | `align` | `"start" \| "center" \| "end"` | `"center"` |
 | `sideOffset` | `number` | `8` |
 | `ariaLabel` | `string` | - |
+| `asChild` / `render` | `boolean` / `RenderProp` | `false` / - |
 
 | ARIA attribute | Values |
 | --- | --- |

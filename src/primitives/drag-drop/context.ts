@@ -2,6 +2,7 @@
 
 import { createContext, useContext } from "react";
 import type { DirectionValue } from "../direction/index.js";
+import type { DragDropActivation } from "./options.js";
 
 export type DragDropInput = "keyboard" | "pointer";
 export type DragDropOrientation = "horizontal" | "vertical";
@@ -15,6 +16,7 @@ export interface DragDropDetails {
 }
 
 export interface DragDropState {
+  sourceRect?: { x: number; y: number; width: number; height: number };
   activeValue: string | null;
   deltaX: number;
   deltaY: number;
@@ -48,6 +50,8 @@ export interface DragDropTargetRegistration {
 }
 
 export interface DragDropContextValue {
+  getSourceElement: (value: string) => HTMLElement | null;
+  activation: Required<DragDropActivation>;
   state: DragDropState;
   disabled: boolean;
   dir: DirectionValue;
@@ -58,7 +62,7 @@ export interface DragDropContextValue {
   registerTarget: (registration: DragDropTargetRegistration) => () => void;
   begin: (value: string, input: DragDropInput, point?: { x: number; y: number }) => boolean;
   updatePointer: (point: { x: number; y: number }) => void;
-  moveKeyboard: (direction: "end" | "first" | "last" | "start") => void;
+  moveKeyboard: (direction: "end" | "first" | "last" | "start" | "left" | "right" | "up" | "down") => void;
   commit: () => void;
   cancel: () => void;
 }

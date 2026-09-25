@@ -59,6 +59,15 @@ export type NativeTableCellProps<Blocked extends PropertyKey = never> = NativePr
 /** Native props for primitives that render a caption by default. */
 export type NativeTableCaptionProps<Blocked extends PropertyKey = never> = NativeProps<"caption", Blocked>;
 
+/** Native props for primitives that render a colgroup by default. */
+export type NativeTableColumnGroupProps<Blocked extends PropertyKey = never> = NativeProps<"colgroup", Blocked>;
+
+/** Native props for primitives that render a col by default. */
+export type NativeTableColumnProps<Blocked extends PropertyKey = never> = NativeProps<"col", Blocked>;
+
+/** Standards-compatible values for the native col width presentational hint. */
+export type NativeTableColumnWidth = number | `${number}%`;
+
 /** Native props for primitives that render a legend by default. */
 export type NativeLegendProps<Blocked extends PropertyKey = never> = NativeProps<"legend", Blocked>;
 

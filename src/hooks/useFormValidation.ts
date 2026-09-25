@@ -25,6 +25,8 @@ export interface UseFormValidationOptions<T extends NativeValidityElement> {
   inheritedValidationBehavior?: ValidationBehavior;
   form?: string;
   reportValidity?: (id: string, invalid: boolean) => void;
+  /** Let an owner with deferred, cancelable reset clear validation itself. */
+  clearOnReset?: boolean;
 }
 
 export interface FormValidationResult<T extends NativeValidityElement> {
@@ -50,6 +52,7 @@ export function useFormValidation<T extends NativeValidityElement>({
   inheritedValidationBehavior,
   form: formId,
   reportValidity,
+  clearOnReset = true,
 }: UseFormValidationOptions<T>): FormValidationResult<T> {
   const formContext = useOptionalFormContext();
   const formReportValidity = formContext?.reportControlValidity;
@@ -101,6 +104,7 @@ export function useFormValidation<T extends NativeValidityElement>({
   useEffect(syncNativeValidity);
 
   useEffect(() => {
+    if (!clearOnReset) return;
     const validityOwner = validityRef.current;
     const associatedForm = formId
       ? validityOwner?.ownerDocument.getElementById(formId)
@@ -109,7 +113,7 @@ export function useFormValidation<T extends NativeValidityElement>({
 
     associatedForm.addEventListener("reset", clearNativeInvalid);
     return () => associatedForm.removeEventListener("reset", clearNativeInvalid);
-  }, [clearNativeInvalid, formId, validityRef]);
+  }, [clearOnReset, clearNativeInvalid, formId, validityRef]);
 
   useEffect(() => {
     reportValidity?.(validationId, locallyInvalid);

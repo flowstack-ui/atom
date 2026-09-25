@@ -10,9 +10,12 @@ import {
 } from "../../utils/slot.js";
 import { useCarouselContext } from "./context.js";
 
-type CarouselRotationControlNativeProps = NativeButtonProps<"children" | "type">;
+type CarouselRotationControlNativeProps = NativeButtonProps<
+  "children" | "type"
+>;
 
-export interface CarouselRotationControlProps extends CarouselRotationControlNativeProps {
+export interface CarouselRotationControlProps
+  extends CarouselRotationControlNativeProps {
   children?: ReactNode;
   render?: RenderProp;
   asChild?: boolean;
@@ -31,6 +34,7 @@ export const CarouselRotationControl = forwardRef<
     "aria-label": ariaLabel,
     "data-slot": dataSlot = "carousel-rotation-control",
     onClick,
+    disabled,
     ...restProps
   },
   ref,
@@ -40,12 +44,14 @@ export const CarouselRotationControl = forwardRef<
     ? context.stopAriaLabel
     : context.startAriaLabel;
   const handleClick: MouseEventHandler<HTMLButtonElement> = () => {
-    context.toggleAutoPlay();
+    if (!disabled) context.toggleAutoPlay();
   };
   const behaviorProps: Record<string, unknown> = {
     ...restProps,
     ref,
     type: "button",
+    disabled,
+    "data-disabled": disabled ? "" : undefined,
     "aria-label": ariaLabel ?? actionLabel,
     "data-atom-carousel-rotation-control": "",
     "data-slot": dataSlot,

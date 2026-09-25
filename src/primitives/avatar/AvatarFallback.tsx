@@ -32,15 +32,15 @@ export const AvatarFallback = forwardRef<HTMLSpanElement, AvatarFallbackProps>(
     },
     ref,
   ) {
-    const { status } = useAvatarContext();
-    const [delayElapsed, setDelayElapsed] = useState(delayMs === undefined);
+    const { status, src } = useAvatarContext();
+    const [elapsed, setElapsed] = useState<{ src?: string; delayMs: number } | null>(null);
+    const delayElapsed = !delayMs || (elapsed?.src === src && elapsed?.delayMs === delayMs);
 
     useEffect(() => {
-      if (delayMs === undefined) return undefined;
-
-      const timer = setTimeout(() => setDelayElapsed(true), delayMs);
+      if (!delayMs) return undefined;
+      const timer = setTimeout(() => setElapsed({ src, delayMs }), delayMs);
       return () => clearTimeout(timer);
-    }, [delayMs]);
+    }, [delayMs, src]);
 
     if (status === "loaded") return null;
     if (status === "loading" && !delayElapsed) return null;

@@ -38,23 +38,23 @@ export const MenubarTrigger = forwardRef<HTMLElement, MenubarTriggerProps>(funct
   }, [barCtx.rootRef, menuCtx.ownerBoundaryRef, menuCtx.triggerRef]);
   const values = barCtx.getTriggerValues();
   const isFocused = barCtx.focusedValue === menuValue || (barCtx.focusedValue === null && values[0] === menuValue);
-  const openFirst = useCallback(() => {
-    menuCtx.onInitialHighlight("first");
+  const openMenu = useCallback((initialHighlight: "first" | null) => {
+    menuCtx.onInitialHighlight(initialHighlight);
     menuCtx.onHighlight(null);
     barCtx.onMenuOpen(menuValue);
   }, [barCtx, menuCtx, menuValue]);
-  const handleClick: MouseEventHandler<HTMLElement> = useCallback(() => {
+  const handleClick: MouseEventHandler<HTMLElement> = useCallback((event) => {
     if (disabled) return;
     if (isOpen) barCtx.onMenuClose();
-    else openFirst();
-  }, [barCtx, disabled, isOpen, openFirst]);
+    else openMenu(event.detail === 0 ? "first" : null);
+  }, [barCtx, disabled, isOpen, openMenu]);
   const handlePointerEnter: PointerEventHandler<HTMLElement> = useCallback((event) => {
     if (event.pointerType !== "mouse" || disabled) return;
     if (barCtx.isAnyOpen && barCtx.openValue !== menuValue) {
-      openFirst();
+      openMenu(null);
       event.currentTarget.focus({ preventScroll: true });
     }
-  }, [barCtx.isAnyOpen, barCtx.openValue, disabled, menuValue, openFirst]);
+  }, [barCtx.isAnyOpen, barCtx.openValue, disabled, menuValue, openMenu]);
   const handleFocus: FocusEventHandler<HTMLElement> = useCallback(() => barCtx.onFocus(menuValue), [barCtx, menuValue]);
   const handleKeyDown: KeyboardEventHandler<HTMLElement> = useCallback((event) => {
     if (disabled) return;

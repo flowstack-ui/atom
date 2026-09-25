@@ -1,15 +1,22 @@
 "use client";
 
-import { type KeyboardEventHandler, type ReactNode, forwardRef } from "react";
+import {
+  type KeyboardEventHandler,
+  type ReactNode,
+  forwardRef,
+  useMemo,
+} from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
 import {
   cloneAndMerge,
   composeEventHandlers,
+  composeRefs,
   renderElement,
   type RenderProp,
 } from "../../utils/slot.js";
 import type { DirectionValue } from "../direction/index.js";
 import { useTabsContext } from "./context.js";
+import { isTabDisabled } from "./controller.js";
 
 type TabsListNativeProps = NativeDivProps<"children" | "role">;
 
@@ -64,10 +71,21 @@ export const TabsList = forwardRef<HTMLDivElement, TabsListProps>(
       activationMode,
       loop,
       activeValue,
-      setActiveValue,
       getTriggerElement,
       getTriggerValues,
+      listRef,
+      getId,
+      focus,
+      select,
+      composite,
+      indicatorReady,
+      focusedValue,
+      setFocusedValue,
     } = useTabsContext();
+    const composedRef = useMemo(
+      () => composeRefs(ref, listRef),
+      [ref, listRef],
+    );
 
     function findNextValue(
       values: string[],
@@ -86,7 +104,7 @@ export const TabsList = forwardRef<HTMLDivElement, TabsListProps>(
 
         const candidate = values[index];
         const element = getTriggerElement(candidate);
-        if (element && !element.disabled) {
+        if (element && !isTabDisabled(element)) {
           return candidate;
         }
 
@@ -100,18 +118,32 @@ export const TabsList = forwardRef<HTMLDivElement, TabsListProps>(
       const element = getTriggerElement(value);
       if (!element) return;
 
-      element.focus();
-      if (activationMode === "automatic") {
-        setActiveValue(value);
+      if (composite) focus(value);
+      else setFocusedValue(value);
+      if (activationMode === "automatic" && value !== activeValue) {
+        select(value, element);
       }
     }
 
     const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = (event) => {
+      if (
+        (event.target as HTMLElement).closest('[role="tablist"]') !==
+        event.currentTarget
+      )
+        return;
       const values = getTriggerValues();
       if (values.length === 0) return;
 
-      const focusedElement = document.activeElement as HTMLButtonElement | null;
-      const currentValue = focusedElement?.dataset.value;
+      const focusedElement = event.currentTarget.ownerDocument
+        .activeElement as HTMLButtonElement | null;
+      const currentValue = composite
+        ? focusedElement?.dataset.value
+        : focusedValue || activeValue;
+      if (
+        composite &&
+        (!currentValue || getTriggerElement(currentValue) !== focusedElement)
+      )
+        return;
       const currentIndex = currentValue
         ? values.indexOf(currentValue)
         : values.indexOf(activeValue);
@@ -136,14 +168,14 @@ export const TabsList = forwardRef<HTMLDivElement, TabsListProps>(
         event.preventDefault();
         const first = values.find((value) => {
           const element = getTriggerElement(value);
-          return element && !element.disabled;
+          return element && !isTabDisabled(element);
         });
         if (first) focusAndMaybeActivate(first);
       } else if (event.key === "End") {
         event.preventDefault();
         const last = [...values].reverse().find((value) => {
           const element = getTriggerElement(value);
-          return element && !element.disabled;
+          return element && !isTabDisabled(element);
         });
         if (last) focusAndMaybeActivate(last);
       } else if (
@@ -152,14 +184,16 @@ export const TabsList = forwardRef<HTMLDivElement, TabsListProps>(
       ) {
         event.preventDefault();
         if (currentValue) {
-          setActiveValue(currentValue);
+          select(currentValue);
         }
       }
     };
 
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
-      ref,
+      ref: composedRef,
+      id: getId("list"),
+      "data-indicator-ready": indicatorReady ? "" : undefined,
       role: "tablist",
       "aria-orientation": orientation,
       ...(ariaLabel !== undefined && { "aria-label": ariaLabel }),

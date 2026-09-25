@@ -22,6 +22,7 @@ import {
   ColorPickerNativeInput,
   ColorPickerPositioner,
   ColorPickerRoot,
+  ColorPickerRootProvider,
   ColorPickerSwatch,
   ColorPickerSwatchGroup,
   ColorPickerSwatchIndicator,
@@ -37,6 +38,7 @@ export * from "./primitives/color-picker/index.js";
 
 export const ColorPicker = {
   Root: ColorPickerRoot,
+  RootProvider: ColorPickerRootProvider,
   Context: ColorPickerContext,
   Label: ColorPickerLabel,
   Control: ColorPickerControl,

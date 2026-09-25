@@ -28,7 +28,7 @@ Group related form controls under native fieldset and legend semantics while sha
 ## Validation checklist
 
 - Inspect fieldset and legend semantics.
-- Confirm disabled, required, and invalid group state reaches descendants as documented.
+- Confirm disabled and required inheritance; group invalidity must not feed back into independent Fields.
 
 ## Related guidance
 

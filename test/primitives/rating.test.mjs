@@ -88,8 +88,8 @@ test("RatingRoot exposes disabled readonly invalid and required state", () => {
   assert.match(html, /aria-readonly="true"/);
   assert.match(html, /aria-invalid="true"/);
   assert.match(html, /aria-required="true"/);
-  assert.match(html, /tabindex="0"/);
   assert.match(html, /data-disabled=""/);
+  assert.match(html, /tabindex="-1"/);
   assert.match(html, /data-readonly=""/);
   assert.match(html, /data-invalid=""/);
   assert.match(html, /data-required=""/);
@@ -113,7 +113,7 @@ test("Rating source keeps pointer capture and opt-in clear behavior stable", asy
     "utf8",
   );
 
-  assert.match(rootSource, /tabIndex: tabIndex \?\? 0/);
+  assert.match(rootSource, /tabIndex: isDisabled \? -1 : tabIndex \?\? 0/);
   assert.match(rootSource, /Math\.min\(/);
   assert.match(rootSource, /step \* 10/);
   assert.match(rootSource, /step \* Math\.ceil\(\(range\.max - range\.min\) \/ 2 \/ step\)/);

@@ -1,114 +1,101 @@
 "use client";
-
-import { forwardRef, useCallback, useId, type ReactNode } from "react";
-import { useControllableState } from "../../hooks/useControllableState.js";
+import { forwardRef, type ReactNode } from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
-import { cloneAndMerge, renderElement, type RenderProp } from "../../utils/slot.js";
 import {
-  CollapsibleContextProvider,
-  type CollapsibleContextValue,
-} from "./context.js";
-
-type CollapsibleRootNativeProps = NativeDivProps<"children" | "onChange">;
-
-export interface CollapsibleRootProps extends CollapsibleRootNativeProps {
-  /** Content is visible in controlled mode. */
-  open?: boolean;
-  /** Initial open state in uncontrolled mode. */
-  defaultOpen?: boolean;
-  /** Called when open state changes. */
-  onOpenChange?: (open: boolean) => void;
-  /** Disable interaction. */
-  disabled?: boolean;
-  /** Expansion axis exposed to styled layers. */
-  orientation?: "vertical" | "horizontal";
-  /** Override the rendered element. */
-  render?: RenderProp;
-  /** Merge behavior props onto a single child element. */
-  asChild?: boolean;
-  /** Content. */
+  cloneAndMerge,
+  renderElement,
+  type RenderProp,
+} from "../../utils/slot.js";
+import { CollapsibleContextProvider } from "./context.js";
+import {
+  useCollapsible,
+  type UseCollapsibleOptions,
+  type UseCollapsibleReturn,
+} from "./controller.js";
+interface RootHostProps extends NativeDivProps<"children" | "onChange"> {
   children?: ReactNode;
-  /** CSS class name supplied by the styled layer or consumer. */
-  className?: string;
-  /** Data slot identifier. */
+  render?: RenderProp;
+  asChild?: boolean;
   "data-slot"?: string;
 }
-
+export interface CollapsibleRootProps
+  extends RootHostProps,
+    UseCollapsibleOptions {}
+export interface CollapsibleRootProviderProps extends RootHostProps {
+  value: UseCollapsibleReturn;
+}
+export const CollapsibleRootProvider = forwardRef<
+  HTMLDivElement,
+  CollapsibleRootProviderProps
+>(function CollapsibleRootProvider(
+  {
+    value,
+    children,
+    asChild,
+    render,
+    "data-slot": slot = "collapsible-root",
+    ...props
+  },
+  ref,
+) {
+  const attributes = {
+    ...props,
+    ref,
+    id: props.id ?? value.rootId,
+    "data-slot": slot,
+    "data-state": value.open ? "open" : "closed",
+    "data-orientation": value.orientation,
+    "data-disabled": value.disabled ? "" : undefined,
+  };
+  const element = asChild
+    ? cloneAndMerge(children, attributes)
+    : renderElement(render, "div", { ...attributes, children });
+  return (
+    <CollapsibleContextProvider value={value}>
+      {element}
+    </CollapsibleContextProvider>
+  );
+});
 export const CollapsibleRoot = forwardRef<HTMLDivElement, CollapsibleRootProps>(
   function CollapsibleRoot(
     {
       open,
-      defaultOpen = false,
+      defaultOpen,
       onOpenChange,
-      disabled = false,
-      orientation = "vertical",
-      render,
-      asChild,
-      children,
-      className,
-      "data-slot": dataSlot = "collapsible-root",
-      ...restProps
+      disabled,
+      orientation,
+      ids,
+      lazyMount,
+      unmountOnExit,
+      collapsedHeight,
+      collapsedWidth,
+      hideMode,
+      onExitComplete,
+      ...props
     },
     ref,
   ) {
-    const [isOpen, setIsOpen] = useControllableState({
-      value: open,
-      defaultValue: defaultOpen,
-      onChange: onOpenChange,
-    });
-    const idPrefix = useId();
-    const contentId = `${idPrefix}-content`;
-    const triggerId = `${idPrefix}-trigger`;
-
-    const setOpen = useCallback(
-      (value: boolean) => {
-        if (disabled) return;
-        setIsOpen(value);
-      },
-      [disabled, setIsOpen],
-    );
-
-    const onToggle = useCallback(() => {
-      setOpen(!isOpen);
-    }, [isOpen, setOpen]);
-
-    const onOpen = useCallback(() => {
-      setOpen(true);
-    }, [setOpen]);
-
-    const onClose = useCallback(() => {
-      setOpen(false);
-    }, [setOpen]);
-
-    const contextValue: CollapsibleContextValue = {
-      isOpen,
-      onToggle,
-      onOpen,
-      onClose,
-      contentId,
-      triggerId,
+    const value = useCollapsible({
+      open,
+      defaultOpen,
+      onOpenChange,
       disabled,
       orientation,
-    };
-
-    const behaviorProps: Record<string, unknown> = {
-      ...restProps,
-      ref,
-      "data-slot": dataSlot,
-      "data-state": isOpen ? "open" : "closed",
-      "data-orientation": orientation,
-      ...(disabled ? { "data-disabled": "" } : {}),
-      className,
-    };
-
-    const element = asChild
-      ? cloneAndMerge(children, behaviorProps)
-      : renderElement(render, "div", { ...behaviorProps, children });
-
+      ids,
+      lazyMount,
+      unmountOnExit,
+      collapsedHeight,
+      collapsedWidth,
+      hideMode,
+      onExitComplete,
+    });
     return (
-      <CollapsibleContextProvider value={contextValue}>
-        {element}
-      </CollapsibleContextProvider>
+      <CollapsibleRootProvider
+        {...props}
+        id={ids?.root ?? props.id}
+        value={value}
+        ref={ref}
+      />
     );
   },
 );

@@ -13,6 +13,17 @@ import {
   ScrollAreaViewport,
 } from "../../dist/index.js";
 
+test("ScrollArea extended anatomy has unique axis IDs and preserves native defaults", () => {
+  const html = renderToStaticMarkup(React.createElement(ScrollArea.Root, { orientation: "both", ids: { scrollbar: "bar", thumb: "thumb" } },
+    React.createElement(ScrollArea.Viewport, null, React.createElement(ScrollArea.Content, null, "Content")),
+    React.createElement(ScrollArea.Scrollbar, null, React.createElement(ScrollArea.Thumb)),
+    React.createElement(ScrollArea.Scrollbar, { orientation: "horizontal" }, React.createElement(ScrollArea.Thumb)),
+    React.createElement(ScrollArea.Corner)));
+  assert.match(html, /id="bar-vertical"/); assert.match(html, /id="bar-horizontal"/);
+  assert.match(html, /id="thumb-horizontal"/); assert.doesNotMatch(html, /tabindex/);
+  for (const name of ["Content", "Scrollbar", "Thumb", "Corner", "RootProvider", "Context"]) assert.equal(typeof ScrollArea[name] === "function" || typeof ScrollArea[name] === "object", true);
+});
+
 test("ScrollArea compound parts render headless scroll anatomy", () => {
   const html = renderToStaticMarkup(
     React.createElement(

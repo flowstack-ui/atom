@@ -1,11 +1,17 @@
 "use client";
 
-import { createContext, useContext, type ReactNode, type RefObject } from "react";
+import { createContext, useContext, type ReactNode, type Ref, type RefObject } from "react";
 import type { NativeDivProps } from "../../utils/dom.js";
 import type { RenderProp } from "../../utils/slot.js";
 import type { DirectionValue } from "../direction/index.js";
+import type { OutsideInteractionEvent } from "../../utils/interactions.js";
 
 export interface ContentNodeEntry {
+  ref?: Ref<HTMLDivElement>;
+  onEscapeKeyDown?: (event: KeyboardEvent) => void;
+  onPointerDownOutside?: (event: OutsideInteractionEvent) => void;
+  onFocusOutside?: (event: FocusEvent) => void;
+  onInteractOutside?: (event: OutsideInteractionEvent | FocusEvent) => void;
   node: ReactNode;
   asChild?: boolean;
   className?: string;
@@ -16,12 +22,30 @@ export interface ContentNodeEntry {
 }
 
 export type NavigationMenuControlType = "trigger" | "link";
+export const NavigationMenuControllerViewportContext = createContext<RefObject<HTMLDivElement | null> | null>(null);
+NavigationMenuControllerViewportContext.displayName = "NavigationMenuControllerViewportContext";
 
 export interface NavigationMenuContextValue {
   value: string | null;
+  open: boolean;
+  setValue: (value: string | null) => void;
+  isViewportRendered: boolean;
+  getViewportNode: () => HTMLDivElement | null;
+  reposition: () => void;
   onValueChange: (value: string | null) => void;
   previousValue: string | null;
   delayDuration: number;
+  closeDelay: number;
+  disableClickTrigger: boolean;
+  disableHoverTrigger: boolean;
+  disablePointerLeaveClose: boolean;
+  lazyMount: boolean;
+  lifecycleExplicit: boolean;
+  viewportSide: "left" | "right" | null;
+  setViewportSide(side: "left" | "right"): void;
+  unmountOnExit: boolean;
+  hideMode: "display-none" | "activity";
+  viewport: boolean;
   skipDelayDuration: number;
   isSkipDelayActive: boolean;
   orientation: "horizontal" | "vertical";
@@ -46,9 +70,11 @@ export interface NavigationMenuContextValue {
   registerContentNode: (value: string, entry: ContentNodeEntry) => void;
   unregisterContentNode: (value: string) => void;
   getContentNode: (value: string) => ContentNodeEntry | null;
+  getContentValues: () => string[];
   startCloseTimer: () => void;
   cancelCloseTimer: () => void;
   rootRef: RefObject<HTMLElement | null>;
+  viewportRef: RefObject<HTMLDivElement | null>;
   idPrefix: string;
 }
 

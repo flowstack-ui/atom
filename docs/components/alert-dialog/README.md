@@ -1,5 +1,9 @@
 # AlertDialog
 
+Root inherits `onExitComplete?: () => void` from Modal. Completion follows the
+owned content/backdrop exit; reopening cancels the pending callback. Forward it
+when adapting AlertDialog to Overlay Manager.
+
 Modal alert dialog behavior for urgent confirmations and decisions that require
 an answer before the user can continue.
 

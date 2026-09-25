@@ -1,5 +1,24 @@
 # Toast
 
+## Scoped stores and lifecycle
+
+Use createToastStore() and createToastApi(store) for an independent notification
+channel, then pass the same store to Toast.Provider. Mount one Viewport per store.
+The default toast helper continues to use defaultToastStore. For server rendering,
+create a store per request; never share request-specific messages through the singleton.
+
+The API exposes pause/resume, remove, visibility/count inspection and expand/collapse.
+Dismiss preserves the exit delay; remove deletes immediately. onStatusChange reports
+queued, visible, dismissing and unmounted. Finite duration starts when visible,
+not while queued. Independent pause reasons compose, and updates retain pauses.
+The viewport observes its owner document's visibility and window focus.
+For dialog-scoped notifications, mount the scoped Provider and Viewport inside
+the dialog React tree; their portal nodes then join its focus and isolation scope.
+
+promise accepts a promise or lazy factory and returns its result promise.
+track returns { id, unwrap } when the caller also needs the loading record ID.
+Late settlement never recreates a removed record. Metadata is opaque application data.
+
 Toast provider, store, live announcements, viewport, and dismissible toast parts.
 
 ## When to Use
@@ -54,6 +73,7 @@ imperative toasts. Provider renders only its children.
 
 | Prop | Type | Default |
 | --- | --- | --- |
+| `store` | `ToastStore` | `defaultToastStore` |
 | `maxVisible` | `number` | `3` |
 | `expandOnHover` | `boolean` | `true` |
 | `closeButton` | `boolean` | `false` |

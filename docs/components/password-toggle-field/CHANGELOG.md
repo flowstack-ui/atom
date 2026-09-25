@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.27.0
+
+- Preserve focused text selection across pointer reveal, respect cancelled
+  native and external form resets, and restore the committed visible type after
+  cancelled submissions while submit handlers still observe `type="password"`.
+
 ## 0.24.0
 
 - Added public Agent Knowledge for component selection, required composition,

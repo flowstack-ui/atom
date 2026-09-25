@@ -9,6 +9,7 @@ import { formatFileSize } from "./utils.js";
 type FileUploadItemSizeNativeProps = NativeSpanProps<"children">;
 
 export interface FileUploadItemSizeProps extends FileUploadItemSizeNativeProps {
+  locale?: string;
   children?: ReactNode;
   render?: RenderProp;
   asChild?: boolean;
@@ -19,6 +20,7 @@ export const FileUploadItemSize = forwardRef<HTMLSpanElement, FileUploadItemSize
   function FileUploadItemSize(
     {
       children,
+      locale,
       render,
       asChild,
       "data-slot": dataSlot = "file-upload-item-size",
@@ -27,7 +29,7 @@ export const FileUploadItemSize = forwardRef<HTMLSpanElement, FileUploadItemSize
     ref,
   ) {
     const { file } = useFileUploadItemContext();
-    const content = children ?? formatFileSize(file.size);
+    const content = children ?? formatFileSize(file.size, locale);
     const behaviorProps: Record<string, unknown> = {
       ...restProps,
       ref,
@@ -36,10 +38,7 @@ export const FileUploadItemSize = forwardRef<HTMLSpanElement, FileUploadItemSize
     };
 
     if (asChild) {
-      return cloneAndMerge(children, {
-        ...behaviorProps,
-        children: content,
-      });
+      return cloneAndMerge(children, behaviorProps);
     }
 
     return renderElement(render, "span", {

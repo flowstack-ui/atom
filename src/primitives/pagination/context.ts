@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, type ReactNode } from "react";
 import type { PaginationRangeItem } from "./utils.js";
 
 export interface PaginationItemLabelDetails {
@@ -14,7 +14,26 @@ export type PaginationItemLabel = (details: PaginationItemLabelDetails) => strin
 export type PaginationPageHrefDetails = PaginationItemLabelDetails;
 export type PaginationPageHref = (details: PaginationPageHrefDetails) => string;
 
+export interface PaginationIds {
+  root?: string;
+  list?: string;
+  previous?: string;
+  next?: string;
+  first?: string;
+  last?: string;
+  item?: (page: number) => string;
+  ellipsis?: (rangeIndex: number) => string;
+}
+
 export interface PaginationContextValue {
+  ids?: PaginationIds;
+  page: number;
+  count?: number;
+  pageSize?: number;
+  /** Zero-based start, exclusive end. Undefined in totalPages mode. */
+  pageRange?: { start: number; end: number };
+  previousPage: number | null;
+  nextPage: number | null;
   totalPages: number;
   currentPage: number;
   items: PaginationRangeItem[];
@@ -23,15 +42,27 @@ export interface PaginationContextValue {
   isLastPage: boolean;
   previousAriaLabel: string;
   nextAriaLabel: string;
+  firstAriaLabel: string;
+  lastAriaLabel: string;
   getItemAriaLabel: PaginationItemLabel;
   getPageHref?: PaginationPageHref;
   setPage: (page: number) => void;
+  setPageSize: (pageSize: number) => void;
+  slice: <T>(data: readonly T[]) => T[];
+  goToFirstPage: () => void;
+  goToLastPage: () => void;
+  goToPreviousPage: () => void;
+  goToNextPage: () => void;
 }
 
 const PaginationContext = createContext<PaginationContextValue | null>(null);
 PaginationContext.displayName = "PaginationContext";
 
 export const PaginationContextProvider = PaginationContext.Provider;
+
+export function PaginationContextConsumer({ children }: { children: (value: PaginationContextValue) => ReactNode }) {
+  return children(usePaginationContext());
+}
 
 export function usePaginationContext(): PaginationContextValue {
   const ctx = useContext(PaginationContext);

@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { useDismissableLayer } from "../../hooks/useDismissableLayer.js";
+import { OverlayScopeProvider, useCreateOverlayScope } from "../../hooks/overlayScope.js";
 import { useOptionalModalContext } from "../modal/context.js";
 import { activateModalLayer, createModalLayer } from "../modal/layer.js";
 import {
@@ -24,8 +25,10 @@ import {
   type PopoverTriggerMode,
 } from "./context.js";
 import type { PopoverPartKind } from "./parts.js";
+import { useDetachedLayerPolicy } from "./detached-policy.js";
+import type { PopoverIds, PopoverLifecycleOptions, PopoverOutsideEvents, PopoverPositioningOptions } from "./options.js";
 
-export interface PopoverRootProps {
+export interface PopoverRootProps extends PopoverLifecycleOptions, PopoverOutsideEvents {
   children: ReactNode;
   triggerMode?: PopoverTriggerMode;
   openDelay?: number;
@@ -33,36 +36,111 @@ export interface PopoverRootProps {
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean, reason?: PopoverCloseReason) => void;
+  onExitComplete?: () => void;
   modal?: boolean;
   closeOnEscape?: boolean;
   closeOnInteractOutside?: boolean;
   disabled?: boolean;
+  id?: string;
+  ids?: PopoverIds;
+  positioning?: PopoverPositioningOptions;
+  portalled?: boolean;
+  triggerValue?: string;
+  defaultTriggerValue?: string;
+  onTriggerValueChange?: (value: string | undefined) => void;
 }
 
-export function PopoverRoot({
-  children,
+export type UsePopoverOptions = Omit<PopoverRootProps, "children">;
+
+export interface UsePopoverReturn {
+  readonly open: boolean;
+  readonly triggerValue: string | undefined;
+  readonly triggerMode: PopoverTriggerMode;
+  readonly setOpen: (open: boolean, reason?: PopoverCloseReason) => void;
+  readonly setTriggerValue: (value: string | undefined) => void;
+  readonly reposition: () => void;
+}
+const controllerInternals = new WeakMap<UsePopoverReturn, {
+  context: PopoverContextValue;
+  scope: ReturnType<typeof useCreateOverlayScope>;
+}>();
+
+export function usePopover({
   triggerMode = "click",
   openDelay = 200,
   closeDelay = 300,
   open: controlledOpen,
   defaultOpen = false,
   onOpenChange,
+  onExitComplete,
   modal = false,
   closeOnEscape = true,
   closeOnInteractOutside = true,
   disabled = false,
-}: PopoverRootProps) {
+  id,
+  ids = {},
+  positioning,
+  portalled = true,
+  triggerValue: controlledTriggerValue,
+  defaultTriggerValue,
+  onTriggerValueChange,
+  lazyMount = true,
+  unmountOnExit = true,
+  present,
+  immediate = true,
+  skipAnimationOnMount = false,
+  hideMode = "display-none",
+  onInteractOutside,
+  onPointerDownOutside,
+  onFocusOutside,
+  onEscapeKeyDown,
+  onRequestDismiss,
+  persistentElements,
+}: UsePopoverOptions = {}) {
   const parentModal = useOptionalModalContext();
+  const detached = useDetachedLayerPolicy();
   const isControlled = controlledOpen !== undefined;
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
-  const isOpen = isControlled ? controlledOpen : internalOpen;
+  const isOpen = !disabled && (isControlled ? controlledOpen : internalOpen);
   const triggerRef = useRef<HTMLElement | null>(null);
   const anchorRef = useRef<HTMLElement | null>(null);
   const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const popoverId = useId();
-  const titleId = useId();
-  const descriptionId = useId();
+  const generatedId = useId();
+  const popoverId = ids.content ?? id ?? generatedId;
+  const titleId = ids.title ?? `${popoverId}-title`;
+  const descriptionId = ids.description ?? `${popoverId}-description`;
+  const [internalTriggerValue, setInternalTriggerValue] = useState(defaultTriggerValue);
+  const triggerValue = controlledTriggerValue ?? internalTriggerValue;
+  const triggers = useRef(new Map<string, HTMLElement>());
+  const mounted = useRef(false);
+  const onTriggerRemoved = useRef<() => void>(() => {});
+  useLayoutEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  const updateRef = useRef<(() => void) | null>(null);
+  const reposition = useCallback(() => updateRef.current?.(), []);
+  const isTriggerTarget = useCallback((node: Node) => Array.from(triggers.current.values()).some(trigger => trigger.contains(node)), []);
+  const setTriggerValue = useCallback((value: string | undefined) => {
+    if (controlledTriggerValue === undefined) setInternalTriggerValue(value);
+    if (value !== triggerValue) onTriggerValueChange?.(value);
+  }, [controlledTriggerValue, triggerValue, onTriggerValueChange]);
+  const registerTrigger = useCallback((value: string, node: HTMLElement | null) => {
+    const previous = triggers.current.get(value);
+    if (node) triggers.current.set(value, node);
+    else triggers.current.delete(value);
+    if (node && (value === triggerValue || (!triggerRef.current && triggerValue === undefined))) triggerRef.current = node;
+    if (!node && previous && triggerRef.current === previous) {
+      triggerRef.current = null;
+      queueMicrotask(() => {
+        if (mounted.current && !triggers.current.has(value) && !triggerRef.current) onTriggerRemoved.current();
+      });
+    }
+  }, [triggerValue]);
+  useLayoutEffect(() => {
+    triggerRef.current = triggerValue === undefined
+      ? triggerRef.current ?? triggers.current.values().next().value ?? null
+      : triggers.current.get(triggerValue) ?? null;
+    reposition();
+  }, [triggerValue, reposition]);
   const [partCounts, setPartCounts] = useState({ title: 0, description: 0 });
   const [partRegistryReady, setPartRegistryReady] = useState(false);
   const pendingOpenRef = useRef<(
@@ -131,10 +209,11 @@ export function PopoverRoot({
 
   const setOpen = useCallback(
     (value: boolean, reason?: PopoverCloseReason) => {
+      if ((value && disabled) || value === isOpen) return;
       if (!isControlled) setInternalOpen(value);
       onOpenChange?.(value, reason);
     },
-    [isControlled, onOpenChange],
+    [isControlled, onOpenChange, disabled, isOpen],
   );
 
   const recordPendingOpen = useCallback((
@@ -206,6 +285,18 @@ export function PopoverRoot({
     }
   }, [clearTimers, closeDelay, recordPendingClose, setOpen, triggerMode]);
 
+  const activateTrigger = useCallback((value: string, node: HTMLElement, interactionType: PopoverInteractionType) => {
+    triggerRef.current = node;
+    setTriggerValue(value);
+    if (isOpen && triggerValue !== undefined && triggerValue !== value) {
+      reposition();
+    } else onToggle(interactionType);
+  }, [isOpen, triggerValue, setTriggerValue, onToggle, reposition]);
+  onTriggerRemoved.current = () => {
+    if (isOpen) onClose("programmatic");
+    setTriggerValue(undefined);
+  };
+
   const recordInteraction = useCallback((
     interactionType: Exclude<PopoverInteractionType, "programmatic">,
     target: EventTarget | null,
@@ -235,13 +326,26 @@ export function PopoverRoot({
     interactionRef.current = null;
   }, []);
 
+  const overlayScope = useCreateOverlayScope(modal);
   useDismissableLayer({
-    enabled: isOpen && closeOnEscape,
-    onEscapeKeyDown: () => onClose("escapeKeyDown", "keyboard"),
+    enabled: isOpen,
+    ownerDocument: modalLayer.content?.ownerDocument ?? triggerRef.current?.ownerDocument,
+    scope: overlayScope, elements: [modalLayer.content],
+    getElements: () => [modalLayer.content],
+    onRequestDismiss: (event) => {
+      onRequestDismiss?.(event);
+      if (!event.defaultPrevented) onClose("programmatic");
+    },
+    onEscapeKeyDown: (event) => {
+      detached?.onEscapeKeyDown?.(event);
+      onEscapeKeyDown?.(event);
+      if (closeOnEscape && !event.defaultPrevented) onClose("escapeKeyDown", "keyboard");
+    },
   });
   useLayoutEffect(() => {
     if (!isOpen || !modal) return undefined;
-    return activateModalLayer(modalLayer, document);
+    const doc = modalLayer.content?.ownerDocument ?? triggerRef.current?.ownerDocument;
+    return doc ? activateModalLayer(modalLayer, doc) : undefined;
   }, [isOpen, modal, modalLayer]);
   useEffect(() => () => clearTimers(), [clearTimers]);
   useLayoutEffect(() => {
@@ -252,6 +356,10 @@ export function PopoverRoot({
 
   const contextValue: PopoverContextValue = useMemo(
     () => ({
+      ids, positioning, portalled, triggerValue, setTriggerValue, registerTrigger,
+      activateTrigger, reposition, updateRef, isTriggerTarget,
+      lifecycle: { lazyMount, unmountOnExit, present, immediate, skipAnimationOnMount, hideMode, onExitComplete },
+      outsideEvents: { onInteractOutside, onPointerDownOutside, onFocusOutside, onEscapeKeyDown, persistentElements },
       isOpen,
       onToggle,
       onOpen,
@@ -277,6 +385,10 @@ export function PopoverRoot({
       triggerMode,
     }),
     [
+      ids, positioning, portalled, triggerValue, setTriggerValue, registerTrigger,
+      activateTrigger, reposition, isTriggerTarget, lazyMount, unmountOnExit, present, immediate,
+      skipAnimationOnMount, hideMode, onExitComplete, onInteractOutside,
+      onPointerDownOutside, onFocusOutside, onEscapeKeyDown, persistentElements,
       closeOnInteractOutside,
       disabled,
       isOpen,
@@ -299,9 +411,25 @@ export function PopoverRoot({
     ],
   );
 
+  const controller: UsePopoverReturn = { open: isOpen, triggerValue, triggerMode, setOpen, setTriggerValue, reposition };
+  controllerInternals.set(controller, { context: contextValue, scope: overlayScope });
+  return controller;
+}
+
+export interface PopoverRootProviderProps { value: UsePopoverReturn; children: ReactNode }
+export function PopoverRootProvider({ value, children }: PopoverRootProviderProps) {
+  const internals = controllerInternals.get(value);
+  if (!internals) throw new Error("Popover.RootProvider requires the unchanged controller returned by usePopover.");
   return (
-    <PopoverContextProvider value={contextValue}>
+    <OverlayScopeProvider value={internals.scope}>
+    <PopoverContextProvider value={internals.context}>
       {children}
     </PopoverContextProvider>
+    </OverlayScopeProvider>
   );
+}
+
+export function PopoverRoot({ children, ...options }: PopoverRootProps) {
+  const value = usePopover(options);
+  return <PopoverRootProvider value={value}>{children}</PopoverRootProvider>;
 }

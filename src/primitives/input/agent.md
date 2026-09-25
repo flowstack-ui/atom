@@ -18,6 +18,7 @@ Provide headless native single-line text entry that participates in Field relati
 
 ## Rules
 
+- **MUST:** Omit value for DOM-owned uncontrolled integrations; use value/onValueChange for controlled state. Preserve integration refs and event handlers. Ref registration and native reset must not be replaced with a second value controller.
 - **MUST:** Give every Input an accessible name, normally through Field.Label.
 - **SHOULD:** Choose the narrowest correct native type and autocomplete value.
 

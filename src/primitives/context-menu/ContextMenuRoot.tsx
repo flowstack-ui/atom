@@ -1,52 +1,27 @@
 "use client";
 
-import { useCallback, useState, type ReactNode } from "react";
-import { MenuRoot } from "../menu/index.js";
+import { type ReactNode } from "react";
+import { MenuRootProvider, useMenu, type MenuRootProps, type UseMenuOptions, type UseMenuReturn } from "../menu/MenuRoot.js";
+import { useMenuContext } from "../menu/context.js";
 import {
   ContextMenuContextProvider,
   type ContextMenuAnchorPoint,
 } from "./context.js";
 
-export interface ContextMenuRootProps {
-  children: ReactNode;
-  open?: boolean;
-  defaultOpen?: boolean;
-  onOpenChange?: (open: boolean) => void;
-  modal?: boolean;
-  closeOnSelect?: boolean;
-  loop?: boolean;
-  closeOnEscape?: boolean;
+export interface ContextMenuRootProps extends MenuRootProps {}
+export type UseContextMenuOptions = UseMenuOptions;
+export type UseContextMenuReturn = UseMenuReturn;
+export const useContextMenu = useMenu;
+
+function ContextPointProvider({ children }: { children: ReactNode }) {
+  const context = useMenuContext();
+  return <ContextMenuContextProvider value={{ anchorPoint: context.anchorPoint ?? null, setAnchorPoint: context.setAnchorPoint! }}>{children}</ContextMenuContextProvider>;
 }
-
-export function ContextMenuRoot({
-  children,
-  open,
-  defaultOpen,
-  onOpenChange,
-  modal = true,
-  closeOnSelect = true,
-  loop = true,
-  closeOnEscape = true,
-}: ContextMenuRootProps) {
-  const [anchorPoint, setAnchorPointState] = useState<ContextMenuAnchorPoint | null>(null);
-
-  const setAnchorPoint = useCallback((point: ContextMenuAnchorPoint | null) => {
-    setAnchorPointState(point);
-  }, []);
-
-  return (
-    <MenuRoot
-      open={open}
-      defaultOpen={defaultOpen}
-      onOpenChange={onOpenChange}
-      modal={modal}
-      closeOnSelect={closeOnSelect}
-      loop={loop}
-      closeOnEscape={closeOnEscape}
-    >
-      <ContextMenuContextProvider value={{ anchorPoint, setAnchorPoint }}>
-        {children}
-      </ContextMenuContextProvider>
-    </MenuRoot>
-  );
+export interface ContextMenuRootProviderProps { value: UseContextMenuReturn; children: ReactNode }
+export function ContextMenuRootProvider({ value, children }: ContextMenuRootProviderProps) {
+  return <MenuRootProvider value={value}><ContextPointProvider>{children}</ContextPointProvider></MenuRootProvider>;
+}
+export function ContextMenuRoot({ children, ...options }: ContextMenuRootProps) {
+  const value = useContextMenu(options);
+  return <ContextMenuRootProvider value={value}>{children}</ContextMenuRootProvider>;
 }

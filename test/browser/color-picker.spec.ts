@@ -5,6 +5,20 @@ test.beforeEach(async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Color Picker browser harness" })).toBeVisible();
 });
 
+test("external controller preserves IDs and retained inert content", async ({page}) => {
+  await expect(page.locator("#stored-color-content")).toHaveCount(0);
+  await page.getByRole("button", {name:"Set stored red"}).click();
+  await expect(page.getByTestId("stored-value")).toHaveText(/ff0000/i);
+  const trigger=page.getByRole("button",{name:"Stored color",exact:true});
+  await trigger.click();
+  await expect(page.locator("#stored-color-content")).toBeVisible();
+  await page.getByLabel("Stored hex").press("Escape");
+  await expect(page.locator("#stored-color-content")).toBeHidden();
+  await expect(page.locator("#stored-color-content")).toHaveAttribute("inert", "");
+  await expect(trigger).toBeFocused();
+  await expect(page.getByTestId("stored-exits")).toHaveText("1");
+});
+
 test("Color Picker shares area, channels, formats, native input, and presets", async ({ page }) => {
   const root = page.locator("[data-slot='color-picker']").first();
   const value = page.getByTestId("color-value");

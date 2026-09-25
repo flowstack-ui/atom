@@ -1,374 +1,103 @@
 # Carousel
 
-Carousel is a headless one-active-slide content rotator. It coordinates
-controlled or uncontrolled selection, optional automatic rotation, native
-touch scrolling, accessible controls, and inactive-slide semantics while the
-consumer or styled layer owns layout and appearance.
+For custom headless CSS, apply `translate: var(--atom-carousel-shift, 0px) 0`
+to horizontal slides (swap axes for vertical). Disable viewport scroll snapping
+while `[data-programmatic]` or `[data-dragging]` is present. Atom removes the
+programmatic marker after measured movement/rebasing settles; this prevents
+native snap from redirecting a loop command to an item's previous position.
 
-## When to Use
+Carousel coordinates measured snap pages, stable slide values, native scrolling,
+optional mouse dragging and user-controlled automatic rotation. It does not own
+paint, layout tokens or icons.
 
-Use Carousel for a small sequence of interchangeable content that shares one
-viewport, such as product campaigns, testimonials, announcements, or media
-stories. Use Tabs when labeled controls switch document panels, SwipeableItem
-when a row reveals actions, Pagination when navigating pages, and ordinary
-layout or scrolling when all items should remain visible together.
-
-## Features
-
-- Controlled and uncontrolled active slide values.
-- Optional controlled or uncontrolled automatic rotation.
-- Previous, Next, direct picker, native touch, trackpad, and external
-  selection paths.
-- Focus, hover, interaction, and document-visibility rotation policies.
-- Direction-preserving looping or bounded collection navigation without cloned
-  slide content.
-- LTR and RTL nearest-slide resolution.
-- Group/carousel and group/slide semantics with localizable labels.
-- Live-region policy plus inert, accessibility-hidden inactive slides.
-- `asChild` and `render` composition on every rendered part.
-
-## Import
+## Usage
 
 ```tsx
-import { Carousel } from "@flowstack-ui/atom";
-```
-
-## Anatomy
-
-```tsx
-<Carousel.Root>
-  <Carousel.RotationControl />
-  <Carousel.Viewport>
-    <Carousel.Track>
-      <Carousel.Slide value="one" />
-      <Carousel.Slide value="two" />
-    </Carousel.Track>
-  </Carousel.Viewport>
+import { Carousel } from '@flowstack-ui/atom/carousel'
+<Carousel.Root defaultValue="one" loop={false}>
+  <Carousel.Viewport><Carousel.Track>
+    <Carousel.Slide value="one" label="First story">One</Carousel.Slide>
+    <Carousel.Slide value="two" label="Second story">Two</Carousel.Slide>
+  </Carousel.Track></Carousel.Viewport>
   <Carousel.Previous />
+  <Carousel.Picker><Carousel.PickerItem value="one" /><Carousel.PickerItem value="two" /></Carousel.Picker>
   <Carousel.Next />
-  <Carousel.Picker>
-    <Carousel.PickerItem value="one" />
-    <Carousel.PickerItem value="two" />
-  </Carousel.Picker>
 </Carousel.Root>
 ```
 
-Root, Viewport, Track, and one or more Slides form the required structure.
-Every control is optional for a manually selected carousel. When automatic
-rotation is enabled, RotationControl, Previous, and Next are required; Picker
-remains optional.
+## Behavior
 
-## API Reference
+Choose `value/defaultValue/onValueChange` or `page/defaultPage/onPageChange`.
+These modes are mutually exclusive. Pages are unique reachable snap positions;
+several visible items can share one terminal page. Values remain stable across
+reordering. Removing an uncontrolled selected item recovers to its next neighbor,
+or the previous item when removing the final item. Controlled state remains
+parent-owned. Change reasons include `next`, `previous`, `picker`, `scroll`,
+`autoplay` and `collection`.
 
-### Root
+`useCarousel(options)` creates the same controller as Root. Pass it as `value`
+to `Carousel.RootProvider`. `useCarouselContext()` reads the current controller.
+Public commands include `selectPage`, `selectValue`, `goNext`, `goPrevious`,
+`play`, `pause`, and `refresh`. Read `pageSnapPoints`, `page`, `activeValue`,
+`visibleValues`, `inViewValues`, `canGoNext`, `canGoPrevious`, `isPlaying` and
+`isDragging`. Registration and settling members are for compound parts, not
+application replacement engines. Use PickerItem `page` for page indicators.
 
-Root renders a `div`, owns selection and rotation state, registers Slides in
-DOM order, and supplies the carousel's accessible container semantics.
+## Geometry
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `value` | `string` | - |
-| `defaultValue` | `string` | `""` |
-| `onValueChange` | `(value, reason) => void` | - |
-| `autoPlay` | `boolean` | - |
-| `defaultAutoPlay` | `boolean` | `false` |
-| `onAutoPlayChange` | `(autoPlay) => void` | - |
-| `interval` | `number` in milliseconds | `7000`, minimum `1000` |
-| `loop` | `boolean` | `true` |
-| `dir` | `"ltr" \| "rtl"` | Direction context |
-| `previousAriaLabel` | `string` | `"Previous slide"` |
-| `nextAriaLabel` | `string` | `"Next slide"` |
-| `startAriaLabel` | `string` | `"Start slide rotation"` |
-| `stopAriaLabel` | `string` | `"Stop slide rotation"` |
-| `asChild` | `boolean` | `false` |
-| `render` | `RenderProp` | - |
+`orientation` defaults to horizontal. `slidesPerPage` defaults to 1 and supports
+positive fractional counts. `slidesPerMove` defaults to auto (the visible count
+rounded down to at least 1); explicit movement is a positive integer after
+normalization. `autoSize` keeps authored dimensions. `snapType` is mandatory or
+proximity; Slide `snapAlign` is start, center or end. Supply matching CSS in the
+styled layer. Vertical geometry requires a definite viewport height.
 
-Root defaults to `role="group"`; consumers may pass `role="region"` only when
-the carousel warrants a landmark in the page information architecture.
+Provide optional `slideCount` for SSR page estimates and Slide `index` for
+server-known page visibility. Registration and measured geometry supersede the
+estimate. IDs can be customized with `ids.root`, `ids.viewport`, `ids.item(value)`
+or native IDs. Root/Viewport/Track/Slide and actions support native props,
+refs, `render` and `asChild` single-host composition.
 
-| ARIA attribute | Values |
-| --- | --- |
-| `aria-label` | `"Featured content"` by default; describe the content without repeating “carousel” |
-| `aria-roledescription` | `"carousel"` by default; may be localized |
-
-| Data attribute | Values |
-| --- | --- |
-| `[data-slot]` | `"carousel-root"` |
-| `[data-state]` | `"playing"`, `"paused"`, or `"stopped"` |
-| `[data-direction]` | `"ltr"` or `"rtl"` |
-| `[data-initialized]` | present after the initial active Slide is aligned |
-| `[data-loop-transition]` | `"next"` or `"previous"` while crossing a loop boundary |
-| `[data-value]` | active slide value |
-
-Root exposes `--atom-carousel-count` and `--atom-carousel-index` as headless
-collection geometry for styled layers.
-Styled layers should keep scroll motion instant until `[data-initialized]` is
-present, then enable their ordinary motion recipe.
-
-### Viewport
-
-Viewport renders a keyboard-focusable `div`, observes native scrolling, selects the nearest Slide,
-and stops automatic rotation on pointer or wheel interaction. A styled layer
-must make it the overflow viewport.
-
-| Prop | Type | Default |
-| --- | --- | --- |
-| `asChild` | `boolean` | `false` |
-| `render` | `RenderProp` | - |
-
-| ARIA attribute | Values |
-| --- | --- |
-| `aria-atomic` | `false` |
-| `aria-live` | `off` while automatic rotation is requested; otherwise `polite` |
-
-| Data attribute | Values |
-| --- | --- |
-| `[data-slot]` | `"carousel-viewport"` |
-| `[data-state]` | `"playing"`, `"paused"`, or `"stopped"` |
-| `[data-direction]` | `"ltr"` or `"rtl"` |
-
-### Track
-
-Track renders a `div` around Slides. It exposes direction but adds no layout;
-the styled layer supplies its one-row track geometry. When `loop` has more
-than one Slide, Track adds two empty, `aria-hidden` boundary spacers with
-`data-slot="carousel-loop-boundary"`. The spacers create scroll positions but
-never clone authored slide content, IDs, controls, or form fields.
-
-| Prop | Type | Default |
-| --- | --- | --- |
-| `asChild` | `boolean` | `false` |
-| `render` | `RenderProp` | - |
-
-| Data attribute | Values |
-| --- | --- |
-| `[data-slot]` | `"carousel-track"` |
-| `[data-direction]` | `"ltr"` or `"rtl"` |
-
-### Slide
-
-Slide renders a registered `div`. Values must be unique within Root. Provide a
-short content label through `label` or `aria-label`; the fallback is `value`.
-
-| Prop | Type | Default |
-| --- | --- | --- |
-| `value` | `string` | required |
-| `label` | `string` | - |
-| `asChild` | `boolean` | `false` |
-| `render` | `RenderProp` | - |
-
-| ARIA attribute | Values |
-| --- | --- |
-| `role` | `group` by default |
-| `aria-label` | authored label or slide value |
-| `aria-roledescription` | `slide` by default; may be localized |
-| `aria-hidden` | `true` while inactive |
-
-| Data attribute | Values |
-| --- | --- |
-| `[data-slot]` | `"carousel-slide"` |
-| `[data-state]` | `"active"` or `"inactive"` |
-| `[data-value]` | slide value |
-| `[data-loop-position]` | `"before"` or `"after"` when the styled layer must visually place the authored boundary Slide for a directional loop transition |
-
-Inactive Slides are also inert so their descendants cannot remain in the focus
-order while visually outside the viewport.
-
-The styled layer must size each loop-boundary spacer to one viewport and move
-the Slide carrying `data-loop-position` to that boundary. After native scroll
-settles, Atom silently rebases the viewport to the authored Slide's ordinary
-position. Next therefore continues forward from last to first and Previous
-continues backward from first to last in both LTR and RTL.
-
-### Previous
-
-Previous renders a native button and selects the prior Slide. With
-`loop={false}`, it is disabled at the first Slide.
-
-| Prop | Type | Default |
-| --- | --- | --- |
-| `asChild` | `boolean` | `false` |
-| `render` | `RenderProp` | - |
-
-| ARIA attribute | Values |
-| --- | --- |
-| `aria-label` | Root's previous label unless supplied directly |
-
-| Data attribute | Values |
-| --- | --- |
-| `[data-slot]` | `"carousel-previous"` |
-| `[data-direction]` | `"previous"` |
-| `[data-disabled]` | present when unavailable |
-
-### Next
-
-Next renders a native button and selects the following Slide. With
-`loop={false}`, it is disabled at the last Slide.
-
-| Prop | Type | Default |
-| --- | --- | --- |
-| `asChild` | `boolean` | `false` |
-| `render` | `RenderProp` | - |
-
-| ARIA attribute | Values |
-| --- | --- |
-| `aria-label` | Root's next label unless supplied directly |
-
-| Data attribute | Values |
-| --- | --- |
-| `[data-slot]` | `"carousel-next"` |
-| `[data-direction]` | `"next"` |
-| `[data-disabled]` | present when unavailable |
-
-### Picker
-
-Picker renders a named group of optional direct-selection buttons.
-
-| Prop | Type | Default |
-| --- | --- | --- |
-| `ariaLabel` | `string` | `"Choose slide to display"` |
-| `asChild` | `boolean` | `false` |
-| `render` | `RenderProp` | - |
-
-| ARIA attribute | Values |
-| --- | --- |
-| `role` | `group` |
-| `aria-label` | `ariaLabel` |
-
-| Data attribute | Values |
-| --- | --- |
-| `[data-slot]` | `"carousel-picker"` |
-| `[data-state]` | `"playing"`, `"paused"`, or `"stopped"` |
-
-### PickerItem
-
-PickerItem renders a native button associated with one Slide. The active item
-uses `aria-disabled` rather than native `disabled` so it remains discoverable
-in the tab sequence.
-
-| Prop | Type | Default |
-| --- | --- | --- |
-| `value` | `string` | required |
-| `asChild` | `boolean` | `false` |
-| `render` | `RenderProp` | - |
-
-| ARIA attribute | Values |
-| --- | --- |
-| `aria-label` | authored label, registered Slide label, or `Show <value>` |
-| `aria-controls` | associated Slide ID |
-| `aria-disabled` | `true` for the active item |
-
-| Data attribute | Values |
-| --- | --- |
-| `[data-slot]` | `"carousel-picker-item"` |
-| `[data-state]` | `"active"` or `"inactive"` |
-| `[data-value]` | target slide value |
-| `[data-disabled]` | present when the target Slide is unavailable |
-
-### RotationControl
-
-RotationControl renders a native button that explicitly starts or stops
-automatic rotation. Its accessible label describes the action it will perform,
-so it does not use `aria-pressed`.
-
-| Prop | Type | Default |
-| --- | --- | --- |
-| `asChild` | `boolean` | `false` |
-| `render` | `RenderProp` | - |
-
-| ARIA attribute | Values |
-| --- | --- |
-| `aria-label` | Root's start or stop action label |
-
-| Data attribute | Values |
-| --- | --- |
-| `[data-slot]` | `"carousel-rotation-control"` |
-| `[data-state]` | `"playing"` or `"stopped"` |
-
-## Examples
-
-### Manually controlled content
-
-```tsx
-import { Carousel } from "@flowstack-ui/atom";
-
-export function ProductStories() {
-  return (
-    <Carousel.Root defaultValue="company" aria-label="Product stories">
-      <Carousel.Viewport>
-        <Carousel.Track>
-          <Carousel.Slide value="company" label="Company services">
-            Company services
-          </Carousel.Slide>
-          <Carousel.Slide value="hosting" label="Managed hosting">
-            Managed hosting
-          </Carousel.Slide>
-        </Carousel.Track>
-      </Carousel.Viewport>
-      <Carousel.Previous />
-      <Carousel.Next />
-      <Carousel.Picker>
-        <Carousel.PickerItem value="company" />
-        <Carousel.PickerItem value="hosting" />
-      </Carousel.Picker>
-    </Carousel.Root>
-  );
-}
-```
-
-### Automatic rotation
-
-```tsx
-import { Carousel } from "@flowstack-ui/atom";
-
-export function Announcements() {
-  return (
-    <Carousel.Root
-      defaultValue="launch"
-      defaultAutoPlay
-      interval={8000}
-      aria-label="Featured announcements"
-    >
-      <Carousel.RotationControl />
-      <Carousel.Viewport>
-        <Carousel.Track>
-          <Carousel.Slide value="launch" label="New product launch">
-            New product launch
-          </Carousel.Slide>
-          <Carousel.Slide value="service" label="Managed website service">
-            Managed website service
-          </Carousel.Slide>
-        </Carousel.Track>
-      </Carousel.Viewport>
-      <Carousel.Previous />
-      <Carousel.Next />
-    </Carousel.Root>
-  );
-}
-```
-
-Atom intentionally adds no layout CSS. The styled layer must make Viewport a
-horizontal overflow container, Track a row, and each Slide one viewport wide
-for touch scrolling and nearest-slide selection to operate as intended.
+Looping defaults to true and never clones authored slides, controls, IDs or
+media. The styled layer places noninteractive leading/trailing boundary spans
+and applies each slide's `--atom-carousel-shift`. It must not reproduce the old
+viewport-count translation. Short-content loops that cannot recycle a slide
+without showing it twice move instantly at the boundary; normal navigation is
+still available. Native smooth-scroll timing belongs to the browser.
 
 ## Accessibility
 
-Carousel follows the
-[WAI-ARIA Carousel pattern](https://www.w3.org/WAI/ARIA/apg/patterns/carousel/)
-using grouped picker buttons rather than the optional tabbed variant.
+Mouse drag is opt-in through `allowMouseDrag`. Native touch/trackpad scrolling
+remains available. Dragging excludes nested editing/action targets, suppresses
+clicks only after a real drag and handles cancellation. Viewport arrow keys
+follow orientation/direction; Home/End navigate endpoints without intercepting
+keys from nested controls.
 
-Automatic rotation pauses while the pointer hovers the carousel or the
-document is hidden. It stops when focus enters, a control is activated, or the
-viewport receives pointer or wheel interaction, and does not restart until the
-user activates RotationControl. Control activation does not move focus.
+Visible slides remain interactive. Fully offscreen slides are inert and hidden
+from assistive technology. `inViewThreshold` defaults to 0.6; it controls the
+separate in-view state, not whether visible peer controls are usable.
 
-All controls use native button keyboard behavior; Atom does not intercept Tab
-or Arrow keys for the Carousel itself. PickerItem adds one tab stop per Slide,
-so use it for a small set and omit it when direct selection is unnecessary.
+`autoPlay/defaultAutoPlay`, `interval` (7000ms default, 1000ms minimum) and
+`onAutoPlayChange` preserve the playback API. Always render RotationControl
+before the viewport when playback is available. Focus stops rotation until
+explicit restart; hover/document visibility temporarily pause it. Use
+`onAutoplayStatusChange` and `onDragStatusChange` for effective status.
+`translations` customizes actions, indicator and progress text; legacy action
+label props take precedence. The styled layer must honor reduced motion.
 
-Do not place essential information only in an automatically rotating Slide.
-Users must be able to stop rotation and reach every Slide without waiting.
+## Data Attributes
 
-## Changelog
+Parts expose `data-slot`. Viewport exposes `data-orientation`, `data-direction`,
+`data-dragging`, `data-mouse-drag`, and effective playback `data-state`.
+Previous/Next expose their `data-direction` and `data-disabled` availability.
+RotationControl exposes requested playback `data-state`; requested playback can
+remain enabled while effective playback is temporarily paused.
 
-See [CHANGELOG.md](./CHANGELOG.md).
+## Verification
+
+- `test/primitives/carousel.test.mjs`
+- `test/primitives/carousel-interaction.test.mjs`
+- `test/browser/carousel.spec.ts`
+
+Automated coverage does not substitute for physical touch, assistive technology
+or visual motion approval.

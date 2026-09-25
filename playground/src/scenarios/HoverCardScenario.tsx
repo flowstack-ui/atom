@@ -251,7 +251,7 @@ export function HoverCardScenarioLog({ state }: { state: HoverCardScenarioState 
 export function getHoverCardSource(state: HoverCardScenarioState) {
   const rootProps = [
     state.controlled ? "open={open}" : state.defaultOpen ? "defaultOpen" : null,
-    state.openDelay !== 700 ? `openDelay={${state.openDelay}}` : null,
+    state.openDelay !== 600 ? `openDelay={${state.openDelay}}` : null,
     state.closeDelay !== 300 ? `closeDelay={${state.closeDelay}}` : null,
     state.disabled ? "disabled" : null,
     "onOpenChange={setOpen}",
@@ -395,7 +395,7 @@ const arrowSizeOptions = [
 const openDelayOptions = [
   { label: "None", value: "0" },
   { label: "Short", value: "150" },
-  { label: "Default", value: "700" },
+  { label: "Default", value: "600" },
 ] as const;
 
 const closeDelayOptions = [
