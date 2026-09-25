@@ -94,6 +94,10 @@ non-modal outside interaction keeps its destination.
 Deferred close-focus restoration yields to a newer focus handoff and is
 cancelled if the menu reopens or unmounts.
 
+Reopening retained Content or SubContent recalculates placement, including when
+exit motion is interrupted. Consumers do not need to dispatch resize events or
+call the controller's reposition method just to make a reopened menu visible.
+
 Content resolves text direction from its explicit native `dir`, its trigger's
 computed direction, or `Direction.Provider`, then applies that direction to
 the portalled surface. SubContent repeats the same resolution from its

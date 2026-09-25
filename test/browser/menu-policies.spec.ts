@@ -1,5 +1,49 @@
 import { expect, test } from "@playwright/test";
 
+test("Menubar repositions when reopening retained exit content after adjacent handoff", async ({ page }) => {
+  await page.goto("/__tests/menu-policies?owner=Menubar");
+  // Consumer-authored exit motion keeps the same floating host mounted.
+  await page.addStyleTag({ content: `
+    @keyframes menu-exit { from { opacity: 1 } to { opacity: 0 } }
+    [data-slot="menu-content"][data-state="closed"] { animation: menu-exit 5s linear; }
+  ` });
+  const bar = page.getByRole("menubar", { name: "Policy commands" });
+  const file = bar.getByRole("menuitem", { name: "File", exact: true });
+  const edit = bar.getByRole("menuitem", { name: "Edit", exact: true });
+  const undo = page.getByRole("menuitem", { name: "Undo", exact: true });
+  await file.click();
+  await expect(page.getByRole("menu", { name: "Menubar policies" })).toBeVisible();
+  await edit.hover();
+  await expect(undo).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(edit).toBeFocused();
+  await expect(edit).toHaveAttribute("aria-expanded", "false");
+  await page.mouse.move(0, 0);
+  await edit.click();
+  await expect(edit).toHaveAttribute("aria-expanded", "true");
+  await expect(undo).toBeVisible();
+  await expect(undo.locator("..")).toHaveAttribute("data-positioned", "");
+});
+
+test("submenu repositions and restores keyboard entry during interrupted exit", async ({ page }) => {
+  await page.goto("/__tests/menu-policies?owner=Menu");
+  await page.addStyleTag({ content: `
+    @keyframes submenu-exit { from { opacity: 1 } to { opacity: 0 } }
+    [data-slot="menu-sub-content"][data-state="closed"] { animation: submenu-exit 5s linear; }
+  ` });
+  await page.getByRole("button", { name: "Controller open", exact: true }).click();
+  const more = page.getByRole("menuitem", { name: "More", exact: true });
+  const nested = page.getByRole("menuitem", { name: "Nested action", exact: true });
+  await more.focus();
+  await more.press("ArrowRight");
+  await expect(nested).toBeFocused();
+  await nested.press("Escape");
+  await expect(more).toBeFocused();
+  await more.press("ArrowRight");
+  await expect(nested).toBeVisible();
+  await expect(nested).toBeFocused();
+});
+
 for (const owner of ["Menu", "DropdownMenu", "ContextMenu", "Menubar"]) {
   test(`${owner} policy workbench exposes controller, selection and retained lifecycle`, async ({ page }) => {
     await page.goto(`/__tests/menu-policies?owner=${owner}`);

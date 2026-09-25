@@ -230,7 +230,10 @@ function MenuSubContent(
     },
     open: isOpen,
   });
-
+  useEffect(() => {
+    // A retained host needs a fresh placement after closed state resets it.
+    if (isOpen && isPresent) update();
+  }, [isOpen, isPresent, update]);
 
   const focusItem = useCallback((value: string) => {
     setHighlightedValue(value);
