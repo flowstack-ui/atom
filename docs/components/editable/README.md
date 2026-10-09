@@ -90,3 +90,7 @@ the original default and ends editing; prevented reset is respected. Controlled
 parents own reset policy. Field label, description and invalid state integrate
 through the existing Atom mechanisms. Autoresize geometry is functional, not a
 visual recipe. Screen-reader, actual zoom and physical-device review are manual.
+
+Textarea autoresize measures initial content synchronously. Responsive width
+changes coalesce into the owning document's next animation frame, outside native
+resize-observer delivery. Pending work is cancelled on disable or unmount.

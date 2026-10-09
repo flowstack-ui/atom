@@ -685,21 +685,34 @@ export const EditableTextarea = forwardRef<
     };
     resize();
     const view = element.ownerDocument.defaultView;
+    let frame: number | undefined;
+    let disposed = false;
+    const scheduleResize = () => {
+      if (!view || disposed || frame !== undefined) return;
+      frame = view.requestAnimationFrame(() => {
+        frame = undefined;
+        if (!disposed) resize();
+      });
+    };
     let width = element.clientWidth;
     const observer =
       typeof ResizeObserver !== "undefined"
         ? new ResizeObserver(() => {
             if (element.clientWidth !== width) {
               width = element.clientWidth;
-              resize();
+              // Writing the observed height during delivery creates a native
+              // ResizeObserver loop on responsive textarea reflow.
+              scheduleResize();
             }
           })
         : null;
     observer?.observe(element);
-    view?.addEventListener("resize", resize);
+    view?.addEventListener("resize", scheduleResize);
     return () => {
+      disposed = true;
       observer?.disconnect();
-      view?.removeEventListener("resize", resize);
+      view?.removeEventListener("resize", scheduleResize);
+      if (frame !== undefined) view?.cancelAnimationFrame(frame);
     };
   }, [
     entry.controller.value,

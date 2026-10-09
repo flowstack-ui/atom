@@ -120,6 +120,10 @@ alter the panel. `orientation` is behavior metadata for styled layers:
 vertical motion uses height and horizontal motion uses width. Trigger keyboard
 activation does not change.
 
+Initial measurement remains synchronous. Observed changes coalesce into the
+owning document's next animation frame, outside resize-observer delivery;
+unchanged dimensions do not rewrite the variables. Cleanup cancels pending work.
+
 ### Controller and context
 
 `useCollapsible(options)` returns `open`, exit-aware `visible`, `disabled`,

@@ -33,6 +33,7 @@ Show or hide one related block with disclosure-button semantics, linked region s
 
 - Verify controlled/uncontrolled open state, native and custom Trigger pointer/Enter/Space activation, accessible name, expanded and controls relationships, disabled behavior, Content region label, default unmount, keepMounted hidden state, and asChild/render composition.
 - Verify vertical and horizontal metadata across all parts, initial-open state, measurement before entry paint, live width and height updates after responsive reflow and intrinsic content changes, exit presence, and no unintended page-load entrance motion.
+- Initial measurement is synchronous; observer-driven size updates commit on the next animation frame. Allow that frame before checking settled geometry. Verify partial preview animation, responsive reflow and removal/remount without ResizeObserver errors or stale writes.
 
 ## Related guidance
 

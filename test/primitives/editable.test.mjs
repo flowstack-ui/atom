@@ -60,3 +60,51 @@ test("Editable cancelled outside interaction keeps draft and editing",async()=>m
   await React.act(async()=>context.api.setValue("Draft"));await React.act(async()=>document.getElementById("outside").focus());
   assert.equal(context.api.editing,true);assert.equal(context.api.value,"Draft");
 }));
+
+test("Editable autoresize defers observer writes, coalesces and cancels on disable", async () => mounted(async context => {
+  const priorObserver = globalThis.ResizeObserver;
+  const observers = [];
+  const frames = new Map();
+  let nextFrame = 0;
+  context.dom.window.requestAnimationFrame = callback => {
+    const id = ++nextFrame; frames.set(id, callback); return id;
+  };
+  context.dom.window.cancelAnimationFrame = id => frames.delete(id);
+  globalThis.ResizeObserver = class {
+    constructor(callback) { this.callback = callback; observers.push(this); }
+    observe(element) { this.element = element; }
+    disconnect() { this.disconnected = true; }
+  };
+  try {
+    await context.render({ defaultEdit: true, autoResize: true, defaultValue: "Wrapping text" }, true);
+    const element = context.dom.window.document.querySelector("textarea");
+    let width = 150, height = 52;
+    Object.defineProperties(element, {
+      clientWidth: { configurable: true, get: () => width },
+      scrollHeight: { configurable: true, get: () => height },
+      clientHeight: { configurable: true, get: () => 32 },
+      offsetHeight: { configurable: true, get: () => 34 },
+    });
+    const observer = observers.find(entry => entry.element === element);
+    const before = element.style.height;
+    observer.callback([]);
+    width = 100; height = 72;
+    observer.callback([]);
+    assert.equal(element.style.height, before, "observer must not mutate observed height");
+    assert.equal(frames.size, 1);
+    const callbacks = [...frames.values()]; frames.clear(); callbacks.forEach(callback => callback(0));
+    assert.equal(element.style.height, "74px", "latest intrinsic size is applied");
+    observer.callback([]);
+    assert.equal(frames.size, 0, "height-only notification schedules no resize");
+    width = 90; observer.callback([]);
+    assert.equal(frames.size, 1);
+    await context.render({ defaultEdit: true, autoResize: false }, true);
+    assert.equal(frames.size, 0);
+    assert.equal(observer.disconnected, true);
+    width = 80; observer.callback([]);
+    assert.equal(frames.size, 0, "stale delivery is inert after cleanup");
+  } finally {
+    if (priorObserver === undefined) delete globalThis.ResizeObserver;
+    else globalThis.ResizeObserver = priorObserver;
+  }
+}));

@@ -318,4 +318,25 @@ Workbook cleanup was completed after this protocol passed. Prop Check, custom
 slots, blocked-trigger behavior, and Ref coverage are represented by live
 playground evidence. `aria-controls` remains a generated relationship, and
 `--content-height` is verified as a rendered pixel value rather than a fixed
-literal. Every current Collapsible row is implemented, tested, and covered.
+literal. That historical manual pass does not cover the resize lifecycle
+changes below. Measured-size rows are reopened for manual verification.
+
+## Resize lifecycle additions (not manually performed)
+
+Open `/__tests/resize-lifecycle` in a browser with the console visible. Repeat at
+1280px, 1024px and 390px viewport widths. Wait for each animation to finish.
+
+1. Confirm the initially closed disclosure settles at 48px and its inner button
+   is inert and absent from keyboard navigation.
+2. Resize the browser repeatedly. Confirm the editable textarea grows or shrinks
+   to fit its wrapping text without clipping or persistent excess height.
+3. Open `Responsive disclosure`, select `Change content`, and confirm the open
+   content grows. Close it and confirm it returns to the 48px preview.
+4. Select `Toggle fixtures` while resizing, then select it again. Repeat three
+   times. Confirm the remounted textarea and disclosure still work.
+5. Confirm no ResizeObserver loop or other uncaught errors appeared. Repeat in
+   actual Safari and with physical touch and reduced motion before recording
+   those manual environments as passed.
+
+Automated tests exercise this route separately. They do not complete these
+manual steps or approve visual quality, screen-reader or physical-device checks.

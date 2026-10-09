@@ -15,6 +15,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  resize-lifecycle:
+    uses: ./.github/workflows/resize-lifecycle.yml
+
   package:
     name: package (node-${{ matrix.node }})
     runs-on: ubuntu-latest

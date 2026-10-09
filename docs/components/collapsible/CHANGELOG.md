@@ -1,8 +1,9 @@
 # Collapsible Changelog
 
-## Unreleased
+## 0.27.3
 
-- No unreleased changes.
+- Coalesce observed size changes outside ResizeObserver delivery, preserving
+  initial measurement and cancelling pending measurement on cleanup.
 
 ## 0.27.0
 
