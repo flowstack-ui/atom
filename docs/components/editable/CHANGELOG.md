@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- No unreleased changes.
+- Defer responsive textarea autoresize outside ResizeObserver delivery and cancel
+  pending work when autoresize is disabled or the entry unmounts.
 
 ## 0.27.0
 

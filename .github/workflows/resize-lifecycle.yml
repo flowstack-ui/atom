@@ -1,0 +1,38 @@
+name: Resize lifecycle regressions
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  macos-webkit:
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            playground/package-lock.json
+      - run: npm ci
+      - run: npm ci --prefix playground
+      - run: npm run playground:build
+      - run: npx playwright install --with-deps webkit
+      - run: npm run test:browser:project:built -- test/browser/resize-lifecycle.spec.ts --project=desktop-webkit --retries=0
+        env:
+          FLOWSTACK_TEST_ARTIFACT_DIR: test-results/resize-lifecycle
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: atom-resize-lifecycle-macos-webkit
+          path: test-results/resize-lifecycle/
+          if-no-files-found: error
+          retention-days: 14

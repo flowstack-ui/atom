@@ -7,7 +7,7 @@ let createRoot;
 async function setup(run) {
   const dom = new JSDOM('<div id="root"></div>', { url: 'https://example.test', pretendToBeVisual: true });
   const saved = new Map();
-  for (const key of ['window','document','Node','Element','HTMLElement','MutationObserver']) {
+  for (const key of ['window','document','navigator','Node','Element','HTMLElement','MutationObserver']) {
     saved.set(key, Object.getOwnPropertyDescriptor(globalThis, key));
     Object.defineProperty(globalThis, key, { configurable: true, writable: true, value: dom.window[key] });
   }

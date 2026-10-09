@@ -11,6 +11,6 @@
     {"id":"editable-fields","level":"must","statement":"Use one named input or textarea; do not render both or add a duplicate hidden form value."}
   ],
   "commonMistakes":[{"mistake":"Saving every draft keystroke as a completed rename.","correction":"Save on commit and preserve application-owned error/retry state."}],
-  "validation":["Test empty/default-edit rollback, controlled transitions, outside cancellation, explicit controls and IME.","Test multiline newlines/modifier submit, native form reset/validation, Field naming and nested dialog focus."],
+  "validation":["Test empty/default-edit rollback, controlled transitions, outside cancellation, explicit controls and IME.","Test multiline newlines/modifier submit, native form reset/validation, Field naming and nested dialog focus.","With autoResize, verify responsive width changes, settled textarea height and cleanup without observer errors; allow a rendering frame for observer-driven updates."],
   "related":["input","field","form","dialog"]
 }

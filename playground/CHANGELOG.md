@@ -6,6 +6,10 @@ separately in `../CHANGELOG.md` and the affected component changelogs.
 
 ## Unreleased
 
+- Add a resize lifecycle harness and automated responsive textarea/disclosure
+  regressions, including initial partial motion, content changes and remounts.
+  Physical-device and manual visual review remain unperformed.
+
 - Bound release WebKit process lifetimes through test-inventory shards; retain
   complete profile accounting and fail on missing results, failures or flakes.
 

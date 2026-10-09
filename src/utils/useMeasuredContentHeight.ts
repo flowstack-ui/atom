@@ -20,8 +20,12 @@ export function useMeasuredContentHeight(
     const element = contentRef.current;
     if (!element || !enabled) return;
 
-    element.style.setProperty("--content-height", `${element.scrollHeight}px`);
-    element.style.setProperty("--content-width", `${element.scrollWidth}px`);
+    const height = `${element.scrollHeight}px`;
+    const width = `${element.scrollWidth}px`;
+    if (element.style.getPropertyValue("--content-height") !== height)
+      element.style.setProperty("--content-height", height);
+    if (element.style.getPropertyValue("--content-width") !== width)
+      element.style.setProperty("--content-width", width);
   }, [contentRef, enabled]);
 
   useSafeLayoutEffect(() => {
@@ -34,8 +38,24 @@ export function useMeasuredContentHeight(
       return undefined;
     }
 
-    const observer = new ResizeObserver(measure);
+    const view = element.ownerDocument.defaultView;
+    if (!view) return undefined;
+    let frame: number | undefined;
+    let disposed = false;
+    // Size variables can drive the observed element's animation. Commit outside
+    // ResizeObserver delivery so that a style write cannot re-enter that batch.
+    const observer = new ResizeObserver(() => {
+      if (disposed || frame !== undefined) return;
+      frame = view.requestAnimationFrame(() => {
+        frame = undefined;
+        if (!disposed && contentRef.current === element) measure();
+      });
+    });
     observer.observe(element);
-    return () => observer.disconnect();
+    return () => {
+      disposed = true;
+      observer.disconnect();
+      if (frame !== undefined) view.cancelAnimationFrame(frame);
+    };
   }, [contentRef, enabled, measure]);
 }

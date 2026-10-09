@@ -14,6 +14,9 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  resize-lifecycle:
+    uses: ./.github/workflows/resize-lifecycle.yml
+
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -184,7 +187,7 @@ jobs:
       - run: npm run verify:consumer -- "$RUNNER_TEMP/atom-package" ${{ matrix.react }}
 
   publish:
-    needs: [validate, repository, archive, playground, browser, consumer]
+    needs: [validate, repository, archive, playground, browser, consumer, resize-lifecycle]
     if: needs.validate.outputs.already-published != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10

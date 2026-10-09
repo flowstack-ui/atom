@@ -31,6 +31,7 @@ Own inline preview/edit transactions, commit/cancel and focus without visual sty
 
 - Test empty/default-edit rollback, controlled transitions, outside cancellation, explicit controls and IME.
 - Test multiline newlines/modifier submit, native form reset/validation, Field naming and nested dialog focus.
+- With autoResize, verify responsive width changes, settled textarea height and cleanup without observer errors; allow a rendering frame for observer-driven updates.
 
 ## Related guidance
 

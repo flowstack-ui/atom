@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-- No unreleased changes.
+- Schedule observer-driven Editable textarea and disclosure size updates outside
+  ResizeObserver delivery, coalesce notifications and cancel work on cleanup.
+  Preserve synchronous initial measurement and skip unchanged disclosure writes.
 
 ## 0.27.2 - 2026-09-25
 

@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- No unreleased changes.
+- Coalesce observed group size changes outside ResizeObserver delivery and
+  cancel pending measurement on cleanup.
 
 ## 0.27.0
 
