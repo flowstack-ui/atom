@@ -23,7 +23,15 @@ test("initial partial disclosure and editable reflow settle without observer err
       await settle(page);
       expect(errors).toEqual([]);
     }
+    // Finish the Editable scenario before pointer-testing the disclosure. At
+    // narrow widths committing on blur replaces a tall textarea with Preview,
+    // moving the pointer target between mousedown and mouseup.
+    await page.locator("textarea").focus();
+    await page.locator("textarea").press("Tab");
+    await expect(page.locator("textarea")).toBeHidden();
+    await settle(page);
     await page.getByRole("button", { name: "Responsive disclosure", exact: true }).click();
+    await expect(page.locator("#resize-panel")).toHaveAttribute("data-state", "open");
     await settle(page);
     const initialHeight = (await page.locator("#resize-panel").boundingBox())!.height;
     expect(initialHeight).toBeGreaterThan(48);

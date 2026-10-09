@@ -1,6 +1,6 @@
 # NavList Changelog
 
-## Unreleased
+## 0.27.3
 
 - Coalesce observed section size changes outside ResizeObserver delivery and
   cancel pending measurement on cleanup.

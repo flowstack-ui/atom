@@ -13,6 +13,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  resize-lifecycle:
+    uses: ./.github/workflows/resize-lifecycle.yml
+
   release:
     name: complete release gate
     runs-on: ubuntu-latest

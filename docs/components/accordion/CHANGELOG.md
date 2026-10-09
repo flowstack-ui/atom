@@ -1,6 +1,6 @@
 # Accordion Changelog
 
-## Unreleased
+## 0.27.3
 
 - Coalesce observed disclosure size changes outside ResizeObserver delivery and
   cancel pending measurement on cleanup.
